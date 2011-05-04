@@ -9,6 +9,8 @@ concepts of model-driven software development.
 2) The diagram editor requires wxRuby
   NOTE: On that mac installing Ruby 1.9 with wxRuby requires some care:
   a) configure ruby before compiling, to get both architectures
-       .\configure --with-arch=x86_64,i386
+       ./configure --with-arch=x86_64,i386
   b) use "gem" to install "wxruby-ruby19-2.0.1-x86-darwin-9.gem"
+     download the gem file (its in a zip, so unzip it), and invoke
+         gem install <path>/wxruby-ruby19-2.0.1-x86-darwin-9.gem
   c) to run Ruby with wxRuby, use "arch -i386 ruby <ruby-file>"
