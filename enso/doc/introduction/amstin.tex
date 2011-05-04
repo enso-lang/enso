@@ -20,20 +20,51 @@
 %\section{}
 %\subsection{}
 
-This paper describes \Enso, a new approach to software 
-development. \Enso\ starts from a few simple, but radical
-assumptions, from which a complete programming model is then
-derived. The basic principles are
+\Enso\ is a theoretically sound and practical reformulation of the 
+concepts of model-driven software development. \Enso\ is based
+on first-class \textit{structural descriptions}, 
+bi-directional \textit{transformations}, and \textit{interpretation}.
 
-information models (cyclic graphs) as data structures
+\textit{Structures} in \Enso\ are a specialized kind of graph,
+whose nodes are either primitive values or collections of observable
+properties, whose values are either nodes or collections of nodes.
+From a programming language viewpoint this may seem an odd 
+choice for data representation. However, it is essentially the
+\textit{Entity-Relationship} (ER) model, also known as \textit{Information
+Models}, which is widely used in the design of relational databases
+and is also the basis for \textit{Class Diagrams} in UML, which 
+describe the structure of networks of objects.
+The key point is that structures in \Enso\ are 
+viewed holistically as \textit{graphs}, not as individual values
+or traditional sums-and-products data structures.
 
-schemas (types) are first-class data that are checked dynamically,
-and may also be derived/computed dynamically
+Structure are created by \textit{factories}, which create
+and manage the nodes in the structure. The factory also
+ensures that structures are distinct: a factory identifies the 
+collection of nodes that belong to a graph, and any given node 
+can only be connected to other nodes in the same graph, which were
+created by the same factory.
 
-generic operations, guided by meta-data, include equality, difference,
-merge, parse, and rendering. Operations use cyclic maps to transform 
-cyclic data.
+A \textit{structural description}, or \textit{schema}, specifies some 
+of the observable properties of structures. A schema can be used
+to validate a structure, to check whether the structure has all the
+required properties. In \Enso\ most properties of a structure are
+checked when the structure is being created. In other words, 
+the \textit{factory} that creates the structure is parameterized by a
+schema, which the factory uses to check the legality of operations
+on the objects it creates.
 
+[todo: transformations]
+
+[todo: interpretation]
+
+What follows is a rapid introduction to the concepts and use of
+\Enso. To avoid too many digressions, 
+the many connections between \Enso\ and existing approaches,
+including programming models
+(model-driven, object-oriented, polytypic, functional, constraint-based), theory (dependent types, coalgebra, category theory),
+and related ideas (relational databases, domain-specific languages)
+are discussed in Section~\ref{relatedwork}.
 
 
 
@@ -43,89 +74,39 @@ cyclic data.
 
 
 \begin{itemize}
+\item Information models (cyclic graphs) as data structures
 
-\item \Enso\ represents data as collections of entities with attributes
-and connected into a graph via relationships. 
-Data is not broken into atomic pieces (objects, records, or tuples), but is
-instead managed holistically as cyclic data structures.
+\item Types as dynamically checked first-class values
 
-\item Data is described by schemas, which have 
-metadata about structure, behavior, and intent.
+\item Pervasive dynamic creation/transformation of types
 
-\item Generalized grammars describe how
-data is presented in a variety of formats, including
-text, diagrams, GUIs, and web pages.
-Most presentations are bi-directional.
+\item Generic operations guided by metadata (types, grammars, mappings, etc)
 
-\item Interactive presentation structures define legal editing operations
-to insert, delete, and modify the original structure.
-Data binding is implicit and automatic.
+\item Cyclic maps to handle transformation of cyclic structures
 
-\item Generic operations, guided by metadata, perform
-complex transformations on arbitrary structures.
+\item Uniform handling of textual and visual grammars
 
-\item Transformation on cyclic structures are natural.
-The system generalizes attribute grammars.
+\item Fine-grained feature modularity based on mixin composition
 
-\item Schemas and presentations are also data, and 
-are frequently generated, transformed, and merged.
+\item Pervasive management of change in core, grammars, types, and instances
 
-\item Everything, including the fundamental schemas
-in the system, is extensible.
+\item Creation of rich web/GUI/mobile information management applications
 
-\item Change is encouraged and managed. Changes to
-schemas are represented as instances of delta schemas.
-Schema changes guide instance upgrades.
+\item Dynamic interpretation, code generation only by partial evaluation
 
-\item Everything, including schemas, grammars and
-transformations, can be composed and mixed together
-to support extreme reuse and feature modularity
+\item Bulk operations for efficient remote/database communication
 
-\item The entire system is dynamic, but tightly 
-constrained by the dynamic metadata. We have 
-demonstrated that partial evaluation and supercompilation 
-can specialize generic operations to create efficient 
-code.
-
-\item Serialization is avoided. Instead every kind of 
-data is presented in a language, so that it can be 
-versioned and managed.
-
-\item There is a natural mapping to relational databases,
-especially since bulk operations on information structures
-is fundamental to \Enso. We view query results as 
-mini-databases, not as single tables. 
-
+\item Self-implemented, pervasively customizable
 \end{itemize}
 
-\subsection{Relationship to Other Approaches}
-
-\Enso\ data is based on traditional 
-entity-relationship (ER) models \cite{FOO},
-which are also known as information models. 
-ER models were the basis for class diagrams in UML.
-
-In contrast to
-object-oriented programming, \Enso\ is focused on holistic
-object graphs, rather than individual objects. \Enso\ 
-does allow data to include some behavior, for example constraints
-and computed fields, but \Enso\ does not associated methods
-with data objects.
-
-In contrast to
-most theories of functional programming, \Enso\ is based on
-coalgebraic signatures rather than algebraic ones. In practice
-this means that \Enso\ structures are cyclic graphs rather than
-trees. Lazy functional languages can also represent cyclic 
-structures, but the cycles are not observable.
-
-\Enso\ supports controlled imperative effects. Objects are
-mutable during construction or modification, while the data may be in an
-inconstent state, but before it can be used it must be validated
-and locked from further changes. This is similar to a transaction.
 
 
-\Enso\ data is 
+
+
+
+
+
+
 
 \subsection{Data}
 
@@ -175,6 +156,34 @@ grammar NAME:sym
                )) ";" }
              "}"
 \end{verbatim}
+
+\subsection{Relationship to Other Approaches}
+\label{relatedwork}
+
+\Enso\ data is based on traditional 
+entity-relationship (ER) models \cite{FOO},
+which are also known as information models. 
+ER models were the basis for class diagrams in UML.
+
+In contrast to
+object-oriented programming, \Enso\ is focused on holistic
+object graphs, rather than individual objects. \Enso\ 
+does allow data to include some behavior, for example constraints
+and computed fields, but \Enso\ does not associated methods
+with data objects.
+
+In contrast to
+most theories of functional programming, \Enso\ is based on
+coalgebraic signatures rather than algebraic ones. In practice
+this means that \Enso\ structures are cyclic graphs rather than
+trees. Lazy functional languages can also represent cyclic 
+structures, but the cycles are not observable.
+
+\Enso\ supports controlled imperative effects. Objects are
+mutable during construction or modification, while the data may be in an
+inconstent state, but before it can be used it must be validated
+and locked from further changes. This is similar to a transaction.
+
 
 
 \section{Requirements for a programming language}

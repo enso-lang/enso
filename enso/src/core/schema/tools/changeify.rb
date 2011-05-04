@@ -1,6 +1,28 @@
 require 'schema/factory'
 require 'schema/schemaschema'
 
+=begin
+
+here is a render version of this transform:
+
+schema <<name+"Change">>
+  <<classes:
+    class <<name>> (super <<super.name>>)?
+      <<fields:
+        <<name>>: ( <<type.name+"Change">>? <<if: type.Primitive?>>
+                | <<type.name>>* <<if: type.many>>
+                | <<type.name>>? )>>
+    end>>
+
+  <<primitives:
+    class <<name+"Change>>
+      value: <<name>>
+    end
+    primitive: <<name>>
+  >>
+end
+
+
 class Changeify
   def initialize()
     @memo = {}
