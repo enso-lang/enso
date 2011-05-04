@@ -1,0 +1,42 @@
+schema GrammarSchema
+
+  primitive \str
+  primitive \int
+  primitive \bool
+
+
+  class Grammar
+    name: str
+    start: Rule
+    rules: Rule*
+  end
+  
+  class Rule
+    #name: str
+    #grammar: Grammar / Grammar.rules
+    arg: Expression
+  end 
+
+  class Expression
+  end
+
+  class Alt < Expression
+    alts: Expression+
+  end 
+
+  class Call < Expression
+    rule: Rule
+  end
+  
+  class Regular < Expression
+    arg: Expression
+    optional: bool
+    many: bool
+    sep: str?
+  end
+
+  class Lit < Expression
+    value: str
+  end
+
+end

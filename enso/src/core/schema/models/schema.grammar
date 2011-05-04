@@ -1,0 +1,28 @@
+grammar SchemaGrammar 
+
+start Schema
+
+Schema ::= [Schema] "schema" name:sym types:TypeDef* "end"
+
+TypeDef ::= Primitive | Klass
+
+Primitive ::= [Primitive] "primitive" name:sym
+
+Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
+
+Parent ::= "<" super:Klass^
+
+Field ::= [Field] Key? name:sym ":" type:Type Multiplicity Annot?
+
+Key ::= "#" @"@key = true"
+
+Type ::=  Primitive^
+	| Klass^
+
+Multiplicity ::= "*" @"@many = true; @optional = true"
+	       | "?" @"@optional = true" 
+	       | "+" @"@many = true"
+	       | @"true"
+
+Annot ::= "/" inverse:Field^
+        | "=" computed:str

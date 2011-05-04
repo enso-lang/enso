@@ -1,0 +1,40 @@
+schema SchemaSchema
+
+  primitive \str
+  primitive \int
+  primitive \bool
+  primitive \real
+
+  class Schema
+    #name: str
+    types: Type*
+    classes: Klass* = "@types.select(&:Klass?)"
+    primitives: Primitive* = "@types.select(&:Primitive?)"
+  end
+
+  class Type
+    #name: str
+    \schema: Schema / Schema.types
+  end
+  
+  class Primitive < Type
+  end
+  
+  class Klass < Type
+    super: Klass?
+    subtypes: Klass* / Klass.super
+    defined_fields: Field*
+    fields: Field* = "@super ? @super.fields + @defined_fields : @defined_fields"
+  end
+  
+  class Field
+    #name: str
+    #owner: Klass / Klass.defined_fields
+    type: Type
+    optional: bool
+    many: bool
+    key: bool
+    inverse: Field? / Field.inverse 
+    computed: str?
+  end
+end

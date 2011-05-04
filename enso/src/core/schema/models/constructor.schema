@@ -1,0 +1,37 @@
+schema ConstructorSchema
+
+  primitive \str
+  primitive \int
+  primitive \bool
+
+  class Tree
+  end
+
+  class Sequence < Tree
+    elements: Tree*
+  end
+
+  class Create < Tree
+    name: str
+    arg: Tree
+  end
+
+  class Code < Tree
+    code: str
+  end
+
+  class Field < Tree
+    name: str
+    arg: Tree
+  end
+
+  class Value < Tree
+    kind: str
+    value: str
+  end
+
+  class Ref < Tree
+    name: str
+  end
+
+end

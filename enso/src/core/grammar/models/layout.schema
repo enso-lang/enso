@@ -1,0 +1,30 @@
+schema LayoutSchema 
+  class Format end 
+  
+  class Sequence < Format 
+    elements: Format* 
+  end 
+  
+  class Group < Format
+    arg: Format 
+  end 
+  
+  class Nest < Format
+    arg: Format 
+    indent: int
+  end 
+  
+  class Break < Format 
+    indent: int 
+    sep: str 
+  end 
+  
+  class Text < Format 
+    value: str 
+  end 
+
+  primitive str 
+  primitive int 
+  primitive bool 
+end 
+  

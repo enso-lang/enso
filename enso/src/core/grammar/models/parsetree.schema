@@ -1,0 +1,33 @@
+schema ParseTreeSchema
+  primitive \str
+  primitive \int
+  primitive \bool
+
+  class ParseTree
+    path: str
+    top: Tree
+    layout: str
+  end   
+
+  class Tree
+  end
+
+  class Appl < Tree
+    rule: str
+    arg: Tree
+  end
+  
+  class Value < Tree
+    layout: str
+  end 
+
+  class Lit < Tree
+    value: str
+    layout: str
+  end
+
+  class Ref < Tree
+    layout: str
+  end
+
+end
