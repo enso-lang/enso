@@ -1,22 +1,24 @@
 
 
-
 require 'test/unit'
 
-require 'grammar/cpsparser'
-require 'grammar/parsetree'
-require 'grammar/grammargrammar'
-require 'grammar/unparse'
-require 'grammar/instantiate'
-require 'tools/diff'
-require 'grammar/layout'
-require 'schema/factory'
+require 'core/grammar/code/parse'
+require 'core/grammar/code/unparse'
+require 'core/grammar/code/layout'
+
+require 'core/system/boot/parsetree_schema'
+require 'core/system/boot/grammar_grammar'
+require 'core/instance/code/instantiate'
+require 'core/diff/code/diff'
+require 'core/schema/code/factory'
 
 class ParseTest < Test::Unit::TestCase
 
+  GRAMMAR_GRAMMAR = 'core/grammar/models/grammar.grammar'
+
   def test_parse_unparse
     grammar = GrammarGrammar.grammar
-    grammargrammar = 'grammar/grammar.grammar'
+    grammargrammar = GRAMMAR_GRAMMAR
     src = File.read(grammargrammar)
     tree = CPSParser.parse(grammargrammar, grammar)
     s = Unparse.unparse(grammar, tree)
@@ -25,7 +27,7 @@ class ParseTest < Test::Unit::TestCase
  
   def test_parse_render
     boot = GrammarGrammar.grammar
-    grammar1 = CPSParser.load('grammar/grammar.grammar', boot, GrammarSchema.schema)
+    grammar1 = CPSParser.load(GRAMMAR_GRAMMAR, boot, GrammarSchema.schema)
     s = ''
     DisplayFormat.print(GrammarGrammar.grammar, grammar1, 80, s)
     parse = CPSParser.new(s, Factory.new(ParseTreeSchema.schema))

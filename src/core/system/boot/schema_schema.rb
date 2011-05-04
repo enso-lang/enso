@@ -1,6 +1,6 @@
 
 
-require 'schema/schemagen'
+require 'core/system/boot/schema_gen'
 
 class SchemaSchema < SchemaGenerator
 
@@ -73,7 +73,7 @@ end
 
 
 def main
-  require 'tools/print'
+  require 'core/schema/tools/print'
   
   Print.new.recurse(SchemaSchema.schema, SchemaSchema.print_paths)
 end

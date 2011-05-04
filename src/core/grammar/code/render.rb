@@ -1,6 +1,6 @@
 
-require 'cyclicmap'
-require 'grammar/cpsparser'
+require 'core/system/library/cyclicmap'
+require 'core/grammar/code/parse'
 
 # render an object into a grammar, to create a parse tree
 class Render < Dispatch
@@ -119,10 +119,10 @@ class Render < Dispatch
 end
 
 def main
-  require 'schema/factory'
-  require 'grammar/layoutschema'
-  require 'tools/print'
-  require 'grammar/grammargrammar'
+  require 'core/schema/code/factory'
+  require 'core/system/boot/layout_schema'
+  require 'core/schema/tools/print'
+  require 'core/system/boot/grammar_grammar'
 
   render = Render.new
   pt = render.recurse(GrammarGrammar.grammar, GrammarGrammar.grammar)  

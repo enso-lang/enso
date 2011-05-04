@@ -1,3 +1,4 @@
+
 class VisitFields < MemoBase
   def initialize(pass)
     super()

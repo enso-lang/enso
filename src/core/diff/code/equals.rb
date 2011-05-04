@@ -1,6 +1,5 @@
 
-
-require 'cyclicmap'
+require 'core/system/library/cyclicmap'
 
 class Equals < MemoBase
 

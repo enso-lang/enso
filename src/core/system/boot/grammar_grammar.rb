@@ -1,5 +1,5 @@
 
-require 'grammar/grammargen'
+require 'core/system/boot/grammar_gen'
 
 class GrammarGrammar < GrammarGenerator
 
@@ -67,10 +67,10 @@ end
 
 
 if __FILE__ == $0 then
-  require 'schema/schemaschema'
-  require 'tools/print'
-  require 'tools/copy'
-  require 'schema/factory'
+  require 'core/system/boot/schema_schema'
+  require 'core/schema/tools/print'
+  require 'core/schema/tools/copy'
+  require 'core/schema/code/factory'
 
   Print.new.recurse(GrammarGrammar.grammar, GrammarSchema.print_paths)
   

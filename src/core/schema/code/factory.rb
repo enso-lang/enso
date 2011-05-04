@@ -1,5 +1,5 @@
-require 'cyclicmap'
-require 'schema/finalize'
+require 'core/system/library/cyclicmap'
+require 'core/schema/code/finalize'
 
 class Factory
   def initialize(schema)

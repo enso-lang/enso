@@ -1,6 +1,6 @@
 
-require 'schema/schemagen'
-require 'schema/schemaschema'
+require 'core/system/boot/schema_gen'
+require 'core/system/boot/schema_schema'
 
 class LayoutSchema < SchemaGenerator
   primitive :str
@@ -43,12 +43,12 @@ end
 
 if __FILE__ == $0 then
 
-  require 'grammar/layout'
-  require 'grammar/grammargrammar'
-  require 'grammar/cpsparser'
-
+  require 'core/grammar/code/layout'
+  require 'core/system/boot/grammar_grammar'
+  require 'core/grammar/code/parser'
+  
   GG = GrammarGrammar.grammar
-  schema_grammar = CPSParser.load('schema/schema.grammar', GG, GrammarSchema.schema)
-
+  schema_grammar = CPSParser.load('core/schema/models/schema.grammar', GG, GrammarSchema.schema)
+  
   DisplayFormat.print(schema_grammar, LayoutSchema.schema)
 end

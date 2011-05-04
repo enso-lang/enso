@@ -1,8 +1,8 @@
 
-require 'schema/schemaschema'
-require 'schema/factory'
-require 'tools/copy'
-require 'cyclicmap'
+require 'core/system/boot/schema_schema'
+require 'core/system/library/cyclicmap'
+require 'core/schema/code/factory'
+require 'core/schema/tools/copy'
 
 class OptimizingGrammarFactory
   def initialize
@@ -222,8 +222,8 @@ end
 
 
 if __FILE__ == $0 then
-  require 'grammar/grammargrammar'
-  require 'tools/print'
+  require 'core/system/boot/grammargrammar'
+  require 'core/schema/tools/print'
  
   x = GrammarGrammar.grammar
 

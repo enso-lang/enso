@@ -1,6 +1,6 @@
 
-require 'schema/factory'
-require 'grammar/grammarschema'
+require 'core/schema/code/factory'
+require 'core/system/boot/grammar_schema'
 
 class GrammarGenerator
 

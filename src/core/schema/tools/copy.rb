@@ -68,9 +68,9 @@ end
 
 if __FILE__ == $0 then
 
-  require 'schema/schemaschema'
-  require 'tools/print'
-  require 'schema/factory'
+  require 'core/system/boot/schema_schema'
+  require 'core/schema/tools/print'
+  require 'core/schema/code/factory'
   
   newSchema = Copy.new(Factory.new(SchemaSchema.schema)).copy(SchemaSchema.schema)
   newSchema.finalize()

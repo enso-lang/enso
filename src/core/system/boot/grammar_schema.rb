@@ -1,6 +1,6 @@
 
-require 'schema/schemagen'
-require 'schema/schemaschema'
+require 'core/system/boot/schema_gen'
+require 'core/system/boot/schema_schema'
 
 class GrammarSchema < SchemaGenerator
   primitive :str
@@ -76,8 +76,8 @@ end
 
 if __FILE__ == $0 then
 
-  require 'schema/schemaschema'
-  require 'tools/print'
+  require 'core/system/boot/schema_schema'
+  require 'core/schema/tools/print'
   
   Print.new.recurse(GrammarSchema.schema, SchemaSchema.print_paths)  
 end

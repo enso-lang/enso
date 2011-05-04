@@ -2,17 +2,26 @@
 
 require 'test/unit'
 
-require 'core/grammar/code/parser'
-require 'core/grammar/parsetree'
-require 'core/grammar/grammargrammar'
-require 'core/grammar/instantiate'
+require 'core/grammar/code/parse'
+require 'core/system/boot/parsetree_schema'
+require 'core/system/boot/grammar_grammar'
+require 'core/instance/code/instantiate'
 
-require 'tools/equals'
-require 'tools/diff'
-require 'tools/print'
-require 'tools/merge'
+require 'core/diff/code/equals'
+require 'core/diff/code/diff'
+require 'core/diff/code/merge'
+require 'core/schema/tools/print'
 
 class BootstrapTests < Test::Unit::TestCase
+
+  GRAMMAR_GRAMMAR = 'core/grammar/models/grammar.grammar'
+  GRAMMAR_SCHEMA = 'core/grammar/models/grammar.schema'
+  PARSETREE_SCHEMA = 'core/grammar/models/parsetree.schema'
+
+  CONSTRUCTOR_SCHEMA = 'core/instance/models/constructor.schema'
+
+  SCHEMA_GRAMMAR = 'core/schema/models/schema.grammar'
+  SCHEMA_SCHEMA = 'core/schema/models/schema.schema'
 
   def test_grammar_grammar
     grammar = GrammarGrammar.grammar
@@ -20,7 +29,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar))
     assert_equal([], Diff.diff(grammar, grammar))
 
-    grammargrammar = 'grammar/grammar.grammar'
+    grammargrammar = GRAMMAR_GRAMMAR
     grammar2 = CPSParser.load(grammargrammar, grammar, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar2))
@@ -65,8 +74,8 @@ class BootstrapTests < Test::Unit::TestCase
   
   def test_schema_grammar
     grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load('schema/schema.grammar', grammar, GrammarSchema.schema)
-    schema_schema = CPSParser.load('schema/schema.schema', grammar2, SchemaSchema.schema)
+    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
+    schema_schema = CPSParser.load(SCHEMA_SCHEMA, grammar2, SchemaSchema.schema)
 
     assert_equal([], Diff.diff(SchemaSchema.schema, SchemaSchema.schema),
            "Boot SchemaSchema != Boot SchemaSchema")
@@ -74,33 +83,33 @@ class BootstrapTests < Test::Unit::TestCase
 
   def test_grammar_schema
     grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load('schema/schema.grammar', grammar, GrammarSchema.schema)
-    grammar_schema = CPSParser.parse('grammar/grammar.schema', grammar2)
+    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
+    grammar_schema = CPSParser.parse(GRAMMAR_SCHEMA, grammar2)
     assert_not_nil(grammar_schema)
   end
 
   def test_parsetree_schema
     grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load('schema/schema.grammar', grammar, GrammarSchema.schema)
-    pt_schema = CPSParser.parse('grammar/parsetree.schema', grammar2)
+    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
+    pt_schema = CPSParser.parse(PARSETREE_SCHEMA, grammar2)
     assert_not_nil(pt_schema)
   end
 
   def test_constructor_schema
     grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load('schema/schema.grammar', grammar, GrammarSchema.schema)
-    cons_schema = CPSParser.parse('grammar/constructor.schema', grammar2)
+    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
+    cons_schema = CPSParser.parse(CONSTRUCTOR_SCHEMA, grammar2)
     assert_not_nil(cons_schema)
   end
 
   def test_merged_parsetree_schema_equals_bootstrap_parsetree
-    sg = CPSParser.load('schema/schema.grammar', 
+    sg = CPSParser.load(SCHEMA_GRAMMAR, 
                         GrammarGrammar.grammar, 
                         GrammarSchema.schema)
 
-    cons = CPSParser.load_raw('grammar/constructor.schema', 
+    cons = CPSParser.load_raw(CONSTRUCTOR_SCHEMA, 
                               sg, SchemaSchema.schema)
-    pt = CPSParser.load_raw('grammar/parsetree.schema', 
+    pt = CPSParser.load_raw(PARSETREE_SCHEMA, 
                             sg, SchemaSchema.schema)
     
     pt_plus_cons = Merge.new.merge(pt, cons, cons._graph_id, {
@@ -116,13 +125,13 @@ class BootstrapTests < Test::Unit::TestCase
 
 
  def test_merged_grammar_schema_equals_bootstrap_grammar_schema
-   sg = CPSParser.load('schema/schema.grammar', 
+   sg = CPSParser.load(SCHEMA_GRAMMAR, 
                        GrammarGrammar.grammar, 
                        GrammarSchema.schema)
    
-   cons = CPSParser.load_raw('grammar/constructor.schema', 
+   cons = CPSParser.load_raw(CONSTRUCTOR_SCHEMA, 
                              sg, SchemaSchema.schema)
-   gram = CPSParser.load_raw('grammar/grammar.schema', 
+   gram = CPSParser.load_raw(GRAMMAR_SCHEMA, 
                              sg, SchemaSchema.schema)
    
    gram_plus_cons = Merge.new.merge(gram, cons, cons._graph_id,  {

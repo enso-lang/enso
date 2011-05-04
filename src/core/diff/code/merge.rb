@@ -1,6 +1,7 @@
-require 'cyclicmap'
-require 'tools/diff'
-require 'tools/copy'
+require 'core/system/library/cyclicmap'
+require 'core/diff/code/equals'
+require 'core/diff/code/diff'
+require 'core/schema/tools/copy'
 
 class Identify < MemoBase
   def self.placeholder_char
@@ -145,15 +146,15 @@ end
 
 if __FILE__ == $0 then
 
-  require 'grammar/cpsparser'
-  require 'grammar/grammargrammar'
-  require 'tools/print'
+  require 'core/grammar/code/parse'
+  require 'core/system/boot/grammar_grammar'
+  require 'core/schema/tools/print'
 
-  sg = CPSParser.load('schema/schema.grammar', GrammarGrammar.grammar, GrammarSchema.schema)
+  sg = CPSParser.load('core/schema/models/schema.grammar', GrammarGrammar.grammar, GrammarSchema.schema)
 
 
-  cons = CPSParser.load_raw('grammar/constructor.schema', sg, SchemaSchema.schema)
-  pt = CPSParser.load_raw('grammar/parsetree.schema', sg, SchemaSchema.schema)
+  cons = CPSParser.load_raw('core/instance/models/constructor.schema', sg, SchemaSchema.schema)
+  pt = CPSParser.load_raw('core/grammar/models/parsetree.schema', sg, SchemaSchema.schema)
 
   ptPLUScons = Merge.new.merge(pt, cons, cons._graph_id, {
                                  "str" => "str", 
@@ -171,9 +172,9 @@ if __FILE__ == $0 then
                     
 
 
-  gram = CPSParser.load_raw('grammar/grammar.schema', sg, SchemaSchema.schema)
+  gram = CPSParser.load_raw('core/grammar/models/grammar.schema', sg, SchemaSchema.schema)
   # side-effects in cons!!
-  cons = CPSParser.load_raw('grammar/constructor.schema', sg, SchemaSchema.schema)
+  cons = CPSParser.load_raw('core/instance/models/constructor.schema', sg, SchemaSchema.schema)
 
 
 
@@ -185,6 +186,5 @@ if __FILE__ == $0 then
                                  })
   Print.new.recurse(gramPLUScons, SchemaSchema.print_paths)
 
-  require 'tools/equals'
   p Diff.diff(gramPLUScons, GrammarSchema.schema)
 end

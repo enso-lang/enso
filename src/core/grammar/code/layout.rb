@@ -1,7 +1,7 @@
 
-require 'cyclicmap'
-require 'grammar/layoutschema'
-require 'grammar/render'
+require 'core/system/library/cyclicmap'
+require 'core/system/boot/layout_schema'
+require 'core/grammar/code/render'
 
 class FormatWidth < MemoBase
   def Sequence(obj)
@@ -120,7 +120,7 @@ end
 
 
 def main
-  require 'grammar/grammargrammar'
+  require 'core/system/boot/grammar_grammar'
 
   DisplayFormat.print(GrammarGrammar.grammar, GrammarGrammar.grammar)
 end

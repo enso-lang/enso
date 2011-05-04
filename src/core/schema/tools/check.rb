@@ -1,10 +1,5 @@
-require 'cyclicmap'
-require 'schema/factory'
-
-# problem
-# cyclic visiting on schema: stops to early, because it may find the the same class many times
-# cyclic visiting on mode: stops to early,  because  the same primitive value may occur many times
-
+require 'core/system/library/cyclicmap'
+require 'core/schema/code/factory'
 
 class Conformance < CyclicCollectOnBoth
   attr_reader :errors
@@ -75,7 +70,7 @@ class Conformance < CyclicCollectOnBoth
 end
 
 if __FILE__ == $0 then
-  require 'schema/schemaschema'
+  require 'core/system/boot/schema_schema'
   
   ss = SchemaSchema.schema
   # if you want to print something out, see example at end of print.rb 

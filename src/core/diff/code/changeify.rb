@@ -1,5 +1,5 @@
-require 'schema/factory'
-require 'schema/schemaschema'
+require 'core/schema/code/factory'
+require 'core/system/boot/schema_schema'
 
 class Changeify
   def initialize()

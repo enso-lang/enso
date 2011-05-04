@@ -1,15 +1,16 @@
 
 require 'test/unit'
 
-require 'schema/schemaschema'
-require 'schema/factory'
-require 'grammar/grammarschema'
-require 'grammar/grammargrammar'
-require 'grammar/parsetree'
+require 'core/system/boot/schema_schema'
+require 'core/system/boot/grammar_schema'
+require 'core/system/boot/grammar_grammar'
+require 'core/system/boot/parsetree_schema'
 
-require 'tools/copy'
-require 'tools/diff'
-require 'tools/print'
+require 'core/schema/code/factory'
+
+require 'core/schema/tools/copy'
+require 'core/schema/tools/print'
+require 'core/diff/code/diff'
 
 class CopyTest < Test::Unit::TestCase
   

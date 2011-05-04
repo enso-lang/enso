@@ -1,6 +1,6 @@
 
 
-require 'cyclicmap'
+require 'core/system/library/cyclicmap'
 
 class DiffBase < MemoBase
 

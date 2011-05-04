@@ -1,8 +1,8 @@
 
-require 'grammar/parsetree'
-require 'schema/factory'
-require 'grammar/grammargrammar'
-require 'grammar/instantiate'
+require 'core/system/boot/parsetree_schema'
+require 'core/system/boot/grammar_grammar'
+require 'core/schema/code/factory'
+require 'core/instance/code/instantiate'
 
 require 'strscan'
 
@@ -303,7 +303,7 @@ end
 
 if __FILE__ == $0 then
   grammar = GrammarGrammar.grammar
-  bla = CPSParser.parse('grammar/grammar.grammar', grammar)
+  bla = CPSParser.parse('core/grammar/models/grammar.grammar', grammar)
   p bla
 end
 

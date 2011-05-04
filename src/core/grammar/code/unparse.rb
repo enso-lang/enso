@@ -1,7 +1,7 @@
 
 
-require 'cyclicmap'
-require 'grammar/cpsparser'
+require 'core/system/library/cyclicmap'
+require 'core/grammar/code/parse'
 
 # TODO: refactor not to use instance var @output
 
