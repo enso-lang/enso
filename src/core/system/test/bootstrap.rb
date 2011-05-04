@@ -30,7 +30,7 @@ class BootstrapTests < Test::Unit::TestCase
     grammar = GrammarGrammar.grammar
 
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar))
-    assert_equal([], Diff.diff(grammar, grammar))
+    assert_equal([], diff(grammar, grammar))
 
     grammargrammar = 'core/grammar/models/grammar.grammar'
     grammar2 = CPSParser.load(grammargrammar, grammar, GrammarSchema.schema)
@@ -39,9 +39,9 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar2))
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar))
 
-    assert_equal([], Diff.diff(grammar2, grammar2))
-    assert_equal([], Diff.diff(grammar, grammar2))
-    assert_equal([], Diff.diff(grammar2, grammar))
+    assert_equal([], diff(grammar2, grammar2))
+    assert_equal([], diff(grammar, grammar2))
+    assert_equal([], diff(grammar2, grammar))
     
     grammar3 = CPSParser.load(grammargrammar, grammar2, GrammarSchema.schema)
 
@@ -51,11 +51,11 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(GrammarSchema.schema, grammar3, grammar))
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar3))
 
-    assert_equal([], Diff.diff(grammar3, grammar3))
-    assert_equal([], Diff.diff(grammar2, grammar3))
-    assert_equal([], Diff.diff(grammar3, grammar2))
-    assert_equal([], Diff.diff(grammar3, grammar))
-    assert_equal([], Diff.diff(grammar, grammar3))
+    assert_equal([], diff(grammar3, grammar3))
+    assert_equal([], diff(grammar2, grammar3))
+    assert_equal([], diff(grammar3, grammar2))
+    assert_equal([], diff(grammar3, grammar))
+    assert_equal([], diff(grammar, grammar3))
 
     grammar4 = CPSParser.load(grammargrammar, grammar3, GrammarSchema.schema)
 
@@ -67,17 +67,17 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(GrammarSchema.schema, grammar4, grammar))
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar4))
 
-    assert_equal([], Diff.diff(grammar4, grammar4))
-    assert_equal([], Diff.diff(grammar4, grammar3))
-    assert_equal([], Diff.diff(grammar3, grammar4))
-    assert_equal([], Diff.diff(grammar4, grammar2))
-    assert_equal([], Diff.diff(grammar4, grammar))
-    assert_equal([], Diff.diff(grammar, grammar4))
+    assert_equal([], diff(grammar4, grammar4))
+    assert_equal([], diff(grammar4, grammar3))
+    assert_equal([], diff(grammar3, grammar4))
+    assert_equal([], diff(grammar4, grammar2))
+    assert_equal([], diff(grammar4, grammar))
+    assert_equal([], diff(grammar, grammar4))
   end
   
   def test_schema_grammar
     x = Loader.load(SCHEMA_SCHEMA)
-    assert_equal([], Diff.diff(x, SchemaSchema.schema),
+    assert_equal([], diff(x, SchemaSchema.schema),
                  "Boot SchemaSchema != Boot SchemaSchema")
   end
   
@@ -94,14 +94,12 @@ class BootstrapTests < Test::Unit::TestCase
     inst = Loader.load(INSTANCE_SCHEMA)
     pt = Loader.load(PARSETREE_SCHEMA)
 
-    inst_plus_pro = Merge.new.merge(inst, pro, pro._graph_id, {
-                                     "str" => "str",
+    inst_plus_pro = merge(inst, pro, {"str" => "str",
                                       "Value" => "Value",
                                       "Tree" => "Tree"
                                    })
 
-    pt_plus_inst_plus_pro = Merge.new.merge(pt, inst_plus_pro,
-                                            inst_plus_pro._graph_id, {
+    pt_plus_inst_plus_pro = merge(pt, inst_plus_pro, {
                                               "str" => "str", 
                                               "int" => "int", 
                                               "bool" => "bool",
@@ -109,7 +107,7 @@ class BootstrapTests < Test::Unit::TestCase
                                               "Value" => "Value",
                                               "Ref" => "Ref"
                                             })
-    assert_equal([], Diff.diff(pt_plus_inst_plus_pro, ParseTreeSchema.schema))
+    assert_equal([], diff(pt_plus_inst_plus_pro, ParseTreeSchema.schema))
   end
 
 
@@ -118,14 +116,14 @@ class BootstrapTests < Test::Unit::TestCase
    pro = Loader.load(PROTO_SCHEMA)
    gram = Loader.load(GRAMMAR_SCHEMA)
 
-   gram_plus_pro = Merge.new.merge(gram, pro, pro._graph_id,  {
+   gram_plus_pro = merge(gram, pro,  {
                                      "str" => "str", 
                                      "int" => "int", 
                                      "bool" => "bool",
                                      "Expression" => "Tree",
                                      "Value" => "Value"
                                    })
-   assert_equal([], Diff.diff(gram_plus_pro, GrammarSchema.schema))
+   assert_equal([], diff(gram_plus_pro, GrammarSchema.schema))
  end
 
 

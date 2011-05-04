@@ -1,4 +1,4 @@
-schema InstanceSchema
+schema ValueSchema
 
   primitive \str
 

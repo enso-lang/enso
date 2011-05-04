@@ -1,5 +1,6 @@
 
 require 'core/grammar/code/parse'
+require 'core/diff/code/merge'
 require 'core/system/boot/grammar_grammar'
 require 'core/system/boot/grammar_schema'
 require 'core/system/boot/schema_schema'
@@ -20,10 +21,14 @@ module Loading
     end
     
     def load(filename)
-      model, type = filename.split(/\./)
-      g = load_grammar("#{type}.grammar")
-      s = load_schema("#{type}.schema")
-      _load(filename, g, s)
+      model, type, rb = filename.split(/\./)
+      if rb then
+        _load_ruby(filename, model, type)
+      else
+        g = load_grammar("#{type}.grammar")
+        s = load_schema("#{type}.schema")
+        _load(filename, g, s)
+      end
     end
         
 
@@ -57,21 +62,37 @@ module Loading
       end 
     end
 
+    def cached(model, type)
+      @cache[type] ||= {}
+      @cache[type][model] ||= yield
+    end
 
     def _load(filename, grammar, schema)
       model, type = filename.split(/\./)
-      @cache[type] ||= {}
-      if @cache[type][model] then
-        return @cache[type][model]
+      cached(model, type) do 
+        __load(filename, grammar, schema)
       end
-      @cache[type][model] = __load(filename, grammar, schema)
     end
 
-    def __load(filename, grammar, schema)
+    def _load_ruby(filename, model, type)
+      cached(model, type) do 
+        find_model(filename) do |path|
+          instance_eval(File.read(path))
+        end
+      end
+    end
+
+    def find_model(filename) 
       path = Dir['**/*.*'].find do |p|
         File.basename(p) == filename
       end
-      CPSParser.load(path, grammar, schema)
+      yield path
+    end
+
+    def __load(filename, grammar, schema)
+      find_model(filename) do |path|
+        CPSParser.load(path, grammar, schema)
+      end
     end
 
   end
@@ -90,8 +111,10 @@ if __FILE__ == $0 then
   p l.load('schema.schema')
   p l.load('parsetree.schema')
   p l.load('layout.schema')
-  p l.load('instance.schema')
+  p l.load('value.schema')
   p l.load('proto.schema')
+
+  p l.load('instance.schema.rb')
 
   #p l.load_parsetree('bla.pt')
 end
