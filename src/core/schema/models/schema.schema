@@ -14,7 +14,7 @@ schema SchemaSchema
 
   class Type
     #name: str
-    \schema: Schema / Schema.types
+    #\schema: Schema / Schema.types
   end
   
   class Primitive < Type

@@ -1,0 +1,9 @@
+schema InstanceSchema
+
+  primitive \str
+
+  class Value < Tree
+    value: str
+  end
+
+end

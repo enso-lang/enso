@@ -1,4 +1,5 @@
-schema ConstructorSchema
+
+schema ProtoInstanceSchema
 
   primitive \str
   primitive \int
@@ -27,7 +28,6 @@ schema ConstructorSchema
 
   class Value < Tree
     kind: str
-    value: str
   end
 
   class Ref < Tree

@@ -2,6 +2,8 @@
 
 require 'test/unit'
 
+require 'core/system/load/load'
+
 require 'core/grammar/code/parse'
 require 'core/system/boot/parsetree_schema'
 require 'core/system/boot/grammar_grammar'
@@ -14,14 +16,15 @@ require 'core/schema/tools/print'
 
 class BootstrapTests < Test::Unit::TestCase
 
-  GRAMMAR_GRAMMAR = 'core/grammar/models/grammar.grammar'
-  GRAMMAR_SCHEMA = 'core/grammar/models/grammar.schema'
-  PARSETREE_SCHEMA = 'core/grammar/models/parsetree.schema'
+  GRAMMAR_GRAMMAR = 'grammar.grammar'
+  GRAMMAR_SCHEMA = 'grammar.schema'
+  PARSETREE_SCHEMA = 'parsetree.schema'
 
-  CONSTRUCTOR_SCHEMA = 'core/instance/models/constructor.schema'
+  PROTO_SCHEMA = 'proto.schema'
+  INSTANCE_SCHEMA = 'instance.schema'
 
-  SCHEMA_GRAMMAR = 'core/schema/models/schema.grammar'
-  SCHEMA_SCHEMA = 'core/schema/models/schema.schema'
+  SCHEMA_GRAMMAR = 'schema.grammar'
+  SCHEMA_SCHEMA = 'schema.schema'
 
   def test_grammar_grammar
     grammar = GrammarGrammar.grammar
@@ -29,7 +32,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar))
     assert_equal([], Diff.diff(grammar, grammar))
 
-    grammargrammar = GRAMMAR_GRAMMAR
+    grammargrammar = 'core/grammar/models/grammar.grammar'
     grammar2 = CPSParser.load(grammargrammar, grammar, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar2))
@@ -73,90 +76,56 @@ class BootstrapTests < Test::Unit::TestCase
   end
   
   def test_schema_grammar
-    grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
-    schema_schema = CPSParser.load(SCHEMA_SCHEMA, grammar2, SchemaSchema.schema)
-
-    assert_equal([], Diff.diff(SchemaSchema.schema, SchemaSchema.schema),
-           "Boot SchemaSchema != Boot SchemaSchema")
+    x = Loader.load(SCHEMA_SCHEMA)
+    assert_equal([], Diff.diff(x, SchemaSchema.schema),
+                 "Boot SchemaSchema != Boot SchemaSchema")
   end
-
-  def test_schema_schema_grammar
-    equal([], Diff.diff(SchemaSchema.schema, SchemaSchema.schema),
-      "Boot SchemaSchema != Boot SchemaSchema")
-
-    grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
-    schema_schema = CPSParser.load(SCHEMA_SCHEMA, grammar2, SchemaSchema.schema)
-
-    assert_equal([], Diff.diff(schema_schema, SchemaSchema.schema),
-           "SchemaSchema != Boot SchemaSchema")
-
-    schema_schema2 = CPSParser.load(SCHEMA_SCHEMA, grammar2, schema_schema)
-    assert_equal([], Diff.diff(schema_schema2, schema_schema2, schema_schema22),
-           "Boot SchemaSchema !=  SchemaSchema")
-  end
-
-  def test_grammar_schema
-    grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
-    grammar_schema = CPSParser.parse(GRAMMAR_SCHEMA, grammar2)
-    assert_not_nil(grammar_schema)
-  end
-
+  
   def test_parsetree_schema
-    grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
-    pt_schema = CPSParser.parse(PARSETREE_SCHEMA, grammar2)
-    assert_not_nil(pt_schema)
+    assert_not_nil(Loader.load(PARSETREE_SCHEMA))
   end
 
-  def test_constructor_schema
-    grammar = GrammarGrammar.grammar
-    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
-    cons_schema = CPSParser.parse(CONSTRUCTOR_SCHEMA, grammar2)
-    assert_not_nil(cons_schema)
+  def test_instance_schema
+    assert_not_nil(Loader.load(INSTANCE_SCHEMA))
   end
 
   def test_merged_parsetree_schema_equals_bootstrap_parsetree
-    sg = CPSParser.load(SCHEMA_GRAMMAR, 
-                        GrammarGrammar.grammar, 
-                        GrammarSchema.schema)
+    pro = Loader.load(PROTO_SCHEMA)
+    inst = Loader.load(INSTANCE_SCHEMA)
+    pt = Loader.load(PARSETREE_SCHEMA)
 
-    cons = CPSParser.load_raw(CONSTRUCTOR_SCHEMA, 
-                              sg, SchemaSchema.schema)
-    pt = CPSParser.load_raw(PARSETREE_SCHEMA, 
-                            sg, SchemaSchema.schema)
-    
-    pt_plus_cons = Merge.new.merge(pt, cons, cons._graph_id, {
-                                     "str" => "str", 
-                                     "int" => "int", 
-                                     "bool" => "bool",
-                                     "Tree" => "Tree",
-                                     "Value" => "Value",
-                                     "Ref" => "Ref"
+    inst_plus_pro = Merge.new.merge(inst, pro, pro._graph_id, {
+                                     "str" => "str",
+                                      "Value" => "Value",
+                                      "Tree" => "Tree"
                                    })
-    assert_equal([], Diff.diff(pt_plus_cons, ParseTreeSchema.schema))
+
+    pt_plus_inst_plus_pro = Merge.new.merge(pt, inst_plus_pro,
+                                            inst_plus_pro._graph_id, {
+                                              "str" => "str", 
+                                              "int" => "int", 
+                                              "bool" => "bool",
+                                              "Tree" => "Tree",
+                                              "Value" => "Value",
+                                              "Ref" => "Ref"
+                                            })
+    assert_equal([], Diff.diff(pt_plus_inst_plus_pro, ParseTreeSchema.schema))
   end
 
 
  def test_merged_grammar_schema_equals_bootstrap_grammar_schema
-   sg = CPSParser.load(SCHEMA_GRAMMAR, 
-                       GrammarGrammar.grammar, 
-                       GrammarSchema.schema)
    
-   cons = CPSParser.load_raw(CONSTRUCTOR_SCHEMA, 
-                             sg, SchemaSchema.schema)
-   gram = CPSParser.load_raw(GRAMMAR_SCHEMA, 
-                             sg, SchemaSchema.schema)
-   
-   gram_plus_cons = Merge.new.merge(gram, cons, cons._graph_id,  {
-                                      "str" => "str", 
-                                      "int" => "int", 
-                                      "bool" => "bool",
-                                      "Expression" => "Tree"
-                                    })
-   assert_equal([], Diff.diff(gram_plus_cons, GrammarSchema.schema))
+   pro = Loader.load(PROTO_SCHEMA)
+   gram = Loader.load(GRAMMAR_SCHEMA)
+
+   gram_plus_pro = Merge.new.merge(gram, pro, pro._graph_id,  {
+                                     "str" => "str", 
+                                     "int" => "int", 
+                                     "bool" => "bool",
+                                     "Expression" => "Tree",
+                                     "Value" => "Value"
+                                   })
+   assert_equal([], Diff.diff(gram_plus_pro, GrammarSchema.schema))
  end
 
 

@@ -84,11 +84,13 @@ class Merge < DiffBase
 
     @renaming = renaming
 
+    @copier = Copy.new(factory, @identity)
+    to = @copier.copy(to)
+
     id = Identify.new(@identity, from, to, renaming)
     id.identify(from)
     #p @identity
 
-    @copier = Copy.new(factory, @identity)
     
     diff(from, to)
     #p @diffs
