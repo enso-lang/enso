@@ -1,0 +1,11 @@
+
+grammar InstanceGrammar
+
+start Tree
+
+Tree ::= [Sequence] "{" elements:{Tree ","}* "}"
+      |  [Create] name:sym  arg:Tree 
+      |  [Field] name:sym ":" arg:Tree
+      |  [Code] "@" code:str
+      |  [Value] "(" kind:sym ")" value:str
+      |  [Ref] name:sym "^"
