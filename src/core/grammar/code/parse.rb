@@ -38,7 +38,8 @@ class CPSParser
     real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/ 
   }
   
-  LAYOUT = /\s*/
+  # ([\\t\\n\\r\\f ]*(//[^\n]*\n)?)*
+  LAYOUT = /(\s*(\/\/[^\n]*\n)?)*/
 
   class CollectKeywords < CyclicCollectShy
     def Lit(this, accu)
