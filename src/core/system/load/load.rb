@@ -21,13 +21,9 @@ module Loading
     
     def load(filename)
       model, type = filename.split(/\./)
-      if type == 'grammar' then
-        load_grammar(filename)
-      elsif type == 'schema' then
-        load_schema(filename)
-      else
-        _load(filename)
-      end
+      g = load_grammar("#{type}.grammar")
+      s = load_schema("#{type}.schema")
+      _load(filename, g, s)
     end
         
 
@@ -94,7 +90,8 @@ if __FILE__ == $0 then
   p l.load('schema.schema')
   p l.load('parsetree.schema')
   p l.load('layout.schema')
-  p l.load('constructor.schema')
+  p l.load('instance.schema')
+  p l.load('proto.schema')
 
   #p l.load_parsetree('bla.pt')
 end
