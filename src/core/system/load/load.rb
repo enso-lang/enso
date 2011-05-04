@@ -68,10 +68,14 @@ module Loading
       if @cache[type][model] then
         return @cache[type][model]
       end
+      @cache[type][model] = __load(filename, grammar, schema)
+    end
+
+    def __load(filename, grammar, schema)
       path = Dir['**/*.*'].find do |p|
         File.basename(p) == filename
       end
-      @cache[type][model] = CPSParser.load(path, grammar, schema)
+      CPSParser.load(path, grammar, schema)
     end
 
   end
