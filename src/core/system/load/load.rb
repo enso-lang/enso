@@ -18,50 +18,51 @@ module Loading
     def initialize
       @cache = {}
     end
-
     
-    def load_schema(name)
-      g = load_grammar('schema')
-      if name == 'schema' then
-        s = SchemaSchema.schema
-        load(SCHEMA_SCHEMA, g, s)
+    def load(filename)
+      model, type = filename.split(/\./)
+      if type == 'grammar' then
+        load_grammar(filename)
+      elsif type == 'schema' then
+        load_schema(filename)
       else
-        s = load_schema('schema')
-        load("#{name}.schema", g, s)
+        _load(filename)
+      end
+    end
+        
+
+    private
+
+    def load_schema(filename)
+      g = load_grammar(SCHEMA_GRAMMAR)
+      if filename == SCHEMA_SCHEMA then
+        s = SchemaSchema.schema
+        _load(SCHEMA_SCHEMA, g, s)
+      else
+        s = load_schema(SCHEMA_SCHEMA)
+        _load(filename, g, s)
       end
     end      
     
 
-    def load_grammar(name)
-      if name == 'grammar' then
+    def load_grammar(filename)
+      if filename == GRAMMAR_GRAMMAR then
         s = GrammarSchema.schema
         g = GrammarGrammar.grammar
-        load(GRAMMAR_GRAMMAR, g, s)
-      elsif name == 'schema'
+        _load(GRAMMAR_GRAMMAR, g, s)
+      elsif filename == SCHEMA_GRAMMAR then
         s = GrammarSchema.schema
         g = GrammarGrammar.grammar
-        load(SCHEMA_GRAMMAR, g, s)
+        _load(SCHEMA_GRAMMAR, g, s)
       else
-        s = load_schema(name)
-        g = load_grammar('grammar')
-        load("#{name}.grammar", g, s)
+        s = load_schema(filename)
+        g = load_grammar(GRAMMAR_GRAMMAR)
+        _load(filename, g, s)
       end 
     end
 
-    def method_missing(sym, *args, &block)
-      if sym =~ /^load_(.*)$/ then
-        # parser file args[0] using grammar of $1
-        g = load_grammar($1)
-        s = load_schema($1)
-        load("#{name}.#{$1}", g, s)
-      else
-        super(sym, *args, &block)
-      end
-    end
 
-    private
-
-    def load(filename, grammar, schema)
+    def _load(filename, grammar, schema)
       model, type = filename.split(/\./)
       @cache[type] ||= {}
       if @cache[type][model] then
@@ -83,13 +84,13 @@ Loader = Loading::Loader.new
 if __FILE__ == $0 then
   l = Loader
 
-  p l.load_grammar('grammar')
-  p l.load_grammar('schema')
-  p l.load_schema('grammar')
-  p l.load_schema('schema')
-  p l.load_schema('parsetree')
-  p l.load_schema('layout')
-  p l.load_schema('constructor')
+  p l.load('grammar.grammar')
+  p l.load('schema.grammar')
+  p l.load('grammar.schema')
+  p l.load('schema.schema')
+  p l.load('parsetree.schema')
+  p l.load('layout.schema')
+  p l.load('constructor.schema')
 
   #p l.load_parsetree('bla.pt')
 end
