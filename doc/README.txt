@@ -14,3 +14,14 @@ concepts of model-driven software development.
      download the gem file (its in a zip, so unzip it), and invoke
          gem install <path>/wxruby-ruby19-2.0.1-x86-darwin-9.gem
   c) to run Ruby with wxRuby, use "arch -i386 ruby <ruby-file>"
+
+3) Change your ~/.bashrc file to define RUBYOPT
+     export RUBYOPT="-I ."
+     
+4) Run the tests
+     cd src
+     ruby -I . test/runall.rb
+     
+Try the mini mini GUI demo
+    arch -i386 ruby -I . core/diagram/code/diagram.rb
+   
