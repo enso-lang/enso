@@ -2,10 +2,10 @@
 
 require 'test/unit'
 
-require 'grammar/cpsparser'
-require 'grammar/parsetree'
-require 'grammar/grammargrammar'
-require 'grammar/instantiate'
+require 'core/grammar/code/parser'
+require 'core/grammar/parsetree'
+require 'core/grammar/grammargrammar'
+require 'core/grammar/instantiate'
 
 require 'tools/equals'
 require 'tools/diff'
