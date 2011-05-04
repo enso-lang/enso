@@ -1,4 +1,5 @@
 schema ParseTreeSchema
+
   primitive \str
   primitive \int
   primitive \bool

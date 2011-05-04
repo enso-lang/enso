@@ -81,6 +81,22 @@ class BootstrapTests < Test::Unit::TestCase
            "Boot SchemaSchema != Boot SchemaSchema")
   end
 
+  def test_schema_schema_grammar
+    equal([], Diff.diff(SchemaSchema.schema, SchemaSchema.schema),
+      "Boot SchemaSchema != Boot SchemaSchema")
+
+    grammar = GrammarGrammar.grammar
+    grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)
+    schema_schema = CPSParser.load(SCHEMA_SCHEMA, grammar2, SchemaSchema.schema)
+
+    assert_equal([], Diff.diff(schema_schema, SchemaSchema.schema),
+           "SchemaSchema != Boot SchemaSchema")
+
+    schema_schema2 = CPSParser.load(SCHEMA_SCHEMA, grammar2, schema_schema)
+    assert_equal([], Diff.diff(schema_schema2, schema_schema2, schema_schema22),
+           "Boot SchemaSchema !=  SchemaSchema")
+  end
+
   def test_grammar_schema
     grammar = GrammarGrammar.grammar
     grammar2 = CPSParser.load(SCHEMA_GRAMMAR, grammar, GrammarSchema.schema)

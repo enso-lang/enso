@@ -15,6 +15,8 @@ require 'core/schema/code/factory'
 class ParseTest < Test::Unit::TestCase
 
   GRAMMAR_GRAMMAR = 'core/grammar/models/grammar.grammar'
+  SCHEMA_GRAMMAR = 'core/schema/models/schema.grammar'
+  SCHEMA_SCHEMA = 'core/schema/models/schema.schema'
 
   def test_parse_unparse
     grammar = GrammarGrammar.grammar
@@ -35,5 +37,6 @@ class ParseTest < Test::Unit::TestCase
     grammar2 = Instantiate.new(Factory.new(GrammarSchema.schema)).run(pt)
     assert_equal([], Diff.diff(grammar1, grammar2))
   end
+
 
 end
