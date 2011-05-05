@@ -1,0 +1,19 @@
+schema GenealogySchema
+
+	class Genealogy
+		name: str
+		members: Person*
+	end
+
+	class Person
+		#id: str
+		name: str
+		father: Person?
+		mother: Person?
+	end
+
+ primitive \int
+ primitive \str
+ primitive \bool
+
+end

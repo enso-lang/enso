@@ -1,0 +1,17 @@
+genealogy Gannholm
+
+person id40
+	"Tore Gannholm"
+end
+
+
+person id68
+"Martin Gannholm"
+^id40
++id41
+end
+
+person id41
+	"Ingela Gannholm"
+	^id40
+end

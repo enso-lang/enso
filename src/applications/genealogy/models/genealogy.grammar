@@ -1,0 +1,15 @@
+grammar GenealogyGrammar
+
+start Genealogy
+
+Genealogy ::= [Genealogy] "genealogy" name:sym members:Person*
+
+Person ::= [Person] "person"  id:sym
+   name:str 
+   Father?
+   Mother?
+  "end"
+
+Father ::= "^" father: Person^
+
+Mother ::= "+" mother: Person^
