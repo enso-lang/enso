@@ -1,4 +1,3 @@
-schema GenealogySchema
 
 	class Genealogy
 		name: str
@@ -16,4 +15,3 @@ schema GenealogySchema
  primitive \str
  primitive \bool
 
-end
