@@ -27,7 +27,7 @@ class GrammarGenerator
   end
 
   def self.inherited(subclass)
-    g = THE_FACTORY.Grammar(subclass.to_s)
+    g = THE_FACTORY.Grammar
     @@grammars[subclass.to_s] = g
   end
 

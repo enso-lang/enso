@@ -1,4 +1,3 @@
-schema LayoutSchema 
   class Format end 
   
   class Sequence < Format 
@@ -26,5 +25,4 @@ schema LayoutSchema
   primitive str 
   primitive int 
   primitive bool 
-end 
   

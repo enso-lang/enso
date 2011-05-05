@@ -1,5 +1,4 @@
 
-schema ProtoInstanceSchema
 
   primitive \str
   primitive \int
@@ -34,4 +33,3 @@ schema ProtoInstanceSchema
     name: str
   end
 
-end

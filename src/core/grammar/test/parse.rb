@@ -11,6 +11,7 @@ require 'core/system/boot/grammar_grammar'
 require 'core/instance/code/instantiate'
 require 'core/diff/code/diff'
 require 'core/schema/code/factory'
+require 'core/grammar/code/implode'
 
 class ParseTest < Test::Unit::TestCase
 
@@ -34,7 +35,8 @@ class ParseTest < Test::Unit::TestCase
     DisplayFormat.print(GrammarGrammar.grammar, grammar1, 80, s)
     parse = CPSParser.new(s, Factory.new(ParseTreeSchema.schema))
     pt = parse.run(grammar1)
-    grammar2 = Instantiate.new(Factory.new(GrammarSchema.schema)).run(pt)
+    ast = Implode.implode(pt)
+    grammar2 = Instantiate.new(Factory.new(GrammarSchema.schema)).run(ast)
     assert_equal([], diff(grammar1, grammar2))
   end
 

@@ -1,8 +1,6 @@
-grammar SchemaGrammar 
-
 start Schema
 
-Schema ::= [Schema] "schema" name:sym types:TypeDef* "end"
+Schema ::= [Schema] types:TypeDef* 
 
 TypeDef ::= Primitive | Klass
 

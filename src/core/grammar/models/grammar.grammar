@@ -1,7 +1,6 @@
-grammar GrammarGrammar
   start Grammar
-  
-  Grammar ::= [Grammar] "grammar" name:sym "start" \start:Rule^ rules:Rule*
+
+  Grammar ::= [Grammar] "start" \start:Rule^ rules:Rule*
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
 

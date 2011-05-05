@@ -1,9 +1,6 @@
-schema ValueSchema
-
   primitive \str
 
   class Value < Tree
     value: str
   end
 
-end

@@ -12,7 +12,6 @@ class GrammarSchema < SchemaGenerator
   end
   
   klass Grammar do
-    field :name, :type => :str
     field :start, :type => Rule
     field :rules, :type => Rule, :optional => true, :many => true
   end

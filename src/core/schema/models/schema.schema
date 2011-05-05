@@ -1,12 +1,9 @@
-schema SchemaSchema
-
   primitive \str
   primitive \int
   primitive \bool
   primitive \real
 
   class Schema
-    #name: str
     types: Type*
     classes: Klass* = "@types.select(&:Klass?)"
     primitives: Primitive* = "@types.select(&:Primitive?)"
@@ -37,4 +34,3 @@ schema SchemaSchema
     inverse: Field? / Field.inverse 
     computed: str?
   end
-end

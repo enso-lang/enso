@@ -16,7 +16,6 @@ class SchemaSchema < SchemaGenerator
   end
 
   klass Schema do
-    field :name, :type => :str, :key => true
     field :types, :type => Type, :optional => true, :many => true
     field :classes, :type => Klass, :optional => true, :many => true, \
       :computed => "@types.select(&:Klass?)"

@@ -20,11 +20,6 @@ class ParseTreeSchema < SchemaGenerator
   klass Tree do
   end
 
-  klass Appl, :super => Tree do
-    field :rule, :type => :str
-    field :arg, :type => Tree
-  end
-
   klass Sequence, :super => Tree do
     field :elements, :type => Tree, :optional => true, :many => true
   end
@@ -51,7 +46,6 @@ class ParseTreeSchema < SchemaGenerator
 
   klass Lit, :super => Tree do
     field :value, :type => :str
-    #field :case_sensitive, :type => :bool
     field :layout, :type => :str
   end
 

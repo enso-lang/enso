@@ -62,62 +62,52 @@ class Instantiate
     end
   end
 
-  def ParseTree(this, owner, field, pos)
-    recurse(this.top, owner, field, pos)
+  def Instances(this, owner, field, pos)
+    this.instances.each do |inst|
+      recurse(inst, owner, field, pos)
+    end
   end
 
-  def Sequence(this, owner, field, pos)
+  def List(this, owner, field, pos)
     this.elements.inject(pos) do |pos1, arg|
       recurse(arg, owner, field, pos1)
     end
   end
   
-  def Create(this, owner, field, pos)
+  def Instance(this, owner, field, pos)
     #put "Creating #{this.name}"
-    current = @factory.send(this.name)
-    # ugly
+    # TODO: @factory[this.type] does not assign default vals.
+    current = @factory.send(this.type)
     @root = current unless owner
-    recurse(this.arg, current, nil, 0)
+    this.contents.each do |cnt|
+      recurse(cnt, current, nil, 0)
+    end
     update(owner, field, pos, current)
   end
 
   def Field(this, owner, field, pos)
     #puts "Field #{this.name} in #{owner}"
     f = owner.schema_class.fields[this.name]
-    recurse(this.arg, owner, f, 0)
+    recurse(this.value, owner, f, 0)
   end
 
   def Code(this, owner, field, pos)
-    #put "EXECUTINGC CODE #{this.code} on #{owner}"
+    #puts "EXECUTINGC CODE #{this.code} on #{owner}"
     owner.instance_eval(this.code.gsub(/@/, "self."))
   end
 
-  def Value(this, owner, field, pos)
+  def Prim(this, owner, field, pos)
     return pos unless field # values without field????
     #put "Value: #{this} for #{field}"
 
     if field.key then
-      #puts "--------> Defining key #{this} to #{owner}"
-      #todo? check this.type == 'sym'?
       @defs[convert(this)] = owner
     end
 
     update(owner, field, pos, convert(this))
   end
 
-  def Lit(this, owner, field, pos)
-    if field && !field.many then
-      # don't add literals to lists
-      #puts "Parsing Lit #{this.value} for #{field.name}"
-      owner[field.name] = this.value
-    end
-    pos
-  end
-
-
   def Ref(this, owner, field, pos)
-    #puts "Stubbing ref #{this.name} in #{owner}"
-    
     #TODO: hack!! to allow undefined symbols to be nil
     return if this.name == "_"
     
@@ -147,8 +137,6 @@ class Instantiate
 
     def apply(defs)
       #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
-      old = @this[@field.name]
-      #copy_old_to_actual(old, defs[@name])
 
       #put "DEFS[@name] = #{defs[@name]}"
       names = @name.split(/\./)
@@ -160,9 +148,6 @@ class Instantiate
       if @field.many then
         @this[@field.name][@pos] = defs[actual]
       else
-        # code could have been executed on the stub
-        # or field have been set, so copy stuff from
-        # the stub to the actual thing the ref is resolved to
         @this[@field.name] = actual
       end
     end

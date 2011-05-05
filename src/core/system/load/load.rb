@@ -92,7 +92,7 @@ module Loading
 
     def __load(filename, grammar, schema)
       find_model(filename) do |path|
-        puts "## loading #{path}..."
+        #puts "## loading #{path}..."
         CPSParser.load(path, grammar, schema)
       end
     end

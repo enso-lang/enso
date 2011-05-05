@@ -40,6 +40,8 @@ class Print
       #myputs "FOO #{obj} p=#{paths} i=#{visited}"
       indent += 2
       klass.fields.each do |field|
+        #puts "FIELD: #{field}"
+        #puts "FIELD.TYPE: #{field.type}"
         if field.type.Primitive?
           myprint " "*indent, field.name, ": ", obj[field.name], "\n"
         else

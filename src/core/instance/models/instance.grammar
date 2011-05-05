@@ -1,11 +1,16 @@
 
 grammar InstanceGrammar
 
-start Tree
+start Forest
 
-Tree ::= [Sequence] "{" elements:{Tree ","}* "}"
-      |  [Create] name:sym  arg:Tree 
-      |  [Field] name:sym ":" arg:Tree
-      |  [Code] "@" code:str
-      |  [Value] "(" kind:sym ")" value:str
-      |  [Ref] name:sym "^"
+Forest ::= [Dump] creates:Create*
+
+Create ::=  [Create] name:sym  "{" contents:{Content ";"}* "}"
+
+Content ::= [Field] name:sym ":" value:Value
+         |  [Code] "@" code:str
+
+Value ::= Create
+       |  [Prim] "(" kind:sym ")" value:str
+       |  [Ref] name:sym "^"
+       |  [List] "[" elements:{Value ","}* "]"

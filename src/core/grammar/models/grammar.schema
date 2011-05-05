@@ -1,12 +1,9 @@
-schema GrammarSchema
-
   primitive \str
   primitive \int
   primitive \bool
 
 
   class Grammar
-    name: str
     start: Rule
     rules: Rule*
   end
@@ -38,5 +35,3 @@ schema GrammarSchema
   class Lit < Expression
     value: str
   end
-
-end

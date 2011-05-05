@@ -90,7 +90,7 @@ class CheckedObject
     if field_name[-1] == "?"
       return self.schema_class.name == field_name[0..-2]
     end
-    raise "Accessing non-existant field '#{field_name}' of #{schema_class.name} in #{schema_class.schema.name}" unless field
+    raise "Accessing non-existant field '#{field_name}' of #{schema_class.name} in #{schema_class.schema}" unless field
     if field.computed
       r = self.instance_eval(field.computed.gsub(/@/, "self."))
       #puts "EVAL #{self}.#{field.name} = #{r}"
@@ -114,10 +114,11 @@ class CheckedObject
         when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
         when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
         else 
-          raise "Inserting into the wrong model" unless _graph_id.equal?(new._graph_id)
-          unless _subtypeOf(new.schema_class, field.type)
-            raise "Expected #{field.type.name} found #{new.schema_class.name}" 
-          end
+        raise "Assigned object is not primitive and not a CheckedObject" unless new.is_a?(CheckedObject)
+        raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
+        unless _subtypeOf(new.schema_class, field.type)
+          raise "Expected #{field.type.name} found #{new.schema_class.name}" 
+        end
       end
     end
 

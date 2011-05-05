@@ -3,6 +3,8 @@ require 'core/system/boot/parsetree_schema'
 require 'core/system/boot/grammar_grammar'
 require 'core/schema/code/factory'
 require 'core/instance/code/instantiate'
+require 'core/grammar/code/implode'
+require 'core/schema/tools/print'
 
 require 'strscan'
 
@@ -18,7 +20,7 @@ class CPSParser
   def self.load_raw(path, grammar, schema)
     tree = CPSParser.parse(path, grammar)
     inst2 = Instantiate.new(Factory.new(schema))
-    inst2.run(tree)
+    inst2.run(Implode.implode(tree))
   end
 
   def self.parse(path, grammar, ptf = Factory.new(ParseTreeSchema.schema))
@@ -186,7 +188,7 @@ class CPSParser
   end
 
   def Field(this, pos, &block)
-    #puts "Parsing field #{this}"
+    #puts "Parsing field #{this.name}"
     recurse(this.arg, pos) do |pos1, tree|
       block.call(pos1, @factory.Field(this.name, tree))
     end

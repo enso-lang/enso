@@ -98,7 +98,6 @@ class SchemaGenerator
   def self.inherited(subclass)
     schema = SchemaModel.new
     @@schemas[subclass.to_s] = schema
-    schema.name = subclass.to_s
     schema.classes = ValueHash.new
     schema.primitives = ValueHash.new
     schema.types = ValueHash.new

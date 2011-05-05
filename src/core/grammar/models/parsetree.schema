@@ -1,5 +1,3 @@
-schema ParseTreeSchema
-
   // should include  InstanceSchema (which include ValueSchema and ProtoSchema)
 
   primitive \str
@@ -33,4 +31,3 @@ schema ParseTreeSchema
     layout: str
   end
 
-end
