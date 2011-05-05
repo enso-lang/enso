@@ -62,9 +62,9 @@ class Render < Dispatch
       if @literals.include?(obj) then
         s.elements << @factory.Text('\\')
       end
-      s.elements << @factory.Text(obj)
+      s.elements << @factory.Text(obj.to_s)
     else
-      s.elements << @factory.Text(obj)
+      s.elements << @factory.Text(obj.to_s)
     end
     s.elements << @factory.Text(" ")
     s
@@ -91,7 +91,7 @@ class Render < Dispatch
 
   def space(v)
     s = @factory.Sequence()
-    s.elements << @factory.Text(v)
+    s.elements << @factory.Text(v.to_s)
     s.elements << @factory.Text(" ")
     s
   end

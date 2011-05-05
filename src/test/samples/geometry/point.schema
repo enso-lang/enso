@@ -1,0 +1,8 @@
+
+schema Geom
+  class Point
+    x: int
+    y: int
+  end
+  primitive \int
+end

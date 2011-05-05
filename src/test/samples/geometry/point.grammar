@@ -1,0 +1,3 @@
+grammar Point
+    start Point
+    Point ::= [Point] "point" x:int y:int
