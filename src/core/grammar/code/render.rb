@@ -72,7 +72,9 @@ class Render < Dispatch
 
   def Ref(this, obj)
     throw :fail if obj.nil?
-    space(obj[SchemaSchema.key(obj.schema_class).name])  # need "." keys
+    v = obj[SchemaSchema.key(obj.schema_class).name]
+    #puts "RENDER REF #{obj}=#{v}"
+    return space(v)  # TODO: need "." keys
   end
 
   def Lit(this, obj)
@@ -103,7 +105,7 @@ class Render < Dispatch
   def Regular(this, obj)
     if !this.many
       catch :fail do
-        recurse(this.arg, obj)
+        return recurse(this.arg, obj)
       end
       return @factory.Sequence()
     else
