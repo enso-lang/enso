@@ -1,0 +1,18 @@
+* merging schemas and grammars.
+
+* Finalize: seals from changes, run invariants
+   
+* fixedpoint cyclic map
+
+Applications
+
+* graphical editors
+    (does Ruby have graphics binding?)
+* executable UML
+* database mapping
+* WebDSL mini-language
+* Unison
+
+less important
+* derivative parsers?
+* other kind of parser?

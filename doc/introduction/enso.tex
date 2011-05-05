@@ -6,11 +6,61 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{amssymb}
 \usepackage{epstopdf}
+
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.8]{beramono}
+
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage{listings} 
+
+\lstset{%
+  frame=none,
+  xleftmargin=5pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny,
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={<|}{|>},
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  keywordstyle=\bfseries,
+  morekeywords={in,do,print},
+  columns=flexible,
+  basicstyle=\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+\lstdefinelanguage{Enso}{%
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={schema,type},
+  keywordstyle=\bfseries,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+\newcommand{\C}{\lstinline}
+
+\lstset{language=Enso}
 
 \newcommand{\Enso}{Ens\={o}}
 
-\title{\includegraphics[scale=0.15]{enso.png}\\\Enso}
+\title{\includegraphics[scale=0.25]{enso.jpg}\\\Enso}
 \author{William R. Cook and Tijs van der Storm}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -65,6 +115,8 @@ and serialization.
 Operations can be guided by schemas or grammars, allowing highly
 generic operations to be defined for comparison, differencing, 
 merging, projecting and otherwise manipulating cyclic structures.
+These operations are cyclic maps, which correspond to coinductive 
+transformations.
 Since schemas and transformations are also structures, they can
 be merged and transformed using these same generic operations.
 Transformations on schemas can be applied to instances, to support
@@ -88,17 +140,53 @@ including programming models
 (model-driven, object-oriented, polytypic, functional, constraint-based), theory (dependent types, coalgebra, category theory),
 and related ideas (relational databases, domain-specific languages)
 are discussed in Section~\ref{relatedwork}.
+
+\section{Structures}
+
+\subsection{Schemas}
+
+The following schema describes a collection of genealogy information:
+
+\begin{verbatim}
+schema GenealogySchema
+
+  class Genealogy
+    name: str
+    members: Person*
+
+  class Person
+    name: str (key)
+    birth: date
+    female: bool
+    father: Person?
+    mother: Person?
+\end{verbatim}
+
+In a schema, a \textit{class} defines a kind of value, which is
+followed by its properties or \textit{fields}. Each field has a name
+and a type, where the type may be followed by \C|*| to indicate a 
+many-valued field, or by \C|?| to indicate an optional value.
+In this case, \C|Genealogy| has \C|members| which is a set of \C|Person|.
+A \C|Person| has a \C|name| string, a \C|birth| date, and a \C|father| and \C|mother|,
+which are optional \C|Person|s. The \C|father| and \C|mother| are optional
+because every geneology is partial, so that not all fathers and mothers
+can be included.
+
 \subsection{Data}
 
-\Enso\ represents all data via graphs whose structure is defined
-by a form of entity-relationship model, called a \textit{schema}. 
-\Enso\ shifts focus away from individual pieces of data, to focus instead
-on semantically integrated collections of data. 
+A particular collection of genealogy information, which conforms to the
+above schema, might be written as follows:
 
-An \Enso\ data structure is analogous to an information model,
-a relational database, an object model without methods, or a coalgebra.
-While it is easy to create specialized data modeling notations
-in \Enso, the standard information model has the following properties:
+\begin{verbatim}
+Genealogy "Sam's Ancestors"
+Person "Albert Snook"  11/1/89 male  +"Jane Snook" ^"Thomas Snook"
+Person "Jane Snook"    3/17/48 female 
+Person "Thomas Snook" 12/30/43 male 
+\end{verbatim}
+
+\subsection{Inverses}
+
+\subsection{Factories}
 
 Structure are created by \textit{factories}, which create
 and manage the nodes in the structure. The factory also
@@ -113,42 +201,16 @@ the \textit{factory} that creates the structure is parameterized by a
 schema, which the factory uses to check the legality of operations
 on the objects it creates.
 
-\subsection{Presentation}
+\section{Grammars}
+
+\subsection{Textual Grammars}
+
+
+\subsection{Instantiation}
 
 
 
 
-
-
-as cyclic graphs, where
-nodes are categories into types that have 
-consistent attributes and edges are labeled.
-
-All data is represented as cyclic graphs of 
-
-
-"information model": 
-"relational database": the nodes of the graph are
-rows of the tables. Foreign keys 
-
-Data is represented as 
-
-
-
-This example converts schemas into constructor grammars
-\begin{verbatim}
-grammar NAME:sym
-   CLASSES:
-     rule NAME:sym = 
-        (SUBTYPES: { NAME:sym "|") "|" @"!SUBTYPES.empty?")?
-         [NAME:sym] NAME:str "{" 
-            FIELDS: { (NAME:str ":" (NAME:sym): (
-                 "[" { TYPE.NAME:sym^ "," } "]"   @"MANY=true"
-               | TYPE.NAME:sym^ ?                  @"OPTIONAL=true"
-               | TYPE.NAME:sym^
-               )) ";" }
-             "}"
-\end{verbatim}
 
 \subsection{Relationship to Other Approaches}
 \label{relatedwork}
@@ -178,6 +240,72 @@ inconstent state, but before it can be used it must be validated
 and locked from further changes. This is similar to a transaction.
 
 
+The rendering transformation is similar to Smaragdakis's notion of
+Morphing \cite{Morphing} (or is it SafeGen?). 
+However, \Enso\ generalizes the transformation
+so that any kind of structure can be morphed into any other
+kind of structure. On the other hand, \Enso\ is not statically
+typed.
+
+\Enso's generic operations are a form of polytypic programming, 
+like Generic Haskell \cite{TH}. \Enso's operations can use
+arbitrary meta-data, not just sum/product type structure.
+On the other hand, \Enso's operations are not statically typed.
+\Enso\ certainly shares the same goal to ``Write everything once''.
+
+\subsection{FOSD}
+
+
+- Forests are the key data structure in a formal model of FOSD [1]. The goal is similar to yours: be language-independent and represent object collaborations.
+
+- Recently, forests have been extended to graphs to encode more semantics and to support more automatic reasoning activities [2].
+
+- Operations on forests (e.g., composition or conflict detection) are defined generically and can be plugged in on demand [3].
+
+- The entire FOSD model is language-independent and has been used with many different artifact types (e.g., Java, C, Haskell, Alloy programs) [3].
+
+- FOSD tools (the internal parsers and reasoning tools) are generated based on annotated grammars, whose annotations supply semantic information [3].
+
+- The entire forest/grammar/annotation-based model has been enriched by adding behavior to features [4]. 
+
+[1] Sven Apel, Christian Lengauer, Bernhard Mšller, and Christian KŠstner. An Algebraic Foundation for Automatic Feature-Based Program Synthesis. Science of Computer Programming (SCP), 75(11):1022Ð1047, November 2010.
+
+[2] Sven Apel, Wolfgang Scholz, Christian Lengauer, and Christian KŠstner. Language-Independent Reference Checking in Software Product Lines. In Proceedings of the International Workshop on Feature-Oriented Software Development (FOSD), pages 65Ð71. ACM Press, October 2010.
+
+[3] Sven Apel, Christian KŠstner, and Christian Lengauer. FeatureHouse: Language-Independent, Automated Software Composition. In Proceedings of the ACM/IEEE International Conference on Software Engineering (ICSE), pages 221Ð231. IEEE Computer Society, May 2009.
+
+[4] P. Hšfner, R. Khedri, B. Mšller. Supplementing Product Families with Behaviour. International Journal of Software and Informatics, 2011. To appear. 
+
+\section{Notes}
+
+Grammar equivalence should ignore differences of non-terminals.
+That is, inserting a new definition is not an "equal" grammar,
+but it can be "equivalent" observably. For example
+
+\begin{verbatim}
+A = "one" "two"
+
+B = "one" C
+C = "two"
+\end{verbatim}
+
+We should say that A and B are equivalent. To make this
+work, equivalence has to be able to reason about "stutter"
+steps in the state machines. This is similar to the
+fact that Alt is injective in the grammar schema, and
+the injection is sometimes needed during rendering.
+By injective I mean that Alt([A])==A, or that an Alt with
+one sub-time is the same as the subitem itself. 
+Sequence is also injective, Seq([A])==A. These differences
+should be ignored by equivalence. If we put a boolean on 
+klasses in the schema schema for "injective" then this could
+be implemented. 
+
+We should also implement unordered collections. 
+I wonder how hard this would be to add in a feature-oriented way.
+Every time we add a feature we should refactor the interpreter
+code to make it possible. Eventually we will have very
+extensible interpreters.
 
 \section{Requirements for a programming language}
 
@@ -213,35 +341,6 @@ Assignment to fields can be overriden
 
 \section{QuadModel}
 
-\section{Todos}
-
-* merging schemas and grammars. Need a merge operation. Based on identification/unification
-
-* Finalize on objects, that checks required fields, seals from changes, run invariants
-   
-* removing "key" from grammar
-
-* fix pretty printing 
-
-* GUIs
-
-* fixedpoint cyclic map
-
-
-
-
-
-* checked model-objects (with correct inverses and type checking)
-* derivative parsers?
-* other kind of parser?
-* executable UML?
-* graphical editors?
-    (does Ruby have graphics binding?)
-* database mapping?
-* WebDSL mini-language
-
-
-
 
 \begin{figure}[htbp]
 \begin{center}
@@ -252,36 +351,47 @@ Assignment to fields can be overriden
 \end{figure}
 
 
-
 \end{document}  
 
 
 
-\begin{itemize}
-\item Information models (cyclic graphs) as data structures
+\begin{verbatim}
+schema Geometry
 
-\item Types as dynamically checked first-class values
+class Shape
 
-\item Pervasive dynamic creation/transformation of types
+class Point < Shape
+  x: int
+  y: int
 
-\item Generic operations guided by metadata (types, grammars, mappings, etc)
+class Rectangle < Shape
+  upper_left: Point
+  lower_right: Point
 
-\item Cyclic maps to handle transformation of cyclic structures
+class Circle < Shape
+  center: Point
+  radius: int
 
-\item Uniform handling of textual and visual grammars
+class Polygon < Shape
+  points: Point*
+  
+class Composite < Shape
+  items: Shape*
+\end{verbatim}
 
-\item Fine-grained feature modularity based on mixin composition
-
-\item Pervasive management of change in core, grammars, types, and instances
-
-\item Creation of rich web/GUI/mobile information management applications
-
-\item Dynamic interpretation, code generation only by partial evaluation
-
-\item Bulk operations for efficient remote/database communication
-
-\item Self-implemented, pervasively customizable
-\end{itemize}
-
-
-
+It says that the class \C|Point| has fields \C|x| and \C|y|.
+--------
+This example converts schemas into constructor grammars
+\begin{verbatim}
+grammar NAME:sym
+   CLASSES:
+     rule NAME:sym = 
+        (SUBTYPES: { NAME:sym "|") "|" @"!SUBTYPES.empty?")?
+         [NAME:sym] NAME:str "{" 
+            FIELDS: { (NAME:str ":" (NAME:sym): (
+                 "[" { TYPE.NAME:sym^ "," } "]"   @"MANY=true"
+               | TYPE.NAME:sym^ ?                  @"OPTIONAL=true"
+               | TYPE.NAME:sym^
+               )) ";" }
+             "}"
+\end{verbatim}
