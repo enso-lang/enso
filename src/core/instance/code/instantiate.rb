@@ -29,12 +29,13 @@ class Instantiate
   end
 
   def update(owner, field, pos, x)
-    if field && field.many then
+    return pos if field.nil?
+    if field.many then
       #puts "UPDATE #{owner} #{field.name} #{x} #{owner.class} #{owner[field.name].class}"
       owner[field.name] << x
       return pos + 1
-    elsif field then
-      #put "FIELD: #{field.name}"
+    else
+      #puts "FIELD: #{owner}.#{field.name}=#{x}"
       owner[field.name] = x
     end
 
@@ -120,17 +121,23 @@ class Instantiate
     #TODO: hack!! to allow undefined symbols to be nil
     return if this.name == "_"
     
-    stub = @factory.send(field.type.name)
     if this.name =~ /\./ then
       @nested_fixes << Fix.new(this.name, owner, field, pos)
     else
       @fixes << Fix.new(this.name, owner, field, pos)
     end
-    update(owner, field, pos, stub)
+    if field.many && !SchemaSchema.key(field.type)
+      # only insert a stub if it is a many-valued collection with no key
+      update(owner, field, pos, nil)
+    end
   end
 
 
   class Fix
+    # name is the key in the Ref from the grammar
+    # this is the object containing the field whose value is a Ref
+    # field is the field name
+    # pos is the optional position in a many-valued non-keyed field
     def initialize(name, this, field, pos)
       @name = name
       @this = this
@@ -139,7 +146,7 @@ class Instantiate
     end
 
     def apply(defs)
-      #put "FIXING: #{@name} in #{@this}.#{@field.name}"
+      #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
       old = @this[@field.name]
       #copy_old_to_actual(old, defs[@name])
 
@@ -156,21 +163,7 @@ class Instantiate
         # code could have been executed on the stub
         # or field have been set, so copy stuff from
         # the stub to the actual thing the ref is resolved to
-        copy(@this[@field.name], actual)
         @this[@field.name] = actual
-      end
-    end
-    
-    def copy(from, to)
-      from.schema_class.fields.each do |f|
-        next unless from[f.name]
-        if f.many then
-          from[f.name].each do |x|
-            to[f.name] << x
-          end
-        else
-          to[f.name] = from[f.name]
-        end
       end
     end
   end

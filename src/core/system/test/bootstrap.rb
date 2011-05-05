@@ -21,7 +21,7 @@ class BootstrapTests < Test::Unit::TestCase
   PARSETREE_SCHEMA = 'parsetree.schema'
 
   PROTO_SCHEMA = 'proto.schema'
-  INSTANCE_SCHEMA = 'instance.schema'
+  INSTANCE_SCHEMA = 'instance.schema.rb'
 
   SCHEMA_GRAMMAR = 'schema.grammar'
   SCHEMA_SCHEMA = 'schema.schema'

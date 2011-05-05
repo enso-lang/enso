@@ -20,8 +20,10 @@ f = Factory.new(genealogy_schema)
 
 #DisplayFormat.print(genealogy_grammar, gannholm)
 
+puts "-"*50
 gannholm2 = CPSParser.load('applications/genealogy/genealogy.data', genealogy_grammar, genealogy_schema)
+puts "-"*50
 DisplayFormat.print(genealogy_grammar, gannholm2)
-Print.print gannholm2.members["id40"]
-Print.print gannholm2.members["id41"]
-Print.print gannholm2.members["id68"]
+
+puts "-"*50
+Print.print gannholm2, { :members => {} }

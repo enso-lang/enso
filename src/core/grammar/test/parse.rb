@@ -35,7 +35,7 @@ class ParseTest < Test::Unit::TestCase
     parse = CPSParser.new(s, Factory.new(ParseTreeSchema.schema))
     pt = parse.run(grammar1)
     grammar2 = Instantiate.new(Factory.new(GrammarSchema.schema)).run(pt)
-    assert_equal([], Diff.diff(grammar1, grammar2))
+    assert_equal([], diff(grammar1, grammar2))
   end
 
 

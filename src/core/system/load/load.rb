@@ -86,11 +86,13 @@ module Loading
       path = Dir['**/*.*'].find do |p|
         File.basename(p) == filename
       end
+      raise "File not found #{filename}" unless path
       yield path
     end
 
     def __load(filename, grammar, schema)
       find_model(filename) do |path|
+        puts "## loading #{path}..."
         CPSParser.load(path, grammar, schema)
       end
     end

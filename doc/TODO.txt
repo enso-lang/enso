@@ -12,6 +12,7 @@ Applications
 * database mapping
 * WebDSL mini-language
 * Unison
+* Implement a version of PLT redex?
 
 less important
 * derivative parsers?
