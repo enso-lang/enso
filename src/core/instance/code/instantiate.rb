@@ -9,9 +9,13 @@ class Instantiate
     @nested_fixes = []
   end
 
-  def run(pt)
+  def self.instantiate(factory, inst)
+    self.new(factory).run(inst)
+  end
+  
+  def run(inst)
     # ugh: @root is set in recurse...
-    recurse(pt, nil, nil, 0)
+    recurse(inst, nil, nil, 0)
     # currently only nested refs one level deep are supported (e.g. x.y) 
     # in order to support more levels fixes could be a list of lists
     # for each level

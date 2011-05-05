@@ -18,7 +18,7 @@ class GrammarSchema < SchemaGenerator
 
   klass Rule do
     field :name, :type => :str, :key => true
-    field :grammar, :type => Grammar, :inverse => Grammar.rules, :key => true
+    field :grammar, :type => Grammar, :inverse => Grammar.rules , :key => true
     field :arg, :type => Expression
   end
 
