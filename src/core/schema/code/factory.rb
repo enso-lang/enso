@@ -110,9 +110,9 @@ class CheckedObject
       raise "Can't assign nil to required field '#{field_name}'" if !field.optional
     else
       case field.type.name
-        when "str" then raise "Expected string found #{new.class} #{new}" unless new.is_a?(String)
-        when "int" then raise "Expected int found #{new}" unless new.is_a?(Integer)
-        when "bool" then raise "Expected bool found #{new}" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
+        when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
+        when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
+        when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
         else 
           raise "Inserting into the wrong model" unless _graph_id.equal?(new._graph_id)
           unless _subtypeOf(new.schema_class, field.type)
