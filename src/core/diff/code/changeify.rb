@@ -1,7 +1,34 @@
 require 'core/schema/code/factory'
 require 'core/system/boot/schema_schema'
 
-class Changeify
+=begin
+
+  class Foo
+    key: str (key)
+    foo: int
+    bar: Foo
+    items: Foo*
+
+==>
+
+  class Foo_Change
+    key: str (Key)
+  
+  class Foo_Delete < Foo_Change  # used for deleting in list, or clearing single-valued
+  class Foo_Insert < Foo_Change  # used for inserting in list, or setting single-valued
+    foo: int
+    bar: Foo
+    items: Foo*
+  class Foo_Modify < Foo_Change # used for change in list, or changing single-valued
+    foo: intChange
+    bar: Foo?
+    items: Foo*
+  
+
+=end
+
+
+class DeltaTransform_internal
   def initialize()
     @memo = {}
     @memoChange = {}
@@ -70,20 +97,20 @@ class Changeify
   end
 end
 
+def Delta(schema)
+  return DeltaTransform_internal.new.Schema(schema)
+end
 
 
 if __FILE__ == $0 then
 
-  require 'grammar/cpsparser'
-  require 'grammar/grammargrammar'
-  require 'tools/print'
-  require 'grammar/layout'
+  require 'core/system/load/load'
+  require 'core/schema/tools/print'
+  require 'core/grammar/code/layout'
   
-  sg = CPSParser.load('schema/schema.grammar', GrammarGrammar.grammar, GrammarSchema.schema)
-
-  cons = CPSParser.load_raw('schema/schema.schema', sg, SchemaSchema.schema)
+  cons = Loader.load('schema.schema')
   
-  deltaCons = Changeify.new.Schema(cons)
+  deltaCons = Delta(cons)
 
   DisplayFormat.print(sg, deltaCons)
 end

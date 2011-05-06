@@ -1,0 +1,21 @@
+primitive \str
+primitive \int
+primitive \bool
+
+class Expression
+end
+
+class Sequence < Expression
+  alts: Expression+
+end 
+
+class Alt < Expression
+  alts: Expression+
+end 
+
+class Regular < Expression
+  arg: Expression
+  optional: bool
+  many: bool
+  sep: str?
+end

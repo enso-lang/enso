@@ -1,14 +1,9 @@
-require 'core/grammar/code/parse'
-require 'core/system/boot/grammar_grammar'
+require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/code/layout'
 
-grammar_grammar = GrammarGrammar.grammar
-schema_grammar = CPSParser.load('core/schema/models/schema.grammar', grammar_grammar, GrammarSchema.schema)
-
-genealogy_schema = CPSParser.load('applications/genealogy/models/genealogy.schema', schema_grammar, SchemaSchema.schema)
-
-genealogy_grammar = CPSParser.load('applications/genealogy/models/genealogy.grammar', grammar_grammar, GrammarSchema.schema)
+genealogy_schema = Loader.load('genealogy.schema')
+genealogy_grammar = Loader.load('genealogy.grammar')
 
 f = Factory.new(genealogy_schema)
 
@@ -21,7 +16,7 @@ f = Factory.new(genealogy_schema)
 #DisplayFormat.print(genealogy_grammar, gannholm)
 
 puts "-"*50
-gannholm2 = CPSParser.load('applications/genealogy/genealogy.data', genealogy_grammar, genealogy_schema)
+gannholm2 = Loader.load('test.genealogy')
 puts "-"*50
 DisplayFormat.print(genealogy_grammar, gannholm2)
 

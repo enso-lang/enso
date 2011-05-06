@@ -1,3 +1,4 @@
+#TODO: this should NOT be a boot schema!!!
 
 require 'core/system/boot/schema_gen'
 require 'core/system/boot/schema_schema'
@@ -45,7 +46,7 @@ if __FILE__ == $0 then
 
   require 'core/grammar/code/layout'
   require 'core/system/boot/grammar_grammar'
-  require 'core/grammar/code/parser'
+  require 'core/grammar/code/parse'
   
   GG = GrammarGrammar.grammar
   schema_grammar = CPSParser.load('core/schema/models/schema.grammar', GG, GrammarSchema.schema)

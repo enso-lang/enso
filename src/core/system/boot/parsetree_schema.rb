@@ -60,7 +60,7 @@ end
 if __FILE__ == $0 then
   require 'core/grammar/code/layout'
   require 'core/system/boot/grammar_grammar'
-  require 'core/grammar/code/parser'
+  require 'core/grammar/code/parse'
 
   GG = GrammarGrammar.grammar
   schema_grammar = CPSParser.load('core/schema/models/schema.grammar', GG, GrammarSchema.schema)

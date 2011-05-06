@@ -1,10 +1,8 @@
 
 require 'core/system/boot/parsetree_schema'
-require 'core/system/boot/grammar_grammar'
 require 'core/schema/code/factory'
 require 'core/instance/code/instantiate'
 require 'core/grammar/code/implode'
-require 'core/schema/tools/print'
 
 require 'strscan'
 
@@ -19,6 +17,7 @@ class CPSParser
   
   def self.load_raw(path, grammar, schema)
     tree = CPSParser.parse(path, grammar)
+    #Print.print(tree)
     inst2 = Instantiate.new(Factory.new(schema))
     inst2.run(Implode.implode(tree))
   end
@@ -301,13 +300,6 @@ class CPSParser
     block.call(pos, [])
   end
 
-end
-
-
-if __FILE__ == $0 then
-  grammar = GrammarGrammar.grammar
-  bla = CPSParser.parse('core/grammar/models/grammar.grammar', grammar)
-  p bla
 end
 
 

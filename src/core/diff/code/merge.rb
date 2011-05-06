@@ -33,7 +33,7 @@ module Merge
         if field.key
           name = obj[field.name]
           if @renaming[name] then
-            analog = lookup_object(obj, @renaming[name])
+            analog = lookup_object(obj)
             @mapping[obj] = analog
             #puts "MAP #{obj} to #{analog}"
           end
@@ -51,25 +51,28 @@ module Merge
     end
 
     # find an object with an equivalent name  
-    def lookup_object(obj, name)
+    def lookup_object(left_obj)
       # this scans the source during the recursive calls, 
       # then follows the same path in the target on the way out
-      raise "Keys cannot be null" if obj.nil?
-      #puts "Looking up #{obj}"
-      rel_key_field = SchemaSchema.keyRel(obj.schema_class)
+      raise "Keys cannot be null" if left_obj.nil?
+      #puts "Looking up #{left_obj}"
+      rel_key_field = SchemaSchema.keyRel(left_obj.schema_class)
       if rel_key_field.nil?
-        raise "Keys should connect to root but stop at #{obj}" if obj != @source_root
+        raise "Keys should connect to root but stop at #{left_obj}" if left_obj != @source_root
         return @target_root
       else
-        key_field = SchemaSchema.key(obj.schema_class)
+        key_field = SchemaSchema.key(left_obj.schema_class)
 
         raise "Key relationship fields must have inverses" if rel_key_field.inverse.nil?
         raise "A relationship key must have a data key as well" if key_field.nil?
 
-        base = lookup_object(obj[rel_key_field.name], name)
-        key = obj[key_field.name] #[1..-1]
-        #puts "IDENTIFY #{key_field.name}/#{rel_key_field.name} key #{key}"
-        return base[rel_key_field.inverse.name][name]
+        right_base_obj = lookup_object(left_obj[rel_key_field.name])
+        left_id = left_obj[key_field.name]
+        right_id = @renaming[left_id] || left_id
+        right_obj = right_base_obj[rel_key_field.inverse.name][right_id]
+        #puts "IDENTIFY #{left_obj}.#{key_field.name}=#{left_id} with #{right_obj}"
+        raise "Could not find analogous object to #{left_obj}" if right_obj.nil?
+        return right_obj
       end
     end
   end
@@ -112,8 +115,8 @@ module Merge
         left = o1[field.name][key_val]
         #puts "KEYVAL #{key_val}"
         if @renaming[key_val] then
-          #puts "It's in renaming"
           right = o2[field.name][@renaming[key_val]]
+          #puts "RENAMED #{field.name} #{left} #{right}"
           raise "could not find object named #{key_val}" if right.nil?
           Type(field.type, left, right)
         else

@@ -21,7 +21,7 @@ class BootstrapTests < Test::Unit::TestCase
   PARSETREE_SCHEMA = 'parsetree.schema'
 
   PROTO_SCHEMA = 'proto.schema'
-  INSTANCE_SCHEMA = 'instance.schema.rb'
+  INSTANCE_SCHEMA = 'instance.schema'
 
   SCHEMA_GRAMMAR = 'schema.grammar'
   SCHEMA_SCHEMA = 'schema.schema'
@@ -89,42 +89,8 @@ class BootstrapTests < Test::Unit::TestCase
     assert_not_nil(Loader.load(INSTANCE_SCHEMA))
   end
 
-  def test_merged_parsetree_schema_equals_bootstrap_parsetree
-    pro = Loader.load(PROTO_SCHEMA)
-    inst = Loader.load(INSTANCE_SCHEMA)
-    pt = Loader.load(PARSETREE_SCHEMA)
-
-    inst_plus_pro = merge(inst, pro, {"str" => "str",
-                                      "Value" => "Value",
-                                      "Tree" => "Tree"
-                                   })
-
-    pt_plus_inst_plus_pro = merge(pt, inst_plus_pro, {
-                                              "str" => "str", 
-                                              "int" => "int", 
-                                              "bool" => "bool",
-                                              "Tree" => "Tree",
-                                              "Value" => "Value",
-                                              "Ref" => "Ref"
-                                            })
-    assert_equal([], diff(pt_plus_inst_plus_pro, ParseTreeSchema.schema))
-  end
 
 
- def test_merged_grammar_schema_equals_bootstrap_grammar_schema
-   
-   pro = Loader.load(PROTO_SCHEMA)
-   gram = Loader.load(GRAMMAR_SCHEMA)
-
-   gram_plus_pro = merge(gram, pro,  {
-                                     "str" => "str", 
-                                     "int" => "int", 
-                                     "bool" => "bool",
-                                     "Expression" => "Tree",
-                                     "Value" => "Value"
-                                   })
-   assert_equal([], diff(gram_plus_pro, GrammarSchema.schema))
- end
 
 
 end

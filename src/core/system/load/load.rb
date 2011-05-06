@@ -1,10 +1,11 @@
 
-require 'core/grammar/code/parse'
-require 'core/diff/code/merge'
 require 'core/system/boot/grammar_grammar'
 require 'core/system/boot/grammar_schema'
 require 'core/system/boot/schema_schema'
 
+# these are here in case any of the "eval" code needs it
+require 'core/grammar/code/parse'
+require 'core/diff/code/merge'
 
 
 module Loading
@@ -15,86 +16,63 @@ module Loading
     GRAMMAR_GRAMMAR = 'grammar.grammar'
     SCHEMA_SCHEMA = 'schema.schema'
     SCHEMA_GRAMMAR = 'schema.grammar'
-
+    GRAMMAR_SCHEMA = 'grammar.schema'
+    
     def initialize
-      @cache = {}
     end
     
-    def load(filename)
-      model, type, rb = filename.split(/\./)
-      if rb then
-        _load_ruby(filename, model, type)
-      else
-        g = load_grammar("#{type}.grammar")
-        s = load_schema("#{type}.schema")
-        _load(filename, g, s)
-      end
+    def load(name)
+      setup() if @cache.nil?
+      
+      return @cache[name] if @cache[name]
+      @cache[name] = _load(name)
     end
-        
-
+    
     private
 
-    def load_schema(filename)
-      g = load_grammar(SCHEMA_GRAMMAR)
-      if filename == SCHEMA_SCHEMA then
-        s = SchemaSchema.schema
-        _load(SCHEMA_SCHEMA, g, s)
-      else
-        s = load_schema(SCHEMA_SCHEMA)
-        _load(filename, g, s)
-      end
-    end      
+    def _load(name)
+      # this is very cool!
+      model, type = name.split(/\./)
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      return load_with_models(name, g, s)
+    end
+        
+    def setup
+      @cache = {}
+      gg = GrammarGrammar.grammar
+      gs = GrammarSchema.schema
+      ss = SchemaSchema.schema
+      # load the real things
+      gg = @cache[GRAMMAR_GRAMMAR] = load_with_models(GRAMMAR_GRAMMAR, gg, gs)
+      sg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, gg, gs)
+      ss = @cache[SCHEMA_SCHEMA] = load_with_models(SCHEMA_SCHEMA, sg, ss)
+      gs = @cache[GRAMMAR_SCHEMA] = load_with_models(GRAMMAR_SCHEMA, sg, ss)
+    end
     
+    def load_with_models(name, grammar, schema)
+      find_model(name) do |path|
+        load_path(path, grammar, schema)
+      end
+    end
 
-    def load_grammar(filename)
-      if filename == GRAMMAR_GRAMMAR then
-        s = GrammarSchema.schema
-        g = GrammarGrammar.grammar
-        _load(GRAMMAR_GRAMMAR, g, s)
-      elsif filename == SCHEMA_GRAMMAR then
-        s = GrammarSchema.schema
-        g = GrammarGrammar.grammar
-        _load(SCHEMA_GRAMMAR, g, s)
+    def load_path(path, grammar, schema)
+      header = File.open(path, &:readline)
+      if header =~ /#ruby/
+        puts "## building #{path}..."
+        instance_eval(File.read(path))
       else
-        s = load_schema(filename)
-        g = load_grammar(GRAMMAR_GRAMMAR)
-        _load(filename, g, s)
-      end 
-    end
-
-    def cached(model, type)
-      @cache[type] ||= {}
-      @cache[type][model] ||= yield
-    end
-
-    def _load(filename, grammar, schema)
-      model, type = filename.split(/\./)
-      cached(model, type) do 
-        __load(filename, grammar, schema)
-      end
-    end
-
-    def _load_ruby(filename, model, type)
-      cached(model, type) do 
-        find_model(filename) do |path|
-          instance_eval(File.read(path))
-        end
-      end
-    end
-
-    def find_model(filename) 
-      path = Dir['**/*.*'].find do |p|
-        File.basename(p) == filename
-      end
-      raise "File not found #{filename}" unless path
-      yield path
-    end
-
-    def __load(filename, grammar, schema)
-      find_model(filename) do |path|
-        #puts "## loading #{path}..."
+        puts "## loading #{path}..."
         CPSParser.load(path, grammar, schema)
       end
+    end
+    
+    def find_model(name) 
+      path = Dir['**/*.*'].find do |p|
+        File.basename(p) == name
+      end
+      raise "File not found #{name}" unless path
+      yield path
     end
 
   end
@@ -116,7 +94,7 @@ if __FILE__ == $0 then
   p l.load('value.schema')
   p l.load('proto.schema')
 
-  p l.load('instance.schema.rb')
+  p l.load('instance.schema')
 
   #p l.load_parsetree('bla.pt')
 end

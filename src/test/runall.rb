@@ -1,6 +1,6 @@
 
 
-Dir['**/test/*.rb'].each do |t| 
+Dir['core/**/test/*.rb'].each do |t| 
   require t
 end
 

@@ -1,3 +1,5 @@
+1) Layout schema should not be in boot
+
 * merging schemas and grammars.
 
 * Finalize: seals from changes, run invariants
@@ -17,3 +19,8 @@ Applications
 less important
 * derivative parsers?
 * other kind of parser?
+
+------------notes-
+   
+       
+  

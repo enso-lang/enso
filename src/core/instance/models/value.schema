@@ -1,5 +1,7 @@
   primitive \str
 
+  // This value extension is used when the value is defined,
+  // rather than simply an abstract pattern
   class Value < Tree
     value: str
   end

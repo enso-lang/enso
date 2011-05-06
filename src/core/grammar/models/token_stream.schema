@@ -1,0 +1,16 @@
+// should include  InstanceSchema (which include ValueSchema and ProtoSchema)
+
+class Tree
+end
+
+class Sequence < Tree
+  elements: Tree*
+end
+
+class Lit < Tree
+  value: str
+end
+
+primitive \str
+primitive \int
+primitive \bool

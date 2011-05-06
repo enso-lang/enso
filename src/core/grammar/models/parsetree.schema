@@ -1,33 +1,9 @@
-  // should include  InstanceSchema (which include ValueSchema and ProtoSchema)
+#ruby
+# should include  InstanceSchema (which include ValueSchema and ProtoSchema)
 
-  primitive \str
-  primitive \int
-  primitive \bool
-
-  class ParseTree
-    path: str
-    top: Tree
-    layout: str
-  end   
-
-  class Tree
-  end
-
-  class Appl < Tree
-    rule: str
-    arg: Tree
-  end
-  
-  class Value < Tree
-    layout: str
-  end 
-
-  class Lit < Tree
-    value: str
-    layout: str
-  end
-
-  class Ref < Tree
-    layout: str
-  end
-
+merge(load('instance.schema'), load('token_stream.schema'),
+      {"str" => "str", "int" => "int", "bool" => "bool", 
+       "Tree" => "Tree",
+       "Sequence" => "Sequence",
+       "elements" => "elements" })
+       
