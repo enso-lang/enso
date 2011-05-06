@@ -180,15 +180,21 @@ class SchemaGenerator
       return m
     end
 
-    def finalize(schema)
-      schema.schema_class = SchemaSchema::Schema.klass
+    def patch_schema_pointers(schema, schema_schema = SchemaSchema.schema)
+      kschema = schema_schema.classes["Schema"]
+      prim = schema_schema.types["Primitive"]
+      klass = schema_schema.types["Klass"]
+      field = schema_schema.types["Field"]
+      
+      # Yes, we are breaking encapsulation here. Necessary for bootstrapping
+      schema.instance_eval { @schema_class = kschema}
       schema.primitives.each do |p|
-        p.schema_class = SchemaSchema::Primitive.klass
+        p.instance_eval { @schema_class = prim }
       end
       schema.classes.each do |c|
-        c.schema_class = SchemaSchema::Klass.klass
+        c.instance_eval { @schema_class = klass }
         c.defined_fields.each do |f|
-          f.schema_class = SchemaSchema::Field.klass
+          f.instance_eval { @schema_class = field }
         end
       end
     end

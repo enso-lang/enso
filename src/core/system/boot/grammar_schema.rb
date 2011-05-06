@@ -70,7 +70,7 @@ class GrammarSchema < SchemaGenerator
     field :sep, :type => :str, :optional => true
   end
 
-  SchemaSchema.finalize(schema)
+  SchemaSchema.patch_schema_pointers(schema)
 end
 
 if __FILE__ == $0 then

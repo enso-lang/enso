@@ -43,16 +43,25 @@ module Loading
         
     def setup
       @cache = {}
-      gg = GrammarGrammar.grammar
-      gs = GrammarSchema.schema
-      ss = SchemaSchema.schema
+      puts "Initializing.."
+      bss = @cache[SCHEMA_SCHEMA] = SchemaSchema.schema
+      bgs = @cache[GRAMMAR_SCHEMA] = GrammarSchema.schema
+      bgg = @cache[GRAMMAR_GRAMMAR] = GrammarGrammar.grammar
+      bsg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, bgg, bgs)
       # load the real things
-      gg = @cache[GRAMMAR_GRAMMAR] = load_with_models(GRAMMAR_GRAMMAR, gg, gs)
-      sg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, gg, gs)
-      ss = @cache[SCHEMA_SCHEMA] = load_with_models(SCHEMA_SCHEMA, sg, ss)
-      gs = @cache[GRAMMAR_SCHEMA] = load_with_models(GRAMMAR_SCHEMA, sg, ss)
+      ss = @cache[SCHEMA_SCHEMA] = load_with_models(SCHEMA_SCHEMA, bsg, bss)
+      # now we have the schema schema, so we can fix up the pointers  
+      
+      # for now we don't really eliminate all referenes to boot schema
+      # SchemaSchema.patch_schema_pointers(ss, ss)
+      # gs = @cache[GRAMMAR_SCHEMA] = load_with_models(GRAMMAR_SCHEMA, bsg, ss)
+      gs = bgs   
+ 
+      # now that we have a good schema schema, load the other three, including the first two
+      sg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, bgg, gs)
+      gg = @cache[GRAMMAR_GRAMMAR] = load_with_models(GRAMMAR_GRAMMAR, bgg, gs)
     end
-    
+        
     def load_with_models(name, grammar, schema)
       find_model(name) do |path|
         load_path(path, grammar, schema)

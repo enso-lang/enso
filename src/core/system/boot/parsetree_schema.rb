@@ -54,7 +54,7 @@ class ParseTreeSchema < SchemaGenerator
     field :layout, :type => :str
   end
 
-  SchemaSchema.finalize(schema)
+  SchemaSchema.patch_schema_pointers(schema)
 end
 
 if __FILE__ == $0 then

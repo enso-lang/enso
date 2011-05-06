@@ -50,7 +50,7 @@ class SchemaSchema < SchemaGenerator
     field :computed, :type => :str, :optional => true
   end
 
-  SchemaSchema.finalize(schema)
+  SchemaSchema.patch_schema_pointers(schema)
 
   def self.key(klass)
     klass.fields.find { |f| f.key && f.type.Primitive? }

@@ -1,13 +1,14 @@
-1) Layout schema should not be in boot
+Cleanup tasks
 
-* merging schemas and grammars.
+* Distinguish "all_fields" (including computed) and "fields" (no computed fields)
+* Finalize: seals from changes, run invariants   
+* sanitize the loader namespace (remove boot stuff)
+* move "keys" to be computed attribut
 
-* Finalize: seals from changes, run invariants
-   
+New core functionality
 * fixedpoint cyclic map
 
 Applications
-
 * graphical editors
     (does Ruby have graphics binding?)
 * executable UML
@@ -20,7 +21,3 @@ less important
 * derivative parsers?
 * other kind of parser?
 
-------------notes-
-   
-       
-  
