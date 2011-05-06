@@ -1,12 +1,18 @@
 start Genealogy
 
-Genealogy ::= [Genealogy] "genealogy" name:sym members:Person*
+Genealogy ::= [Genealogy] "genealogy"
+	name:sym
+	members:Person*
 
-Person ::= [Person] "person"  id:sym
-   name:str 
-   Father?
-   Mother?
-  "end"
+Person ::= [Person] "person"
+	id:sym
+	birth:Date
+	name:str
+	Father?
+	Mother?
+	"end"
+
+Date ::= [Date] year:int "-" month:int "-" day:int
 
 Father ::= "^" father: Person^
 
