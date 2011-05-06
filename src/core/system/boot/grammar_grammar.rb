@@ -34,9 +34,7 @@ class GrammarGrammar < GrammarGenerator
   rule Pattern do
     alt [:Value], {kind: "int"}
     alt [:Value], {kind: "str"}
-    #alt [:Value], {kind: "sqstr"}
     alt [:Value], {kind: "real"}
-    alt [:Value], {kind: "bool"}
     alt [:Value], {kind: "sym"}
 
     alt [:Code], "@", {code: :str}

@@ -18,7 +18,6 @@
       [Value] kind:"int"
     | [Value] kind:"str"
     | [Value] kind:"real"
-    | [Value] kind:"bool"
     | [Value] kind:"sym"
     | [Code] "@" code:str
     | [Ref] name:sym "^"

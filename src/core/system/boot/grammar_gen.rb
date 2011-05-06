@@ -22,7 +22,7 @@ class GrammarGenerator
   end
 
   VALUES = {}
-  %w(str int real sym bool). each do |t|
+  %w(str int real sym). each do |t|
     VALUES[t.to_sym] = make_value(t.to_s)
   end
 

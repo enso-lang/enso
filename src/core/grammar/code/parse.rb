@@ -32,7 +32,6 @@ class CPSParser
   SYMBOL = "[\\\\]?([a-zA-Z_$][a-zA-Z_$0-9]*)(\\.[a-zA-Z_$][a-zA-Z_$0-9]*)*"
   
   TOKENS =  {
-    bool: /true|false/,
     sym: Regexp.new(SYMBOL),
     int: /[0-9]+/,
     str: /"(\\\\.|[^"])*"/,

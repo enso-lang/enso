@@ -18,9 +18,6 @@ module Loading
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
     
-    def initialize
-    end
-    
     def load(name)
       setup() if @cache.nil?
       
