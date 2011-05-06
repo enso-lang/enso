@@ -50,7 +50,12 @@ class Instantiate
     v = this.value
     case this.kind 
     when "str" then 
-      v
+      # TODO: HACK why quotes here?
+      if v.length > 0 && v[0] == '"'
+        v.gsub(/\\"/, '"')[1..-2]
+      else
+        v
+      end
     when "bool" then
       v == "true"
     when "int" then
@@ -147,7 +152,7 @@ class Instantiate
         n = names.shift
         actual = defs[n]
       end
-
+      raise "Could not find symbol '#{@name}' \nDEFS: #{defs}" if actual.nil?
       if @field.many then
         @this[@field.name][@pos] = actual
       else

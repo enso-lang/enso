@@ -1,5 +1,4 @@
 
-require 'core/system/boot/schema_schema'
 require 'core/system/library/cyclicmap'
 require 'core/schema/code/factory'
 require 'core/schema/tools/copy'
@@ -7,7 +6,7 @@ require 'core/schema/tools/copy'
 class OptimizingGrammarFactory
   def initialize
     @factory = Factory.new(GrammarSchema.schema)
-    @epsilon = @factory.Epsilon()
+    @epsilon = @factory.Sequence()
   end
 
   def Grammar(*args)
@@ -107,7 +106,7 @@ class Derivative < CyclicMapNew
   end
 
   def Grammar(from)
-    @grammar = @factory.Grammar(from.name)
+    @grammar = @factory.Grammar()
     @copier = RuleCopy.new(@factory, @grammar)
     r = recurse(from.start)
     if r
@@ -222,19 +221,16 @@ end
 
 
 if __FILE__ == $0 then
-  require 'core/system/boot/grammargrammar'
+  require 'core/system/load/load'
   require 'core/schema/tools/print'
  
-  x = GrammarGrammar.grammar
+  x = Loader.load('grammar.grammar')
 
-  #y = Derivative.new("foo").recurse(x)
-  #Print.recurse(y, GrammarSchema.print_paths)
-  
   x = Derivative.new("grammar").recurse(x)
   
   x = Derivative.new(:foo).recurse(x)
   x = Derivative.new("start").recurse(x)
-  Print.new.recurse(x, GrammarSchema.print_paths)
+  Print.new.recurse(x)
   x = Derivative.new(:bar).recurse(x)
 
   x = Derivative.new(:r1).recurse(x)
@@ -242,7 +238,7 @@ if __FILE__ == $0 then
   x = Derivative.new("test").recurse(x)
   x = Derivative.new("*").recurse(x)
   
-  Print.new.recurse(x, GrammarSchema.print_paths)
+  Print.new.recurse(x)
     
 end
 

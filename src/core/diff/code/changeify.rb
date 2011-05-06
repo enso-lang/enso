@@ -1,5 +1,4 @@
 require 'core/schema/code/factory'
-require 'core/system/boot/schema_schema'
 
 =begin
 
@@ -37,7 +36,7 @@ class DeltaTransform_internal
   end
   
   def Schema(old)
-    @schema = @factory.Schema(old.name + "Changes")
+    @schema = @factory.Schema()
     old.types.each do |t| Type(t) end
     @schema.finalize
     return @schema
@@ -112,5 +111,5 @@ if __FILE__ == $0 then
   
   deltaCons = Delta(cons)
 
-  DisplayFormat.print(sg, deltaCons)
+  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 end

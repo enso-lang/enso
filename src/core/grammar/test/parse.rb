@@ -23,14 +23,14 @@ class ParseTest < Test::Unit::TestCase
     grammar = GrammarGrammar.grammar
     grammargrammar = GRAMMAR_GRAMMAR
     src = File.read(grammargrammar)
-    tree = CPSParser.parse(grammargrammar, grammar)
+    tree = CPSParser.parseFile(grammargrammar, grammar)
     s = Unparse.unparse(grammar, tree)
     assert_equal(src, s, "unparse not the same as input source")
   end
  
   def test_parse_render
     boot = GrammarGrammar.grammar
-    grammar1 = CPSParser.load(GRAMMAR_GRAMMAR, boot, GrammarSchema.schema)
+    grammar1 = CPSParser.loadFile(GRAMMAR_GRAMMAR, boot, GrammarSchema.schema)
     s = ''
     DisplayFormat.print(GrammarGrammar.grammar, grammar1, 80, s)
     parse = CPSParser.new(s, Factory.new(ParseTreeSchema.schema))

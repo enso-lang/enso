@@ -70,11 +70,10 @@ class Conformance < CyclicCollectOnBoth
 end
 
 if __FILE__ == $0 then
-  require 'core/system/boot/schema_schema'
+  require 'core/system/load/load'
   
-  ss = SchemaSchema.schema
+  ss = Loader.load('schema.schema')
   # if you want to print something out, see example at end of print.rb 
-  puts "Checking #{ss.name}"
 
   check = Conformance.new
   check.recurse(ss.classes["Schema"], ss)

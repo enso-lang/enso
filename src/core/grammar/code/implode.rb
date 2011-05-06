@@ -63,18 +63,3 @@ class Implode < Dispatch
   end
 
 end
-
-if __FILE__ == $0 then
-  require 'core/grammar/code/parse'
-  require 'core/schema/tools/print'
-
-  require 'core/system/boot/grammar_grammar'
-  pt = CPSParser.parse('core/grammar/models/grammar.grammar', GrammarGrammar.grammar)
-
-  Print.print(pt)
-
-  ast = Implode.implode(pt)
-
-  Print.print(ast)
-  
-end

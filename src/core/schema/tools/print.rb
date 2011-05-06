@@ -89,11 +89,11 @@ class Print
 end
 
 if __FILE__ == $0 then
-  require 'core/system/boot/schema_schema'
-  # Print.recurse(SchemaSchema.schema) # this also works
-   
-  Print.new.recurse(SchemaSchema.schema, SchemaSchema.print_paths)
+  require 'core/system/load/load'
   
-  require 'core/system/boot/grammar_schema'  
-  Print.new.recurse(GrammarSchema.schema, SchemaSchema.print_paths)
+  ss = Loader.load('schema.schema')
+  sg = Loader.load('schema.grammar')
+   
+  Print.new.recurse(ss)  
+  Print.new.recurse(sg)
 end

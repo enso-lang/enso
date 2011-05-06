@@ -1,6 +1,5 @@
 
 require 'core/system/library/cyclicmap'
-require 'core/system/boot/layout_schema'
 require 'core/grammar/code/render'
 
 class FormatWidth < MemoBase
@@ -119,12 +118,8 @@ class DisplayFormat < Dispatch
 end
 
 
-def main
-  require 'core/system/boot/grammar_grammar'
-
-  DisplayFormat.print(GrammarGrammar.grammar, GrammarGrammar.grammar)
-end
-
 if __FILE__ == $0 then
-  main
+  require 'core/system/load/load'
+  gg = Loader.load('grammar.grammar')
+  DisplayFormat.print(gg, gg)
 end

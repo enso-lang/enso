@@ -1,10 +1,7 @@
 
 require 'test/unit'
 
-require 'core/system/boot/schema_schema'
-require 'core/system/boot/grammar_schema'
-require 'core/system/boot/grammar_grammar'
-require 'core/system/boot/parsetree_schema'
+require 'core/system/load/load'
 
 require 'core/schema/code/factory'
 
@@ -13,6 +10,9 @@ require 'core/schema/tools/print'
 require 'core/diff/code/equals'
 
 class EqualityTest < Test::Unit::TestCase
+  SS = Loader.load('schema.schema')
+  GS = Loader.load('grammar.schema')
+  GG = Loader.load('grammar.grammar')
   
   def print_eq(s, x, y)
     s1 = ''
@@ -29,62 +29,62 @@ class EqualityTest < Test::Unit::TestCase
 
 
   def test_self_equals
-    s1 = SchemaSchema.schema
-    assert(Equals.equals(SchemaSchema.schema, s1, s1))
+    s1 = SS
+    assert(Equals.equals(SS, s1, s1))
     s1 = ParseTreeSchema.schema
-    assert(Equals.equals(SchemaSchema.schema, s1, s1))
-    s1 = GrammarSchema.schema
-    assert(Equals.equals(SchemaSchema.schema, s1, s1))
-    s1 = GrammarGrammar.grammar
-    assert(Equals.equals(GrammarSchema.schema, s1, s1))
+    assert(Equals.equals(SS, s1, s1))
+    s1 = GS
+    assert(Equals.equals(SS, s1, s1))
+    s1 = GG
+    assert(Equals.equals(GS, s1, s1))
   end
 
   def test_print_equals
-    s1 = SchemaSchema.schema
+    s1 = SS
     print_eq(s1, s1, s1)
     s1 = ParseTreeSchema.schema
     print_eq(s1, s1, s1)
-    s1 = GrammarSchema.schema
+    s1 = GS
     print_eq(s1, s1, s1)
-    s2 = GrammarGrammar.grammar
+    s2 = GG
     print_eq(s1, s2, s2)
   end
 
 
   def test_not_equals
-    s1 = SchemaSchema.schema
+    s1 = SS
     s2 = ParseTreeSchema.schema
-    s3 = GrammarSchema.schema
-    s4 = GrammarGrammar.grammar
+    s3 = GS
+    s4 = GG
 
-    assert(!Equals.equals(SchemaSchema.schema, s1, s2))
-    assert(!Equals.equals(SchemaSchema.schema, s2, s3))
-    assert(!Equals.equals(SchemaSchema.schema, s3, s4))
+    assert(!Equals.equals(SS, s1, s2))
+    assert(!Equals.equals(SS, s2, s3))
+    assert(!Equals.equals(SS, s3, s4))
 
     assert_raise(Exception, "cannot compare grammars using schemaschema") do
-      Equals.equals(SchemaSchema.schema, s4, s4)
+      Equals.equals(SS, s4, s4)
     end
 
     assert_raise(Exception, "should not compare grammars to schemas") do
-      Equals.equals(SchemaSchema.schema, s4, s3)
+      Equals.equals(SS, s4, s3)
     end
 
     assert_raise(Exception, "should not compare schemas to grammars") do
-      Equals.equals(SchemaSchema.schema, s3, s4)
+      Equals.equals(SS, s3, s4)
     end
 
     assert_raise(Exception, "should not compare schemas to grammars as if grammars") do
-      Equals.equals(GrammarSchema.schema, s3, s4)
+      Equals.equals(GS, s3, s4)
     end
   end
 
 
 
   def test_transitive
-    s1 = SchemaSchema.schema
-    s2 = Copy.new(Factory.new(SchemaSchema.schema)).copy(s1)
-    s3 = Copy.new(Factory.new(SchemaSchema.schema)).copy(s2)
-    assert(Equals.equals(SchemaSchema.schema, s1, s3))
+    s1 = SS
+    s2 = Copy.new(Factory.new(SS)).copy(s1)
+    s3 = Copy.new(Factory.new(SS)).copy(s2)
+    assert(Equals.equals(SS, s1, s3))
   end
 
 end

@@ -25,6 +25,12 @@ module Loading
       @cache[name] = _load(name)
     end
     
+    def loadText(type, source)
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      CPSParser.load("-", source, g, s)
+    end
+        
     private
 
     def _load(name)
@@ -60,7 +66,7 @@ module Loading
         instance_eval(File.read(path))
       else
         puts "## loading #{path}..."
-        CPSParser.load(path, grammar, schema)
+        CPSParser.loadFile(path, grammar, schema)
       end
     end
     

@@ -75,7 +75,6 @@ end
 
 if __FILE__ == $0 then
 
-  require 'core/system/boot/schema_schema'
   require 'core/schema/tools/print'
   
   Print.new.recurse(GrammarSchema.schema, SchemaSchema.print_paths)  

@@ -1,11 +1,12 @@
 
+require 'core/system/load/load'
 require 'core/system/library/cyclicmap'
 require 'core/grammar/code/parse'
 
 # render an object into a grammar, to create a parse tree
 class Render < Dispatch
   def initialize()
-    @factory = Factory.new(LayoutSchema.schema)
+    @factory = Factory.new(Loader.load('layout.schema'))
   end
 
   def Grammar(this, obj)
@@ -120,14 +121,12 @@ class Render < Dispatch
 end
 
 def main
-  require 'core/schema/code/factory'
-  require 'core/system/boot/layout_schema'
   require 'core/schema/tools/print'
-  require 'core/system/boot/grammar_grammar'
+  gg = Loader.load('grammar.grammar')
 
   render = Render.new
-  pt = render.recurse(GrammarGrammar.grammar, GrammarGrammar.grammar)  
-  Print.new.recurse(pt, LayoutSchema.print_paths)
+  pt = render.recurse(gg, gg)  
+  Print.new.recurse(pt)
 end
 
 if __FILE__ == $0 then

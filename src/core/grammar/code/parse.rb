@@ -9,21 +9,29 @@ require 'strscan'
 
 class CPSParser
 
-  def self.load(path, grammar, schema)
-    data = load_raw(path, grammar, schema)
+  def self.loadFile(path, grammar, schema)
+    self.load(path, File.read(path), grammar, schema)
+  end
+  
+  def self.load(path, source, grammar, schema)
+    data = load_raw(path, source, grammar, schema)
     data.finalize
     return data
   end
   
-  def self.load_raw(path, grammar, schema)
-    tree = CPSParser.parse(path, grammar)
+  def self.load_raw(path, source, grammar, schema)
+    tree = CPSParser.parse(path, source, grammar)
     #Print.print(tree)
     inst2 = Instantiate.new(Factory.new(schema))
     inst2.run(Implode.implode(tree))
   end
 
-  def self.parse(path, grammar, ptf = Factory.new(ParseTreeSchema.schema))
-    parse = CPSParser.new(File.read(path), ptf, path)
+  def self.parseFile(path, grammar, ptf = Factory.new(ParseTreeSchema.schema))
+    parse(path, File.read(path), grammar, ptf = Factory.new(ParseTreeSchema.schema))
+  end
+  
+  def self.parse(path, source, grammar, ptf = Factory.new(ParseTreeSchema.schema))
+    parse = CPSParser.new(source, ptf, path)
     parse.run(grammar)
   end
 

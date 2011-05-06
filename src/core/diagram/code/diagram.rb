@@ -1,6 +1,5 @@
 
-require 'core/grammar/code/parse'
-require 'core/system/boot/grammar_grammar'
+require 'core/system/load/load'
 require 'core/schema/tools/print'
 
 require 'wx'
@@ -150,10 +149,7 @@ class DiagramFrame < Wx::Frame
    
 end
 
-grammar_grammar = GrammarGrammar.grammar
-schema_grammar = CPSParser.load('core/schema/models/schema.grammar', grammar_grammar, GrammarSchema.schema)
-
-diagram_schema = CPSParser.load('core/diagram/models/diagram.schema', schema_grammar, SchemaSchema.schema)
+diagram_schema = Loader.load('diagram.schema')
 
 f = Factory.new(diagram_schema)
 

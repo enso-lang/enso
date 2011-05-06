@@ -59,11 +59,9 @@ end
 
 if __FILE__ == $0 then
   require 'core/grammar/code/layout'
-  require 'core/system/boot/grammar_grammar'
-  require 'core/grammar/code/parse'
+  require 'core/system/load/load'
 
-  GG = GrammarGrammar.grammar
-  schema_grammar = CPSParser.load('core/schema/models/schema.grammar', GG, GrammarSchema.schema)
+  schema_grammar = Loader.load('schema.grammar')
 
   DisplayFormat.print(schema_grammar, ParseTreeSchema.schema)
 end

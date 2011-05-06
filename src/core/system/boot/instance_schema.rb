@@ -1,5 +1,5 @@
 
-require 'core/system/boot/schema_gen'
+require 'core/system/boot/schema_schema'
 
 class InstanceSchema < SchemaGenerator
 

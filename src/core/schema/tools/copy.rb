@@ -68,16 +68,19 @@ end
 
 if __FILE__ == $0 then
 
-  require 'core/system/boot/schema_schema'
+  require 'core/system/load/load'
+  
+  ss = Loader.load('schema.schema')
+
   require 'core/schema/tools/print'
   require 'core/schema/code/factory'
   
-  newSchema = Copy.new(Factory.new(SchemaSchema.schema)).copy(SchemaSchema.schema)
+  newSchema = Copy.new(Factory.new(ss)).copy(ss)
   newSchema.finalize()
   
   Print.new.recurse(newSchema, SchemaSchema.print_paths)
   
   puts "#{newSchema.classes.class}"
-  puts "WOA: #{newSchema.classes['Klass'].schema.name}"
+  puts "WOA: #{newSchema.classes['Klass'].schema}"
 
 end

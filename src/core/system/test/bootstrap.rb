@@ -33,7 +33,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar, grammar))
 
     grammargrammar = 'core/grammar/models/grammar.grammar'
-    grammar2 = CPSParser.load(grammargrammar, grammar, GrammarSchema.schema)
+    grammar2 = CPSParser.loadFile(grammargrammar, grammar, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar2))
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar2))
@@ -43,7 +43,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar, grammar2))
     assert_equal([], diff(grammar2, grammar))
     
-    grammar3 = CPSParser.load(grammargrammar, grammar2, GrammarSchema.schema)
+    grammar3 = CPSParser.loadFile(grammargrammar, grammar2, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar3, grammar3))
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar3))
@@ -57,7 +57,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar3, grammar))
     assert_equal([], diff(grammar, grammar3))
 
-    grammar4 = CPSParser.load(grammargrammar, grammar3, GrammarSchema.schema)
+    grammar4 = CPSParser.loadFile(grammargrammar, grammar3, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar4, grammar4))
     assert(Equals.equals(GrammarSchema.schema, grammar4, grammar3))

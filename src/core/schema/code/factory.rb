@@ -90,7 +90,7 @@ class CheckedObject
     if field_name[-1] == "?"
       return self.schema_class.name == field_name[0..-2]
     end
-    raise "Accessing non-existant field '#{field_name}' of #{schema_class.name} in #{schema_class.schema}" unless field
+    raise "Accessing non-existant field '#{field_name}' of #{schema_class.name}" unless field
     if field.computed
       r = self.instance_eval(field.computed.gsub(/@/, "self."))
       #puts "EVAL #{self}.#{field.name} = #{r}"
