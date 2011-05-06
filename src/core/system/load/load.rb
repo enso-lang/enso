@@ -7,6 +7,9 @@ require 'core/system/boot/schema_schema'
 require 'core/grammar/code/parse'
 require 'core/diff/code/merge'
 
+require 'core/system/boot/instance_schema'
+require 'core/system/boot/parsetree_schema'
+
 
 module Loading
   class Loader
@@ -17,6 +20,8 @@ module Loading
     SCHEMA_SCHEMA = 'schema.schema'
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
+    INSTANCE_SCHEMA = 'instance.schema'
+    PARSETREE_SCHEMA = 'parsetree.schema'
     
     def load(name)
       setup() if @cache.nil?
@@ -44,6 +49,10 @@ module Loading
     def setup
       @cache = {}
       puts "Initializing.."
+
+      @cache[PARSETREE_SCHEMA] = ParseTreeSchema.schema
+      @cache[INSTANCE_SCHEMA] = InstanceSchema.schema
+
       bss = @cache[SCHEMA_SCHEMA] = SchemaSchema.schema
       bgs = @cache[GRAMMAR_SCHEMA] = GrammarSchema.schema
       bgg = @cache[GRAMMAR_GRAMMAR] = GrammarGrammar.grammar

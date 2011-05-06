@@ -1,15 +1,13 @@
 
 require 'core/schema/code/factory'
+require 'core/system/load/load'
 require 'core/grammar/code/implode'
 require 'core/system/library/cyclicmap'
-require 'core/system/boot/instance_schema'
-require 'core/system/boot/schema_schema'
-
 
 class Lift
 
   def initialize
-    @factory = Factory.new(InstanceSchema.schema)
+    @factory = Factory.new(Loader.load('instance.schema'))
     @memo = {}
   end
 
@@ -45,10 +43,10 @@ class Lift
       else
         sub_path = paths[field.name.to_sym]
         if sub_path || !field.inverse ||
-            (!field.many && (obj[field.name].nil? || SchemaSchema.key(obj[field.name].schema_class)))
+            (!field.many && (obj[field.name].nil? || key(obj[field.name].schema_class)))
           if !field.many
             sub = obj[field.name]
-            use_key = sub_path.nil? && !sub.nil? && SchemaSchema.key(sub.schema_class)
+            use_key = sub_path.nil? && !sub.nil? && key(sub.schema_class)
             if !visited.include?(sub) || visited[-2] != sub && use_key
               inst.contents << @factory.Field(field.name, make_1(use_key, sub, sub_path, visited))
             end
@@ -56,7 +54,7 @@ class Lift
             f = @factory.Field(field.name)
             l = @factory.List
             obj[field.name].each_with_index do |sub, i|
-              use_key = sub_path.nil? && SchemaSchema.key(sub.schema_class)
+              use_key = sub_path.nil? && key(sub.schema_class)
               l.elements << make_1(use_key, sub, sub_path, visited)
             end
             f.value = l
@@ -76,7 +74,11 @@ class Lift
       recurse(obj, path || {}, visited)
     end
   end
-  
+
+  def key(klass)
+    klass.fields.find { |f| f.key && f.type.Primitive? }
+  end
+
 end
 
 

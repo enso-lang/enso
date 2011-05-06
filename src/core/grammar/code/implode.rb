@@ -1,16 +1,15 @@
 
 require 'core/system/library/cyclicmap'
 require 'core/system/load/load'
-require 'core/system/boot/instance_schema'
 
 class Implode < Dispatch
 
-  def initialize
-    @factory = Factory.new(InstanceSchema.schema)
+  def initialize(factory)
+    @factory = factory
   end
 
   def self.implode(pt)
-    Implode.new.recurse(pt, false)
+    Implode.new(Factory.new(Loader.load('instance.schema'))).recurse(pt, false)
   end
 
   def ParseTree(this, in_field)
@@ -31,7 +30,6 @@ class Implode < Dispatch
   end
   
   def Create(this, in_field)
-    #puts "THIS = #{this}"
     @factory.Instance(this.name, recurse(this.arg, false))
   end
 
@@ -54,7 +52,7 @@ class Implode < Dispatch
 
   def Lit(this, in_field)
     if in_field then
-      @factory.Prim('str', this.value) #"\"#{this.value}\"")
+      @factory.Prim('str', this.value)
     end
   end
 

@@ -46,9 +46,12 @@ class Instantiate
     return pos
   end
       
-  def convert(this)
-    v = this.value
-    case this.kind 
+  def convert(this, ftype)
+    convert_typed(this.value, this.kind, ftype)
+  end
+
+  def convert_typed(v, type, ftype = nil)
+    case type
     when "str" then 
       v
     when "bool" then
@@ -59,6 +62,8 @@ class Instantiate
       Float(v)
     when "sym" then
       v
+    when "atom", !ftype.nil? then
+      convert_typed(v, ftype)
     else
       raise "Don't know kind #{this.kind}"
     end
@@ -103,11 +108,11 @@ class Instantiate
     #put "Value: #{this} for #{field}"
 
     if field.key then
-      #puts "Setting key: #{convert(this)} (field = #{field})"
-      @defs[convert(this)] = owner
+      #puts "Setting key: #{convert(this, field.type)} (field = #{field})"
+      @defs[convert(this, field.type)] = owner
     end
 
-    update(owner, field, pos, convert(this))
+    update(owner, field, pos, convert(this, field.type))
   end
 
   def Ref(this, owner, field, pos)

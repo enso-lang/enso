@@ -1,13 +1,14 @@
 
-require 'core/system/boot/parsetree_schema'
 require 'core/schema/code/factory'
 require 'core/instance/code/instantiate'
 require 'core/grammar/code/implode'
+require 'core/system/load/load'
 
 require 'strscan'
 
 
 class CPSParser
+
 
   def self.loadFile(path, grammar, schema)
     self.load(path, File.read(path), grammar, schema)
@@ -26,11 +27,11 @@ class CPSParser
     inst2.run(Implode.implode(tree))
   end
 
-  def self.parseFile(path, grammar, ptf = Factory.new(ParseTreeSchema.schema))
-    parse(path, File.read(path), grammar, ptf = Factory.new(ParseTreeSchema.schema))
+  def self.parseFile(path, grammar, ptf = Factory.new(Loader.load('parsetree.schema')))
+    parse(path, File.read(path), grammar, ptf)
   end
   
-  def self.parse(path, source, grammar, ptf = Factory.new(ParseTreeSchema.schema))
+  def self.parse(path, source, grammar, ptf = Factory.new(Loader.load('parsetree.schema')))
     parse = CPSParser.new(source, ptf, path)
     parse.run(grammar)
   end
@@ -38,12 +39,12 @@ class CPSParser
 
 
   SYMBOL = "[\\\\]?([a-zA-Z_$][a-zA-Z_$0-9]*)(\\.[a-zA-Z_$][a-zA-Z_$0-9]*)*"
-  
+
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
     int: /[0-9]+/,
-    str: /"(\\\\.|[^"])*"/,
-    real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/ 
+    str: /"(\\\\.|[^\"])*"/,
+    real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/
   }
   
   # ([\\t\\n\\r\\f ]*(//[^\n]*\n)?)*
@@ -96,7 +97,20 @@ class CPSParser
 
   def with_token(pos, kind)
     @scanner.pos = pos
-    tk = @scanner.scan(TOKENS[kind.to_sym])
+    tk = nil
+    if kind == 'atom' then
+      TOKENS.each_key do |type|
+        tk = @scanner.scan(TOKENS[type])
+        if tk then
+          kind = type.to_s
+          break
+        end
+        @scanner.pos = pos
+      end
+      return unless tk
+    else
+      tk = @scanner.scan(TOKENS[kind.to_sym])
+    end
     if tk then
       return if @keywords.include?(tk)
       ws = @scanner.scan(LAYOUT)

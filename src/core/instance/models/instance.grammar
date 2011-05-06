@@ -7,6 +7,11 @@ Instance ::=  [Instance] type:sym  "{" contents:{Content ";"}* "}"
 
 Content ::= [Field] name:sym ":" value:Value
          |  [Code] "@" code:str
+#ruby
+
+merge(load('value.schema'), load('proto.schema'), 
+      {"str" => "str", "Value" => "Value", "Tree" => "Tree"})
+
 
 Value ::= Instance
        |  [Prim]  value:str? "(" kind:sym ")"
