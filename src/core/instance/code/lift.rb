@@ -96,13 +96,13 @@ if __FILE__ == $0 then
 
   ig = Loader.load('instance.grammar')
 
-  DisplayFormat.print(ig, ast)
+  #DisplayFormat.print(ig, ast)
 
   ast2 = Lift.lift(ast)
-  DisplayFormat.print(ig, ast2)
+  #DisplayFormat.print(ig, ast2)
 
   obj = Instantiate.instantiate(Factory.new(GrammarSchema.schema), ast)
-  Print.print(obj)
+  #Print.print(obj)
 
   DisplayFormat.print(GrammarGrammar.grammar, obj)
 

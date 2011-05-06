@@ -50,12 +50,7 @@ class Instantiate
     v = this.value
     case this.kind 
     when "str" then 
-      # TODO: HACK why quotes here?
-      if v.length > 0 && v[0] == '"'
-        v.gsub(/\\"/, '"')[1..-2]
-      else
-        v
-      end
+      v
     when "bool" then
       v == "true"
     when "int" then
@@ -63,7 +58,7 @@ class Instantiate
     when "real" then
       Float(v)
     when "sym" then
-      v  #.sub(/^\\/, '')
+      v
     else
       raise "Don't know kind #{this.kind}"
     end
