@@ -23,7 +23,10 @@ class InstanceSchema < SchemaGenerator
 
   klass Prim, :super => Value do
     field :kind, :type => :str
-    field :value, :type => :str
+    field :value, :type => :str, :optional => true
+  end
+
+  klass Nil, :super => Value do
   end
 
   klass Ref, :super => Value do

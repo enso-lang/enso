@@ -9,7 +9,7 @@ Content ::= [Field] name:sym ":" value:Value
          |  [Code] "@" code:str
 
 Value ::= Instance
-       |  [Prim]  value:str "(" kind:sym ")"
+       |  [Prim]  value:str? "(" kind:sym ")"
        |  [Ref] name:sym "^"
        |  [List] "[" elements:{Value ","}* "]"
 

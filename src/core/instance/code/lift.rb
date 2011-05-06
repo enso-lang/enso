@@ -22,6 +22,13 @@ class Lift
     @factory.Instances([inst])
   end
 
+  def convert(v)
+    if v then
+      v.to_s
+    else
+      nil
+    end
+  end
 
   def recurse(obj, paths={}, indent=0, visited=[])
     if obj.nil?
@@ -33,7 +40,7 @@ class Lift
     klass.fields.each do |field|
       if field.type.Primitive?
         #puts "Adding primitive: #{obj[field.name]}"
-        v = @factory.Prim(field.type.name, obj[field.name].to_s)
+        v = @factory.Prim(field.type.name, convert(obj[field.name]))
         inst.contents << @factory.Field(field.name, v)
       else
         sub_path = paths[field.name.to_sym]
@@ -79,7 +86,7 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
 
   require 'core/system/boot/grammar_grammar'
-  obj = CPSParser.load('core/grammar/models/grammar.grammar', GrammarGrammar.grammar,
+  obj = CPSParser.loadFile('core/grammar/models/grammar.grammar', GrammarGrammar.grammar,
                        GrammarSchema.schema)
 
   p obj
