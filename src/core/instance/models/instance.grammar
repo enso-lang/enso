@@ -1,16 +1,15 @@
 
-grammar InstanceGrammar
+start Instances
 
-start Forest
+Instances ::= [Instances] instances:Instance*
 
-Forest ::= [Dump] creates:Create*
-
-Create ::=  [Create] name:sym  "{" contents:{Content ";"}* "}"
+Instance ::=  [Instance] type:sym  "{" contents:{Content ";"}* "}"
 
 Content ::= [Field] name:sym ":" value:Value
          |  [Code] "@" code:str
 
-Value ::= Create
-       |  [Prim] "(" kind:sym ")" value:str
+Value ::= Instance
+       |  [Prim]  value:str "(" kind:sym ")"
        |  [Ref] name:sym "^"
        |  [List] "[" elements:{Value ","}* "]"
+

@@ -54,7 +54,7 @@ class Implode < Dispatch
 
   def Lit(this, in_field)
     if in_field then
-      @factory.Prim('str', "\"#{this.value}\"")
+      @factory.Prim('str', this.value) #"\"#{this.value}\"")
     end
   end
 

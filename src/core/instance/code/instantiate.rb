@@ -50,9 +50,7 @@ class Instantiate
     v = this.value
     case this.kind 
     when "str" then 
-      v.gsub(/\\"/, '"')[1..-2]
-    when "sqstr" then
-      v.gsub(/\\'/, "'")[1..-2]
+      v
     when "bool" then
       v == "true"
     when "int" then
@@ -60,7 +58,7 @@ class Instantiate
     when "real" then
       Float(v)
     when "sym" then
-      v.sub(/^\\/, '')
+      v  #.sub(/^\\/, '')
     else
       raise "Don't know kind #{this.kind}"
     end
@@ -105,6 +103,7 @@ class Instantiate
     #put "Value: #{this} for #{field}"
 
     if field.key then
+      #puts "Setting key: #{convert(this)} (field = #{field})"
       @defs[convert(this)] = owner
     end
 
@@ -142,7 +141,7 @@ class Instantiate
     def apply(defs)
       #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
 
-      #put "DEFS[@name] = #{defs[@name]}"
+      #puts "DEFS[@name] = #{defs[@name]}"
       names = @name.split(/\./)
       while !names.empty? do
         n = names.shift
@@ -150,8 +149,9 @@ class Instantiate
       end
 
       if @field.many then
-        @this[@field.name][@pos] = defs[actual]
+        @this[@field.name][@pos] = actual
       else
+        #puts "SETTING: #{actual}"
         @this[@field.name] = actual
       end
     end

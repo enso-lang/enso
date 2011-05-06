@@ -42,7 +42,6 @@ class Render < Dispatch
 
   def Field(this, obj)
     data = obj[this.name]
-    #puts "FIELD #{this.name} #{obj} #{data}"
     
     # handle special case of [[ field:"text" ]] in a grammar 
     throw :fail if this.arg.Lit? && this.arg.value != data

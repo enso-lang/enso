@@ -76,13 +76,24 @@ class CPSParser
     send(obj.schema_class.name, obj, *args, &block)
   end
 
+  def unescape(tk, kind)
+    if kind == 'str' then
+      tk[1..-2]
+    elsif kind == 'sym' then
+      tk.sub(/^\\/, '')
+    else
+      tk
+    end
+  end
+
+
   def with_token(pos, kind)
     @scanner.pos = pos
     tk = @scanner.scan(TOKENS[kind.to_sym])
     if tk then
       return if @keywords.include?(tk)
       ws = @scanner.scan(LAYOUT)
-      yield @scanner.pos, tk, ws
+      yield @scanner.pos, unescape(tk, kind), ws
     end
   end
 

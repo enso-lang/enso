@@ -13,8 +13,13 @@ class Lift
     @memo = {}
   end
 
-  def self.lift(obj, path = {})
-    self.new.recurse(obj, path)
+  def self.lift(obj, paths = {})
+    self.new.lift(obj, paths)
+  end
+
+  def lift(obj, paths)
+    inst = recurse(obj, paths)
+    @factory.Instances([inst])
   end
 
 
@@ -27,7 +32,7 @@ class Lift
     inst = @factory.Instance(klass.name)
     klass.fields.each do |field|
       if field.type.Primitive?
-        puts "Adding primitive: #{obj[field.name]}"
+        #puts "Adding primitive: #{obj[field.name]}"
         v = @factory.Prim(field.type.name, obj[field.name].to_s)
         inst.contents << @factory.Field(field.name, v)
       else
@@ -70,6 +75,7 @@ end
 
 if __FILE__ == $0 then
   require 'core/grammar/code/parse'
+  require 'core/grammar/code/layout'
   require 'core/schema/tools/print'
 
   require 'core/system/boot/grammar_grammar'
@@ -81,9 +87,17 @@ if __FILE__ == $0 then
 
   Print.print(ast)
 
-  obj = Instantiate.instantiate(Factory.new(GrammarSchema.schema), ast)
+  ig = Loader.load('instance.grammar')
 
-  p obj
+  DisplayFormat.print(ig, ast)
+
+  ast2 = Lift.lift(ast)
+  DisplayFormat.print(ig, ast2)
+
+  obj = Instantiate.instantiate(Factory.new(GrammarSchema.schema), ast)
+  Print.print(obj)
+
+  DisplayFormat.print(GrammarGrammar.grammar, obj)
 
   
 end

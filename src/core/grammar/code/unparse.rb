@@ -22,8 +22,10 @@ class Unparse < CyclicCollect
 
   def escape(this)
     # TODO: for sym a.b.c check only on a
-    if this.kind == "sym" && @literals.include?(this.value) then
+    if this.kind == 'sym' && @literals.include?(this.value) then
       "\\#{this.value}"
+    elsif this.kind == 'str'
+      '"' + this.value.gsub(/\"/, '\\"') + '"'
     else
       this.value
     end
@@ -63,6 +65,7 @@ class Unparse < CyclicCollect
 
   def Ref(this)
     # todo: escaping for sym
+
     @output << this.name
     @output << this.layout
   end
