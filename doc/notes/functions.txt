@@ -1,0 +1,26 @@
+
+
+changeify(x: schema_t): delta_schema_t
+diff(x: t, y: t): delta_schema_t // ??? 
+merge(x: t, y: t): t
+
+
+dump(x) = render(instance.grammar, lift(x))
+
+parse(y: grammar, x.y): parsetree_y
+unparse(y: grammar, x: parsetree_y): x.y
+render(y: grammar, x: schema_y): x.y 
+
+implode(pt: parsetree_y): instance_y
+instantiate(y: schema, x: instance_y): y
+lift(x: y): instance_y
+
+Identities
+unparse(parse(g, x)) = x
+
+let 
+  i = implode(parse(g_y, x))
+then
+  implode(parse(render(instantiate(y, i)))) = i
+
+instantiate(y, lift(x)) = x
