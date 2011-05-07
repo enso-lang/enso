@@ -1,17 +1,19 @@
 genealogy Gannholm
 
 person id40
+	1940-01-03
 	"Tore Gannholm"
 end
 
 
 person id68
-"Martin Gannholm"
-^id40
-+id41
+	1968-02-07
+	"Martin Gannholm"
+	^id40
+	+id41
 end
 
 person id41
+	1941-09-20
 	"Ingela Gannholm"
-	^id40
 end

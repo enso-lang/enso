@@ -7,10 +7,6 @@ class GrammarSchema < SchemaGenerator
   primitive :int
   primitive :bool
 
-  def self.print_paths
-    { :rules => {} }
-  end
-  
   klass Grammar do
     field :start, :type => Rule
     field :rules, :type => Rule, :optional => true, :many => true
@@ -77,5 +73,5 @@ if __FILE__ == $0 then
 
   require 'core/schema/tools/print'
   
-  Print.new.recurse(GrammarSchema.schema, SchemaSchema.print_paths)  
+  Print.new.recurse(GrammarSchema.schema)  
 end

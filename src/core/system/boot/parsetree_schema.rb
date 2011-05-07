@@ -7,10 +7,6 @@ class ParseTreeSchema < SchemaGenerator
   primitive :int
   primitive :bool
 
-  def self.print_paths
-    { :top => { :args => { } } }
-  end
-  
   klass ParseTree do
     field :path, :type => :str
     field :top, :type => Tree

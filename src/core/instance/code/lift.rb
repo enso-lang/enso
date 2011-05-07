@@ -69,7 +69,7 @@ class Lift
 
   def make_1(use_key, obj, path, visited)
     if use_key  
-      @factory.Ref(obj[SchemaSchema.key(obj.schema_class).name])
+      @factory.Ref(obj[ClassKey(obj.schema_class).name])
     else
       recurse(obj, path || {}, visited)
     end

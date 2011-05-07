@@ -4,9 +4,7 @@ class Instantiate
   def initialize(factory)
     super()
     @factory = factory
-    @defs = {}
     @fixes = []
-    @nested_fixes = []
   end
 
   def self.instantiate(factory, inst)
@@ -16,14 +14,8 @@ class Instantiate
   def run(inst)
     # ugh: @root is set in recurse...
     recurse(inst, nil, nil, 0)
-    # currently only nested refs one level deep are supported (e.g. x.y) 
-    # in order to support more levels fixes could be a list of lists
-    # for each level
     @fixes.each do |fix|
-      fix.apply(@defs)
-    end
-    @nested_fixes.each do |fix|
-      fix.apply(@defs)
+      fix.apply(@root)
     end
     return @root
   end
@@ -83,7 +75,7 @@ class Instantiate
   
   def Instance(this, owner, field, pos)
     #put "Creating #{this.name}"
-    # TODO: @factory[this.type] does not assign default vals.
+    # TODO: @factory[this.type] does not assign default vals. [Actually it does now -william]
     current = @factory.send(this.type)
     @root = current unless owner
     this.contents.each do |cnt|
@@ -106,30 +98,16 @@ class Instantiate
   def Prim(this, owner, field, pos)
     return pos unless field # values without field????
     #put "Value: #{this} for #{field}"
-
-    if field.key then
-      #puts "Setting key: #{convert(this, field.type)} (field = #{field})"
-      @defs[convert(this, field.type)] = owner
-    end
-
     update(owner, field, pos, convert(this, field.type))
   end
 
   def Ref(this, owner, field, pos)
-    #TODO: hack!! to allow undefined symbols to be nil
-    return if this.name == "_"
-    
-    if this.name =~ /\./ then
-      @nested_fixes << Fix.new(this.name, owner, field, pos)
-    else
-      @fixes << Fix.new(this.name, owner, field, pos)
-    end
-    if field.many && !SchemaSchema.key(field.type)
+    @fixes << Fix.new(this.name, owner, field, pos)
+    if field.many && !ClassKey(field.type)
       # only insert a stub if it is a many-valued collection with no key
       update(owner, field, pos, nil)
     end
   end
-
 
   class Fix
     # name is the key in the Ref from the grammar
@@ -143,15 +121,9 @@ class Instantiate
       @pos = pos
     end
 
-    def apply(defs)
+    def apply(root)
       #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
-
-      #puts "DEFS[@name] = #{defs[@name]}"
-      names = @name.split(/\./)
-      while !names.empty? do
-        n = names.shift
-        actual = defs[n]
-      end
+      actual = Lookup(root, @name)
       raise "Could not find symbol '#{@name}' \nDEFS: #{defs}" if actual.nil?
       if @field.many then
         @this[@field.name][@pos] = actual

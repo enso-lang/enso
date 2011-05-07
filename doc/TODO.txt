@@ -1,3 +1,7 @@
+PAPERS:
+* First International Workshop on Bidirectional Transformations (BX 2012) 
+     Paper submission: Mon, December 19, 2011
+     
 Cleanup tasks
 
 * Distinguish "all_fields" (including computed) and "fields" (no computed fields)

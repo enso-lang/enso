@@ -9,12 +9,6 @@ class SchemaSchema < SchemaGenerator
   primitive :bool
   primitive :real
 
-  # this is a little model that describes how to print out schema schemas
-  # perhaps it should be in the model itself
-  def self.print_paths
-    { :classes => { :fields => {} } }
-  end
-
   klass Schema do
     field :types, :type => Type, :optional => true, :many => true
     field :classes, :type => Klass, :optional => true, :many => true, \
@@ -52,14 +46,6 @@ class SchemaSchema < SchemaGenerator
 
   SchemaSchema.patch_schema_pointers(schema)
 
-  def self.key(klass)
-    klass.fields.find { |f| f.key && f.type.Primitive? }
-  end
-
-  def self.keyRel(klass)
-    klass.fields.find { |f| f.key && !f.type.Primitive? }
-  end
-
 end
 
 # make a copy so it uses checked objects (but its not quite right, because
@@ -74,7 +60,7 @@ end
 def main
   require 'core/schema/tools/print'
   
-  Print.new.recurse(SchemaSchema.schema, SchemaSchema.print_paths)
+  Print.new.recurse(SchemaSchema.schema)
 end
 
 if __FILE__ == $0 then

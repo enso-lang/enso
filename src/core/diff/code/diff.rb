@@ -57,7 +57,7 @@ module Diff
     end
 
     def many(field, o1, o2)
-      if SchemaSchema.key(field.type) then 
+      if ClassKey(field.type) then 
         keyed(field, o1, o2)
       else
         ordered(field, o1, o2)

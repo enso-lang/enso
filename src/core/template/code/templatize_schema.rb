@@ -69,39 +69,45 @@ def ParameterizePrimitives(old)
   
   base_copier = Copy.new(factory)
   new = base_copier.copy(old)
-  old.primitives.each do |prim|
-    #puts "MAKING #{prim.name}"
-    primBind = Loader.loadText 'schema', <<-ENDSCHEMA 
-      class #{prim.name}Bind
-      end
-      class #{prim.name}Data < #{prim.name}Bind
-        value: #{prim.name}
-      end
-      class #{prim.name}Field < #{prim.name}Bind
-        expression: str
-      end
-      primitive #{prim.name}
-      #{prim.name=="str" ? "" : "primitive str"}
-    ENDSCHEMA
+  
 
-    identify = {}
-    identify[primBind] = new
-    identify[primBind.primitives["str"]] = new.primitives["str"]
-    primBind.classes.each do |x|
-      copier = Copy.new(factory, identify)
-      new.types << copier.copy(x)
+  primBind = Loader.loadText 'schema', <<-ENDSCHEMA 
+    class ParameterData end
+    class ParameterValue < ParameterData
+      value: atom
     end
+    class ParameterExpr < ParameterData
+      expression: str
+    end
+    primitive atom
+    primitive str
+  ENDSCHEMA
+
+  identify = {}
+  identify[primBind] = new
+  identify[primBind.primitives["str"]] = new.primitives["str"]
+  identify[primBind.primitives["atom"]] = new.primitives["atom"]
+  primBind.classes.each do |x|
+    copier = Copy.new(factory, identify)
+    new.types << copier.copy(x)
   end
-  #puts "#{new.types["intBind"]}"
+  puts "#{new.types}"
   old.classes.each do |klass|
     base_copier.copy(klass).fields.each do |field|
       if field.type.Primitive?
         name = "#{field.type.name}Bind"
-        field.type = new.types[name]
+        field.type = new.types["ParameterData"]
       end
     end
   end
-  return new
+  
+  regular = Loader.load('regular.schema');
+  identify = {}
+  regular.primitives.each do |x|
+    next if !new.primitives[x.name]
+    identify[x.name] = x.name
+  end 
+  return merge(regular, new, identify)
 end
 
 if __FILE__ == $0 then

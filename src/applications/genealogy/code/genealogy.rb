@@ -17,8 +17,6 @@ f = Factory.new(genealogy_schema)
 
 puts "-"*50
 gannholm2 = Loader.load('test.genealogy')
+Print.print(gannholm2)
 puts "-"*50
 DisplayFormat.print(genealogy_grammar, gannholm2)
-
-puts "-"*50
-Print.print gannholm2, { :members => {} }

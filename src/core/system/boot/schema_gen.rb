@@ -32,7 +32,7 @@ class SchemaModel #< BasicObject
   end
 
   def to_s
-    k = SchemaSchema.key(schema_class)
+    k = ClassKey(schema_class)
     "<BOOT #{schema_class.name} #{k ? self[k.name] : @_id}>"
   end
 

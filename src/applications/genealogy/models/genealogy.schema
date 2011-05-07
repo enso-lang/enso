@@ -1,17 +1,24 @@
 
-	class Genealogy
-		name: str
-		members: Person*
-	end
+class Genealogy
+	name: str
+	members: Person*
+end
 
-	class Person
-		#id: str
-		name: str
-		father: Person?
-		mother: Person?
-	end
+class Person
+	#id: str
+	birth: Date
+	name: str
+	father: Person?
+	mother: Person?
+end
 
- primitive \int
- primitive \str
- primitive \bool
+class Date
+	year: int
+	month: int
+	day: int
+end
+
+primitive \int
+primitive \str
+primitive \bool
 

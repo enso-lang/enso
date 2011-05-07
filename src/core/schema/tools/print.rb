@@ -24,7 +24,16 @@ class Print
     @output << args.join('')
   end
 
-  def self.print(obj, paths={}, indent=0, visited=[])
+  def self.convert_path(list)
+    if list == []
+      return {}
+    else
+      return { list[0].to_sym => convert_path(list[1..-1]) }
+    end
+  end
+
+  def self.print(obj, paths=nil, indent=0, visited=[])
+    paths = convert_path(SchemaPaths(obj.schema_class)) if !paths
     self.new.recurse(obj, paths, indent, visited)
   end
   

@@ -61,7 +61,7 @@ class CheckedObject
       next if field.computed
       if field.many
         # TODO: check for primitive many-valued???
-        key = SchemaSchema.key(field.type)
+        key = ClassKey(field.type)
         if key
           @hash[field.name] = ManyIndexedField.new(self, field, key)
         else
@@ -103,11 +103,11 @@ class CheckedObject
   def []=(field_name, new)
     #puts "Setting #{field_name} to #{new}"
     field = @schema_class.fields[field_name]
-    raise "Assign to invalid field '#{field_name}' of #{@schema_class.name}" unless field
-    raise "Can't set computed field '#{field_name}' of #{@schema_class.name}" if field.computed
-    raise "Can't assign a many-valued field '#{field_name}' of #{@schema_class.name}" if field.many
+    raise "Assign to invalid field '#{field_name}' of #{self}" unless field
+    raise "Can't set computed field '#{field_name}' of #{self}" if field.computed
+    raise "Can't assign a many-valued field '#{field_name}' of #{self}" if field.many
     if new.nil?
-      raise "Can't assign nil to required field '#{field_name}'" if !field.optional
+      raise "Can't assign nil to required field '#{field_name}' of #{self}" if !field.optional
     else
       case field.type.name
         when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
@@ -143,7 +143,7 @@ class CheckedObject
   end
 
   def to_s
-    k = SchemaSchema.key(schema_class)
+    k = ClassKey(schema_class)
     "<#{schema_class.name} #{k && self[k.name]? self[k.name] + " " : ""}#{@_id}>"
   end
 
@@ -270,7 +270,7 @@ class ManyIndexedField < BaseManyField
   end
   
   def each(&block) 
-    @hash.each_value &block
+    @hash.values.each &block
   end
 
   def +(other)

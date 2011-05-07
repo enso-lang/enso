@@ -78,7 +78,7 @@ if __FILE__ == $0 then
   newSchema = Copy.new(Factory.new(ss)).copy(ss)
   newSchema.finalize()
   
-  Print.new.recurse(newSchema, SchemaSchema.print_paths)
+  Print.new.recurse(newSchema)
   
   puts "#{newSchema.classes.class}"
   puts "WOA: #{newSchema.classes['Klass'].schema}"

@@ -70,11 +70,11 @@ if __FILE__ == $0 then
   require 'core/schema/tools/copy'
   require 'core/schema/code/factory'
 
-  Print.new.recurse(GrammarGrammar.grammar, GrammarSchema.print_paths)
+  Print.new.recurse(GrammarGrammar.grammar)
   
   G = Copy.new(Factory.new(GrammarSchema.schema)).copy(GrammarGrammar.grammar)
   
-  Print.new.recurse(G, GrammarSchema.print_paths)
+  Print.new.recurse(G)
 
 end
 

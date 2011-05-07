@@ -72,7 +72,7 @@ class Render < Dispatch
 
   def Ref(this, obj)
     throw :fail if obj.nil?
-    v = obj[SchemaSchema.key(obj.schema_class).name]
+    v = obj[ClassKey(obj.schema_class).name]
     #puts "RENDER REF #{obj}=#{v}"
     return space(v)  # TODO: need "." keys
   end

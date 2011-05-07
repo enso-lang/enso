@@ -1,3 +1,5 @@
+# library stuff
+require 'core/system/library/schema'
 
 require 'core/system/boot/grammar_grammar'
 require 'core/system/boot/grammar_schema'
@@ -9,7 +11,6 @@ require 'core/diff/code/merge'
 
 require 'core/system/boot/instance_schema'
 require 'core/system/boot/parsetree_schema'
-
 
 module Loading
   class Loader

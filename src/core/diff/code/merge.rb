@@ -56,12 +56,12 @@ module Merge
       # then follows the same path in the target on the way out
       raise "Keys cannot be null" if left_obj.nil?
       #puts "Looking up #{left_obj}"
-      rel_key_field = SchemaSchema.keyRel(left_obj.schema_class)
+      rel_key_field = ClassKeyRel(left_obj.schema_class)
       if rel_key_field.nil?
         raise "Keys should connect to root but stop at #{left_obj}" if left_obj != @source_root
         return @target_root
       else
-        key_field = SchemaSchema.key(left_obj.schema_class)
+        key_field = ClassKey(left_obj.schema_class)
 
         raise "Key relationship fields must have inverses" if rel_key_field.inverse.nil?
         raise "A relationship key must have a data key as well" if key_field.nil?
