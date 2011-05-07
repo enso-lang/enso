@@ -11,9 +11,8 @@ class VisitFields < MemoBase
     #puts " "*@indent + "#{@pass} #{obj}"
     @indent += 1    
     @memo[obj] = true
-    fields = obj.schema_class.fields
-    fields.keys.each do |name|
-      Field(fields[name], obj)
+    obj.schema_class.fields.each do |f|
+      Field(f, obj)
     end
     @indent -= 1
   end

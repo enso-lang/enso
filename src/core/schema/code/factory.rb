@@ -270,7 +270,7 @@ class ManyIndexedField < BaseManyField
   end
   
   def each(&block) 
-    @hash.values.each &block
+    @hash.each_value &block
   end
 
   def +(other)
