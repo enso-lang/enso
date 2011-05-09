@@ -70,13 +70,15 @@ class CPSParser
 
   def run(grammar)
     @keywords = CollectKeywords.run(grammar) 
-    ws = @scanner.scan(LAYOUT)
-    recurse(grammar, @scanner.pos) do |pos, tree|
+    ws =  @scanner.scan(LAYOUT)
+    x = recurse(grammar, @scanner.pos) do |pos, tree|
       if eos?(pos) then
         return @factory.ParseTree(@path, tree, ws)
+      else
+        pos
       end
     end
-    return nil
+    raise "Parse error at #{x}"
   end
 
   # todo: move to generic visit/dispatch class
@@ -105,16 +107,16 @@ class CPSParser
           kind = type.to_s
           break
         end
-        @scanner.pos = pos
       end
-      return unless tk
     else
       tk = @scanner.scan(TOKENS[kind.to_sym])
     end
     if tk then
-      return if @keywords.include?(tk)
+      return pos if @keywords.include?(tk)
       ws = @scanner.scan(LAYOUT)
-      yield @scanner.pos, unescape(tk, kind), ws
+      yield @scanner.pos, unescape(tk, kind), ws 
+    else
+      return pos
     end
   end
 
@@ -130,6 +132,8 @@ class CPSParser
     if val then
       ws = @scanner.scan(LAYOUT)
       yield @scanner.pos, ws
+    else
+      return pos
     end
   end
 
@@ -172,17 +176,20 @@ class CPSParser
     if entry.conts.empty? then
       entry.conts << block
       recurse(this.arg, pos) do |pos1, tree|
-        return if entry.subsumed?(pos1) 
+        return pos1 if entry.subsumed?(pos1) 
         entry.results[pos1] = tree
-        entry.conts.each do |c|
-          c.call(pos1, tree)
+        entry.conts.inject(pos1) do |x, c|
+          y = c.call(pos1, tree)
+          #puts "Y = #{y}"
+          x > y ? x : y 
         end
       end
     else
       entry.conts << block
       # NB: keys to prevent modifying hash during iterations
-      entry.results.keys.each do |pos1|
-        block.call(pos1, entry.results[pos1])
+      entry.results.keys.inject(pos) do |x, pos1|
+        y = block.call(pos1, entry.results[pos1])
+        x > y ? x : y
       end
     end
   end
@@ -202,12 +209,15 @@ class CPSParser
         end
       end
     end
-    f.call(0, pos, [])
+    x = f.call(0, pos, [])
+    #puts "x in seq: #{x}"
+    return x
   end
 
   def Alt(this, pos, &block)
-    this.alts.each do |a|
-      recurse(a, pos, &block)
+    this.alts.inject(pos) do |x, a|
+      y = recurse(a, pos, &block)
+      x > y ? x : y
     end
   end
 
@@ -221,6 +231,7 @@ class CPSParser
   def Field(this, pos, &block)
     #puts "Parsing field #{this.name}"
     recurse(this.arg, pos) do |pos1, tree|
+      #puts "BLOCK: #{block}"
       block.call(pos1, @factory.Field(this.name, tree))
     end
   end
@@ -283,10 +294,11 @@ class CPSParser
   end
 
   def optional(this, pos, &block)
-    recurse(this.arg, pos) do |pos1, tree|
+    x = recurse(this.arg, pos) do |pos1, tree|
       block.call(pos1, [tree])
     end
-    block.call(pos, [])
+    y = block.call(pos, [])
+    x > y ? x : y
   end
 
   ## NB: iters are right-recursive (otherwise we have to memoize them)
@@ -294,42 +306,49 @@ class CPSParser
   ## otherwise they become (hidden) left-recursive as well.
 
   def iter(this, pos, &block)
-    recurse(this.arg, pos) do |pos1, tree1|
+    x = recurse(this.arg, pos) do |pos1, tree1|
       iter(this, pos) do |pos2, trees|
         block.call(pos2, [tree1, *trees])
       end
     end
-    recurse(this.arg, pos) do |pos1, tree|
+    y = recurse(this.arg, pos) do |pos1, tree|
       block.call(pos1, [tree])
     end
+    x > y ? x : y
   end
 
 
   def iter_star(this, pos, &block)
-    recurse(this.arg, pos) do |pos1, tree1|
+    x = recurse(this.arg, pos) do |pos1, tree1|
       iter_star(this, pos1) do |pos2, trees|
         block.call(pos2, [tree1, *trees])
       end
     end
-    block.call(pos, [])
+    #puts "x in iter-star: #{x}"
+    y = block.call(pos, [])
+    #puts "block = #{block}"
+    #puts "Y in iter-star: #{y}"
+    x > y ? x : y
   end
 
   def iter_sep(this, pos, &block)
-    recurse(this.arg, pos) do |pos1, tree1|
+    x = recurse(this.arg, pos) do |pos1, tree1|
       with_literal(pos1, this.sep) do |pos2, ws|
         iter_sep(this, pos2) do |pos3, trees|
           block.call(pos3, [tree1, @factory.Lit(this.sep, ws), *trees])
         end
       end
     end
-    recurse(this.arg, pos) do |pos1, tree|
+    y = recurse(this.arg, pos) do |pos1, tree|
       block.call(pos1, [tree])
     end
+    x > y ? x : y
   end
 
   def iter_star_sep(this, pos, &block)
-    iter_sep(this, pos, &block)
-    block.call(pos, [])
+    x = iter_sep(this, pos, &block)
+    y = block.call(pos, [])
+    x > y ? x : y
   end
 
 end
