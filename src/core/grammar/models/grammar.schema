@@ -4,12 +4,12 @@ primitive bool
 
 class Grammar 
   start: Rule 
-  rules: Rule* / grammar 
+  rules: Rule* 
 end 
 
 class Rule 
   #name: str 
-  #grammar: Grammar / rules 
+  #grammar: Grammar / Grammar.rules 
   arg: Expression 
 end 
 

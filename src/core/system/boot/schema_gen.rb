@@ -63,16 +63,15 @@ class ValueHash < Hash
   def initialize(key = "name")
     @key = key
   end
+
   def each(&block)
     values.each &block
   end
+
   def <<(x)
-    raise "cannot modify a computed collection" if @key.nil?
     self[x[@key]] = x
   end
-  def _lock()
-    @key = nil
-  end
+    
 end
 
 class SchemaGenerator
@@ -128,8 +127,8 @@ class SchemaGenerator
       if opts[:super]
         m.super = opts[:super].klass
         m.super.subtypes << m
-        m.super.fields.each do |f|
-          m.fields << f
+        m.super.all_fields.each do |f|
+          m.all_fields << f
         end
       end
       m.schema = schema
@@ -161,7 +160,7 @@ class SchemaGenerator
       #puts "Creating field #{name} (#{f._id})"
       f.name = name
       klass.defined_fields[name] = f
-      klass.fields[name] = f
+      klass.all_fields[name] = f
       f.owner = klass
       return f
     end
@@ -176,6 +175,7 @@ class SchemaGenerator
       m.name = name
       m.fields = ValueHash.new
       m.defined_fields = ValueHash.new
+      m.all_fields = ValueHash.new
       m.subtypes = ValueHash.new
       return m
     end
@@ -195,6 +195,9 @@ class SchemaGenerator
         c.instance_eval { @schema_class = klass }
         c.defined_fields.each do |f|
           f.instance_eval { @schema_class = field }
+        end
+        c.all_fields.each do |f|
+          c.fields << f if !f.computed
         end
       end
     end

@@ -3,14 +3,16 @@ PAPERS:
      Paper submission: Mon, December 19, 2011
      
 Cleanup tasks
-
 * Distinguish "all_fields" (including computed) and "fields" (no computed fields)
-* Finalize: seals from changes, run invariants   
+* Finalize: seals from changes, run invariants (close to being right)
 * sanitize the loader namespace (remove boot stuff)
-* move "keys" to be computed attribut
+* move "keys" to be computed attribute
+* get rid of check (its redundant with CheckedObject and finalize)
 
 New core functionality
+* implement real delta schemas and a typed diff
 * fixedpoint cyclic map
+* allow "listening" to changes 
 
 Applications
 * graphical editors

@@ -40,7 +40,6 @@ module Diff
 
     def Field(field, o1, o2)
       #puts "FIELD: #{field}"
-      return if field.computed
       # o1 and o2 are the owners
       if field.many then
         many(field, o1, o2)
@@ -65,6 +64,7 @@ module Diff
     end
 
     def ordered(field, o1, o2) 
+      n = 0
       o1[field.name].zip(o2[field.name]).each do |left, right|
         if right.nil?
           different_insert(o2, field, left)
@@ -73,6 +73,7 @@ module Diff
         else
           Type(field.type, left, right)
         end
+        n += 1
       end
     end
 

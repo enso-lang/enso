@@ -18,7 +18,6 @@ class VisitFields < MemoBase
   end
   
   def Field(field, obj)
-    return if field.computed
     val = obj[field.name]
 
     #puts " "*@indent + "CHECKING #{obj}.#{field.name}:'#{val}'"

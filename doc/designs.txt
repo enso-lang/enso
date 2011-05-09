@@ -1,0 +1,139 @@
+
+data Value
+  = Primitive { value::Data }
+  | Object { kind::String, fields::[Field] }
+data Field
+  = Single { name::String, value::Value }
+  | Many { name::String, key::(Maybe String), values::[Value] }
+  
+data PreTraversal = PreTraversal {
+  prim::Data -> Data
+  base::Object -> Object
+  object::Object -> Object
+  list::[Value] -> [Value]
+
+Copy (pre-traversal)
+  Prim n:         n
+  Base o:         factory[o.schema_class.name]
+  Build new,vals: new.init(*vals)
+  List l:         l
+  
+Instantiate (post-traversal)
+  Prim n:            n
+  Cyclce o:          Ref(o.label)
+  Build class,vals:  factory.Class(class.name, 
+                        zip(class.fields, vals).each &factory.Field)
+  List l:            l
+
+Equal: Zip
+  Prim n,m:          n==m
+  Base a,b:          true
+  Build class,pairs: reduce and (map = pairs)
+  List pairs         reduce and (map = pairs)
+
+Difference: Zip
+  Prim n,m:          n==m ? NoChange : Set(m)
+  Base a,b:         NoChange
+  Build  
+    nil, nil => NoChange
+    nil, o   => copy(o) -- must be delayed
+    o,   nil => copy(o)
+    class,vals => if all vals = NoChange then NoChange 
+                  else factory[class.name](*vals) 
+  List pairs         
+    p, nil, o  => Insert p copy(o)
+    p, o, nil  => Delete p
+    l          => l
+
+Merge: Zip
+  Prim n,m:          n==m ? n : raise ERROR
+  Base a,b:         
+  Build  
+    nil, nil => NoChange
+    nil, o   => Identify(o) || factory[foo]; recurse
+    o, nil   => Identify(o) || factory[foo]; recurse
+    new,vals => new.init(*vals)
+  List pairs         
+    p, nil, o  => [o]
+    p, o, nil  => [o]
+    l          => l
+
+
+  def identify(type, identification, o1, o2)
+    # raise "cannot identify primitive types" if type.Primitive?
+    return if !o1 || !o2
+    raise "incompatible classes" if o1.schema_class != o2.schema_class
+    identification.identify(o1, o2)
+    klass = schema.classes[o1.schema_class.name]
+    klass.fields do |field|
+      sub1 = o1[field.name]
+      sub2 = o2[field.name]
+      if !field.many
+        identify(schema, sub1, sub2) if sub1 && sub2
+      else
+        sub1.join(sub2).each do |d1, d2|
+          identify(schema, d1, d2) if d1 && d2
+        end
+      end
+    end
+  end
+
+class PreTraverse
+  def pretraverse2(type, o1, o2)
+    return prim(type, o1, o2) if type.Primitive?
+    return null(type) if !o1 && !o2
+    o2 = left_to_right[o1] if !o2
+    o1 = right_to_left[o2] if !o1
+    %raise "incompatible classes" if o1.schema_class != o2.schema_class
+    return @memo[[o1,o2]] if @memo[[o1,o2]]
+    klass = schema.classes[(o1 || o2).schema_class.name]
+    result = base(klass, o1, o2)
+    @memo[[o1,o2]] = result
+    val = klass.fields.collect |field|
+      sub1 = o1 && o1[field.name]
+      sub2 = o2 && o2[field.name]
+      if !field.many
+        result[field.name] = single(schema, sub1, sub2)
+      else
+        sub1.outerJoin(sub2).each_with_key do |d1, d2|
+          item = multi(schema, k, d1, d2)
+          result[field.name] << item if item
+        end
+      end
+    end
+    return result
+  end
+  
+  pretraverse2 used for merge and diff
+  
+  
+      
+
+data Value
+  = Primitive { value::Data }
+  | Object { kind::String, fields::[(String, Field)] }
+data Field
+  = Single { value::Value }
+  | Many { key::(Maybe String), values::[Value] }
+
+Identify
+  Prim n,m:      skip
+  Base
+    nil, nil => skip
+    nil, o   => identify(o, factory[foo])
+    o, nil   => identify(o, factory[foo])
+    o, o     => 
+  Build         skip
+
+Merge: Identify
+  Prim n,m:      skip
+  Base
+    nil, nil => skip
+    nil, o   => identify(o, factory[foo])
+    o, nil   => identify(o, factory[foo])
+    o, o     => identify(o+o, factory[foo]); recurse
+  Build         skip
+
+  
+Templatize(s) =
+  Regular + Instance + Rename(s + DataParam, { prim.name => DataParam })

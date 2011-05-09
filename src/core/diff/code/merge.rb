@@ -28,7 +28,6 @@ module Merge
 
     def Field(field, obj)
       #puts "Visiting #{field} & #{obj}"
-      return if field.computed
       if field.type.Primitive?
         if field.key
           name = obj[field.name]

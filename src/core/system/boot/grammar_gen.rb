@@ -145,12 +145,6 @@ class GrammarGenerator
       reg.sep = nil
       return reg
     end
-
-#     def cilit(s)
-#       cl = THE_FACTORY.Lit(s)
-#       cl.case_sensitive = false
-#       return cl
-#     end
       
     def const_missing(name)
       get_rule(name.to_s)

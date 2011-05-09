@@ -21,7 +21,8 @@
     super: Klass?
     subtypes: Klass* / Klass.super
     defined_fields: Field*
-    fields: Field* = "@super ? @super.fields + @defined_fields : @defined_fields"
+    fields: Field* = "@all_fields.select {|f| !f.computed}"
+    all_fields: Field* = "@super ? @super.all_fields + @defined_fields : @defined_fields"
   end
   
   class Field

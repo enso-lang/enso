@@ -18,7 +18,6 @@ class Factory
     n = 0
     #puts "#{obj.schema_class.fields.keys}"
     obj.schema_class.fields.each_with_index do |field|
-      next if field.computed
       if n < args.length
         if field.many
           col = obj[field.name]
@@ -58,12 +57,11 @@ class CheckedObject
     @schema_class = schema_class
     @factory = factory
     schema_class.fields.each do |field|
-      next if field.computed
       if field.many
         # TODO: check for primitive many-valued???
         key = ClassKey(field.type)
         if key
-          @hash[field.name] = ManyIndexedField.new(self, field, key)
+          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
         else
           @hash[field.name] = ManyField.new(self, field)
         end
@@ -89,11 +87,12 @@ class CheckedObject
     if field_name[-1] == "?"
       return @schema_class.name == field_name[0..-2]
     end
-    field = @schema_class.fields[field_name]; 
-    raise "Accessing non-existant field '#{field_name}' of #{schema_class.name}" unless field
+    field = @schema_class.all_fields[field_name]; 
+    raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
     if field.computed
-      r = self.instance_eval(field.computed.gsub(/@/, "self."))
-      #puts "EVAL #{self}.#{field.name} = #{r}"
+      exp = field.computed.gsub(/@/, "self.")
+      r = self.instance_eval(exp)
+      #puts "EVAL #{self}.#{field.name} = #{r.class} #{r}"
       return r
     else
       return @hash[field_name]
@@ -184,9 +183,17 @@ end
 class BaseManyField 
   include Enumerable
   
-  def initialize(realself, field)
+  def initialize(realself = nil, field = nil)
     @realself = realself
     @field = field
+  end
+
+  def nil?
+    false
+  end
+  
+  def empty?
+    self.length == 0
   end
 
   def to_s
@@ -196,26 +203,12 @@ class BaseManyField
   def find_all(&block)
     return select(&block)
   end
-  
-  def reject(&block)
-    r = ValueHash.new(@key.name)
-    super.reject do |x| r << x end
-    r._lock()
-    return r
-  end
-  
-  def select(&block)
-    r = ValueHash.new(@key.name)
-    super.select do |x| r << x end
-    r._lock()
-    return r
-  end
 end
 
 # eg. "classes" field on Schema
 class ManyIndexedField < BaseManyField
   
-  def initialize(realself, field, key)
+  def initialize(key, realself = nil, field = nil)
     super(realself, field)
     @hash = {}
     @key = key
@@ -229,14 +222,6 @@ class ManyIndexedField < BaseManyField
     @hash.length
   end
   
-  def empty?
-    @hash.empty?
-  end
-
-  def nil?
-    false
-  end
-  
   def keys
     @hash.keys
   end
@@ -246,7 +231,7 @@ class ManyIndexedField < BaseManyField
   end
   
   def <<(v)
-    k = v.send(@key.name)
+    k = v.send(@key)
     self[k] = v
   end
 
@@ -258,14 +243,14 @@ class ManyIndexedField < BaseManyField
     # TODO:    raise "Item named '#{k}' already exists in '#{@field.name}'" if @hash[k]
 
     if @hash[k] != v
-      @realself.notify_update(@field, @hash[k], v)
+      @realself.notify_update(@field, @hash[k], v) if @realself
       @hash[k] = v
     end
     return v
   end
   
   def delete(v)
-    k = v.send(@key.name)
+    k = v.send(@key)
     @hash.delete(k)
   end
   
@@ -274,18 +259,41 @@ class ManyIndexedField < BaseManyField
   end
 
   def +(other)
-    r = ValueHash.new(@key.name)
+    r = ManyIndexedField.new(@key)
     self.each do |x| r << x end
     other.each do |x| r << x end
-    r._lock()
+    #r._lock()
     return r
+  end
+
+  def reject(&block)
+    r = ManyIndexedField.new(@key)
+    super.reject do |x| r << x end
+    #r._lock()
+    return r
+  end
+  
+  def select(&block)
+    r = ManyIndexedField.new(@key)
+    super.select do |x| r << x end
+    #r._lock()
+    return r
+  end
+
+  # sligthly nonstandard zip, includes all elements of this and other
+  def outer_join(other)
+    keys = self.keys | other.keys
+    keys.each do |key_val|
+      #puts "JOIN #{key_val} #{self[key_val]} #{other[key_val]}"
+      yield key_val, self[key_val], other[key_val]
+    end
   end
 end  
 
 # eg. "classes" field on Schema
 class ManyField < BaseManyField
   
-  def initialize(realself, field)
+  def initialize(realself = nil, field = nil)
     super(realself, field)
     @list = []
   end
@@ -298,10 +306,6 @@ class ManyField < BaseManyField
     @list.length
   end
   
-  def empty?
-    @list.empty?
-  end
-
   def nil?
     false
   end
@@ -311,12 +315,12 @@ class ManyField < BaseManyField
   end
   
   def <<(v)
-    @realself.notify_update(@field, nil, v) 
+    @realself.notify_update(@field, nil, v) if @realself
     @list << v
   end
 
   def []=(i, v)
-    @realself.notify_update(@field, @list[i], v)
+    @realself.notify_update(@field, @list[i], v) if @realself
     @list[i] = v
   end
 
@@ -336,7 +340,7 @@ class ManyField < BaseManyField
   end
   
   # sligthly nonstandard zip, includes all elements of this and other
-  def zip(other)
+  def outer_join(other)
     extra = length.upto(other.length - 1).map do |x| nil end
     return (@list + extra).zip(other)
   end
