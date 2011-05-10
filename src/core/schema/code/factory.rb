@@ -89,14 +89,19 @@ class CheckedObject
     end
     field = @schema_class.all_fields[field_name]; 
     raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
+
+    sym = field.name.to_sym
     if field.computed
       exp = field.computed.gsub(/@/, "self.")
-      r = self.instance_eval(exp)
-      #puts "EVAL #{self}.#{field.name} = #{r.class} #{r}"
-      return r
+      define_singleton_method(sym) do
+        instance_eval(exp)
+      end
     else
-      return @hash[field_name]
+      define_singleton_method(sym) do
+        @hash[field_name]
+      end
     end
+    return send(sym)
   end
 
   def []=(field_name, new)
