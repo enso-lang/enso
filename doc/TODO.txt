@@ -3,15 +3,52 @@ PAPERS:
      Paper submission: Mon, December 19, 2011
      
 Cleanup tasks
-* Distinguish "all_fields" (including computed) and "fields" (no computed fields)
 * Finalize: seals from changes, run invariants (close to being right)
 * sanitize the loader namespace (remove boot stuff)
 * move "keys" to be computed attribute
 * get rid of check (its redundant with CheckedObject and finalize)
 
+Library (+ means done)
+  Core
+    +Schema
+    +Grammar
+    +Instance
+  Delta package
+    +Identify
+    ?Merge
+    Delta
+      DeltaSchema(S): given a schema, create a schema for deltas
+      DeltaGrammar(G) creates a grammar that can read/write deltas
+      diff: S:Schema -> a:S -> b:S -> DeltaSchema(S)
+      apply: S:Schema -> d:DeltaSchema(S) -> a:S -> S 
+    Query (ability to project/select a structure)
+  GenericGrammar (abstract grammars)
+    Grammar(S): given a schema, create a parameterized "grammar" for the schema
+    ConsistentInstantiation: checks if the instantiates are consistent in a grammar
+    render:  s:B -> g:Grammar(S) -> S
+        where ConsistentInstantiation(B, g)
+  Diagram
+    DiagramSchema
+    edit: S:Schema -> o:S -> g:Grammar(DiagramSchema) -> S
+       where ConsistentInstantiation(S, g)
+      edits and object o of type S using grammar Diagram grammar g    
+    SchemaDiagramGrammar : Grammar(DiagramSchema)
+      a grammar for editing schemas
+    DiagramGrammarDiagramGrammar : Grammar(DiagramSchema)
+      allows editing of SchemaDiagramGrammar (and itself)
+  Web
+    EnsoWeb language...
+  Securtiy
+    SecuryQuery (create projection queries based on security model)
+  SQL
+    generate tables
+    upgrade tables (diffs!)
+    SQL query generation
+  GUI
+    like Diagram, but for GUIs
+    
 New core functionality
-* implement real delta schemas and a typed diff
-* fixedpoint cyclic map
+* fixedpoint cyclic map??
 * allow "listening" to changes 
 
 Applications
@@ -27,3 +64,7 @@ less important
 * derivative parsers?
 * other kind of parser?
 
+
+
+DONE
+* Distinguish "all_fields" (including computed) and "fields" (no computed fields)
