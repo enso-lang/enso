@@ -36,6 +36,7 @@ class GrammarGrammar < GrammarGenerator
     alt [:Value], {kind: "str"}
     alt [:Value], {kind: "real"}
     alt [:Value], {kind: "sym"}
+    alt [:Value], {kind: "atom"}
 
     alt [:Code], "@", {code: :str}
 
