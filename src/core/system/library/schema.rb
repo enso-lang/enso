@@ -77,3 +77,24 @@ end
 def Lookup(obj, path)
   LookupMod::Lookup.lookup(obj, path)
 end
+
+def Subclass?(a, b)
+  return false if a.nil? || b.nil?
+  return true if a.name == b.name
+  return Subclass?(a.super, b)
+end
+
+def ClassMinimum(a, b)
+  return a if b.nil?
+  return b if a.nil?
+  if Subclass?(a, b)
+    return a
+  elsif Subclass?(b, a)
+    return b
+  else
+    return nil
+  end
+end
+
+
+  

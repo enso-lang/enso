@@ -3,6 +3,11 @@ require 'core/diff/code/equals'
 require 'core/diff/code/diff'
 require 'core/schema/tools/copy'
 
+# here is an idea for a new version
+# def Merge(x, y, renaming = {})
+#   ApplyDiff( AdditionsOnly( Diff(x, y, renaming) ), x) 
+# end
+  
 module Merge
   class Identify < MemoBase
     def self.placeholder_char
