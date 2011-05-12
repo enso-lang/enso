@@ -2,12 +2,14 @@
 
 module Symbols
 
-
-  def with_terminal(x, &block)
-    return if eos?(@ci)
-    send(x.schema_class.name, x, &block)
+  def Item(this)
+    if this.dot == this.elements.length then
+      pop
+    else
+      nxt = @gf.Item(this.expression, this.elements, this.dot + 1)
+      recurse(this.elements[this.dot], nxt)
+    end
   end
-    
 
   def Sequence(this, nxt = nil)
     @cu = create(nxt) if nxt
@@ -16,14 +18,14 @@ module Symbols
     return continue(item) unless this.elements.empty?
 
     # empty
-    cr = Leaf.new(@ci)
+    cr = Empty.new(@ci, @gf.Epsilon)
     @cn = Node.new(item, @cn, cr)
     pop
     continue(nxt)
   end
   
   def Epsilon(this, nxt = nil)
-    cr = Leaf.new(@ci)
+    cr = Empty.new(@ci, this)
     @cn = Node.new(@gf.Item(this, [], 0), @cn, cr)
     pop
     continue(nxt)

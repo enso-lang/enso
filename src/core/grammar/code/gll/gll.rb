@@ -8,69 +8,6 @@ require 'core/grammar/code/gll/sppf'
 require 'core/grammar/code/gll/scan'
 require 'core/grammar/code/gll/grammar'
 
-# class Empty
-#   EMPTY_CLASS = OpenStruct.new
-#   EMPTY_CLASS.name = 'Empty'
-
-#   def schema_class
-#     EMPTY_CLASS
-#   end
-
-#   def to_s
-#     "<empty>"
-#   end
-
-# end
-
-# class Item
-#   ITEM_CLASS = OpenStruct.new
-#   ITEM_CLASS.name = 'Item'
-
-#   attr_reader :elements, :dot, :symbol
-
-#   def initialize(elements, dot, symbol)
-#     @elements = elements
-#     @dot = dot
-#     @symbol = symbol
-#     @hash = 17 * elements.hash + 23 * dot
-#   end
-
-#   def schema_class
-#     ITEM_CLASS
-#   end
-
-#   def current
-#     elements[dot]
-#   end
-
-#   def move
-#     puts "/* MOVING: #{dot + 1} (#{symbol}) */"
-#     Item.new(elements, dot + 1, symbol)
-#   end
-
-#   def at_end?
-#     dot == arity
-#   end
-
-#   def arity
-#     elements.length
-#   end
-
-#   def to_s
-#     "<#{elements}, #{dot}: #{symbol}>"
-#   end
-
-#   def ==(x)
-#     return true if self.equal?(x)
-#     return false unless x.is_a?(Item)
-#     elements == x.elements && dot == x.dot && symbol == x.symbol
-#   end
-
-#   def hash
-#     @hash
-#   end
-
-# end
 
 class GLL
   include Scanner
@@ -93,11 +30,16 @@ class GLL
     add(top)
     while !@todo.empty? do
       parser, @cu, @cn, @ci = @todo.shift
-      #puts "Going to parse: #{parser}, cu = #{@cu}, cn = #{@cn}, ci = #{@ci}"
       recurse(parser)
     end
     puts "/* GSS: #{GSS.nodes.length} */"
     puts "/* Nodes: #{Node.nodes.length} */"
+    Node.nodes.each_value do |n|
+      if n.starts == 0 && n.ends == source.length then
+        return n
+      end
+    end
+    raise "Parse error"
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
@@ -153,30 +95,13 @@ class GLL
   end
 
   def terminal(type, pos, value, ws, nxt)
-    cr = Leaf.new(@ci, pos, value, ws)
+    cr = Leaf.new(@ci, pos, type, value, ws)
     @ci = pos
     if nxt then
       @cn = Node.new(nxt, @cn, cr)
       continue(nxt)
     end
   end
- 
-  def at_end?(item)
-    item.dot == item.elements.length
-  end
-
-  def Item(this)
-    puts "/* Parsing item: #{this} */"
-    if at_end?(this) then
-      puts "/* Popping item: #{this} */"
-      pop
-    else
-      recurse(this.elements[this.dot], 
-              @gf.Item(this.expression, this.elements, this.dot + 1))
-    end
-  end
-
-
 end
 
 
@@ -192,10 +117,21 @@ if __FILE__ == $0 then
 
   src = "[x x x x]"
   lst = Lists.grammar
-  GLL.new.parse(lst, src, lst.start)
+  sppf = GLL.new.parse(lst, src, lst.start)
 
   dot = ''
   Node.to_dot(dot)
-  puts dot
+  File.open('bla.dot', 'w') do |f|
+    f.write(dot)
+  end
+
+  require 'core/grammar/code/gll/implode'
+  ast = Implode.implode(sppf)
+  puts "AST: #{ast}"
+
+
+  require 'core/schema/tools/print'
+  Print.print(ast)
+
 end
   

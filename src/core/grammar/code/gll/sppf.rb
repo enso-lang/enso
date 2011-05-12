@@ -72,26 +72,46 @@ class BaseNode
   end
 end
 
+class Empty < BaseNode
+  def initialize(pos, type)
+    super(pos, pos, type)
+  end
+
+  def ==(x)
+    return true if x.equal?(self)
+    return false unless x.is_a?(Empty)
+    return true
+  end
+
+  def shape
+    'none'
+  end
+
+  def label
+    ''
+  end
+end
+
 class Leaf < BaseNode
-  attr_reader :token
+  attr_reader :value
   attr_reader :ws
 
   # TODO: type = nil ==> empty (from GrammarSchema)
-  def initialize(starts, ends = starts, type = nil, token = nil, ws = nil)
+  def initialize(starts, ends, type = nil, value = nil, ws = nil)
     super(starts, ends, type)
-    @token = token
+    @value = value
     @ws = ws
-    @hash += 13 * token.hash
+    @hash += 13 * value.hash
   end
 
   def ==(x)
     return true if self.equal?(x)
     return false unless x.is_a?(Leaf)
-    super(x) && @token == x.token
+    super(x) && value == x.value
   end
 
   def label
-    "#{token}(#{starts},#{ends})"
+    "#{value}(#{starts},#{ends})"
   end
 
   def shape
@@ -107,15 +127,15 @@ class Node < BaseNode
     if item.dot == 1 && item.elements.length > 1 then
       return nxt
     end
-    #return nxt unless current
     k = nxt.starts
     i = nxt.ends
     j = k
     j = current.starts if current
-    puts "// Making node: #{item.at_end?} => #{item.expression}"
     at_end = item.dot == item.elements.length
+    puts "// Making node: #{at_end} => #{item.expression}"
     y = super(j, i, at_end ? item.expression : item)
-    y << Pack.new(item, k, current, nxt)
+    # apparently, epsilon nodes (leaves) get kids to... bug?
+    y.add_kid(Pack.new(item, k, current, nxt))
     return y
   end
 
@@ -124,16 +144,17 @@ class Node < BaseNode
     @kids = []
     @hash += 13 * type.hash
   end
-  
-  def <<(n)
-    @kids << n
-  end
 
+  def add_kid(pn)
+    @kids << pn
+  end
+  
   def ==(x)
     return true if self.equal?(x)
     return false unless x.is_a?(Node)
     super(x) && type == x.type
   end
+
 
   def label
     i = type.to_s.gsub(/"/, '\\"')
@@ -145,6 +166,7 @@ class Node < BaseNode
   end
 
 end
+
 
 class Pack < BaseNode
   attr_reader :parser, :pivot, :left, :right, :id

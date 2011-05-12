@@ -17,16 +17,9 @@ class InstanceSchema < SchemaGenerator
     field :contents, :type => Content, :optional => true, :many => true
   end
 
-  klass List, :super => Value do
-    field :elements, :type => Value, :optional => true, :many => true
-  end
-
   klass Prim, :super => Value do
     field :kind, :type => :str
     field :value, :type => :str, :optional => true
-  end
-
-  klass Nil, :super => Value do
   end
 
   klass Ref, :super => Value do
@@ -38,7 +31,7 @@ class InstanceSchema < SchemaGenerator
 
   klass Field, :super => Content do
     field :name, :type => :str
-    field :value, :type => Value
+    field :values, :type => Value, :optional => true, :many => true
   end
 
   klass Code, :super => Content do
