@@ -58,9 +58,14 @@ module Scanner
     end
     if tk then
       return if @keywords.include?(tk)
-      ws = @scanner.scan(LAYOUT)
-      yield @scanner.pos, unescape(tk, kind), ws 
+      ws, pos = skip_ws
+      yield pos, unescape(tk, kind), ws 
     end
+  end
+
+  def skip_ws
+    ws = @scanner.scan(LAYOUT)
+    return ws, @scanner.pos
   end
 
   def with_literal(lit)
