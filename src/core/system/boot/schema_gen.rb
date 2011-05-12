@@ -14,6 +14,10 @@ class SchemaModel #< BasicObject
     if field_name[-1] == "?"
       return self.schema_class.name == field_name[0..-2]
     else
+      sym = field_name.to_sym
+      define_singleton_method(sym) do
+        @data[field_name]
+      end
       @data[field_name]
     end
   end
@@ -71,6 +75,7 @@ class ValueHash < Hash
   def <<(x)
     self[x[@key]] = x
   end
+
     
 end
 
