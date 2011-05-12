@@ -86,8 +86,11 @@ class Instantiate
 
   def Field(this, owner, field, pos)
     #puts "Field #{this.name} in #{owner}"
+
     f = owner.schema_class.fields[this.name]
-    recurse(this.value, owner, f, 0)
+    this.values.each do |v|
+      recurse(v, owner, f, 0)
+    end
   end
 
   def Code(this, owner, field, pos)
