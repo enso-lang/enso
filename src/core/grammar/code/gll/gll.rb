@@ -6,12 +6,12 @@ require 'ostruct'
 require 'core/grammar/code/gll/gss'
 require 'core/grammar/code/gll/sppf'
 require 'core/grammar/code/gll/scan'
-require 'core/grammar/code/gll/grammar'
+require 'core/grammar/code/gll/parsers'
 
 
 class GLL
   include Scanner
-  include Symbols
+  include Parsers
 
   def init_parser(grammar, top)
     @gf = grammar._graph_id

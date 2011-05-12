@@ -1,6 +1,6 @@
 
 
-module Symbols
+module Parsers
 
   def Item(this)
     if this.dot == this.elements.length then
