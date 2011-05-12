@@ -20,12 +20,6 @@ class CopyTest < Test::Unit::TestCase
     assert_equal([], diff(s1, s2))
   end
 
-  def test_parsetree_schema
-    s1 = ParseTreeSchema.schema
-    s2 = Copy.new(Factory.new(SS)).copy(s1)
-    assert_equal([], diff(s1, s2))
-  end
-
   def test_GS
     s1 = GS
     s2 = Copy.new(Factory.new(SS)).copy(s1)

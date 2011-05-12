@@ -10,7 +10,6 @@ require 'core/grammar/code/parse'
 require 'core/diff/code/merge'
 
 require 'core/system/boot/instance_schema'
-require 'core/system/boot/parsetree_schema'
 
 module Loading
   class Loader
@@ -22,7 +21,6 @@ module Loading
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
     INSTANCE_SCHEMA = 'instance.schema'
-    PARSETREE_SCHEMA = 'parsetree.schema'
     
     def load(name)
       setup() if @cache.nil?
@@ -34,7 +32,7 @@ module Loading
     def loadText(type, source)
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
-      CPSParser.load("-", source, g, s)
+      Parse.load(source, g, s)
     end
         
     private
@@ -51,7 +49,6 @@ module Loading
       @cache = {}
       puts "Initializing.."
 
-      @cache[PARSETREE_SCHEMA] = ParseTreeSchema.schema
       @cache[INSTANCE_SCHEMA] = InstanceSchema.schema
 
       bss = @cache[SCHEMA_SCHEMA] = SchemaSchema.schema
@@ -84,7 +81,7 @@ module Loading
         instance_eval(File.read(path))
       else
         puts "## loading #{path}..."
-        CPSParser.loadFile(path, grammar, schema)
+        Parse.load_file(path, grammar, schema)
       end
     end
     
@@ -110,7 +107,6 @@ if __FILE__ == $0 then
   p l.load('schema.grammar')
   p l.load('grammar.schema')
   p l.load('schema.schema')
-  p l.load('parsetree.schema')
   p l.load('layout.schema')
   p l.load('value.schema')
   p l.load('proto.schema')

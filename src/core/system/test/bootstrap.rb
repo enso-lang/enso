@@ -5,7 +5,6 @@ require 'test/unit'
 require 'core/system/load/load'
 
 require 'core/grammar/code/parse'
-require 'core/system/boot/parsetree_schema'
 require 'core/system/boot/grammar_grammar'
 require 'core/instance/code/instantiate'
 
@@ -18,7 +17,6 @@ class BootstrapTests < Test::Unit::TestCase
 
   GRAMMAR_GRAMMAR = 'grammar.grammar'
   GRAMMAR_SCHEMA = 'grammar.schema'
-  PARSETREE_SCHEMA = 'parsetree.schema'
 
   PROTO_SCHEMA = 'proto.schema'
   INSTANCE_SCHEMA = 'instance.schema'
@@ -33,7 +31,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar, grammar))
 
     grammargrammar = 'core/grammar/models/grammar.grammar'
-    grammar2 = CPSParser.loadFile(grammargrammar, grammar, GrammarSchema.schema)
+    grammar2 = Parse.load_file(grammargrammar, grammar, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar2))
     assert(Equals.equals(GrammarSchema.schema, grammar, grammar2))
@@ -43,7 +41,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar, grammar2))
     assert_equal([], diff(grammar2, grammar))
     
-    grammar3 = CPSParser.loadFile(grammargrammar, grammar2, GrammarSchema.schema)
+    grammar3 = Parse.load_file(grammargrammar, grammar2, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar3, grammar3))
     assert(Equals.equals(GrammarSchema.schema, grammar2, grammar3))
@@ -57,7 +55,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert_equal([], diff(grammar3, grammar))
     assert_equal([], diff(grammar, grammar3))
 
-    grammar4 = CPSParser.loadFile(grammargrammar, grammar3, GrammarSchema.schema)
+    grammar4 = Parse.load_file(grammargrammar, grammar3, GrammarSchema.schema)
 
     assert(Equals.equals(GrammarSchema.schema, grammar4, grammar4))
     assert(Equals.equals(GrammarSchema.schema, grammar4, grammar3))
@@ -81,10 +79,6 @@ class BootstrapTests < Test::Unit::TestCase
                  "Boot SchemaSchema != Boot SchemaSchema")
   end
   
-  def test_parsetree_schema
-    assert_not_nil(Loader.load(PARSETREE_SCHEMA))
-  end
-
   def test_instance_schema
     assert_not_nil(Loader.load(INSTANCE_SCHEMA))
   end

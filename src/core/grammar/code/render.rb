@@ -2,6 +2,7 @@
 require 'core/system/load/load'
 require 'core/system/library/cyclicmap'
 require 'core/grammar/code/parse'
+require 'core/grammar/code/gll/scan' # for keywords...
 
 # render an object into a grammar, to create a parse tree
 class Render < Dispatch
@@ -11,7 +12,7 @@ class Render < Dispatch
 
   def Grammar(this, obj)
     # ugly, should be higher up
-    @literals = CPSParser::CollectKeywords.run(this)
+    @literals = Scanner::CollectKeywords.run(this)
     recurse(this.start, obj)
   end
   

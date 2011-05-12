@@ -28,37 +28,12 @@ class EqualityTest < Test::Unit::TestCase
     
 
 
-  def test_self_equals
-    s1 = SS
-    assert(Equals.equals(SS, s1, s1))
-    s1 = ParseTreeSchema.schema
-    assert(Equals.equals(SS, s1, s1))
-    s1 = GS
-    assert(Equals.equals(SS, s1, s1))
-    s1 = GG
-    assert(Equals.equals(GS, s1, s1))
-  end
-
-  def test_print_equals
-    s1 = SS
-    print_eq(s1, s1, s1)
-    s1 = ParseTreeSchema.schema
-    print_eq(s1, s1, s1)
-    s1 = GS
-    print_eq(s1, s1, s1)
-    s2 = GG
-    print_eq(s1, s2, s2)
-  end
-
 
   def test_not_equals
     s1 = SS
-    s2 = ParseTreeSchema.schema
     s3 = GS
     s4 = GG
 
-    assert(!Equals.equals(SS, s1, s2))
-    assert(!Equals.equals(SS, s2, s3))
     assert(!Equals.equals(SS, s3, s4))
 
     assert_raise(Exception, "cannot compare grammars using schemaschema") do
