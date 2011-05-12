@@ -8,77 +8,78 @@ require 'core/grammar/code/gll/sppf'
 require 'core/grammar/code/gll/scan'
 require 'core/grammar/code/gll/grammar'
 
-class Empty
-  EMPTY_CLASS = OpenStruct.new
-  EMPTY_CLASS.name = 'Empty'
+# class Empty
+#   EMPTY_CLASS = OpenStruct.new
+#   EMPTY_CLASS.name = 'Empty'
 
-  def schema_class
-    EMPTY_CLASS
-  end
+#   def schema_class
+#     EMPTY_CLASS
+#   end
 
-  def to_s
-    "<empty>"
-  end
+#   def to_s
+#     "<empty>"
+#   end
 
-end
+# end
 
-class Item
-  ITEM_CLASS = OpenStruct.new
-  ITEM_CLASS.name = 'Item'
+# class Item
+#   ITEM_CLASS = OpenStruct.new
+#   ITEM_CLASS.name = 'Item'
 
-  attr_reader :elements, :dot, :symbol
+#   attr_reader :elements, :dot, :symbol
 
-  def initialize(elements, dot, symbol)
-    @elements = elements
-    @dot = dot
-    @symbol = symbol
-    @hash = 17 * elements.hash + 23 * dot
-  end
+#   def initialize(elements, dot, symbol)
+#     @elements = elements
+#     @dot = dot
+#     @symbol = symbol
+#     @hash = 17 * elements.hash + 23 * dot
+#   end
 
-  def schema_class
-    ITEM_CLASS
-  end
+#   def schema_class
+#     ITEM_CLASS
+#   end
 
-  def current
-    elements[dot]
-  end
+#   def current
+#     elements[dot]
+#   end
 
-  def move
-    puts "/* MOVING: #{dot + 1} (#{symbol}) */"
-    Item.new(elements, dot + 1, symbol)
-  end
+#   def move
+#     puts "/* MOVING: #{dot + 1} (#{symbol}) */"
+#     Item.new(elements, dot + 1, symbol)
+#   end
 
-  def at_end?
-    dot == arity
-  end
+#   def at_end?
+#     dot == arity
+#   end
 
-  def arity
-    elements.length
-  end
+#   def arity
+#     elements.length
+#   end
 
-  def to_s
-    "<#{elements}, #{dot}: #{symbol}>"
-  end
+#   def to_s
+#     "<#{elements}, #{dot}: #{symbol}>"
+#   end
 
-  def ==(x)
-    return true if self.equal?(x)
-    return false unless x.is_a?(Item)
-    elements == x.elements && dot == x.dot && symbol == x.symbol
-  end
+#   def ==(x)
+#     return true if self.equal?(x)
+#     return false unless x.is_a?(Item)
+#     elements == x.elements && dot == x.dot && symbol == x.symbol
+#   end
 
-  def hash
-    @hash
-  end
+#   def hash
+#     @hash
+#   end
 
-end
+# end
 
 class GLL
   include Scanner
   include Symbols
 
   def init_parser(grammar, top)
+    @gf = grammar._graph_id
     @ci = 0
-    @start = GSS.new(Item.new([grammar], 1, grammar), 0)
+    @start = GSS.new(@gf.Item(top.arg, [top.arg], 1), 0)
     @cu = @start
     @cn = nil
     @todo = []
@@ -144,14 +145,14 @@ class GLL
 
   def chain(this, nxt)
     @cu = create(nxt) if nxt
-    continue(Item.new([this.arg], 0, this))
+    continue(@gf.Item(this, [this.arg], 0))
   end
 
   def continue(nxt)
     Item(nxt) if nxt
   end
 
-  def terminal(pos, value, ws, nxt)
+  def terminal(type, pos, value, ws, nxt)
     cr = Leaf.new(@ci, pos, value, ws)
     @ci = pos
     if nxt then
@@ -160,14 +161,18 @@ class GLL
     end
   end
  
+  def at_end?(item)
+    item.dot == item.elements.length
+  end
 
   def Item(this)
     puts "/* Parsing item: #{this} */"
-    if this.at_end? then
+    if at_end?(this) then
       puts "/* Popping item: #{this} */"
       pop
     else
-      recurse(this.current, this.move)
+      recurse(this.elements[this.dot], 
+              @gf.Item(this.expression, this.elements, this.dot + 1))
     end
   end
 

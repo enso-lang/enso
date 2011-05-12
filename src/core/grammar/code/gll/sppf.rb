@@ -2,7 +2,7 @@
 require 'set'
 
 class BaseNode
-  attr_reader :starts, :ends, :id
+  attr_reader :type, :starts, :ends, :id
 
   # TODO: remove the global variable
   # cannot resue it for multiple parses
@@ -60,9 +60,10 @@ class BaseNode
     #     @@nodes[x]
   end
 
-  def initialize(starts, ends)
+  def initialize(starts, ends, type)
     @starts = starts
     @ends = ends
+    @type = type
     @hash = 29 * self.class.to_s.hash + 37 * starts + 17 * ends
   end
 
@@ -75,8 +76,9 @@ class Leaf < BaseNode
   attr_reader :token
   attr_reader :ws
 
-  def initialize(starts, ends = starts, token = nil, ws = nil)
-    super(starts, ends)
+  # TODO: type = nil ==> empty (from GrammarSchema)
+  def initialize(starts, ends = starts, type = nil, token = nil, ws = nil)
+    super(starts, ends, type)
     @token = token
     @ws = ws
     @hash += 13 * token.hash
@@ -99,10 +101,10 @@ class Leaf < BaseNode
 end
 
 class Node < BaseNode
-  attr_reader :item, :kids
+  attr_reader :kids
 
   def self.new(item, current, nxt)
-    if item.dot == 1 && item.arity > 1 then
+    if item.dot == 1 && item.elements.length > 1 then
       return nxt
     end
     #return nxt unless current
@@ -110,17 +112,17 @@ class Node < BaseNode
     i = nxt.ends
     j = k
     j = current.starts if current
-    puts "// Making node: #{item.at_end?} => #{item.symbol}"
-    y = super(item.at_end? ? item.symbol : item, j, i)
+    puts "// Making node: #{item.at_end?} => #{item.expression}"
+    at_end = item.dot == item.elements.length
+    y = super(j, i, at_end ? item.expression : item)
     y << Pack.new(item, k, current, nxt)
     return y
   end
 
-  def initialize(item, starts, ends)
-    super(starts, ends)
-    @item = item
-    @kids = Set.new
-    @hash += 13 * item.hash
+  def initialize(starts, ends, type)
+    super(starts, ends, type)
+    @kids = []
+    @hash += 13 * type.hash
   end
   
   def <<(n)
@@ -129,12 +131,12 @@ class Node < BaseNode
 
   def ==(x)
     return true if self.equal?(x)
-    return false unless x.is_a?(Leaf)
-    super(x) && @item == x.item
+    return false unless x.is_a?(Node)
+    super(x) && type == x.type
   end
 
   def label
-    i = item.to_s.gsub(/"/, '\\"')
+    i = type.to_s.gsub(/"/, '\\"')
     "#{i}(#{starts},#{ends})"
   end
 

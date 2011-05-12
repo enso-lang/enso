@@ -27,7 +27,7 @@ class Lists < GrammarGenerator
   start E
 
   rule E do
-    alt "x"
-    alt "[", iter_star(E), "]"
+    alt [:var], {x: "x"}
+    alt [:lst], "[", {es: iter_star(E)}, "]"
   end
 end
