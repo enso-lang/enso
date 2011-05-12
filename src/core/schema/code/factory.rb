@@ -1,4 +1,6 @@
+
 require 'core/system/library/cyclicmap'
+require 'core/system/library/schema'
 require 'core/schema/code/finalize'
 
 class Factory
