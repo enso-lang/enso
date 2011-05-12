@@ -19,7 +19,7 @@ class Factory
     obj = self[class_name.to_s]
     n = 0
     #puts "#{obj.schema_class.fields.keys}"
-    obj.schema_class.fields.each_with_index do |field|
+    obj.schema_class.fields.each do |field|
       if n < args.length
         if field.many
           col = obj[field.name]
@@ -346,10 +346,20 @@ class ManyField < BaseManyField
     return r
   end
   
+  def keys
+    0.upto(length)
+  end
+  
+  def values
+    @list
+  end
+  
   # sligthly nonstandard zip, includes all elements of this and other
   def outer_join(other)
-    extra = length.upto(other.length - 1).map do |x| nil end
-    return (@list + extra).zip(other)
+    n = [length, other.length].max
+    0.upto(n).each do |i|
+      yield i, self[i], other[i]
+    end
   end
 end  
 

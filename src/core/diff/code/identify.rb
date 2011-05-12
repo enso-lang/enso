@@ -2,10 +2,21 @@ require 'core/system/load/load'
 require 'core/system/library/schema'
 
 class Identify
+  attr_reader :left_to_right
+  attr_reader :right_to_left
   def initialize()
     @left_to_right = {}
     @right_to_left = {}
   end
+
+  def identify(a, b, renaming = {})
+    renaming.each do |a_path, b_path|
+      ao = Lookup(a, a_path)
+      bo = Lookup(a, a_path)
+      apply(ao.schema_class, ao, bo)
+    end
+    apply(a.schema_class, a, b)
+  end    
   
   def apply(type, a, b)
     #puts "#{a} === #{b}  #{!a || !b}"
@@ -15,9 +26,9 @@ class Identify
       raise "inconsistent identification" unless @left_to_right[a] == b
       return
     end
-    raise "incompatible classes" if a.schema_class.name != b.schema_class.name
     identify(a, b)
-    klass = type.schema.classes[a.schema_class.name]
+    min = ClassMinimum(a.schema_class, b.schema_class)
+    klass = type.schema.classes[min.name]
     #puts "KLASS #{klass}"
     klass.fields.each do |field|
       asub = a[field.name]
