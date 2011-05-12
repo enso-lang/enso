@@ -78,8 +78,8 @@ module Scanner
     end
     val = @scanner.scan(re)
     if val then
-      ws = @scanner.scan(LAYOUT)
-      yield @scanner.pos, ws
+      ws, pos = skip_ws
+      yield pos, ws
     end
   end
 
