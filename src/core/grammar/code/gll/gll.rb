@@ -13,6 +13,11 @@ class GLL
   include Scanner
   include Parsers
 
+  def self.parse(source, grammar, top = grammar.start)
+    GLL.new.parse(source, grammar, top)
+  end
+
+
   def init_parser(grammar, top)
     @gf = grammar._graph_id
     @todo = []
@@ -41,7 +46,7 @@ class GLL
     @items[key]
   end
 
-  def parse(grammar, source, top)
+  def parse(source, grammar, top)
     init_scanner(grammar, source)
     init_parser(grammar, top)
     add(top)
@@ -49,8 +54,8 @@ class GLL
       parser, @cu, @cn, @ci = @todo.shift
       recurse(parser)
     end
-    puts "/* GSS: #{GSS.nodes.length} */"
-    puts "/* Nodes: #{Node.nodes.length} */"
+    #puts "/* GSS: #{GSS.nodes.length} */"
+    #puts "/* Nodes: #{Node.nodes.length} */"
     ws, _ = skip_ws
     Node.nodes.each do |k, n|
       if n.starts == @begin && n.ends == source.length - ws.length  && n.type == top then
@@ -129,32 +134,14 @@ end
 
 if __FILE__ == $0 then
   require 'core/grammar/code/gll/gamma2'
-  #src = "b " * 10
-  #gamma2 = Gamma2.grammar
-  #GLL.new.parse(gamma2, src, gamma2.start)
-
-#   src = "x + x + x"
-#   exp = Exp.grammar
-#   GLL.new.parse(exp, src, exp.start)
-
-#   src = "[x x x x]"
-#   lst = Lists.grammar
-#   sppf = GLL.new.parse(lst, src, lst.start)
-
-
-#   ast = Implode.implode(sppf)
-#   puts "AST: #{ast}"
-
-
-#   Print.print(ast)
-  
   require 'core/schema/tools/print'
   require 'core/grammar/code/gll/implode'
   require 'core/system/boot/grammar_grammar'
+  require 'core/grammar/code/layout'
 
   gg = GrammarGrammar.grammar 
   src = File.read('core/grammar/models/grammar.grammar')
-  sppf2 = GLL.new.parse(gg, src, gg.start)
+  sppf2 = GLL.new.parse(src, gg, gg.start)
 
 
   dot = ''
@@ -176,5 +163,16 @@ if __FILE__ == $0 then
   obj = Instantiate.instantiate(gf, ast)
   puts "OBJ = #{obj}"
 
+
+
+  obj.rules.each do |r|
+    puts "#{r.name} ::= #{r.arg}"
+    r.arg.alts.each do |alt|
+      puts alt.to_s
+    end
+  end
+
+  Print.print(obj)
+  DisplayFormat.print(GrammarGrammar.grammar, obj)
 end
   
