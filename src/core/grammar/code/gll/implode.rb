@@ -27,7 +27,7 @@ class Implode
     if respond_to?(sym)
       send(sym, type, sppf, accu, in_field)
     else
-      kids(sppf, accu, in_field)
+      kids(sppf, accu, false)
     end
   end
 
