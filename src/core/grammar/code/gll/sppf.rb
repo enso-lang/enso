@@ -102,11 +102,15 @@ class Node < BaseNode
   attr_reader :item, :kids
 
   def self.new(item, current, nxt)
-    return nxt unless current
+    if item.dot == 1 && item.arity > 1 then
+      return nxt
+    end
+    #return nxt unless current
     k = nxt.starts
     i = nxt.ends
     j = k
     j = current.starts if current
+    puts "// Making node: #{item.at_end?} => #{item.symbol}"
     y = super(item.at_end? ? item.symbol : item, j, i)
     y << Pack.new(item, k, current, nxt)
     return y

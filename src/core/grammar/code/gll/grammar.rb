@@ -2,10 +2,6 @@
 
 module Symbols
 
-  def terminal?(x)
-    %w(Lit Value Ref Empty).include?(x.schema_class.name)
-  end
-
   def with_terminal(x, &block)
     return if eos?(@ci)
     send(x.schema_class.name, x, &block)
@@ -13,9 +9,12 @@ module Symbols
     
 
   def Sequence(this, nxt = nil)
+    @cu = create(nxt) if nxt
+
     item = Item.new(this.elements, 0, this)
     return continue(item) unless this.elements.empty?
 
+    # empty
     cr = Leaf.new(@ci)
     @cn = Node.new(item, @cn, cr)
     pop
@@ -34,7 +33,17 @@ module Symbols
   end
 
   def Rule(this, nxt = nil)
-    recurse(this.arg, nxt)
+    chain(this, nxt)
+  end
+
+  def Create(this, nxt = nil)
+    puts "// CREATE #{this.name}"
+    chain(this, nxt)
+  end
+
+  def Field(this, nxt = nil)
+    puts "// FIELD #{this.name}"
+    chain(this, nxt)
   end
 
   def Alt(this, nxt = nil)
@@ -44,35 +53,25 @@ module Symbols
       add(alt)
     end
   end
-  
- 
 
   def Lit(this, nxt = nil)
     with_literal(this.value) do |pos, ws|
-      cr = Leaf.new(@ci, pos, this.value, ws)
-      @cn = Node.new(nxt, @cn,cr)
-      @ci = pos
-      continue(nxt)
+      terminal(pos, this.value, ws, nxt)
     end
   end
 
-  ### TODO
-
-  def Ref(this)
+  def Ref(this, nxt = nil)
     with_token('sym') do |pos, tk, ws|
-      yield Leaf.new(@ci, pos, tk, ws), pos
+      terminal(pos, tk, ws, nxt)
     end
   end
 
-  def Create(this)
-    # TODO
-    recurse(this.arg)
+  def Value(this, nxt = nil)
+    with_token(this.kind) do |pos, tk, ws|
+      terminal(pos, tk, ws, nxt)
+    end
   end
 
-  def Field(this)
-    # TODO
-    recurse(this.arg)
-  end
 
   def Regular(this, nxt = nil)
     @cu = create(nxt) if nxt
@@ -93,11 +92,6 @@ module Symbols
     end
   end
 
-  def Value(this, nxt)
-    with_token(this.kind) do |pos, tk, ws|
-      yield Leaf.new(@ci, pos, tk, ws), pos
-    end
-  end
 
 
 end

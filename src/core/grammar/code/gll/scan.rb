@@ -60,9 +60,7 @@ module Scanner
       return if @keywords.include?(tk)
       ws = @scanner.scan(LAYOUT)
       yield @scanner.pos, unescape(tk, kind), ws 
-      return true
     end
-    return false
   end
 
   def with_literal(lit)
@@ -77,9 +75,7 @@ module Scanner
     if val then
       ws = @scanner.scan(LAYOUT)
       yield @scanner.pos, ws
-      return true
     end
-    return false
   end
 
   def eos?(pos)

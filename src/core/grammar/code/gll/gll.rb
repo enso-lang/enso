@@ -1,4 +1,3 @@
-
 #### pop when creating a node (like reduce)
 
 require 'set'
@@ -15,6 +14,10 @@ class Empty
 
   def schema_class
     EMPTY_CLASS
+  end
+
+  def to_s
+    "<empty>"
   end
 
 end
@@ -40,22 +43,27 @@ class Item
     elements[dot]
   end
 
-  def move(i = dot)
-    Item.new(elements, i + 1, symbol)
+  def move
+    puts "/* MOVING: #{dot + 1} (#{symbol}) */"
+    Item.new(elements, dot + 1, symbol)
   end
 
   def at_end?
-    dot == elements.length
+    dot == arity
+  end
+
+  def arity
+    elements.length
   end
 
   def to_s
-    "<#{elements}, #{dot}>"
+    "<#{elements}, #{dot}: #{symbol}>"
   end
 
   def ==(x)
     return true if self.equal?(x)
     return false unless x.is_a?(Item)
-    elements == x.elements && dot == x.dot
+    elements == x.elements && dot == x.dot && symbol == x.symbol
   end
 
   def hash
@@ -134,35 +142,35 @@ class GLL
     send(this.schema_class.name, this, *args)
   end
 
+  def chain(this, nxt)
+    @cu = create(nxt) if nxt
+    continue(Item.new([this.arg], 0, this))
+  end
+
   def continue(nxt)
     Item(nxt) if nxt
   end
 
-  def Item(this)
-    #puts "Parsing item: #{this}"
-
-    return pop if this.at_end?
-    recurse(this.current, this.move)
-    
-#     this.each do |elt, nxt|
-#       if terminal?(elt) then
-#         #puts "--it's a terminal: #{elt}"
-#         success = with_terminal(elt) do |cr, pos|
-#           #puts "Parsed terminal up till: #{pos}"
-#           @cn = Node.new(nxt, @cn, cr)
-#           @ci = pos
-#         end
-#         return unless success
-#       else
-#         @cu = create(nxt) # add return point
-#         return recurse(elt)
-#       end
-#     end
-#     # item is finished, pop the stack
-#     #puts "--POP"
-#     pop
-#   end
+  def terminal(pos, value, ws, nxt)
+    cr = Leaf.new(@ci, pos, value, ws)
+    @ci = pos
+    if nxt then
+      @cn = Node.new(nxt, @cn, cr)
+      continue(nxt)
     end
+  end
+ 
+
+  def Item(this)
+    puts "/* Parsing item: #{this} */"
+    if this.at_end? then
+      puts "/* Popping item: #{this} */"
+      pop
+    else
+      recurse(this.current, this.move)
+    end
+  end
+
 
 end
 
