@@ -24,6 +24,10 @@ class GLL
     @done = {}
     @toPop = {}
 
+    # TODO: move these tables to here
+    Node.nodes.clear
+    GSS.nodes.clear
+
     # caches for dynamically created
     # grammar things
     @items = {}
