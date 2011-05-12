@@ -6,7 +6,7 @@ module Symbols
     if this.dot == this.elements.length then
       pop
     else
-      nxt = @gf.Item(this.expression, this.elements, this.dot + 1)
+      nxt = item(this.expression, this.elements, this.dot + 1)
       recurse(this.elements[this.dot], nxt)
     end
   end
@@ -14,11 +14,11 @@ module Symbols
   def Sequence(this, nxt = nil)
     @cu = create(nxt) if nxt
 
-    item = @gf.Item(this, this.elements, 0)
+    item = item(this, this.elements, 0)
     return continue(item) unless this.elements.empty?
 
     # empty
-    cr = Empty.new(@ci, @gf.Epsilon)
+    cr = Empty.new(@ci, @epsilon)
     @cn = Node.new(item, @cn, cr)
     pop
     continue(nxt)
@@ -26,10 +26,15 @@ module Symbols
   
   def Epsilon(this, nxt = nil)
     cr = Empty.new(@ci, this)
-    @cn = Node.new(@gf.Item(this, [], 0), @cn, cr)
+    @cn = Node.new(item(this, [], 0), @cn, cr)
     pop
     continue(nxt)
   end
+
+  def Code(this, nxt = nil)
+    terminal(this, @ci, this.code, '', nxt)
+  end
+
 
   def Call(this, nxt = nil)
     recurse(this.rule, nxt)
@@ -55,7 +60,9 @@ module Symbols
   end
 
   def Lit(this, nxt = nil)
+    #puts "Parsing literal: #{this.value}"
     with_literal(this.value) do |pos, ws|
+      #puts "Success"
       terminal(this, pos, this.value, ws, nxt)
     end
   end
@@ -76,17 +83,18 @@ module Symbols
   def Regular(this, nxt = nil)
     @cu = create(nxt) if nxt
     if !this.many && this.optional then
-      add(@gf.Epsilon)
+      add(@epsilon)
       add(this.arg)
     elsif this.many && !this.optional && !this.sep then
       add(this.arg)
-      add(@gf.Item(this, [this.arg, this], 0))
+      add(item(this, [this.arg, this], 0))
     elsif this.many && this.optional && !this.sep then
-      add(@gf.Epsilon)
-      add(@gf.Item(this, [this.arg, this], 0))
+      add(@epsilon)
+      add(item(this, [this.arg, this], 0))
     elsif this.many && !this.optional && this.sep then
       add(this.arg) # todo
-      add(@gf.Item(this, [this.arg, @gf.Lit(this.sep), this], 0))
+      @seps[this.sep] ||= @gf.Lit(this.sep)
+      add(item(this, [this.arg, @seps[this.sep], this], 0))
     elsif this.many && this.optional && this.sep then
       #todo
     end

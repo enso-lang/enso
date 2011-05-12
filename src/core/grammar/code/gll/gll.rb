@@ -15,13 +15,30 @@ class GLL
 
   def init_parser(grammar, top)
     @gf = grammar._graph_id
-    @ci = 0
-    @start = GSS.new(@gf.Item(top.arg, [top.arg], 1), 0)
-    @cu = @start
-    @cn = nil
     @todo = []
     @done = {}
     @toPop = {}
+
+    # caches for dynamically created
+    # grammar things
+    @items = {}
+    @epsilon = @gf.Epsilon
+    @seps = {}
+
+
+    @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
+    @ci = @begin
+    @start = GSS.new(item(top.arg, [top.arg], 1), 0)
+    @cu = @start
+    @cn = nil
+  end
+
+  def item(exp, elts, dot)
+    key = [exp, elts, dot]
+    unless @items[key] then
+      @items[key] = @gf.Item(exp, elts, dot)
+    end
+    @items[key]
   end
 
   def parse(grammar, source, top)
@@ -34,9 +51,13 @@ class GLL
     end
     puts "/* GSS: #{GSS.nodes.length} */"
     puts "/* Nodes: #{Node.nodes.length} */"
-    Node.nodes.each_value do |n|
-      if n.starts == 0 && n.ends == source.length then
+    ws, _ = skip_ws
+    Node.nodes.each do |k, n|
+      if n.starts == @begin && n.ends == source.length - ws.length  && n.type == top then
         return n
+      else
+        # temp. hack
+        Node.nodes.delete(k)
       end
     end
     raise "Parse error"
@@ -44,10 +65,10 @@ class GLL
   
   def add(parser, u = @cu, i = @ci, w = nil) 
     #puts "Adding #{parser} (i = #{i}, u =  #{u}, w = #{w})"
-    @done[i] ||= []
+    @done[i] ||= {}
     conf = [parser, u, w]
-    unless @done[i].include?(conf)
-      @done[i] << conf
+    unless @done[i][conf]
+      @done[i][conf] = true
       @todo << [parser, u, w, i]
     end
   end
@@ -87,7 +108,8 @@ class GLL
 
   def chain(this, nxt)
     @cu = create(nxt) if nxt
-    continue(@gf.Item(this, [this.arg], 0))
+    add(item(this, [this.arg], 0))
+    #continue()
   end
 
   def continue(nxt)
@@ -115,9 +137,25 @@ if __FILE__ == $0 then
 #   exp = Exp.grammar
 #   GLL.new.parse(exp, src, exp.start)
 
-  src = "[x x x x]"
-  lst = Lists.grammar
-  sppf = GLL.new.parse(lst, src, lst.start)
+#   src = "[x x x x]"
+#   lst = Lists.grammar
+#   sppf = GLL.new.parse(lst, src, lst.start)
+
+
+#   ast = Implode.implode(sppf)
+#   puts "AST: #{ast}"
+
+
+#   Print.print(ast)
+  
+  require 'core/schema/tools/print'
+  require 'core/grammar/code/gll/implode'
+  require 'core/system/boot/grammar_grammar'
+
+  gg = GrammarGrammar.grammar 
+  src = File.read('core/grammar/models/grammar.grammar')
+  sppf2 = GLL.new.parse(gg, src, gg.start)
+
 
   dot = ''
   Node.to_dot(dot)
@@ -125,13 +163,18 @@ if __FILE__ == $0 then
     f.write(dot)
   end
 
-  require 'core/grammar/code/gll/implode'
-  ast = Implode.implode(sppf)
+                        
+  ast = Implode.implode(sppf2)
   puts "AST: #{ast}"
 
 
-  require 'core/schema/tools/print'
   Print.print(ast)
+
+  require 'core/instance/code/instantiate'
+  
+  gf = Factory.new(GrammarSchema.schema)
+  obj = Instantiate.instantiate(gf, ast)
+  puts "OBJ = #{obj}"
 
 end
   
