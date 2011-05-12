@@ -9,44 +9,53 @@ require 'core/grammar/code/gll/sppf'
 require 'core/grammar/code/gll/scan'
 require 'core/grammar/code/gll/grammar'
 
+class Empty
+  EMPTY_CLASS = OpenStruct.new
+  EMPTY_CLASS.name = 'Empty'
+
+  def schema_class
+    EMPTY_CLASS
+  end
+
+end
+
 class Item
   ITEM_CLASS = OpenStruct.new
   ITEM_CLASS.name = 'Item'
 
-  attr_reader :parser, :dot
+  attr_reader :elements, :dot, :symbol
 
-  def initialize(parser, dot)
-    @parser = parser
+  def initialize(elements, dot, symbol)
+    @elements = elements
     @dot = dot
-    @hash = 17 * parser.hash + 23 * dot
-  end
-
-  def each(&block)
-    dot.upto(parser.elements.length - 1) do |i|
-      yield parser.elements[i], move(i)
-    end
+    @symbol = symbol
+    @hash = 17 * elements.hash + 23 * dot
   end
 
   def schema_class
     ITEM_CLASS
   end
 
+  def current
+    elements[dot]
+  end
+
   def move(i = dot)
-    Item.new(parser, i + 1)
+    Item.new(elements, i + 1, symbol)
   end
 
   def at_end?
-    dot == parser.elements.length
+    dot == elements.length
   end
 
   def to_s
-    "<#{parser}, #{dot}>"
+    "<#{elements}, #{dot}>"
   end
 
   def ==(x)
     return true if self.equal?(x)
     return false unless x.is_a?(Item)
-    parser == x.parser && dot == x.dot
+    elements == x.elements && dot == x.dot
   end
 
   def hash
@@ -61,7 +70,7 @@ class GLL
 
   def init_parser(grammar, top)
     @ci = 0
-    @start = GSS.new(Item.new(grammar, 1), 0)
+    @start = GSS.new(Item.new([grammar], 1, grammar), 0)
     @cu = @start
     @cn = nil
     @todo = []
@@ -125,40 +134,52 @@ class GLL
     send(this.schema_class.name, this, *args)
   end
 
+  def continue(nxt)
+    Item(nxt) if nxt
+  end
+
   def Item(this)
     #puts "Parsing item: #{this}"
+
+    return pop if this.at_end?
+    recurse(this.current, this.move)
     
-    this.each do |elt, nxt|
-      if terminal?(elt) then
-        #puts "--it's a terminal: #{elt}"
-        success = with_terminal(elt) do |cr, pos|
-          #puts "Parsed terminal up till: #{pos}"
-          @cn = Node.new(nxt, @cn, cr)
-          @ci = pos
-        end
-        return unless success
-      else
-        @cu = create(nxt) # add return point
-        return recurse(elt)
-      end
+#     this.each do |elt, nxt|
+#       if terminal?(elt) then
+#         #puts "--it's a terminal: #{elt}"
+#         success = with_terminal(elt) do |cr, pos|
+#           #puts "Parsed terminal up till: #{pos}"
+#           @cn = Node.new(nxt, @cn, cr)
+#           @ci = pos
+#         end
+#         return unless success
+#       else
+#         @cu = create(nxt) # add return point
+#         return recurse(elt)
+#       end
+#     end
+#     # item is finished, pop the stack
+#     #puts "--POP"
+#     pop
+#   end
     end
-    # item is finished, pop the stack
-    #puts "--POP"
-    pop
-  end
 
 end
 
 
 if __FILE__ == $0 then
   require 'core/grammar/code/gll/gamma2'
-  src = "b " * 10
-  gamma2 = Gamma2.grammar
-  GLL.new.parse(gamma2, src, gamma2.start)
+  #src = "b " * 10
+  #gamma2 = Gamma2.grammar
+  #GLL.new.parse(gamma2, src, gamma2.start)
 
-  # src = "x + x + x * x"
-  # exp = Exp.grammar
-  # GLL.new.parse(exp, src, exp.start)
+#   src = "x + x + x"
+#   exp = Exp.grammar
+#   GLL.new.parse(exp, src, exp.start)
+
+  src = "[x x x x]"
+  lst = Lists.grammar
+  GLL.new.parse(lst, src, lst.start)
 
   dot = ''
   Node.to_dot(dot)

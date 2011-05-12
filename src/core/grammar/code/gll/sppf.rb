@@ -16,6 +16,7 @@ class BaseNode
     i = 0
     visited = {}
     out << "digraph forest {\n"
+    out << "order = out;\n"
     @@nodes.each_value do |n|
       i = n.ids(i)
       n.to_dot(out, visited)
@@ -48,6 +49,8 @@ class BaseNode
   end
 
   def self.new(*args)
+    # ugly, remove Pack from Node hierarchy
+    # it's currently in there just because of todot
     return super(*args) if self.to_s == 'Pack'
     @@nodes[args] ||= super(*args)
     #     x = super(*args)
@@ -86,7 +89,7 @@ class Leaf < BaseNode
   end
 
   def label
-    @token
+    "#{token}(#{starts},#{ends})"
   end
 
   def shape
@@ -104,7 +107,7 @@ class Node < BaseNode
     i = nxt.ends
     j = k
     j = current.starts if current
-    y = super(item, j, i)
+    y = super(item.at_end? ? item.symbol : item, j, i)
     y << Pack.new(item, k, current, nxt)
     return y
   end
@@ -127,7 +130,8 @@ class Node < BaseNode
   end
 
   def label
-    item.to_s.gsub(/"/, '\\"')
+    i = item.to_s.gsub(/"/, '\\"')
+    "#{i}(#{starts},#{ends})"
   end
 
   def shape
