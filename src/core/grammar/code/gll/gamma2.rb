@@ -21,3 +21,13 @@ class Exp < GrammarGenerator
     alt E, "*", E
   end
 end
+
+
+class Lists < GrammarGenerator
+  start E
+
+  rule E do
+    alt "x"
+    alt "[", iter_star(E), "]"
+  end
+end
