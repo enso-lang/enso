@@ -111,7 +111,7 @@ class Leaf < BaseNode
   end
 
   def label
-    "#{value}(#{starts},#{ends})"
+    "#{value}(#{type}: #{starts},#{ends})"
   end
 
   def shape
@@ -132,7 +132,7 @@ class Node < BaseNode
     j = k
     j = current.starts if current
     at_end = item.dot == item.elements.length
-    puts "// Making node: #{at_end} => #{item.expression}"
+    #puts "// Making node: #{at_end} => #{item.expression}"
     y = super(j, i, at_end ? item.expression : item)
     # apparently, epsilon nodes (leaves) get kids to... bug?
     y.add_kid(Pack.new(item, k, current, nxt))
@@ -146,6 +146,7 @@ class Node < BaseNode
   end
 
   def add_kid(pn)
+    return if @kids.include?(pn)
     @kids << pn
   end
   
@@ -169,10 +170,10 @@ end
 
 
 class Pack < BaseNode
-  attr_reader :parser, :pivot, :left, :right, :id
+  attr_reader :item, :pivot, :left, :right, :id
 
-  def initialize(parser, pivot, left, right)
-    @parser = parser
+  def initialize(item, pivot, left, right)
+    @item = item
     @pivot = pivot
     @left = left
     @right = right
@@ -191,7 +192,13 @@ class Pack < BaseNode
   end
 
   def hash
-    "pack".hash + 31 * pivot
+    "pack".hash + 7 * item.hash + 31 * pivot
+  end
+
+  def ==(x)
+    return true if x.equal?(self)
+    return false unless x.is_a?(Pack)
+    return item == x.item && pivot == x.pivot
   end
 
 end
