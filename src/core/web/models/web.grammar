@@ -1,0 +1,41 @@
+//columns: column(label, view)*
+//menu: item(title, link) | menu(name, subs: menu*) 
+
+start Web
+
+Web ::= [Web] stats:Stat*
+
+Stat ::= [Loop] "for" "(" var:sym ":" iter:Exp ")" body:Stat
+       | [Cond] "if" "(" cond:Exp ")" body:Stat Else?
+       | [Call] func:Def^ Args? body:Stat
+       | [Call] func:Def^ Args? ";"
+       | [Assign] var:sym "=" exp:Exp ";"
+       | [Element] "<" tag:sym attrs:Attr* "/>"
+       | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
+       | [Block] "{" stats:Stat* "}"
+       | [Def] "def" name:sym sig:Sig? body:Stat
+       | [Text] value:str
+
+Else ::=  "else" else:Stat
+
+Attr ::=  [Attr] name:sym "=" exp:Exp
+
+Args ::= "(" args:{Exp ","}* Nameds? ")"
+Nameds ::= "," NamedArgs
+NamedArgs ::= named_args:{Named ","}*
+Named ::= [Named] name:sym ":" exp:Exp
+
+Sig ::=  "(" formals:{Formal "," }* ")"
+
+Formal ::= name:sym ":" Spec
+        |  name:sym
+
+Spec ::= patterns:{Pattern "|"}+
+
+Pattern ::= [Pattern] name:sym "(" args:{Formal ","}+ ")"
+	 |  [Pattern] name:sym
+	 |  Pattern many:"*"?
+
+Exp ::= [Str] value:str
+     |  [Var] name:sym
+

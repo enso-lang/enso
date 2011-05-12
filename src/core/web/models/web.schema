@@ -1,0 +1,87 @@
+
+primitive \str
+primitive \int
+primitive \bool
+
+class Web
+  stats: Stat*
+end
+
+class Stat
+end
+
+class Loop < Stat
+  var: str
+  iter: Exp
+  body: Stat
+end
+
+class Cond < Stat
+  cond: Exp
+  body: Stat
+  else: Stat?
+end
+
+class Call < Stat
+  func: Def
+  args: Exp*
+  named_args: Named*
+  body: Stat?
+end
+
+class Named
+  name: str
+  exp: Exp
+end
+
+class Assign < Stat
+  var: str
+  exp: Exp
+end
+
+class Element < Stat
+  tag: str
+  attrs: Attr*
+  body: Stat*
+end
+
+class Attr 
+  name: str
+  exp: Exp
+end
+
+class Block < Stat
+  stats: Stat*
+end
+
+class Def < Stat
+  #name: str
+  formals: Formal*
+  body: Stat
+end
+
+class Text < Stat
+  value: str
+end
+
+class Formal 
+  name: str
+  patterns: Pattern*
+end
+
+class Pattern
+  name: str
+  args: Formal*
+  many: bool
+end
+
+class Exp
+end
+
+class Str < Exp
+  value: str
+end
+
+class Var < Exp
+  name: str
+end
