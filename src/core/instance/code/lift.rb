@@ -1,7 +1,7 @@
 
 require 'core/schema/code/factory'
 require 'core/system/load/load'
-require 'core/grammar/code/implode'
+require 'core/grammar/code/gll/implode'
 require 'core/system/library/cyclicmap'
 
 class Lift
@@ -38,7 +38,7 @@ class Lift
     klass.fields.each do |field|
       if field.type.Primitive?
         #puts "Adding primitive: #{obj[field.name]}"
-        v = @factory.Prim(field.type.name, convert(obj[field.name]))
+        v = [@factory.Prim(field.type.name, convert(obj[field.name]))]
         inst.contents << @factory.Field(field.name, v)
       else
         sub_path = paths[field.name.to_sym]
@@ -48,16 +48,15 @@ class Lift
             sub = obj[field.name]
             use_key = sub_path.nil? && !sub.nil? && key(sub.schema_class)
             if !visited.include?(sub) || visited[-2] != sub && use_key
-              inst.contents << @factory.Field(field.name, make_1(use_key, sub, sub_path, visited))
+              inst.contents << @factory.Field(field.name, 
+                                              [make_1(use_key, sub, sub_path, visited)])
             end
           else
             f = @factory.Field(field.name)
-            l = @factory.List
             obj[field.name].each_with_index do |sub, i|
               use_key = sub_path.nil? && key(sub.schema_class)
-              l.elements << make_1(use_key, sub, sub_path, visited)
+              f.values << make_1(use_key, sub, sub_path, visited)
             end
-            f.value = l
             inst.contents << f
           end
         end
@@ -88,8 +87,8 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
 
   require 'core/system/boot/grammar_grammar'
-  obj = CPSParser.loadFile('core/grammar/models/grammar.grammar', GrammarGrammar.grammar,
-                       GrammarSchema.schema)
+  obj = Parse.load_file('core/grammar/models/grammar.grammar', GrammarGrammar.grammar,
+                        GrammarSchema.schema)
 
   p obj
   ast = Lift.lift(obj, {:rules => {}})
