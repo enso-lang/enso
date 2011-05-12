@@ -44,10 +44,7 @@ class GLL
 
   def item(exp, elts, dot)
     key = [exp, elts, dot]
-    unless @items[key] then
-      @items[key] = @gf.Item(exp, elts, dot)
-    end
-    @items[key]
+    @items[key] ||= @gf.Item(exp, elts, dot)
   end
 
   def parse(source, grammar, top)
@@ -58,18 +55,17 @@ class GLL
       parser, @cu, @cn, @ci = @todo.shift
       recurse(parser)
     end
+    result(source, top)
+  end
+
+  def result(source, top)
     #puts "/* GSS: #{GSS.nodes.length} */"
     #puts "/* Nodes: #{Node.nodes.length} */"
-    ws, _ = skip_ws
-    Node.nodes.each do |k, n|
-      if n.starts == @begin && n.ends == source.length - ws.length  && n.type == top then
-        return n
-      else
-        # temp. hack
-        Node.nodes.delete(k)
-      end
+    pt = Node.nodes.values.find do |n|
+      n.starts == @begin && n.ends == source.length  && n.type == top
     end
-    raise "Parse error"
+    raise "Parse error" unless pt
+    return pt
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
