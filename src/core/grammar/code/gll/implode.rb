@@ -32,7 +32,15 @@ class Implode
   end
 
   def kids(sppf, accu, in_field)
-    raise "Ambiguity!" if sppf.kids.length > 1
+    if sppf.kids.length > 1 then
+      sppf.kids.each_with_index do |k, i|
+        puts "Alt #{i}: #{k}"
+        puts "\t #{k.left}"
+        puts "\t #{k.right}"        
+      end
+      raise "Ambiguity!" 
+    end
+    
     return if sppf.kids.empty?
     pack = sppf.kids.first
     recurse(pack.left, accu, in_field) if pack.left
@@ -40,6 +48,7 @@ class Implode
   end
 
   def Create(this, sppf, accu, in_field)
+    #puts "Creating: #{this.name}"
     inst = @if.Instance(this.name)
     kids(sppf, inst.contents, false)
     accu << inst
