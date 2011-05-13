@@ -81,7 +81,9 @@ end
 def Subclass?(a, b)
   return false if a.nil? || b.nil?
   return true if a.name == b.name
-  return Subclass?(a.super, b)
+  a.supers.detect do |sup|
+    Subclass?(sup, b)
+  end
 end
 
 def ClassMinimum(a, b)
