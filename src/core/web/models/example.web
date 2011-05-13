@@ -22,7 +22,13 @@ def hello_world(name) {
 
     <ul>
     for (x: all(Klass), i) {
-      <li>output(i) ":" output(x->name)</li>
+      <li>output(i) ": " output(x->name)
+      <ul>
+       for (y: x->fields, j) {
+          <li>"Field #" output(i) ": " output(y->name) </li>
+       }
+      </ul>
+      </li>
     }
     </ul>
 
