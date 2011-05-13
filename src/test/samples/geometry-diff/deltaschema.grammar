@@ -1,0 +1,28 @@
+start Schema
+
+Schema ::= [Schema] types:TypeDef* 
+
+TypeDef ::= Primitive | Klass
+
+Primitive ::= [Primitive] "primitive" name:sym
+
+Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
+
+Parent ::= "<" super:Klass^
+
+Field ::= [Field] Key? Traversal? name:sym ":" type:Type Multiplicity Annot?
+
+Key ::= "#" @"@key = true"
+
+Traversal ::= "!" @"@traversal = true"
+
+Type ::=  Primitive^
+	| Klass^
+
+Multiplicity ::= "*" @"@many = true; @optional = true"
+	       | "?" @"@optional = true" 
+	       | "+" @"@many = true"
+	       | @"true"
+
+Annot ::= "/" inverse:Field^
+        | "=" computed:str
