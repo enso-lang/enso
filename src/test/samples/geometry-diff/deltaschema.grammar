@@ -8,9 +8,7 @@ Primitive ::= [Primitive] "primitive" name:sym
 
 Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
 
-Parent ::= "<" supers:{Super ","}+
-
-Super ::= Klass^
+Parent ::= "<" super:Klass^
 
 Field ::= [Field] Key? Traversal? name:sym ":" type:Type Multiplicity Annot?
 

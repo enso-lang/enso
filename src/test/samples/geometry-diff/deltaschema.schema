@@ -12,17 +12,18 @@
   class Type
     #name: str
     #\schema: Schema / Schema.types
+    delta: int?
   end
 
   class Primitive < Type
   end
   
   class Klass < Type
-    supers: Klass*
-    subtypes: Klass* / Klass.supers
+    super: Klass?
+    subtypes: Klass* / Klass.super
     defined_fields: Field*
     fields: Field* = "@all_fields.select {|f| !f.computed}"
-    all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
+    all_fields: Field* = "@super ? @super.all_fields + @defined_fields : @defined_fields"
   end
   
   class Field
@@ -34,5 +35,6 @@
     key: bool
     inverse: Field? / Field.inverse 
     computed: str?
+    delta: int?
     traversal: bool
   end
