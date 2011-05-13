@@ -20,6 +20,7 @@ class Factory
     n = 0
     #puts "#{obj.schema_class.fields.keys}"
     obj.schema_class.fields.each do |field|
+      #puts "FIELD: #{field}"
       if n < args.length
         if field.many
           col = obj[field.name]
@@ -31,10 +32,10 @@ class Factory
         end
       elsif !field.key && !field.optional && field.type.Primitive?
         obj[field.name] = case field.type.name
-          when "str" then ""
-          when "int" then 0
-          when "bool" then false
-        end
+                          when "str" then ""
+                          when "int" then 0
+                          when "bool" then false
+                          end
       end
       n += 1
     end
@@ -116,10 +117,10 @@ class CheckedObject
       raise "Can't assign nil to required field '#{field_name}' of #{self}" if !field.optional
     else
       case field.type.name
-        when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
-        when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
-        when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
-        else 
+      when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
+      when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
+      when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
+      else 
         raise "Assigned object is not primitive and not a CheckedObject" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
@@ -137,7 +138,9 @@ class CheckedObject
   
   def _subtypeOf(a, b)
     return true if a.name == b.name
-    return _subtypeOf(a.super, b) if a.super
+    a.supers.detect do |sup|
+      return _subtypeOf(sup, b)
+    end
   end
   
   def method_missing(m, *args, &block)
@@ -224,7 +227,7 @@ class ManyIndexedField < BaseManyField
   def [](x)
     @hash[x]
   end
-    
+  
   def length
     @hash.length
   end
@@ -273,17 +276,32 @@ class ManyIndexedField < BaseManyField
     return r
   end
 
-  def reject(&block)
+  def reject
     r = ManyIndexedField.new(@key)
-    super.reject do |x| r << x end
+    each do |x| 
+      r << x if not yield x 
+    end
     #r._lock()
     return r
   end
   
-  def select(&block)
+  def select
     r = ManyIndexedField.new(@key)
-    super.select do |x| r << x end
+    each do |x|
+      r << x if yield x
+    end
     #r._lock()
+    return r
+  end
+  
+  def flat_map
+    r = ManyIndexedField.new(@key)
+    each do |x|
+      lst = yield x
+      lst.each do |y|
+        r << y
+      end
+    end
     return r
   end
 
@@ -343,6 +361,18 @@ class ManyField < BaseManyField
     r = []
     self.each do |x| r << x end
     other.each do |x| r << x end
+    return r
+  end
+
+
+  def flat_map(&block)
+    r = ManyField.new
+    each do |x|
+      lst = yield x
+      lst.each do |y|
+        r << y
+      end
+    end
     return r
   end
   
