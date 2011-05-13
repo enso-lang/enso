@@ -13,7 +13,7 @@
     #name: str
     #\schema: Schema / Schema.types
   end
-  
+
   class Primitive < Type
   end
   
@@ -34,4 +34,5 @@
     key: bool
     inverse: Field? / Field.inverse 
     computed: str?
+    traversal: bool
   end
