@@ -3,18 +3,35 @@
 
 start Web
 
-Web ::= [Web] stats:Stat*
+Web ::= [Web] defs:Def*
 
-Stat ::= [Loop] "for" "(" var:sym ":" iter:Exp ")" body:Stat
-       | [Cond] "if" "(" cond:Exp ")" body:Stat Else?
-       | [Call] func:Def^ Args? body:Stat
-       | [Call] func:Def^ Args? ";"
-       | [Assign] var:sym "=" exp:Exp ";"
+Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
+       | [If] "if" "(" cond:Exp ")" body:Stat Else?
+       | Call ";"
+       | Call body:Stat
        | [Element] "<" tag:sym attrs:Attr* "/>"
        | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
        | [Block] "{" stats:Stat* "}"
-       | [Def] "def" name:sym sig:Sig? body:Stat
        | [Text] value:str
+       | [Let] "let" decls:Assign* "in" body:Stat
+       | [Output] "output" "(" exp:Exp ")"
+       | [Yield] "yield" 
+
+Call ::= [Call] func:sym Args?
+
+
+Def ::= [Def] "def" name:sym Sig? body:Stat
+
+
+Exp ::= [Field] exp:Exp "." name:sym
+      | [Var] name:sym
+      | [Str] value:str
+      | Call
+      | [Link] "link" "(" exp:Exp ")"
+
+      
+Index ::= "," index:sym
+Assign ::= [Assign] name:sym "=" exp:Exp
 
 Else ::=  "else" else:Stat
 
@@ -36,6 +53,4 @@ Pattern ::= [Pattern] name:sym "(" args:{Formal ","}+ ")"
 	 |  [Pattern] name:sym
 	 |  Pattern many:"*"?
 
-Exp ::= [Str] value:str
-     |  [Var] name:sym
 

@@ -1,5 +1,9 @@
 
 
 def hello_world {
-  <h1> "Hello World!" </h2>
+  <h1> "Hello World!" </h1>
+}
+
+def navigate(page) {
+  <a href=link(page)>output(title)</a>
 }

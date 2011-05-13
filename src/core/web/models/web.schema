@@ -4,26 +4,32 @@ primitive \int
 primitive \bool
 
 class Web
-  stats: Stat*
+  defs: Def*
+end
+
+class Def
+  #name: str
+  formals: Formal*
+  body: Stat
 end
 
 class Stat
 end
 
-class Loop < Stat
+class For < Stat
   var: str
   iter: Exp
   body: Stat
 end
 
-class Cond < Stat
+class If < Stat
   cond: Exp
   body: Stat
   else: Stat?
 end
 
-class Call < Stat
-  func: Def
+class Call < Stat, Exp
+  func: str
   args: Exp*
   named_args: Named*
   body: Stat?
@@ -34,7 +40,7 @@ class Named
   exp: Exp
 end
 
-class Assign < Stat
+class Assign
   var: str
   exp: Exp
 end
@@ -54,14 +60,13 @@ class Block < Stat
   stats: Stat*
 end
 
-class Def < Stat
-  #name: str
-  formals: Formal*
-  body: Stat
-end
 
 class Text < Stat
   value: str
+end
+
+class Output < Stat
+  exp: Exp
 end
 
 class Formal 
@@ -76,6 +81,10 @@ class Pattern
 end
 
 class Exp
+end
+
+class Link < Exp
+  exp: Exp
 end
 
 class Str < Exp
