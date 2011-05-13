@@ -99,9 +99,11 @@ module Parsers
       add(item(this, [this.arg, @seps[this.sep], this], 0))
     elsif this.many && this.optional && this.sep then
       # mimick iter-plus
-      @iters[this] ||= @gf.Regular(this.arg, true, false, this.sep)
+      @iters[this] ||= @gf.Regular(this.arg, false, true, this.sep)
       add(@epsilon)
       add(@iters[this])
+    else
+      raise "Invalid regular: #{this}"
     end
   end
 
