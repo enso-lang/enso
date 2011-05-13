@@ -1,9 +1,34 @@
 
 
-def hello_world {
-  <h1> "Hello World!" </h1>
+def main {
+  hello_world("William");
 }
 
-def navigate(page) {
+def html(title) {
+  <html>
+  <head>
+  <title>output(title)</title>
+  </head>
+  <body>
+  yield
+  </body>
+  </html>
+}
+
+def hello_world(name) {
+  html("Test") {
+    <h1> "Hello World " output(name) </h1>
+    navigate("Hello World!", hello_world("Tijs"));
+
+    <ul>
+    for (x: all(Klass), i) {
+      <li>output(i) ":" output(x->name)</li>
+    }
+    </ul>
+
+ }
+}
+
+def navigate(title, page) {
   <a href=link(page)>output(title)</a>
 }

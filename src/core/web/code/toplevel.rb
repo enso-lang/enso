@@ -26,7 +26,8 @@ end
 
 class Toplevel
   def initialize
-    @eval = EvalWeb.new(Loader.load('example.web'))
+    root = Loader.load('web.schema')
+    @eval = EvalWeb.new(Loader.load('example.web'), root)
   end
 
   def call(env, stream = Stream.new)

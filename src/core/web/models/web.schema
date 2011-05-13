@@ -16,10 +16,14 @@ end
 class Stat
 end
 
+class Yield < Stat
+end
+
 class For < Stat
   var: str
   iter: Exp
   body: Stat
+  index: str?
 end
 
 class If < Stat
@@ -32,7 +36,7 @@ class Call < Stat, Exp
   func: str
   args: Exp*
   named_args: Named*
-  body: Stat?
+  block: Stat?
 end
 
 class Named
@@ -92,5 +96,14 @@ class Str < Exp
 end
 
 class Var < Exp
+  name: str
+end
+
+class All < Exp
+  klass: str
+end
+
+class Field < Exp
+  exp: Exp
   name: str
 end
