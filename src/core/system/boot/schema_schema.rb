@@ -26,13 +26,13 @@ class SchemaSchema < SchemaGenerator
   end
 
   klass Klass, :super => Type do
-    field :super, :type => Klass, :optional => true
-    field :subtypes, :type => Klass, :optional => true, :many => true, :inverse => Klass.super
+    field :supers, :type => Klass, :optional => true, :many => true
+    field :subtypes, :type => Klass, :optional => true, :many => true, :inverse => Klass.supers
     field :defined_fields, :type => Field, :optional => true, :many => true
     field :fields, :type => Field, :optional => true, :many => true, \
       :computed => "@all_fields.select {|f| !f.computed}"
     field :all_fields, :type => Field, :optional => true, :many => true, \
-      :computed => "@super ? @super.all_fields + @defined_fields : @defined_fields"
+      :computed => "@supers.flat_map(&:all_fields) + @defined_fields"
   end
 
   klass Field do

@@ -130,11 +130,13 @@ class SchemaGenerator
     def klass(wrapped, opts = {}, &block)
       m = wrapped.klass
       if opts[:super]
-        m.super = opts[:super].klass
-        m.super.subtypes << m
-        m.super.all_fields.each do |f|
-          m.all_fields << f
-        end
+        m.supers << opts[:super].klass
+        m.supers.each do |sup|
+          sup.subtypes << m
+          sup.all_fields.each do |f|
+            m.all_fields[f.name] = f 
+          end    
+        end    
       end
       m.schema = schema
       @@current = m
@@ -144,7 +146,8 @@ class SchemaGenerator
     def field(name, opts = {})
       f = get_field(@@current, name.to_s)
       t = opts[:type]
-      f.type = schema.sym_primitives.keys.include?(t) ? schema.sym_primitives[t] : t.klass
+      f.type = schema.sym_primitives.keys.include?(t) ? \
+         schema.sym_primitives[t] : t.klass
       f.optional = opts[:optional] || false
       f.many = opts[:many] || false
       f.key = opts[:key] || false
@@ -182,6 +185,7 @@ class SchemaGenerator
       m.defined_fields = ValueHash.new
       m.all_fields = ValueHash.new
       m.subtypes = ValueHash.new
+      m.supers = ValueHash.new
       return m
     end
 

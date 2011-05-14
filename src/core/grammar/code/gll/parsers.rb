@@ -12,6 +12,8 @@ module Parsers
   end
 
   def Sequence(this, nxt = nil)
+    # it seems this should not be needed
+    # if this.elements.empty????
     @cu = create(nxt) if nxt
 
     item = item(this, this.elements, 0)
@@ -96,7 +98,12 @@ module Parsers
       @seps[this.sep] ||= @gf.Lit(this.sep)
       add(item(this, [this.arg, @seps[this.sep], this], 0))
     elsif this.many && this.optional && this.sep then
-      #todo
+      # mimick iter-plus
+      @iters[this] ||= @gf.Regular(this.arg, false, true, this.sep)
+      add(@epsilon)
+      add(@iters[this])
+    else
+      raise "Invalid regular: #{this}"
     end
   end
 

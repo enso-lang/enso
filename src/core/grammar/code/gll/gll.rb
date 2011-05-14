@@ -33,6 +33,7 @@ class GLL
     @items = {}
     @epsilon = @gf.Epsilon
     @seps = {}
+    @iters = {}
 
 
     @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
@@ -61,10 +62,14 @@ class GLL
   def result(source, top)
     #puts "/* GSS: #{GSS.nodes.length} */"
     #puts "/* Nodes: #{Node.nodes.length} */"
+    last = 0;
     pt = Node.nodes.values.find do |n|
+      if n.starts == @begin then
+        last = n.ends > last ? n.ends : last
+      end
       n.starts == @begin && n.ends == source.length  && n.type == top
     end
-    raise "Parse error" unless pt
+    raise "Parse error at: #{last}" unless pt
     return pt
   end
   
@@ -114,7 +119,6 @@ class GLL
   def chain(this, nxt)
     @cu = create(nxt) if nxt
     add(item(this, [this.arg], 0))
-    #continue()
   end
 
   def continue(nxt)

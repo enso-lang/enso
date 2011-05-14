@@ -18,11 +18,11 @@
   end
   
   class Klass < Type
-    super: Klass?
-    subtypes: Klass* / Klass.super
+    supers: Klass*
+    subtypes: Klass* / Klass.supers
     defined_fields: Field*
     fields: Field* = "@all_fields.select {|f| !f.computed}"
-    all_fields: Field* = "@super ? @super.all_fields + @defined_fields : @defined_fields"
+    all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
   end
   
   class Field
