@@ -35,7 +35,6 @@ class GLL
     @seps = {}
     @iters = {}
 
-
     @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
     @ci = @begin
     @start = GSS.new(item(top.arg, [top.arg], 1), 0)
@@ -124,6 +123,14 @@ class GLL
   def continue(nxt)
     Item(nxt) if nxt
   end
+
+  def empty(item, nxt)
+    cr = Empty.new(@ci, @epsilon)
+    @cn = Node.new(item, @cn, cr)
+    pop
+    continue(nxt)
+  end
+
 
   def terminal(type, pos, value, ws, nxt)
     cr = Leaf.new(@ci, pos, type, value, ws)

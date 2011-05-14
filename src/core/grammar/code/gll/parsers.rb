@@ -12,31 +12,18 @@ module Parsers
   end
 
   def Sequence(this, nxt = nil)
-    # it seems this should not be needed
-    # if this.elements.empty????
-    @cu = create(nxt) if nxt
-
     item = item(this, this.elements, 0)
-    return continue(item) unless this.elements.empty?
-
-    # empty
-    cr = Empty.new(@ci, @epsilon)
-    @cn = Node.new(item, @cn, cr)
-    pop
-    continue(nxt)
+    if this.elements.empty? then
+      empty(item, nxt)
+    else
+      @cu = create(nxt) if nxt
+      continue(item) 
+    end
   end
   
   def Epsilon(this, nxt = nil)
-    cr = Empty.new(@ci, this)
-    @cn = Node.new(item(this, [], 0), @cn, cr)
-    pop
-    continue(nxt)
+    empty(item(this, [], 0), nxt)
   end
-
-  def Code(this, nxt = nil)
-    terminal(this, @ci, this.code, '', nxt)
-  end
-
 
   def Call(this, nxt = nil)
     recurse(this.rule, nxt)
@@ -61,10 +48,12 @@ module Parsers
     end
   end
 
+  def Code(this, nxt = nil)
+    terminal(this, @ci, this.code, '', nxt)
+  end
+
   def Lit(this, nxt = nil)
-    #puts "Parsing literal: #{this.value}"
     with_literal(this.value) do |pos, ws|
-      #puts "Success"
       terminal(this, pos, this.value, ws, nxt)
     end
   end
@@ -94,7 +83,7 @@ module Parsers
       add(@epsilon)
       add(item(this, [this.arg, this], 0))
     elsif this.many && !this.optional && this.sep then
-      add(this.arg) # todo
+      add(this.arg) 
       @seps[this.sep] ||= @gf.Lit(this.sep)
       add(item(this, [this.arg, @seps[this.sep], this], 0))
     elsif this.many && this.optional && this.sep then
