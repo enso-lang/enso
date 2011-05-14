@@ -1,0 +1,22 @@
+
+class StateMachine
+  start: State
+  states: State*
+end
+
+class State
+  #name: str
+  enter: str
+  leave: str
+  out: Transition*
+  in: Transition*
+end
+
+class Transition
+  event: str
+  action: str
+  from: State / State.out
+  to: State / State.in
+end
+  
+primitive str

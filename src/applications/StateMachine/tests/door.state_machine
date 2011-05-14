@@ -1,0 +1,14 @@
+
+start Opened
+
+state Opened
+  on "close" go Closed
+  
+state Closed
+  on "open" go Opened
+  on "lock" go Locked
+
+state Locked
+  on "unlock" go Closed
+
+  
