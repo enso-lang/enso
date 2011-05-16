@@ -1,8 +1,0 @@
-primitive \int
-class Point
-  x: int
-  y: int
-end
-class Line
-  ! pts: Point*
-end

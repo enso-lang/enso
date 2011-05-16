@@ -1,0 +1,15 @@
+primitive \int
+class Point
+end
+class Point2D < Point
+  x: int
+  y: int
+end
+class Point3D < Point
+  x: int
+  y: int
+  z: int
+end
+class Line
+  ! pts: Point2D *
+end
