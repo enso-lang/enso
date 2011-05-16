@@ -67,12 +67,6 @@ class Instantiate
       recurse(inst, owner, field, pos)
     end
   end
-
-  def List(this, owner, field, pos)
-    this.elements.inject(pos) do |pos1, arg|
-      recurse(arg, owner, field, pos1)
-    end
-  end
   
   def Instance(this, owner, field, pos)
     #puts "Creating #{this.type}"
@@ -100,8 +94,8 @@ class Instantiate
   end
 
   def Prim(this, owner, field, pos)
-    return pos unless field # values without field????
-    #put "Value: #{this} for #{field}"
+    return unless field
+    #puts "Value: #{this} for #{field}"
     update(owner, field, pos, convert(this, field.type))
   end
   
