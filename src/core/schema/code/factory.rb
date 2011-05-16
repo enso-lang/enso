@@ -310,7 +310,7 @@ class ManyIndexedField < BaseManyField
     keys = self.keys | other.keys
     keys.each do |key_val|
       #puts "JOIN #{key_val} #{self[key_val]} #{other[key_val]}"
-      yield key_val, self[key_val], other[key_val]
+      yield self[key_val], other[key_val], key_val
     end
   end
 end  
@@ -377,7 +377,7 @@ class ManyField < BaseManyField
   end
   
   def keys
-    0.upto(length)
+    Range.new(0, length, true)
   end
   
   def values
@@ -387,8 +387,8 @@ class ManyField < BaseManyField
   # sligthly nonstandard zip, includes all elements of this and other
   def outer_join(other)
     n = [length, other.length].max
-    0.upto(n).each do |i|
-      yield i, self[i], other[i]
+    0.upto(n-1).each do |i|
+      yield self[i], other[i], i
     end
   end
 end  

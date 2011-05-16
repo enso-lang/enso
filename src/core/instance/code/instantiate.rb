@@ -124,8 +124,12 @@ class Instantiate
       #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
       actual = Lookup(root, @name)
       raise "Could not find symbol '#{@name}' \nDEFS: #{defs}" if actual.nil?
-      if @field.many then
-        @this[@field.name][@pos] = actual
+      if @field.many
+        if ClassKey(@field.type)
+          @this[@field.name] << actual
+        else
+          @this[@field.name][@pos] = actual
+        end
       else
         #puts "SETTING: #{actual}"
         @this[@field.name] = actual

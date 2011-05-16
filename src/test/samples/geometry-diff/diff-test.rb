@@ -2,15 +2,16 @@ require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/code/layout'
 require 'core/diff/code/delta'
+require 'core/diff/code/diff'
 require 'core/schema/code/factory'
 
-point_schema = Loader.load('point.schema')
-point_grammar = Loader.load('point.grammar')
+point_schema = Loader.load('diff-point.schema')
+point_grammar = Loader.load('diff-point.grammar')
 
-p1 = Loader.load('diff-test1.point')
+p1 = Loader.load('diff-test1.diff-point')
 DisplayFormat.print(point_grammar, p1)
 
-p2 = Loader.load('diff-test2.point')
+p2 = Loader.load('diff-test2.diff-point')
 DisplayFormat.print(point_grammar, p2)
 
 # diff construction functions
@@ -32,7 +33,6 @@ def Type (old)
   new = self.send(old.schema_class.name, old)
   
 end
-
 
 def transform ()
   #transformations and edit operations
@@ -57,8 +57,16 @@ def match (o1, o2)
 end
 
 DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
-
-deltaCons = DeltaTransform.new().Schema(point_schema)
-
-DisplayFormat.print(Loader.load('deltaschema.grammar'), deltaCons)
+#deltaCons = DeltaTransform.new.Schema(point_schema)
+#DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 #DisplayFormat.print(Loader.load('deltaschema.grammar'), deltaCons)
+
+=begin
+t = p1.pts[0]
+puts t.x
+t.[]=("x", 5)
+puts t.x
+puts t.singleton_methods()
+=end
+
+Diff.new.diff_line(point_schema, p1, p2)

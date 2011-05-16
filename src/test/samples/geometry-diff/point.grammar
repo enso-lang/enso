@@ -1,3 +1,0 @@
-start Line
-Line ::= [Line] "line" pts:Point* "end"
-Point ::= [Point] "point" x:int y:int

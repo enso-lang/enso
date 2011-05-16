@@ -59,8 +59,8 @@ module Loading
       ss = @cache[SCHEMA_SCHEMA] = load_with_models(SCHEMA_SCHEMA, bsg, bss)
       # now we have the schema schema, so we can fix up the pointers  
       
-      # for now we don't really eliminate all referenes to boot schema
-      # SchemaSchema.patch_schema_pointers(ss, ss)
+      # now eliminate all references to boot schema
+      SchemaSchema.patch_schema_pointers(ss, ss)
       gs = @cache[GRAMMAR_SCHEMA] = load_with_models(GRAMMAR_SCHEMA, bsg, ss)
  
       # now that we have a good schema schema, load the other three, including the first two

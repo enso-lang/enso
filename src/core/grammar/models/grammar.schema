@@ -4,7 +4,7 @@ primitive bool
 
 class Grammar 
   start: Rule 
-  rules: Rule* 
+  !rules: Rule* 
 end 
 
 class Expression end 
@@ -12,25 +12,25 @@ class Expression end
 class Rule < Expression
   #name: str 
   #grammar: Grammar / Grammar.rules 
-  arg: Expression 
+  !arg: Expression 
 end 
 
 class Alt < Expression 
-  alts: Expression+ 
+  !alts: Expression+ 
 end 
 
 class Sequence < Expression 
-  elements: Expression* 
+  !elements: Expression* 
 end 
 
 class Create < Expression 
   name: str 
-  arg: Expression
+  !arg: Expression
 end 
 
 class Field < Expression 
   name: str 
-  arg: Expression 
+  !arg: Expression 
 end 
 
 class Code < Expression 
@@ -54,7 +54,7 @@ class Call < Expression
 end 
 
 class Regular < Expression 
-  arg: Expression 
+  !arg: Expression 
   optional: bool 
   many: bool 
   sep: str ? 
