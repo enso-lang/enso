@@ -4,7 +4,7 @@
   primitive \real
 
   class Schema
-    types: Type*
+    !types: Type*
     classes: Klass* = "@types.select(&:Klass?)"
     primitives: Primitive* = "@types.select(&:Primitive?)"
   end
@@ -20,7 +20,7 @@
   class Klass < Type
     supers: Klass*
     subtypes: Klass* / Klass.supers
-    defined_fields: Field*
+    !defined_fields: Field*
     fields: Field* = "@all_fields.select {|f| !f.computed}"
     all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
   end

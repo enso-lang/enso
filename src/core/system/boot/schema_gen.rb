@@ -154,6 +154,7 @@ class SchemaGenerator
       f.inverse = opts[:inverse]
       f.inverse.inverse = f if f.inverse
       f.computed = opts[:computed]
+      f.traversal = opts[:traversal] || false
     end
 
     def const_missing(name)
