@@ -17,7 +17,7 @@ class Identify
     end
     apply(a.schema_class, a, b)
   end    
-  
+
   def apply(type, a, b)
     #puts "#{a} === #{b}  #{!a || !b}"
     # raise "cannot identify primitive types" if type.Primitive?

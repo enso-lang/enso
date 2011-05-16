@@ -81,7 +81,7 @@ module Merge
     end
   end
 
-  class Merge < Diff::Base
+  class Merge
     def initialize()
       super()
     end
