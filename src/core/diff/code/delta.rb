@@ -81,29 +81,29 @@ class DeltaTransform
 
     #ins/del/mod/clr
     x = @factory.Klass(@insert+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     @memo[@insert][old.name] = x
     @schema.types << x
 
     x = @factory.Klass(@delete+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     @memo[@delete][old.name] = x
     @schema.types << x
 
     x = @factory.Klass(@modify+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     @memo[@modify][old.name] = x
     @schema.types << x
     
     x = @factory.Klass(@clear+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     @memo[@clear][old.name] = x
     @schema.types << x
 
     #many
 
     x = @factory.Klass(@many+@insert+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     f = @factory.Field("pos")
     f.type = @int_type
     x.fields << f
@@ -111,7 +111,7 @@ class DeltaTransform
     @schema.types << x
 
     x = @factory.Klass(@many+@delete+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     f = @factory.Field("pos")
     f.type = @int_type
     x.fields << f
@@ -119,7 +119,7 @@ class DeltaTransform
     @schema.types << x
     
     x = @factory.Klass(@many+@modify+old.name)
-    x.super = @memo[@base][old.name]
+    x.supers << @memo[@base][old.name]
     f = @factory.Field("pos")
     f.type = @int_type
     x.fields << f
@@ -138,8 +138,8 @@ class DeltaTransform
     x = @memo[@base][old.name]
 
     # establish supertype based on old supertype
-    if not old.super.nil?
-      x.super = @memo[@base][old.super.name]
+    old.supers.each do |s|
+      x.supers << @memo[@base][s.name]
     end
 
     #recreate all field from old using new classes     

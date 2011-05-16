@@ -197,7 +197,6 @@ class Diff
     end
     return new1
 
-<<<<<<< HEAD
   end
 
   def shallow_copy(from, to)
@@ -216,29 +215,6 @@ class Diff
     fields do |fn|
       if o1.method(f.name).call != o2.method(f.name).call 
         o2.[]=(f.name, o1.[](f,name))
-=======
-    def ordered(field, o1, o2) 
-      o1[field.name].outer_join(o2[field.name]) do |left, right|
-        if right.nil?
-          different_insert(o2, field, left)
-        elsif left.nil?
-          different_delete(o2, field, right)
-        else
-          Type(field.type, left, right)
-        end
-      end
-    end
-
-    def keyed(field, o1, o2)
-      o1[field.name].outer_join(o2[field.name]) do |left, right|
-        if right.nil?
-          different_insert(o2, field, left)
-        elsif left.nil?
-          different_delete(o2, field, right)
-        else
-          Type(field.type, left, right)
-        end
->>>>>>> 0c06ce259b5ee0176c29ff180cdeb8b70d650531
       end
     end
   end

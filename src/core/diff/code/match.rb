@@ -25,7 +25,6 @@ class Match
     @equals.eq(o1,o2)
   end
   
-<<<<<<< HEAD
   def match(o1, o2)
 
     if eq(o1, o2)
@@ -39,30 +38,6 @@ class Match
           else
             res << match(o1.send(f.name), o2.send(f.name))
           end
-=======
-  def match(type, a, b)
-    return self.prim(type, a, b) if type.Primitive?
-    return @factory[type.name + "Delete"] if b.nil?
-    #puts "#{a} === #{b}"
-    a = identify.right_to_left[b] if !a
-    b = identify.left_to_right[a] if !b
-    min = ClassMinimum(a.schema_class, b.schema_class)
-    klass = type.schema.classes[min.name]
-    #puts "KLASS #{klass}"
-    nil if @memo[[a, b]]
-    @memo[[a, b]] = true
-    result = nil
-    klass.fields.each do |field|
-      asub = a[field.name]
-      bsub = b[field.name]
-      if !field.many
-        result = self.bind(result, field, match(asub, bsub))
-      els # TODO: could be an option to identify ordered fields???
-        asub.outer_join(bsub) do |d1, d2, k|
-          change = match(asub, bsub)
-          change.pos = k
-          result = self.bind(result, field, change)
->>>>>>> 0c06ce259b5ee0176c29ff180cdeb8b70d650531
         end
       end
     else
