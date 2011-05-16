@@ -10,7 +10,7 @@ class SchemaSchema < SchemaGenerator
   primitive :real
 
   klass Schema do
-    field :types, :type => Type, :optional => true, :many => true
+    field :types, :type => Type, :optional => true, :many => true, :traversal => true
     field :classes, :type => Klass, :optional => true, :many => true, \
       :computed => "@types.select(&:Klass?)"
     field :primitives, :type => Primitive, :optional => true, :many => true, \
@@ -26,13 +26,13 @@ class SchemaSchema < SchemaGenerator
   end
 
   klass Klass, :super => Type do
-    field :super, :type => Klass, :optional => true
-    field :subtypes, :type => Klass, :optional => true, :many => true, :inverse => Klass.super
-    field :defined_fields, :type => Field, :optional => true, :many => true
+    field :supers, :type => Klass, :optional => true, :many => true
+    field :subtypes, :type => Klass, :optional => true, :many => true, :inverse => Klass.supers
+    field :defined_fields, :type => Field, :optional => true, :many => true, :traversal => true
     field :fields, :type => Field, :optional => true, :many => true, \
       :computed => "@all_fields.select {|f| !f.computed}"
     field :all_fields, :type => Field, :optional => true, :many => true, \
-      :computed => "@super ? @super.all_fields + @defined_fields : @defined_fields"
+      :computed => "@supers.flat_map(&:all_fields) + @defined_fields"
   end
 
   klass Field do
@@ -42,6 +42,7 @@ class SchemaSchema < SchemaGenerator
     field :optional, :type => :bool
     field :many, :type => :bool
     field :key, :type => :bool
+    field :traversal, :type => :bool
     field :inverse, :type => Field, :optional => true, :inverse => Field.inverse
     field :computed, :type => :str, :optional => true
   end

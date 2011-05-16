@@ -1,2 +1,2 @@
-    start Point
-    Point ::= [Point] "point" x:int y:int
+start Point
+Point ::= [Point] "(" x:int "," y:int ")"

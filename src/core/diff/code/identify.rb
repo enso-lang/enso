@@ -36,7 +36,7 @@ class Identify
       if !field.many
         apply(field.type, asub, bsub) if !field.type.Primitive? && asub && bsub 
       elsif ClassKey(field.type) # TODO: could be an option to identify ordered fields???
-        asub.outer_join(bsub) do |k, d1, d2|
+        asub.outer_join(bsub) do |d1, d2, k|
           apply(field.type, d1, d2) if d1 && d2
         end
       end

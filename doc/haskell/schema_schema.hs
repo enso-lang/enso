@@ -9,7 +9,7 @@ data Prim
 data Value 
   = Nil 
   | Prim    Prim
-  | Object Value [(String, Attribute)]
+  | Composite Value [(String, Attribute)]
 
 data Attribute 
   = One  Value
@@ -21,19 +21,19 @@ data Spec = OPTIONAL | MANY | INVERSE String String | KEY
 
 schema :: [Value] -> Value
 schema types = 
-  Object (get_class "Schema") [
+  Composite (get_class "Schema") [
     ("types", Many types)
     ]
 
 primitive :: String -> Value
 primitive name = 
-  Object (get_class "Primitive") [ 
+  Composite (get_class "Primitive") [ 
      ("name", One$Prim$PrimS name)
     ]
 
 def_class :: String -> Value -> [Value] -> Value
 def_class name parent fields = 
-  Object (get_class "Class") [ 
+  Composite (get_class "Class") [ 
      ("name", One$Prim$PrimS name),
      ("super", One$parent),
      ("fields", Many fields)
@@ -41,7 +41,7 @@ def_class name parent fields =
 
 def_field :: String -> String -> [Spec] -> Value
 def_field name _type spec =
-  Object (get_class "Field") [
+  Composite (get_class "Field") [
     ("name", One$Prim$PrimS name),
     ("type", One$(get_class _type)),
     ("key", One$Prim$PrimB False),
@@ -64,11 +64,11 @@ strfield field_name obj = s
   where Prim(PrimS s) = sfield field_name obj
 
 sfield :: String -> Value -> Value
-sfield field_name (Object _ fields) = v
+sfield field_name (Composite _ fields) = v
   where One v = fromJust (lookup field_name fields)
 
 mfield :: String -> Value -> [Value]
-mfield field_name (Object _ fields) = vs
+mfield field_name (Composite _ fields) = vs
   where Many vs = fromJust (lookup field_name fields)
 
 inverse [] = Nil

@@ -1,6 +1,6 @@
 
 class Instantiate
-
+  
   def initialize(factory)
     super()
     @factory = factory
@@ -21,6 +21,7 @@ class Instantiate
   end
 
   def recurse(this, *args)
+    #puts "Recursing on #{this}"
     send(this.schema_class.name, this, *args)
   end
 
@@ -37,7 +38,7 @@ class Instantiate
 
     return pos
   end
-      
+  
   def convert(this, ftype)
     convert_typed(this.value, this.kind, ftype)
   end
@@ -74,7 +75,7 @@ class Instantiate
   end
   
   def Instance(this, owner, field, pos)
-    #put "Creating #{this.name}"
+    #puts "Creating #{this.type}"
     # TODO: @factory[this.type] does not assign default vals. [Actually it does now -william]
     current = @factory.send(this.type)
     @root = current unless owner
@@ -86,13 +87,13 @@ class Instantiate
 
   def Field(this, owner, field, pos)
     #puts "Field #{this.name} in #{owner}"
-
+    #puts "OWN: #{owner.schema_class.fields}"
     f = owner.schema_class.fields[this.name]
     this.values.each do |v|
       recurse(v, owner, f, 0)
     end
   end
-
+  
   def Code(this, owner, field, pos)
     #puts "EXECUTINGC CODE #{this.code} on #{owner}"
     owner.instance_eval(this.code.gsub(/@/, "self."))
@@ -103,8 +104,9 @@ class Instantiate
     #put "Value: #{this} for #{field}"
     update(owner, field, pos, convert(this, field.type))
   end
-
+  
   def Ref(this, owner, field, pos)
+    #puts "THIS: #{this}, field: #{field}, owner = #{owner}"
     @fixes << Fix.new(this.name, owner, field, pos)
     if field.many && !ClassKey(field.type)
       # only insert a stub if it is a many-valued collection with no key
@@ -128,8 +130,12 @@ class Instantiate
       #puts "FIXING: #{@name} in #{@this}.#{@field.name}"
       actual = Lookup(root, @name)
       raise "Could not find symbol '#{@name}' \nDEFS: #{defs}" if actual.nil?
-      if @field.many then
-        @this[@field.name][@pos] = actual
+      if @field.many
+        if ClassKey(@field.type)
+          @this[@field.name] << actual
+        else
+          @this[@field.name][@pos] = actual
+        end
       else
         #puts "SETTING: #{actual}"
         @this[@field.name] = actual

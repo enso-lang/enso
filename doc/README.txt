@@ -2,18 +2,21 @@ This project contains Ensō, a theoretically sound and practical reformulation o
 concepts of model-driven software development.
 
 1) The system requires Ruby 1.9 to run.
-  ** You must compile Ruby with tail-call optimization, by editing "vm_opts.h":
-  #define OPT_TRACE_INSTRUCTION        0
-  #define OPT_TAILCALL_OPTIMIZATION    1
 
+2) Recommend that you install with RVM
+  a) Install RVM
+    http://www.rvm.beginrescueend.com/
+  b) Edit ~/.rvmrc before installing the ruby interpreter: 
+      rvm_archflags="-arch x86_64,i386"
+  c) Install ruby 
+      rvm install 1.9.2
+      rvm 1.9.2
+      
 2) The diagram editor requires wxRuby
-  NOTE: On that mac installing Ruby 1.9 with wxRuby requires some care:
-  a) configure ruby before compiling, to get both architectures
-       ./configure --with-arch=x86_64,i386
-  b) use "gem" to install "wxruby-ruby19-2.0.1-x86-darwin-9.gem"
+  a) use "gem" to install "wxruby-ruby19-2.0.1-x86-darwin-9.gem"
      download the gem file (its in a zip, so unzip it), and invoke
          gem install <path>/wxruby-ruby19-2.0.1-x86-darwin-9.gem
-  c) to run Ruby with wxRuby, use "arch -i386 ruby <ruby-file>"
+  b) to run Ruby with wxRuby, use "arch -i386 ruby <ruby-file>"
 
 3) Change your ~/.bashrc file to define RUBYOPT
      export RUBYOPT="-I ."
