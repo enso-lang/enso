@@ -32,6 +32,11 @@ class If < Stat
   else: Stat?
 end
 
+class Let < Stat
+  decls:Assign* 
+  body:Stat
+end
+
 class Call < Stat, Exp
   func: str
   args: Exp*
@@ -45,7 +50,7 @@ class Named
 end
 
 class Assign
-  var: str
+  name: str
   exp: Exp
 end
 
@@ -106,4 +111,16 @@ end
 class Field < Exp
   exp: Exp
   name: str
+end
+
+class Address < Exp
+  exp: Exp
+end
+
+class Concat < Exp
+  lhs: Exp
+  rhs: Exp
+end
+
+class GenSym < Exp
 end

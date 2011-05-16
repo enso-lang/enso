@@ -7,14 +7,14 @@ Web ::= [Web] defs:Def*
 
 Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [If] "if" "(" cond:Exp ")" body:Stat Else?
+       | [Call] func:sym Args block:Stat
        | Call ";"
-       | [Call] func:sym Args? block:Stat
        | [Element] "<" tag:sym attrs:Attr* "/>"
        | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
        | [Block] "{" stats:Stat* "}"
-       | [Text] value:str
        | [Let] "let" decls:Assign* "in" body:Stat
-       | [Output] "output" "(" exp:Exp ")"
+       | [Output] "$" exp:Exp
+       | [Text] value:str
        | [Yield] "yield" 
 
 Call ::= [Call] func:sym Args
@@ -27,8 +27,10 @@ Exp ::= [Field] exp:Exp "->" name:sym
       | [Var] name:sym
       | [Str] value:str
       | Call  
-      | [All] "all" "(" klass:sym ")"
       | [Link] "link" "(" exp:Exp ")"
+      | [Address] "address" "(" exp:Exp ")"
+      | [GenSym] "gensym"
+      | [Concat] lhs:Exp "+" rhs:Exp 
 
       
 Index ::= "," index:sym

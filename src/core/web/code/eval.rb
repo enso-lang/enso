@@ -1,13 +1,30 @@
 
 require 'htmlentities'
 require 'uri'
+require 'core/system/library/schema'
 
 class EvalWeb
+
+  class Result
+    attr_reader :value, :path
+    
+    def initialize(value, path = nil)
+      @value = value
+      @path = path
+    end
+    
+    def to_s
+      "<#{value}, #{path}>"
+    end
+  end
+                    
   
   class EvalExp
 
+
     def initialize(root)
       @root = root
+      @gensym = 0
     end
 
     def eval(obj, *args)
@@ -15,45 +32,61 @@ class EvalWeb
     end
     
     def Link(this, tenv, env)
-      func, *args = eval(this.exp, tenv, env)
-      params = []
+      r = eval(this.exp, tenv, env)
+      func, *args = r.value
+
+      params = []      
       func.formals.each_with_index do |frm, i|
-        params << "#{frm.name}=#{URI.escape(args[i])}"
+        params << "#{frm.name}=#{URI.escape(args[i].value)}"
       end
-      return func.name if params.empty?
-      return "#{func.name}?#{params.join('&')}"
+
+      return Result.new(func.name) if params.empty?
+      return Result.new("#{func.name}?#{params.join('&')}")
     end
       
 
     def Str(this, tenv, env)
-      this.value
+      Result.new(this.value)
     end
 
     def Var(this, tenv, env)
-      puts env
-      puts this.name
-      env[this.name]
+      #puts "ENV = #{env}"
+      if env[this.name] then
+        env[this.name] # env binds results
+      elsif this.name == 'root'
+        Result.new(@root, '')
+      else
+        raise "No such variable: #{this.name}"
+      end
+    end
+
+    def GenSym(this, tenv, env)
+      @gensym += 1
+      return Result.new("$$#{@gensym}")
+    end
+
+    def Concat(this, tenv, env)
+      lhs = eval(this.lhs, tenv, env)
+      rhs = eval(this.rhs, tenv, env)
+      return Result.new(lhs.value + rhs.value)
+    end
+
+    def Address(this, tenv, env)
+      r = eval(this.exp, tenv, env)
+      return Result.new(r.path)
     end
 
     def Field(this, tenv, env)
-      obj = eval(this.exp, tenv, env)
-      puts "---------------> Field: #{obj} #{this.name}"
-      obj[this.name]
-    end
-
-    def All(this, tenv, env)
-      x = @root.schema_class.schema.classes[this.klass]
-      # should have generic thing to iterate all things from root
-      @root.classes.select do |y|
-        y.schema_class == x
-      end
+      r = eval(this.exp, tenv, env)
+      #puts "---------------> Field: #{r} #{this.name}"
+      return Result.new(r.value[this.name], "#{r.path}.#{this.name}")
     end
 
     def Call(this, tenv, env)
       vs = this.args.map do |arg|
         eval(arg, tenv, env)
       end
-      [tenv[this.func], *vs]
+      Result.new([tenv[this.func], *vs])
     end
 
   end
@@ -73,28 +106,93 @@ class EvalWeb
     web.defs.each do |f|
       @tenv[f.name] = f
     end
-    puts @tenv
+    #puts @tenv
     @coder = HTMLEntities.new
     @exp_eval = EvalExp.new(root)
   end
 
-  def eval(obj, *args)
-    send(obj.schema_class.name, obj, *args)
-  end
 
   def defines?(name)
     @tenv[name]
   end
   
   def eval_req(name, params, out)
-    eval(@tenv[name].body, params, out, nil)
+    env = {}
+    params.each do |k, v|
+      env[k] = Result.new(v)
+    end
+    eval(@tenv[name].body, env, out, nil)
+  end
+
+  def handle_submit(params, out)
+    params.each do |k, v|
+      puts "VAR: #{k}: #{v}"
+    end
+
+    key = params.keys.find do |name|
+      # todo factor this sigil out and reuse it also with gensym
+      name =~ /^\$\$/
+    end
+    url = params["redirect_#{key}"]
+
+    # update the assignments    
+    params.each do |k, v|
+      update(@root, k, v)
+    end
+
+    return url
   end
   
+
+  private
+
+  def update(obj, k, v)
+    if k =~ /^\.(.*)/ then
+      field = $1
+    else
+      return
+    end
+
+    puts "Updating: #{field} in #{obj} to #{v}"
+
+    if v.is_a?(Hash) then
+      update_collection(obj[field], v)
+    else
+      puts "Setting obj[#{field}] to #{v}"
+      obj[field] = v
+    end
+  end
+
+  def update_collection(coll, hash)
+    # keys are keys in coll
+    puts "Updating collection: #{coll} to #{hash}"
+    hash.each do |k, v|
+      if k =~ /^[0-9]+/ then
+        key = Integer($&)
+      elsif k =~ /^[a-zA-Z_][a-zA-Z0-9_]*$/ then
+        # NB: make sure this never matches $$ stuff.
+        # this regexp should match exactly with sym in scanner
+        key = $&
+      else
+        raise "Invalid collection key: #{k}"
+      end
+      v.each do |k, v|
+        update(coll[key], k, v)
+      end
+    end
+  end
+
+
+  def eval(obj, *args)
+    send(obj.schema_class.name, obj, *args)
+  end
+
   def Element(this, env, out, block)
     out << "<#{this.tag}"
     this.attrs.each do |attr|
       out << ' ' 
-      val = @coder.encode(@exp_eval.eval(attr.exp, @tenv, env))
+      r = @exp_eval.eval(attr.exp, @tenv, env)
+      val = @coder.encode(r.value)
       out << "#{attr.name}=\"#{val}\""
     end
     out << ">"
@@ -105,16 +203,22 @@ class EvalWeb
   end
 
   def Output(this, env, out, block)
-    v = @exp_eval.eval(this.exp, @tenv, env)
-    out << @coder.encode(v)
+    r = @exp_eval.eval(this.exp, @tenv, env)
+    out << @coder.encode(r.value)
   end
 
   def For(this, env, out, block) 
-    vs = @exp_eval.eval(this.iter, @tenv, env)
+    r = @exp_eval.eval(this.iter, @tenv, env)
     nenv = {}.update(env)
-    vs.each_with_index do |v, i|
-      nenv[this.var] = v
-      nenv[this.index] = i if this.index
+    r.value.each_with_index do |v, i|
+      key_field = ClassKey(v.schema_class)
+      if key_field then
+        key = v[key_field.name]
+      else
+        key = i
+      end
+      nenv[this.var] = Result.new(v, r.path + "[#{key}]")
+      nenv[this.index] = Result.new(i) if this.index
       eval(this.body, nenv, out, block)
     end
   end
@@ -122,19 +226,27 @@ class EvalWeb
   def If(this, env, out, block)
   end
 
+  def Let(this, env, out, block)
+    nenv = {}.update(env)
+    this.decls.each do |assign|
+      nenv[assign.name] = @exp_eval.eval(assign.exp, @tenv, env)
+    end
+    eval(this.body, nenv, out, block)
+  end
+
   def Call(this, env, out, block)
     f = @tenv[this.func]
     vs = this.args.map do |exp|
-      puts "Evaluating #{exp}"
+      #puts "Evaluating #{exp}"
       r = @exp_eval.eval(exp, @tenv, env)
-      puts "REsult = #{r}"
+      #puts "REsult = #{r}"
       r
     end
     nenv = {}.update(env)
     f.formals.each_with_index do |frm, i|
       nenv[frm.name] = vs[i]
     end
-    puts "Calling: #{this.func}: block = #{this.block}"
+    #puts "Calling: #{this.func}: block = #{this.block}"
     eval(f.body, nenv, out, Closure.new(env, this.block))
   end
     

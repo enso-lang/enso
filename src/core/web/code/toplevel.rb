@@ -26,7 +26,7 @@ end
 
 class Toplevel
   def initialize
-    root = Loader.load('web.schema')
+    root = Loader.load('instance.schema')
     @eval = EvalWeb.new(Loader.load('example.web'), root)
   end
 
@@ -37,6 +37,9 @@ class Toplevel
     if @eval.defines?(name) then
       @eval.eval_req(name, params, stream)
       respond(stream)
+    elsif name == '$submit' then
+      url = @eval.handle_submit(params, stream)
+      redirect(url)
     else
       not_found(name)
     end
@@ -48,6 +51,15 @@ class Toplevel
      'Content-Length' => name.length.to_s
      }, [name]]
   end
+
+  def redirect(url)
+    [301, {
+       'Content-Type' => 'text/html',
+       'Location' => url,
+       'Content-Length' => '0'
+     }, []]
+  end
+
 
   def respond(stream)
     [200, {

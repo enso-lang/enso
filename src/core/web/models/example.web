@@ -6,35 +6,50 @@ def main {
 
 def html(title) {
   <html>
-  <head>
-  <title>output(title)</title>
-  </head>
-  <body>
-  yield
-  </body>
+    <head><title>$title</title></head>
+    <body>yield</body>
   </html>
 }
 
 def hello_world(name) {
   html("Test") {
-    <h1> "Hello World " output(name) </h1>
+    <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
 
-    <ul>
-    for (x: all(Klass), i) {
-      <li>output(i) ": " output(x->name)
+    form() {
       <ul>
-       for (y: x->fields, j) {
-          <li>"Field #" output(i) ": " output(y->name) </li>
-       }
+      for (x: root->classes, i) {
+        <li>$i ": " edit(x->name);
+
+        </li>
+      }
       </ul>
-      </li>
+
+      submit("Submit", hello_world(name));
     }
-    </ul>
 
  }
 }
 
 def navigate(title, page) {
-  <a href=link(page)>output(title)</a>
+  <a href=link(page)>$title</a>
+}
+
+def edit(data) {
+  <input name=address(data) type="text" value=data/>
+}
+
+def form {
+  <form action="/$submit" method="post">
+    yield
+  </form>
+}
+
+def submit(text, action) {
+  let
+    name = gensym
+  in {
+    <input type="hidden" name="redirect_" + name value=link(action)/>
+    <input type="submit" name=name value=text /> 
+  }
 }
