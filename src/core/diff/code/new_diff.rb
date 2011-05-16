@@ -58,7 +58,7 @@ class Diff
             result = self.bind(result, field, recurse(asub, bsub, thisIdentified))
           end
         else
-          (asub || @empty).outer_join(bsub || @empty) do |k, d1, d2|
+          (asub || @empty).outer_join(bsub || @empty) do |d1, d2, k|
             change = recurse(d1, d2, thisIdentified)
             
             change["pos"] = k if change

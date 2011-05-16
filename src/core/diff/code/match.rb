@@ -29,7 +29,7 @@ class Match
       if !field.many
         result = self.bind(result, field, match(asub, bsub))
       els # TODO: could be an option to identify ordered fields???
-        asub.outer_join(bsub) do |k, d1, d2|
+        asub.outer_join(bsub) do |d1, d2, k|
           change = match(asub, bsub)
           change.pos = k
           result = self.bind(result, field, change)

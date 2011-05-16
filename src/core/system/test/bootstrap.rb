@@ -76,7 +76,7 @@ class BootstrapTests < Test::Unit::TestCase
   def test_schema_grammar
     x = Loader.load(SCHEMA_SCHEMA)
     assert_equal([], diff(x, SchemaSchema.schema),
-                 "Boot SchemaSchema != Boot SchemaSchema")
+                 "Loaded SchemaSchema != Boot SchemaSchema")
   end
   
   def test_instance_schema

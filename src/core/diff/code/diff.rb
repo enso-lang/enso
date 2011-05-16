@@ -64,8 +64,7 @@ module Diff
     end
 
     def ordered(field, o1, o2) 
-      n = 0
-      o1[field.name].zip(o2[field.name]).each do |left, right|
+      o1[field.name].outer_join(o2[field.name]) do |left, right|
         if right.nil?
           different_insert(o2, field, left)
         elsif left.nil?
@@ -73,15 +72,11 @@ module Diff
         else
           Type(field.type, left, right)
         end
-        n += 1
       end
     end
 
     def keyed(field, o1, o2)
-      keys = o1[field.name].keys | o2[field.name].keys
-      keys.each do |key_val|
-        left = o1[field.name][key_val]
-        right = o2[field.name][key_val]
+      o1[field.name].outer_join(o2[field.name]) do |left, right|
         if right.nil?
           different_insert(o2, field, left)
         elsif left.nil?

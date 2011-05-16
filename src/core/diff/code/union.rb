@@ -75,7 +75,7 @@ class Union
       end
     else
       if ClassKey(field.type)
-        a.outer_join(b) do |k, sa, sb|
+        a.outer_join(b) do |sa, sb, k|
           yield k, sa, sb
         end
       else
