@@ -37,7 +37,7 @@ class VisitFields < MemoBase
     if !field.many
       yield val
     else
-      val.each do |x|
+      val.values.each do |x|
         yield x
       end
     end

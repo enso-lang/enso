@@ -67,48 +67,29 @@ class DeltaTransform
     # - insert, delete, modify and clear subtypes of base class
     # - many variants of insert and delete
 
-    base = @factory.Klass(DeltaTransform.base + old.name)
+    base = @factory.Klass(DeltaTransform.base + old.name, @schema)
     @memo[old.name] = base
     @schema.types << base
 
     #ins/del/mod/clr
-    x = @factory.Klass(DeltaTransform.insert + old.name)
-    x.supers << base
-    @schema.types << x
-
-    x = @factory.Klass(DeltaTransform.delete + old.name)
-    x.supers << base
-    @schema.types << x
-
-    x = @factory.Klass(DeltaTransform.modify + old.name)
-    x.supers << base
-    @schema.types << x
+    # NOTE: simply setting the schema pointer does not add the class to the schema!!
+    @schema.types << @factory.Klass(DeltaTransform.insert + old.name, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.delete + old.name, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.modify + old.name, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.clear + old.name, @schema, [base])
     
-    x = @factory.Klass(DeltaTransform.clear + old.name)
-    x.supers << base
-    @schema.types << x
-
     #many
 
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
+    x = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base])
+    x.defined_fields << @factory.Field("pos", x, @int_type)
     @schema.types << x
 
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
+    x = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base])
+    x.defined_fields << @factory.Field("pos", x, @int_type)
     @schema.types << x
     
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
+    x = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base])
+    x.defined_fields << @factory.Field("pos", x, @int_type)
     @schema.types << x
 
   end
