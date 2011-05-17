@@ -3,7 +3,7 @@ require 'strscan'
 require 'core/system/library/cyclicmap'
 
 module Scanner
-  SYMBOL = "[\\\\]?([a-zA-Z_$][a-zA-Z_$0-9]*)(\\.[a-zA-Z_$][a-zA-Z_$0-9]*)*"
+  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(\\.[a-zA-Z_][a-zA-Z_0-9]*)*"
 
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
