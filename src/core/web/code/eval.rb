@@ -177,7 +177,13 @@ class EvalWeb
         raise "Invalid collection key: #{k}"
       end
       v.each do |k, v|
-        update(coll[key], k, v)
+        # delete and and, otherwise hashing messes up
+        x = update(coll[key], k, v)
+        puts "COLL: #{coll}"
+        coll.delete(coll[key])
+        puts "AFTER DELETE: #{coll}"
+        coll << x
+        puts "AFTER ADD: #{coll}"
       end
     end
   end
