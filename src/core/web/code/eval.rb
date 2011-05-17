@@ -146,6 +146,23 @@ class EvalWeb
 
   private
 
+  def convert(field, value)
+    if field.type.Primitive? then
+      case  field.type.name 
+      when 'int' 
+        Integer(value)
+      when 'bool'
+        value == 'true' ? true : false
+      when 'real'
+        Float(value)
+      when 'str'
+        value
+      end
+    else
+      puts "Warning: unsupported now"
+    end
+  end
+
   def update(obj, k, v)
     if k =~ /^\.(.*)/ then
       field = $1
@@ -159,8 +176,12 @@ class EvalWeb
       update_collection(obj[field], v)
     else
       puts "Setting obj[#{field}] to #{v}"
-      obj[field] = v
+      puts "\t\t\tSchema_class: #{obj.schema_class}"
+      puts "\t\t\tField: #{obj.schema_class.fields[field]}"
+      obj[field] = convert(obj.schema_class.fields[field], v)
     end
+
+    return obj
   end
 
   def update_collection(coll, hash)
