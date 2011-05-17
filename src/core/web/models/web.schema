@@ -17,6 +17,7 @@ class Stat
 end
 
 class Yield < Stat
+  args: Exp*
 end
 
 class For < Stat
@@ -53,7 +54,7 @@ class Call < Stat, Exp
   func: str
   args: Exp*
   named_args: Named*
-  block: Stat?
+  block: Closure?
 end
 
 class Named
@@ -149,4 +150,16 @@ class In < Exp
 end
 
 class GenSym < Exp
+end
+
+class It < Exp
+end
+
+class Closure < Exp
+  formals: Formal*
+  stats: Stat*
+end
+
+class List < Exp
+  elements: Exp*
 end
