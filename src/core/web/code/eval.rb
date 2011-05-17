@@ -224,6 +224,12 @@ class EvalWeb
   end
 
   def If(this, env, out, block)
+    r = @exp_eval.eval(this.cond, @tenv, env)
+    if r.value then
+      eval(this.body, env, out, block)
+    elsif this.else then
+      eval(this.else, env, out, block)
+    end
   end
 
   def Let(this, env, out, block)
