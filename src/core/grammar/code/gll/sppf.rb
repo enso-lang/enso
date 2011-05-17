@@ -12,52 +12,12 @@ class BaseNode
     @@nodes
   end
 
-  def self.to_dot(out)
-    i = 0
-    visited = {}
-    out << "digraph forest {\n"
-    out << "order = out;\n"
-    @@nodes.each_value do |n|
-      i = n.ids(i)
-      n.to_dot(out, visited)
-    end
-    out << "}\n"
-  end
-
-  def ids(n)
-    return n if @id
-    @id = n += 1
-    kids.each do |k|
-      n = k.ids(n)
-    end
-    return n
-  end
-
-  def to_dot(out, visited)
-    return if visited[self]
-    visited[self] = true
-    out << "node#{id} [shape=#{shape},label=\"#{label}\"]\n"
-    kids.each do |k|
-      k.to_dot(out, visited)
-      out << "node#{id} -> node#{k.id}\n"
-    end
-  end
-
-
   def kids
     []
   end
 
   def self.new(*args)
-    # ugly, remove Pack from Node hierarchy
-    # it's currently in there just because of todot
-    return super(*args) if self.to_s == 'Pack'
     @@nodes[args] ||= super(*args)
-    #     x = super(*args)
-    #     unless @@nodes[x]
-    #       @@nodes[x] = x
-    #     end
-    #     @@nodes[x]
   end
 
   def initialize(starts, ends, type)
@@ -83,20 +43,12 @@ class Empty < BaseNode
     return true
   end
 
-  def shape
-    'none'
-  end
-
-  def label
-    ''
-  end
 end
 
 class Leaf < BaseNode
   attr_reader :value
   attr_reader :ws
 
-  # TODO: type = nil ==> empty (from GrammarSchema)
   def initialize(starts, ends, type = nil, value = nil, ws = nil)
     super(starts, ends, type)
     @value = value
@@ -108,14 +60,6 @@ class Leaf < BaseNode
     return true if self.equal?(x)
     return false unless x.is_a?(Leaf)
     super(x) && value == x.value
-  end
-
-  def label
-    "#{value}(#{type}: #{starts},#{ends})"
-  end
-
-  def shape
-    "plaintext"
   end
 
 end
@@ -156,20 +100,10 @@ class Node < BaseNode
     super(x) && type == x.type
   end
 
-
-  def label
-    i = type.to_s.gsub(/"/, '\\"')
-    "#{i}(#{starts},#{ends})"
-  end
-
-  def shape
-    'box'
-  end
-
 end
 
 
-class Pack < BaseNode
+class Pack
   attr_reader :item, :pivot, :left, :right, :id
 
   def initialize(item, pivot, left, right)
@@ -181,14 +115,6 @@ class Pack < BaseNode
 
   def kids
     [left, right].compact
-  end
-
-  def shape
-    'point'
-  end
-
-  def label
-    ''
   end
 
   def hash

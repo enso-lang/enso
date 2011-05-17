@@ -4,6 +4,7 @@ require 'set'
 require 'ostruct'
 
 require 'core/grammar/code/gll/gss'
+require 'core/grammar/code/gll/todot'
 require 'core/grammar/code/gll/sppf'
 require 'core/grammar/code/gll/scan'
 require 'core/grammar/code/gll/parsers'
@@ -61,14 +62,18 @@ class GLL
   def result(source, top)
     #puts "/* GSS: #{GSS.nodes.length} */"
     #puts "/* Nodes: #{Node.nodes.length} */"
+    #puts "CI: #{@ci}"
     last = 0;
     pt = Node.nodes.values.find do |n|
       if n.starts == @begin then
         last = n.ends > last ? n.ends : last
       end
-      n.starts == @begin && n.ends == source.length  && n.type == top
+      n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
     end
     raise "Parse error at: #{last}" unless pt
+    File.open('sppf.dot', 'w') do |f|
+      ToDot.to_dot(pt, f)
+    end
     return pt
   end
   
@@ -131,7 +136,6 @@ class GLL
     continue(nxt)
   end
 
-
   def terminal(type, pos, value, ws, nxt)
     cr = Leaf.new(@ci, pos, type, value, ws)
     @ci = pos
@@ -155,16 +159,18 @@ if __FILE__ == $0 then
   sppf2 = GLL.new.parse(src, gg, gg.start)
 
 
-  dot = ''
-  Node.to_dot(dot)
-  File.open('bla.dot', 'w') do |f|
-    f.write(dot)
-  end
+  require 'core/grammar/code/gll/todot'
 
-                        
+  File.open('sppf.dot', 'w') do |f|
+    ToDot.to_dot(sppf2, f)
+  end
+                 
+  exit!
+       
   ast = Implode.implode(sppf2)
   puts "AST: #{ast}"
 
+  exit!
 
   Print.print(ast)
 
