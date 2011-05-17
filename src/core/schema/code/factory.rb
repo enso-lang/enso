@@ -8,13 +8,16 @@ class Factory
     @schema = schema
   end
 
+  # this is the core object constructor call
+  # create a "virtual" object that conforms to schema class
   def [](class_name)
     schema_class = @schema.classes[class_name.to_s]
     raise "Unknown class '#{class_name}'" unless schema_class
     obj = CheckedObject.new(schema_class, self)
     return obj
   end
-  
+
+  # factory.Foo(args) creates an instance of Foo initialized with arguments  
   def method_missing(class_name, *args)
     obj = self[class_name.to_s]
     n = 0
