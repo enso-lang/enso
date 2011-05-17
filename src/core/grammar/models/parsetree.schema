@@ -1,9 +1,5 @@
 #ruby
 # should include  InstanceSchema (which include ValueSchema and ProtoSchema)
 
-merge(load('instance.schema'), load('token_stream.schema'),
-      {"str" => "str", "int" => "int", "bool" => "bool", 
-       "Tree" => "Tree",
-       "Sequence" => "Sequence",
-       "elements" => "elements" })
+union(load('instance.schema'), load('token_stream.schema'))
        

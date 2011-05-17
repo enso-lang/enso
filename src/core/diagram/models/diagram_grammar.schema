@@ -1,6 +1,3 @@
 
 
-merge(load('regular.schema'), load('base_grammar.schema'),
-      {"str" => "str", "int" => "int", "bool" => "bool", 
-       "Expression" => "Expression",
-       "Sequence" => "Sequence" })
+union(load('regular.schema'), load('base_grammar.schema'))

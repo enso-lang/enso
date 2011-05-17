@@ -7,7 +7,6 @@ require 'core/system/boot/schema_schema'
 
 # these are here in case any of the "eval" code needs it
 require 'core/grammar/code/parse'
-require 'core/diff/code/merge'
 
 require 'core/system/boot/instance_schema'
 
