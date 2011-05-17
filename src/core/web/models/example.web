@@ -13,8 +13,26 @@ def html(title) {
 }
 
 
-
-
+def new_class(x) {
+    form {
+    <ul>
+    <li>"Name: " edit(x->name); select(x->supers, root->classes);
+	 <ul>
+		for (y: x->fields, i) {
+		    <li>edit(y->name);
+			checkbox(y->key);
+			checkbox(y->optional);
+			checkbox(y->many);
+			checkbox(y->traversal);
+		     </li>
+		}			
+	</ul>
+   </li>
+   </ul>
+   <input type="hidden" name=address(root->types) value=address(x)/>
+    submit("Submit", hello_world("Tijs"));
+   }
+}
 
 def schema_table(schema) {
   form {
@@ -31,6 +49,10 @@ def schema_table(schema) {
       }     
    </table>
    submit("Submit", hello_world("Tijs"));
+  }
+
+  form {
+    submit("New", new_class(new(Klass)));
   }
 
 }

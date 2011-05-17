@@ -28,8 +28,19 @@ class EvalWeb
   
   def eval_req(name, params, out)
     env = {}
+    news = {}
     params.each do |k, v|
-      env[k] = Result.new(v)
+      if v =~ /^\./ then
+        env[k] = Result.new(deref(v), v)
+      elsif v =~ /^@/ then
+        obj, _ = create(v, @root._graph_id, news)
+        puts "Converting param: #{k}  #{v}"
+        # it cannot have subpaths, since it is new
+        # so the path is actually v itself
+        env[k] = Result.new(obj, v)
+      else
+        env[k] = Result.new(v)
+      end
     end
     eval(@tenv[name].body, env, out, nil)
   end
@@ -46,8 +57,22 @@ class EvalWeb
     url = params["redirect_#{key}"]
 
     # update the assignments    
+    # and create new objects
+
+    # first create new objects and assign values
+    news = {}
     params.each do |k, v|
-      update(@root, k, v)
+      if k =~ /^@/ then
+        obj, path = create(k, @root._graph_id, news)
+        update(obj, path, v, news)
+      end
+    end
+
+    # then do additionaly assignments
+    params.each do |k, v|
+      if k !~ /^@/
+        update(@root, k, v, news)
+      end
     end
 
     return url

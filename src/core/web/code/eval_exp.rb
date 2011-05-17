@@ -20,6 +20,7 @@ class EvalExp
   def initialize(root)
     @root = root
     @gensym = 0
+    @new_count = 0
   end
 
   def eval(obj, *args)
@@ -32,7 +33,8 @@ class EvalExp
 
     params = []      
     func.formals.each_with_index do |frm, i|
-      params << "#{frm.name}=#{URI.escape(args[i].value)}"
+      arg = args[i].path || args[i].value
+      params << "#{frm.name}=#{URI.escape(arg)}"
     end
 
     return Result.new(func.name) if params.empty?
@@ -49,7 +51,7 @@ class EvalExp
   end
 
   def Var(this, tenv, env)
-    #puts "ENV = #{env}"
+    puts "ENV = #{env}"
     if env[this.name] then
       env[this.name] # env binds results
     elsif this.name == 'root'
@@ -92,10 +94,20 @@ class EvalExp
     return Result.new(r.path)
   end
 
+  def New(this, tenv, env)
+    id = @new_count += 1;
+    path = "@#{this.class}:#{id}"
+    # don't finalize here
+    new_obj = @root._graph_id[this.class]
+    return Result.new(new_obj, path)
+  end
+
   def Field(this, tenv, env)
     r = eval(this.exp, tenv, env)
-    #puts "---------------> Field: #{r} #{this.name}"
-    return Result.new(r.value[this.name], "#{r.path}.#{this.name}")
+    puts "---------------> Field: #{r} #{this.name}"
+    x = Result.new(r.value[this.name], "#{r.path}.#{this.name}")
+    puts "XXX = #{x}"
+    return x
   end
 
   def Call(this, tenv, env)

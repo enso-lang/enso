@@ -35,6 +35,7 @@ Exp ::= [Field] exp:Exp "->" name:sym
       | [Int] value:int
       | Call  
       | [Link] "link" "(" exp:Exp ")"
+      | [New] "new" "(" class:sym ")"
       | [Address] "address" "(" exp:Exp ")"
       | [GenSym] "gensym"
       | [Concat] lhs:Exp "+" rhs:Exp  // TODO: precedences

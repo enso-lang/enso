@@ -163,3 +163,7 @@ end
 class List < Exp
   elements: Exp*
 end
+
+class New < Exp
+  \class: str
+end

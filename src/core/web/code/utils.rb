@@ -61,7 +61,9 @@ module WebUtils
   # update actualy does the same dereffing as
   # deref, except it has to traverse the 
   # hashes (representing the path) at the same time
-  def update(obj, k, v)
+  def update(obj, k, v, news)
+    return update_new(k, v) if k =~ /^@/
+
     fn, _ = deref1(k)
     return unless fn
 
@@ -70,14 +72,31 @@ module WebUtils
     fld = obj.schema_class.fields[fn]
 
     if v.is_a?(Hash) then
-      update_collection(obj[fn], v)
+      update_collection(obj[fn], v, news)
     elsif v.is_a?(Array) then
       update_list(fld, obj[fn], v)
+    elsif news[v] then
+      if fld.many then
+        obj[fn] << news[v]
+      else
+        obj[fn] = news[v]
+      end
     else
       obj[fn] = convert(fld, v)
     end
 
     return obj
+  end
+
+  def create(str, fact, news)
+    if str =~ /^(@([a-zA-Z_][a-zA-Z0-9_]*):[0-9]+)(.*)/ then
+      puts "STR: #{str} $1: #{$1}"
+      # only create if not already in the "news" map
+      news[$1] ||= fact[$2]
+      puts "#{$3}"
+      return news[$1], $3
+    end
+    raise "Invalid 'new' ref: #{str}"
   end
 
   def update_list(fld, obj, list)
@@ -88,14 +107,14 @@ module WebUtils
     end
   end
 
-  def update_collection(coll, hash)
+  def update_collection(coll, hash, news)
     # keys are keys in coll
     puts "Updating collection: #{coll} to #{hash}"
     hash.each do |k, v|
       key = convert_key(k)
       v.each do |k, v|
         # delete and and, otherwise hashing messes up
-        x = update(coll[key], k, v)
+        x = update(coll[key], k, v, news)
         coll.delete(coll[key])
         coll << x
       end
