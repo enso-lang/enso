@@ -2,6 +2,9 @@ PAPERS:
 * First International Workshop on Bidirectional Transformations (BX 2012) 
      Paper submission: Mon, December 19, 2011
      
+Errors to check
+* Inserting into computed many-valued field does not fail!  EG:   x.fields << y
+     
 Cleanup tasks
 * Finalize: seals from changes, run invariants (close to being right)
 * sanitize the loader namespace (remove boot stuff)

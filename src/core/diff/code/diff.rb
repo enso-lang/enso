@@ -43,11 +43,11 @@ class Diff
   #create a completely new object with its complete subtree
   def generate_added_diff(o1, *pos)
     if pos.length>0 #this is a many field
-      x = @factory.send(DeltaTransform.new.many+DeltaTransform.new.insert+o1.schema_class.name)
+      x = @factory[DeltaTransform.many + DeltaTransform.insert + o1.schema_class.name]
 #      x.pos = pos[0]
       return x
     else
-      return @factory.send(DeltaTransform.new.insert+type.name)
+      return @factory[DeltaTransform.insert + type.name]
     end  
   end
 
@@ -55,11 +55,11 @@ class Diff
   #an explicit type is necessary because o1 can be a subtype
   def generate_deleted_diff(o1, *pos)
     if pos.length>0 #this is a many field
-      x = @factory.send(DeltaTransform.new.many+DeltaTransform.new.delete+o1.schema_class.name)
+      x = @factory[DeltaTransform.many + DeltaTransform.delete + o1.schema_class.name]
 #      x.pos = pos[0]
       return x
     else
-      return @factory.send(DeltaTransform.new.delete+type.name)
+      return @factory[DeltaTransform.delete + type.name]
     end  
   end
 
@@ -104,7 +104,7 @@ class Diff
             last_j = 0
             for j in 0..l2.length-1 do
               if not lcm_matches.has_value?(j)
-                res << @factory.Klass(DeltaTransform.new.many+DeltaTransform.new.insert+f.type.name)
+                res << @factory[DeltaTransform.many + DeltaTransform.insert + f.type.name]
                 modified = true
               else
                 last_j = lcm_matches.key(j)
@@ -117,7 +117,7 @@ class Diff
             if o1.method(f.name).call == o2.method(f.name).call
               #do nothing for unchanged primitives
             else
-              diff_fields[f.name] = @factory.Klass(DeltaTransform.new.modify+f.type.name)
+              diff_fields[f.name] = @factory[DeltaTransform.modify + f.type.name]
               modified = true
             end
           end
@@ -180,9 +180,9 @@ class Diff
     #if no direct field was altered (ie only descendants have been changed)
     #then mark this class as unchanged
     if modified
-      new1 = @factory.send(DeltaTransform.new.modify+schema_class.name)
+      new1 = @factory[DeltaTransform.modify + schema_class.name]
     else 
-      new1 = @factory.send(DeltaTransform.new.clear+schema_class.name)
+      new1 = @factory[DeltaTransform.clear + schema_class.name]
     end
 
     #copy delta fields from descendant records
@@ -223,6 +223,19 @@ end
 
 
 def diff(x, y)
-  Diff::Diff.new.diff(x, y)
+  Diff.new.diff(x.schema_class.schema, x, y)
 end
 
+if __FILE__ == $0 then
+
+  require 'core/system/load/load'
+  require 'core/schema/tools/print'
+  
+  cons = Loader.load('point.schema')
+  
+  ss = Loader.load('schema.schema')
+  gs = Loader.load('grammar.schema')
+  delta = diff(ss, gs)
+
+  Print.print(delta)
+end

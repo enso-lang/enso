@@ -6,27 +6,19 @@ class DeltaTransform
   
   def initialize()
     #change operation names
-    @insert = "Insert"
-    @delete = "Delete"
-    @modify = "Modify"
-    @clear = "Clear"
-    @many = "Many"
-    @base = "Base"
+    @@insert = "Insert_"
+    @@delete = "Delete_"
+    @@modify = "Modify_"
+    @@clear = "Clear_"
+    @@many = "Many"
+    @@base = "D_"
 
     @factory = Factory.new(Loader.load('schema.schema'))
     @schema = @factory.Schema()
     
     #init memo for schema types
     @memo = {}
-    @memo[@base] = {}
-    @memo[@insert] = {}
-    @memo[@delete] = {}
-    @memo[@modify] = {}
-    @memo[@clear] = {}
-    @memo[@many+@insert] = {}
-    @memo[@many+@delete] = {}
-    @memo[@many+@modify] = {}
-
+    
   end
 
   def delta(old)
@@ -75,55 +67,48 @@ class DeltaTransform
     # - insert, delete, modify and clear subtypes of base class
     # - many variants of insert and delete
 
-    x = @factory.Klass(@base+old.name)
-    @memo[@base][old.name] = x
-    @schema.types << x
+    base = @factory.Klass(@@base + old.name)
+    @memo[old.name] = base
+    @schema.types << base
 
     #ins/del/mod/clr
-    x = @factory.Klass(@insert+old.name)
-    x.supers << @memo[@base][old.name]
-    @memo[@insert][old.name] = x
+    x = @factory.Klass(@@insert + old.name)
+    x.supers << base
     @schema.types << x
 
-    x = @factory.Klass(@delete+old.name)
-    x.supers << @memo[@base][old.name]
-    @memo[@delete][old.name] = x
+    x = @factory.Klass(@@delete + old.name)
+    x.supers << base
     @schema.types << x
 
-    x = @factory.Klass(@modify+old.name)
-    x.supers << @memo[@base][old.name]
-    @memo[@modify][old.name] = x
+    x = @factory.Klass(@@modify + old.name)
+    x.supers << base
     @schema.types << x
     
-    x = @factory.Klass(@clear+old.name)
-    x.supers << @memo[@base][old.name]
-    @memo[@clear][old.name] = x
+    x = @factory.Klass(@@clear + old.name)
+    x.supers << base
     @schema.types << x
 
     #many
 
-    x = @factory.Klass(@many+@insert+old.name)
-    x.supers << @memo[@base][old.name]
+    x = @factory.Klass(@@many + @@insert + old.name)
+    x.supers << base
     f = @factory.Field("pos")
     f.type = @int_type
-    x.fields << f
-    @memo[@many+@insert][old.name] = x
+    x.defined_fields << f
     @schema.types << x
 
-    x = @factory.Klass(@many+@delete+old.name)
-    x.supers << @memo[@base][old.name]
+    x = @factory.Klass(@@many + @@delete + old.name)
+    x.supers << base
     f = @factory.Field("pos")
     f.type = @int_type
-    x.fields << f
-    @memo[@many+@delete][old.name] = x
+    x.defined_fields << f
     @schema.types << x
     
-    x = @factory.Klass(@many+@modify+old.name)
-    x.supers << @memo[@base][old.name]
+    x = @factory.Klass(@@many + @@modify + old.name)
+    x.supers << base
     f = @factory.Field("pos")
     f.type = @int_type
-    x.fields << f
-    @memo[@many+@modify][old.name] = x
+    x.defined_fields << f
     @schema.types << x
 
   end
@@ -135,11 +120,11 @@ class DeltaTransform
     end
     
     # retrieve memoized type
-    x = @memo[@base][old.name]
+    x = @memo[old.name]
 
     # establish supertype based on old supertype
     old.supers.each do |s|
-      x.supers << @memo[@base][s.name]
+      x.supers << @memo[s.name]
     end
 
     #recreate all field from old using new classes     
@@ -150,7 +135,7 @@ class DeltaTransform
   
   def Field(old)
     new = @factory.Field(old.name)
-    new.type = @memo[@base][old.type.name]
+    new.type = @memo[old.type.name]
     new.optional = true
     new.many = old.many
     new.key = old.key
@@ -172,10 +157,10 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'core/grammar/code/layout'
   
-  cons = Loader.load('points.schema')
+  cons = Loader.load('point.schema')
   
   deltaCons = Delta(cons)
 
-  DisplayFormat.print(Loader.load('deltaschema.grammar'), deltaCons)
+  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 end
 

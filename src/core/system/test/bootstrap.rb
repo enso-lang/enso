@@ -10,7 +10,6 @@ require 'core/instance/code/instantiate'
 
 require 'core/diff/code/equals'
 require 'core/diff/code/diff'
-require 'core/diff/code/merge'
 require 'core/schema/tools/print'
 
 class BootstrapTests < Test::Unit::TestCase
