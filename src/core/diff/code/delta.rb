@@ -9,7 +9,64 @@ class DeltaTransform
   def self.clear; "Clear_"; end
   def self.many; "Many"; end
   def self.base; "D_"; end
+
+
+  def delta(old)
+    #given a schema conforming to schema-schema
+    #convert to an equivalent schema conforming to deltaschema
+
+    return Schema(old)
+  end
+  
+  def DeltaTransform.isManyChange?(obj)
+    class_name = obj.schema_class.name
+    #search for "_"
+    index = class_name.index("_")
+    change = class_name[0..index-1]
+    return change.start_with(@@many)
+  end
+
+  def DeltaTransform.getChangeType(obj)
+    class_name = obj.schema_class.name
+    #search for "_"
+    index = class_name.index("_")
+    change = class_name[0..index-1]
+    if change.start_with(@@many)
+      change = change[@@many.length-1..change.length-1]
+    end
+    return change
+  end
+
+  def DeltaTransform.getOriginalName(obj)
+    class_name = obj.schema_class.name
+    #search for "_"
+    index = class_name.index("_")
+    return class_name[index..class_name.length-1]
+  end
+
+  def DeltaTransform.isInsertChange?(obj)
+    return getChangeType(obj) == @@insert
+  end
+  
+  def DeltaTransform.isDeleteChange?(obj)
+    return getChangeType(obj) == @@delete
+  end
+
+  def DeltaTransform.isModifyChange?(obj)
+    return getChangeType(obj) == @@modify
+  end
+
+  def DeltaTransform.isClearChange?(obj)
+    return getChangeType(obj) == @@clear
+  end
+
+  
     
+  #############################################################################
+  #start of private section  
+  private
+  #############################################################################
+        
   def initialize()
     #change operation names
 
@@ -19,13 +76,6 @@ class DeltaTransform
     #init memo for schema types
     @memo = {}
     
-  end
-
-  def delta(old)
-    #given a schema conforming to schema-schema
-    #convert to an equivalent schema conforming to deltaschema
-
-    return Schema(old)
   end
 
   def Type(old, action)

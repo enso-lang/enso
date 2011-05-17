@@ -10,10 +10,6 @@ class Diff
     # nodes and edges in the graph are the union of the nodes in both instances
     # furthermore, every node is marked with a delta type: A(dded), D(eleted), M(odified)
     # every attribute (which includes edges) is marked with both old and new values
-  end
-
-  def diff_line (schema, o1, o2)
-    #do differencing for the geometry-diff sample --- only as a trial!
 
     # do some initialization
     @schema = schema
@@ -24,13 +20,17 @@ class Diff
 
     # do matching
     matches = @match.match(o1, o2)
-#    puts matches
     
     # generate union based on matches. union forms a basis for the result set
-    res = generate_diffs(o1, o2, matches)
-#    puts res.schema_class.name
-#    puts res.pts.length
+    return generate_diffs(o1, o2, matches)
   end
+
+  
+    
+  #############################################################################
+  #start of private section  
+  private
+  #############################################################################
 
   def match_primitive (schema, o1, o2)
     if (eq_primitive(schema, o1, o2))
