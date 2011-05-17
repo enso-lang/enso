@@ -1,5 +1,6 @@
 
 
+
 def main {
   hello_world("William");
 }
@@ -20,7 +21,16 @@ def hello_world(name) {
       <ul>
       for (x: root->classes, i) {
         <li>$i ": " edit(x->name);
-
+	 <ul>
+		for (y: x->fields, i) {
+		    <li>edit(y->name);
+			checkbox("Key", y->key);
+			checkbox("Optional", y->optional);
+			checkbox("Many", y->many);
+			checkbox("Traversal", y->traversal);
+		     </li>
+		}			
+	 </ul>
         </li>
       }
       </ul>
@@ -37,6 +47,22 @@ def navigate(title, page) {
 
 def edit(data) {
   <input name=address(data) type="text" value=data/>
+}
+
+
+def select(data) {
+  <select>
+   for (x: elts) 
+      <option name=x->name value=x->name/>
+  </select>   
+}
+
+def checkbox(title, data) {
+  <label>$title ": "</label>
+  if (data) 
+    <input name=address(data) type="checkbox" checked="true" value="true"/>
+  else
+    <input name=address(data) type="checkbox" value="true"/>
 }
 
 def form {
