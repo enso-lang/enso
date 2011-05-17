@@ -1,7 +1,8 @@
 
 
+
 def main {
-  hello_world("William");
+  //hello_world("William");
 }
 
 def html(title) {
@@ -11,22 +12,83 @@ def html(title) {
   </html>
 }
 
+def dataTable(data) {
+  switch (data) {
+   case Bla: <bla></bla>
+   case Foo: <foo></foo>
+   default <baz></baz>
+  }
+  <table>
+   <tr>
+    for (c: columns)
+      <td>$c->label</td>
+   </tr>
+   for (d: data) for (c: columns)
+     <td></td>
+  </table>
+}
+
+
+def schema_table(schema) {
+  form {
+   <table>
+     <tr>
+      <td>"Class"</td><td>"Fields"</td><td>"Key"</td><td>"Optional"</td><td>"Many"</td><td>"Traverse"</td>
+     </tr>
+      for (c: root->classes) {
+      	for (f: c->fields, j) 
+	  if (j == 0)  // append to current row
+	    row(c->name, f);
+	  else
+            row("", f);
+      }     
+   </table>
+   submit("Submit", hello_world("Tijs"));
+  }
+
+}
+
+def row(first, f) {
+  <tr>
+    if (first == "") 
+      <td></td>
+    else
+      <td>edit(first);</td>
+    <td>edit(f->name);</td>
+    <td>checkbox(f->key);</td>
+    <td>checkbox(f->optional);</td>
+    <td>checkbox(f->many);</td>
+    <td>checkbox(f->traversal);</td>
+  </tr>
+}
+
 def hello_world(name) {
   html("Test") {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
 
-    form() {
+    form {
       <ul>
       for (x: root->classes, i) {
-        <li>$i ": " edit(x->name);
-
+        <li>$i ": " edit(x->name); select(x->supers, root->classes);
+	 <ul>
+		for (y: x->fields, i) {
+		    <li>edit(y->name);
+			checkbox(y->key);
+			checkbox(y->optional);
+			checkbox(y->many);
+			checkbox(y->traversal);
+		     </li>
+		}			
+	 </ul>
         </li>
       }
       </ul>
-
       submit("Submit", hello_world(name));
     }
+
+    schema_table(root);
+
 
  }
 }
@@ -37,6 +99,34 @@ def navigate(title, page) {
 
 def edit(data) {
   <input name=address(data) type="text" value=data/>
+}
+
+
+def select1(elt, list) {
+  <select>
+   for (x: list) 
+     if (x == elt)
+       <option selected="true" name=x->name> $x->name </option>
+     else
+       <option name=x->name> $x->name </option>
+  </select>   
+}
+
+def select(elts, list) {
+  <select multiple="true">
+   for (x: list) 
+     if (x in elts)  
+       <option selected="true" name=x->name> $x->name </option>
+     else
+       <option name=x->name> $x->name </option>
+  </select>   
+}
+
+def checkbox(data) {
+  if (data) 
+    <input name=address(data) type="checkbox" checked="true" value="true"/>
+  else
+    <input name=address(data) type="checkbox" value="true"/>
 }
 
 def form {

@@ -26,7 +26,7 @@ end
 
 class Toplevel
   def initialize
-    root = Loader.load('instance.schema')
+    root = Loader.load('genealogy.schema')
     @eval = EvalWeb.new(Loader.load('example.web'), root)
   end
 

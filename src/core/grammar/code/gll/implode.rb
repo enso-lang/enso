@@ -4,6 +4,8 @@ require 'core/system/library/cyclicmap'
 require 'core/system/boot/instance_schema'
 require 'core/schema/code/factory'
 
+require 'core/grammar/code/gll/unparse'
+
 class Implode
 
   def self.implode(sppf)
@@ -20,7 +22,6 @@ class Implode
     return insts
   end
   
-
   def recurse(sppf, accu, in_field)
     type = sppf.type 
     sym = type.schema_class.name
@@ -33,18 +34,16 @@ class Implode
 
   def kids(sppf, accu, in_field)
     if sppf.kids.length > 1 then
-      sppf.kids.each_with_index do |k, i|
-        puts "Alt #{i}: #{k}"
-        puts "\t #{k.left}"
-        puts "\t #{k.right}"        
-      end
+      s = ''
+      Unparse.unparse(sppf, s)
+      puts "\t #{s}"
       raise "Ambiguity!" 
     end
     
     return if sppf.kids.empty?
     pack = sppf.kids.first
     recurse(pack.left, accu, in_field) if pack.left
-    recurse(pack.right, accu, in_field) #if pack.right
+    recurse(pack.right, accu, in_field)
   end
 
   def Create(this, sppf, accu, in_field)

@@ -5,10 +5,12 @@ start Web
 
 Web ::= [Web] defs:Def*
 
+// TODO: we have a dangling else problem...
+
 Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
-       | [If] "if" "(" cond:Exp ")" body:Stat Else?
-       | [Call] func:sym Args block:Stat
-       | Call ";"
+       | [If] "if" "(" cond:Exp ")" body:Stat ("else" else:Stat)?
+       | [Call] func:sym Args? block:Stat
+       | Call ";" 
        | [Element] "<" tag:sym attrs:Attr* "/>"
        | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
        | [Block] "{" stats:Stat* "}"
@@ -16,9 +18,12 @@ Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [Output] "$" exp:Exp
        | [Text] value:str
        | [Yield] "yield" 
+       | [Switch] "switch" "(" exp:Exp ")" "{" Case*
+       	 	  	   ("default" default:Stat)? "}"
 
 Call ::= [Call] func:sym Args
 
+Case ::= [Case] "case" name:sym ":" body:Stat
 
 Def ::= [Def] "def" name:sym Sig? body:Stat
 
@@ -26,17 +31,18 @@ Def ::= [Def] "def" name:sym Sig? body:Stat
 Exp ::= [Field] exp:Exp "->" name:sym
       | [Var] name:sym
       | [Str] value:str
+      | [Int] value:int
       | Call  
       | [Link] "link" "(" exp:Exp ")"
       | [Address] "address" "(" exp:Exp ")"
       | [GenSym] "gensym"
-      | [Concat] lhs:Exp "+" rhs:Exp 
+      | [Concat] lhs:Exp "+" rhs:Exp  // TODO: precedences
+      | [Equal] lhs:Exp "==" rhs:Exp 
+      | [In] lhs:Exp "in" rhs:Exp 
 
       
 Index ::= "," index:sym
 Assign ::= [Assign] name:sym "=" exp:Exp
-
-Else ::=  "else" else:Stat
 
 Attr ::=  [Attr] name:sym "=" exp:Exp
 

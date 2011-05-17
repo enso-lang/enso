@@ -49,6 +49,10 @@ class EvalWeb
       Result.new(this.value)
     end
 
+    def Int(this, tenv, env)
+      Result.new(Integer(this.value))
+    end
+
     def Var(this, tenv, env)
       #puts "ENV = #{env}"
       if env[this.name] then
@@ -69,6 +73,23 @@ class EvalWeb
       lhs = eval(this.lhs, tenv, env)
       rhs = eval(this.rhs, tenv, env)
       return Result.new(lhs.value + rhs.value)
+    end
+
+    def Equal(this, tenv, env)
+      lhs = eval(this.lhs, tenv, env)
+      rhs = eval(this.rhs, tenv, env)
+      return Result.new(lhs.value == rhs.value)
+    end
+
+    def In(this, tenv, env)
+      lhs = eval(this.lhs, tenv, env)
+      rhs = eval(this.rhs, tenv, env)
+      rhs.value.each do |x|
+        if lhs.value == x then
+          return Result.new(true)
+        end
+      end
+      return Result.new(false)
     end
 
     def Address(this, tenv, env)
@@ -146,6 +167,23 @@ class EvalWeb
 
   private
 
+  def convert(field, value)
+    if field.type.Primitive? then
+      case  field.type.name 
+      when 'int' 
+        Integer(value)
+      when 'bool'
+        value == 'true' ? true : false
+      when 'real'
+        Float(value)
+      when 'str'
+        value
+      end
+    else
+      puts "Warning: unsupported now"
+    end
+  end
+
   def update(obj, k, v)
     if k =~ /^\.(.*)/ then
       field = $1
@@ -159,8 +197,12 @@ class EvalWeb
       update_collection(obj[field], v)
     else
       puts "Setting obj[#{field}] to #{v}"
-      obj[field] = v
+      puts "\t\t\tSchema_class: #{obj.schema_class}"
+      puts "\t\t\tField: #{obj.schema_class.fields[field]}"
+      obj[field] = convert(obj.schema_class.fields[field], v)
     end
+
+    return obj
   end
 
   def update_collection(coll, hash)
@@ -177,7 +219,13 @@ class EvalWeb
         raise "Invalid collection key: #{k}"
       end
       v.each do |k, v|
-        update(coll[key], k, v)
+        # delete and and, otherwise hashing messes up
+        x = update(coll[key], k, v)
+        puts "COLL: #{coll}"
+        coll.delete(coll[key])
+        puts "AFTER DELETE: #{coll}"
+        coll << x
+        puts "AFTER ADD: #{coll}"
       end
     end
   end
@@ -224,6 +272,12 @@ class EvalWeb
   end
 
   def If(this, env, out, block)
+    r = @exp_eval.eval(this.cond, @tenv, env)
+    if r.value then
+      eval(this.body, env, out, block)
+    elsif this.else then
+      eval(this.else, env, out, block)
+    end
   end
 
   def Let(this, env, out, block)
