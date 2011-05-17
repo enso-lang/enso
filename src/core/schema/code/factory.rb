@@ -311,8 +311,8 @@ class ManyIndexedField < BaseManyField
   # sligthly nonstandard zip, includes all elements of this and other
   def outer_join(other)
     keys = self.keys | other.keys
+    #puts "JOIN: #{self} | #{other}"
     keys.each do |key_val|
-      #puts "JOIN #{key_val} #{self[key_val]} #{other[key_val]}"
       yield self[key_val], other[key_val], key_val
     end
   end
