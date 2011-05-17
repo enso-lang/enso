@@ -32,6 +32,18 @@ class If < Stat
   else: Stat?
 end
 
+class Switch < Stat
+  exp: Exp
+  cases: Case*
+  default: Stat?
+end
+
+class Case
+  name: str
+  body: Stat
+end
+
+
 class Let < Stat
   decls:Assign* 
   body:Stat
