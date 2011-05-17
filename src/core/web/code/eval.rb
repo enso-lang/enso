@@ -49,6 +49,10 @@ class EvalWeb
       Result.new(this.value)
     end
 
+    def Int(this, tenv, env)
+      Result.new(Integer(this.value))
+    end
+
     def Var(this, tenv, env)
       #puts "ENV = #{env}"
       if env[this.name] then
@@ -69,6 +73,23 @@ class EvalWeb
       lhs = eval(this.lhs, tenv, env)
       rhs = eval(this.rhs, tenv, env)
       return Result.new(lhs.value + rhs.value)
+    end
+
+    def Equal(this, tenv, env)
+      lhs = eval(this.lhs, tenv, env)
+      rhs = eval(this.rhs, tenv, env)
+      return Result.new(lhs.value == rhs.value)
+    end
+
+    def In(this, tenv, env)
+      lhs = eval(this.lhs, tenv, env)
+      rhs = eval(this.rhs, tenv, env)
+      rhs.value.each do |x|
+        if lhs.value == x then
+          return Result.new(true)
+        end
+      end
+      return Result.new(false)
     end
 
     def Address(this, tenv, env)
