@@ -12,14 +12,29 @@ def html(title) {
   </html>
 }
 
+def dataTable(data) {
+  switch (data) {
+   case Bla: <bla></bla>
+   case Foo: <foo></foo>
+   default <baz></baz>
+  }
+  <table>
+   <tr>
+    for (c: columns)
+      <td>$c->label</td>
+   </tr>
+   for (d: data) for (c: columns)
+     <td></td>
+  </table>
+}
+
 
 def schema_table(schema) {
-  form() {
+  form {
    <table>
-     <th>
-      <td>"Class"</td><td>"Fields"</td><td>"Key"</td><td>"Optional"</td><td>"Many"</td>
-     </th>
-     <tbody>
+     <tr>
+      <td>"Class"</td><td>"Fields"</td><td>"Key"</td><td>"Optional"</td><td>"Many"</td><td>"Traverse"</td>
+     </tr>
       for (c: root->classes) {
       	for (f: c->fields, j) 
 	  if (j == 0)  // append to current row
@@ -27,7 +42,6 @@ def schema_table(schema) {
 	  else
             row("", f);
       }     
-     </tbody>
    </table>
    submit("Submit", hello_world("Tijs"));
   }
@@ -53,7 +67,7 @@ def hello_world(name) {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
 
-    form() {
+    form {
       <ul>
       for (x: root->classes, i) {
         <li>$i ": " edit(x->name); select(x->supers, root->classes);
