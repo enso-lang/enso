@@ -1,0 +1,56 @@
+
+
+def navigate(title, page) {
+  <a href=link(page)>$title</a>
+}
+
+def textedit(data) {
+  <input name=address(data) type="text" value=data/>
+}
+
+
+def select1(elt, list) {
+  <select name=address(elt)>
+   for (x: list) 
+     if (x == elt)
+       <option selected="true"
+              value=address(x)> $x->name </option>
+     else
+       <option value=address(x)> $x->name </option>
+  </select>   
+}
+
+def select(elts, list) {
+  <select multiple="true" name=address(elts) + "[]">
+   for (x: list) 
+     if (x in elts)  
+       <option selected="true" 
+       	       value=address(x)> $x->name </option>
+     else
+       <option value=address(x)> $x->name </option>
+  </select>   
+}
+
+def checkbox(data) {
+  // deal with unchecked value
+  <input type="hidden" name=address(data) value="false"/>
+  if (data)
+    <input name=address(data) type="checkbox" checked="true" value="true"/>
+  else
+    <input name=address(data) type="checkbox" value="true"/>
+}
+
+def form {
+  <form action="/$submit" method="post">
+    yield;
+  </form>
+}
+
+def submit(text, action) {
+  let
+    name = gensym
+  in {
+    <input type="hidden" name="redirect_" + name value=link(action)/>
+    <input type="submit" name=name value=text /> 
+  }
+}

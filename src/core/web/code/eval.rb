@@ -3,79 +3,24 @@ require 'htmlentities'
 require 'uri'
 
 require 'core/system/library/schema'
+require 'core/system/load/load'
 require 'core/web/code/eval_exp'
 require 'core/web/code/utils'
 
 class EvalWeb
   include WebUtils
+
+  attr_reader :log
   
-  def initialize(web, root)
+  def initialize(web, root, log)
     @web = web
     @root = root
     @tenv = {}
-    web.defs.each do |f|
-      @tenv[f.name] = f
-    end
-    #puts @tenv
+    @imports = {}
     @coder = HTMLEntities.new
-    @eval_exp = EvalExp.new(root)
-  end
-
-
-  def defines?(name)
-    @tenv[name]
-  end
-  
-  def eval_req(name, params, out)
-    env = {}
-    news = {}
-    params.each do |k, v|
-      if v =~ /^\./ then
-        env[k] = Result.new(deref(v), v)
-      elsif v =~ /^@/ then
-        obj, _ = create(v, @root._graph_id, news)
-        puts "Converting param: #{k}  #{v}"
-        # it cannot have subpaths, since it is new
-        # so the path is actually v itself
-        env[k] = Result.new(obj, v)
-      else
-        env[k] = Result.new(v)
-      end
-    end
-    eval(@tenv[name].body, env, out, nil)
-  end
-
-  def handle_submit(params, out)
-    params.each do |k, v|
-      puts "VAR: #{k}: #{v}"
-    end
-
-    key = params.keys.find do |name|
-      # todo factor this sigil out and reuse it also with gensym
-      name =~ /^\$\$/
-    end
-    url = params["redirect_#{key}"]
-
-    # update the assignments    
-    # and create new objects
-
-    # first create new objects and assign values
-    news = {}
-    params.each do |k, v|
-      if k =~ /^@/ then
-        obj, path = create(k, @root._graph_id, news)
-        update(obj, path, v, news)
-      end
-    end
-
-    # then do additionaly assignments
-    params.each do |k, v|
-      if k !~ /^@/
-        update(@root, k, v, news)
-      end
-    end
-
-    return url
+    @log = log
+    @eval_exp = EvalExp.new(root, @log)
+    eval(web)
   end
 
 
@@ -83,19 +28,36 @@ class EvalWeb
     send(obj.schema_class.name, obj, *args)
   end
 
+  def Web(this)
+    this.toplevels.each do |t|
+      eval(t)
+    end
+  end
+
+  def Def(this)
+    @tenv[this.name] = this
+  end
+
+  def Import(this)
+    mod = this.module
+    unless @imports[mod]
+      web = Loader.load("#{mod}.web")
+      @imports[mod] = web
+      eval(web)
+    end
+  end
+    
+
   def Element(this, env, out, block)
-    out << "<#{this.tag}"
+    attrs = {}
     this.attrs.each do |attr|
-      out << ' ' 
-      r = @eval_exp.eval(attr.exp, @tenv, env)
-      val = @coder.encode(r.value)
-      out << "#{attr.name}=\"#{val}\""
+      attrs[attr.name] = @eval_exp.eval(attr.exp, @tenv, env).value
     end
-    out << ">"
-    this.body.each do |stat|
-      eval(stat, env, out, block)
+    tag(this.tag, attrs, out) do
+      this.body.each do |stat|
+        eval(stat, env, out, block)
+      end
     end
-    out << "</#{this.tag}>"
   end
 
   def Output(this, env, out, block)
@@ -139,20 +101,31 @@ class EvalWeb
   end
 
   def Call(this, env, out, block)
-    f = @tenv[this.func]
-    vs = this.args.map do |exp|
-      #puts "Evaluating #{exp}"
-      r = @eval_exp.eval(exp, @tenv, env)
-      #puts "REsult = #{r}"
-      r
+    if !@tenv[this.func] 
+      # interpret the call as an element
+      tag(this.func, {}, out) do 
+        if block then
+          block.stats.each do |stat|
+            eval(stat, env, out, nil)
+          end
+        end
+      end
+    else
+      f = @tenv[this.func]
+      vs = this.args.map do |exp|
+        #log.debug "Evaluating #{exp}"
+        r = @eval_exp.eval(exp, @tenv, env)
+        #log.debug "REsult = #{r}"
+        r
+      end
+      nenv = {}.update(env)
+      f.formals.each_with_index do |frm, i|
+        nenv[frm.name] = vs[i]
+      end
+      #log.debug "Calling: #{this.func}: block = #{this.block}"
+      block = Closure.new(env, this.block) if this.block
+      eval(f.body, nenv, out, block)
     end
-    nenv = {}.update(env)
-    f.formals.each_with_index do |frm, i|
-      nenv[frm.name] = vs[i]
-    end
-    #puts "Calling: #{this.func}: block = #{this.block}"
-    block = Closure.new(env, this.block) if this.block
-    eval(f.body, nenv, out, block)
   end
     
   def Yield(this, env, out, closure)

@@ -10,6 +10,73 @@ module WebUtils
     end
   end
 
+  def defines?(name)
+    @tenv[name]
+  end
+  
+  def eval_req(name, params, out)
+    env = {}
+    news = {}
+    params.each do |k, v|
+      if v =~ /^\./ then
+        env[k] = Result.new(deref(@root, v), v)
+      elsif v =~ /^@/ then
+        obj, _ = create(v, @root._graph_id, news)
+        log.debug "Converting param: #{k}  #{v}"
+        # it cannot have subpaths, since it is new
+        # so the path is actually v itself
+        env[k] = Result.new(obj, v)
+      else
+        env[k] = Result.new(v)
+      end
+    end
+    eval(@tenv[name].body, env, out, nil)
+  end
+
+  def handle_submit(params, out)
+    params.each do |k, v|
+      log.debug "VAR: #{k}: #{v}"
+    end
+
+    key = params.keys.find do |name|
+      # todo factor this sigil out and reuse it also with gensym
+      name =~ /^\$\$/
+    end
+    url = params["redirect_#{key}"]
+
+    # update the assignments    
+    # and create new objects
+
+    # first create new objects and assign values
+    news = {}
+    params.each do |k, v|
+      if k =~ /^@/ then
+        obj, path = create(k, @root._graph_id, news)
+        update(obj, path, v, news)
+      end
+    end
+
+    # then do additionaly assignments
+    params.each do |k, v|
+      if k !~ /^@/
+        update(@root, k, v, news)
+      end
+    end
+
+    return url
+  end
+
+
+  def tag(name, attrs, out)
+    out << "<#{name}"
+    attrs.each do |k, v|
+      out << " #{k}=\"#{@coder.encode(v)}\""
+    end
+    out << ">"
+    yield
+    out << "</#{name}>"
+  end
+
   def convert(field, value)
     if field.type.Primitive? then
       case  field.type.name 
@@ -29,7 +96,7 @@ module WebUtils
   end
 
   def deref(obj, ref)
-    puts "Dereffing: #{ref}"
+    log.debug "Dereffing: #{ref}"
     return obj unless ref
     return obj if ref.empty?
     key, ref = deref1(ref)
@@ -67,7 +134,7 @@ module WebUtils
     fn, _ = deref1(k)
     return unless fn
 
-    puts "Updating: #{fn} in #{obj} to #{v}"
+    log.debug "Updating: #{fn} in #{obj} to #{v}"
 
     fld = obj.schema_class.fields[fn]
 
@@ -90,10 +157,10 @@ module WebUtils
 
   def create(str, fact, news)
     if str =~ /^(@([a-zA-Z_][a-zA-Z0-9_]*):[0-9]+)(.*)/ then
-      puts "STR: #{str} $1: #{$1}"
+      log.debug "STR: #{str} $1: #{$1}"
       # only create if not already in the "news" map
       news[$1] ||= fact[$2]
-      puts "#{$3}"
+      log.debug "#{$3}"
       return news[$1], $3
     end
     raise "Invalid 'new' ref: #{str}"
@@ -102,14 +169,14 @@ module WebUtils
   def update_list(fld, obj, list)
     list.each_with_index do |elt, i|
       x = convert(fld, elt)
-      puts "\tx = #{x}"
+      log.debug "\tx = #{x}"
       obj << x
     end
   end
 
   def update_collection(coll, hash, news)
     # keys are keys in coll
-    puts "Updating collection: #{coll} to #{hash}"
+    log.debug "Updating collection: #{coll} to #{hash}"
     hash.each do |k, v|
       key = convert_key(k)
       v.each do |k, v|

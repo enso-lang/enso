@@ -25,9 +25,8 @@ end
 
 
 class Toplevel
-  def initialize
-    root = Loader.load('genealogy.schema')
-    @eval = EvalWeb.new(Loader.load('example.web'), root)
+  def initialize(web, root, log)
+    @eval = EvalWeb.new(web, root, log)
   end
 
   def call(env, stream = Stream.new)

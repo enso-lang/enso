@@ -4,13 +4,20 @@ primitive \int
 primitive \bool
 
 class Web
-  defs: Def*
+  toplevels: Toplevel*
 end
 
-class Def
+class Toplevel
+end
+
+class Def < Toplevel
   #name: str
   formals: Formal*
   body: Stat
+end
+
+class Import < Toplevel
+  #module: str
 end
 
 class Stat

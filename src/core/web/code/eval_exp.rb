@@ -1,5 +1,6 @@
 
 
+
 class Result
   attr_reader :value, :path
   
@@ -15,12 +16,13 @@ end
 
 
 class EvalExp
+  attr_reader :log
 
-
-  def initialize(root)
+  def initialize(root, log)
     @root = root
     @gensym = 0
     @new_count = 0
+    @log = log
   end
 
   def eval(obj, *args)
@@ -51,13 +53,13 @@ class EvalExp
   end
 
   def Var(this, tenv, env)
-    puts "ENV = #{env}"
     if env[this.name] then
       env[this.name] # env binds results
     elsif this.name == 'root'
       Result.new(@root, '')
     else
-      raise "No such variable: #{this.name}"
+      log.warn("Unbound variable #{this.var} (env = #{env})")
+      nil
     end
   end
 
@@ -91,22 +93,22 @@ class EvalExp
 
   def Address(this, tenv, env)
     r = eval(this.exp, tenv, env)
+    log.warn("Address asked, but path is nil (val = #{r.value})") unless r.path
     return Result.new(r.path)
   end
 
   def New(this, tenv, env)
     id = @new_count += 1;
     path = "@#{this.class}:#{id}"
-    # don't finalize here
     new_obj = @root._graph_id[this.class]
     return Result.new(new_obj, path)
   end
 
   def Field(this, tenv, env)
     r = eval(this.exp, tenv, env)
-    puts "---------------> Field: #{r} #{this.name}"
+    log.debug "---------------> Field: #{r} #{this.name}"
     x = Result.new(r.value[this.name], "#{r.path}.#{this.name}")
-    puts "XXX = #{x}"
+    log.debug "XXX = #{x}"
     return x
   end
 

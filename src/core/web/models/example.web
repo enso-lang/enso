@@ -1,5 +1,5 @@
 
-
+import prelude
 
 def main {
   //hello_world("William");
@@ -12,14 +12,25 @@ def html(title) {
   </html>
 }
 
+def add_field(klass, x) {
+   form {
+    "Name: " textedit(x->name);
+    "Key: " checkbox(x->key);
+    "Optional: " checkbox(x->optional);
+    "Many: " checkbox(x->many);
+    "Spine: " checkbox(x->traversal);
+     <input type="hidden" name=address(klass) value=address(x)/>
+     submit("Submit", hello_world("William"));
+   }
+}
 
-def new_class(x) {
+def add_class(container, x) {
     form {
     <ul>
-    <li>"Name: " edit(x->name); select(x->supers, root->classes);
+    <li>"Name: " textedit(x->name); select(x->supers, root->classes);
 	 <ul>
 		for (y: x->fields, i) {
-		    <li>edit(y->name);
+		    <li>textedit(y->name);
 			checkbox(y->key);
 			checkbox(y->optional);
 			checkbox(y->many);
@@ -29,7 +40,7 @@ def new_class(x) {
 	</ul>
    </li>
    </ul>
-   <input type="hidden" name=address(root->types) value=address(x)/>
+   <input type="hidden" name=address(container) value=address(x)/>
     submit("Submit", hello_world("Tijs"));
    }
 }
@@ -38,50 +49,43 @@ def schema_table(schema) {
   form {
    <table>
      <tr>
-      <td>"Class"</td><td>"Fields"</td><td>"Key"</td><td>"Optional"</td><td>"Many"</td><td>"Traverse"</td>
+      <td>"Class"</td><td>"Fields"</td><td>"Key"</td><td>"Optional"</td><td>"Many"</td><td>"Traverse"</td><td></td>
      </tr>
       for (c: root->classes) {
       	for (f: c->fields, j) 
+	  <tr>
 	  if (j == 0)  // append to current row
 	    myrow(c->name, f);
 	  else
             myrow("", f);
+	  <td>navigate("Add field", add_field(c->defined_fields, new(Field)));</td>
+          </tr>
+
       }     
    </table>
    submit("Submit", hello_world("Tijs"));
   }
-
-  form {
-    submit("New", new_class(new(Klass)));
-  }
+  navigate("Add class", add_class(root->types, new(Klass)));
 
 }
 
 def myrow(first, f) {
-  <tr>
     if (first == "") 
       <td></td>
     else
-      <td>edit(first);</td>
-    <td>edit(f->name);</td>
+      <td>textedit(first);</td>
+    <td>textedit(f->name);</td>
     <td>checkbox(f->key);</td>
     <td>checkbox(f->optional);</td>
     <td>checkbox(f->many);</td>
     <td>checkbox(f->traversal);</td>
-  </tr>
 }
 
-def yield1 {
-  <p>
-  yield 1;
-  </p>
-}
 
 def hello_world(name) {
   html("Test") {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
-    <p> "This is one: " yield1 { |x| <strong>$x</strong> } </p>
 
     schema_table(root);
 
@@ -89,10 +93,10 @@ def hello_world(name) {
     form {
       <ul>
       for (x: root->classes, i) {
-        <li>$i ": " edit(x->name); select(x->supers, root->classes);
+        <li>$i ": " textedit(x->name); select(x->supers, root->classes);
 	 <ul>
 		for (y: x->fields, i) {
-		    <li>edit(y->name);
+		    <li>textedit(y->name);
 			checkbox(y->key);
 			checkbox(y->optional);
 			checkbox(y->many);
@@ -110,57 +114,3 @@ def hello_world(name) {
  }
 }
 
-def navigate(title, page) {
-  <a href=link(page)>$title</a>
-}
-
-def edit(data) {
-  <input name=address(data) type="text" value=data/>
-}
-
-
-def select1(elt, list) {
-  <select name=address(elt)>
-   for (x: list) 
-     if (x == elt)
-       <option selected="true"
-              value=address(x)> $x->name </option>
-     else
-       <option value=address(x)> $x->name </option>
-  </select>   
-}
-
-def select(elts, list) {
-  <select multiple="true" name=address(elts) + "[]">
-   for (x: list) 
-     if (x in elts)  
-       <option selected="true" 
-       	       value=address(x)> $x->name </option>
-     else
-       <option value=address(x)> $x->name </option>
-  </select>   
-}
-
-def checkbox(data) {
-  // deal with unchecked value
-  <input type="hidden" name=address(data) value="false"/>
-  if (data)
-    <input name=address(data) type="checkbox" checked="true" value="true"/>
-  else
-    <input name=address(data) type="checkbox" value="true"/>
-}
-
-def form {
-  <form action="/$submit" method="post">
-    yield;
-  </form>
-}
-
-def submit(text, action) {
-  let
-    name = gensym
-  in {
-    <input type="hidden" name="redirect_" + name value=link(action)/>
-    <input type="submit" name=name value=text /> 
-  }
-}
