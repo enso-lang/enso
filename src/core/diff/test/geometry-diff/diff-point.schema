@@ -1,4 +1,8 @@
-primitive \int
+  primitive \str
+  primitive \int
+  primitive \bool
+  primitive \real
+
 class Point
 end
 class Point2D < Point
@@ -11,5 +15,7 @@ class Point3D < Point
   z: int
 end
 class Line
+  # label: str
+  len: int?
   ! pts: Point2D *
 end

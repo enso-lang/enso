@@ -1,4 +1,4 @@
 start Line
-Line ::= [Line] "line" pts:Point2D * "end"
+Line ::= [Line] "line" label:str (len:int)? pts:Point2D * "end"
 Point2D ::= [Point2D] "point" x:int y:int
 Point3D ::= [Point3D] "point" x:int y:int z:int

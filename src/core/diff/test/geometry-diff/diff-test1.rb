@@ -15,14 +15,12 @@ DisplayFormat.print(point_grammar, p1)
 p2 = Loader.load('diff-test2.diff-point')
 DisplayFormat.print(point_grammar, p2)
 
-=begin
-DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
-deltaCons = DeltaTransform.new.delta(point_schema)
-DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
-=end
+#DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
+#deltaCons = DeltaTransform.new.delta(point_schema)
+#DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
+#DisplayFormat.print(Loader.load('deltaschema.grammar'), deltaCons)
 
 res = Diff.new.diff(point_schema, p1, p2)
-Print.print(res)
 
 p3 = Patch.patch!(p1, res)
 
