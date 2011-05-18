@@ -9,19 +9,20 @@ Web ::= [Web] defs:Def*
 
 Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [If] "if" "(" cond:Exp ")" body:Stat ("else" else:Stat)?
-       | [Call] func:sym Args? block:Stat
-       | Call ";" 
+       | [Call] func:sym Args? block:Closure
+       | Call ";"  // todo: should be exp if we have closures
        | [Element] "<" tag:sym attrs:Attr* "/>"
        | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
        | [Block] "{" stats:Stat* "}"
        | [Let] "let" decls:Assign* "in" body:Stat
        | [Output] "$" exp:Exp
        | [Text] value:str
-       | [Yield] "yield" 
+       | [Yield] "yield" args:{Exp ","}* ";"
        | [Switch] "switch" "(" exp:Exp ")" "{" Case*
        	 	  	   ("default" default:Stat)? "}"
 
 Call ::= [Call] func:sym Args
+Closure ::= [Closure] "{" ("|" formals:{Formal ","}+ "|")? stats:Stat* "}"
 
 Case ::= [Case] "case" name:sym ":" body:Stat
 
@@ -34,11 +35,15 @@ Exp ::= [Field] exp:Exp "->" name:sym
       | [Int] value:int
       | Call  
       | [Link] "link" "(" exp:Exp ")"
+      | [New] "new" "(" class:sym ")"
       | [Address] "address" "(" exp:Exp ")"
       | [GenSym] "gensym"
       | [Concat] lhs:Exp "+" rhs:Exp  // TODO: precedences
       | [Equal] lhs:Exp "==" rhs:Exp 
       | [In] lhs:Exp "in" rhs:Exp 
+      | [It] "it"
+      | [List] "[" elements:{Exp ","}* "]"
+      | Closure
 
       
 Index ::= "," index:sym
@@ -53,13 +58,13 @@ Named ::= [Named] name:sym ":" exp:Exp
 
 Sig ::=  "(" formals:{Formal "," }* ")"
 
-Formal ::= [Formal] name:sym ":" Spec
-        |  [Formal] name:sym
+Formal ::= [Formal] name:sym (":" Spec)?
 
 Spec ::= patterns:{Pattern "|"}+
 
-Pattern ::= [Pattern] name:sym "(" args:{Formal ","}+ ")"
-	 |  [Pattern] name:sym
-	 |  Pattern many:"*"?
+Pattern ::= [Pattern] name:sym "(" args:{Formal ","}+ ")" Many?
+	 |  [Pattern] name:sym Many?
+
+Many ::= "*" @"@many = true"
 
 

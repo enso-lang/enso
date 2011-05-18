@@ -8,26 +8,31 @@ def main {
 def html(title) {
   <html>
     <head><title>$title</title></head>
-    <body>yield</body>
+    <body>yield;</body>
   </html>
 }
 
-def dataTable(data) {
-  switch (data) {
-   case Bla: <bla></bla>
-   case Foo: <foo></foo>
-   default <baz></baz>
-  }
-  <table>
-   <tr>
-    for (c: columns)
-      <td>$c->label</td>
-   </tr>
-   for (d: data) for (c: columns)
-     <td></td>
-  </table>
-}
 
+def new_class(x) {
+    form {
+    <ul>
+    <li>"Name: " edit(x->name); select(x->supers, root->classes);
+	 <ul>
+		for (y: x->fields, i) {
+		    <li>edit(y->name);
+			checkbox(y->key);
+			checkbox(y->optional);
+			checkbox(y->many);
+			checkbox(y->traversal);
+		     </li>
+		}			
+	</ul>
+   </li>
+   </ul>
+   <input type="hidden" name=address(root->types) value=address(x)/>
+    submit("Submit", hello_world("Tijs"));
+   }
+}
 
 def schema_table(schema) {
   form {
@@ -38,17 +43,21 @@ def schema_table(schema) {
       for (c: root->classes) {
       	for (f: c->fields, j) 
 	  if (j == 0)  // append to current row
-	    row(c->name, f);
+	    myrow(c->name, f);
 	  else
-            row("", f);
+            myrow("", f);
       }     
    </table>
    submit("Submit", hello_world("Tijs"));
   }
 
+  form {
+    submit("New", new_class(new(Klass)));
+  }
+
 }
 
-def row(first, f) {
+def myrow(first, f) {
   <tr>
     if (first == "") 
       <td></td>
@@ -62,10 +71,20 @@ def row(first, f) {
   </tr>
 }
 
+def yield1 {
+  <p>
+  yield 1;
+  </p>
+}
+
 def hello_world(name) {
   html("Test") {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
+    <p> "This is one: " yield1 { |x| <strong>$x</strong> } </p>
+
+    schema_table(root);
+
 
     form {
       <ul>
@@ -87,8 +106,6 @@ def hello_world(name) {
       submit("Submit", hello_world(name));
     }
 
-    schema_table(root);
-
 
  }
 }
@@ -103,27 +120,31 @@ def edit(data) {
 
 
 def select1(elt, list) {
-  <select>
+  <select name=address(elt)>
    for (x: list) 
      if (x == elt)
-       <option selected="true" name=x->name> $x->name </option>
+       <option selected="true"
+              value=address(x)> $x->name </option>
      else
-       <option name=x->name> $x->name </option>
+       <option value=address(x)> $x->name </option>
   </select>   
 }
 
 def select(elts, list) {
-  <select multiple="true">
+  <select multiple="true" name=address(elts) + "[]">
    for (x: list) 
      if (x in elts)  
-       <option selected="true" name=x->name> $x->name </option>
+       <option selected="true" 
+       	       value=address(x)> $x->name </option>
      else
-       <option name=x->name> $x->name </option>
+       <option value=address(x)> $x->name </option>
   </select>   
 }
 
 def checkbox(data) {
-  if (data) 
+  // deal with unchecked value
+  <input type="hidden" name=address(data) value="false"/>
+  if (data)
     <input name=address(data) type="checkbox" checked="true" value="true"/>
   else
     <input name=address(data) type="checkbox" value="true"/>
@@ -131,7 +152,7 @@ def checkbox(data) {
 
 def form {
   <form action="/$submit" method="post">
-    yield
+    yield;
   </form>
 }
 

@@ -4,7 +4,9 @@ PAPERS:
      
 Errors to check
 * Inserting into computed many-valued field does not fail!  EG:   x.fields << y
-     
+* Put an invariant on SchemaSchema.Class that the supertype relation must be asyclic
+* Deal with keys that change and need to be rehashed
+
 Cleanup tasks
 * Finalize: seals from changes, run invariants (close to being right)
 * sanitize the loader namespace (remove boot stuff)
