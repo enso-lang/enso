@@ -33,3 +33,4 @@ puts "p2="
 DisplayFormat.print(point_grammar, p2)
 puts "p3="
 DisplayFormat.print(point_grammar, p3)
+

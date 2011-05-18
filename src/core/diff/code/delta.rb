@@ -119,6 +119,8 @@ class DeltaTransform
     return x
   end
   
+  #given a schema conforming to schema-schema
+  #convert to an equivalent schema conforming to deltaschema
   def Schema(old)
 
     #make base change record types
@@ -182,8 +184,9 @@ class DeltaTransform
     end
 
     #recreate all field from old using new classes     
-    old.defined_fields.each do |t|
-      x.defined_fields << Field(t)
+    old.defined_fields.each do |field|
+      next if field.computed
+      x.defined_fields << Field(field)
     end
   end
 
@@ -192,16 +195,13 @@ class DeltaTransform
     new.type = @memo[old.type.name]
     new.optional = true
     new.many = old.many
-    new.key = old.key
-    new.computed = old.computed
-    new.traversal = new.traversal
+    new.traversal = true
     return new
   end
-
 end
 
 def Delta(schema)
-  return DeltaTransform.new.Schema(schema)
+  return DeltaTransform.new.delta(schema)
 end
 
 
@@ -211,10 +211,10 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'core/grammar/code/layout'
   
-  cons = Loader.load('point.schema')
-  
-  deltaCons = Delta(cons)
-
+  deltaCons = Delta(Loader.load('point.schema'))
+  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
+  puts "-"*50
+  deltaCons = Delta(Loader.load('schema.schema'))
   DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 end
 
