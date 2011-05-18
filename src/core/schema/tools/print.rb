@@ -3,9 +3,6 @@
 # of any object. It uses the model to 
 
 # obj: the object to be printed
-# paths: this is s nested record type that guides the printing process.
-#   the keys tell the printer which fields to traverse from the main object
-#   the values are the paths for the subobject
 # indent: amount of indent
 # inverse: an internal argument that tells what field was just traveresed,
 #   so that its inverse will not be printed on the subobjects. This just
@@ -24,29 +21,19 @@ class Print
     @output << args.join('')
   end
 
-  def self.convert_path(list)
-    if list == []
-      return {}
-    else
-      return { list[0].to_sym => convert_path(list[1..-1]) }
-    end
-  end
-
-  def self.print(obj, paths=nil, indent=0, visited=[])
-    paths = convert_path(SchemaPaths(obj.schema_class)) if !paths
-    self.new.recurse(obj, paths, indent, visited)
+  def self.print(obj, indent=0)
+    self.new.recurse(obj, indent)
   end
   
 
-  def recurse(obj, paths={}, indent=0, visited=[])
+  def recurse(obj, indent=0)
     if obj.nil?
       myputs "nil"
     else
-      visited.push obj
       klass = obj.schema_class   # TODO: pass as an argument for partial evaluation
       myputs klass.name
       #myputs "#{klass.name} #{obj._id}"
-      #myputs "FOO #{obj} p=#{paths} i=#{visited}"
+      #myputs "FOO #{obj}
       indent += 2
       klass.fields.each do |field|
         #puts "FIELD: #{field}"
@@ -54,47 +41,34 @@ class Print
         if field.type.Primitive?
           myprint " "*indent, field.name, ": ", obj[field.name], "\n"
         else
-          sub_path = paths[field.name.to_sym]
-
-          if sub_path || !field.inverse ||
-                (!field.many && (obj[field.name].nil? || key(obj[field.name].schema_class)))
-            if !field.many
-              sub = obj[field.name]
-              use_key = sub_path.nil? && !sub.nil? && key(sub.schema_class)
-              if !visited.include?(sub) || visited[-2] != sub && use_key
-                myprint " "*indent, field.name, ": "
-                print1(use_key, sub, sub_path, indent, visited)
-              end
-            else
-              myprint " "*indent, field.name, "\n"
-              subindent = indent + 2
-              obj[field.name].each_with_index do |sub, i|
-                myprint " "*subindent, "#", i, " "
-                use_key = sub_path.nil? && key(sub.schema_class)
-                print1(use_key, sub, sub_path, subindent, visited)
-              end
+          if !field.many
+            sub = obj[field.name]
+            myprint " "*indent, field.name, ": "
+            print1(field.traversal, sub, indent)
+          else
+            myprint " "*indent, field.name, "\n"
+            subindent = indent + 2
+            obj[field.name].each_with_index do |sub, i|
+              myprint " "*subindent, "#", i, " "
+              print1(field.traversal, sub, subindent)
             end
           end
         end
       end
-      visited.pop
     end
   end
   
-  def print1(use_key, obj, path, indent, visited)
-    if use_key  
-      # TODO: annoying that we need to know actual type, not just declared type
-      # This is because we don't have field inheritance in the base schema
-      myprint obj[key(obj.schema_class).name], "\n"
+  def print1(traversal, obj, indent)
+    key = obj && ClassKey(obj.schema_class)
+    if traversal  
+      recurse(obj, indent)
+    elsif key
+      myprint obj[key.name], "\n"
     else
-      recurse(obj, path || {}, indent, visited)
+      myprint "<UNKNOWN NAME>", "\n"
     end
   end
   
-  def key(klass)
-    klass.fields.find { |f| f.key && f.type.Primitive? }
-  end  
-
 end
 
 if __FILE__ == $0 then
