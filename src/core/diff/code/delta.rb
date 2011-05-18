@@ -22,16 +22,16 @@ class DeltaTransform
     #search for "_"
     index = class_name.index("_")
     change = class_name[0..index-1]
-    return change.start_with(@@many)
+    return change.start_with?(many)
   end
 
   def DeltaTransform.getChangeType(obj)
     class_name = obj.schema_class.name
     #search for "_"
     index = class_name.index("_")
-    change = class_name[0..index-1]
-    if change.start_with(@@many)
-      change = change[@@many.length-1..change.length-1]
+    change = class_name[0..index]
+    if change.start_with?(many)
+      change = change[many.length..change.length-1]
     end
     return change
   end
@@ -40,23 +40,23 @@ class DeltaTransform
     class_name = obj.schema_class.name
     #search for "_"
     index = class_name.index("_")
-    return class_name[index..class_name.length-1]
+    return class_name[index+1..class_name.length-1]
   end
 
   def DeltaTransform.isInsertChange?(obj)
-    return getChangeType(obj) == @@insert
+    return getChangeType(obj) == insert
   end
   
   def DeltaTransform.isDeleteChange?(obj)
-    return getChangeType(obj) == @@delete
+    return getChangeType(obj) == delete
   end
 
   def DeltaTransform.isModifyChange?(obj)
-    return getChangeType(obj) == @@modify
+    return getChangeType(obj) == modify
   end
 
   def DeltaTransform.isClearChange?(obj)
-    return getChangeType(obj) == @@clear
+    return getChangeType(obj) == clear
   end
 
   

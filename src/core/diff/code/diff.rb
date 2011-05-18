@@ -49,6 +49,7 @@ class Diff
 
   #create a completely new object with its complete subtree
   def generate_added_diff(type, o1, *pos)
+    
     if pos.length>0 #this is a many field
       x = @factory[DeltaTransform.many + DeltaTransform.insert + type.name]
       x.pos = pos[0]
@@ -59,7 +60,7 @@ class Diff
     #if non primitive then recurse downwards
     if not type.Primitive?
       o1.schema_class.fields.each do |f|
-        next if ! f.traversal and ! f.Primitive?  # do not follow if this is a non-traversal reference  
+        next if ! f.traversal and ! f.type.Primitive?  # do not follow if this is a non-traversal reference  
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
