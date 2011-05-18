@@ -58,7 +58,9 @@ class Diff
     end
 
     #if non primitive then recurse downwards
-    if not type.Primitive?
+    if type.Primitive?
+      x.val = o1 
+    else
       o1.schema_class.fields.each do |f|
         next if ! f.traversal and ! f.type.Primitive?  # do not follow if this is a non-traversal reference  
         if not f.many

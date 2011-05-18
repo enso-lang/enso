@@ -46,8 +46,8 @@ def schema_table(schema) {
 	    myrow(c->name, f);
 	  else
             myrow("", f);
-	  <td>navigate("Add field", add_field(c->defined_fields, new(Field)));</td>
           </tr>
+    <tr><td></td><td>navigate("Add field", add_field(c->defined_fields, new(Field)));</td></tr>
 
       }     
    </table>

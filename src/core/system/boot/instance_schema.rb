@@ -39,6 +39,6 @@ class InstanceSchema < SchemaGenerator
   end
       
 
-  SchemaSchema.patch_schema_pointers(schema)
+  patch_schema_pointers(schema)
 
 end

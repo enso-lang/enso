@@ -75,7 +75,7 @@ class GrammarSchema < SchemaGenerator
     field :dot, :type => :int
   end
   
-  SchemaSchema.patch_schema_pointers(schema)
+  patch_schema_pointers(schema)
 end
 
 if __FILE__ == $0 then

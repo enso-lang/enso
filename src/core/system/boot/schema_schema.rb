@@ -47,7 +47,7 @@ class SchemaSchema < SchemaGenerator
     field :computed, :type => :str, :optional => true
   end
 
-  SchemaSchema.patch_schema_pointers(schema)
+  patch_schema_pointers(schema)
 
 end
 

@@ -9,6 +9,10 @@ class SchemaModel #< BasicObject
     @id = @@ids += 1
   end
 
+  def internal_wrapped_value
+    return self
+  end
+
   def [](field_name)
     raise "undefined internal field #{field_name}" if field_name[0] == "_"
     if field_name[-1] == "?"
@@ -86,14 +90,14 @@ class SchemaGenerator
   ## Todo: fix this?
 
   class Wrap < BasicObject
-    attr_reader :klass
+    attr_reader :internal_wrapped_value
     def initialize(m, builder)
-      @klass = m
+      @internal_wrapped_value = m
       @builder = builder
     end
 
     def method_missing(name, *args)
-      @builder.get_field(@klass, name.to_s)
+      @builder.get_field(@internal_wrapped_value, name.to_s)
     end
   end
 
@@ -128,26 +132,29 @@ class SchemaGenerator
     end
       
     def klass(wrapped, opts = {}, &block)
-      m = wrapped.klass
-      if opts[:super]
-        m.supers << opts[:super].klass
-        m.supers.each do |sup|
-          sup.subtypes << m
-          sup.all_fields.each do |f|
-            m.all_fields[f.name] = f 
-          end    
-        end    
-      end
+      m = wrapped.internal_wrapped_value
       m.schema = schema
       @@current = m
+      super_class opts[:super] if opts[:super]
       yield
+    end
+    
+    def super_class(klass)
+      @@current.supers << klass.internal_wrapped_value
+      @@current.supers.each do |sup|
+        sup.subtypes << @@current
+        sup.all_fields.each do |f|
+          @@current.all_fields[f.name] = f 
+        end    
+      end    
     end
 
     def field(name, opts = {})
       f = get_field(@@current, name.to_s)
       t = opts[:type]
       f.type = schema.sym_primitives.keys.include?(t) ? \
-         schema.sym_primitives[t] : t.klass
+         schema.sym_primitives[t] : t.internal_wrapped_value
+      raise "Unknown type #{t}" unless f.type
       f.optional = opts[:optional] || false
       f.many = opts[:many] || false
       f.key = opts[:key] || false
@@ -189,7 +196,7 @@ class SchemaGenerator
       m.supers = ValueHash.new
       return m
     end
-
+    
     def patch_schema_pointers(schema, schema_schema = SchemaSchema.schema)
       kschema = schema_schema.classes["Schema"]
       prim = schema_schema.types["Primitive"]
