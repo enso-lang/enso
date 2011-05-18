@@ -6,10 +6,9 @@ class DeltaTransform
   def self.insert; "Insert_"; end
   def self.delete; "Delete_"; end
   def self.modify; "Modify_"; end
-  def self.clear; "Clear_"; end
+  def self.clear; "Clear_"; end  #currently unused --- all objs in diff tree must have been modified
   def self.many; "Many"; end
   def self.base; "D_"; end
-
 
   def delta(old)
     #given a schema conforming to schema-schema
@@ -37,7 +36,7 @@ class DeltaTransform
     return change
   end
 
-  def DeltaTransform.getOriginalName(obj)
+  def DeltaTransform.getObjectName(obj)
     class_name = obj.schema_class.name
     #search for "_"
     index = class_name.index("_")
@@ -122,44 +121,22 @@ class DeltaTransform
     @schema.types << base
 
     #ins/del/mod/clr
-    x = @factory.Klass(DeltaTransform.insert + old.name)
-    x.supers << base
-    @schema.types << x
+    [DeltaTransform.insert, DeltaTransform.delete, DeltaTransform.modify, DeltaTransform.clear].each do |c|
 
-    x = @factory.Klass(DeltaTransform.delete + old.name)
-    x.supers << base
-    @schema.types << x
+      # make single version
+      x = @factory.Klass(c + old.name)
+      x.supers << base
+      @schema.types << x
+  
+      # make many version
+      x = @factory.Klass(DeltaTransform.many + c + old.name)
+      x.supers << base
+      f = @factory.Field("pos")
+      f.type = @int_type
+      x.defined_fields << f
+      @schema.types << x
 
-    x = @factory.Klass(DeltaTransform.modify + old.name)
-    x.supers << base
-    @schema.types << x
-    
-    x = @factory.Klass(DeltaTransform.clear + old.name)
-    x.supers << base
-    @schema.types << x
-
-    #many
-
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
-    @schema.types << x
-
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
-    @schema.types << x
-    
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name)
-    x.supers << base
-    f = @factory.Field("pos")
-    f.type = @int_type
-    x.defined_fields << f
-    @schema.types << x
+    end
 
   end
 
