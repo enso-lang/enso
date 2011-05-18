@@ -57,10 +57,11 @@ def match (o1, o2)
 end
 
 DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
-#deltaCons = DeltaTransform.new.Schema(point_schema)
-#DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
-#DisplayFormat.print(Loader.load('deltaschema.grammar'), deltaCons)
+puts "-"*50
+deltaCons = Delta(point_schema)
+DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 
+puts "-"*50
 =begin
 t = p1.pts[0]
 puts t.x
@@ -69,4 +70,5 @@ puts t.x
 puts t.singleton_methods()
 =end
 
-Diff.new.diff_line(point_schema, p1, p2)
+x = Diff.new.diff(point_schema, p1, p2)
+Print.print(x) 

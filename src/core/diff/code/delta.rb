@@ -74,21 +74,10 @@ class DeltaTransform
     
     #init memo for schema types
     @memo = {}
-    
   end
 
-  def Type(old, action)
-    # this function simulated dynamic dispatch (?)
-    #dynamic dispatch is needed because of subtyping
-
-    # there is no need to do any memoization because our fixed schema-schema  
-    #does not have cyclically defined inner types (no sane language does)
-
-    new = self.send(action+old.schema_class.name, old)
-
-    return new
-  end
-  
+  #given a schema conforming to schema-schema
+  #convert to an equivalent schema conforming to deltaschema
   def Schema(old)
 
     #make the basic primitives for the change record
@@ -145,9 +134,7 @@ class DeltaTransform
 
   def doType(old)
     
-    if old.Primitive?
-      return
-    end
+    return if old.Primitive?
     
     # retrieve memoized type
     x = @memo[old.name]
@@ -158,8 +145,9 @@ class DeltaTransform
     end
 
     #recreate all field from old using new classes     
-    old.defined_fields.each do |t|
-      x.defined_fields << Field(t)
+    old.defined_fields.each do |field|
+      next if field.computed
+      x.defined_fields << Field(field)
     end
   end
   
@@ -168,16 +156,13 @@ class DeltaTransform
     new.type = @memo[old.type.name]
     new.optional = true
     new.many = old.many
-    new.key = old.key
-    new.computed = old.computed
-    new.traversal = new.traversal
+    new.traversal = true
     return new
   end
-
 end
 
 def Delta(schema)
-  return DeltaTransform.new.Schema(schema)
+  return DeltaTransform.new.delta(schema)
 end
 
 
@@ -187,10 +172,10 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'core/grammar/code/layout'
   
-  cons = Loader.load('point.schema')
-  
-  deltaCons = Delta(cons)
-
+  deltaCons = Delta(Loader.load('point.schema'))
+  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
+  puts "-"*50
+  deltaCons = Delta(Loader.load('schema.schema'))
   DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 end
 
