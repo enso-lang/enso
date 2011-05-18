@@ -8,11 +8,6 @@ class GSS
   
   def self.new(*args)
     @@nodes[args] ||= super(*args)
-#     x = super(*args)
-#     unless @@nodes[x] then
-#       @@nodes[x] = x
-#     end
-#     @@nodes[x]
   end
 
   def self.nodes
