@@ -1,56 +1,42 @@
-
 # This is a *generic* printing function, that can print a indented dump
 # of any object. It uses the model to 
 
 # obj: the object to be printed
 # indent: amount of indent
-# inverse: an internal argument that tells what field was just traveresed,
-#   so that its inverse will not be printed on the subobjects. This just
-#   cleans up the printout a little
 
 class Print
   def initialize(output = $stdout)
     @output = output
   end
 
-  def myputs(arg)
-    @output << "#{arg}\n"
-  end
-
-  def myprint(*args)
-    @output << args.join('')
-  end
-
   def self.print(obj, indent=0)
-    self.new.recurse(obj, indent)
+    self.new.print(obj, indent)
   end
   
-
-  def recurse(obj, indent=0)
+  def print(obj, indent=0, back_link=nil)
     if obj.nil?
-      myputs "nil"
+      @output << "nil\n"
     else
       klass = obj.schema_class   # TODO: pass as an argument for partial evaluation
-      myputs klass.name
-      #myputs "#{klass.name} #{obj._id}"
-      #myputs "FOO #{obj}
+      @output << "#{klass.name}\n"
       indent += 2
       klass.fields.each do |field|
-        #puts "FIELD: #{field}"
-        #puts "FIELD.TYPE: #{field.type}"
+        next if field == back_link
         if field.type.Primitive?
-          myprint " "*indent, field.name, ": ", obj[field.name], "\n"
+          data = (field.type.name == "str") ? "\"#{obj[field.name]}\"" : obj[field.name]
+          @output << "#{' '*indent}#{field.name}: #{data}\n"
         else
           if !field.many
             sub = obj[field.name]
-            myprint " "*indent, field.name, ": "
-            print1(field.traversal, sub, indent)
+            @output << "#{' '*indent}#{field.name}: "
+            print1(field.traversal, sub, indent, field.inverse)
           else
-            myprint " "*indent, field.name, "\n"
+            next if obj[field.name].empty?
+            @output << "#{' '*indent}#{field.name}\n"
             subindent = indent + 2
             obj[field.name].each_with_index do |sub, i|
-              myprint " "*subindent, "#", i, " "
-              print1(field.traversal, sub, subindent)
+              @output << "#{' '*subindent}##{i} "
+              print1(field.traversal, sub, subindent, field.inverse)
             end
           end
         end
@@ -58,17 +44,17 @@ class Print
     end
   end
   
-  def print1(traversal, obj, indent)
-    key = obj && ClassKey(obj.schema_class)
-    if traversal  
-      recurse(obj, indent)
-    elsif key
-      myprint obj[key.name], "\n"
+  def print1(traversal, obj, indent, back_link)
+    if obj.nil?
+      @output << "nil\n"
+    elsif traversal  
+      print(obj, indent, back_link)
+    elsif key = ClassKey(obj.schema_class)
+      @output << "#{obj[key.name]}\n"
     else
-      myprint "<UNKNOWN NAME>", "\n"
+      @output << "<UNKNOWN NAME>\n"
     end
   end
-  
 end
 
 if __FILE__ == $0 then
@@ -77,6 +63,6 @@ if __FILE__ == $0 then
   ss = Loader.load('schema.schema')
   sg = Loader.load('schema.grammar')
    
-  Print.new.recurse(ss)  
-  Print.new.recurse(sg)
+  Print.print(ss)  
+  Print.print(sg)
 end

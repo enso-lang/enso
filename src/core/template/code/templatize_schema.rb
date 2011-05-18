@@ -124,10 +124,10 @@ class TemplatizeSchema < SchemaGenerator
         super_class get_class(s.name)
       end
       super_class get_class(old.name + "Template") if @@templatized.include?(old)
-      super_class Initialize if old.supers.empty?
+      #super_class Initialize if old.supers.empty?
       
       old.defined_fields.each do |f|
-        next if f.computed
+        next if f.computed || (f.inverse && f.inverse.traversal)
         many = f.many
         optional = f.optional
         type = case
@@ -138,7 +138,8 @@ class TemplatizeSchema < SchemaGenerator
             get_class(f.type.name + "Template")
           when f.traversal
             get_class(f.type.name)
-          else Ref
+          else 
+            get_class("Ref")
           end
         field f.name, :type => type, :optional => optional, :many => many, :traversal => f.traversal
       end
@@ -187,16 +188,13 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'core/grammar/code/layout'
 
-  sg = Loader.load("schema.grammar")
-  puts "-"*50
-  TemplatizeSchema.templatize(Loader.load("schema.schema").classes["Schema"])
-  DisplayFormat.print(sg, TemplatizeSchema.schema)
   
   sg = Loader.load("schema.grammar")
   puts "-"*50
   class TemplatizeSchemaSchema < TemplatizeSchema
     templatize(Loader.load("schema.schema").classes["Schema"])
   end
+  Print.print(TemplatizeSchemaSchema.schema)
   DisplayFormat.print(sg, TemplatizeSchemaSchema.schema)
 
   puts "-"*50

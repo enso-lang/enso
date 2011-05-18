@@ -133,7 +133,6 @@ class SchemaGenerator
       
     def klass(wrapped, opts = {}, &block)
       m = wrapped.internal_wrapped_value
-      m.schema = schema
       @@current = m
       super_class opts[:super] if opts[:super]
       yield
@@ -189,6 +188,7 @@ class SchemaGenerator
       schema.types[name] = m
       #puts "Getting class #{name} (#{m._id})"
       m.name = name
+      m.schema = schema
       m.fields = ValueHash.new
       m.defined_fields = ValueHash.new
       m.all_fields = ValueHash.new
