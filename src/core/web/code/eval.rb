@@ -5,6 +5,7 @@ require 'uri'
 require 'core/system/library/schema'
 require 'core/system/load/load'
 require 'core/web/code/eval_exp'
+require 'core/web/code/closure'
 require 'core/web/code/utils'
 
 class EvalWeb
@@ -12,66 +13,81 @@ class EvalWeb
 
   attr_reader :log
   
+  PRELUDE_NAME = 'prelude'
+  PRELUDE = Loader.load("#{PRELUDE_NAME}.web")
+  
   def initialize(web, root, log)
     @web = web
     @root = root
-    @tenv = {}
     @imports = {}
     @coder = HTMLEntities.new
     @log = log
     @eval_exp = EvalExp.new(root, @log)
-    eval(web)
+    @env = {}
+    import_prelude(@env)
+    eval(web, @env)
   end
 
+  def import_prelude(env)
+    @imports[PRELUDE_NAME] = PRELUDE
+    eval(PRELUDE, env)
+  end
 
   def eval(obj, *args)
     send(obj.schema_class.name, obj, *args)
   end
 
-  def Web(this)
+  def eval_exp(exp, env)
+    @eval_exp.eval(exp, env)
+  end
+
+  def Web(this, env)
     this.toplevels.each do |t|
-      eval(t)
+      eval(t, env)
     end
   end
 
-  def Def(this)
-    @tenv[this.name] = this
+  def Def(this, env)
+    if env[this.name] then
+      log.warn("Duplicate definition #{this.name}; overwriting.")
+    end
+    env[this.name] = Result.new(Function.new(self, env, this))
   end
 
-  def Import(this)
+  def Import(this, env)
     mod = this.module
     unless @imports[mod]
       web = Loader.load("#{mod}.web")
       @imports[mod] = web
-      eval(web)
+      eval(web, env)
     end
   end
     
 
-  def Element(this, env, out, block)
+  def Element(this, env, out)
     attrs = {}
     this.attrs.each do |attr|
-      attrs[attr.name] = @eval_exp.eval(attr.exp, @tenv, env).value
+      attrs[attr.name] = eval_exp(attr.exp, env).value
     end
     tag(this.tag, attrs, out) do
       this.body.each do |stat|
-        eval(stat, env, out, block)
+        eval(stat, env, out)
       end
     end
   end
 
-  def Output(this, env, out, block)
-    r = @eval_exp.eval(this.exp, @tenv, env)
+  def Output(this, env, out)
+    r = eval_exp(this.exp, env)
     out << @coder.encode(r.value)
   end
 
-  def For(this, env, out, block) 
-    r = @eval_exp.eval(this.iter, @tenv, env)
+  def For(this, env, out) 
+    r = eval_exp(this.iter, env)
     nenv = {}.update(env)
     coll = r.value
     coll.each_with_index do |v, i|
       if coll.is_a?(Array) # literal list expression
-        # NB: the list contains results.
+        # NB: the list contains Result objects.
         nenv[this.var] = Result.new(v.value, v.path)
       else
         key_field = ClassKey(v.schema_class)
@@ -79,79 +95,45 @@ class EvalWeb
         nenv[this.var] = Result.new(v, r.path + "[#{key}]")
       end
       nenv[this.index] = Result.new(i) if this.index
-      eval(this.body, nenv, out, block)
+      eval(this.body, nenv, out)
     end
   end
 
-  def If(this, env, out, block)
-    r = @eval_exp.eval(this.cond, @tenv, env)
+  def If(this, env, out)
+    r = eval_exp(this.cond, env)
     if r.value then
-      eval(this.body, env, out, block)
+      eval(this.body, env, out)
     elsif this.else then
-      eval(this.else, env, out, block)
+      eval(this.else, env, out)
     end
   end
 
-  def Let(this, env, out, block)
+  def Let(this, env, out)
     nenv = {}.update(env)
     this.decls.each do |assign|
-      nenv[assign.name] = @eval_exp.eval(assign.exp, @tenv, env)
+      nenv[assign.name] = eval_exp(assign.exp, env)
     end
-    eval(this.body, nenv, out, block)
+    eval(this.body, nenv, out)
   end
 
-  def Call(this, env, out, block)
-    if !@tenv[this.func] 
-      # interpret the call as an element
-      tag(this.func, {}, out) do 
-        if block then
-          block.stats.each do |stat|
-            eval(stat, env, out, nil)
-          end
-        end
+  def Call(this, env, out)
+    func = eval_exp(this.exp, env).value
+    if !func then
+      tag(func.name, {}, out) do 
+        eval(this.block, env, out) if this.block
       end
     else
-      f = @tenv[this.func]
-      vs = this.args.map do |exp|
-        #log.debug "Evaluating #{exp}"
-        r = @eval_exp.eval(exp, @tenv, env)
-        #log.debug "REsult = #{r}"
-        r
-      end
-      nenv = {}.update(env)
-      f.formals.each_with_index do |frm, i|
-        nenv[frm.name] = vs[i]
-      end
-      #log.debug "Calling: #{this.func}: block = #{this.block}"
-      block = Closure.new(env, this.block) if this.block
-      eval(f.body, nenv, out, block)
-    end
-  end
-    
-  def Yield(this, env, out, closure)
-    return unless closure
-    vs = this.args.map do |exp|
-      @eval_exp.eval(exp, @tenv, env)
-    end
-    nenv = {}.update(closure.env)
-    closure.block.formals.each_with_index do |frm, i|
-      nenv[frm.name] = vs[i]
-    end
-    if closure.block.formals.empty? then
-      nenv['it'] = vs[0]
-    end
-    closure.block.stats.each do |stat|
-      eval(stat, nenv, out, nil)
+      func.apply(this.args, this.block, env, out)
     end
   end
 
-  def Block(this, env, out, block)
+  def Block(this, env, out)
     this.stats.each do |stat|
-      eval(stat, env, out, block)
+      eval(stat, env, out)
     end
   end
 
-  def Text(this, env, out, block)
+  def Text(this, env, out)
     out << @coder.encode(this.value)
   end
 

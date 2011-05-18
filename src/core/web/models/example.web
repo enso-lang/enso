@@ -1,16 +1,4 @@
 
-import prelude
-
-def main {
-  //hello_world("William");
-}
-
-def html(title) {
-  <html>
-    <head><title>$title</title></head>
-    <body>yield;</body>
-  </html>
-}
 
 def add_field(klass, x) {
    form {
@@ -86,6 +74,7 @@ def hello_world(name) {
   html("Test") {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
+
 
     schema_table(root);
 

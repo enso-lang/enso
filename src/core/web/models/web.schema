@@ -10,9 +10,14 @@ end
 class Toplevel
 end
 
-class Def < Toplevel
-  #name: str
+
+class Abstraction
   formals: Formal*
+  tail: Tail?
+end
+
+class Def < Toplevel, Abstraction
+  #name: str
   body: Stat
 end
 
@@ -21,10 +26,6 @@ class Import < Toplevel
 end
 
 class Stat
-end
-
-class Yield < Stat
-  args: Exp*
 end
 
 class For < Stat
@@ -58,15 +59,9 @@ class Let < Stat
 end
 
 class Call < Stat, Exp
-  func: str
-  args: Exp*
-  named_args: Named*
-  block: Closure?
-end
-
-class Named
-  name: str
   exp: Exp
+  args: Exp*
+  block: Stat?
 end
 
 class Assign
@@ -100,13 +95,15 @@ end
 
 class Formal 
   name: str
-  patterns: Pattern*
+  cons: Cons?
 end
 
-class Pattern
+class Cons < Abstraction
+ name: str
+end
+
+class Tail < Abstraction
   name: str
-  args: Formal*
-  many: bool
 end
 
 class Exp
@@ -137,6 +134,11 @@ class Field < Exp
   name: str
 end
 
+class Subscript < Exp
+  obj: Exp
+  exp: Exp
+end
+
 class Address < Exp
   exp: Exp
 end
@@ -157,14 +159,6 @@ class In < Exp
 end
 
 class GenSym < Exp
-end
-
-class It < Exp
-end
-
-class Closure < Exp
-  formals: Formal*
-  stats: Stat*
 end
 
 class List < Exp
