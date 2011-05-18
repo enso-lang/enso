@@ -1,4 +1,5 @@
 
+require 'core/schema/code/factory'
 require 'core/diff/code/delta'
 require 'core/diff/code/match'
 require 'core/diff/code/equals'
@@ -16,7 +17,7 @@ class Diff
     @factory = Factory.new(DeltaTransform.new.delta(schema))
 
     # initialize strategies
-    @match = Match.new(Equals.new)
+    @match = Match.new
 
     # do matching
     matches = @match.match(o1, o2)
@@ -32,71 +33,85 @@ class Diff
   private
   #############################################################################
 
-  def match_primitive (schema, o1, o2)
-    if (eq_primitive(schema, o1, o2))
-      return { o1 => o2 }
-    else
-      return {}
+  #generate a modified object that (might have been) changed between versions
+  #if o1 and o2 and all their descendants are perfect matches, then return nil
+  def generate_diffs(o1, o2, matches)
+    # given a set of matches between the sub objects of o1 and o2
+    #produce an annotated diff result conforming to dschma
+    #this function is primarily a recursive postfix traversal of the spanning tree
+
+    res = generate_matched_diff(o1, o2, matches)
+    if res.nil? 
+      res = @factory[DeltaTransform.clear + o1.schema_class.name]
     end
+    return res
   end
 
   #create a completely new object with its complete subtree
-  def generate_added_diff(o1, *pos)
+  def generate_added_diff(type, o1, *pos)
     if pos.length>0 #this is a many field
-      x = @factory[DeltaTransform.many + DeltaTransform.insert + o1.schema_class.name]
-#      x.pos = pos[0]
-      return x
+      x = @factory[DeltaTransform.many + DeltaTransform.insert + type.name]
+      x.pos = pos[0]
     else
-      return @factory[DeltaTransform.insert + type.name]
-    end  
+      x = @factory[DeltaTransform.insert + type.name]
+    end
+
+    #if non primitive then recurse downwards
+    if not type.Primitive?
+      o1.schema_class.fields.each do |f|
+        next if ! f.traversal and ! f.Primitive?  # do not follow if this is a non-traversal reference  
+        if not f.many
+          x[f.name] = generate_added_diff(f.type, o1[f.name])
+        else
+          o1[f.name].each do |l|
+            x[f.name] << generate_added_diff(f.type, o1[f.name], 0)  #all items added at index 0 because it was originally empty 
+          end
+        end
+      end
+    end
+    return x
   end
 
   #create a deleted object (no subtree)
-  #an explicit type is necessary because o1 can be a subtype
-  def generate_deleted_diff(o1, *pos)
+  def generate_deleted_diff(type, *pos)
+    
     if pos.length>0 #this is a many field
-      x = @factory[DeltaTransform.many + DeltaTransform.delete + o1.schema_class.name]
-#      x.pos = pos[0]
+      x = @factory[DeltaTransform.many + DeltaTransform.delete + type.name]
+      x.pos = pos[0]
       return x
     else
       return @factory[DeltaTransform.delete + type.name]
     end  
   end
 
-  #generate a modified object that (might have been) changed between versions
-  #if o1 and o2 and all their descendants are perfect matches, then return nil
   def generate_matched_diff(o1, o2, matches, *pos)
     # given a set of matches between the sub objects of o1 and o2
     #produce an annotated diff result conforming to dschma
     #the result will be a ModifyClass
     # the assumption is that: o1, o2, and the returned object have the same type
-    
-  end
 
-  def generate_diffs(o1, o2, matches)
-    # given a set of matches between the sub objects of o1 and o2
-    #produce an annotated diff result conforming to dschma
-    #this function is primarily a recursive postfix traversal of the spanning tree
-
-    #traverse descendants to discover changes    
+    #traverse descendants to discover changes
 
     #find common, added, and deleted fields
     schema_class = o1.schema_class
     modified = false
     diff_fields = {}
+
+    #generate diffs for each field
     schema_class.fields.each do |f|
-      if f.traversal
-        #generate diffs for each field
-        if f.Primitive? 
+
+      f1 = o1.method(f.name).call
+      f2 = o2.method(f.name).call
+        if f.type.Primitive?
           if f.many
             res = []
-            l1 = o1.method(f.name).call
-            l2 = o2.method(f.name).call
+            l1 = f1 || [] #nils are treated as empty lists
+            l2 = f2 || []
             lcm_matches = lcm(l1, l2, 0, 0, {}, lambda{|x,y| eq(schema, x, y)})
             #for each unmatched item from l1, add a deleted primitive
             for i in 0..l1.length-1 do
               if not lcm_matches.has_key?(i)
-                res << generate_deleted_diff(o1, type, i)
+                res << generate_deleted_diff(f.type, i)
                 modified = true
               end
             end
@@ -104,7 +119,7 @@ class Diff
             last_j = 0
             for j in 0..l2.length-1 do
               if not lcm_matches.has_value?(j)
-                res << @factory[DeltaTransform.many + DeltaTransform.insert + f.type.name]
+                res << generate_added_diff(f.type, l2[j], last_j)
                 modified = true
               else
                 last_j = lcm_matches.key(j)
@@ -113,30 +128,41 @@ class Diff
             if modified
               diff_fields[f.name] = res
             end
-          else
-            if o1.method(f.name).call == o2.method(f.name).call
-              #do nothing for unchanged primitives
+          else # primitive and single
+            if f1 == f2
+              #do nothing for unchanged primitives, even if both are nil
+            elsif f1.nil?
+              #field is added
+              diff_fields[f.name] = generate_added_diff(f.type, f2)
+              modified = true
+            elsif f2.nil?
+              #field is deleted
+              diff_fields[f.name] = generate_deleted_diff(f.type)
+              modified = true
             else
               diff_fields[f.name] = @factory[DeltaTransform.modify + f.type.name]
               modified = true
             end
           end
         else  # not primitive and many
+          next unless f.traversal
           if f.many
             res = []
-            l1 = o1.method(f.name).call
-            l2 = o2.method(f.name).call
+            l1 = f1 || [] #nils are treated as empty lists
+            l2 = f2 || []
             #for each pair of matched items, traverse the tree to figure out if we need to make an object
             matches.keys.each do |i|
-              x = generate_matched_diff(i, matches[i], matches, i)
-              if not x.nil?
-                res << x
+              if l1.include?(i)
+                x = generate_matched_diff(i, matches[i], matches, i)
+                if not x.nil?
+                  res << x
+                end
               end
             end 
             #for each unmatched item from l1, add a deleted record
             for i in 0..l1.length-1 do
               if not matches.has_key?(l1[i])
-                res << generate_deleted_diff(o1, i)
+                res << generate_deleted_diff(f.type, i)
                 modified = true
               end
             end
@@ -144,7 +170,7 @@ class Diff
             last_j = 0
             for j in 0..l2.length-1 do
               if not matches.has_value?(l2[j])
-                res << generate_added_diff(o1, last_j)
+                res << generate_added_diff(f.type, l2[j], last_j)
                 modified = true
               else
                 last_j = matches.key(l2[j])
@@ -154,20 +180,29 @@ class Diff
               diff_fields[f.name] = res
             end
           else # not primitive and single
-            if matches[o1] = o2
+            if f1.nil? and f2.nil?
+              # does nothing if both are nil
+            elsif f1.nil?
+              #field is added
+              diff_fields[f.name] = generate_added_diff(f.type, f2)
+              modified = true
+            elsif f2.nil?
+              #field is deleted
+              diff_fields[f.name] = generate_deleted_diff(f.type)
+              modified = true
+            elsif matches[f1] = f2
               # matched target object
-              x = generate_matched_diff(old1, old2, matches)
+              x = generate_matched_diff(f1, f2, matches)
               if not x.nil?
                 diff_fields[f.name] = x
               end
             else
               # not matched target objects
-              diff_fields[f.name] = generate_added_diff(o2)
+              diff_fields[f.name] = generate_added_diff(f.type, f2)
               modified = true
             end
           end
         end
-      end
     end
     
     # create object using consolidated change records from descendants 
@@ -197,6 +232,14 @@ class Diff
     end
     return new1
 
+  end
+
+  def match_primitive (schema, o1, o2)
+    if (eq_primitive(schema, o1, o2))
+      return { o1 => o2 }
+    else
+      return {}
+    end
   end
 
   def shallow_copy(from, to)
