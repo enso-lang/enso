@@ -182,6 +182,37 @@ class TemplatizeSchema < SchemaGenerator
   end
 end
 
+=begin
+ANOTHER IDEA!!!
+
+    Parse.parse(<<-PART, Loader.load('schema.grammar'))
+      class #{base} end
+
+    class #{old.name + "Alt"} < #{base}
+      !alts: : #{base}*
+    end
+
+    class #{old.name + "Seq"} < #{base}
+      !items: #{base}*
+    end
+
+    class #{old.name + "Field"} < #{base}
+      name: str // TODO: expression!
+      !body: #{base}
+    end
+
+    class #{old.name + "Cond"} < #{base}
+      condition: str // TODO: expression!
+      !body: #{base}
+    end
+
+    class #{old.name + "Label"} < #{base}
+      label: str    // TODO: expression!
+      !body: #{base}
+    end
+    PART
+=end
+
 if __FILE__ == $0 then
 
   require 'core/system/load/load'
