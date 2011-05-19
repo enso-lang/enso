@@ -1,6 +1,3 @@
-//columns: column(label, view)*
-//menu: item(title, link) | menu(name, subs: menu*) 
-
 start Web
 
 Web ::= [Web] toplevels:Toplevel*
@@ -12,28 +9,31 @@ Toplevel ::= [Def] "def" name:sym Sig? body:Stat
 
 Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [If] "if" "(" cond:Exp ")" body:Stat ("else" else:Stat)?
-       | [Call] func:sym Args? block:Closure
+       | [Call] exp:Primary Args? block:Block
        | Call ";"  // todo: should be exp if we have closures
        | [Element] "<" tag:sym attrs:Attr* "/>"
        | [Element] "<" tag:sym attrs:Attr*  ">" body:Stat* "</" sym ">"
-       | [Block] "{" stats:Stat* "}"
+       | Block
        | [Let] "let" decls:Assign* "in" body:Stat
        | [Output] "$" exp:Exp
        | [Text] value:str
-       | [Yield] "yield" args:{Exp ","}* ";"
        | [Switch] "switch" "(" exp:Exp ")" "{" Case*
        	 	  	   ("default" default:Stat)? "}"
 
-Call ::= [Call] func:sym Args
-Closure ::= [Closure] "{" ("|" formals:{Formal ","}+ "|")? stats:Stat* "}"
+Block ::= [Block] "{" stats:Stat* "}"
+
+Call ::= [Call] exp:Primary Args
 
 Case ::= [Case] "case" name:sym ":" body:Stat
 
 
 
-
-Exp ::= [Field] exp:Exp "->" name:sym
+Primary ::= [Field] exp:Primary "->" name:sym
+      | [Subscript] obj:Primary "[" exp:Exp "]"
       | [Var] name:sym
+
+
+Exp ::= Primary
       | [Str] value:str
       | [Int] value:int
       | Call  
@@ -44,30 +44,26 @@ Exp ::= [Field] exp:Exp "->" name:sym
       | [Concat] lhs:Exp "+" rhs:Exp  // TODO: precedences
       | [Equal] lhs:Exp "==" rhs:Exp 
       | [In] lhs:Exp "in" rhs:Exp 
-      | [It] "it"
       | [List] "[" elements:{Exp ","}* "]"
-      | Closure
 
       
 Index ::= "," index:sym
+
 Assign ::= [Assign] name:sym "=" exp:Exp
 
 Attr ::=  [Attr] name:sym "=" exp:Exp
 
-Args ::= "(" args:{Exp ","}* Nameds? ")"
-Nameds ::= "," NamedArgs
-NamedArgs ::= named_args:{Named ","}*
-Named ::= [Named] name:sym ":" exp:Exp
+Args ::= "(" args:{Exp ","}* ")"
 
-Sig ::=  "(" formals:{Formal "," }* ")"
+Sig ::=  "(" Formals  ")"
 
-Formal ::= [Formal] name:sym (":" Spec)?
+Formals ::= formals:{Formal ","}+ "," tail:Tail
+         |  formals:{Formal ","}* 
+         |  tail:Tail
 
-Spec ::= patterns:{Pattern "|"}+
+Tail ::= [Tail] name:sym "[" Formals "]"
 
-Pattern ::= [Pattern] name:sym "(" args:{Formal ","}+ ")" Many?
-	 |  [Pattern] name:sym Many?
+Formal ::= [Formal] name:sym (":" cons:Cons)?
 
-Many ::= "*" @"@many = true"
-
+Cons ::= [Cons] name:sym Sig
 

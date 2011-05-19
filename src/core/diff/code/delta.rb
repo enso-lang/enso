@@ -16,7 +16,14 @@ class DeltaTransform
 
     return Schema(old)
   end
-  
+ 
+  #TODO: currently DeltaSchema uses magic fields pos and val to store change record information,
+  #      which will fail with types which already have fields named pos or val
+  #      we either need a more obscure magic name (eg. "__POSITION__") or a better mechanism
+  def DeltaTransform.isPrimitive?(obj)
+    not obj.schema_class.all_fields["val"].nil?
+  end
+
   def DeltaTransform.isManyChange?(obj)
     class_name = obj.schema_class.name
     #search for "_"
@@ -59,30 +66,67 @@ class DeltaTransform
     return getChangeType(obj) == clear
   end
 
+  def DeltaTransform.getPos(obj)
+    if ! isManyChange?(obj)
+      raise "Delta: Trying to get the position of a non-Many change type"
+    end
+    return obj.pos
+  end
   
-    
+  def DeltaTransform.getValue(obj)
+    if ! isPrimitive?(obj)
+      raise "Delta: Trying to get the value from a non-Primitive type"
+    end
+    return obj.val
+  end
+
+
   #############################################################################
   #start of private section  
   private
   #############################################################################
-        
+
   def initialize()
     #change operation names
 
     @factory = Factory.new(Loader.load('schema.schema'))
     @schema = @factory.Schema()
     
-    #init memo for schema types
+    #init memo for base classes and primitive types
     @memo = {}
+    @prims = {}
+    
   end
 
+  def Type(old, action)
+    # this function simulated dynamic dispatch (?)
+    #dynamic dispatch is needed because of subtyping
+
+    # there is no need to do any memoization because our fixed schema-schema  
+    #does not have cyclically defined inner types (no sane language does)
+
+    new = self.send(action+old.schema_class.name, old)
+
+    return new
+  end
+  
+  def getPrimitiveType(name)
+    return @prims[name] if @prims.has_key?(name)
+
+    x = @factory.Primitive(name, @schema)
+    @prims[name] = x 
+    @schema.types << x
+    return x
+  end
+  
   #given a schema conforming to schema-schema
   #convert to an equivalent schema conforming to deltaschema
   def Schema(old)
 
-    #make the basic primitives for the change record
-    @int_type = @factory.Primitive("int")
-    @schema.types << @int_type
+    #make base change record types
+    @many = @factory.Klass(DeltaTransform.many, @schema)
+    @many.defined_fields << @factory.Field("pos", @many, getPrimitiveType("int"))
+    @schema.types << @many
 
     # make all types first so that later fields can point to them
     old.types.each do |t|
@@ -109,27 +153,22 @@ class DeltaTransform
     @memo[old.name] = base
     @schema.types << base
 
+    #primitive to store value in base
+    if old.Primitive?
+      base.defined_fields << @factory.Field("val", base, getPrimitiveType(old.name))
+    end
+
     #ins/del/mod/clr
     # NOTE: simply setting the schema pointer does not add the class to the schema!!
     @schema.types << @factory.Klass(DeltaTransform.insert + old.name, @schema, [base])
     @schema.types << @factory.Klass(DeltaTransform.delete + old.name, @schema, [base])
     @schema.types << @factory.Klass(DeltaTransform.modify + old.name, @schema, [base])
     @schema.types << @factory.Klass(DeltaTransform.clear + old.name, @schema, [base])
-    
+
     #many
-
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base])
-    x.defined_fields << @factory.Field("pos", x, @int_type)
-    @schema.types << x
-
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base])
-    x.defined_fields << @factory.Field("pos", x, @int_type)
-    @schema.types << x
-    
-    x = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base])
-    x.defined_fields << @factory.Field("pos", x, @int_type)
-    @schema.types << x
-
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base, @many])
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base, @many])
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base, @many])
   end
 
   def doType(old)
@@ -150,7 +189,7 @@ class DeltaTransform
       x.defined_fields << Field(field)
     end
   end
-  
+
   def Field(old)
     new = @factory.Field(old.name)
     new.type = @memo[old.type.name]

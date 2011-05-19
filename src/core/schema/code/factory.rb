@@ -267,6 +267,10 @@ class ManyIndexedField < BaseManyField
     @hash.delete(k)
   end
   
+  def clear()
+    @hash.clear
+  end
+  
   def each(&block) 
     @hash.each_value &block
   end
@@ -354,6 +358,10 @@ class ManyField < BaseManyField
 
   def delete(v)
     @list.delete(v)
+  end
+
+  def clear()
+    @list.clear
   end
   
   def each(&block) 

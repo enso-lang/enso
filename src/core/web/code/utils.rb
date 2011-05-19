@@ -2,20 +2,12 @@
 
 module WebUtils
 
-  class Closure
-    attr_reader :env, :block
-    def initialize(env, block)
-      @env = env
-      @block = block
-    end
-  end
-
   def defines?(name)
-    @tenv[name]
+    @env[name]
   end
   
   def eval_req(name, params, out)
-    env = {}
+    env = {}.update(@env)
     news = {}
     params.each do |k, v|
       if v =~ /^\./ then
@@ -30,7 +22,7 @@ module WebUtils
         env[k] = Result.new(v)
       end
     end
-    eval(@tenv[name].body, env, out, nil)
+    env[name].value.run(env, out)
   end
 
   def handle_submit(params, out)

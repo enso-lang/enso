@@ -1,11 +1,55 @@
 
 
+def datatable(data, columns: column(label, view[row])) {
+
+}
+
+
+def html(title, yield[]) {
+  <html>
+    <head><title>$title</title></head>
+    <body>yield();</body>
+  </html>
+}
+
+
 def navigate(title, page) {
   <a href=link(page)>$title</a>
 }
 
 def textedit(data) {
   <input name=address(data) type="text" value=data/>
+}
+
+def crud(obj, return) {
+  form {
+    table {
+      for (f: obj->schema_class->fields) {
+        tr {
+          td { $obj[f->name] ": " }
+          td { edit_field(f, obj[f->name]); }
+        }
+      }
+    }
+    submit("Submit", return);
+  }
+}
+
+def edit_field(owner, field, data) {
+  switch (field->type) {
+    case Primitive: {
+       if (field->type->name == "bool")
+         checkbox(data);
+       else 
+         textedit(data);
+    }
+    case Klass: {
+       if (field->many)
+         select(data, owner[field->name]);
+       else
+         select1(data, owner[field->name]);
+    }
+  }
 }
 
 
@@ -40,9 +84,9 @@ def checkbox(data) {
     <input name=address(data) type="checkbox" value="true"/>
 }
 
-def form {
+def form(yield[]) {
   <form action="/$submit" method="post">
-    yield;
+    yield();
   </form>
 }
 
@@ -54,3 +98,4 @@ def submit(text, action) {
     <input type="submit" name=name value=text /> 
   }
 }
+
