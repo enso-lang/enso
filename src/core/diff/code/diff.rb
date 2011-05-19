@@ -125,7 +125,7 @@ class Diff
                 res << generate_added_diff(f.type, l2[j], last_j)
                 modified = true
               else
-                last_j = lcm_matches.key(j)
+                last_j = lcm_matches.key(j)+1
               end
             end
             if modified
@@ -176,7 +176,7 @@ class Diff
                 res << generate_added_diff(f.type, l2[j], last_j)
                 modified = true
               else
-                last_j = matches.key(l2[j])
+                last_j = l1.find_index(matches.key(l2[j]))+1
               end
             end
             if not res.empty?

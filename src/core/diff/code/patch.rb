@@ -52,13 +52,13 @@ class Patch
               lmods[pos] = df
             end
           end
-          #iterate along f, keeping track of old index and new index
-          # old and new indices may diverge after insertion/deletion
+          #iterate along f, applying changes at each index
+          # note that insertion MUST occur before modification because
+          # "insert at 3" means "just before 3"
           i = 0
           old_l = []+o[f.name].values #adding to [] will force the creation of a new array
           o[f.name].clear
-          
-          max_pos = old_l.length-1 
+          max_pos = old_l.length #one more than length of array because insertion can occur at the end
           for i in 0..max_pos
             if not ladds[i].nil? 
               #(sequentially) add new elements
@@ -66,12 +66,14 @@ class Patch
                 o[f.name] << add_obj(x, factory)
               end
             end
-            if not lmods[i].nil?
-              #if modified, replace current copy with new object
-              o[f.name] << patch!(old_l[i], lmods[i])
-            elsif not ldels[i]
-              #if not deleted, copy into new array 
-              o[f.name] << old_l[i]
+            if i < old_l.length #no need to check for deletions and modifications when past end of array
+              if not lmods[i].nil?
+                #if modified, replace current copy with new object
+                o[f.name] << patch!(old_l[i], lmods[i])
+              elsif not ldels[i]
+                #if not deleted, copy into new array 
+                o[f.name] << old_l[i]
+              end
             end
           end
         end
