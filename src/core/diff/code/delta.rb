@@ -80,6 +80,23 @@ class DeltaTransform
     return obj.val
   end
 
+  # Turn an ordinary delta into a many delta
+  def DeltaTransform.manyify(obj, factory, pos)
+    #if obj already many do nothing
+    return obj if DeltaTransform.isManyChange?(obj)
+
+    #make a clone of obj of many type
+    res = factory[many+obj.schema_class.name]
+    schema_class = obj.schema_class
+
+    schema_class.fields.each do |f| #copy field info
+      if not obj[f.name].nil?
+        res[f.name] = obj[f.name]
+      end
+    end
+    res.pos = pos #set position value
+    return res
+  end
 
   #############################################################################
   #start of private section  
