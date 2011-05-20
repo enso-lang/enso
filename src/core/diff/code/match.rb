@@ -24,11 +24,21 @@ class Match
       res = { o1 => o2 }
       # add results of matching non-primitive fields
       o1.schema_class.fields.each do |f|
-        if not f.type.Primitive?
+        if not f.type.Primitive?  #FIXME: list of primitives require matching of some kind as well
           if f.many
-            res.merge!(match_ordered_list(o1.send(f.name), o2.send(f.name)))
+            if o1[f.name].is_a? ManyIndexedField
+              list_matches = match_keyed_list(o1[f.name], o2[f.name])
+            elsif o1[f.name].is_a? ManyField
+              list_matches = match_ordered_list(o1[f.name], o2[f.name])
+            else
+              raise "Trying to match a field that is neither keyed nor ordered"
+            end
+            res.merge!(list_matches)
+            list_matches.keys.each do |i1|
+              res.merge!(match(i1, list_matches[i1]))
+            end
           else
-            res << match(o1.send(f.name), o2.send(f.name))
+            res << match(o1[f.name], o2[f.name])
           end
         end
       end
@@ -40,6 +50,24 @@ class Match
     return res
   end
 
+  def match_keyed_list (l1, l2)
+    # match purely based on keys
+    res = {}
+    l1.keys.each do |k|
+      res[l1[k]] = l2[k] unless l2[k].nil?  
+    end
+    return res
+  end
+
+  def match_unordered_list (l1, l2)
+    res = {}
+    l1.each do |i1|
+      i2s = l2.collect {|i2| eq(i1,i2)}
+      res[i1] = i2s[0] unless i2s.empty?
+    end
+    return res
+  end
+  
   def match_ordered_list (l1, l2)
     # simple lcm on l1 and l2
     # only match two points if they are shallow-equivalent
@@ -84,9 +112,6 @@ class Match
     end
     memo[key] = res
     return res
-  end
-  
-  def match_keyed_list (o1, o2)
   end
 
   def eq (o1, o2)

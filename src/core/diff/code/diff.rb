@@ -16,11 +16,8 @@ class Diff
     @schema = schema
     @factory = Factory.new(DeltaTransform.new.delta(schema))
 
-    # initialize strategies
-    @match = Match.new
-
     # do matching
-    matches = @match.match(o1, o2)
+    matches = Match.new.match(o1, o2)
     
     # generate union based on matches. union forms a basis for the result set
     return generate_diffs(o1, o2, matches)
@@ -41,7 +38,7 @@ class Diff
     #this function is primarily a recursive postfix traversal of the spanning tree
 
     res = generate_matched_diff(o1, o2, matches)
-    if res.nil? 
+    if res.nil?
       res = @factory[DeltaTransform.clear + o1.schema_class.name]
     end
     return res
@@ -61,9 +58,16 @@ class Diff
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
-          o1[f.name].each do |l|
-            #all items added at index 0 because it was originally empty
-            x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name]), @factory, 0) 
+          if o1[f.name].is_a? ManyIndexedField
+            o1[f.name].keys.each do |k|
+              #all items added at index 0 because it was originally empty
+              x[f.name][k] = DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, 0) 
+            end
+          elsif o1[f.name].is_a? ManyField
+            o1[f.name].each do |l|
+              #all items added at index 0 because it was originally empty
+              x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, l), @factory, 0) 
+            end
           end
         end
       end
@@ -77,21 +81,22 @@ class Diff
     return @factory[DeltaTransform.delete + type.name]
   end
   
-  def generate_matched_orderedlist_diff(type, o1, o2, matches)
-    l1 = o1 || []
-    l2 = o2 || []
+  def generate_matched_orderedlist_diff(type, l1, l2, matches)
+    keyed = IsKeyed? type
+    l1keys = keyed ? l1.keys : 0..l1.length-1
+    l2keys = keyed ? l2.keys : 0..l2.length-1
     res = []
     #for each pair of matched items, traverse the tree to figure out if we need to make an object
-    matches.keys.each do |i|
-      if l1.include?(i)
-        x = generate_matched_diff(i, matches[i], matches)
+    matches.keys.each do |o|
+      if l1.include?(o)
+        x = generate_matched_diff(o, matches[o], matches)
         if not x.nil?
-          res << DeltaTransform.manyify(x, i)
+          res << DeltaTransform.manyify(x, @factory, keyed ? o[ClassKey(type).name] : l1.find_index(o))
         end
       end
-    end 
+    end
     #for each unmatched item from l1, add a deleted record
-    for i in 0..l1.length-1 do
+    for i in l1keys do
       if not matches.has_key?(l1[i])
         res << DeltaTransform.manyify(generate_deleted_diff(type), @factory, i)
         modified = true
@@ -99,12 +104,12 @@ class Diff
     end
     #for each unmatched item from l2, add an added record
     last_j = 0
-    for j in 0..l2.length-1 do
+    for j in l2keys do
       if not matches.has_value?(l2[j])
         res << DeltaTransform.manyify(generate_added_diff(type, l2[j]), @factory, last_j)
         modified = true
       else
-        last_j = l1.find_index(matches.key(l2[j]))+1
+        last_j = keyed ? j : l1.find_index(matches.key(l2[j]))+1
       end
     end
     return nil if res.empty?

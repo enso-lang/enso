@@ -16,7 +16,7 @@ class Patch
       return DeltaTransform.getValue(deltas)
     else
       # apply changes to each of its fields
-      schema_class = deltas.schema_class
+      schema_class = o.schema_class
       factory = Factory.new(o.schema_class.schema)
   
       schema_class.fields.each do |f| #TODO: refactor this big loop into many smaller function calls
