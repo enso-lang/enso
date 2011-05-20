@@ -23,13 +23,13 @@ class DiffTest < Test::Unit::TestCase
   end
   
   # test matching
-  def match
+  def test_match
     match = Match.new(Equals.new)
     puts match.match(p1, p2)
   end
 
   # test differencing
-  def diff
+  def test_diff
     res = Diff.new.diff(point_schema, p1, p2)
     
     puts res.schema_class.name
@@ -39,4 +39,13 @@ class DiffTest < Test::Unit::TestCase
     assert_equal(res.pts.length, 2)
   end  
 
+  def test_diff2
+    cons = Loader.load('point.schema')
+  
+    ss = Loader.load('schema.schema')
+    gs = Loader.load('grammar.schema')
+    delta = diff(ss, gs)
+  
+    Print.print(delta)
+  end
 end

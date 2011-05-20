@@ -6,7 +6,7 @@ class InstanceSchema < SchemaGenerator
   primitive :str
 
   klass Instances do
-    field :instances, :type => Instance, :optional => true, :many => true
+    field :instances, :type => Instance, :optional => true, :many => true, :traversal => true
   end
 
   klass Value do
@@ -14,7 +14,7 @@ class InstanceSchema < SchemaGenerator
 
   klass Instance, :super => Value  do
     field :type, :type => :str
-    field :contents, :type => Content, :optional => true, :many => true
+    field :contents, :type => Content, :optional => true, :many => true, :traversal => true
   end
 
   klass Prim, :super => Value do
@@ -31,7 +31,7 @@ class InstanceSchema < SchemaGenerator
 
   klass Field, :super => Content do
     field :name, :type => :str
-    field :values, :type => Value, :optional => true, :many => true
+    field :values, :type => Value, :optional => true, :many => true, :traversal => true
   end
 
   klass Code, :super => Content do

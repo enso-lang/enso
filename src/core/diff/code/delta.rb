@@ -157,8 +157,7 @@ class DeltaTransform
     end
 
     # finalize the schema + do some checking
-    @schema.finalize
-    return @schema
+    return @schema.finalize
   end
 
   def makeType(old)
@@ -227,19 +226,5 @@ end
 
 def Delta(schema)
   return DeltaTransform.new.delta(schema)
-end
-
-
-if __FILE__ == $0 then
-
-  require 'core/system/load/load'
-  require 'core/schema/tools/print'
-  require 'core/grammar/code/layout'
-  
-  deltaCons = Delta(Loader.load('point.schema'))
-  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
-  puts "-"*50
-  deltaCons = Delta(Loader.load('schema.schema'))
-  DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 end
 

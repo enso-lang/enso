@@ -24,29 +24,56 @@
        render :: B -> templatize_schema(A) -> A
        parse :: A -> templatize_schema(A) -> Inst -> B
   
-  ParameterizePrims(x, "T") = 
+  Templatetize(x, "T") = 
+  
+for every 
 --------
-     class X < T
-       foo: prim
- ==> 
-     class X < T
-       foo: primBind
-       
-     class primBind
-     
-     class primData < primBind
-       value: prim
-
-     class primField < primData
-       expression: string
-
-*need multiple inheritance!!!!*
-intData < intBind
-intField < intBind, Field
-boolData < boolBind
-boolField < boolBind, Field
-
-------------
+  primitive str
+  primitive bool
+  class Initialize
+    code: str
+  end
+classes: {
+ class [name] < supers:[name], 
+                [(!root && supers.length == 0) ? name + "Template" : nil], 
+                [supers.length == 0 ? "Initialize" : nil]
+   defined_fields: {
+     [name] : [case
+                when type.Primitive? then "atom" // TODO: Expression!
+                when traversal && !type.root && type.supers.length == 0 then name + "Template"
+                when traversal then name
+                else name "Ref"]
+        [run optional=true; many=many; traversal=traversal]
+   }
+ class Ref
+   label: str // TODO: Expression
+   name: bool
+ end
+ if !root && supers.length == 0 {
+  class [name + "Template"] end
+  // this is a the Regular language with names changed
+  // include Regular(name + "Template")
+  class [name + "Alt"] < [name + "Template"]
+    !alts: [name + "Template"]*
+  end
+  class [name + "Seq"] < [name + "Template"]
+    items: [name + "Template"]*
+  end
+  class [name + "Repeat"] < [name + "Template"]
+    collection: str // TODO: Expression
+    body: [name + "Template"]*
+  end
+  class [name + "Cond"] < [name + "Template"]
+    condition: str // TODO: Expression
+    body: [name + "Template"]*
+  end
+  class [name + "Label"] < [name + "Template"]
+    label: str // TODO: Expression
+    body: [name + "Template"]*
+  end
+ }
+}
+--------------
 
   TextGrammar = templatize_schema(TokenStream)
   ParseTree = Instance + TokenStream
@@ -61,66 +88,154 @@ boolField < boolBind, Field
 
 =end
 
+
+require 'core/system/boot/schema_gen'
 require 'core/system/load/load'
-require 'core/schema/tools/copy'
-  
-def ParameterizePrimitives(old)
-  factory = Factory.new(Loader.load('schema.schema'))
-  
-  base_copier = Copy.new(factory)
-  new = base_copier.copy(old)
-  
 
-  primBind = Loader.loadText 'schema', <<-ENDSCHEMA 
-    class ParameterData end
-    class ParameterValue < ParameterData
-      value: atom
-    end
-    class ParameterExpr < ParameterData
-      expression: str
-    end
-    primitive atom
-    primitive str
-  ENDSCHEMA
+class TemplatizeSchema < SchemaGenerator
 
-  identify = {}
-  identify[primBind] = new
-  identify[primBind.primitives["str"]] = new.primitives["str"]
-  identify[primBind.primitives["atom"]] = new.primitives["atom"]
-  primBind.classes.each do |x|
-    copier = Copy.new(factory, identify)
-    new.types << copier.copy(x)
+  def self.templatize(root)  
+    primitive :int
+    primitive :str
+    primitive :bool
+    primitive :atom
+
+    klass get_class("Initialize") do
+      field :code, :type => :str
+    end
+    
+    @exp = get_class("Expression")
+    klass @exp do
+    end
+
+    klass get_class("DotExpression"), :super => @exp  do
+      field :args, :type => get_class("FieldExpression"), :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class("FieldExpression"), :super => @exp  do
+      field :name, :type => :str
+    end
+
+    klass get_class("AddExpression"), :super => @exp  do
+      field :args, :type => @exp, :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class("NameExpression"), :super => @exp do
+      field :name, :type => :str
+    end
+
+    klass get_class("LiteralExpression"), :super => @exp do
+      field :value, :type => :atom
+    end
+
+    klass get_class("Ref") do
+      field :label, :type => @exp, :traversal => true
+    end
+
+    old_schema = root.schema
+    @@templatized = old_schema.classes.select do |klass|
+      klass.supers.empty? && klass != root
+    end
+    old_schema.classes.each do |klass|
+      regular(klass) if @@templatized.include?(klass)
+      templatize_class(klass)
+    end
+    patch_schema_pointers(schema)
   end
-  puts "#{new.types}"
-  old.classes.each do |klass|
-    base_copier.copy(klass).fields.each do |field|
-      if field.type.Primitive?
-        name = "#{field.type.name}Bind"
-        field.type = new.types["ParameterData"]
+  
+  def self.templatize_class(old)
+    klass get_class(old.name) do
+      old.supers.each do |s|
+        super_class get_class(s.name)
+      end
+      super_class get_class(old.name + "Template") if @@templatized.include?(old)
+      #super_class Initialize if old.supers.empty?
+      
+      old.defined_fields.each do |f|
+        next if f.computed || (f.inverse && f.inverse.traversal)
+        many = f.many
+        optional = f.optional
+        type = case
+          when f.type.Primitive?
+            get_class("Expression")      # TODO: Expression!
+          when f.traversal && @@templatized.include?(f.type) 
+            many = optional = false
+            get_class(f.type.name + "Template")
+          when f.traversal
+            get_class(f.type.name)
+          else 
+            get_class("Ref")
+          end
+        field f.name, :type => type, :optional => optional, :many => many, :traversal => true
       end
     end
   end
-  
-  regular = Loader.load('regular.schema');
-  identify = {}
-  regular.primitives.each do |x|
-    next if !new.primitives[x.name]
-    identify[x.name] = x.name
-  end 
-  return merge(regular, new, identify)
+
+  def self.regular(old)
+    base = get_class(old.name + "Template")
+
+    klass base do
+    end
+    
+    klass get_class(old.name + "Alt") do
+      super_class base
+      field :alts, :type => base, :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class(old.name + "Seq") do
+      super_class base
+      field :items, :type => base, :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class(old.name + "Repeat") do
+      super_class base
+      field :collection, :type => @exp
+      field :body, :type => base, :traversal => true
+    end
+
+    klass get_class(old.name + "Cond") do
+      super_class base
+      field :condition, :type => @exp
+      field :body, :type => base, :traversal => true
+    end
+
+    klass get_class(old.name + "Label") do
+      super_class base
+      field :label, :type => @exp
+      field :body, :type => base, :traversal => true
+    end
+  end
 end
 
-if __FILE__ == $0 then
+=begin
+ANOTHER IDEA!!!
 
-  require 'core/schema/tools/print'
-  require 'core/grammar/code/layout'
-  SG = Loader.load('schema.grammar')
-  
-  s = Loader.load('point.schema')
-  ts = ParameterizePrimitives(s)
-  DisplayFormat.print(SG, ts)
-  puts "-"*50
-  s = Loader.load('genealogy.schema')
-  ts = ParameterizePrimitives(s)
-  DisplayFormat.print(SG, ts)
-end
+    Parse.parse(<<-PART, Loader.load('schema.grammar'))
+      class #{base} end
+
+    class #{old.name + "Alt"} < #{base}
+      !alts: : #{base}*
+    end
+
+    class #{old.name + "Seq"} < #{base}
+      !items: #{base}*
+    end
+
+    class #{old.name + "Field"} < #{base}
+      name: Expression // TODO: expression!
+      !body: #{base}
+    end
+
+    class #{old.name + "Cond"} < #{base}
+      condition: Expression // TODO: expression!
+      !body: #{base}
+    end
+
+    class #{old.name + "Label"} < #{base}
+      label: Expression    // TODO: expression!
+      !body: #{base}
+    end
+    
+    class Expression end
+    PART
+=end

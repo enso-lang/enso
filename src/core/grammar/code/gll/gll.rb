@@ -70,7 +70,7 @@ class GLL
       end
       n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
     end
-    raise "Parse error at: #{last}" unless pt
+    raise "Parse error at #{last}:\n'#{source[last,50]}...'" unless pt
     File.open('sppf.dot', 'w') do |f|
       ToDot.to_dot(pt, f)
     end

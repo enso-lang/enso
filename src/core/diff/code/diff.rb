@@ -184,17 +184,3 @@ end
 def diff(x, y)
   Diff.new.diff(x.schema_class.schema, x, y)
 end
-
-if __FILE__ == $0 then
-
-  require 'core/system/load/load'
-  require 'core/schema/tools/print'
-  
-  cons = Loader.load('point.schema')
-  
-  ss = Loader.load('schema.schema')
-  gs = Loader.load('grammar.schema')
-  delta = diff(ss, gs)
-
-  Print.print(delta)
-end
