@@ -1,0 +1,99 @@
+
+start OQL
+
+OQL ::= [OQL] defs:Def* query:Exp
+
+Def ::= [Def] "define" name:sym "as" query:Exp ";"
+
+// NB
+// Call captures both constructors like set, list etc. and type constructors
+// and builtin function, like, abs, unique, exists, count, first, last etc.
+
+
+Primary ::= [Nil] "nil"
+       	 |  [Bool] "true" @"@value = true"
+       	 |  [Bool] "false" @"@value = false"
+       	 |  [Int] value:int
+       	 |  [Float] value:real
+       	 |  [Str] value:str
+       	 |  [Var] name:sym
+	 |  [New] type:sym "(" bindings:{Binding ","}+ ")"
+	 |  [New] "struct" "(" bindings:{Binding ","}+ ")"
+	 |  [Tuple] "(" first:Exp "," rest:{Exp ","}+ ")"
+	 |  [Call] name:sym "(" args:{Exp ","}* ")"
+	 |  [Field] obj:Primary "->" name:sym ("(" args:{Exp ","}* ")")?
+	 |  [Subscript] obj:Primary "[" arg:Exp "]"
+	 |  [Slice] obj:Primary "[" from:Exp ":" to:Exp "]"
+	 |  "(" Exp ")"
+
+Binding ::= name:sym ":" exp:Exp
+
+Unary ::= [Unary] op:"not" arg:Unary 
+       |  [Unary] op:"-" arg:Unary
+       |  [Unary] op:"+" arg:Unary
+       |  Primary
+
+Factor ::= [Binary] lhs:Factor op:"in" rhs:Unary
+        | Unary
+
+Term ::= [Binary] lhs:Term op:"*" rhs:Factor
+      |  [Binary] lhs:Term op:"/" rhs:Factor
+      |  [Binary] lhs:Term op:"mod" rhs:Factor
+      |  [Binary] lhs:Term op:"intersect" rhs:Factor
+      |  Factor
+
+Additive ::=  [Binary] lhs:Additive op:"+" rhs:Term
+ 	  |   [Binary] lhs:Additive op:"-" rhs:Term
+ 	  |   [Binary] lhs:Additive op:"union" rhs:Term
+ 	  |   [Binary] lhs:Additive op:"except" rhs:Term
+ 	  |   [Binary] lhs:Additive op:"||" rhs:Term
+	  |   Term
+
+Comparative ::= [Compare] lhs:Additive op:"<" Quantifier? rhs:Additive
+	     |  [Compare] lhs:Additive op:"<=" Quantifier? rhs:Additive
+	     |  [Compare] lhs:Additive op:">" Quantifier? rhs:Additive
+	     |  [Compare] lhs:Additive op:">=" Quantifier? rhs:Additive
+	     | Additive
+
+Quantifier ::= quantifier:"some"
+	    |  quantifier:"all"
+	    |  quantifier:"any"
+
+Equality ::= [Binary] lhs:Comparative op:"==" rhs:Comparative
+	  |  [Binary] lhs:Comparative op:"!=" rhs:Comparative
+	  |  [Like]   arg:Comparative "like" pattern:str
+	  |  Comparative
+
+Conjunctive ::= [Binary] lhs:Conjunctive op:"and" rhs:Equality
+	     |  [Comprehension] "for" "all" Generator @"@quantifier = 'for_all'"
+	     |  [Comprehension] quantifier:"exists" Generator
+	     |  Equality
+
+Generator ::= var:sym "in" coll:Conjunctive ":" body:Equality
+
+Disjunctive ::= [Binary] lhs:Disjunctive op:"or" rhs:Conjunctive
+	     |  Conjunctive
+
+// TODO: query ::= (class_name) query (= cast)
+// Range ::= [Binary] lhs:Range op:".." rhs:Disjunctive
+
+Exp ::= [Select] "select" distinct:"distinct"? Spec "from" from:{Decl ","}+
+    		 Where? GroupBy? Having? OrderBy?
+       | Disjunctive
+
+
+Where ::= "where" condition:Disjunctive
+GroupBy ::= "group" "by" groupings:{Projection ","}+
+Having ::= "having" having:Disjunctive
+OrderBy ::= "order" "by" orderings:{Ordering ","}+
+
+Spec ::= projections:{Projection ","}+
+      |  "*"  // recorded as projections being empty
+
+Projection ::= [Named] (name:sym ":")? exp:Disjunctive // or Exp?
+	    |  [Named] exp:Disjunctive "as" name:sym
+
+Decl ::= [Named] exp:Disjunctive (As? name:sym)?
+As ::= "as"
+
+Ordering ::= exp:Disjunctive (direction:"asc" | direction:"desc")?
