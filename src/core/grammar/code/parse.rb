@@ -2,6 +2,7 @@
 require 'core/grammar/code/gll/gll'
 require 'core/grammar/code/gll/implode'
 require 'core/instance/code/instantiate'
+require 'core/schema/tools/print'
 
 class Parse
 
@@ -14,9 +15,11 @@ class Parse
     return data.finalize
   end
   
-  def self.load_raw(source, grammar, schema, factory)
+  def self.load_raw(source, grammar, schema, factory, show = false)
     tree = parse(source, grammar)
-    Instantiate.instantiate(factory, Implode.implode(tree))
+    inst = Implode.implode(tree)
+    Print.print(inst) if show
+    Instantiate.instantiate(factory, inst)
   end
 
   def self.parse_file(grammar)

@@ -1,3 +1,4 @@
+require 'core/system/library/cyclicmap'
 
 class VisitFields < MemoBase
   def initialize(pass)
