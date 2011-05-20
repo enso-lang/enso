@@ -4,7 +4,8 @@ require 'core/grammar/code/layout'
 require 'core/diff/code/delta'
 require 'core/diff/code/diff'
 require 'core/diff/code/patch'
-require 'core/schema/code/factory'
+require 'core/system/library/schema'
+
 
 point_schema = Loader.load('diff-point.schema')
 point_grammar = Loader.load('diff-point.grammar')

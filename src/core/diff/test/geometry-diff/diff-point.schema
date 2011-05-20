@@ -19,3 +19,6 @@ class Line
   len: int?
   ! pts: Point2D *
 end
+class Drawing
+  ! lines: Line *
+end

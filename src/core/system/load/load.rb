@@ -28,10 +28,11 @@ module Loading
       @cache[name] = _load(name)
     end
     
-    def loadText(type, source)
+    def load_text(type, factory, source)
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
-      Parse.load(source, g, s)
+      result = Parse.load_raw(source, g, s, factory)
+      return result.finalize
     end
         
     private

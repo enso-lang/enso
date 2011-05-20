@@ -3,9 +3,10 @@ require 'core/system/load/load'
 require 'core/system/library/cyclicmap'
 require 'core/grammar/code/parse'
 require 'core/grammar/code/gll/scan' # for keywords...
+require 'core/schema/tools/print'
 
 # render an object into a grammar, to create a parse tree
-class Render < Dispatch
+class RenderClass < Dispatch
   def initialize()
     @factory = Factory.new(Loader.load('layout.schema'))
   end
@@ -38,7 +39,7 @@ class Render < Dispatch
   end
 
   def Create(this, obj)
-    throw :fail if obj.schema_class.name != this.name
+    throw :fail if obj.nil? || obj.schema_class.name != this.name
     recurse(this.arg, obj)
   end
 
@@ -121,12 +122,20 @@ class Render < Dispatch
   end
 end
 
+def Render(grammar, obj)
+  catch :fail do
+    return RenderClass.new.recurse(grammar, obj)
+  end
+  puts "-"*50
+  Print.print(obj)
+  raise "ERROR: Could not render #{obj}"
+end
+
 def main
   require 'core/schema/tools/print'
   gg = Loader.load('grammar.grammar')
 
-  render = Render.new
-  pt = render.recurse(gg, gg)  
+  pt = Render(gg, gg)  
   Print.new.recurse(pt)
 end
 

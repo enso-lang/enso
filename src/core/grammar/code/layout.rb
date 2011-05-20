@@ -83,7 +83,7 @@ class DisplayFormat < Dispatch
   end
 
   def self.print(grammar, obj, width = 80, output=$stdout)
-    layout = Render.new.recurse(grammar, obj)
+    layout = Render(grammar, obj)
     FormatChoice.new(width).run(layout)
     DisplayFormat.new(output).recurse(layout)
     output << "\n"

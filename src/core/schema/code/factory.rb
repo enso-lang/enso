@@ -1,5 +1,4 @@
 
-require 'core/system/library/cyclicmap'
 require 'core/system/library/schema'
 require 'core/schema/code/finalize'
 
@@ -11,15 +10,14 @@ class Factory
   # this is the core object constructor call
   # create a "virtual" object that conforms to schema class
   def [](class_name)
-    schema_class = @schema.classes[class_name.to_s]
-    raise "Unknown class '#{class_name}'" unless schema_class
-    obj = CheckedObject.new(schema_class, self)
-    return obj
+    method_missing(class_name)
   end
 
   # factory.Foo(args) creates an instance of Foo initialized with arguments  
   def method_missing(class_name, *args)
-    obj = self[class_name.to_s]
+    schema_class = @schema.classes[class_name.to_s]
+    raise "Unknown class '#{class_name}'" unless schema_class
+    obj = CheckedObject.new(schema_class, self)
     n = 0
     #puts "#{obj.schema_class.fields.keys}"
     obj.schema_class.fields.each do |field|
@@ -34,11 +32,11 @@ class Factory
           obj[field.name] = args[n]
         end
       elsif !field.key && !field.optional && field.type.Primitive?
-        obj[field.name] = case field.type.name
-                          when "str" then ""
-                          when "int" then 0
-                          when "bool" then false
-                          end
+        case field.type.name
+        when "str" then obj[field.name] = ""
+        when "int" then obj[field.name] = 0
+        when "bool" then obj[field.name] = false
+        end
       end
       n += 1
     end
@@ -91,7 +89,8 @@ class CheckedObject
   
   def [](field_name)
     if field_name[-1] == "?"
-      return @schema_class.name == field_name[0..-2]
+      name = field_name[0..-2]
+      return @schema_class.name == name || Subclass?(@schema_class, @schema_class.schema.types[name])
     end
     field = @schema_class.all_fields[field_name]; 
     raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
@@ -110,8 +109,20 @@ class CheckedObject
     return send(sym)
   end
 
+  def printStackTrace
+   begin
+      raise "nothing"
+    rescue Exception => e
+      puts e.backtrace
+    end
+  end
+  
   def []=(field_name, new)
-    #puts "Setting #{field_name} to #{new}"
+    if false # field_name=="name" && schema_class.name=="Rule" && new=="Schema"
+      puts "Setting #{self}.#{field_name} to #{new}"
+      printStackTrace 
+    end
+    #puts "Setting #{self}.#{field_name} to #{new}"
     field = @schema_class.fields[field_name]
     raise "Assign to invalid field '#{field_name}' of #{self}" unless field
     raise "Can't set computed field '#{field_name}' of #{self}" if field.computed
@@ -123,8 +134,9 @@ class CheckedObject
       when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
       when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
+      when "atom" then 
       else 
-        raise "Assigned object is not primitive and not a CheckedObject" unless new.is_a?(CheckedObject)
+        raise "Assignment to #{self}.#{field_name} of unknown #{new.class} #{new}" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
           raise "Expected #{field.type.name} found #{new.schema_class.name}" 
@@ -186,9 +198,10 @@ class CheckedObject
     end
   end
   
-  def finalize()
+  def finalize
     UpdateInverses.new("INVERT").finalize(self)
     CheckRequired.new("REQUIRED").finalize(self)
+    return self
   end  
 end
 
@@ -245,17 +258,9 @@ class ManyIndexedField < BaseManyField
   
   def <<(v)
     k = v.send(@key)
-    self[k] = v
-  end
-
-  # public main insertion function
-  def []=(k, v)
-    raise "Key cannot be nil for field #{v}" if !k
-    
-    # can't raise this error, for some reason
-    # TODO:    raise "Item named '#{k}' already exists in '#{@field.name}'" if @hash[k]
-
+    raise "Key cannot be nil for field #{v}" if !k   
     if @hash[k] != v
+      raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
       @realself.notify_update(@field, @hash[k], v) if @realself
       @hash[k] = v
     end
@@ -263,8 +268,9 @@ class ManyIndexedField < BaseManyField
   end
   
   def delete(v)
-    k = v.send(@key)
+    k = v[@key]
     @hash.delete(k)
+    # TODO: notify update???
   end
   
   def clear()
