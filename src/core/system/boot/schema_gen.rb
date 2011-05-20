@@ -183,9 +183,11 @@ class SchemaGenerator
     def get_class(name)
       m = schema.classes[name]
       return m if m
+      #puts "MAKEING CLASS #{name}"
       m = SchemaModel.new
       schema.classes[name] = m
       schema.types[name] = m
+      #puts "TYPES #{schema.types.collect(&:name)}"
       #puts "Getting class #{name} (#{m._id})"
       m.name = name
       m.schema = schema

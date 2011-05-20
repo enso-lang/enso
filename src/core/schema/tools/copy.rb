@@ -1,49 +1,43 @@
 
+# the important thing about copy is that it does NOT use
+# the traversal fields (spine) of the structure.
+
 class Copy
-  def initialize(factory)
+  def initialize(factory, memo = {})
     @factory = factory
-    @memo = {}
+    @memo = memo
   end
 
-  def copy(source, *args)
-    build(source, *args)
-    result = link(source, true, *args)
-    result.finalize
-    return result
+  def register(source, target)
+      @memo[source] = target
   end
   
-  def build(source, *args)
-    return nil if source.nil?
-    klass = source.schema_class
-    @memo[source] = target = @factory[klass.name]
-    klass.fields.each do |field|
-      #puts "Copying #{field.name} #{source[field.name].class} #{source[field.name]}"
-      if field.type.Primitive?
-        target[field.name] = source[field.name]
-      elsif field.traversal
-        if !field.many
-          build(source[field.name], *args)
-        else
-          source[field.name].each do |x|
-            build(x, *args)
-          end
-        end
-      end
-    end
-  end
-
-  def link(source, traversal, *args)
+  def copy(source, *args)
     return nil if source.nil?
     target = @memo[source]
-    return target if !traversal
-    target.schema_class.fields.each do |field|
-      next if field.type.Primitive?
-      #puts "Copying #{field.name} #{source[field.name].class} #{source[field.name]}"
+    return target if target
+    #puts "COPY #{source} #{args}"
+    klass = source.schema_class
+    raise "Source does not have a schema_class #{source}" unless klass
+    target = @factory[klass.name]
+
+    klass.fields.each do |field|
+      next if field.computed
+      if field.type.Primitive?
+        target[field.name] = source[field.name]
+      end
+    end
+
+    register(source, target)
+
+    klass.fields.each do |field|
+      next if field.computed || field.type.Primitive? || (field.inverse && field.inverse.traversal)
+      #puts "  FIELD #{field.name} #{source[field.name].class} #{source[field.name]}"
       if !field.many
-        target[field.name] = link(source[field.name], field.traversal, *args)
+        target[field.name] = copy(source[field.name], *args)
       else
         source[field.name].each do |x|
-          target[field.name] << link(x, field.traversal, *args)
+          target[field.name] << copy(x, *args)
         end
       end
     end
@@ -56,17 +50,13 @@ if __FILE__ == $0 then
 
   require 'core/system/load/load'
   
-  ss = Loader.load('schema.schema')
+  gs = Loader.load('grammar.schema')
+  sg = Loader.load('schema.grammar')
 
   require 'core/schema/tools/print'
-  require 'core/schema/code/factory'
   
-  newSchema = Copy.new(Factory.new(ss)).copy(ss)
+  newSchema = Copy.new(Factory.new(gs)).copy(sg)
   newSchema.finalize()
   
   Print.print(newSchema)
-  
-  puts "#{newSchema.classes.class}"
-  puts "WOA: #{newSchema.classes['Klass'].schema}"
-
 end

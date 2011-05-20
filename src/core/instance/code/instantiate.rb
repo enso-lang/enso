@@ -55,10 +55,14 @@ class Instantiate
       Float(v)
     when "sym" then
       v
-    when "atom", !ftype.nil? then
-      convert_typed(v, ftype)
+    when "atom" then
+      if ftype.nil?
+        v   # field type is atom, so allow anything
+      else
+        convert_typed(v, ftype.name)
+      end
     else
-      raise "Don't know kind #{this.kind}"
+      raise "Don't know kind #{type}"
     end
   end
 
@@ -71,7 +75,7 @@ class Instantiate
   def Instance(this, owner, field, pos)
     #puts "Creating #{this.type}"
     # TODO: @factory[this.type] does not assign default vals. [Actually it does now -william]
-    current = @factory.send(this.type)
+    current = @factory[this.type]
     @root = current unless owner
     this.contents.each do |cnt|
       recurse(cnt, current, nil, 0)

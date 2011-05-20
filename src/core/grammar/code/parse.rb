@@ -5,20 +5,18 @@ require 'core/instance/code/instantiate'
 
 class Parse
 
-
   def self.load_file(path, grammar, schema)
     load(File.read(path), grammar, schema)
   end
   
   def self.load(source, grammar, schema)
-    data = load_raw(source, grammar, schema)
-    data.finalize
-    return data
+    data = load_raw(source, grammar, schema, Factory.new(schema))
+    return data.finalize
   end
   
-  def self.load_raw(source, grammar, schema)
+  def self.load_raw(source, grammar, schema, factory)
     tree = parse(source, grammar)
-    Instantiate.instantiate(Factory.new(schema), Implode.implode(tree))
+    Instantiate.instantiate(factory, Implode.implode(tree))
   end
 
   def self.parse_file(grammar)

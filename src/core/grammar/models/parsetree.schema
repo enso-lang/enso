@@ -1,5 +1,0 @@
-#ruby
-# should include  InstanceSchema (which include ValueSchema and ProtoSchema)
-
-union(load('instance.schema'), load('token_stream.schema'))
-       

@@ -39,7 +39,7 @@ classes: {
                 [supers.length == 0 ? "Initialize" : nil]
    defined_fields: {
      [name] : [case
-                when type.Primitive? then "str" // TODO: Expression!
+                when type.Primitive? then "atom" // TODO: Expression!
                 when traversal && !type.root && type.supers.length == 0 then name + "Template"
                 when traversal then name
                 else name "Ref"]
@@ -94,17 +94,42 @@ require 'core/system/load/load'
 
 class TemplatizeSchema < SchemaGenerator
 
-  def self.templatize(root)
+  def self.templatize(root)  
+    primitive :int
     primitive :str
     primitive :bool
-  
-    klass Initialize do
+    primitive :atom
+
+    klass get_class("Initialize") do
       field :code, :type => :str
     end
     
-    klass Ref do
-      field :label, :type => :str     # TODO: Expression
-      field :name, :type => :bool
+    @exp = get_class("Expression")
+    klass @exp do
+    end
+
+    klass get_class("DotExpression"), :super => @exp  do
+      field :args, :type => get_class("FieldExpression"), :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class("FieldExpression"), :super => @exp  do
+      field :name, :type => :str
+    end
+
+    klass get_class("AddExpression"), :super => @exp  do
+      field :args, :type => @exp, :optional => true, :many => true, :traversal => true
+    end
+
+    klass get_class("NameExpression"), :super => @exp do
+      field :name, :type => :str
+    end
+
+    klass get_class("LiteralExpression"), :super => @exp do
+      field :value, :type => :atom
+    end
+
+    klass get_class("Ref") do
+      field :label, :type => @exp, :traversal => true
     end
 
     old_schema = root.schema
@@ -132,7 +157,7 @@ class TemplatizeSchema < SchemaGenerator
         optional = f.optional
         type = case
           when f.type.Primitive?
-            :str # TODO: Expression!
+            get_class("Expression")      # TODO: Expression!
           when f.traversal && @@templatized.include?(f.type) 
             many = optional = false
             get_class(f.type.name + "Template")
@@ -141,7 +166,7 @@ class TemplatizeSchema < SchemaGenerator
           else 
             get_class("Ref")
           end
-        field f.name, :type => type, :optional => optional, :many => many, :traversal => f.traversal
+        field f.name, :type => type, :optional => optional, :many => many, :traversal => true
       end
     end
   end
@@ -164,19 +189,19 @@ class TemplatizeSchema < SchemaGenerator
 
     klass get_class(old.name + "Repeat") do
       super_class base
-      field :collection, :type => :str # TODO: expression!
+      field :collection, :type => @exp
       field :body, :type => base, :traversal => true
     end
 
     klass get_class(old.name + "Cond") do
       super_class base
-      field :condition, :type => :str # TODO: expression!
+      field :condition, :type => @exp
       field :body, :type => base, :traversal => true
     end
 
     klass get_class(old.name + "Label") do
       super_class base
-      field :label, :type => :str # TODO: expression!
+      field :label, :type => @exp
       field :body, :type => base, :traversal => true
     end
   end
@@ -197,40 +222,20 @@ ANOTHER IDEA!!!
     end
 
     class #{old.name + "Field"} < #{base}
-      name: str // TODO: expression!
+      name: Expression // TODO: expression!
       !body: #{base}
     end
 
     class #{old.name + "Cond"} < #{base}
-      condition: str // TODO: expression!
+      condition: Expression // TODO: expression!
       !body: #{base}
     end
 
     class #{old.name + "Label"} < #{base}
-      label: str    // TODO: expression!
+      label: Expression    // TODO: expression!
       !body: #{base}
     end
+    
+    class Expression end
     PART
 =end
-
-if __FILE__ == $0 then
-
-  require 'core/system/load/load'
-  require 'core/schema/tools/print'
-  require 'core/grammar/code/layout'
-
-  
-  sg = Loader.load("schema.grammar")
-  puts "-"*50
-  class TemplatizeSchemaSchema < TemplatizeSchema
-    templatize(Loader.load("schema.schema").classes["Schema"])
-  end
-  Print.print(TemplatizeSchemaSchema.schema)
-  DisplayFormat.print(sg, TemplatizeSchemaSchema.schema)
-
-  puts "-"*50
-  class TemplatizeGrammarSchema < TemplatizeSchema
-    templatize(Loader.load("grammar.schema").classes["Grammar"])
-  end
-  DisplayFormat.print(sg, TemplatizeGrammarSchema.schema)
-end
