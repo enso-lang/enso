@@ -87,6 +87,7 @@ class EvalWeb
     coll = r.value
     coll.each_with_index do |v, i|
       if coll.is_a?(Array) # literal list expression
+        # or list resulting from cons calls
         # NB: the list contains Result objects.
         nenv[this.var] = Result.new(v.value, v.path)
       else

@@ -1,7 +1,26 @@
 
 
-def datatable(data, columns: column(label, view[row])) {
-
+def datatable(rows, columns: column(label, view[row])) {
+    <table style="border-width: 1px; border-collapse: collapse;">
+    <thead>
+    <tr>
+    for (c: columns) {
+      <th>$c->label</th>
+    }
+    </tr>
+    </thead>
+    <tbody>
+    for (row: rows) {
+      <tr>
+    	for (c: columns) {
+	  <td>
+    	  c->view(row);
+	   </td>
+	}
+      </tr>
+    }
+    </tbody>
+    </table>
 }
 
 

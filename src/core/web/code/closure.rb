@@ -16,10 +16,12 @@ class BaseClosure
     @abs.tail
   end
 
-  def with_args(args, block, outer)
+  def with_args(args, block, call_env, out)
 
     # Bind arguments in clean environment
     env = {}.update(@env)
+    # but conses in an env between call_env
+    inter_env = {}.update(call_env)
 
     i = 0
     bind_tail = true
@@ -27,28 +29,32 @@ class BaseClosure
       if frm.cons then
         bind_tail = false
         target = []
-        env[frm.name] = target
-
+        env[frm.name] = Result.new(target)
+        
+        puts "Making a cons-closure for #{frm.name}"
         # Bind a closure that will update the current
         # formal parameter when the block (if any) is executed.
-        env[frm.cons.name] = Result.new(ConsClosure.new(@eval, env, frm.cons,
-                                              target))
+        inter_env[frm.cons.name] = Result.new(ConsClosure.new(@eval, env, 
+                                                              frm.cons,
+                                                              target))
       else
         # A normal expression is just evaluated and put in the env.
-        #puts "ARGS[#{i}]: #{args[i]}"
-        env[frm.name] = @eval.eval_exp(args[i], outer)
+        puts "Setting normal formal param #{frm.name}"
+        env[frm.name] = @eval.eval_exp(args[i], call_env)
         i += 1
       end
     end
 
     if tail && bind_tail && block then
       # bind the block as a closure to name of tail
-      env[tail.name] = Result.new(Closure.new(@eval, outer, tail, block))
+      puts "Capturing tail block"
+      env[tail.name] = Result.new(Closure.new(@eval, call_env, tail, block))
     end
 
-    if tail && !bind_tail && block then
+    if !bind_tail && block then
+      puts "Running the block to fill in cons params."
       # run the constructor block to fill in the rest of env
-      @eval.eval(block, outer)
+      @eval.eval(block, inter_env, out)
     end
 
     yield env
@@ -61,8 +67,8 @@ class Closure < BaseClosure
     @body = body
   end
 
-  def apply(args, block, outer, out)
-    with_args(args, block, outer) do |env|
+  def apply(args, block, call_env, out)
+    with_args(args, block, call_env, out) do |env|
       @eval.eval(@body, env, out)
     end
   end
@@ -91,26 +97,31 @@ class ConsClosure < BaseClosure
   end
 
 
-  def apply(args, block, outer, out) 
+  def apply(args, block, call_env, out) 
     # add a record to target with fields according to formals
 
-    record = OpenStruct.new
-    with_args(args, block, outer) do |env|
+    puts "Evaluating cons closure"
+
+    record = {}
+    with_args(args, block, call_env, out) do |env|
       bound_tail = true
       formals.each do |frm|
         if frm.cons then
           bound_tail = false
         end
-        records.send("#{frm.name}=", env[frm.name])
+        #puts "SETTTING: #{frm.name} to #{env[frm.name].value}"
+        record[frm.name] = env[frm.name].value
       end
       if tail && block && bound_tail then
         # block is bound to the name of tail
         # set the closure as value 
         name = tail.name
-        record.send("#{name}=", Result.new(env[name]))
+        record[name] = env[name].value
       end
     end
-    @target << record
+    @target << Result.new(record)
+
+    #puts "Added #{record} to target"
   end
 
 end
