@@ -80,6 +80,29 @@ class DeltaTransform
     return obj.val
   end
 
+  # Turn an ordinary delta into a many delta
+  def DeltaTransform.manyify(obj, factory, pos)
+    #if obj already many do nothing
+    return obj if DeltaTransform.isManyChange?(obj)
+
+    #make a clone of obj of many type
+    res = factory[many+obj.schema_class.name]
+    schema_class = obj.schema_class
+
+    schema_class.fields.each do |f| #copy field info
+      next if obj[f.name].nil?
+      if not f.many
+        res[f.name] = obj[f.name]
+      else
+        res[f.name].clear
+        obj[f.name].each do |d|
+          res[f.name] << d
+        end
+      end
+    end
+    res.pos = pos #set position value
+    return res
+  end
 
   #############################################################################
   #start of private section  
@@ -123,11 +146,6 @@ class DeltaTransform
   #convert to an equivalent schema conforming to deltaschema
   def Schema(old)
 
-    #make base change record types
-    @many = @factory.Klass(DeltaTransform.many, @schema)
-    @many.defined_fields << @factory.Field("pos", @many, getPrimitiveType("int"))
-    @schema.types << @many
-
     # make all types first so that later fields can point to them
     old.types.each do |t|
       makeType(t)
@@ -165,9 +183,16 @@ class DeltaTransform
     @schema.types << @factory.Klass(DeltaTransform.clear + old.name, @schema, [base])
 
     #many
-    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base, @many])
-    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base, @many])
-    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base, @many])
+    poskey = IsKeyed?(old) ? getPrimitiveType(ClassKey(old).type.name) : getPrimitiveType("int")
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base])
+    m.defined_fields << @factory.Field("pos", m, poskey)
+    @schema.types << m
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base])
+    m.defined_fields << @factory.Field("pos", m, poskey)
+    @schema.types << m
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base])
+    m.defined_fields << @factory.Field("pos", m, poskey)
+    @schema.types << m
   end
 
   def doType(old)

@@ -1,4 +1,5 @@
-start Line
+start Drawing
+Drawing ::= [Drawing] "drawing" lines:Line * "end"
 Line ::= [Line] "line" label:str (len:int)? pts:Point2D * "end"
-Point2D ::= [Point2D] "point" x:int y:int
 Point3D ::= [Point3D] "point" x:int y:int z:int
+Point2D ::= [Point2D] "point" x:int y:int
