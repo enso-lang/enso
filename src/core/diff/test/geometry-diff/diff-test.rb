@@ -11,13 +11,10 @@ point_schema = Loader.load('diff-point.schema')
 point_grammar = Loader.load('diff-point.grammar')
 
 p1 = Loader.load('diff-test1.diff-point')
-DisplayFormat.print(point_grammar, p1)
+#DisplayFormat.print(point_grammar, p1)
 
 p2 = Loader.load('diff-test2.diff-point')
-DisplayFormat.print(point_grammar, p2)
-
-puts p1.schema_class.schema_class.name
-puts p1.lines.schema_class.name
+#DisplayFormat.print(point_grammar, p2)
 
 =begin
 DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
@@ -26,10 +23,10 @@ DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 =end
 
 res = Diff.new.diff(point_schema, p1, p2)
-Print.print(res)
-
 p3 = Patch.patch!(p1, res)
+puts Equals.equals(p2, p3)
 
+=begin
 puts "Result of p3 = patch!(p1, diff(p1, p2))"
 puts "p1="
 DisplayFormat.print(point_grammar, p1)
@@ -37,4 +34,4 @@ puts "p2="
 DisplayFormat.print(point_grammar, p2)
 puts "p3="
 DisplayFormat.print(point_grammar, p3)
-
+=end

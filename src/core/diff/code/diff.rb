@@ -18,8 +18,7 @@ class Diff
 
     # do matching
     matches = Match.new.match(o1, o2)
-    puts matches
-    
+
     # generate union based on matches. union forms a basis for the result set
     return generate_diffs(o1, o2, matches)
   end
