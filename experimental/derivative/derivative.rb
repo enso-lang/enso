@@ -3,6 +3,33 @@ require 'core/system/library/cyclicmap'
 require 'core/schema/code/factory'
 require 'core/schema/tools/copy'
 
+# in use
+class CyclicMapNew < MemoBase
+  def initialize()
+    super()
+  end
+  def recurse(from)
+    raise "shouldn't be nil" if from.nil?
+    to = @memo[from]
+    return to if to
+    #puts "SENDING #{from.schema_class.name}"
+    send(from.schema_class.name, from)
+  end
+  def register(from, to)
+    @memo[from] = to
+    yield to
+    return to
+  end
+  # TODO: HACK!!!
+  def registerUpdate(from, to)
+    @memo[from] = to
+    result = yield to
+    @memo[from] = result
+    return result
+  end
+end
+
+
 class OptimizingGrammarFactory
   def initialize
     @factory = Factory.new(GrammarSchema.schema)

@@ -2,7 +2,6 @@
 require 'core/schema/code/factory'
 require 'core/system/load/load'
 require 'core/grammar/code/gll/implode'
-require 'core/system/library/cyclicmap'
 
 class Lift
 

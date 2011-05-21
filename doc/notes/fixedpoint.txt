@@ -1,0 +1,31 @@
+=begin
+class 
+
+What about Fixpoint Cyclic Map
+  
+data = info[from.key]
+if data.computed then
+  return data.value
+if !CHANGE
+  INCYCLE = true
+  data.visited = true
+  do
+    CHANGE = false
+    compute()
+  } while (CHANGE)
+    data.computed = true
+  data.visited = false
+  INCYCLE = false
+}
+else if !data.visited
+  data.visited = true
+  compute()
+  data.visited = false
+}
+return data.value
+
+compute()
+  val = call(...)
+  CHANGE |= val != data.value
+  data.value = val
+=end
