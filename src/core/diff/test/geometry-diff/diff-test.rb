@@ -16,6 +16,9 @@ DisplayFormat.print(point_grammar, p1)
 p2 = Loader.load('diff-test2.diff-point')
 DisplayFormat.print(point_grammar, p2)
 
+puts p1.schema_class.schema_class.name
+puts p1.lines.schema_class.name
+
 =begin
 DisplayFormat.print(Loader.load('schema.grammar'), point_schema)
 deltaCons = DeltaTransform.new.delta(point_schema)
