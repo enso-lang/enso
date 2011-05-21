@@ -1,0 +1,18 @@
+primitive \str
+class Node
+  # name: str
+end
+class File < Node
+  ext: str
+end
+class Dir < Node
+  ! nodes: Node *
+end
+class Source
+  # name: str
+  ! rootdir: Node ?
+  rootpath: str
+end
+class Domain
+  ! sources: Source *
+end
