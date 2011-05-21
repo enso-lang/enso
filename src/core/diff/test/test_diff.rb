@@ -24,7 +24,7 @@ class DiffTest < Test::Unit::TestCase
   
   # test matching
   def test_match
-    match = Match.new(Equals.new)
+    match = Match.new(EqualsLocal.new)
     puts match.match(p1, p2)
   end
 

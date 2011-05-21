@@ -139,7 +139,7 @@ class CheckedObject
         raise "Assignment to #{self}.#{field_name} of unknown #{new.class} #{new}" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
-          raise "Expected #{field.type.name} found #{new.schema_class.name}" 
+          raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
         end
       end
     end
