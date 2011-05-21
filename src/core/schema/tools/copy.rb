@@ -18,11 +18,10 @@ class Copy
     return target if target
     #puts "COPY #{source} #{args}"
     klass = source.schema_class
-    raise "Source does not have a schema_class #{source}" unless klass
     target = @factory[klass.name]
 
+	# copy the primitive fields first, so that our name is defined
     klass.fields.each do |field|
-      next if field.computed
       if field.type.Primitive?
         target[field.name] = source[field.name]
       end
@@ -31,7 +30,7 @@ class Copy
     register(source, target)
 
     klass.fields.each do |field|
-      next if field.computed || field.type.Primitive? || (field.inverse && field.inverse.traversal)
+      next if field.type.Primitive? || (field.inverse && field.inverse.traversal)
       #puts "  FIELD #{field.name} #{source[field.name].class} #{source[field.name]}"
       if !field.many
         target[field.name] = copy(source[field.name], *args)

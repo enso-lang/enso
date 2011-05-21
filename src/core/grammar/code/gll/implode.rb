@@ -1,6 +1,4 @@
 
-require 'core/system/library/cyclicmap'
-
 require 'core/system/boot/instance_schema'
 require 'core/schema/code/factory'
 

@@ -59,8 +59,8 @@ classes: {
   class [name + "Seq"] < [name + "Template"]
     items: [name + "Template"]*
   end
-  class [name + "Repeat"] < [name + "Template"]
-    collection: str // TODO: Expression
+  class [name + "Field"] < [name + "Template"]
+    name: str // TODO: Expression
     body: [name + "Template"]*
   end
   class [name + "Cond"] < [name + "Template"]
@@ -109,19 +109,15 @@ class TemplatizeSchema < SchemaGenerator
     end
 
     klass get_class("DotExpression"), :super => @exp  do
-      field :args, :type => get_class("FieldExpression"), :optional => true, :many => true, :traversal => true
+      field :fields, :type => get_class("FieldExpression"), :optional => true, :many => true, :traversal => true
     end
 
-    klass get_class("FieldExpression"), :super => @exp  do
+    klass get_class("FieldExpression") do
       field :name, :type => :str
     end
 
     klass get_class("AddExpression"), :super => @exp  do
       field :args, :type => @exp, :optional => true, :many => true, :traversal => true
-    end
-
-    klass get_class("NameExpression"), :super => @exp do
-      field :name, :type => :str
     end
 
     klass get_class("LiteralExpression"), :super => @exp do
@@ -130,6 +126,24 @@ class TemplatizeSchema < SchemaGenerator
 
     klass get_class("Ref") do
       field :label, :type => @exp, :traversal => true
+    end
+
+    klass get_class("GenericAlt") do
+    end
+
+    klass get_class("GenericSeq") do
+    end
+
+    klass get_class("GenericField") do
+      field :field, :type => @exp
+    end
+
+    klass get_class("GenericCond") do
+      field :condition, :type => @exp
+    end
+
+    klass get_class("GenericLabel") do
+      field :label, :type => @exp
     end
 
     old_schema = root.schema
@@ -164,7 +178,7 @@ class TemplatizeSchema < SchemaGenerator
           when f.traversal
             get_class(f.type.name)
           else 
-            get_class("Ref")
+            get_class("Expression")
           end
         field f.name, :type => type, :optional => optional, :many => many, :traversal => true
       end
@@ -179,29 +193,31 @@ class TemplatizeSchema < SchemaGenerator
     
     klass get_class(old.name + "Alt") do
       super_class base
+      super_class get_class("GenericAlt")
       field :alts, :type => base, :optional => true, :many => true, :traversal => true
     end
 
     klass get_class(old.name + "Seq") do
       super_class base
+      super_class get_class("GenericSeq")
       field :items, :type => base, :optional => true, :many => true, :traversal => true
     end
 
-    klass get_class(old.name + "Repeat") do
+    klass get_class(old.name + "Field") do
       super_class base
-      field :collection, :type => @exp
+      super_class get_class("GenericField")
       field :body, :type => base, :traversal => true
     end
 
     klass get_class(old.name + "Cond") do
       super_class base
-      field :condition, :type => @exp
+      super_class get_class("GenericCond")
       field :body, :type => base, :traversal => true
     end
 
     klass get_class(old.name + "Label") do
       super_class base
-      field :label, :type => @exp
+      super_class get_class("GenericLabel")
       field :body, :type => base, :traversal => true
     end
   end
@@ -239,3 +255,4 @@ ANOTHER IDEA!!!
     class Expression end
     PART
 =end
+    

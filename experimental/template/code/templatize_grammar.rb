@@ -15,15 +15,13 @@ class TemplatizeGrammar < Copy
   def templatize(source, target_klass)
     @grammar = Loader.load_text 'grammar', @factory, <<-GRAMMAR
       start Expression
-      Ref ::= [Ref] label:symExpression
-      intExpression ::= [LiteralExpression] value:int | "[" Expression "]"
-      strExpression ::= [LiteralExpression] value:str | "[" Expression "]"
-      symExpression ::= [LiteralExpression] value:sym | "[" Expression "]"
-
-      Expression ::= [NameExpression] name:sym 
+      AtomExpression ::= [LiteralExpression] value:atom 
+                      | "[" Expression "]"
+                      | [Ref] "@" "[" label:Expression "]"
+      
+      Expression ::= [DotExpression] fields:{ FieldExpression "." }+
                   | [LiteralExpression] value:atom 
                   | [AddExpression] args:{ Expression "+" }+
-                  | [DotExpression] args:{ FieldExpression "." }+
                   
       FieldExpression ::= [FieldExpression] field:sym
     GRAMMAR
@@ -77,10 +75,10 @@ class TemplatizeGrammar < Copy
         return @factory.Call(subs)
       end
     elsif old.Ref?
-      return @factory.Call(@grammar.rules["Ref"])
+      return @factory.Call(@grammar.rules["Expression"])
     elsif old.Value?
       #puts "VALUE #{old.kind}"
-      rule = @grammar.rules[old.kind + "Expression"]
+      rule = @grammar.rules["AtomExpression"]
       return @factory.Call(rule)
     end
     return result
@@ -103,10 +101,10 @@ class TemplatizeGrammar < Copy
       start #{nonterminal_name}
       #{nonterminal_name}Alt ::= [#{klass_name}Alt] alts:{#{nonterminal_name}Cond "|"}+
   
-      #{nonterminal_name}Cond ::= [#{klass_name}Cond] "[" name:Expression "]" arg:#{nonterminal_name}Sequence
+      #{nonterminal_name}Cond ::= [#{klass_name}Cond] "$" "if" "(" name:Expression ")" arg:#{nonterminal_name}Sequence
                     | #{nonterminal_name}Sequence
   
-     #{nonterminal_name}Sequence ::= [#{klass_name}Seq] elements:{#{nonterminal_name}Field \"#{sep}\"}*
+     #{nonterminal_name}Sequence ::= [#{klass_name}Seq] items:{#{nonterminal_name}Field \"#{sep}\"}+
                     | #{nonterminal_name}Field
   
      #{nonterminal_name}Field ::= [#{klass_name}Field] "$" name:sym ":" arg:#{nonterminal_name}
@@ -115,6 +113,8 @@ class TemplatizeGrammar < Copy
      #{nonterminal_name} ::=
      Expression ::=
     GRAMMAR
+    extension.rules["Expression"].arg.alts.clear
+    extension.rules[nonterminal_name].arg.alts.clear
     CopyInto(@factory, extension, @grammar)
     return @grammar.rules["#{nonterminal_name}Alt"]
   end

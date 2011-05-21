@@ -1,6 +1,5 @@
 
 require 'core/system/load/load'
-require 'core/system/library/cyclicmap'
 require 'core/grammar/code/parse'
 require 'core/grammar/code/gll/scan' # for keywords...
 require 'core/schema/tools/print'
@@ -14,9 +13,14 @@ class RenderClass < Dispatch
   def Grammar(this, obj)
     # ugly, should be higher up
     @literals = Scanner::CollectKeywords.run(this)
-    recurse(this.start, obj)
+    return Rule(this.start, obj)
   end
-  
+
+  def recurse(obj, *args)
+    #puts "RENDER #{obj} #{arg}"
+    return send(obj.schema_class.name, obj, *args)
+  end
+
   def Rule(this, obj)
     recurse(this.arg, obj)
   end
@@ -136,7 +140,7 @@ def main
   gg = Loader.load('grammar.grammar')
 
   pt = Render(gg, gg)  
-  Print.new.recurse(pt)
+  Print.print(pt)
 end
 
 if __FILE__ == $0 then

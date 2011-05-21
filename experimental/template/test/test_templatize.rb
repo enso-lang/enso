@@ -1,6 +1,7 @@
 
 require 'core/template/code/templatize_schema'
 require 'core/template/code/templatize_grammar'
+require 'core/template/code/generate'
 
 require 'core/schema/tools/print'
 
@@ -18,13 +19,20 @@ DisplayFormat.print(sg, ssps)
 
 sspg = TemplatizeGrammar.new.templatize(sg, ss.classes["Schema"])
 DisplayFormat.print(Loader.load("grammar.grammar"), sspg)
+puts "-"*50
 
-result = Parse.load_raw <<-SCHEMA, sspg, ssps, Factory.new(ssps)
+result = Parse.load_raw <<-SCHEMA, sspg, ssps, Factory.new(ssps), true
   class Test
-    x: [param]
+    foo: int
   end
+  primitive int
 SCHEMA
+#[start.name]
+puts "*"*50
 Print.print(result)
+final = Generate.new(Factory.new(ss)).generate(result, sg)
+puts "="*50
+Print.print(final)
 
 #puts "-"*50
 #class TemplatizeGrammarSchema < TemplatizeSchema

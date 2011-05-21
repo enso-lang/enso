@@ -1,5 +1,4 @@
 
-require 'core/system/library/cyclicmap'
 require 'core/system/library/schema'
 require 'core/schema/code/finalize'
 
@@ -90,7 +89,8 @@ class CheckedObject
   
   def [](field_name)
     if field_name[-1] == "?"
-      return @schema_class.name == field_name[0..-2]
+      name = field_name[0..-2]
+      return @schema_class.name == name || Subclass?(@schema_class, @schema_class.schema.types[name])
     end
     field = @schema_class.all_fields[field_name]; 
     raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
@@ -139,7 +139,7 @@ class CheckedObject
         raise "Assignment to #{self}.#{field_name} of unknown #{new.class} #{new}" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
-          raise "Expected #{field.type.name} found #{new.schema_class.name}" 
+          raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
         end
       end
     end
@@ -258,17 +258,9 @@ class ManyIndexedField < BaseManyField
   
   def <<(v)
     k = v.send(@key)
-    self[k] = v
-  end
-
-  # public main insertion function
-  def []=(k, v)
-    raise "Key cannot be nil for field #{v}" if !k
-    
-    # can't raise this error, for some reason
-    # TODO:    raise "Item named '#{k}' already exists in '#{@field.name}'" if @hash[k]
-
+    raise "Key cannot be nil for field #{v}" if !k   
     if @hash[k] != v
+      raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
       @realself.notify_update(@field, @hash[k], v) if @realself
       @hash[k] = v
     end
@@ -276,8 +268,9 @@ class ManyIndexedField < BaseManyField
   end
   
   def delete(v)
-    k = v.send(@key)
+    k = v[@key]
     @hash.delete(k)
+    # TODO: notify update???
   end
   
   def clear()

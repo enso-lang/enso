@@ -1,5 +1,7 @@
 
 class Instantiate
+
+  # TODO: detect optional literals and coerce to boolean
   
   def initialize(factory)
     super()

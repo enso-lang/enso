@@ -52,17 +52,7 @@ class Print
     elsif key = ClassKey(obj.schema_class)
       @output << "#{obj[key.name]}\n"
     else
-      @output << "<UNKNOWN NAME>\n"
+      @output << "<UNKNOWN VALUE>\n"
     end
   end
-end
-
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  
-  ss = Loader.load('schema.schema')
-  sg = Loader.load('schema.grammar')
-   
-  Print.print(ss)  
-  Print.print(sg)
 end

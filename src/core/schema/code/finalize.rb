@@ -1,7 +1,7 @@
 
-class VisitFields < MemoBase
+class VisitFields
   def initialize(pass)
-    super()
+    @memo = {}
     @pass = pass
     @indent = 0
   end
