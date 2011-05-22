@@ -27,6 +27,7 @@ class PatchTest < Test::Unit::TestCase
 
 =begin
     puts "Result of p3 = patch!(p1, diff(p1, p2))"
+    Print.print(patch)
     puts "p1="
     DisplayFormat.print(@point_grammar, @p1)
     puts "p2="
@@ -35,7 +36,7 @@ class PatchTest < Test::Unit::TestCase
     DisplayFormat.print(@point_grammar, p3)
 =end
 
-    assert(Equals.equals(@p2, p3))
+    assert(Equals.new.equals(@p2, p3))
   end
   
 end

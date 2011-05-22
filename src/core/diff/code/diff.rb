@@ -55,6 +55,8 @@ class Diff
       x = @factory[DeltaTransform.insert + o1.schema_class.name]
       o1.schema_class.fields.each do |f|
         next if ! f.traversal and ! f.type.Primitive?  # do not follow if this is a non-traversal reference  
+        next if o1[f.name].nil?  # this optional field is not used
+
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
@@ -81,6 +83,7 @@ class Diff
   end
   
   def generate_matched_orderedlist_diff(type, l1, l2, matches)
+
     keyed = IsKeyed? type
     l1keys = keyed ? l1.keys : 0..l1.length-1
     l2keys = keyed ? l2.keys : 0..l2.length-1
@@ -116,6 +119,7 @@ class Diff
   end
   
   def generate_matched_single_diff(type, o1, o2, matches)
+
     if o1.nil? and o2.nil?  # does nothing if both are nil
       return nil
     elsif o1.nil?  #field is added
@@ -132,6 +136,7 @@ class Diff
   end
 
   def generate_matched_diff(o1, o2, matches)
+
     # given a set of matches between the sub objects of o1 and o2
     #produce an annotated diff result conforming to dschma
     #the result will be a ModifyClass
@@ -145,6 +150,8 @@ class Diff
 
     #generate diffs for each field
     schema_class.fields.each do |f|
+      next if !f.type.Primitive? and !f.traversal
+
       f1 = o1[f.name]
       f2 = o2[f.name]
       type = f.type

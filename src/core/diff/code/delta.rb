@@ -25,20 +25,8 @@ class DeltaTransform
     not obj.schema_class.all_fields["val"].nil?
   end
 
-  def DeltaTransform.isManyChange2?(obj)
-    class_name = obj.schema_class.name
-    #search for "_"
-    index = class_name.index("_")
-    change = class_name[0..index-1]
-    return change.start_with?(many)
-  end
-  
   def DeltaTransform.isManyChange?(obj)
-    res = ! ((obj.schema_class.supers.detect {|s| s.name == keyed or s.name == many}).nil?)
-    if (res != DeltaTransform.isManyChange2?(obj))
-      raise "Bug in Delta.isManyChange"
-    end
-    return res
+    not ((obj.schema_class.supers.detect {|s| s.name == keyed or s.name == many}).nil?)
   end
 
   def DeltaTransform.isKeyedMany?(obj)
@@ -139,6 +127,9 @@ class DeltaTransform
     @schema.types << @manybase
     @keyedbase = @factory.Klass(DeltaTransform.keyed, @schema)
     @schema.types << @keyedbase
+    
+    #note that keyedbase does not contain pos because the type of the key
+    #varies depending on object type
   end
 
   def Type(old, action)

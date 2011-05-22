@@ -1,0 +1,79 @@
+    class Many end 
+    class Keyed end 
+    class D_str val : str end 
+    primitive \str 
+    class Insert_str < D_str 
+    end 
+    class Delete_str < D_str end 
+    class Modify_str < D_str end 
+    class Clear_str < D_str end 
+    primitive \int 
+    class ManyInsert_str < D_str ,Many pos : int end 
+    class ManyDelete_str < D_str ,Many pos : int end 
+    class ManyModify_str < D_str ,Many pos : int end 
+    class D_int val : int end 
+    class Insert_int < D_int end 
+    class Delete_int < D_int end 
+    class Modify_int < D_int end 
+    class Clear_int < D_int end 
+    class ManyInsert_int < D_int ,Many pos : int end 
+    class ManyDelete_int < D_int ,Many pos : int end 
+    class ManyModify_int < D_int ,Many pos : int end 
+    class D_bool val : bool end 
+    primitive bool 
+    class Insert_bool < D_bool end 
+    class Delete_bool < D_bool end 
+    class Modify_bool < D_bool end 
+    class Clear_bool < D_bool end 
+    class ManyInsert_bool < D_bool ,Many pos : int end 
+    class ManyDelete_bool < D_bool ,Many pos : int end 
+    class ManyModify_bool < D_bool ,Many pos : int end 
+    class D_real val : real end 
+    primitive real 
+    class Insert_real < D_real end 
+    class Delete_real < D_real end 
+    class Modify_real < D_real end 
+    class Clear_real < D_real end 
+    class ManyInsert_real < D_real ,Many pos : int end 
+    class ManyDelete_real < D_real ,Many pos : int end 
+    class ManyModify_real < D_real ,Many pos : int end 
+    class D_Point end 
+    class Insert_Point < D_Point end 
+    class Delete_Point < D_Point end 
+    class Modify_Point < D_Point end 
+    class Clear_Point < D_Point end 
+    class ManyInsert_Point < D_Point ,Many pos : int end 
+    class ManyDelete_Point < D_Point ,Many pos : int end 
+    class ManyModify_Point < D_Point ,Many pos : int end 
+    class D_Point2D < D_Point ! x : D_int ? ! y : D_int ? end 
+    class Insert_Point2D < D_Point2D end 
+    class Delete_Point2D < D_Point2D end 
+    class Modify_Point2D < D_Point2D end 
+    class Clear_Point2D < D_Point2D end 
+    class ManyInsert_Point2D < D_Point2D ,Many pos : int end 
+    class ManyDelete_Point2D < D_Point2D ,Many pos : int end 
+    class ManyModify_Point2D < D_Point2D ,Many pos : int end 
+    class D_Point3D < D_Point ! x : D_int ? ! y : D_int ? ! z : D_int ? end 
+    class Insert_Point3D < D_Point3D end 
+    class Delete_Point3D < D_Point3D end 
+    class Modify_Point3D < D_Point3D end 
+    class Clear_Point3D < D_Point3D end 
+    class ManyInsert_Point3D < D_Point3D ,Many pos : int end 
+    class ManyDelete_Point3D < D_Point3D ,Many pos : int end 
+    class ManyModify_Point3D < D_Point3D ,Many pos : int end 
+    class D_Line  ! label : D_str ? ! len : D_int ? ! pts : D_Point2D * end 
+    class Insert_Line < D_Line end 
+    class Delete_Line < D_Line end 
+    class Modify_Line < D_Line end 
+    class Clear_Line < D_Line end 
+    class ManyInsert_Line < D_Line ,Keyed pos : str end 
+    class ManyDelete_Line < D_Line ,Keyed pos : str end 
+    class ManyModify_Line < D_Line ,Keyed pos : str end 
+    class D_Drawing  ! lines : D_Line * end 
+    class Insert_Drawing < D_Drawing end 
+    class Delete_Drawing < D_Drawing end 
+    class Modify_Drawing < D_Drawing end 
+    class Clear_Drawing < D_Drawing end 
+    class ManyInsert_Drawing < D_Drawing ,Many pos : int end 
+    class ManyDelete_Drawing < D_Drawing ,Many pos : int end 
+    class ManyModify_Drawing < D_Drawing ,Many pos : int end 

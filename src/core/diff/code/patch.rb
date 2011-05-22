@@ -28,7 +28,7 @@ class Patch
         if not f.many
           patch_single!(o, f.name, d, factory)
         else #many-valued field
-          if IsKeyed?(f.type) 
+          if IsKeyed?(f.type)
             patch_keyedlist!(o, f.name, d, factory)
           else
             patch_orderedlist!(o, f.name, d, factory)
@@ -58,6 +58,9 @@ class Patch
       #fill in fields
       obj = factory[classname]
       obj.schema_class.fields.each do |f|
+        next if !f.type.Primitive? and !f.traversal
+        next if delta[f.name].nil?
+        
         if not f.many
           obj[f.name] = add_obj(delta[f.name], factory)
         else
