@@ -70,35 +70,23 @@ def myrow(first, f) {
 }
 
 
+
+
 def hello_world(name) {
   html("Test") {
     <h1> "Hello World " $name </h1>
     navigate("Hello World!", hello_world("Tijs"));
 
-
-    schema_table(root);
-
-
-    form {
-      <ul>
-      for (x: root->classes, i) {
-        <li>$i ": " textedit(x->name); select(x->supers, root->classes);
-	 <ul>
-		for (y: x->fields, i) {
-		    <li>textedit(y->name);
-			checkbox(y->key);
-			checkbox(y->optional);
-			checkbox(y->many);
-			checkbox(y->traversal);
-		     </li>
-		}			
-	 </ul>
-        </li>
-      }
-      </ul>
-      submit("Submit", hello_world(name));
+    datatable(root->classes) {
+       column("Name") {
+          textedit(row->name);
+       }
+       column("Supers") {
+          select(row->supers, root->classes);
+       }
     }
 
+    schema_table(root);
 
  }
 }
