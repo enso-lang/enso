@@ -17,19 +17,19 @@ class CopyTest < Test::Unit::TestCase
   def test_SS
     s1 = SS
     s2 = Copy.new(Factory.new(SS)).copy(s1)
-    assert_equal([], diff(s1, s2))
+    assert_equal(nil, diff(s1, s2))
   end
 
   def test_GS
     s1 = GS
     s2 = Copy.new(Factory.new(SS)).copy(s1)
-    assert_equal([], diff(s1, s2))
+    assert_equal(nil, diff(s1, s2))
   end
 
   def test_grammar_grammar
     s1 = GG
     s2 = Copy.new(Factory.new(GS)).copy(s1)
-    assert_equal([], diff(s1, s2))
+    assert_equal(nil, diff(s1, s2))
   end
 
 end

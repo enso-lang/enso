@@ -18,7 +18,7 @@ class Diff
 
     # do matching
     matches = Match.new.match(o1, o2)
-    
+
     # generate union based on matches. union forms a basis for the result set
     return generate_diffs(o1, o2, matches)
   end
@@ -47,21 +47,22 @@ class Diff
   #create a completely new object with its complete subtree
   def generate_added_diff(type, o1)
     
-    x = @factory[DeltaTransform.insert + type.name]
-
     #if non primitive then recurse downwards
     if type.Primitive?
+      x = @factory[DeltaTransform.insert + type.name]
       x.val = o1 
     else
+      x = @factory[DeltaTransform.insert + o1.schema_class.name]
       o1.schema_class.fields.each do |f|
         next if ! f.traversal and ! f.type.Primitive?  # do not follow if this is a non-traversal reference  
+        next if o1[f.name].nil?  # this optional field is not used
+
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
           if o1[f.name].is_a? ManyIndexedField
             o1[f.name].keys.each do |k|
-              #all items added at index 0 because it was originally empty
-              x[f.name][k] = DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, 0) 
+              x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, k)
             end
           elsif o1[f.name].is_a? ManyField
             o1[f.name].each do |l|
@@ -82,6 +83,7 @@ class Diff
   end
   
   def generate_matched_orderedlist_diff(type, l1, l2, matches)
+
     keyed = IsKeyed? type
     l1keys = keyed ? l1.keys : 0..l1.length-1
     l2keys = keyed ? l2.keys : 0..l2.length-1
@@ -106,10 +108,10 @@ class Diff
     last_j = 0
     for j in l2keys do
       if not matches.has_value?(l2[j])
-        res << DeltaTransform.manyify(generate_added_diff(type, l2[j]), @factory, last_j)
+        res << DeltaTransform.manyify(generate_added_diff(type, l2[j]), @factory, keyed ? j : last_j)
         modified = true
       else
-        last_j = keyed ? j : l1.find_index(matches.key(l2[j]))+1
+        last_j = l1.find_index(matches.key(l2[j]))+1
       end
     end
     return nil if res.empty?
@@ -117,6 +119,7 @@ class Diff
   end
   
   def generate_matched_single_diff(type, o1, o2, matches)
+
     if o1.nil? and o2.nil?  # does nothing if both are nil
       return nil
     elsif o1.nil?  #field is added
@@ -133,6 +136,7 @@ class Diff
   end
 
   def generate_matched_diff(o1, o2, matches)
+
     # given a set of matches between the sub objects of o1 and o2
     #produce an annotated diff result conforming to dschma
     #the result will be a ModifyClass
@@ -146,6 +150,8 @@ class Diff
 
     #generate diffs for each field
     schema_class.fields.each do |f|
+      next if !f.type.Primitive? and !f.traversal
+
       f1 = o1[f.name]
       f2 = o2[f.name]
       type = f.type

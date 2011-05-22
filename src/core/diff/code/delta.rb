@@ -8,6 +8,7 @@ class DeltaTransform
   def self.modify; "Modify_"; end
   def self.clear; "Clear_"; end  #currently unused --- all objs in diff tree must have been modified
   def self.many; "Many"; end
+  def self.keyed; "Keyed"; end
   def self.base; "D_"; end
 
   def delta(old)
@@ -25,11 +26,11 @@ class DeltaTransform
   end
 
   def DeltaTransform.isManyChange?(obj)
-    class_name = obj.schema_class.name
-    #search for "_"
-    index = class_name.index("_")
-    change = class_name[0..index-1]
-    return change.start_with?(many)
+    not ((obj.schema_class.supers.detect {|s| s.name == keyed or s.name == many}).nil?)
+  end
+
+  def DeltaTransform.isKeyedMany?(obj)
+    not (obj.schema_class.supers.detect {|s| s.name == keyed}).nil?
   end
 
   def DeltaTransform.getChangeType(obj)
@@ -48,6 +49,10 @@ class DeltaTransform
     #search for "_"
     index = class_name.index("_")
     return class_name[index+1..class_name.length-1]
+  end
+
+  def DeltaTransform.getObjectBase(obj)
+    obj.schema_class.supers.detect {|s| s.name.start_with? base }
   end
 
   def DeltaTransform.isInsertChange?(obj)
@@ -118,7 +123,13 @@ class DeltaTransform
     #init memo for base classes and primitive types
     @memo = {}
     @prims = {}
+    @manybase = @factory.Klass(DeltaTransform.many, @schema)
+    @schema.types << @manybase
+    @keyedbase = @factory.Klass(DeltaTransform.keyed, @schema)
+    @schema.types << @keyedbase
     
+    #note that keyedbase does not contain pos because the type of the key
+    #varies depending on object type
   end
 
   def Type(old, action)
@@ -183,14 +194,15 @@ class DeltaTransform
     @schema.types << @factory.Klass(DeltaTransform.clear + old.name, @schema, [base])
 
     #many
-    poskey = IsKeyed?(old) ? getPrimitiveType(ClassKey(old).type.name) : getPrimitiveType("int")
-    m = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base])
+    keyed = IsKeyed?(old)
+    poskey = keyed ? getPrimitiveType(ClassKey(old).type.name) : getPrimitiveType("int")
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base, keyed ? @keyedbase : @manybase])
     m.defined_fields << @factory.Field("pos", m, poskey)
     @schema.types << m
-    m = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base])
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.delete + old.name, @schema, [base, keyed ? @keyedbase : @manybase])
     m.defined_fields << @factory.Field("pos", m, poskey)
     @schema.types << m
-    m = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base])
+    m = @factory.Klass(DeltaTransform.many + DeltaTransform.modify + old.name, @schema, [base, keyed ? @keyedbase : @manybase])
     m.defined_fields << @factory.Field("pos", m, poskey)
     @schema.types << m
   end

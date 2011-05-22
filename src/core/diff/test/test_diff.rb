@@ -12,31 +12,26 @@ class DiffTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    point_schema = Loader.load('diff-point.schema')
-    point_grammar = Loader.load('diff-point.grammar')
+    @point_schema = Loader.load('diff-point.schema')
+    @point_grammar = Loader.load('diff-point.grammar')
     
-    p1 = Loader.load('diff-test1.diff-point')
-    DisplayFormat.print(point_grammar, p1)
-    
-    p2 = Loader.load('diff-test2.diff-point')
-    DisplayFormat.print(point_grammar, p2)
+    @p1 = Loader.load('diff-test1.diff-point')
+    @p2 = Loader.load('diff-test2.diff-point')
   end
   
   # test matching
   def test_match
-    match = Match.new(Equals.new)
-    puts match.match(p1, p2)
+    res = Match.new.match(@p1, @p2)
+    assert_equal(res.size, 6)
   end
 
   # test differencing
   def test_diff
-    res = Diff.new.diff(point_schema, p1, p2)
+    res = Diff.new.diff(@point_schema, @p1, @p2)
     
-    puts res.schema_class.name
-    assert_equal(res.schema_class.name, DeltaTransform.modify+p1.schema_class.name)
+    assert_equal(res.schema_class.name, DeltaTransform.modify+@p1.schema_class.name)
     
-    puts res.pts.length
-    assert_equal(res.pts.length, 2)
+    assert_equal(res.lines[0].pts.length, 4)
   end  
 
   def test_diff2
@@ -45,7 +40,8 @@ class DiffTest < Test::Unit::TestCase
     ss = Loader.load('schema.schema')
     gs = Loader.load('grammar.schema')
     delta = diff(ss, gs)
-  
-    Print.print(delta)
+
+    #TODO: not sure how to check if this test is producing the right output
+    #Print.print(delta)
   end
 end

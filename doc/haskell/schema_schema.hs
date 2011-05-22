@@ -1,6 +1,7 @@
 import Data.Maybe
 
 ---------------------
+-- This is a simple typed model of Enso data
 data Prim 
   = PrimS String 
   |  PrimB  Bool
@@ -16,6 +17,7 @@ data Attribute
   | Many [Value]
 ---------------------
 
+-- The following are some helper functions for creating schemas
 data Spec = OPTIONAL | MANY | INVERSE String String | KEY
   deriving Eq
 
@@ -51,6 +53,7 @@ def_field name _type spec =
     ]
 
 ---------------------
+-- Here are some helper functions for accessing Enso data
 
 get_class :: String -> Value
 get_class name = lookup_by_name name (mfield "types" schema_schema)
@@ -74,6 +77,7 @@ mfield field_name (Composite _ fields) = vs
 inverse [] = Nil
 inverse (INVERSE c f:_) =  lookup_by_name f (mfield "fields" (get_class c))
 ---------------------
+-- Finally, the Enso schema schema
 
 schema_schema = schema [
   primitive "str",

@@ -4,6 +4,8 @@ Apply a diff result conforming to delta schema as a patch script on an object
 
 =end
 
+require 'core/system/library/schema'
+
 class Patch
 
   def self.patch!(o, deltas)
@@ -18,64 +20,19 @@ class Patch
       # apply changes to each of its fields
       schema_class = o.schema_class
       factory = Factory.new(o.schema_class.schema)
-  
-      schema_class.fields.each do |f| #TODO: refactor this big loop into many smaller function calls
+
+      schema_class.fields.each do |f|
         #get field value 
         d = deltas[f.name]
-        #field is nil means it was not changed
-        next if d.nil?
+        next if d.nil? #field is nil means it was not changed
         if not f.many
-          #check which type of change this was
-          if DeltaTransform.isInsertChange?(d)
-            o[f.name] = patch!(o[f.name], d)
-          elsif DeltaTransform.isDeleteChange?(d)
-            o[f.name] = nil
-          elsif DeltaTransform.isModifyChange?(d)
-            o[f.name] = patch!(o[f.name], d)
-          elsif DeltaTransform.isClearChange?(d)
-            #do nothing
-          end
+          patch_single!(o, f.name, d, factory)
         else #many-valued field
-          #group all changes up by position
-          ladds = {}
-          ldels = {}
-          lmods = {}
-          max_pos = -1
-          d.each do |df|
-            pos = df.pos
-            if DeltaTransform.isInsertChange?(df)
-              ladds[pos] = [] if ladds[pos].nil?
-              ladds[pos] << df
-            elsif DeltaTransform.isDeleteChange?(df)
-              ldels[pos] = true
-            elsif DeltaTransform.isModifyChange?(df)
-              lmods[pos] = df
-            end
-          end
-          #iterate along f, applying changes at each index
-          # note that insertion MUST occur before modification because
-          # "insert at 3" means "just before 3"
-          i = 0
-          old_l = []+o[f.name].values #adding to [] will force the creation of a new array
-          o[f.name].clear
-          max_pos = old_l.length #one more than length of array because insertion can occur at the end
-          for i in 0..max_pos
-            if not ladds[i].nil? 
-              #(sequentially) add new elements
-              ladds[i].each do |x|
-                o[f.name] << add_obj(x, factory)
-              end
-            end
-            if i < old_l.length #no need to check for deletions and modifications when past end of array
-              if not lmods[i].nil?
-                #if modified, replace current copy with new object
-                o[f.name] << patch!(old_l[i], lmods[i])
-              elsif not ldels[i]
-                #if not deleted, copy into new array 
-                o[f.name] << old_l[i]
-              end
-            end
-          end
+          if IsKeyed?(f.type)
+            patch_keyedlist!(o, f.name, d, factory)
+          else
+            patch_orderedlist!(o, f.name, d, factory)
+          end 
         end
       end
     end
@@ -101,6 +58,9 @@ class Patch
       #fill in fields
       obj = factory[classname]
       obj.schema_class.fields.each do |f|
+        next if !f.type.Primitive? and !f.traversal
+        next if delta[f.name].nil?
+        
         if not f.many
           obj[f.name] = add_obj(delta[f.name], factory)
         else
@@ -114,5 +74,75 @@ class Patch
 
     return obj
   end
-    
+
+  def self.patch_single!(o, fname, delta, factory)
+    #check which type of change this was
+    if DeltaTransform.isInsertChange?(delta)
+      o[fname] = patch!(o[fname], delta)
+    elsif DeltaTransform.isDeleteChange?(delta)
+      o[fname] = nil
+    elsif DeltaTransform.isModifyChange?(delta)
+      o[fname] = patch!(o[fname], delta)
+    elsif DeltaTransform.isClearChange?(delta)
+      #do nothing
+    end
+  end
+
+  def self.patch_orderedlist!(o, fname, deltas, factory)
+    ladds = {}
+    ldels = {}
+    lmods = {}
+    max_pos = -1
+    deltas.each do |df|
+      pos = df.pos
+      if DeltaTransform.isInsertChange?(df)
+        ladds[pos] = [] if ladds[pos].nil?
+        ladds[pos] << df
+      elsif DeltaTransform.isDeleteChange?(df)
+        ldels[pos] = true
+      elsif DeltaTransform.isModifyChange?(df)
+        lmods[pos] = df
+      end
+    end
+    #iterate along f, applying changes at each index
+    # note that insertion MUST occur before modification because
+    # "insert at 3" means "just before 3"
+    i = 0
+    old_l = []+o[fname].values #adding to [] will force the creation of a new array
+    o[fname].clear
+    max_pos = old_l.length #one more than length of array because insertion can occur at the end
+    for i in 0..max_pos
+      if not ladds[i].nil? 
+        #(sequentially) add new elements
+        ladds[i].each do |x|
+          o[fname] << add_obj(x, factory)
+        end
+      end
+      if i < old_l.length #no need to check for deletions and modifications when past end of array
+        if not lmods[i].nil?
+          #if modified, replace current copy with new object
+          o[fname] << patch!(old_l[i], lmods[i])
+        elsif not ldels[i]
+          #if not deleted, copy into new array 
+          o[fname] << old_l[i]
+        end
+      end
+    end
+  end
+
+  def self.patch_keyedlist!(o, fname, deltas, factory)
+    deltas.each do |df|
+      pos = df.pos
+      if DeltaTransform.isInsertChange?(df)
+        o[fname].delete(pos)
+        o[fname] << patch!(o[fname][pos], df)
+      elsif DeltaTransform.isDeleteChange?(df)
+        o[fname].delete(pos)
+      elsif DeltaTransform.isModifyChange?(df)
+        o[fname].delete(pos)
+        o[fname] << patch!(o[fname][pos], df)
+      end
+    end
+  end
+
 end

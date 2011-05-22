@@ -12,7 +12,13 @@ class Print
   def self.print(obj, indent=0)
     self.new.print(obj, indent)
   end
-  
+
+  def self.to_s(obj, indent=0)
+    output = ""
+    self.new(output).print(obj, indent)
+    output
+  end
+    
   def print(obj, indent=0, back_link=nil)
     if obj.nil?
       @output << "nil\n"

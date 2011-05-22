@@ -23,7 +23,9 @@ class Match
       # add current match to results
       res = { o1 => o2 }
       # add results of matching non-primitive fields
+        
       o1.schema_class.fields.each do |f|
+        next unless f.traversal
         if not f.type.Primitive?  #FIXME: list of primitives require matching of some kind as well
           if f.many
             if o1[f.name].is_a? ManyIndexedField
@@ -38,7 +40,7 @@ class Match
               res.merge!(match(i1, list_matches[i1]))
             end
           else
-            res << match(o1[f.name], o2[f.name])
+            res.merge!(match(o1[f.name], o2[f.name]))
           end
         end
       end
@@ -118,7 +120,7 @@ class Match
     #select appropriate schema based on schema_class of o1
     #assumption is that o1 and o2 are the same
     meta_schema_class = o1.schema_class.schema_class
-    send("eq_"+meta_schema_class.name(), o1, o2)
+    send("eq_"+meta_schema_class.name, o1, o2)
   end
   
   def eq_deep (o1, o2, matches)
@@ -163,18 +165,18 @@ class Match
     # if this class has no keys then check that all their primitive fields are equal
 
     schema_class = o1.schema_class
-  
+
     # check if these two are of the same type
     #in most places this check would have taken place before this call is made
     if o2.schema_class != schema_class
       return false
     end
-  
+    
     # iterate over key fields of the type to verify equivalence
     num_keys = 0
     schema_class.defined_fields.each do |f|
       if f.key
-        if o1.method(f.name).call != o2.method(f.name).call 
+        if o1[f.name] != o2[f.name] 
           return false
         end
         num_keys = num_keys+1
@@ -185,7 +187,7 @@ class Match
     if num_keys == 0
       schema_class.fields.each do |f|
         if f.type.Primitive?
-          if o1.method(f.name).call != o2.method(f.name).call 
+          if o1[f.name] != o2[f.name] 
             return false
           end
         end

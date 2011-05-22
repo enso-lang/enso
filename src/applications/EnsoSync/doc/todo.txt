@@ -1,0 +1,16 @@
+TODO:
+
+- Allow recursion/alternatives in file structure declaration 
+
+- Infer domain desc language from current file system
+
+- Add more features to domain language, eg
+  - WildCARD!!!!!
+  - LABELS!!!!!!,
+  - File meta-data, ie permissions, etc
+
+- Think abt rule language, how abt: eg
+   "rule R1 
+    copy one-way  
+    from MyLaptop:workspace/enso/*
+    to ALL"
