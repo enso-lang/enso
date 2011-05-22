@@ -22,7 +22,7 @@ class ParseTest < Test::Unit::TestCase
     s = ''
     DisplayFormat.print(GrammarGrammar.grammar, grammar1, 80, s)
     grammar2 = Parse.load(s, GrammarGrammar.grammar, GrammarSchema.schema)
-    assert_equal([], diff(grammar1, grammar2))
+    assert_equal(nil, diff(grammar1, grammar2))
   end
 
 

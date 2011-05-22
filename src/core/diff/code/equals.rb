@@ -9,9 +9,12 @@ Deep equality based on object tree structure and primitive values
 
 class Equals 
 
-
   def initialize()
     @memo = {}
+  end
+  
+  def self.equals(a, b)
+    self.new.equals(a, b)
   end
 
   def equals(a, b)
