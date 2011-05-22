@@ -36,7 +36,7 @@ class PatchTest < Test::Unit::TestCase
     DisplayFormat.print(@point_grammar, p3)
 =end
 
-    assert(Equals.new.equals(@p2, p3))
+    assert(Equals.equals(@p2, p3))
   end
   
 end

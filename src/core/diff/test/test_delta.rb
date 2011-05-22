@@ -20,7 +20,7 @@ class DeltaTest < Test::Unit::TestCase
   # test creation of delta schema
   def test_delta
     deltaCons = DeltaTransform.new.delta(@point_schema)
-    assert(Equals.new.equals(@delta_schema, deltaCons))
+    assert(Equals.equals(@delta_schema, deltaCons))
   end
   
 end

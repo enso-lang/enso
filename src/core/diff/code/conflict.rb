@@ -41,7 +41,7 @@ class Conflict
 
       #inserts
       if ct1 == DeltaTransform.insert
-        return [[d1, d2]] if not Equals.new.equals(d1, d2)
+        return [[d1, d2]] if not Equals.equals(d1, d2)
 
       #modifys
       elsif ct1 == DeltaTransform.modify
@@ -62,7 +62,7 @@ class Conflict
       #inserts
       if ct1==DeltaTransform.insert and ct2==DeltaTransform.insert
         if DeltaTransform.isKeyedMany?(d1)
-          return [[d1,d2]] if not Equals.new.equals(d1, d2)
+          return [[d1,d2]] if not Equals.equals(d1, d2)
         else
           return [[d1,d2]]
         end

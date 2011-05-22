@@ -3,6 +3,7 @@ require 'core/schema/code/factory'
 require 'core/diff/code/delta'
 require 'core/diff/code/match'
 require 'core/diff/code/equals'
+require 'core/system/library/schema'
 
 class Diff
 
@@ -38,9 +39,9 @@ class Diff
     #this function is primarily a recursive postfix traversal of the spanning tree
 
     res = generate_matched_diff(o1, o2, matches)
-    if res.nil?
-      res = @factory[DeltaTransform.clear + o1.schema_class.name]
-    end
+#    if res.nil?
+#      res = @factory[DeltaTransform.clear + o1.schema_class.name]
+#    end
     return res
   end
 
@@ -60,11 +61,11 @@ class Diff
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
-          if o1[f.name].is_a? ManyIndexedField
+          if IsKeyed? f.name.type
             o1[f.name].keys.each do |k|
               x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, k)
             end
-          elsif o1[f.name].is_a? ManyField
+          else
             o1[f.name].each do |l|
               #all items added at index 0 because it was originally empty
               x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, l), @factory, 0) 

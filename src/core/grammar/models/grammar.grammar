@@ -17,9 +17,9 @@
   Pattern ::= 
       [Value] kind:"int"
     | [Value] kind:"str"
-    | [Value] kind:"atom"
     | [Value] kind:"real"
     | [Value] kind:"sym"
+    | [Value] kind:"atom"
     | [Code] "@" code:str
     | [Ref] name:sym "^"
     | [Lit] value:str

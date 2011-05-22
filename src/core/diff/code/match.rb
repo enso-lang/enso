@@ -12,8 +12,9 @@ All subclasses must implement the following functions:
 # but does not include schema class level attributes like "many" and "super-class"
 # schema classes are refered to by their paths
 
-#TODO: Currently there is only one equals stratgy based on shallow equivalence!
 =end
+
+require 'core/system/library/schema'
 
 class Match
   
@@ -28,7 +29,7 @@ class Match
         next unless f.traversal
         if not f.type.Primitive?  #FIXME: list of primitives require matching of some kind as well
           if f.many
-            if o1[f.name].is_a? ManyIndexedField
+            if IsKeyed? f.type
               list_matches = match_keyed_list(o1[f.name], o2[f.name])
             elsif o1[f.name].is_a? ManyField
               list_matches = match_ordered_list(o1[f.name], o2[f.name])
@@ -168,15 +169,15 @@ class Match
 
     # check if these two are of the same type
     #in most places this check would have taken place before this call is made
-    if o2.schema_class != schema_class
+    if o2.schema_class.name != schema_class.name
       return false
     end
     
     # iterate over key fields of the type to verify equivalence
     num_keys = 0
     schema_class.defined_fields.each do |f|
-      if f.key
-        if o1[f.name] != o2[f.name] 
+      if f.key and f.type.Primitive?
+        if o1[f.name] != o2[f.name]
           return false
         end
         num_keys = num_keys+1
@@ -186,6 +187,7 @@ class Match
     # if no key fields found then check all primitive types
     if num_keys == 0
       schema_class.fields.each do |f|
+        next if f.computed
         if f.type.Primitive?
           if o1[f.name] != o2[f.name] 
             return false
@@ -207,14 +209,14 @@ class Match
   
     # check if these two are of the same type
     #in most places this check would have taken place before this call is made
-    if o2.schema_class != schema_class
+    if o2.schema_class.name != schema_class.name
       return false
     end
   
     # iterate over primitive fields of the type to verify equivalence
     schema_class.fields.each do |f|
       if f.type.Primitive?
-        if o1.method(f.name).call != o2.method(f.name).call 
+        if o1[f.name] != o2[f.name]
           return false
         end
       end

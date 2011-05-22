@@ -33,7 +33,7 @@ class BootstrapTests < Test::Unit::TestCase
     assert(Equals.equals(Loader.load(GRAMMAR_GRAMMAR), GrammarGrammar.grammar))
   end
   def test_diff_boot_GrammarGrammar
-    assert_equal("", Print.print(Diff.new.diff(Loader.load(GRAMMAR_SCHEMA), Loader.load(GRAMMAR_GRAMMAR), GrammarGrammar.grammar)))    
+    assert_equal(nil, Diff.new.diff(Loader.load(GRAMMAR_SCHEMA), Loader.load(GRAMMAR_GRAMMAR), GrammarGrammar.grammar))    
   end  
 
   def test_grammar_grammar
