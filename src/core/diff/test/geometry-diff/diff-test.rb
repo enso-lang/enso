@@ -24,7 +24,7 @@ DisplayFormat.print(Loader.load('schema.grammar'), deltaCons)
 
 res = Diff.new.diff(point_schema, p1, p2)
 p3 = Patch.patch!(p1, res)
-puts Equals.equals(p2, p3)
+puts Equals.new.equals2(p2, p3)
 
 =begin
 puts "Result of p3 = patch!(p1, diff(p1, p2))"

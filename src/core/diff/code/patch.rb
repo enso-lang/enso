@@ -141,5 +141,5 @@ class Patch
       end
     end
   end
-      
+
 end

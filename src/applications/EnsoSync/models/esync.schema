@@ -10,7 +10,7 @@ class Dir < Node
 end
 class Source
   # name: str
-  ! rootdir: Node ?
+  ! rootdir: Node
   rootpath: str
 end
 class Domain

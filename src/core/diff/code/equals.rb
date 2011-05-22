@@ -9,8 +9,33 @@ Deep equality based on object tree structure and primitive values
 
 class Equals 
 
-  def Equals.equals (o1, o2)
-    Equals.new.eq(o1, o2)
+
+  def initialize()
+    @memo = {}
+  end
+
+  def equals(a, b)
+      return true if a == b
+      return false if a.nil? || b.nil? || a.schema_class.name != b.schema_class.name
+      return true if @memo[[a, b]]
+      @memo[[a, b]] = true
+
+      a.schema_class.fields.each do |field|
+        a_val = a[field.name]
+        b_val = b[field.name]
+  
+        if field.type.Primitive?
+          return false if a_val != b_val
+        elsif !field.many
+          return false if !equals(a_val, b_val)
+        else
+          a_val.outer_join(b_val) do |a_item, b_item|
+          return false if !equals(a_item, b_item)
+        end
+      end
+    end
+
+    return true
   end
 
   def is_primitive_value(o)

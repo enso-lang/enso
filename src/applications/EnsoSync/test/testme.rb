@@ -4,7 +4,9 @@ require 'core/grammar/code/layout'
 require 'core/diff/code/delta'
 require 'core/diff/code/diff'
 require 'core/diff/code/patch'
+require 'core/diff/code/conflict'
 require 'core/system/library/schema'
+require 'applications/EnsoSync/code/execrule'
 
 schema = Loader.load('esync.schema')
 grammar = Loader.load('esync.grammar')
@@ -33,20 +35,26 @@ def recurse(path, factory)
 end
 
 d = factory.Domain
+s0 = factory.Source("s0")
+s0.rootpath = "/home/alexloh/temp/t0/f"
+s0.rootdir = recurse(s0.rootpath, factory)
+d.sources << s0
 s1 = factory.Source("s1")
-#s1.rootpath = "/home/alexloh/workspace/enso"
 s1.rootpath = "/home/alexloh/temp/t1/f"
 s1.rootdir = recurse(s1.rootpath, factory)
-#d.sources << s1
-s2 = factory.Source("s1")
-#s2.rootpath = "/home/alexloh/workspace/enso2"
+d.sources << s1
+s2 = factory.Source("s2")
 s2.rootpath = "/home/alexloh/temp/t2/f"
 s2.rootdir = recurse(s2.rootpath, factory)
-#d.sources << s2
+d.sources << s2
 
-Print.print(s1)
-Print.print(s2)
-
-res = diff(s1, s2)
+d1 = diff(s0.rootdir, s1.rootdir)
+d2 = diff(s0.rootdir, s2.rootdir)
 puts "ASDF"
-Print.print(res)
+Print.print(d1)
+Print.print(d2)
+
+res = Conflict.conflict(d1, d2)
+Print.print(res[0][0])
+Print.print(res[0][1])
+#apply(s1.rootpath, s2.rootpath, res)
