@@ -4,8 +4,8 @@ require 'core/schema/tools/copy'
 
 class DeltaGrammar
 
-  def initialize(g)
-    @factory = g._graph_id
+  def initialize(factory)
+    @factory = factory
     @memo = {}
     @rule_cache = {}
   end
@@ -14,9 +14,10 @@ class DeltaGrammar
 
   def self.delta(g)
     gs = Loader.load('grammar.schema')
-    g2 = Copy.new(Factory.new(gs)).copy(g)
+    fact = Factory.new(gs)
+    g2 = fact.Grammar
     rules = []
-    g2.start = DeltaGrammar.new(g2).delta(g, rules)
+    g2.start = DeltaGrammar.new(fact).delta(g, rules)
     rules.each do |r|
       g2.rules << r
     end
@@ -90,7 +91,7 @@ class DeltaGrammar
       r = @factory.Rule(regular_name(this))
       @rule_cache[n] = r
       darg = delta(this.arg, rules)
-      alts = [delete_key, add(this.arg), modify(darg)]
+      alts = [delete_key, modify(darg)]
       arg = @factory.Alt(alts)
       r.arg = arg
       rules << r
@@ -155,12 +156,6 @@ class DeltaGrammar
     @factory.Sequence(elts)
   end
 
-
-  def add(x)
-    elts = [@factory.Lit("(+"), x, @factory.Lit(")")]
-    @factory.Sequence(elts)
-  end
-
   def modify(x)
     @factory.Sequence([x])
   end
@@ -170,8 +165,7 @@ class DeltaGrammar
   end
 
   def set_value(x)
-    elts = [@factory.Lit("(!"), x, @factory.Lit(")")]
-    @factory.Sequence(elts)
+    @factory.Sequence([x])
   end
 
 end
