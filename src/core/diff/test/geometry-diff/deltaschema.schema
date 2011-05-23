@@ -1,16 +1,25 @@
     class Many end 
     class Keyed end 
+    class DeltaRef path : str end 
+    class Insert_DeltaRef < DeltaRef end 
+    class Delete_DeltaRef < DeltaRef end 
+    class Modify_DeltaRef < DeltaRef end 
+    class Clear_DeltaRef < DeltaRef end 
+    primitive str 
     class D_str val : str end 
-    primitive \str 
-    class Insert_str < D_str 
-    end 
+    class Insert_str < D_str end 
     class Delete_str < D_str end 
     class Modify_str < D_str end 
     class Clear_str < D_str end 
-    primitive \int 
     class ManyInsert_str < D_str ,Many pos : int end 
     class ManyDelete_str < D_str ,Many pos : int end 
     class ManyModify_str < D_str ,Many pos : int end 
+    class ManyDeltaRefstr < DeltaRef ,Keyed pos : str end 
+    class ManyInsert_DeltaRefstr < ManyDeltaRefstr end 
+    class ManyDelete_DeltaRefstr < ManyDeltaRefstr end 
+    class ManyModify_DeltaRefstr < ManyDeltaRefstr end 
+    class ManyClear_DeltaRefstr < ManyDeltaRefstr end 
+    primitive int 
     class D_int val : int end 
     class Insert_int < D_int end 
     class Delete_int < D_int end 
@@ -19,8 +28,13 @@
     class ManyInsert_int < D_int ,Many pos : int end 
     class ManyDelete_int < D_int ,Many pos : int end 
     class ManyModify_int < D_int ,Many pos : int end 
-    class D_bool val : bool end 
+    class ManyDeltaRefint < DeltaRef ,Keyed pos : int end 
+    class ManyInsert_DeltaRefint < ManyDeltaRefint end 
+    class ManyDelete_DeltaRefint < ManyDeltaRefint end 
+    class ManyModify_DeltaRefint < ManyDeltaRefint end 
+    class ManyClear_DeltaRefint < ManyDeltaRefint end 
     primitive bool 
+    class D_bool val : bool end 
     class Insert_bool < D_bool end 
     class Delete_bool < D_bool end 
     class Modify_bool < D_bool end 
@@ -28,8 +42,13 @@
     class ManyInsert_bool < D_bool ,Many pos : int end 
     class ManyDelete_bool < D_bool ,Many pos : int end 
     class ManyModify_bool < D_bool ,Many pos : int end 
-    class D_real val : real end 
+    class ManyDeltaRefbool < DeltaRef ,Keyed pos : bool end 
+    class ManyInsert_DeltaRefbool < ManyDeltaRefbool end 
+    class ManyDelete_DeltaRefbool < ManyDeltaRefbool end 
+    class ManyModify_DeltaRefbool < ManyDeltaRefbool end 
+    class ManyClear_DeltaRefbool < ManyDeltaRefbool end 
     primitive real 
+    class D_real val : real end 
     class Insert_real < D_real end 
     class Delete_real < D_real end 
     class Modify_real < D_real end 
@@ -37,6 +56,11 @@
     class ManyInsert_real < D_real ,Many pos : int end 
     class ManyDelete_real < D_real ,Many pos : int end 
     class ManyModify_real < D_real ,Many pos : int end 
+    class ManyDeltaRefreal < DeltaRef ,Keyed pos : real end 
+    class ManyInsert_DeltaRefreal < ManyDeltaRefreal end 
+    class ManyDelete_DeltaRefreal < ManyDeltaRefreal end 
+    class ManyModify_DeltaRefreal < ManyDeltaRefreal end 
+    class ManyClear_DeltaRefreal < ManyDeltaRefreal end 
     class D_Point end 
     class Insert_Point < D_Point end 
     class Delete_Point < D_Point end 
@@ -61,7 +85,7 @@
     class ManyInsert_Point3D < D_Point3D ,Many pos : int end 
     class ManyDelete_Point3D < D_Point3D ,Many pos : int end 
     class ManyModify_Point3D < D_Point3D ,Many pos : int end 
-    class D_Line  ! label : D_str ? ! len : D_int ? ! pts : D_Point2D * end 
+    class D_Line ! label : D_str ? ! len : D_int ? ! pts : D_Point2D * end 
     class Insert_Line < D_Line end 
     class Delete_Line < D_Line end 
     class Modify_Line < D_Line end 
@@ -69,7 +93,7 @@
     class ManyInsert_Line < D_Line ,Keyed pos : str end 
     class ManyDelete_Line < D_Line ,Keyed pos : str end 
     class ManyModify_Line < D_Line ,Keyed pos : str end 
-    class D_Drawing  ! lines : D_Line * end 
+    class D_Drawing ! lines : D_Line * end 
     class Insert_Drawing < D_Drawing end 
     class Delete_Drawing < D_Drawing end 
     class Modify_Drawing < D_Drawing end 

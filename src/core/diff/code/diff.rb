@@ -1,6 +1,7 @@
 
 require 'core/schema/code/factory'
 require 'core/diff/code/delta'
+require 'core/diff/code/delta_erb'
 require 'core/diff/code/match'
 require 'core/diff/code/equals'
 require 'core/system/library/schema'
@@ -15,7 +16,7 @@ class Diff
 
     # do some initialization
     @schema = schema
-    @factory = Factory.new(DeltaTransform.new.delta(schema))
+    @factory = Factory.new(DeltaERB.delta(schema))
     @rootobj = o2
     
     # generate name map based on o2
