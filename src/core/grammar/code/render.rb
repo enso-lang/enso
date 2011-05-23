@@ -107,7 +107,7 @@ class RenderClass < Dispatch
     throw :fail unless obj.instance_eval(code)
     @factory.Sequence()
   end
-  
+
   def Regular(this, obj)
     if !this.many
       catch :fail do
@@ -115,6 +115,7 @@ class RenderClass < Dispatch
       end
       return @factory.Sequence()
     else
+      throw :fail if obj.length == 0 && !this.optional
       s = @factory.Sequence()
       obj.each_with_index do |x, i|
         s.elements << @factory.Text(this.sep) if i > 0 && this.sep
