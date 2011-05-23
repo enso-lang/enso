@@ -21,15 +21,6 @@ def Lookup1(obj, path)
   return Lookup1(obj[field.name][path[0]], path[1..-1])
 end
 
-# get the path of an object relative to a base object
-# inverse of Lookup, ie obj=Lookup(baseobj, GetPath(obj, baseobj))
-def GetPath(obj, baseobj)
-  return "" if baseobj == obj
-  field = obj.schema_class.fields.find(&:traversal)
-  key = baseobj[field.name]
-  return key.to_s+"."+GetPath(obj, baseobj[key])
-end
-
 def Subclass?(a, b)
   return false if a.nil? || b.nil?
   return true if a.name == b.name

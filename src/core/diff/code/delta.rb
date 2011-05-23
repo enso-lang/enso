@@ -1,4 +1,5 @@
 require 'core/schema/code/factory'
+require 'core/system/library/schema'
 
 class DeltaTransform
 
@@ -9,6 +10,7 @@ class DeltaTransform
   def self.clear; "Clear_"; end  #currently unused --- all objs in diff tree must have been modified
   def self.many; "Many"; end
   def self.keyed; "Keyed"; end
+  def self.ref; "DeltaRef"; end
   def self.base; "D_"; end
 
   def delta(old)
@@ -31,6 +33,10 @@ class DeltaTransform
 
   def DeltaTransform.isKeyedMany?(obj)
     not (obj.schema_class.supers.detect {|s| s.name == keyed}).nil?
+  end
+
+  def DeltaTransform.isRef?(obj)
+    not (obj.schema_class.supers.detect {|s| s.name == ref}).nil?
   end
 
   def DeltaTransform.getChangeType(obj)
@@ -86,12 +92,12 @@ class DeltaTransform
   end
 
   # Turn an ordinary delta into a many delta
-  def DeltaTransform.manyify(obj, factory, pos)
+  def DeltaTransform.manyify(obj, factory, pos, reftype = "")
     #if obj already many do nothing
     return obj if DeltaTransform.isManyChange?(obj)
 
     #make a clone of obj of many type
-    res = factory[many+obj.schema_class.name]
+    res = factory[many + obj.schema_class.name + reftype]
     schema_class = obj.schema_class
 
     schema_class.fields.each do |f| #copy field info
@@ -123,13 +129,25 @@ class DeltaTransform
     #init memo for base classes and primitive types
     @memo = {}
     @prims = {}
+    @refs = {}
+
+    #init default base types: many and keyed many
     @manybase = @factory.Klass(DeltaTransform.many, @schema)
     @schema.types << @manybase
     @keyedbase = @factory.Klass(DeltaTransform.keyed, @schema)
     @schema.types << @keyedbase
-    
     #note that keyedbase does not contain pos because the type of the key
     #varies depending on object type
+
+    #init default single-valued ref types
+    @refbase = @factory.Klass(DeltaTransform.ref, @schema)
+    @refbase.defined_fields << @factory.Field("path", @refbase, getPrimitiveType("str"))
+    @schema.types << @refbase
+    #ins/del/mod/clr
+    @schema.types << @factory.Klass(DeltaTransform.insert + DeltaTransform.ref, @schema, [@refbase])
+    @schema.types << @factory.Klass(DeltaTransform.delete + DeltaTransform.ref, @schema, [@refbase])
+    @schema.types << @factory.Klass(DeltaTransform.modify + DeltaTransform.ref, @schema, [@refbase])
+    @schema.types << @factory.Klass(DeltaTransform.clear + DeltaTransform.ref, @schema, [@refbase])
   end
 
   def Type(old, action)
@@ -150,9 +168,36 @@ class DeltaTransform
     x = @factory.Primitive(name, @schema)
     @prims[name] = x 
     @schema.types << x
+
+    r = @factory.Primitive(name, )
+
     return x
   end
-  
+
+  def getManyRefBase(keytype = "")
+
+    if keytype == ""
+      keytype = "int"
+      keyed = false
+    else 
+      keyed = true
+    end
+
+    return @refs[keytype] if @refs.has_key?(keytype)
+
+    base = @factory.Klass(DeltaTransform.many + DeltaTransform.ref + keytype, @schema, [@refbase, keyed ? @keyedbase : @manybase])
+    base.defined_fields << @factory.Field("pos", base, getPrimitiveType(keytype))
+    @refs[keytype] = base
+    @schema.types << base
+
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.insert + DeltaTransform.ref + keytype, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.delete + DeltaTransform.ref + keytype, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.modify + DeltaTransform.ref + keytype, @schema, [base])
+    @schema.types << @factory.Klass(DeltaTransform.many + DeltaTransform.clear + DeltaTransform.ref + keytype, @schema, [base])
+
+    return base
+  end
+
   #given a schema conforming to schema-schema
   #convert to an equivalent schema conforming to deltaschema
   def Schema(old)
@@ -166,7 +211,7 @@ class DeltaTransform
     old.types.each do |t|
       doType(t)
     end
-
+    
     # finalize the schema + do some checking
     return @schema.finalize
   end
@@ -228,7 +273,19 @@ class DeltaTransform
 
   def Field(old)
     new = @factory.Field(old.name)
-    new.type = @memo[old.type.name]
+    if !old.traversal and !old.type.Primitive? #is a ref
+      if not old.many
+        new.type = @refbase
+      else
+        if IsKeyed?(old.type)
+          new.type = getManyRefBase(ClassKey(old.type).type.name)
+        else
+          new.type = getManyRefBase()
+        end
+      end
+    else
+      new.type = @memo[old.type.name]
+    end
     new.optional = true
     new.many = old.many
     new.traversal = true
