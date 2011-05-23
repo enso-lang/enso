@@ -136,7 +136,7 @@ class CheckedObject
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
-        raise "Assignment to #{self}.#{field_name} of unknown #{new.class} #{new}" unless new.is_a?(CheckedObject)
+        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
           raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
