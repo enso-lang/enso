@@ -1,0 +1,102 @@
+
+// Based on: http://ooatool.com/ooa/BridgePoint4.2/ActionLanguage.pattern.html
+
+start Code
+
+Code ::= Statement*
+
+Statement ::= [If] "if" cond:Expression thenPart:Statement* elifs:Elif* elsePart:ElsePart? "end" "if" ";"
+	  |   [For] "for" "each" var:id "in" inVar:id body:Statement* "end" "for" ";"
+	  |   [While] "while" cond:Expression body:Statement* "end" "while" ";"
+	  |   [Break] "break" ";"
+	  |   [Continue] "continue" ";"
+	  |   [Stop] "control" "stop" ";"
+	  |   [Create] "create" "object" "instance" var:id? "of" keyLetters:id ";"
+	  |   [Delete] "delete" "object" "instance" var:id ";"
+	  |   [Select] "select" mult:Mult var:id "from" "instances" "of" keyLetters:id where:Where? ";"
+	  |   [Relate] "relate" from:Name "to" to:Name "across" designator:Designator Using? ";"
+	  |   [Unrelate] "unrelate" from:Name "from" to:Name "across" designator:Designator Using? ";"
+	  |   [SelectRelated] "select" mult:Mult var:id "related" "by" \start:Name derefs:Deref+ where:Where? ";"
+	  |   [GenerateEvent] "generate" event:Event ";"
+	  |   [GenerateAccess] "generate" designator:Designator ";"
+	  |   [CreateEvent] "create" "event" "instance" name:Name "of" event:Event ";"
+	  |   [Transform] "transform" target:Target "::" operation:Operation ";"
+	  |   [Bridge] "bridge" targe:Target "::" operation:Operation ";"
+	  |   [Invoke] name:Name "::" operation:Operation ";"
+	  |   [InvokeLocal] "::" operation:Operation ";"
+	  |   [InvokeMethod] name:Name "." operation:Operation ";"
+	  |   [Return] "return" exp:Expression? ";"
+	  |   [Assign] "assign"? designator:Designator "=" exp:Expression ";"
+
+ElsePart ::= "else" body:Statement*
+
+Elif ::= "elif" cond:Expression body:Statement*
+
+Target ::= [Assigning] designator:Designator "=" name:Name
+       |   [NonAssingin] name:Name
+
+Operation ::= Name "(" {Item ","}* ")"
+
+// param = just id
+Designator ::= [Base] name:Name
+	   |   [Attr] name:Name "." attr:Name
+
+Where ::= "where" cond:Expression
+Using ::= "using" Name
+
+Name ::= [Id] name:id
+     |   [Free] name:str // this amb with str expressions, need sq-strings.
+
+// In select, any is not allowed.
+Mult ::= [One] "one"
+     |   [Any] "any"
+     |   [Many] "many"
+
+
+Deref ::= "->" name:id "[" relation:Designator "]"
+
+Event ::= label:id star:"*"? meaning:Meaning? params:Params? "to" name:Name kind:Kind?
+
+Kind ::= [Creator] "creator" 
+     |   [Assigner] "assigner"
+     |   [Class] "class"
+
+Meaning ::= ":" name:Name
+Params ::= "(" {Item ","}* ")"
+Item ::= name:Name ":" exp:Expression
+
+// TODO precedences;
+Expression ::= [Or] Expression "or" Expression
+	   |   [And] Expression "and" Expression
+	   |   [Eq]    Expression "==" Expression
+	   |   [Neq]    Expression "!=" Expression
+	   |   [LT]    Expression "<" Expression
+	   |   [Leq]    Expression "<=" Expression
+	   |   [Gt]    Expression ">" Expression
+	   |   [Geq]    Expression ">=" Expression
+	   |   [Add]    Expression "+" Expression
+	   |   [Sub]    Expression "-" Expression
+	   |   [Mul]    Expression "*" Expression
+	   |   [Div]    Expression "/" Expression
+	   |   [Mod]    Expression "%" Expression
+	   |   [Pos]    "+" Expression
+	   |   [Neg]    "-" Expression
+	   |   [Not]    "not" Expression
+	   |   [Empty]    "empty" name:Name
+	   |   [NEmpty]    "not_empty" name:Name
+	   |   [Card]    "cardinality" name:Name
+	   |   [Read]	 designator:Designator
+	   |   [Question]    "?"
+	   |   [Str]	 value:str
+	   |   [Real] 	 value:real
+	   |   [Int]	 value:int
+	   |   [Bool]	 value:bool
+	   |   [Enum]	 enum:Name "::" name:Name
+ 	   |   [InvokeExpTransform] "transform" name:Name "::" operation:Operation 
+ 	   |   [InvokeExpBridge] "bridge" name:Name "::" operation:Operation 
+	   |   [InvokeExpScoped] name:Name "::" operation:Operation 
+	   |   [InvokeExpLocal] "::" operation:Operation 
+	   |   [InvokeExpVar] name:Name "." operation:Operation
+
+	   |   [Bracket]    "(" exp:Expression ")"
+	   |   [BracketAssign]    "(" designator:Designator "=" exp:Expression ")"
