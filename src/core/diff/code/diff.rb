@@ -61,7 +61,7 @@ class Diff
         if not f.many
           x[f.name] = generate_added_diff(f.type, o1[f.name])
         else
-          if IsKeyed? f.name.type
+          if IsKeyed? f.type
             o1[f.name].keys.each do |k|
               x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, k)
             end
@@ -86,8 +86,6 @@ class Diff
   def generate_matched_orderedlist_diff(type, l1, l2, matches)
 
     keyed = IsKeyed? type
-    l1keys = keyed ? l1.keys : 0..l1.length-1
-    l2keys = keyed ? l2.keys : 0..l2.length-1
     res = []
     #for each pair of matched items, traverse the tree to figure out if we need to make an object
     matches.keys.each do |o|
@@ -99,7 +97,7 @@ class Diff
       end
     end
     #for each unmatched item from l1, add a deleted record
-    for i in l1keys do
+    for i in l1.keys do
       if not matches.has_key?(l1[i])
         res << DeltaTransform.manyify(generate_deleted_diff(type), @factory, i)
         modified = true
@@ -107,7 +105,7 @@ class Diff
     end
     #for each unmatched item from l2, add an added record
     last_j = 0
-    for j in l2keys do
+    for j in l2.keys do
       if not matches.has_value?(l2[j])
         res << DeltaTransform.manyify(generate_added_diff(type, l2[j]), @factory, keyed ? j : last_j)
         modified = true
