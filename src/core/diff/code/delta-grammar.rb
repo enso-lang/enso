@@ -7,7 +7,10 @@ class DeltaGrammar
   def initialize(g)
     @factory = g._graph_id
     @memo = {}
+    @rule_cache = {}
   end
+
+  # TODO: pass in_field boolean to deal with field literals
 
   def self.delta(g)
     gs = Loader.load('grammar.schema')
@@ -31,15 +34,15 @@ class DeltaGrammar
 
   def Rule(this, rules)
     if !@memo[this] then
-      r = @factory.Rule(d(this.name))
+      r = @factory.Rule(delta_name(this.name))
+      rules << r
+      @memo[this] = r # memo first, to prevent infinite loops
       darg = delta(this.arg, rules)
       if darg.schema_class.name == 'Alt' then
         r.arg = darg
       else
         r.arg = @factory.Alt([darg])
       end
-      rules << r
-      @memo[this] = r
     end
     @memo[this]
   end
@@ -59,33 +62,15 @@ class DeltaGrammar
   end
 
   def Call(this, rules)
-    if !@memo[this.rule] then
-      @memo[this.rule] = delta(this.rule, rules)
-    end
-    @factory.Call(@memo[this.rule])
+    @factory.Call(delta(this.rule, rules))
   end
 
   def Create(this, rules)
-    @factory.Create(d(this.name), delta(this.arg, rules))
+    @factory.Create(delta_name(this.name), delta(this.arg, rules))
   end
 
   def Field(this, rules)
-    r = @factory.Rule(d(this.name, this._id))
-    d = delta(this.arg, rules)
-
-    # this is too ugly, but needed for rendering
-    # TODO: pass down extra info to resolve it down stream.
-    if d.schema_class.name == 'Alt' then
-      r.arg = d
-    else
-      if d.schema_class.name == 'Sequence' || d.schema_class.name == 'Create' then
-        r.arg = @factory.Alt([d])        
-      else
-        r.arg = @factory.Alt([@factory.Sequence([d])])
-      end
-    end
-    rules << r
-    @factory.Field(this.name, @factory.Call(r))
+    @factory.Field(this.name, delta(this.arg, rules))
   end
 
 
@@ -100,12 +85,17 @@ class DeltaGrammar
   end
 
   def Regular(this, rules)
-    darg = delta(this.arg, rules)
-    alts = [delete_key, add(this.arg), modify(darg)]
-    arg = @factory.Alt(alts)
-    r = @factory.Rule(iter_name(this))
-    r.arg = arg
-    rules << r
+    n = regular_name(this)
+    if !@rule_cache[n] then
+      r = @factory.Rule(regular_name(this))
+      @rule_cache[n] = r
+      darg = delta(this.arg, rules)
+      alts = [delete_key, add(this.arg), modify(darg)]
+      arg = @factory.Alt(alts)
+      r.arg = arg
+      rules << r
+    end
+    r = @rule_cache[n]
     @factory.Regular(@factory.Call(r), this.optional, this.many, this.sep)
   end
 
@@ -117,13 +107,43 @@ class DeltaGrammar
     @factory.Lit(this.value)
   end
   
-  def d(name, id = nil)
+  def delta_name(name, id = nil)
     "D_#{name}#{id}"
   end
 
-  def iter_name(reg)
-    "D_#{reg.arg.rule.name}_iter"
+  def regular_name(reg)
+    suffix = regular_suffix(reg)
+    if reg.arg.schema_class.name == 'Call' then
+      "D_#{reg.arg.rule.name}_#{suffix}"
+    else
+      "D_regular_#{reg._id}_#{suffix}"
+    end
   end
+
+  def field_name(field)
+    if field.arg.schema_class.name == 'Call' then
+      "D_#{field.name}_#{field.arg.rule.name}"
+    elsif field.arg.schema_class.name == 'Regular' then
+      "D_#{field.name}_#{regular_name(field.arg)}"
+    else
+      "D_#{field.name}_#{field._id}"
+    end
+  end
+
+  def regular_suffix(reg)
+    if reg.optional && !reg.many then
+      'opt'
+    elsif reg.optional && reg.many && !reg.sep then
+      'iter_star'
+    elsif !reg.optional && reg.many && !reg.sep then
+      'iter_plus'
+    elsif reg.optional && reg.many && reg.sep then
+      "iter_star_sep_#{reg._id}"
+    elsif !reg.optional && reg.many && reg.sep then
+      "iter_plus_sep_#{reg._id}"
+    end
+  end
+
 
   def delete
     @factory.Sequence([@factory.Lit("(-)")])
@@ -163,6 +183,8 @@ if __FILE__ == $0 then
   gg = Loader.load('grammar.grammar')
 
   g2 = DeltaGrammar.delta(g)
+
+  puts "Rendering"
 
   DisplayFormat.print(gg, g2)
 
