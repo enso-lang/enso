@@ -33,7 +33,9 @@ class DeltaERB
 
   def self.gen_delta_as_string(schema)
     template_string = 
-  "  class Many end 
+"    primitive int
+    primitive str
+    class Many end 
     class Keyed end 
     
     class DeltaRef path : str end 
@@ -45,10 +47,14 @@ class DeltaERB
     keyed = IsKeyed?(type)
     poskey = keyed ? ClassKey(type).type.name : 'int'
     supers = ''%>
-    <%if type.Primitive?%>primitive <%=type.name%><%else
-        type.supers.each do |ss|
-          supers = (supers.empty? ? ' < D_' : ', D_')+ss.name
-        end
+    <%if type.Primitive? 
+      if type.name!='int' and type.name!='str'
+        %>primitive <%=type.name%><%
+      end
+    else
+      type.supers.each do |ss|
+        supers = (supers.empty? ? ' < D_' : ', D_')+ss.name
+      end
     end%>
     class D_<%=type.name%> <%=supers%>
     <%if type.Primitive?%>    val : <%=type.name%>
