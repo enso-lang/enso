@@ -37,6 +37,11 @@ class Conflicts
     return Intersect.intersect(d1, d2).select {|p| check_conflict?(p[0], p[1])}
   end
   
+  # identify non-conflicts (ie repetitions) between two delta objects
+  def self.nonconflicts(d1, d2)
+    return Intersect.intersect(d1, d2).select {|p| not check_conflict?(p[0], p[1])}
+  end
+
   # given two lists of matching deltas (usually from intersect), 
   #determine if they conflict with each other
   #must either be a single element or a list of inserts all to the same pos in a many-valued field
@@ -44,6 +49,25 @@ class Conflicts
     return ! Equals.equals_list(l1, l2)
   end
 
-  # 
+  # takes a list of pairs and output a list of resolutions
+  # resolutions are delta objects and are usually one of the input pairs or 
+  #constructed based on them
+  def self.resolve(confs)
+    return resolve_by_ordering(confs)
+  end
   
+  # conflict resolution: always take left
+  # does not handle multi-insert
+  def self.resolve_by_ordering(confs)
+    return confs.map{|p| p[0]}
+  end
+  
+  # conflict resolution: ask the user
+  def self.resolve_by_user(confs)
+  end
+  
+  # conflict resolution: check date
+  def resolve_by_user(confs)
+  end
+
 end

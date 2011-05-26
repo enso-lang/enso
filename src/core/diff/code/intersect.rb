@@ -56,7 +56,7 @@ class Intersect
           d2mod = m2[k].find {|x| DeltaTransform.isModifyChange?(x)}
 
           if !d1mod.nil? and !d2mod.nil?
-            res << [[d1mod], [d2mod2]]
+            res.merge!(intersect(d1mod, d2mod))
           elsif !d1mod.nil? and !d2del.nil?
             res << [[d1mod], [d2del]]
           elsif !d1del.nil? and !d2mod.nil?
@@ -73,7 +73,7 @@ class Intersect
 
     return res
   end
-  
+
   # given an intersection, get all objects in either version 0 or 1 that are found in that in
   def self.getFrom(intersection, i)
     res = (intersection.map {|p| p[i]}).flat_map {|i| i}
@@ -84,21 +84,25 @@ class Intersect
   def self.subtract(d1, d2)
     intersect = intersect(d1, d2)
     deltas = getFrom(intersect, 0)
-    Print.print(deltas)
     return remove_deltas(d1, deltas)
   end
 
-  # remove from the delta object d1 all sub-deltas found in deltas
+  # remove from the delta object d1 all sub-deltas found in a list of deltas 
   def self.remove_deltas(d1, deltas)
+    return replace_deltas(d1, Hash[*deltas.map{|d| [d, nil]}.flat_map{|i| i}])
+  end
+
+  # apply to d1 a map from delta objects to Maybe delta objects
+  def self.replace_deltas(d1, deltamap) 
     return nil if d1.nil?
-    return nil if deltas.any? {|d| d==d1}
+    return deltamap[d1] if deltamap.has_key? d1
     return d1 unless DeltaTransform.isModifyChange?(d1)
     d1.schema_class.all_fields.each do |f|
       if not f.many
-        d1[f.name] = remove_deltas(d1[f.name], deltas) 
+        d1[f.name] = replace_deltas(d1[f.name], deltamap) 
       else
         d1[f.name].keys.each do |k|
-          s = remove_deltas(d1[f.name][k], deltas)
+          s = replace_deltas(d1[f.name][k], deltamap)
           if s.nil?
             d1[f.name].delete(d1[f.name][k])
           else

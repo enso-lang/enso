@@ -2,5 +2,5 @@ start Domain
 Domain ::= [Domain] "domain" sources:Source * "end"
 Source ::= [Source] "source" name:str rootpath:str rootdir:Node
 Node ::= Dir | File
-Dir ::= [Dir] name:str "/*" "(" nodes:Node * ")"
+Dir ::= [Dir] name:str ":(" nodes:Node * ")"
 File ::= [File] name:str
