@@ -115,6 +115,20 @@ class DeltaTransform
     return res
   end
 
+  # Takes a list of many-valued deltas and turn them into a map<key,list<delta>> 
+  # this algorithm needs to be STABLE, ie preserve relative order of deltas with the same key 
+  def DeltaTransform.Many2Map(deltas)
+    res = {}
+    deltas.each do |d|
+      if res[d.pos] == nil
+        res[d.pos] = [d]
+      else
+        res[d.pos] << d
+      end
+    end
+    return res
+  end
+  
   #############################################################################
   #start of private section  
   private

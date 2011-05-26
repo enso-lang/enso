@@ -33,12 +33,27 @@ class Equals
           return false if !equals(a_val, b_val)
         else
           a_val.outer_join(b_val) do |a_item, b_item|
-          return false if !equals(a_item, b_item)
+            return false if !equals(a_item, b_item)
+          end
         end
       end
-    end
 
     return true
   end
 
+  def self.equals_list(l1, l2)
+    return false if l1.length!=l2.length
+    for i in 0..l1.length-1
+      return false if !Equals.equals(l1[i], l2[i])
+    end
+    return true
+  end
+
+  def self.equals_set(l1, l2) #like equals list but ignores order 
+    return false if l1.length!=l2.length
+    l1.keys.each do |i|
+      return false if l2.detect {|x| Equals.equals(l1[i], x)}
+    end
+    return true
+  end
 end

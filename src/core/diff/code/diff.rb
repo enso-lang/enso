@@ -104,6 +104,20 @@ class Diff
     reftype = field.traversal ? "" : ClassKey(field.type).type.name
 
     res = []
+    
+    # generate insert, modification and delete records for this list.
+    # the canonical form requires that records are in the order ins-mod-del
+    
+    #for each unmatched item from l2, add an added record
+    last_j = 0
+    for j in l2.keys do
+      if not matches.has_value?(l2[j])
+        res << DeltaTransform.manyify(generate_added_diff(field, l2[j]), @factory, keyed ? j : last_j, reftype)
+        modified = true
+      else
+        last_j = l1.find_index(matches.key(l2[j]))+1
+      end
+    end
     #for each pair of matched items, traverse the tree to figure out if we need to make an object
     matches.keys.each do |o|
       if l1.include?(o)
@@ -129,16 +143,7 @@ class Diff
         modified = true
       end
     end
-    #for each unmatched item from l2, add an added record
-    last_j = 0
-    for j in l2.keys do
-      if not matches.has_value?(l2[j])
-        res << DeltaTransform.manyify(generate_added_diff(field, l2[j]), @factory, keyed ? j : last_j, reftype)
-        modified = true
-      else
-        last_j = l1.find_index(matches.key(l2[j]))+1
-      end
-    end
+
     return nil if res.empty?
     return res
   end
