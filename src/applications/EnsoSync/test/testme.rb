@@ -7,18 +7,21 @@ require 'core/diff/code/patch'
 require 'core/diff/code/conflicts'
 require 'core/diff/code/intersect'
 require 'core/system/library/schema'
-require 'applications/EnsoSync/code/execrule'
+require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
 
-sync("/home/alexloh/temp/t1/f", "/home/alexloh/temp/t2/f", "/home/alexloh/temp/t0/f")
+#sync("/home/alexloh/temp/t1/f", "/home/alexloh/temp/t2/f", "/home/alexloh/temp/t0/f")
 
-blahblah
 
 schema = Loader.load('esync.schema')
 grammar = Loader.load('esync.grammar')
 
+
+
+
 # search the tree to fill in the nodes
-factory = Factory.new(schema)
+f = Factory.new(schema)
+
 
 def recurse(path, factory)
   delim = "/"
@@ -40,6 +43,16 @@ def recurse(path, factory)
   end
 end
 
+factory = Factory.new(schema)
+d = factory.Domain
+s0 = factory.Source("s0")
+s0.path = "/home/alexloh/temp/t0/f"
+s0.basedir = recurse("/home/alexloh/temp/t0/f", factory)
+d.sources << s0
+DisplayFormat.print(grammar, d)
+
+
+blahblah
 # takes a set of pairs and output a map from every element 
 #found in either side of the pair to a resolved version
 def resolve(confs)

@@ -48,6 +48,7 @@ end
 class CheckedObject
 
   attr_reader :schema_class
+  attr_reader :factory
   attr_reader :_id
   @@_id = 0
   

@@ -98,6 +98,8 @@ class Intersect
     return deltamap[d1] if deltamap.has_key? d1
     return d1 unless DeltaTransform.isModifyChange?(d1)
     d1.schema_class.all_fields.each do |f|
+      next if f.type.Primitive?
+      next if d1[f.name].nil?
       if not f.many
         d1[f.name] = replace_deltas(d1[f.name], deltamap) 
       else

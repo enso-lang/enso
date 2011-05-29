@@ -2,33 +2,25 @@ require 'core/system/load/load'
 require 'core/diff/code/diff'
 require 'core/diff/code/conflicts'
 require 'core/diff/code/intersect'
-require 'applications/EnsoSync/code/execrule'
+require 'core/diff/code/patch'
+require 'applications/EnsoSync/code/io'
 
-def sync(path1, path2, basepath)
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+def sync(s1, s2)
+  #check that s1 and s2 have the same base
+  raise "Unable to synchronize "+s1.name+" and "+s2.name+" due to different base" if not Equals.equals(s1.basedir, s2.basedir)
+  raise "Unable to synchronize "+s1.name+" and "+s2.name+" due to different factory" if s1.factory != s2.factory
 
-  # search the tree to fill in the nodes
-  factory = Factory.new(schema)
-  d = factory.Domain
-  s0 = factory.Source("s0")
-  s0.rootpath = basepath
-  s0.rootdir = recurse(s0.rootpath, factory)
-  d.sources << s0
-  s1 = factory.Source("s1")
-  s1.rootpath = path1
-  s1.rootdir = recurse(s1.rootpath, factory)
-  d.sources << s1
-  s2 = factory.Source("s2")
-  s2.rootpath = path2
-  s2.rootdir = recurse(s2.rootpath, factory)
-  d.sources << s2
+  # search the file system to fill in the nodes
+  factory = s1.factory
+  basedir = s1.basedir
+  s1.basedir = read_from_fs(s1.path, factory)
+  s2.basedir = read_from_fs(s2.path, factory)
 
   # perform differencing on both paths  
-  d1 = diff(s0.rootdir, s1.rootdir)
-  d2 = diff(s0.rootdir, s2.rootdir)
+  d1 = diff(basedir, s1.basedir)
+  d2 = diff(basedir, s2.basedir)
 
-  # generate actions by merging differences  
+  # generate actions by merging differences
 
   # get all repeated edits in d1 and d2
   nonconfs = Conflicts.nonconflicts(d1, d2)
@@ -53,11 +45,18 @@ def sync(path1, path2, basepath)
   end
   d1to2 = Intersect.replace_deltas(Intersect.remove_deltas(d2,Intersect.getFrom(nonconfs, 1)), resolvemap)
   d2to1 = Intersect.replace_deltas(Intersect.remove_deltas(d1,Intersect.getFrom(nonconfs, 0)), resolvemap)
-  
+
   # update sources based on actions (currently pretty prints what to do)
   puts "To update s1 to s2"
-  apply(s1.rootpath, s2.rootpath, d1to2)
+  apply_to_fs(s1.path, s2.path, d1to2)
   puts "To update s2 to s1"
-  apply(s2.rootpath, s1.rootpath, d2to1)
+  apply_to_fs(s2.path, s1.path, d2to1)
 
+  # save new base of s1 and s2 
+  Patch.patch!(s1.basedir, d1)
+  Patch.patch!(s1.basedir, d1to2)
+  Patch.patch!(s2.basedir, d2)
+  Patch.patch!(s2.basedir, d2to1)
+
+  return s1.basedir
 end

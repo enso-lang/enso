@@ -9,7 +9,7 @@ require 'core/system/library/schema'
 class Patch
 
   def self.patch!(o, delta)
-    return Patch.patch_obj!(o, delta)
+    return Patch.patch_obj!(o, delta, o.factory)
   end
 
 
@@ -19,7 +19,7 @@ class Patch
   private
   #############################################################################
   
-  def self.patch_obj!(o, deltas)
+  def self.patch_obj!(o, deltas, factory)
     # accepts an object o conforming to schema
     # and deltas conforming to delta-schema
     # to produce an output o' conforming to schema
@@ -30,7 +30,6 @@ class Patch
     else
       # apply changes to each of its fields
       schema_class = o.schema_class
-      factory = Factory.new(o.schema_class.schema)
 
       schema_class.fields.each do |f|
         next if !f.type.Primitive? and !f.traversal
@@ -69,7 +68,7 @@ class Patch
         if not f.many
           obj[f.name] = add_obj(delta[f.name], factory)
         else
-          obj[f.name] = []
+          obj[f.name].clear()
           delta[f.name].each do |x|
             obj[f.name] << add_obj(x, factory)
           end
@@ -83,11 +82,11 @@ class Patch
   def self.patch_single!(o, fname, delta, factory)
     #check which type of change this was
     if DeltaTransform.isInsertChange?(delta)
-      o[fname] = patch_obj!(o[fname], delta)
+      o[fname] = patch_obj!(o[fname], delta, factory)
     elsif DeltaTransform.isDeleteChange?(delta)
       o[fname] = nil
     elsif DeltaTransform.isModifyChange?(delta)
-      o[fname] = patch_obj!(o[fname], delta)
+      o[fname] = patch_obj!(o[fname], delta, factory)
     elsif DeltaTransform.isClearChange?(delta)
       #do nothing
     end
@@ -126,7 +125,7 @@ class Patch
       if i < old_l.length #no need to check for deletions and modifications when past end of array
         if not lmods[i].nil?
           #if modified, replace current copy with new object
-          o[fname] << patch_obj!(old_l[i], lmods[i])
+          o[fname] << patch_obj!(old_l[i], lmods[i], factory)
         elsif not ldels[i]
           #if not deleted, copy into new array 
           o[fname] << old_l[i]
@@ -139,13 +138,14 @@ class Patch
     deltas.each do |df|
       pos = df.pos
       if DeltaTransform.isInsertChange?(df)
-        o[fname].delete(pos)
-        o[fname] << patch_obj!(o[fname][pos], df)
+        o[fname].delete(o[fname][pos]) if not o[fname][pos].nil?  
+        o[fname] << add_obj(df, factory)
       elsif DeltaTransform.isDeleteChange?(df)
-        o[fname].delete(pos)
+        o[fname].delete(o[fname][pos]) if not o[fname][pos].nil?
       elsif DeltaTransform.isModifyChange?(df)
-        o[fname].delete(pos)
-        o[fname] << patch_obj!(o[fname][pos], df)
+        new = patch_obj!(o[fname][pos], df, factory)
+        o[fname].delete(o[fname][pos]) if not o[fname][pos].nil?  
+        o[fname] << new
       end
     end
   end
