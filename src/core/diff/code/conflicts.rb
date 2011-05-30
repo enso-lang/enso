@@ -49,25 +49,25 @@ class Conflicts
     return ! Equals.equals_list(l1, l2)
   end
 
-  # takes a list of pairs and output a list of resolutions
-  # resolutions are delta objects and are usually one of the input pairs or 
+  # takes a set of conflicting deltas and output a resolution
+  # resolutions are delta objects and are usually one of the inputs or
   #constructed based on them
-  def self.resolve(confs)
-    return resolve_by_ordering(confs)
+  def self.resolve(conf)
+    return resolve_by_ordering(conf)
   end
   
   # conflict resolution: always take left
   # does not handle multi-insert
-  def self.resolve_by_ordering(confs)
-    return confs.map{|p| p[0]}
+  def self.resolve_by_ordering(conf)
+    return conf[0]
   end
   
   # conflict resolution: ask the user
-  def self.resolve_by_user(confs)
+  def self.resolve_by_user(conf)
   end
   
   # conflict resolution: check date
-  def resolve_by_user(confs)
+  def self.resolve_by_date(conf)
   end
 
 end

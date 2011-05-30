@@ -54,11 +54,13 @@ def apply_to_fs(base, ref, delta)
 end
 
 def copyFile(srcpath, tgtpath)
-  puts "copy "+srcpath+" to "+tgtpath
+#  puts "copy "+srcpath+" to "+tgtpath
+  FileUtils.cp_r(srcpath, tgtpath)
 end
 
 def deleteFile(path)
-  puts "delete "+path
+#  puts "delete "+path
+  FileUtils.rm_rf(path)
 end
 
 def mergeFile(srcpath, tgtpath)

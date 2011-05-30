@@ -1,11 +1,16 @@
 
+require 'test/unit'
+require 'core/system/load/load'
+require 'applications/EnsoSync/code/sync'
 require 'tmpdir'
 
 class SyncTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @basepath = '/tmp/esync'
+    @@domainpath = "applications/EnsoSync/test/example"
+    @@domainfile = "domain.esync"
+
 =begin
     create the following file structure (paths ending with / are dirs):
     base:
@@ -22,36 +27,31 @@ class SyncTest < Test::Unit::TestCase
       f/d1/
       f/d1/ddd
 =end
-    Dir.mkdir(@basepath)
-    Dir.mkdir(@basepath+"/base/")
-    Dir.mkdir(@basepath+"/base/f")
-    File.new( @basepath+"/base/f/aaa")
-    Dir.mkdir(@basepath+"/t1/")
-    Dir.mkdir(@basepath+"/t1/f")
-    File.new( @basepath+"/t1/f/aaa")
-    File.new( @basepath+"/t1/f/ccc")
-    Dir.mkdir(@basepath+"/t1/f/d1")
-    File.new( @basepath+"/t1/f/eee")
-    Dir.mkdir(@basepath+"/t2/")
-    Dir.mkdir(@basepath+"/t2/f")
-    File.new( @basepath+"/t2/f/aaa")
-    File.new( @basepath+"/t2/f/bbb")
-    File.new( @basepath+"/t2/f/ccc")
-    Dir.mkdir(@basepath+"/t2/f/d1")
-    File.new( @basepath+"/t2/f/d1/ddd")
-    
-    @basedomain = Loader.load('base.esync')
+
+    @domain = Loader.load(@@domainfile)
+
+    #setup temp dir
+    @tmppath=Dir.tmpdir+"/test_sync/"
+    FileUtils.cp_r(@@domainpath, @tmppath)
   end
   
   # test matching
   def test_sync
-    sync(path1, path2, basesource)
-    #check that the files are properly updated
-    assert(File.exists?(@basepath+"/t1/f/bbb"))
-    assert(File.exists?(@basepath+"/t2/f/eee"))
+    rule = @domain.rules['Test']
+    rule.s1.path = @tmppath+"t1/f"
+    rule.s2.path = @tmppath+"t2/f"
+    sync(rule.s1, rule.s2)
+
+    #check that domain is properly modified
+    assert(Equals.equals(rule.s1.basedir, rule.s2.basedir))
+
+    #check that files are properly copied
+    assert(File.exists?(@tmppath+"/t1/f/bbb"))
+    assert(File.exists?(@tmppath+"/t2/f/eee"))
+    assert(! (File.exists?(@tmppath+"/t2/f/d1/ddd")))
   end
 
   def teardown
-    Dir.delete(@basepath)
+    FileUtils.rm_rf(@tmppath)
   end
 end
