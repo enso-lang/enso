@@ -156,6 +156,7 @@ class DeltaTransform
     #init default single-valued ref types
     @refbase = @factory.Klass(DeltaTransform.ref, @schema)
     @refbase.defined_fields << @factory.Field("path", @refbase, getPrimitiveType("str"))
+    @refbase.defined_fields << @factory.Field("type", @refbase, getPrimitiveType("str"))
     @schema.types << @refbase
     #ins/del/mod/clr
     @schema.types << @factory.Klass(DeltaTransform.insert + DeltaTransform.ref, @schema, [@refbase])
@@ -182,8 +183,6 @@ class DeltaTransform
     x = @factory.Primitive(name, @schema)
     @prims[name] = x 
     @schema.types << x
-
-    r = @factory.Primitive(name, )
 
     return x
   end

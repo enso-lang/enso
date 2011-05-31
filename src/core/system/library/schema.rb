@@ -21,6 +21,23 @@ def Lookup1(obj, path)
   return Lookup1(obj[field.name][path[0]], path[1..-1])
 end
 
+def generate_name_map(obj)
+  gen_nm_helper(obj, "")
+end
+def gen_nm_helper(obj, path)
+  res = {obj => path}
+  delim = path.empty? ? "" : "."  # first item does not have delimiter
+  obj.schema_class.fields.each do |f|
+    #TODO: Naming system (based on library/schema.lookup) only supports many fields
+    next unless f.traversal and f.many
+
+    obj[f.name].keys.each do |k|
+      res.merge!(gen_nm_helper(obj[f.name][k], path + delim + k.to_s))
+    end
+  end
+  return res
+end
+
 def Subclass?(a, b)
   return false if a.nil? || b.nil?
   return true if a.name == b.name

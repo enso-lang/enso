@@ -20,7 +20,7 @@ class Diff
     @rootobj = o2
     
     # generate name map based on o2
-    @namemap = generate_name_map(o2, "")
+    @namemap = generate_name_map(o2)
 
     # do matching
     matches = Match.new.match(o1, o2)
@@ -61,6 +61,7 @@ class Diff
     elsif !field.traversal # this is a ref type
       x = @factory[DeltaTransform.insert + DeltaTransform.ref]
       x.path = @namemap[o1]
+      x.type = field.type.name
     else
       x = @factory[DeltaTransform.insert + o1.schema_class.name]
       o1.schema_class.fields.each do |f|
@@ -131,6 +132,7 @@ class Diff
           if not ( matches[o[keyname]] = matches[o][keyname] ) # check if they point to matching objects
             x = @factory[DeltaTransform.many + DeltaTransform.modify + DeltaTransform.ref + reftype]
             x.path = @namemap[matches[o][keyname]]
+            x.type = field.type.name
             x.pos = keyed ? o[keyname] : l1.find_index(o)
           end
         end
@@ -154,9 +156,9 @@ class Diff
     if o1.nil? and o2.nil?  # does nothing if both are nil
       return nil
     elsif o1.nil?  #field is added
-      return generate_added_diff(field.type, o2)
+      return generate_added_diff(field, o2)
     elsif o2.nil?  #field is deleted
-      return generate_deleted_diff(field.type)
+      return generate_deleted_diff(field)
     end
     
     #handle primitives
@@ -223,19 +225,6 @@ class Diff
     return new1
   end
 
-  def generate_name_map(obj, path)
-    res = {obj => path}
-    delim = path.empty? ? "" : "."  # first item does not have delimiter
-    obj.schema_class.fields.each do |f|
-      #TODO: Naming system (based on library/schema.lookup) only supports many fields
-      next unless f.traversal and f.many
-      
-      obj[f.name].keys.each do |k|
-        res.merge!(generate_name_map(obj[f.name][k], path + delim + k.to_s))
-      end
-    end
-    return res
-  end
 
 end
 
