@@ -1,3 +1,4 @@
+# -*-ruby-*-
 
 # RUBYOPT="-I." thin start -V -D --stats . -R core/web/code/serve.ru
 
@@ -6,8 +7,8 @@ require 'core/system/load/load'
 
 require 'logger'
 
-root = Loader.load('genealogy.schema')
-web = Loader.load('example.web')
+web = Loader.load(ENV['WEB'])
+root = Loader.load(ENV['ROOT'])
 log = Logger.new($stderr)
 
 # TODO: detect when thin is debug mode, otherwise use WARN

@@ -118,3 +118,20 @@ def submit(text, action) {
   }
 }
 
+
+def delete(x, action) {
+ let
+    name = gensym
+    delfield = "!" + address(x)
+
+    // yegh, need precedence handling
+    a = "document.getElementById('" + delfield
+    event = a  + "').value='true'; this.form.submit();"
+ in {
+    <input type="hidden" id=delfield name=delfield value=""/>
+    <input type="hidden" name="redirect_" + name value=link(action)/>
+    <input type="hidden" name=name/>
+    <input type="button" value="Delete" onclick=event/>
+ }
+}
+

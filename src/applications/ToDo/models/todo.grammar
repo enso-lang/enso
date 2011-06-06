@@ -1,0 +1,10 @@
+
+start Todos
+
+Todos ::= [Todos] todos:Todo*
+
+Todo ::= [Todo] "todo" todo:str done:Done
+
+// Unfortunate
+Done ::= "(done)" @"@done = true"
+      |  @"@done = false"

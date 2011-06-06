@@ -121,11 +121,15 @@ class EvalOQL
     froms = eval_nameds(this.from, env)
 
     env = {}.update(env)
-    result = []
+    result = {}
+    result.default = []
     cartesian(froms) do |tuple| 
       env.merge!(tuple)
       if eval(this.condition, env) then
-        result << eval_nameds(this.projections, env)
+        tuple = eval_nameds(this.projections, env)
+        tuple.each do |k, v|
+          result[k] <<= v
+        end
       end
     end
     return result

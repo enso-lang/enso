@@ -1,0 +1,24 @@
+
+def index {
+  html("Todos") {
+    form {
+      datatable(root->todos) {
+        column("Todo") { textedit(row->todo); }
+        column("Done") { checkbox(row->done); delete(row, index()); }
+      }
+      submit("Update", index());
+      navigate("New", new_todo(root->todos, new(Todo)));
+    }  
+  }
+}
+
+def new_todo(todos, todo) {
+  html("New Todo") {
+    form {
+      "Todo: " textedit(todo->todo);
+      <input type="hidden" name=address(todos) value=address(todo)/>
+      submit("Submit", index());
+    }
+  }
+}
+
