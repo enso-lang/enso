@@ -1,4 +1,0 @@
-domain
-source "s1" "./s1"
-source "s2" "./s2"
-end

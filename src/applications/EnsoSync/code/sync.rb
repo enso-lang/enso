@@ -24,7 +24,7 @@ def sync(s1, s2)
   # merge all deltas to form a combined delta
   d = Union.union(d1, d2, d1.factory)
   # new base is the end state everyone should be in
-  newbase = Patch.patch!(basedir, d)
+  newbase = Patch.patch(basedir, d)
 
   # generate updates by differencing
   d1u = diff(s1.basedir, newbase)
@@ -37,10 +37,8 @@ def sync(s1, s2)
   apply_to_fs(s2.path, s1.path, d2u)
 
   # save new base of s1 and s2 
-  Patch.patch!(s1.basedir, d1)
-  Patch.patch!(s1.basedir, d1u)
-  Patch.patch!(s2.basedir, d2)
-  Patch.patch!(s2.basedir, d2u)
+  s1.basedir = Patch.patch(s1.basedir, d1u)
+  s2.basedir = Patch.patch(s2.basedir, d2u)
 
   return s1.basedir
 end

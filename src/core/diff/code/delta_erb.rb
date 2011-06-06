@@ -38,7 +38,7 @@ class DeltaERB
     class Many end 
     class Keyed end 
     
-    class DeltaRef path : str end 
+    class DeltaRef path : str type : str end
     class Insert_DeltaRef < DeltaRef end 
     class Delete_DeltaRef < DeltaRef end 
     class Modify_DeltaRef < DeltaRef end 

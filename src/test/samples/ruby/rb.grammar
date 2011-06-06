@@ -1,0 +1,30 @@
+start RubyScript
+
+RubyScript ::= [RubyScript] commands:Command*
+
+Command ::= Req | FunDef | IfStmt | RetStmt | FunCall | AssgnStmt
+Req ::= [Req] "require" path:str
+FunDef ::= [FunDef] "def" fun:sym "(" argslist:{Name ","}* ")" body:Command* "end"
+FunCall ::= [FunCall] fun:sym "(" args:{Expr ","}* ")" (proc:Proc)?
+IfStmt ::= [IfStmt] "if" expr:Expr "then" body:Command* ("else" elbody:Command*)? "end"
+AssgnStmt ::= [AssgnStmt] lhs:sym "=" rhs:Expr
+RetStmt ::= [RetStmt] "return" expr:Expr
+
+Expr ::= EUnOp | EBinOp | ETernOp | EFunCall | EVarAcc | EConst
+EVarAcc ::= [EVarAcc] name:sym
+EFunCall ::= [EFunCall] fun:sym "(" args:{Expr ","}* ")" (proc:Proc)?
+EUnOp ::= EUNeg
+EUNeg ::= [EUNeg] "!" e:Expr
+EBinOp ::= EBPlus | EBEquals | EBNequals
+EBPlus ::= [EBPlus] e1:Expr "+" e2:Expr
+EBEquals ::= [EBEquals] e1:Expr "==" e2:Expr
+EBNequals ::= [EBNequals] e1:Expr "!=" e2:Expr
+ETernOp ::= ETChoice
+ETChoice ::= [ETChoice] expr:Expr "?" e1:Expr ":" e2:Expr
+EConst ::= EStrConst | EIntConst
+EStrConst ::= [EStrConst] val:str
+EIntConst ::= [EIntConst] val:int
+
+FullName ::= [FullName] parts:{Name "."}+
+Name ::= [Name] name:sym
+Proc ::= [Proc] "{" ("|" argslist:{sym ","}* "|")? body:Command* "}"
