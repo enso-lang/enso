@@ -48,10 +48,26 @@ module WebUtils
       end
     end
 
-    # then do additionaly assignments
+    # then do additional assignments
     params.each do |k, v|
-      if k !~ /^@/
+      if k !~ /^@/ && k !~ /^!/ then
         update(@root, k, v, news)
+      end
+    end
+
+    # then deletions
+    params.each do |k, v|
+      if k =~ /^!/ then
+        coll = deref(@root, k[1..-1]) # strip !
+        v.each do |key, flag| 
+          if !flag.empty? then
+            log.debug "Deleting #{key} from #{k}"
+            x = coll[convert_key(key)]
+            coll.delete(x)
+          else
+            log.debug "Not deleting #{key}"
+          end
+        end
       end
     end
 
@@ -116,6 +132,13 @@ module WebUtils
     end
   end
 
+  def delete(root, delete_from_coll_key, v) 
+    coll_key = delete_from_coll_key[1..-1] # strip !
+    log.debug "COLLKEY: #{coll_key}"
+    coll = deref(root, coll_key)
+    coll.delete(deref(root, v))
+  end
+
 
   # update actualy does the same dereffing as
   # deref, except it has to traverse the 
@@ -172,10 +195,15 @@ module WebUtils
     hash.each do |k, v|
       key = convert_key(k)
       v.each do |k, v|
-        # delete and and, otherwise hashing messes up
-        x = update(coll[key], k, v, news)
-        coll.delete(coll[key])
-        coll << x
+        # delete and add, otherwise hashing messes up
+        # if the key has changed
+        #x = update(coll[key], k, v, news)
+        #coll.delete(coll[key])
+        #coll << x
+
+        # assume only non-primitives are in the collection
+        # TODO: rehash after keys have changed?
+        update(coll[key], k, v, news)
       end
     end
   end

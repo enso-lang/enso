@@ -41,7 +41,7 @@ class EvalExp
       params << "#{frm.name}=#{URI.escape(arg)}"
     end
 
-    return Result.new(func.name) if params.empty?
+    return Result.new(name) if params.empty?
     return Result.new("#{name}?#{params.join('&')}")
   end
   
@@ -109,7 +109,7 @@ class EvalExp
 
   def Field(this, env)
     r = eval(this.exp, env)
-    log.debug "---------------> Field: #{r} #{this.name}"
+    #log.debug "---------------> Field: #{r} #{this.name}"
     x = Result.new(r.value[this.name], "#{r.path}.#{this.name}")
     log.debug "XXX = #{x}"
     return x

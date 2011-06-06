@@ -112,7 +112,9 @@ class EvalWeb
   def Let(this, env, out)
     nenv = {}.update(env)
     this.decls.each do |assign|
-      nenv[assign.name] = eval_exp(assign.exp, env)
+      log.debug "Evaling assingment to: #{assign.name}"
+      # NB: use nenv, so basically let is let*
+      nenv[assign.name] = eval_exp(assign.exp, nenv)
     end
     eval(this.body, nenv, out)
   end
