@@ -1,0 +1,106 @@
+// todo: + lists become * lists
+// absence in lists/opt means noop
+// we only have to deal with creates and things in fields
+// we assume that x:Y, Y ::= int (field = x: int) does not occur 
+// so the thing in a field is a direct child of Field nodes
+
+
+start D_Drawing
+
+// generic:
+
+DeltaRef_in_List ::= 
+		   [ManyInsert_DeltaRefstr] "(+" pos:str ":" path:sym ":" type:sym ")"
+		 | [ManyModify_DeltaRefstr] "(!" pos:str ":" path:sym ":" type:sym ")"
+		 | [ManyDelete_DeltaRefstr] "(-" pos:str ":" path:sym ":" type:sym ")"
+		 | [ManyInsert_DeltaRefint] "(+" pos:int ":" path:sym ":" type:sym ")"
+		 | [ManyModify_DeltaRefint] "(!" pos:int ":" path:sym ":" type:sym ")"
+		 | [ManyDelete_DeltaRefint] "(-" pos:int ":" path:sym ":" type:sym ")"
+		 | [ManyInsert_DeltaRefbool] "(+" DeltaBoolPos ":" path:sym ":" type:sym ")"
+		 | [ManyModify_DeltaRefbool] "(!" DeltaBoolPos ":" path:sym ":" type:sym ")"
+		 | [ManyDelete_DeltaRefbool] "(-" DeltaBoolPos ":" path:sym ":" type:sym ")"
+		 | [ManyInsert_DeltaRefreal] "(+" pos:real ":" path:sym ":" type:sym ")"
+		 | [ManyModify_DeltaRefreal] "(!" pos:real ":" path:sym ":" type:sym ")"
+		 | [ManyDelete_DeltaRefreal] "(-" pos:real ":" path:sym ":" type:sym ")"
+
+DeltaBoolPos ::= "true" @"@pos = true"
+	      |  "false" @"@pos = false"
+
+DeltaRef_in_Opt ::= 
+		   [Insert_DeltaRef] "(+" path:sym ":" type:sym ")"
+		 | [Modify_DeltaRef] "(!" path:sym ":" type:sym ")"
+		 | [Delete_DeltaRef] "(-)"
+
+DeltaRef ::= [DeltaRef] "(!" path:sym ":" type:sym ")"
+	  |  "_"
+
+D_Drawing ::= [Modify_Drawing] "drawing" lines:D_Line_in_List* "end"
+
+D_Point3D_in_List ::= 
+              [ManyInsert_Point3D] "(+" pos:atom ":" "point" x:D_int y:D_int z:D_int ")"
+	   |  [ManyModify_Point3D] "(!" pos:atom ":" "point" x:D_int y:D_int z:D_int ")"
+	   |  [ManyDelete_Point3D] "(-" pos:atom ":" "point" x:D_int y:D_int z:D_int ")"
+
+D_Point3D_in_Opt ::= 
+	      [Insert_Point3D] "(+" "point" x:D_int y:D_int z:D_int ")"
+	   |  [Modify_Point3D] "(!" "point" x:D_int y:D_int z:D_int ")"
+	   |  [Delete_Point3D] "(-)"
+
+D_Point3D ::= 
+	      [Modify_Point3D] "(!" "point" x:D_int y:D_int z:D_int ")"
+	   |  "_"
+
+
+D_Point2D_in_List ::= 
+	      [ManyInsert_Point2D] "(+" pos:atom ":" "point" x:D_int y:D_int ")"
+	   |  [ManyModify_Point2D] "(!" pos:atom ":" "point" x:D_int y:D_int ")"
+	   |  [ManyDelete_Point2D] "(-" pos:atom ":" "point" x:D_int y:D_int ")"
+
+D_Point2D_in_Opt ::= 	  
+	      [Insert_Point2D] "(+" "point" x:D_int y:D_int ")"
+	   |  [Modify_Point2D] "(!" "point" x:D_int y:D_int ")"
+	   |  [Delete_Point2D] "(-)"
+
+D_Point2D ::= 	  
+	   |  [Modify_Point2D] "(!" "point" x:D_int y:D_int ")"
+	   |  "_"
+
+Adj ::= "adj" adj:DeltaRef_in_Opt // renderer cannot deal with ("adj" ad...)?
+
+D_Line_in_List ::= 
+	   [ManyModify_Line] "(!" pos:atom ":" "line" label:D_str_in_Opt len:D_int_in_Opt pts:D_Point2D_in_List* Adj? "end" ")"
+        |  [ManyInsert_Line] "(+" pos:atom ":" "line" label:D_str_in_Opt len:D_int_in_Opt pts:D_Point2D_in_List* Adj? "end" ")" 
+        |  [ManyDelete_Line] "(-" pos:atom ")" 
+
+D_Line_in_Opt ::= 
+	   [Modify_Line] "(!" "line" label:D_str_in_Opt len:D_int_in_Opt pts:D_Point2D_in_List* Adj? "end" ")"
+        |  [Insert_Line] "(+" "line" label:D_str_in_Opt len:D_int_in_Opt pts:D_Point2D_in_List* Adj? "end" ")" 
+        |  [Delete_Line] "(-)"
+
+
+D_Line ::= 
+	   [Modify_Line] "(!" "line" label:D_str_in_Opt len:D_int_in_Opt pts:D_Point2D_in_List* Adj? "end" ")"
+        |  "_" 
+
+
+// primitives
+
+D_str_in_Opt ::= 
+          [Insert_str] "(+" val:str ")"
+       |  [Modify_str] "(!" val:str ")"  
+       |  [Delete_str] "(-)" 
+       | 
+
+D_str ::= [Modify_str] "(!" val:str ")"  
+       |  "_"  // leave unchanged
+
+D_int_in_Opt ::= 
+          [Insert_int] "(+" val:int ")"
+       |  [Modify_int] "(!" val:int ")"  // actually equiv to Insert for primitives
+       |  [Delete_int] "(-)" // unset it
+       |
+
+D_int ::= [Modify_int] "(!" val:int ")"  // actually equiv to Insert for primitives
+       |  [Delete_int] "(-" val:int ")" // unset it
+       |  [Insert_int] "(+" val:int ")"  // not sure about this... but it's in the diff
+       |  "_"
