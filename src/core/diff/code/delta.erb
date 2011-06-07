@@ -1,0 +1,54 @@
+    primitive int
+    primitive str
+
+    class <%= many %> end
+    class <%= keyed %> end
+   
+    class DeltaRef
+      path: str
+      type: str
+    end
+
+    <% %w(Insert Delete Modify).each do |op| %>
+    class <%= delta_ref(op) %> < DeltaRef end
+    <% end %>
+
+    <% @schema.primitives.select { |p| !["int", "str"].include?(p.name) }.each do |p| %>
+    primitive <%= p.name %>
+    <% end %>
+
+    <% @schema.primitives.each do |type| %>
+    class <%= delta_name(type) %>
+      val: <%= type.name %>
+    end
+
+    class <%= many_delta_ref(type.name) %> < DeltaRef, <%= keyed %>
+      pos: <%= type.name %>
+    end
+
+    <% %w(Insert Delete Modify).each do |op| %>
+    class <%= many_delta_ref(type.name, op) %> < <%= many_delta_ref(type.name) %> end
+    <% end %>
+
+    <%end%>
+
+
+    <% @schema.classes.each do |type| %>
+    class <%= delta_name(type) %><%= extends_clause(type) %>
+      <% type.defined_fields.each do |f| %>
+        !<%= f.name %>: <%= field_delta_type(f) %><%= mult(f) %>
+      <% end %>
+    end
+    <% end %>
+
+    <% @schema.types.each do |type| %>
+    <% %w(Insert Delete Modify).each do |op| %>
+    class <%= op_delta(type.name, op) %> < <%= delta_name(type) %> end
+    <% end %>
+    <% %w(ManyInsert ManyDelete ManyModify).each do |op| %>
+    class <%= op_delta(type.name, op) %> < <%= delta_name(type) %>, <%= key_super(type) %>
+      pos: <%= pos_key(type) %>
+    end
+    <% end %>
+    <% end %>
+

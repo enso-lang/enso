@@ -11,88 +11,87 @@ require 'core/system/library/schema'
 require 'erb'
 
 class DeltaERB
+  SCHEMA_SCHEMA = Loader.load('schema.schema')
+  DELTA_ERB = File.join(File.dirname(__FILE__), 'delta.erb')
 
-  def self.delta(schema)
-    #choose a random file name that probably isn't used. 
-    #should double-check just in case...
-    tempf_name = "delta-"+rand(10000000).to_s+".schema"
-    tempf = File.new(tempf_name, "w")
-    tempf.syswrite(gen_delta_as_string(schema))
-    tempf.close
-
-    res = Loader.load(tempf_name)
-    File.delete(tempf_name)
-    return res
+  def self.delta(schema, factory = Factory.new(SCHEMA_SCHEMA))
+    self.new(schema, factory).delta
   end
-
-
-  #############################################################################
-  #start of private section  
-  private
-  #############################################################################
-
-  def self.gen_delta_as_string(schema)
-    template_string = 
-"    primitive int
-    primitive str
-    class Many end 
-    class Keyed end 
     
-    class DeltaRef path : str type : str end
-    class Insert_DeltaRef < DeltaRef end 
-    class Delete_DeltaRef < DeltaRef end 
-    class Modify_DeltaRef < DeltaRef end 
-    class Clear_DeltaRef < DeltaRef end
-    <%schema.types.each do |type| 
-    keyed = IsKeyed?(type)
-    poskey = keyed ? ClassKey(type).type.name : 'int'
-    supers = ''%>
-    <%if type.Primitive? 
-      if type.name!='int' and type.name!='str'
-        %>primitive <%=type.name%><%
-      end
-    else
-      type.supers.each do |ss|
-        supers = (supers.empty? ? ' < D_' : ', D_')+ss.name
-      end
-    end%>
-    class D_<%=type.name%> <%=supers%>
-    <%if type.Primitive?%>    val : <%=type.name%>
-    <%else
-      type.defined_fields.each do |f|
-        if !f.traversal and !f.type.Primitive? #is a ref
-          if not f.many
-            ftype = 'DeltaRef'
-          else
-            if IsKeyed?(f.type)
-              ftype = 'ManyDeltaRef'+ClassKey(f.type).type.name 
-            else
-              ftype = 'ManyDeltaRefint'
-            end
-          end
-        else
-          ftype = 'D_'+f.type.name
-      end%>  ! <%=f.name%>: <%=ftype%><%=f.many ? '*':'?'%>
-    <%end
-    end%>end 
-    class Insert_<%=type.name%> < D_<%=type.name%> end 
-    class Delete_<%=type.name%> < D_<%=type.name%> end 
-    class Modify_<%=type.name%> < D_<%=type.name%> end 
-    class Clear_<%=type.name%> < D_<%=type.name%> end 
-    class ManyInsert_<%=type.name%> < D_<%=type.name%>, <%=keyed ? 'Keyed' : 'Many'%> pos : <%=poskey%> end 
-    class ManyDelete_<%=type.name%> < D_<%=type.name%>, <%=keyed ? 'Keyed' : 'Many'%> pos : <%=poskey%> end 
-    class ManyModify_<%=type.name%> < D_<%=type.name%>, <%=keyed ? 'Keyed' : 'Many'%> pos : <%=poskey%> end
-    <%if type.Primitive?%>
-    class ManyDeltaRef<%=type.name%> < DeltaRef ,Keyed pos : <%=type.name%> end 
-    class ManyInsert_DeltaRef<%=type.name%> < ManyDeltaRef<%=type.name%> end 
-    class ManyDelete_DeltaRef<%=type.name%> < ManyDeltaRef<%=type.name%> end 
-    class ManyModify_DeltaRef<%=type.name%> < ManyDeltaRef<%=type.name%> end 
-    class ManyClear_DeltaRef<%=type.name%> < ManyDeltaRef<%=type.name%> end 
-    <%end%>
-  <%end%>"
-    #(supers.empty? ? ' < ' : ', ')+ss.name
-    template = ERB.new template_string
-    return template.result(binding) # prints "My name is Rasmus" 
+  def initialize(schema, factory)
+    @schema = schema
+    @factory = factory
   end
-  
+
+  def delta
+    ds = gen_delta_as_string(@schema)
+    Loader.load_text('schema', @factory, ds)
+  end
+
+  def gen_delta_as_string(schema)
+    template_string = File.read(DELTA_ERB)
+    template = ERB.new(template_string)
+    ds = template.result(binding) 
+    File.open('bla', 'w') do |f|
+      f.write(ds)
+    end
+    return ds
+  end  
+
+  def extends_clause(type)
+    return '' if type.supers.empty?
+    sups = type.supers.map { |s| "D_#{s.name}" }
+    return " < #{sups.join(', ')}"
+  end
+
+  def delta_name(type)
+    "D_#{type.name}"
+  end
+
+  def mult(f)
+    f.many ? '*' : '?'
+  end
+
+  def delta_ref(op = '')
+    stem = 'DeltaRef'
+    stem = "#{op}_#{stem}" unless op.empty?
+    return stem
+  end
+
+  def many_delta_ref(name, op = '')
+    "Many#{delta_ref(op)}#{name}"
+  end
+
+  def op_delta(name, op)
+    "#{op}_#{name}"
+  end
+
+  def key_many_delta_ref(type)
+    many_delta_ref(ClassKey(type).type.name)
+  end
+
+  def field_delta_type(f)
+    return delta_name(f.type) if f.traversal || f.type.Primitive? 
+    return delta_ref unless f.many
+    return key_many_delta_ref(f.type) if IsKeyed?(f.type)
+    return many_delta_ref('int')
+  end
+
+  def keyed
+    'Keyed'
+  end
+
+  def many
+    'Many'
+  end
+
+  def key_super(type)
+    IsKeyed?(type) ? keyed : many
+  end
+
+  def pos_key(type)
+    IsKeyed?(type) ? ClassKey(type).type.name : 'int'
+  end
+
 end
+
