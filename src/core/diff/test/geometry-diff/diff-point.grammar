@@ -1,5 +1,6 @@
 start Drawing
 Drawing ::= [Drawing] "drawing" lines:Line * "end"
-Line ::= [Line] "line" label:str (len:int)? pts:Point2D * ("adj" adj:Line^)? "end"
+Line ::= [Line] "line" label:str len:int? pts:Point2D * Adj? "end"
+Adj ::= "adj" adj:Line^
 Point3D ::= [Point3D] "point" x:int y:int z:int
 Point2D ::= [Point2D] "point" x:int y:int
