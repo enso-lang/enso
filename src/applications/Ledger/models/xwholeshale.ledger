@@ -1,0 +1,53 @@
+
+// Unfinished
+
+liability account VAT 
+liability account Creditors
+
+asset account Debtors
+asset account Articles
+asset account Money
+
+liability account SalarayCosts
+liability account InvestmentCosts
+liability account RemainingCosts
+liability account UnprocessedArticles
+
+journal PayVAT (20) {
+  - 1 Money
+  + 1 VAT
+}
+
+journal CollectVAT (10) {
+  + 1 Money
+  - 1 VAT
+}
+
+journal CollectOnDebtors (100) {
+  + 1 Money
+  - 1 Debtors
+}
+
+journal PaymentToCreditors (50) {
+  - 1 Money
+  + 1 Creditors
+}
+
+journal Sales (1) {
+  + 100 Debtors
+  - 1 Articles
+  - 20 VAT
+}
+
+journal Purchase (1) {
+  + 1 Articles
+  - 50 Creditors
+  + 10 VAT
+}
+
+journal Assemblage (1) {
+  + 5 RemainingCosts
+  + 10 SalarayCosts
+}
+
+journal InvestmentDepreciation 

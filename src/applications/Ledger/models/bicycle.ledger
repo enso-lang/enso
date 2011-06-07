@@ -1,0 +1,27 @@
+
+asset account Money
+asset account Frames
+asset account Wheels
+asset account Bicycles
+
+journal PurchaseFrame (1) {
+  - 100 Money
+  + 1 Frames
+}
+
+journal PurchaseWheel (2) {
+  - 15 Money
+  + 1 Wheels
+}
+
+journal Assemblage (1) {
+  - 2 Wheels
+  - 1 Frames
+  + 1 Bicycles
+}
+
+journal Sales (1) {
+  - 1 Bicycles
+  + 300 Money
+}
+

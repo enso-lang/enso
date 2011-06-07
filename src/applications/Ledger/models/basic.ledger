@@ -1,0 +1,13 @@
+
+asset account Money
+asset account Articles
+
+journal Purchase (1) {
+  - 1 Money
+  + 1 Articles
+}
+
+journal Sales (1) {
+  + 3 Money
+  - 1 Articles
+}

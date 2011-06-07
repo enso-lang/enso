@@ -1,0 +1,28 @@
+
+
+
+start Ledger
+
+Ledger ::= [Ledger] accounts:Acount* journals:Journal* transactions:Transaction*
+
+Account ::= [Account] periodic:"periodic"? Type name:sym
+
+Type ::= "asset"     @"@asset = true"
+     |   "liability" @"@asset = false"
+
+Journal ::= "journal" name:sym Proration "{" transfers:Transfer* "}"
+
+Transfer ::= [Transfer] Sign amount:int Account^ 
+
+Sign ::= "+" @"@pos = true"
+      |  "-" @"@pos = false"
+
+Proration ::= "(" proration:int ")"
+	   |  @"@proration = 1"
+
+
+Transaction ::= "transaction" journal:Journal^ "@" timestamp:str "{" 
+  transfers:Transfer* 
+"}"
+
+
