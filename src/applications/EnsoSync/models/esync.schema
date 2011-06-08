@@ -13,7 +13,7 @@ class Node
   # name: str
 end
 class File < Node
-  checksum: str ?
+  checksum: str
 end
 class Dir < Node
   ! nodes: Node *
