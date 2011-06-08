@@ -41,6 +41,7 @@ if __FILE__ == $0 then
   tree = Parse.parse(source, grammar, org)
   inst = Implode.implode(tree, org)
 
-  puts ig.start._origin_of.name
+  puts "Referenced in start: #{ig.start._origin}"
+  puts "Reference 'start': #{ig._origin_of.start}"
   #DisplayFormat.print(ig, inst)
 end

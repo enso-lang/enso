@@ -44,6 +44,13 @@ class Instantiate
   
   def update_origin(owner, field, org)
     return if field.nil?
+
+    # currently, no support for many fields:
+    # since we allow lists of refs, the origin table
+    # then would have to mimick the fixup process
+    # (primitives are not allowed in many fields anyhow)
+    return if field.many
+
     # _origin_of is a OpenStruct (it does not have [])
     # so we use send here. This seems ok, since this
     # is the only place where we will (?) need generic
@@ -130,6 +137,9 @@ class Instantiate
       # only insert a stub if it is a many-valued collection with no key
       update(owner, field, pos, nil)
     end
+    # update the *field* origin with the origin of the Ref;
+    # the referenced object will have the origin of itself
+    update_origin(owner, field, Location.new(this.origin))
   end
 
   class Fix
