@@ -4,7 +4,7 @@ require 'core/schema/code/finalize'
 
 require 'ostruct'
 
-class Location
+class InternalLocation
   attr_reader :path, :offset, :length, :start_line, :start_column, :end_line, :end_column
 
   # (path, offset, length, start_line, start_column, end_line, end_column)

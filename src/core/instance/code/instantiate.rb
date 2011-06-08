@@ -104,7 +104,7 @@ class Instantiate
     update(owner, field, pos, current)
     
     # Instance have their own origin
-    current._origin = Location.new(this.origin)
+    current._origin = InternalLocation.new(this.origin)
     # but we also store it in the field origin table
     update_origin(owner, field, current._origin)
   end
@@ -127,7 +127,7 @@ class Instantiate
     return unless field
     #puts "Value: #{this} for #{field}"
     update(owner, field, pos, convert(this, field.type))
-    update_origin(owner, field, Location.new(this.origin))
+    update_origin(owner, field, InternalLocation.new(this.origin))
   end
   
   def Ref(this, owner, field, pos)
@@ -139,7 +139,7 @@ class Instantiate
     end
     # update the *field* origin with the origin of the Ref;
     # the referenced object will have the origin of itself
-    update_origin(owner, field, Location.new(this.origin))
+    update_origin(owner, field, InternalLocation.new(this.origin))
   end
 
   class Fix
