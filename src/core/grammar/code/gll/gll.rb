@@ -143,7 +143,9 @@ class GLL
   end
 
   def terminal(type, pos, value, ws, nxt)
-    cr = Leaf.new(@ci, pos, type, value, ws)
+    # NB: pos includes the ws that has ben matched
+    # so subtract it from the length.
+    cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
     if nxt then
       @cn = Node.new(nxt, @cn, cr)

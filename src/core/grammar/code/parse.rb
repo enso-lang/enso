@@ -35,6 +35,7 @@ if __FILE__ == $0 then
   require 'core/grammar/code/layout'
   ig = Loader.load('instance.grammar')
   grammar = Loader.load('schema.grammar')
+  
   path = 'applications/ToDo/models/todo.schema'
   source = File.read(path)
   org = Origins.new(source, path)
@@ -43,5 +44,11 @@ if __FILE__ == $0 then
 
   puts "Referenced in start: #{ig.start._origin}"
   puts "Reference 'start': #{ig._origin_of.start}"
+
+  is = Loader.load('web.schema')
+  
+  puts "Instances: #{is.classes['Web']._origin}"
+#  puts "Reference 'start': #{ig._origin_of.start}"
+
   #DisplayFormat.print(ig, inst)
 end
