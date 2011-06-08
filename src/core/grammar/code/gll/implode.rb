@@ -6,17 +6,30 @@ require 'core/grammar/code/gll/unparse'
 
 class Implode
 
-  def self.implode(sppf)
-    Implode.new.implode(sppf)
+  def self.implode(sppf, origins)
+    Implode.new(origins).implode(sppf)
   end
   
-  def initialize
+  def initialize(origins)
+    @origins = origins
     @if = Factory.new(InstanceSchema.schema)
+  end
+
+  def origin(sppf)
+    loc = @if.Location
+    loc.path = @origins.path
+    loc.offset = sppf.starts
+    loc.length = sppf.ends - sppf.starts
+    loc.start_line = @origins.line(sppf.starts)
+    loc.start_column = @origins.column(sppf.starts)
+    loc.end_line = @origins.line(sppf.ends)
+    loc.end_column = @origins.column(sppf.ends)
+    return loc
   end
 
   def implode(sppf)
     insts = @if.Instances
-    Implode.new.recurse(sppf, insts.instances, false)
+    recurse(sppf, insts.instances, false)
     return insts
   end
   
@@ -46,7 +59,7 @@ class Implode
 
   def Create(this, sppf, accu, in_field)
     #puts "Creating: #{this.name}"
-    inst = @if.Instance(this.name)
+    inst = @if.Instance(origin(sppf), this.name)
     kids(sppf, inst.contents, false)
     accu << inst
   end
@@ -59,15 +72,15 @@ class Implode
 
   def Lit(this, sppf, accu, in_field)
     return unless in_field
-    accu << @if.Prim('str', this.value)
+    accu << @if.Prim(origin(sppf), 'str', this.value)
   end
 
   def Value(this, sppf, accu, in_field)
-    accu << @if.Prim(this.kind, sppf.value)
+    accu << @if.Prim(origin(sppf), this.kind, sppf.value)
   end
 
   def Ref(this, sppf, accu, in_field)
-    accu << @if.Ref(sppf.value)
+    accu << @if.Ref(origin(sppf), sppf.value)
   end
 
   def Code(this, sppf, accu, in_field)

@@ -4,12 +4,24 @@ require 'core/system/boot/schema_schema'
 class InstanceSchema < SchemaGenerator
 
   primitive :str
+  primitive :int
 
   klass Instances do
     field :instances, :type => Instance, :optional => true, :many => true, :traversal => true
   end
 
+  klass Location do
+    field :path, :type => :str
+    field :offset, :type => :int
+    field :length, :type => :int
+    field :start_line, :type => :int
+    field :start_column, :type => :int
+    field :end_line, :type => :int
+    field :end_column, :type => :int
+  end
+
   klass Value do
+    field :origin, :type => Location, :optional => true
   end
 
   klass Instance, :super => Value  do
