@@ -23,8 +23,9 @@ class Origins
         column += 1
       end
     end
+    # EOF
     @lines << line
-    @columns << -1 # eof
+    @columns << 0
   end
 
   def column(pos)
@@ -35,8 +36,12 @@ class Origins
     @lines[pos]
   end
 
+  def offset(pos)
+    pos + 1
+  end
+
   def str(pos)
-    "line #{line(pos)} column #{column(pos)} (char #{pos + 1} in #{File.basename(@path)})"
+    "line #{line(pos)} column #{column(pos)} (char #{offset(pos)} in #{File.basename(@path)})"
   end
 
 end

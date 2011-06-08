@@ -18,7 +18,7 @@ class Implode
   def origin(sppf)
     loc = @if.Location
     loc.path = @origins.path
-    loc.offset = sppf.starts
+    loc.offset = @origins.offset(sppf.starts)
     loc.length = sppf.ends - sppf.starts
     loc.start_line = @origins.line(sppf.starts)
     loc.start_column = @origins.column(sppf.starts)

@@ -21,7 +21,7 @@ class InstanceSchema < SchemaGenerator
   end
 
   klass Value do
-    field :origin, :type => Location, :optional => true
+    field :origin, :type => Location, :optional => true, :traversal => true
   end
 
   klass Instance, :super => Value  do

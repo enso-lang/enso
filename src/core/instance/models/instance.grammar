@@ -5,11 +5,15 @@ Instances ::= [Instances] instances:Instance*
 
 Instance ::=  [Instance] type:sym  "{" contents:{Content ";"}* "}"
 
-Content ::= [Field] name:sym ":" value:{Value ","}*
+Content ::= [Field] name:sym ":" values:{Value ","}*
          |  [Code] "@" code:str
 
-Value ::= Instance
-       |  [Prim]  value:str? "(" kind:sym ")"
-       |  [Ref] name:sym "^"
-       |  [List] "[" elements:{Value ","}* "]"
+Value ::= Instance origin:Location?
+       |  [Prim]  value:str? "(" kind:sym ")" origin:Location?
+       |  [Ref] name:sym "^" origin:Location?
+       |  [List] "[" elements:{Value ","}* "]" origin:Location?
 
+Location ::= "<" path:str ","
+	     offset:int "," length: int ","
+	     start_line:int "," start_column:int ","
+	     end_line:int "," end_column:int ">"

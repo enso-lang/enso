@@ -29,3 +29,18 @@ class Parse
   end
   
 end
+
+if __FILE__ == $0 then
+  require 'core/system/load/load'
+  require 'core/grammar/code/layout'
+  ig = Loader.load('instance.grammar')
+  grammar = Loader.load('schema.grammar')
+  path = 'applications/ToDo/models/todo.schema'
+  source = File.read(path)
+  org = Origins.new(source, path)
+  tree = Parse.parse(source, grammar, org)
+  inst = Implode.implode(tree, org)
+
+  puts ig.start._origin_of.name
+  #DisplayFormat.print(ig, inst)
+end
