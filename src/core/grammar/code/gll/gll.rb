@@ -14,10 +14,13 @@ class GLL
   include Scanner
   include Parsers
 
-  def self.parse(source, grammar, top = grammar.start)
-    GLL.new.parse(source, grammar, top)
+  def self.parse(source, grammar, top, org)
+    GLL.new(org).parse(source, grammar, top)
   end
 
+  def initialize(org)
+    @origins = org
+  end
 
   def init_parser(grammar, top)
     @gf = grammar._graph_id
@@ -65,15 +68,18 @@ class GLL
     #puts "CI: #{@ci}"
     last = 0;
     pt = Node.nodes.values.find do |n|
-      if n.starts == @begin then
-        last = n.ends > last ? n.ends : last
-      end
+      #if n.starts == @begin then
+      last = n.ends > last ? n.ends : last
+      #end
       n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
     end
-    raise "Parse error at #{last}:\n'#{source[last,50]}...'" unless pt
-    File.open('sppf.dot', 'w') do |f|
-      ToDot.to_dot(pt, f)
+    unless pt
+      loc = @origins.str(last)
+      raise "Parse error at #{loc}:\n'#{source[last,50]}...'" 
     end
+#     File.open('sppf.dot', 'w') do |f|
+#       ToDot.to_dot(pt, f)
+#     end
     return pt
   end
   
@@ -137,7 +143,9 @@ class GLL
   end
 
   def terminal(type, pos, value, ws, nxt)
-    cr = Leaf.new(@ci, pos, type, value, ws)
+    # NB: pos includes the ws that has ben matched
+    # so subtract it from the length.
+    cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
     if nxt then
       @cn = Node.new(nxt, @cn, cr)
@@ -146,50 +154,3 @@ class GLL
   end
 end
 
-
-if __FILE__ == $0 then
-  require 'core/grammar/code/gll/gamma2'
-  require 'core/schema/tools/print'
-  require 'core/grammar/code/gll/implode'
-  require 'core/system/boot/grammar_grammar'
-  require 'core/grammar/code/layout'
-
-  gg = GrammarGrammar.grammar 
-  src = File.read('core/grammar/models/grammar.grammar')
-  sppf2 = GLL.new.parse(src, gg, gg.start)
-
-
-  require 'core/grammar/code/gll/todot'
-
-  File.open('sppf.dot', 'w') do |f|
-    ToDot.to_dot(sppf2, f)
-  end
-                 
-  exit!
-       
-  ast = Implode.implode(sppf2)
-  puts "AST: #{ast}"
-
-  exit!
-
-  Print.print(ast)
-
-  require 'core/instance/code/instantiate'
-  
-  gf = Factory.new(GrammarSchema.schema)
-  obj = Instantiate.instantiate(gf, ast)
-  puts "OBJ = #{obj}"
-
-
-
-  obj.rules.each do |r|
-    puts "#{r.name} ::= #{r.arg}"
-    r.arg.alts.each do |alt|
-      puts alt.to_s
-    end
-  end
-
-  Print.print(obj)
-  DisplayFormat.print(GrammarGrammar.grammar, obj)
-end
-  

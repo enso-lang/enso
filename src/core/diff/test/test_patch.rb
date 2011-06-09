@@ -23,7 +23,7 @@ class PatchTest < Test::Unit::TestCase
   # test reversible
   def test_reversible
     patch = Diff.new.diff(@point_schema, @p1, @p2)
-    p3 = Patch.patch!(@p1, patch)
+    p3 = Patch.patch(@p1, patch)
 
 =begin
     puts "Result of p3 = patch!(p1, diff(p1, p2))"

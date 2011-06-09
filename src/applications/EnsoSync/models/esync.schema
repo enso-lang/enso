@@ -1,18 +1,33 @@
-primitive \str
+	primitive \str
+class Domain
+  ! sources: Source *
+  ! rules: Rule *
+end
+
+class Source
+  # name: str
+  ! basedir: Node ?
+  path: str
+end
 class Node
   # name: str
 end
 class File < Node
-  ext: str
+  checksum: str ?
 end
 class Dir < Node
   ! nodes: Node *
 end
-class Source
+
+class Rule
   # name: str
-  ! rootdir: Node
-  rootpath: str
 end
-class Domain
-  ! sources: Source *
+class SyncRule < Rule
+  s1: Source
+  s2: Source
+  resolver: str
+end
+class CopyRule < Rule
+  from: Source
+  to: Source
 end

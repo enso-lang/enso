@@ -1,0 +1,17 @@
+
+primitive \int
+primitive \str
+
+class Value
+  !origin: Location?
+end
+
+class Location
+  path: str
+  offset: int
+  length: int
+  start_line: int
+  start_column: int
+  end_line: int
+  end_column: int
+end

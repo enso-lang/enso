@@ -40,6 +40,24 @@ class Instantiate
 
     return pos
   end
+
+  
+  def update_origin(owner, field, org)
+    return if field.nil?
+
+    # currently, no support for many fields:
+    # since we allow lists of refs, the origin table
+    # then would have to mimick the fixup process
+    # (primitives are not allowed in many fields anyhow)
+    return if field.many
+
+    # _origin_of is a OpenStruct (it does not have [])
+    # so we use send here. This seems ok, since this
+    # is the only place where we will (?) need generic
+    # access.
+    owner._origin_of.send("#{field.name}=", org)
+  end
+
   
   def convert(this, ftype)
     convert_typed(this.value, this.kind, ftype)
@@ -78,11 +96,17 @@ class Instantiate
     #puts "Creating #{this.type}"
     # TODO: @factory[this.type] does not assign default vals. [Actually it does now -william]
     current = @factory[this.type]
+
     @root = current unless owner
     this.contents.each do |cnt|
       recurse(cnt, current, nil, 0)
     end
     update(owner, field, pos, current)
+    
+    # Instance have their own origin
+    current._origin = InternalLocation.new(this.origin)
+    # but we also store it in the field origin table
+    update_origin(owner, field, current._origin)
   end
 
   def Field(this, owner, field, pos)
@@ -103,6 +127,7 @@ class Instantiate
     return unless field
     #puts "Value: #{this} for #{field}"
     update(owner, field, pos, convert(this, field.type))
+    update_origin(owner, field, InternalLocation.new(this.origin))
   end
   
   def Ref(this, owner, field, pos)
@@ -112,6 +137,9 @@ class Instantiate
       # only insert a stub if it is a many-valued collection with no key
       update(owner, field, pos, nil)
     end
+    # update the *field* origin with the origin of the Ref;
+    # the referenced object will have the origin of itself
+    update_origin(owner, field, InternalLocation.new(this.origin))
   end
 
   class Fix

@@ -1,0 +1,13 @@
+
+primitive \str
+primitive \bool
+
+class Todos
+  !todos: Todo*
+end
+
+class Todo
+  todo: str
+  done: bool
+end
+

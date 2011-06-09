@@ -1,6 +1,7 @@
 
 require 'core/schema/code/factory'
 require 'core/diff/code/delta'
+require 'core/diff/code/delta_erb'
 require 'core/diff/code/match'
 require 'core/diff/code/equals'
 require 'core/system/library/schema'
@@ -15,13 +16,18 @@ class Diff
 
     # do some initialization
     @schema = schema
-    @factory = Factory.new(DeltaTransform.new.delta(schema))
+    @factory = Factory.new(DeltaERB.delta(schema))
+    @rootobj = o2
+    
+    # generate name map based on o2
+    @namemap = generate_name_map(o2)
 
     # do matching
     matches = Match.new.match(o1, o2)
 
     # generate union based on matches. union forms a basis for the result set
     return generate_diffs(o1, o2, matches)
+
   end
 
   
@@ -46,29 +52,34 @@ class Diff
   end
 
   #create a completely new object with its complete subtree
-  def generate_added_diff(type, o1)
+  def generate_added_diff(field, o1)
     
     #if non primitive then recurse downwards
-    if type.Primitive?
-      x = @factory[DeltaTransform.insert + type.name]
-      x.val = o1 
+    if field.type.Primitive?
+      x = @factory[DeltaTransform.insert + field.type.name]
+      x.val = o1
+    elsif !field.traversal # this is a ref type
+      x = @factory[DeltaTransform.insert + DeltaTransform.ref]
+      x.path = @namemap[o1]
+      x.type = field.type.name
     else
       x = @factory[DeltaTransform.insert + o1.schema_class.name]
       o1.schema_class.fields.each do |f|
-        next if ! f.traversal and ! f.type.Primitive?  # do not follow if this is a non-traversal reference  
         next if o1[f.name].nil?  # this optional field is not used
 
         if not f.many
-          x[f.name] = generate_added_diff(f.type, o1[f.name])
+          x[f.name] = generate_added_diff(f, o1[f.name])
         else
+          reftype = f.traversal ? "" : ClassKey(f.type).type.name
+
           if IsKeyed? f.type
             o1[f.name].keys.each do |k|
-              x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, o1[f.name][k]), @factory, k)
+              x[f.name] << DeltaTransform.manyify(generate_added_diff(f, o1[f.name][k]), @factory, k, reftype)
             end
           else
             o1[f.name].each do |l|
               #all items added at index 0 because it was originally empty
-              x[f.name] << DeltaTransform.manyify(generate_added_diff(f.type, l), @factory, 0) 
+              x[f.name] << DeltaTransform.manyify(generate_added_diff(f, l), @factory, 0, reftype)
             end
           end
         end
@@ -79,58 +90,90 @@ class Diff
   end
 
   #create a deleted object (no subtree)
-  def generate_deleted_diff(type)
-    return @factory[DeltaTransform.delete + type.name]
+  def generate_deleted_diff(field)
+    if field.traversal or field.type.Primitive
+      return @factory[DeltaTransform.delete + field.type.name]
+    else
+      return @factory[DeltaTransform.delete + DeltaTransform.ref]
+    end
   end
   
-  def generate_matched_orderedlist_diff(type, l1, l2, matches)
+  def generate_matched_orderedlist_diff(field, l1, l2, matches)
 
-    keyed = IsKeyed? type
+    keyed = IsKeyed? field.type
+    
+    reftype = field.traversal ? "" : ClassKey(field.type).type.name
+
     res = []
+    
+    # generate insert, modification and delete records for this list.
+    # the canonical form requires that records are in the order ins-mod-del
+    
+    #for each unmatched item from l2, add an added record
+    last_j = 0
+    for j in l2.keys do
+      if not matches.has_value?(l2[j])
+        res << DeltaTransform.manyify(generate_added_diff(field, l2[j]), @factory, keyed ? j : last_j, reftype)
+        modified = true
+      else
+        last_j = l1.find_index(matches.key(l2[j]))+1
+      end
+    end
     #for each pair of matched items, traverse the tree to figure out if we need to make an object
     matches.keys.each do |o|
       if l1.include?(o)
-        x = generate_matched_diff(o, matches[o], matches)
-        if not x.nil?
-          res << DeltaTransform.manyify(x, @factory, keyed ? o[ClassKey(type).name] : l1.find_index(o))
+        keyname = keyed ? ClassKey(field.type).name : ""
+        if field.traversal #recurse down the tree
+          x = generate_matched_diff(o, matches[o], matches)
+          if not x.nil?
+            res << DeltaTransform.manyify(x, @factory, keyed ? o[keyname] : l1.find_index(o), reftype)
+          end
+        else #build a ref
+          if not ( matches[o[keyname]] = matches[o][keyname] ) # check if they point to matching objects
+            x = @factory[DeltaTransform.many + DeltaTransform.modify + DeltaTransform.ref + reftype]
+            x.path = @namemap[matches[o][keyname]]
+            x.type = field.type.name
+            x.pos = keyed ? o[keyname] : l1.find_index(o)
+          end
         end
       end
     end
     #for each unmatched item from l1, add a deleted record
     for i in l1.keys do
       if not matches.has_key?(l1[i])
-        res << DeltaTransform.manyify(generate_deleted_diff(type), @factory, i)
+        res << DeltaTransform.manyify(generate_deleted_diff(field), @factory, i, reftype)
         modified = true
       end
     end
-    #for each unmatched item from l2, add an added record
-    last_j = 0
-    for j in l2.keys do
-      if not matches.has_value?(l2[j])
-        res << DeltaTransform.manyify(generate_added_diff(type, l2[j]), @factory, keyed ? j : last_j)
-        modified = true
-      else
-        last_j = l1.find_index(matches.key(l2[j]))+1
-      end
-    end
+
     return nil if res.empty?
     return res
   end
   
-  def generate_matched_single_diff(type, o1, o2, matches)
+  def generate_matched_single_diff(field, o1, o2, matches)
 
+    #handle optional fields that were added or deleted
     if o1.nil? and o2.nil?  # does nothing if both are nil
       return nil
     elsif o1.nil?  #field is added
-      return generate_added_diff(type, o2)
+      return generate_added_diff(field, o2)
     elsif o2.nil?  #field is deleted
-      return generate_deleted_diff(type)
-    elsif type.Primitive? and o1==o2 # identical primitives
-      return nil
-    elsif not type.Primitive? and matches[o1] = o2 # matched target object
-      return generate_matched_diff(o1, o2, matches)
-    else  # different from target objects and not matched
-      return generate_added_diff(type, o2)
+      return generate_deleted_diff(field)
+    end
+    
+    #handle primitives
+    if field.type.Primitive? 
+      return o1==o2 ? nil : generate_added_diff(field, o2)
+    end
+    
+    #handle refs
+    if not field.traversal
+      matches[o1] == o2 ? nil : generate_added_diff(field, o2)
+    end
+
+    #handle normal objects    
+    if field.traversal 
+      return matches[o1] == o2 ? generate_matched_diff(o1, o2, matches) : generate_added_diff(field, o2)
     end
   end
 
@@ -149,16 +192,15 @@ class Diff
 
     #generate diffs for each field
     schema_class.fields.each do |f|
-      next if !f.type.Primitive? and !f.traversal
 
       f1 = o1[f.name]
       f2 = o2[f.name]
       type = f.type
 
       if not f.many
-        d = generate_matched_single_diff(type, f1, f2, matches)
+        d = generate_matched_single_diff(f, f1, f2, matches)
       else
-        d = generate_matched_orderedlist_diff(type, f1, f2, matches)
+        d = generate_matched_orderedlist_diff(f, f1, f2, matches)
       end
 
       if not d.nil?
@@ -182,6 +224,7 @@ class Diff
     end
     return new1
   end
+
 
 end
 

@@ -2,6 +2,32 @@
 require 'core/system/library/schema'
 require 'core/schema/code/finalize'
 
+require 'ostruct'
+
+class InternalLocation
+  attr_reader :path, :offset, :length, :start_line, :start_column, :end_line, :end_column
+
+  # (path, offset, length, start_line, start_column, end_line, end_column)
+  def initialize(org)
+    @path = org.path
+    @offset = org.offset
+    @length = org.length
+    @start_line = org.start_line
+    @start_column = org.start_column
+    @end_line = org.end_line
+    @end_column = org.end_column
+  end
+
+  def to_s
+    "line #{start_line} column #{start_column} [#{length}] (#{File.basename(path)})"
+  end
+
+  def inspect
+    "<#{path}: #{start_line}, #{start_column}, #{end_line}, #{end_column}, #{offset}, #{length}>"
+  end
+
+end
+
 class Factory
   def initialize(schema)
     @schema = schema
@@ -50,16 +76,21 @@ end
 class CheckedObject
 
   attr_reader :schema_class
+  attr_reader :factory
   attr_reader :_id
+  attr_accessor :_origin
+  attr_reader :_origin_of
+
   @@_id = 0
   
   def _graph_id
     @factory
   end
-  
+
   def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
     @_id = @@_id += 1
     @hash = {}
+    @_origin_of = OpenStruct.new
     @schema_class = schema_class
     @factory = factory
     schema_class.fields.each do |field|
