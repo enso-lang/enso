@@ -23,13 +23,15 @@ class Factory
     obj.schema_class.fields.each do |field|
       #puts "FIELD: #{field}"
       if n < args.length
-        if field.many
-          col = obj[field.name]
-          args[n].each do |x|
-            col << x
+        if args[n]
+          if field.many
+            col = obj[field.name]
+            args[n].each do |x|
+              col << x
+            end
+          else
+            obj[field.name] = args[n]
           end
-        else
-          obj[field.name] = args[n]
         end
       elsif !field.key && !field.optional && field.type.Primitive?
         case field.type.name
@@ -40,7 +42,7 @@ class Factory
       end
       n += 1
     end
-    raise "too many constructor arguments supplied for '#{class_name}" if n < args.length
+    raise "too many constructor arguments supplied for '#{class_name} (#{n} fields, #{args.length} args)" if n < args.length
     return obj
   end
 end
@@ -126,7 +128,7 @@ class CheckedObject
     field = @schema_class.fields[field_name]
     raise "Assign to invalid field '#{field_name}' of #{self}" unless field
     raise "Can't set computed field '#{field_name}' of #{self}" if field.computed
-    raise "Can't assign a many-valued field '#{field_name}' of #{self}" if field.many
+    raise "Can't assign a many-valued field #{self}.#{field_name} to #{new}" if field.many
     if new.nil?
       raise "Can't assign nil to required field '#{field_name}' of #{self}" if !field.optional
     else

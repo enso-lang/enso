@@ -28,14 +28,14 @@ module Loading
       @cache[name] = _load(name)
     end
     
-    def load_text(type, factory, source)
+    def load_text(type, factory, source, show = false)
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
-      result = Parse.load_raw(source, g, s, factory)
+      result = Parse.load_raw(source, g, s, factory, show)
       return result.finalize
     end
         
-    private
+    #private
 
     def _load(name)
       # this is very cool!
@@ -99,6 +99,13 @@ end
 
 Loader = Loading::Loader.new
 
+def Load(name)
+  return Loader.load(name)
+end
+
+def Load_text(type, factory, source, show = false)
+  return Loader.load_text(type, factory, source, show)
+end
 
 if __FILE__ == $0 then
   l = Loader
