@@ -1,0 +1,36 @@
+diagram(schema)
+
+graph {
+  // create the nodes (one for each class)
+  for (class : schema.classes)
+    label ClassBox[class]   // declare the "identifier" of this node is a class
+     box [line.width=3] {  // this is the class rectangle
+       vertical { // TODO: datatable???
+          text [size=14] class.name
+          for (field : defined_fields)
+             if (file.type.Primitive)  // TODO: NEED ?
+               horizontal {
+                 text [size=12] field.name  // editable field name
+                 text field.type  // TODO: drop-down for primitive types
+               }
+       }
+    }
+          // "for" automatically creates "add/delete" buttons to edit fields
+    // create the subclass edges
+    for (super : class.supers)
+      box{}
+    //  connector (ClassBox[class] // [style="openArrow"] ClassBox[super])
+
+  // create the relationship edges that go between nodes
+//  for (class : schema.classes)
+//    for (field : class.defined_fields)
+//      if (!field.type.Primitive? && (field.inverse.nil? || field._id < field.inverse._id))
+//        connector (          
+//          ClassBox[field.owner]
+//          // 
+//          ClassBox[field.type]
+//            label=(
+//              case field.many then TEXT("*")
+//              case field.optional then TEXT("?"))))
+//     }}}}
+}

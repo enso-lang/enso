@@ -1,3 +1,0 @@
-
-
-union(load('regular.schema'), load('base_grammar.schema'))

@@ -1,0 +1,31 @@
+start Stencil
+
+// diagrams
+Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Part
+
+Part ::= [Alt] alts:{Part "|"}+
+      | [For] "for" Props?  "(" var:sym ":" iter:Exp Index? ")" body:Part
+      | [Test] "if" condition:Exp body:Part
+      | [Let] "let" decls:Assign* "in" body:Part
+      | [Label] "label" Props? label:Loc body:Part
+
+      | [Group] direction:Dir Props? "{" items:Part* "}"
+      | [Connector] "connector" Props? "(" label:Exp? ":" from:ConnectorEnd "--" to:ConnectorEnd ")"
+      | [Text] "text" Props? string:Exp
+      | [Shape] "box" Props? "{" content:Part? "}"
+
+Dir ::= "vertical" | "horizontal" | "graph"
+ConnectorEnd ::= [ConnectorEnd] arrow:sym? part:Part^
+Index ::= "," index:sym
+
+Props ::= "[" props:{ Assign ","}* "]"
+Assign ::= [Assign] name:Loc "=" exp:Exp
+
+Loc ::= [Field] base:Loc "." field:str
+      | [Array] base:Loc "[" index:Loc "]"
+      | [Var] name:sym
+      
+Exp ::= Loc
+      | [Literal] value:(str | int)
+      | [Binary] Exp "==" Exp
+      | "(" Exp ")"

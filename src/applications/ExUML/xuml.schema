@@ -1,0 +1,20 @@
+#ruby
+
+require 'core/system/load/load'
+require 'core/schema/tools/union'
+
+ss = Load('schema.schema')
+
+connection = Load_text 'schema', Factory.new(ss), <<-PART, true
+  class Klass
+    !machine: StateMachine?
+  end
+  class StateMachine
+    klass: Klass / Klass.machine
+  end
+PART
+
+Union(Factory.new(ss), 
+  Load('schema.schema'), 
+  Load('state_machine.schema'),
+  connection)

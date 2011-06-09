@@ -1,0 +1,103 @@
+
+class Stencil
+  root: str
+  !body: Part
+end
+  
+class Part 
+  !props: Assign*
+end
+
+// TEMPLATE STUFF
+
+class Alt < Part 
+  !alts: Part+
+end 
+
+class For < Part
+  var: str
+  !iter: Expression
+  !body: Part
+  index: str?
+end
+
+class Test < Part
+  !condition: Expression
+  !body: Part
+end
+
+class Label < Part
+  !label: Expression
+  !body:  Part
+end
+
+class Let < Part
+  !decls: Assign* 
+  !body:  Part
+end
+
+class Assign
+  !name: Expression
+  !exp: Expression
+end
+
+class Expression end
+
+class Literal < Expression
+  value: atom
+end
+
+class Binary < Expression
+  op: str
+  !left: Expression
+  !right: Expression
+end
+
+class Field < Expression
+  !base: Expression
+  field: str
+end
+
+class Array < Expression
+  !base: Expression
+  !index: Expression
+end
+
+class Var < Expression
+  name: str
+end
+
+// DIAGRAMS
+
+
+class Group < Part
+  direction: str // vert, hoiz, free
+  !items: Part*
+end
+
+class Text < Part
+  !string: Expression
+end
+
+class Shape < Part
+  !content: Part?
+  Connectors: ConnectorEnd* 
+end
+
+class Connector < Part
+  !ends: ConnectorEnd* / ConnectorEnd.Connector
+  !label: Expression
+end
+
+class ConnectorEnd
+  arrow: str
+  label: Expression
+  Connector: Connector / Connector.ends
+  part: Shape / Shape.Connectors
+end
+
+ 
+primitive int
+primitive str
+primitive bool
+primitive atom
