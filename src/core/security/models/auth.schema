@@ -1,0 +1,75 @@
+primitive int
+primitive str
+primitive bool
+
+class Authentication
+  !rules:Rule*
+end
+
+class Rule
+  strength:int
+  !action:Action
+  !cond:Expr?
+end
+
+class AllowRule < Rule
+end
+
+class DenyRule < Rule
+  msg:str?
+end
+
+class Action
+  !op:Operation+
+  obj:str
+  type:str
+  !fields:Field*
+end
+
+class Field
+  name:str
+end
+
+class Operation end
+class OpCreate < Operation end
+class OpRead   < Operation end
+class OpUpdate < Operation end
+class OpDelete < Operation end
+
+class Expr end
+
+class EBinOp < Expr
+  op:str
+  !e1:Expr
+  !e2:Expr
+end
+
+class EUnOp < Expr
+  op:str
+  !e:Expr
+end
+
+class EFunCall < Expr
+  fun:str
+  !args:Expr*
+end
+
+class EVar < Expr
+  name:str
+end
+
+class EListComp < Expr
+  var:str
+  !list:Expr
+  !e:Expr
+end
+class ELForall < EListComp end
+class ELExists < EListComp end
+
+class EConst < Expr end
+class EStrConst < EConst
+  val:str
+end
+class EIntConst < EConst
+  val:int
+end
