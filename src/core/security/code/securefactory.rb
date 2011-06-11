@@ -3,6 +3,24 @@
 Sub-type of factory that creates secure checkobjects
 Secure checkobjects have a security model attach that checks for permissions each time
 
+Note that many operations will silently fail (eg delete)
+
+List of all security checks:
+
+(C)reate (o:t)
+- when making a new object o in the factory
+
+(R)ead (o:t)
+- when accessing any field of type t (many and non-many)
+(R)ead (o:t, f)
+- when accessing a field f in object o (many and non-many)
+
+(U)pdate (o:t, f)
+- when updating a field f in object o (many and non-many)
+
+(D)elete (o:t)
+- removing a traversal field with value o (many and non-many)
+
 =end
 
 require 'core/security/code/security'
@@ -75,8 +93,7 @@ class SecureFactory < Factory
       raise "too many constructor arguments supplied for '#{class_name}" if n < args.length
     }
     auth, msg = check_privileges("OpCreate", obj)
-    raise SecurityError, "Security Error : #{msg}" if !auth
-    return obj
+    return auth ? obj : nil
   end
 
 end
@@ -123,13 +140,13 @@ class SecureCheckedObject < CheckedObject
     else
       define_singleton_method(sym) do
         #check security: can I read this entire field?
-        auth, msg = @factory.check_privileges("OpRead", self, field_name)
-        raise SecurityError, "Security Error : #{msg}" if !auth
+        auth1, msg1 = @factory.check_privileges("OpRead", self, field_name)
+        return nil if !auth1
         res = @hash[field_name]
         #check security: can I read the target object?
-        auth, msg = @factory.check_privileges("OpRead", res)
-        raise SecurityError, "Security Error : #{msg}" if !auth
-        return res
+        auth2, msg2 = @factory.check_privileges("OpRead", res)
+        return nil if !auth2
+        res
       end
     end
     return send(sym)
@@ -138,13 +155,13 @@ class SecureCheckedObject < CheckedObject
   def []=(field_name, new)
     #check security for write permissions
     auth, msg = @factory.check_privileges("OpUpdate", self, field_name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
-    #check for delete permissions if this is a traversal link
+    return nil if !auth
     field = self.schema_class.fields[field_name]
     if !field.type.Primitive? and field.traversal
+      #check for delete permissions on old object
       old = @hash[field_name]
       auth, msg = @factory.check_privileges("OpDelete", old)
-      raise SecurityError, "Security Error : #{msg}" if !auth
+      return nil if !auth
     end
     super
   end
@@ -180,19 +197,29 @@ class SecureManyIndexedField < ManyIndexedField
 
   def <<(v)
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
-    @realself.notify_update(@field, nil, v) if @realself
+    return nil if !auth
+    super
+  end
+
+  def []=(k, v)
+    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
+    return nil if !auth
+    if !@field.type.Primitive? and @field.traversal
+      old = @hash[k]
+      auth, msg = @realself.factory.check_privileges("OpDelete", old)
+      return nil if !auth
+    end
     super
   end
 
   def delete(v)
     #check: can I remove things from the field?
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
+    return nil if !auth
     if !@field.type.Primitive? and @field.traversal
       #check: can I delete the removed object?
       auth, msg = @realself.factory.check_privileges("OpDelete", v)
-      raise SecurityError, "Security Error : #{msg}" if !auth
+      return nil if !auth
     end
     super
   end
@@ -200,16 +227,14 @@ class SecureManyIndexedField < ManyIndexedField
   def clear()
     #check: can I remove things from the field?
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
+    return nil if !auth
+    #check: reject from hash objects I have permission to delete
     if !@field.type.Primitive? and @field.traversal
-      #check: can I delete the removed object?
-      @list.all? do |v|
-        auth, msg = @realself.factory.check_privileges("OpDelete", v)
-        raise SecurityError, "Security Error : #{msg}" if !auth
-        auth
+      super.each do |v| #ManyField each-es do NOT return a key
+        auth, msg = @realself.factory.check_privileges("OpDelete", obj)
+        @hash.delete(v) if auth
       end
     end
-    super
   end
 
   def each(&block)
@@ -242,26 +267,33 @@ class SecureManyField < ManyField
 
   def <<(v)
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
-    @realself.notify_update(@field, nil, v) if @realself
+    return nil if !auth
+    if !@field.type.Primitive? and @field.traversal
+      auth, msg = @realself.factory.check_privileges("OpCreate", v)
+      return nil if !auth
+    end
     super
   end
 
   def []=(i, v)
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
-    @realself.notify_update(@field, @list[i], v) if @realself
+    return nil if !auth
+    if !@field.type.Primitive? and @field.traversal
+      old = @list[i]
+      auth, msg = @realself.factory.check_privileges("OpDelete", old)
+      return nil if !auth
+    end
     super
   end
 
   def delete(v)
     #check: can I remove things from the field?
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
+    return nil if !auth
     if !@field.type.Primitive? and @field.traversal
       #check: can I delete the removed object?
       auth, msg = @realself.factory.check_privileges("OpDelete", v)
-      raise SecurityError, "Security Error : #{msg}" if !auth
+      return nil if !auth
     end
     super
   end
@@ -269,16 +301,14 @@ class SecureManyField < ManyField
   def clear()
     #check: can I remove things from the field?
     auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    raise SecurityError, "Security Error : #{msg}" if !auth
+    return nil if !auth
+    #check: reject from hash objects I have permission to delete
     if !@field.type.Primitive? and @field.traversal
-      #check: can I delete the removed object?
-      @list.all? do |v|
-        auth, msg = @realself.factory.check_privileges("OpDelete", v)
-        raise SecurityError, "Security Error : #{msg}" if !auth
-        auth
+      super.each do |v| #ManyField each-es do NOT return a key
+        auth, msg = @realself.factory.check_privileges("OpDelete", obj)
+        @list.delete(v) if auth
       end
     end
-    super
   end
 
   def each(&block)

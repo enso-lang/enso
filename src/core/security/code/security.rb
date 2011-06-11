@@ -99,16 +99,23 @@ class Security
 
   def eval_EVar(expr, env)
     #expr name can be a 'path'
-    path = expr.name.split('.')
-    res = nil
-    path.each do |p|
-      if res.nil?
-        res = env[p]
-      else
-        res = res.send(p)
+    begin
+      path = expr.name.split('.')
+      res = nil
+      path.each do |p|
+        if res.nil?
+          res = env[p]
+        else
+          res = res.send(p)
+        end
       end
+      return res
+    rescue
+      #if resolving this expression fails for whatever reason
+      #usually because the field access expression is malformed (eg misspelled)
+      #or because the object is incomplete (?)
+      return nil
     end
-    return res
   end
 
   def eval_ELForall(expr, env)
