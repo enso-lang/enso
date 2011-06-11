@@ -7,15 +7,13 @@ allow read(t:Todo{done})
 allow create,read,update,delete(root:Todos)
 
 allow update(t:Todos{todos}) if user == "Alice"
-allow update(t:Todo{todo}) if user == "Alice"
-allow update(t:Todo{done}) if user == "Alice"
+allow update(t:Todo{*}) if user == "Alice"
 allow create(t:Todo) if user == "Alice"
 allow delete(t:Todo) if user == "Alice"
 
 deny read(t:Todo) if user == "Bob" and not t.done
 allow update(t:Todos{todos}) if user == "Bob"
-allow update(t:Todo{todo}) if user == "Bob" and t.done
-allow update(t:Todo{done}) if user == "Bob" and t.done
+allow update(t:Todo{*}) if user == "Bob" and t.done
 
 allow update(t:Todos{todos}) if user == "Dave"
 allow update(t:Todo{done}) if user == "Dave"

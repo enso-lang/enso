@@ -2,6 +2,8 @@
 
 Security model that reads in policies and checks for privileges at run-time
 
+See securefactory.rb for rule semantics
+
 =end
 
 class Security
@@ -12,6 +14,7 @@ class Security
     @allowrules = []
     @denyrules = []
     allrules.rules.each do |r|
+      fix_syntax!(r)
       if r.schema_class.name == "AllowRule"
         @allowrules << r
       elsif r.schema_class.name == "DenyRule"
@@ -65,6 +68,19 @@ class Security
   private
   #############################################################################
 
+  # fix problematic/unexpected syntax with rules
+  def fix_syntax!(rule)
+    #remove fields from create and delete rules
+    if ["OpCreate","OpDelete"].include? rule.action.op[0]
+      #rule.action.fields.clear
+      #rule.action.allfields = false
+    end
+    #add fields to delete
+    if ["OpUpdate"].include?(rule.action.op[0]) and rule.action.fields.empty?
+      rule.action.allfields = true
+    end
+  end
+
   # checks if a rule hold and returns a boolean
   def check_rule(rule, op, obj, *field)
     #check if rule is even relevant
@@ -74,7 +90,7 @@ class Security
       return false unless rule.action.fields.empty?
     else
       f = field[0]
-      return false unless rule.action.fields.map{|f|f.name}.include? f
+      return false unless rule.action.allfields or rule.action.fields.map{|f|f.name}.include?(f)
     end
     #evaluate condition
     return true if rule.cond.nil?
@@ -119,11 +135,17 @@ class Security
   end
 
   def eval_ELForall(expr, env)
-
+    list = eval(expr.list, env)
+    list.all? do |l|
+      eval(expr.list, env.merge({expr.var => l}))
+    end
   end
 
   def eval_ELExists(expr, env)
-
+    list = eval(expr.list, env)
+    list.any? do |l|
+      eval(expr.list, env.merge({expr.var => l}))
+    end
   end
 
   def eval_EStrConst(expr, env)

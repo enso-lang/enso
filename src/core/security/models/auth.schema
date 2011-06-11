@@ -24,6 +24,7 @@ class Action
   obj:str
   type:str
   !fields:Field*
+  allfields:bool
 end
 
 class Field

@@ -11,7 +11,7 @@ Strength ::= "weak"     @"@strength=1"
            | "medium"   @"@strength=2"
            | "strong"   @"@strength=3"
 
-Action ::= [Action] op:{Operation ","}+ "(" obj:sym ":" type:sym ("{" fields:{Field ","}+ "}")? ")"
+Action ::= [Action] op:{Operation ","}+ "(" obj:sym ":" type:sym ("{" ("*" @"@allfields=true" | fields:{Field ","}+) "}")? ")"
 Operation ::= OpCreate | OpRead | OpUpdate | OpDelete
 OpCreate ::= [OpCreate] "create"
 OpRead   ::= [OpRead]   "read"
