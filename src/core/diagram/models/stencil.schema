@@ -69,7 +69,6 @@ end
 
 // DIAGRAMS
 
-
 class Container < Part
   direction: int // 1=vert, 2=hoiz
   !items: Part*
@@ -84,15 +83,15 @@ class Shape < Part
   Connectors: ConnectorEnd* 
 end
 
+
 class Connector < Part
-  !ends: ConnectorEnd* / ConnectorEnd.Connector
   !label: Expression
+  !ends: ConnectorEnd*
 end
 
 class ConnectorEnd
   arrow: str
   label: Expression
-  Connector: Connector / Connector.ends
   part: Shape / Shape.Connectors
 end
 

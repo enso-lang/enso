@@ -30,7 +30,7 @@ class Shape < Part
 end
 
 class Graph < Part
-  !items: Node*
+  !nodes: Node*
   !edges: Connector
 end
 
@@ -68,8 +68,8 @@ end
 class Font < Style
   name: str
   size: int
-  bold: bool
-  italic: bool
+  style: str
+  weight: int  // 400 is normal
   !color: Color
 end
 

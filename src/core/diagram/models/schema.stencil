@@ -19,18 +19,18 @@ graph {
     // create the subclass edges
     for (super : class.supers)
       box{}
-    //  connector (ClassBox[class] // [style="openArrow"] ClassBox[super])
+      connector (ClassBox[class] // [style="openArrow"] ClassBox[super])
 
   // create the relationship edges that go between nodes
-//  for (class : schema.classes)
-//    for (field : class.defined_fields)
-//      if (!field.type.Primitive? && (field.inverse.nil? || field._id < field.inverse._id))
-//        connector (          
-//          ClassBox[field.owner]
-//          // 
-//          ClassBox[field.type]
-//            label=(
-//              case field.many then TEXT("*")
-//              case field.optional then TEXT("?"))))
-//     }}}}
+  for (class : schema.classes)
+    for (field : class.defined_fields)
+      if (!field.type.Primitive? && (field.inverse.nil? || field._id < field.inverse._id))
+        connector (          
+          ClassBox[field.owner]
+          // 
+          ClassBox[field.type]
+            label=(
+              case field.many then TEXT("*")
+              case field.optional then TEXT("?"))))
+     }}}}
 }

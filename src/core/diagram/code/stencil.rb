@@ -20,7 +20,7 @@ class StencilFrame
         
     env = { 
       stencil.root => data,
-      :font => @factory.Font("Helvetica", 12, false, false, black),
+      :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
       :brush => @factory.Brush(white)
     }
@@ -40,13 +40,13 @@ class StencilFrame
       puts "SET #{prop.loc.name} = #{val}"
       newEnv = {}.update(env) if !newEnv
       case prop.loc.name
-      when "size" then
+      when "font.size" then
         puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
         font.size = val
-      when "weight" then
+      when "font.weight" then
         font = newEnv[:font] = env[:font]._clone if !font
-        font.size = val
+        font.weight = val
       end
     end
     container = WrapStyles.new(container, font, pen, brush) if newEnv    

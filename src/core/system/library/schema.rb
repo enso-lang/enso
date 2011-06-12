@@ -41,7 +41,7 @@ end
 def Subclass?(a, b)
   return false if a.nil? || b.nil?
   return true if a.name == if b.is_a?(String) then b else b.name end
-  a.supers.detect do |sup|
+  a.supers.any? do |sup|
     Subclass?(sup, b)
   end
 end

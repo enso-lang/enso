@@ -6,11 +6,11 @@ vertical {
     //label ClassBox[class]   // declare the "identifier" of this node is a class
      box [line.width=3] {  // this is the class rectangle
        vertical {
-          text [size=16] class@name
+          text [font.size=16,font.weight=700] class@name
           for (field : class@defined_fields)
              if (field@type is Primitive)  // TODO: NEED ?
                horizontal {
-                 text [size=12] field@name  // editable field name
+                 text [font.size=12] field@name  // editable field name
                  text ": "  // editable field name
                  text field@type@name  // TODO: drop-down for primitive types
                }

@@ -1,0 +1,219 @@
+Flow
+====
+
+The basic flow of operation is as follows.
+
+(params is the forms data or the querystring)
+
+Signatures:
+  render(func, env, params = {}, errors = {})
+  submit(params)
+
+get url  ==> render(function(url), params(url))
+post url ==> submit(params(url))
+
+Within submit: 
+
+- first binding is performed: 
+    - New objects are created for "new" referenced and put in a map;
+      assignments to these objects' fields are handled.
+
+    - Then, updates to existing objects are handled.
+
+    - Finally, the actions are executed (this included deletes). All
+      actions found in params are executed. Actions are in ruby and
+      receive the params as last argument.
+
+- During binding, if a (semantic) condition occurs (failed validation
+  etc.), an errors map is updated (key = LValue, value =
+  message). After the binding phase, if there are errors, no actions
+  are executed and the current page is re-rendered:
+   
+     render(function(url), params(url), params, errors)
+
+  To ensure that submitted data has preference over stored data in the
+  "DB", the render function (upon evaluating Output) checks whether
+  the path of the output value (which is maintained during expression
+  evaluation) is in the domain of params (the post data of the
+  submit). If so, the corresponding value is used instead of the value
+  resulting from evaluating the expression. 
+
+- Actions may "throw" a redirect, which aborts any evaluation and
+  causes a 301 to be sent to the client.
+
+In short the controlflow as a recursive process:
+
+  x = render*.bind.(x + save.execute.redirect.x)
+
+Params
+======
+
+Params (submitted data, or querystring) defines a map from keys to
+values. Values can be the following:
+
+- string (constant, e.g. str, int, or url)
+- array (from multiple select input)
+- object refs (see below)
+
+Keys come in two kinds: LValues and actions (see below).
+
+
+Object Refs
+===========
+
+- identify objects, but cannot be assigned to
+
+Ref ::=         (root)
+     |  Ref.x   (field)
+     |  Ref[k]  (manyfield index)
+     |  @C:n    (new instance n of class C)
+
+
+LValues
+=======
+
+- may only occur in key space of params (NOT values)
+  because this is where the security model is defined on
+
+- Hence, LValues can only be used as "name"s of HTML inputs
+
+- Does not have [k] because we don't allow assignment to
+  positions in a many field.
+
+LValue ::= Ref.x 
+
+So in a sense LValues are also references, but not the other way
+round. Another of looking at this is that LValues are references to
+primitive values. 
+
+NB: the address construct should always produce an LValue for a
+certain object. Hence, it should *never* be used in a value= attribute
+of an input field. If an object itself is put in an attribute (or
+rendered, but that would be atypical), you get an object reference
+automatically. 
+
+
+Actions
+=======
+
+- Actions are encoded in a hidden field, with name Action (cf. below)
+  and value the actual parameters.
+
+Action ::= !A
+
+Params ::= {Value ":"}* 
+
+A "do" statement
+
+   do f(a_1, ..., a_n);
+
+is rendered as:
+
+  <input type="hidden" name="!f" value="v_1:...:v_n">
+
+Where v_1,...,v_n are the (value) results of evaluating
+the a_1, ..., a_n expressions.
+
+Note: that upon rendering, the : should be escaped in Values, and upon
+action processing, be unescaped. 
+
+Note to self:
+escape: str.gsub(/:/, ':@')
+unescape: x.gsub(/:@/, ':')
+parse: str.split(/:(?!@)/).map(&:unescape)
+
+
+Links
+=====
+
+The link construct converts a page call expression to a URL (without
+calling). There are two ways:
+
+
+f(a_1,...,a_n) =>  f?x_1=v_1&...&x_n=v_n
+where x_1,...,x_n are the formal params of f and v_1,...,v_n are the
+URL escaped strings of the evaluations of a_1,...,a_n.
+
+f(a_1,..., a_n) =>  f/v_1/.../v_n
+(this may be awkward for certains values though)
+
+NB: link is technically superfluous: we can convert any call in
+expression context to a URL as soon as it is evaluated. This is/should
+be possible since template functions never return values anyway. 
+
+
+----
+
+Database operations
+
+Updating: assignment of a value to an LValue
+Creating: instantiating an object + adding to collection
+Delete: destroying a Ref
+
+---
+
+Some examples
+=============
+
+The delete checkbox example
+
+def delete_checkbox(x) {
+  let
+    name = gensym
+  in {
+    <input type="checkbox" name=name value="true"/>
+    do check_delete(name, x)
+  }
+}
+
+In actions.rb
+
+def check_delete(checkbox, obj, params) 
+  obj.delete! if params[checkbox] 
+end
+
+-----
+
+Delete button
+
+def delete(x, action) {
+  let 
+    name = gensym
+  in {
+    <input type="submit" name=name value="Delete"/>
+    do delete(name, x, link(action));
+  }
+}
+
+In actions.rb
+
+def delete(name, obj, link, params)
+  if params[name] then
+    obj.delete!
+    redirect(link)
+  end
+end
+
+----
+
+Submit button
+
+def submit(text, action) {
+  let 
+    name = gensym
+  in {
+    <input type="submit" name=name value=text /> 
+    do submit(name, link(action));
+  }
+}
+
+In actions.rb
+
+def submit(name, link, params)
+  redirect(link) if params[name] 
+end
+
+(Note how the actions actually check that they are enabled. I see a
+pattern!)
+
+

@@ -281,9 +281,26 @@ class DiagramFrame < Wx::Frame
   end
 
   def Font(font)
-    weight = font.bold ? Wx::FONTWEIGHT_BOLD : Wx::FONTWEIGHT_NORMAL
-    style = font.italic ? Wx::FONTSTYLE_ITALIC : Wx::FONTSTYLE_NORMAL
-    return Font.new(font.size, Wx::FONTFAMILY_MODERN, style, weight)
+    weight = case
+      when font.weight < 400 then Wx::FONTWEIGHT_LIGHT
+      when font.weight > 400 then Wx::FONTWEIGHT_BOLD
+      else Wx::FONTWEIGHT_NORMAL
+      end
+    style = case font.style
+      when "italic" then Wx::FONTSTYLE_ITALIC
+      when "slant" then Wx::FONTSTYLE_SLANT
+      else FONTSTYLE_NORMAL
+      end
+    family = case font.name
+      when "roman" then Wx::FONTFAMILY_ROMAN
+      when "swiss" then Wx::FONTFAMILY_SWISS
+      when "mono" then Wx::FONTFAMILY_MODERN
+      when "teletype" then Wx::FONTFAMILY_TELETYPE
+      else FONTFAMILY_DEFAULT
+      end
+    underline = false
+    faceName = ""
+    return Font.new(font.size, family, style, weight, underline, faceName)
   end
   
 end

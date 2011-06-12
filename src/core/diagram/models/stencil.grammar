@@ -10,9 +10,12 @@ Part ::= [Alt] alts:{Part "|"}+
       | [Label] "label" Props? label:Loc body:Part
 
       | [Container] direction:Dir Props? "{" items:Part* "}"
+     // | [Graph] "graph" Props? "{" GraphPart* "}"
       | [Connector] "connector" Props? "(" label:Exp? ":" from:ConnectorEnd "--" to:ConnectorEnd ")"
       | [Text] "text" Props? string:Exp
       | [Shape] "box" Props? "{" content:Part? "}"
+
+//GraphPart ::= "node" Point Part
 
 Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2"
 ConnectorEnd ::= [ConnectorEnd] arrow:sym? part:Part^

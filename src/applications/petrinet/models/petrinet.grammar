@@ -1,0 +1,16 @@
+
+
+start PetriNet
+
+PetriNet ::= [PetriNet] "nodes" nodes:Node* "arcs" arcs:Arc*
+
+Node ::= [Place] "place" name:sym 
+      |  [Transition] "transition" name:sym
+
+
+// multiplicity indicates direction (- or +)
+Arc ::= [Arc] place:Place^ ":" transition:Transition^ "(" multiplicity:int ")"
+
+
+
+

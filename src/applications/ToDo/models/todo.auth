@@ -1,0 +1,27 @@
+
+allow read(root:Todos)
+allow read(root:Todos{todos})
+allow read(t:Todo)
+allow read(t:Todo{todo})
+allow read(t:Todo{done})
+allow create,read,update,delete(root:Todos)
+
+allow update(t:Todos{todos}) if user == "Alice"
+allow update(t:Todo{*}) if user == "Alice"
+allow create(t:Todo) if user == "Alice"
+allow delete(t:Todo) if user == "Alice"
+
+deny read(t:Todo) if user == "Bob" and not t.done
+allow update(t:Todos{todos}) if user == "Bob"
+allow update(t:Todo{*}) if user == "Bob" and t.done
+
+allow update(t:Todos{todos}) if user == "Dave"
+allow update(t:Todo{done}) if user == "Dave"
+allow create(t:Todo) if user == "Dave"
+
+allow update(t:Todos{todos}) if user == "Cathy"
+allow update(t:Todo{done}) if user == "Cathy"
+allow delete(t:Todo) if user == "Cathy"
+
+allow read(t:Todo) if user == "Emily" and not t.done
+deny read(t:Todo) if user == "Emily" and t.done
