@@ -46,7 +46,6 @@ class StencilFrame
     @labels[label] = result
     return result
   end
-
     
   class Group(this, env, container)
     result = @factory.Group
@@ -60,8 +59,7 @@ class StencilFrame
   end
   
   def Text(this, env, container)
-    result = @factory.Text
-    result.text = eval_exp(this.txt)
+    result = @factory.Text(eval_exp(this.txt))
     return result
   end
   

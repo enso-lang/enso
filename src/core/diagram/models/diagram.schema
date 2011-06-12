@@ -11,7 +11,7 @@
 //      minSpecWidth < wCONSTRAINT < actual.w
 
 class Part 
-  constraints: Constraints
+  constraints: SizeConstraints?
   !styles: Style*
 end
     
@@ -29,7 +29,17 @@ class Shape < Part
   connectors: ConnectorEnd* 
 end
 
-class Connector < Part
+class Graph < Part
+  !items: Node*
+  !edges: Connector
+end
+
+class Node
+  !location: Point
+  !content: Part
+end
+
+class Connector
   label: Text
   !path: Point*
   !ends: ConnectorEnd* / ConnectorEnd.owner
@@ -48,11 +58,11 @@ class Style end
 class Pen < Style
   width: int
   style: str
-  color: Color
+  !color: Color
 end
 
 class Brush < Style
-  color: Color
+  !color: Color
 end
 
 class Font < Style
@@ -60,7 +70,7 @@ class Font < Style
   size: int
   bold: bool
   italic: bool
-  color: Color
+  !color: Color
 end
 
 class Color
@@ -86,11 +96,9 @@ class Rect
   size: Size
 end
 
-class Constraints
-  x: Constraint
-  y: Constraint
-  w: Constraint
-  h: Constraint
+class SizeConstraints
+  width: Constraint
+  height: Constraint
 end
 
 class Constraint
