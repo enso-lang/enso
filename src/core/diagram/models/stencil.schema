@@ -37,7 +37,7 @@ class Let < Part
 end
 
 class Assign
-  !name: Expression
+  !loc: Expression
   !exp: Expression
 end
 
@@ -53,14 +53,14 @@ class Binary < Expression
   !right: Expression
 end
 
+class InstanceOf < Expression
+  !base: Expression
+  class_name: str
+end
+
 class Field < Expression
   !base: Expression
   field: str
-end
-
-class Array < Expression
-  !base: Expression
-  !index: Expression
 end
 
 class Var < Expression
@@ -70,8 +70,8 @@ end
 // DIAGRAMS
 
 
-class Group < Part
-  direction: str // vert, hoiz, free
+class Container < Part
+  direction: int // 1=vert, 2=hoiz
   !items: Part*
 end
 

@@ -49,7 +49,7 @@ class Factory
     obj.schema_class.fields.each do |field|
       #puts "FIELD: #{field}"
       if n < args.length
-        if args[n]
+        if !args[n].nil?
           if field.many
             col = obj[field.name]
             args[n].each do |x|
@@ -199,6 +199,21 @@ class CheckedObject
     end
   end
 
+  def _clone
+    r = CheckedObject.new(@schema_class, @factory)
+    schema_class.fields.each do |field|
+      if field.many
+        self[field.name].each do |o|
+          r[field.name] << o
+        end
+      else
+        puts "CLONE #{field.name} #{self[field.name]}"
+        r[field.name] = self[field.name]
+      end
+    end
+    return r
+  end
+  
   def to_s
     k = ClassKey(schema_class)
     "<#{schema_class.name} #{k && self[k.name]? self[k.name] + " " : ""}#{@_id}>"

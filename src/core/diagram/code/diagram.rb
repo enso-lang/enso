@@ -3,8 +3,8 @@ require 'wx'
 include Wx
 require 'core/diagram/code/constraints'
 
-def ViewDiagram(content, f)
-  Wx::App.run { DiagramFrame.new(content, f).show }
+def ViewDiagram(content)
+  Wx::App.run { DiagramFrame.new(content).show }
 end
 
 class Rect
@@ -18,14 +18,13 @@ class Rect
 end
 
 class DiagramFrame < Wx::Frame
-  def initialize(root, factory)
+  def initialize(root)
     super(nil, :title => 'Diagram')
     evt_paint :on_paint
     evt_left_dclick :on_double_click
     evt_left_down :on_mouse_down
     evt_motion :on_move
     evt_left_up :on_mouse_up
-    @factory = factory
 
     @down = false
     @move_selection = nil
@@ -39,7 +38,7 @@ class DiagramFrame < Wx::Frame
   end
       
   def set_root(root)
-    puts "ROOT #{root.class}"
+    #puts "ROOT #{root.class}"
     @root = root
     refresh
   end
@@ -56,7 +55,7 @@ class DiagramFrame < Wx::Frame
       @edit_control = Wx::TextCtrl.new(self, 0)
       r = boundary(@edit_selection)
       n = 0
-      puts r.x, r.y, r.w, r.h
+      #puts r.x, r.y, r.w, r.h
       @edit_control.set_dimensions(r.x - n, r.y - n, r.w + 2 * n, r.h + 2 * n)
       #@edit_control.set_style(Wx::TE_MULTILINE)
       @edit_control.set_value(@edit_selection.string)
@@ -154,10 +153,10 @@ class DiagramFrame < Wx::Frame
   def constrainContainer(part, basex, basey, width, height)
     pos = @cs.value(0)
     x, y = basex, basey
-    puts "CONTAINER #{width.to_s}, #{height.to_s}"
+    #puts "CONTAINER #{width.to_s}, #{height.to_s}"
     part.items.each_with_index do |item, i|
       w, h = constrainPart(item, x, y)
-      puts "ITEM #{i}/#{part.items.length}"
+      #puts "ITEM #{i}/#{part.items.length}"
       case part.direction
       when 1 then #vertical
         pos = pos + h

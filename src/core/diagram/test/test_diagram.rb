@@ -28,4 +28,4 @@ c1 = f.Container(nil, [font, brwhite], 1, [t2, t1])
 content = f.Shape(nil, [greenpen], c1)
 Print.print(content)
 
-ViewDiagram(content, f)
+ViewDiagram(content)

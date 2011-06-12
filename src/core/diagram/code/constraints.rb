@@ -35,14 +35,14 @@ class Variable
   end
  
   def >=(other)
-    puts "#{self} >= #{other}"
+    #puts "#{self} >= #{other}"
     other.add_listener(self) if other.is_a?(Variable)
     @bounds << other
   end
 
   def +(other)
     var = Variable.new("p#{self.to_s}#{other.to_s}")
-    puts "#{var}=#{self.to_s}+#{other}"
+    #puts "#{var}=#{self.to_s}+#{other}"
     var.define(self, other) do |a, b|
       a + b
     end

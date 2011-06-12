@@ -12,6 +12,6 @@ Print.print(SDs)
 
 #SDs = Loader.load('schema.stencil')
 
-Print.print(SDs)
+#Print.print(SDs)
 
-result = EditStencil(SDs, load('schema.schema'))
+s = StencilFrame.new(SDs, Load('schema.schema'))
