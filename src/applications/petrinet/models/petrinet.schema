@@ -1,0 +1,31 @@
+
+primitive \str
+primitive \int
+
+class PetriNet
+  !nodes: Node*
+  !arcs: Arc*
+end
+
+class Node
+  #name: str
+end
+
+class Place < Node
+  arcs: Arc* / Arc.place
+end
+
+
+class Transition < Node
+  arcs: Arc* / Arc.transition
+end
+
+// need this, because there can be multiple
+// arcs between the same p/t, t/p
+// an manyfields do not allow multiple things with the same key.
+class Arc 
+  multiplicity: int
+  place: Place
+  transition: Transition
+end
+

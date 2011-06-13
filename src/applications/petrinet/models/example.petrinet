@@ -1,0 +1,38 @@
+
+nodes
+
+place p1_idle
+place p2_wait
+place p3_address
+place p4_data
+place p5_idle
+place p6_busy
+
+transition t1
+transition t2
+transition t3
+transition t4
+
+arcs
+
+p1_idle: t1 (-1)
+p1_idle: t4 (1)
+
+p2_wait: t1 (1)
+p2_wait: t2 (-1)
+
+p3_address: t2 (1)
+p3_address: t3 (-1)
+
+p4_data: t3 (1)
+p4_data: t4 (-1)
+
+p5_idle: t2 (-1)
+p5_idle: t4 (1)
+
+p6_busy: t2 (1)
+p6_busy: t4 (-1)
+
+
+
+
