@@ -16,6 +16,7 @@ class SecurityTest < Test::Unit::TestCase
   def test_read
     @todo.factory.set_user('Alice')
     assert(@todo.todos.length == 2)
+
     @todo.factory.set_user('Bob')
     assert(@todo.todos.length == 1)
   end
@@ -24,6 +25,7 @@ class SecurityTest < Test::Unit::TestCase
     @todo.factory.set_user('Alice')
     @todo.todos[0].todo = "Test Message"
     assert(@todo.todos[0].todo == "Test Message")
+
     @todo.factory.set_user('Bob')
     @todo.todos[0].todo = "Test Message"
     assert(@todo.todos[0].todo == "Test Message")
@@ -36,11 +38,12 @@ class SecurityTest < Test::Unit::TestCase
     newtodo = @todo.factory["Todo"]
     @todo.todos << newtodo
     assert(@todo.todos.length == 3)
-    @todo.factory.set_user('Cathy')
-    newtodo = @todo.factory["Todo"]
-    @todo.todos << newtodo
-    @todo.factory.set_user('Alice')
-    assert(@todo.todos[3].nil?)
+
+    assert_raise(SecurityError) {
+      @todo.factory.set_user('Cathy')
+      newtodo = @todo.factory["Todo"]
+      @todo.todos << newtodo
+    }
   end
 
   def test_delete
@@ -48,9 +51,11 @@ class SecurityTest < Test::Unit::TestCase
     newtodo = @todo.factory["Todo"]
     @todo.todos.delete(@todo.todos[0])
     assert(@todo.todos.length == 1)
+
     @todo.factory.set_user('Dave')
-    newtodo = @todo.factory["Todo"]
-    @todo.todos.delete(@todo.todos[0])
+    assert_raise(SecurityError) {
+      @todo.todos.delete(@todo.todos[0])
+    }
     assert(@todo.todos.length == 1)
   end
 
