@@ -297,7 +297,12 @@ class ManyIndexedField < BaseManyField
     end
     return v
   end
-  
+
+  def []=(k, v)
+    @realself.notify_update(@field, @hash[k], v) if @realself
+    @hash[k] = v
+  end
+
   def delete(v)
     k = v[@key]
     @hash.delete(k)
