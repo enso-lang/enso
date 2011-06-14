@@ -170,6 +170,8 @@ class CheckedObject
         raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject)
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
+          puts "a: #{new.schema_class.supers}"
+          puts "b: #{field.type}"
           raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
         end
       end
@@ -185,7 +187,7 @@ class CheckedObject
   def _subtypeOf(a, b)
     return true if a.name == b.name
     a.supers.detect do |sup|
-      return _subtypeOf(sup, b)
+      _subtypeOf(sup, b)
     end
   end
   
