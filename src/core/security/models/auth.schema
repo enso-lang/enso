@@ -74,3 +74,6 @@ end
 class EIntConst < EConst
   val:int
 end
+class EBoolConst < EConst
+  val:bool
+end

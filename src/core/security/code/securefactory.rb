@@ -50,6 +50,10 @@ class SecureFactory < Factory
     @security.check_privileges(op, obj, *field)
   end
 
+  def get_allow_constraints(op, obj, *field)
+    @security.get_allow_constraints(op, obj, *field)
+  end
+
   def set_root(root)
     @root = root
     @security.root = root

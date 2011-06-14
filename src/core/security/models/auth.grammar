@@ -28,14 +28,14 @@ EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<=") e2:
          | EUnOp
 EUnOp ::= [EUnOp] op:"not" e:Expr
         | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
-        | [EVar] name:sym
         | EListComp
         | EConst
+        | [EVar] name:sym
         | "(" Expr ")"
 EListComp ::= ELForall | ELExists
-ELForall ::= [ELForall] "forall" var:sym "in" list:Expr ":" e:Expr
-ELExists ::= [ELExists] "exists" var:sym "in" list:Expr ":" e:Expr
+ELForall ::= [ELForall] "all?" var:sym "in" list:Expr ":" e:Expr
+ELExists ::= [ELExists] "any?" var:sym "in" list:Expr ":" e:Expr
 EConst ::= EStrConst | EIntConst
 EStrConst ::= [EStrConst] val:str
 EIntConst ::= [EIntConst] val:int
-
+EBoolConst ::= [EBoolConst] val:sym

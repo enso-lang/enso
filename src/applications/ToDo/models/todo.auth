@@ -22,3 +22,6 @@ allow create(t:Todo) if user == "Dave"
 allow update(t:Todos{todos}) if user == "Cathy"
 allow update(t:Todo{done}) if user == "Cathy"
 allow delete(t:Todo) if user == "Cathy"
+
+allow read(t:Todo) if user == "Emily" and not t.done
+deny read(t:Todo) if user == "Emily" and t.done
