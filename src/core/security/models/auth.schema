@@ -24,6 +24,7 @@ class Action
   obj:str
   type:str
   !fields:Field*
+  allfields:bool
 end
 
 class Field
@@ -72,4 +73,7 @@ class EStrConst < EConst
 end
 class EIntConst < EConst
   val:int
+end
+class EBoolConst < EConst
+  val:bool
 end
