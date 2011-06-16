@@ -1,6 +1,61 @@
 
 require 'core/system/library/schema'
 
+def paths(obj, path = [],  &block)
+  field = ClassKey(obj.schema_class)
+
+  current = path
+  if field then
+    key = obj[field.name]
+    current = [*path, obj[field.name]]
+    yield current
+  end
+
+  obj.schema_class.defined_fields.each do |f|
+    next if f.computed
+    next if !f.traversal
+    if f.many then
+      obj[f.name].each do |elt|
+        paths(elt, current, &block) 
+      end
+    elsif f.optional then
+      paths(obj[f.name], current, &block) unless obj[f.name].nil? || f.type.Primitive?
+    else
+      paths(obj[f.name], current, &block) unless f.type.Primitive?
+    end
+  end
+end
+
+def map_names!(obj, &block)
+  field = ClassKey(obj.schema_class)
+
+  if field then
+    key = obj[field.name]
+    x = yield obj[field.name]
+    obj[field.name] = x if x
+  end
+
+  obj.schema_class.defined_fields.each do |f|
+    next if f.computed
+    next if !f.traversal
+    if f.many then
+      obj[f.name].each do |elt|
+        map_names!(elt, &block) 
+      end
+    elsif f.optional then
+      map_names!(obj[f.name], &block) unless obj[f.name].nil? || f.type.Primitive?
+    else
+      map_names!(obj[f.name], &block) unless f.type.Primitive?
+    end
+  end
+end
+
+def prime!(obj, suffix = '_')
+  map_names!(obj) do |name|
+    name + suffix
+  end
+end
+
 def rename!(obj, map)
   field = ClassKey(obj.schema_class)
 
@@ -75,5 +130,14 @@ if __FILE__ == $0 then
   DisplayFormat.print(gg, sg_copy)
   DisplayFormat.print(sg, ss_copy)
 
+  prime!(sg_copy)
+  
+  puts "========= PRIMED ======="
+  DisplayFormat.print(gg, sg_copy)
+
+  paths(ss_copy) do |path|
+    p path
+  end
+  
   #DisplayFormat.print(sg_copy, ss_copy)
 end
