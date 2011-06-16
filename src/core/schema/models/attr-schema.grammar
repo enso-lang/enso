@@ -1,0 +1,6 @@
+#ruby
+
+union(load('attribute.grammar'),
+  union(load('expression.grammar'),
+   load('schema.grammar')))
+

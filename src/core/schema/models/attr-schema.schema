@@ -1,6 +1,5 @@
 #ruby
 
 union(load('attribute.schema'),
-  union(load('schema.schema'), 
-   rename(load('construct.schema'), 
-     {"Field" => "Assign", "Value" => "Expression"})))
+ union(load('expression.schema'),
+   load('schema.schema')))
