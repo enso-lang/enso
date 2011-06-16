@@ -1,0 +1,53 @@
+
+
+primitive \str
+
+// Should be modularized into Exps, Stats and Funcs
+class FUNC 
+  name: str
+  formals: VAR*
+end
+
+class CALL < EXP
+  name: str
+  args: EXP*
+end
+
+class EXP
+end
+
+class ACCESS < EXP
+  obj: EXP
+end
+
+class DOT < ACCESS
+  field: str
+end
+
+class SUB < ACCESS
+  index: EXP
+end
+
+class VAR < EXP
+  name: str
+end
+
+class STR < EXP
+  value: str
+end
+
+class REF < EXP
+  name: str
+end
+
+class ITER
+  var: str
+  exp: EXP
+end
+
+class COND
+  cond: EXP
+end
+
+class GROUP
+end

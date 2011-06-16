@@ -7,7 +7,7 @@ module Scanner
 
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
-    int: /-?[0-9]+/,
+    int: /[-+]?[0-9]+/,
     str: /"(\\\\.|[^\"])*"/,
     real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/
   }

@@ -1,0 +1,30 @@
+
+// to be unioned with instance.grammar and schema.grammar
+
+start Schema
+
+Field ::= [Attribute] "@" name:sym "=" expression:Expression
+
+// TODO: parameterized attributes?
+
+// Add expression to values
+Value ::= Expression
+
+Expression ::= Value
+	    | [Variable] name:sym
+            | [Comprehension] "[" results:{Result ","}+ "|" conditions:Condition+ "]"
+	      		      @"@ordered = true"
+	    | [Comprehension] "{" Result "|" conditions:Condition+ "}"
+	    | [Comprehension] "(" Result "|" conditions:Condition+ ")" @"@first = true"
+	    | [Collection] "{" elements{Expression ","}* "}"
+	    | [Collection] "[" elements{Expression ","}* "]" @"@ordered = true"
+	    | [Update] obj:Expression "[" contents:{Content ";"}+ "]"
+
+Result ::= expression:Expression
+        |  "*" expression:Expression @"@splicing = true"
+
+Condition ::= Expression
+           |  [Generator] var:sym "<-" expression:Expression
+
+
+	    

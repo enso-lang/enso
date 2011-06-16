@@ -1,0 +1,94 @@
+
+start _Grammar
+
+  // Generic
+ 
+  EXP ::= [VAR] name:sym
+       |  [DOT] obj:EXP "." field:sym
+       |  [SUB] obj:EXP "[" index:EXP "]"
+       |  [STR] value:str
+
+  _sym ::= "$sym(" EXP ")"
+        |  [STR] value:sym
+
+  _str ::= "$str(" EXP ")"
+        | [STR] value:str
+
+  _ref ::= "$ref(" EXP ")"
+        | [REF] name:sym
+
+  
+  // Templatized
+
+  _Grammar ::= [_Grammar] "start" \start:_ref rules:_Rule_Elt*
+
+
+  _Rule_Elt ::= Rule
+  	     | _Rule
+  	     | [_Rule_Iter] "for" "(" var:sym ":" exp:EXP ")" body:_Rule_Elt
+ 	     | [_Rule_Group] "{" elements:_Rule_Elt* "}"
+
+  _Rule ::= [_Rule] name:_sym "::=" arg:_Alt
+
+  _Alt ::= [_Alt] alts:{_Create "|"}+
+
+  _Create_Elt ::= Create
+               |  _Create
+               | [_Create_Iter] "for" "(" var:sym ":" exp:EXP ")" body:_Create_Elt
+    	       | [_Create_Group] "{" elements:_Create_Elt* "}"
+
+// TODO: sym_name now reused from rule..
+  _Create ::= [_Create] "[" name:_sym "]" arg:_Sequence
+           |  _Sequence
+
+  _Sequence ::= [_Sequence] elements:_Field_Elt*
+
+  _Field_Elt ::= Field
+              |  _Field
+              | [_Field_Iter]"for" "(" var:sym ":" exp:EXP ")" body:_Field_Elt
+    	      | [_Field_Group] "{" elements:_Field_Elt* "}"
+
+  _Field ::= [_Field] name:_sym ":" arg:_Pattern
+          | _Pattern
+
+  // TODO: need something to create recursive structures 
+  _Pattern ::= Pattern  // Values are not there: constant
+            | [_Code] "@" "$(" code:EXP ")"
+	    | [_Ref] name:_sym  // TODO: ambiguous
+	    | [_Lit] value:_str
+	    | [_Call] rule:_ref
+	    | [_Regular] arg:_Pattern "*" @"@optional = true; @many = true; @sep = nil"
+	    | [_Regular] arg:_Pattern "+" @"@many = true; @sep = nil"
+	    | [_Regular] arg:_Pattern "?" @"@optional = true"
+	    | [_Regular] "{" arg:_Pattern "$(" sep:EXP ")" "}" "*" @"@optional = true; @many = true"
+	    | [_Regular] "{" arg:_Pattern "$(" sep:EXP ")" "}" "+" @" @many = true"
+	    | "(" _Alt ")"
+
+  Rule ::= [Rule] name:sym "::=" arg:Alt
+
+  Alt ::= [Alt] alts:{Create "|"}+
+
+  Create ::= [Create] "[" name:sym "]" arg:Sequence
+    | Sequence
+
+  Sequence ::= [Sequence] elements:Field*
+
+  Field ::= [Field] name:sym ":" arg:Pattern
+    | Pattern
+  
+  Pattern ::= 
+      [Value] kind:"int"
+    | [Value] kind:"str"
+    | [Value] kind:"real"
+    | [Value] kind:"sym"
+    | [Value] kind:"atom"
+    | [Code] "@" code:str
+    | [Ref] name:sym "^"
+    | [Lit] value:str
+    | [Call] rule:Rule^
+    | [Regular] arg:Pattern "*"       @"@optional = true; @many = true; @sep = nil"
+    | [Regular] arg:Pattern "?"			@"@optional = true; @sep = nil"
+    | [Regular] arg:Pattern "+"  			@"@many = true; @sep = nil"
+    | [Regular] "{" arg:Pattern sep:str "}" "*" 	@"@optional = true; @many = true"
+    | [Regular] "{" arg:Pattern sep:str "}" "+"   @"@many = true"
+    | "(" Alt ")"

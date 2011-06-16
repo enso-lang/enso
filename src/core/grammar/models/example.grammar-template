@@ -1,0 +1,7 @@
+
+
+start $ref(m.start)
+
+$sym(m.start) ::= [$sym(m.create)] for (x: m.names) { $ref(x) }
+            | "bla"
+

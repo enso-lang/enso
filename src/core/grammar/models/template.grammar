@@ -1,0 +1,14 @@
+
+
+
+
+  EXP ::= [Var] name:sym
+       |  [Dot] obj:EXP "." field:sym
+       |  [Sub] obj:EXP "[" index:EXP "]"
+       |  [Str] value:str
+
+  _sym ::= "$(" EXP ")"
+        |  [STR] value:sym
+
+  _str ::= "$(" EXP ")"
+        | [STR] value:str
