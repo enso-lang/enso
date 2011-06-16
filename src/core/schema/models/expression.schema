@@ -1,0 +1,91 @@
+
+primitive str
+primitive bool
+primitive int
+
+class Expression < Condition
+end
+
+class Variable < Expression
+  name: str
+end
+
+class Access < Expression
+  !obj: Expression
+end
+
+class Dot < Access
+  field: str
+end
+
+class Cons < Expression
+  type: str
+  !contents: Assign*
+end
+
+class Assign
+  name: str
+  !expressions: Expression*
+end
+
+class Int < Expression
+  value: int
+end
+
+class Str < Expression
+  value: str
+end
+
+class Bool < Expression
+  value: bool
+end
+
+class Cond < Expression
+  !cond: Expression
+  !body: Expression
+end
+
+class IfThen < Cond
+  !elsifs: ElsIf*
+  !else: Expression
+end
+
+class ElsIf < Cond
+end
+
+class Call < Expression
+  name: str
+  !args: Expression*
+end
+
+class Lookup < Access
+  !key: Expression
+end
+
+class Collection < Expression
+  !elements: Expression*
+  ordered: bool
+end
+
+class Content
+end
+
+class Update < Expression
+  !obj: Expression
+  !contents: Content+
+end
+
+class Comprehension < Expression
+  !results: Expression+
+  !conditions: Condition+
+  ordered: bool
+  first: bool
+end
+
+class Condition
+end
+
+class Generator < Condition
+  var: str
+  !expression: Expression
+end

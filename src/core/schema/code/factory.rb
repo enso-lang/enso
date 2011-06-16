@@ -29,6 +29,8 @@ class InternalLocation
 end
 
 class Factory
+  attr_reader :schema
+
   def initialize(schema)
     @schema = schema
   end

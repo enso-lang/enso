@@ -1,4 +1,5 @@
 require 'core/system/load/load'
+require 'core/schema/code/factory'
 require 'core/grammar/code/layout'
 
 =begin
@@ -39,7 +40,9 @@ class CopyInto
       b_val = b && b[field.name]
       #puts "#{field.name} #{field.traversal}: #{a_val} / #{b_val}"
       if field.type.Primitive?
-        puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" if a && b && a_val != b_val
+        if a && b && a_val != b_val then
+          puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" 
+        end
         new[field.name] = a_val
       elsif field.traversal
         if !field.many
@@ -111,3 +114,7 @@ def Union(factory, *parts)
 end   
 
 
+def union(a, b)
+  f = Factory.new(a._graph_id.schema)
+  Union(f, a, b)
+end

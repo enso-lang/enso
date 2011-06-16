@@ -12,7 +12,8 @@ class Expression end
 class Rule < Expression
   #name: str 
   #grammar: Grammar / Grammar.rules 
-  !arg: Expression 
+  // optional because of abstract rules
+  !arg: Expression?
 end 
 
 class Alt < Expression 
