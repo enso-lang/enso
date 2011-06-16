@@ -10,6 +10,10 @@ require 'core/grammar/code/parse'
 
 require 'core/system/boot/instance_schema'
 
+require 'core/schema/tools/union'
+require 'core/schema/tools/rename'
+
+
 module Loading
   class Loader
 
@@ -50,6 +54,7 @@ module Loading
       puts "Initializing.."
 
       @cache[INSTANCE_SCHEMA] = InstanceSchema.schema
+      
 
       bss = @cache[SCHEMA_SCHEMA] = SchemaSchema.schema
       bgs = @cache[GRAMMAR_SCHEMA] = GrammarSchema.schema
@@ -66,6 +71,8 @@ module Loading
       # now that we have a good schema schema, load the other three, including the first two
       sg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, bgg, gs)
       gg = @cache[GRAMMAR_GRAMMAR] = load_with_models(GRAMMAR_GRAMMAR, bgg, gs)
+
+      is = @cache[INSTANCE_SCHEMA] = load_with_models(INSTANCE_SCHEMA, sg, ss)
     end
         
     def load_with_models(name, grammar, schema)

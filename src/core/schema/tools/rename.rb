@@ -1,5 +1,6 @@
 
 require 'core/system/library/schema'
+require 'core/schema/tools/copy'
 
 def paths(obj, path = [],  &block)
   field = ClassKey(obj.schema_class)
@@ -99,6 +100,11 @@ def rename!(obj, map)
   end
 end
 
+def rename(obj, map)
+  obj = copy(obj)
+  rename!(obj, map)
+  return obj
+end
 
 
 if __FILE__ == $0 then

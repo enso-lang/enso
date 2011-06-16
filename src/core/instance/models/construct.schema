@@ -1,0 +1,38 @@
+
+primitive str
+
+class Instances
+  !instance: Instance*
+end
+
+class Value
+end
+
+class Instance < Value
+  type: str
+  !contents: Content*
+end
+
+class Prim < Value
+  kind: str
+  value: str?
+end
+
+class Ref < Value
+  name: str
+end
+
+class Content
+end
+
+class Field < Content
+  name: str
+  !values: Value*
+end
+
+class Code < Content
+  code: str
+end
+      
+
+
