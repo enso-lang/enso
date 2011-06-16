@@ -104,8 +104,13 @@ def Copy(factory, a)
   return CopyInto.new(factory).copy(a, nil).finalize
 end   
     
-def Union(factory, a, b)
-  return CopyInto.new(factory).copy(a, Copy(factory, b)).finalize
+def Union(factory, *parts)
+  copier = CopyInto.new(factory)
+  result = nil
+  parts.each do |part|
+    result = copier.copy(part, result)
+  end
+  return result.finalize
 end   
 
 

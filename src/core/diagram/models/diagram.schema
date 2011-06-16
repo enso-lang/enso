@@ -1,66 +1,76 @@
+
+
+// what are the position/size operators
+// x/y: fixed | computed
+// height/width: 
+    // fixed: "300"
+    // variable: "x"
+    
+// every part has a container and an actual location
+//      minComputedWidth < wCONSTRAINT < actual.w
+//      minSpecWidth < wCONSTRAINT < actual.w
+
 class Part 
-  boundary: Rect?
+  constraints: SizeConstraints?
+  !styles: Style*
 end
     
 class Container < Part
   direction: int
-  items: Part*
+  !items: Part*
 end
 
 class Text < Part
   string: str
-  font: str
-  size: int
-  bold: bool
-  italic: bool
-  color: Color
 end
 
 class Shape < Part
-  format: ShapeFormat
-  content: Part?
-  links: LinkEnd* 
+  !content: Part?
+  connectors: ConnectorEnd* 
 end
 
 class Graph < Part
-  nodes: Part*
+  !nodes: Node*
+  !edges: Connector
 end
 
-class ShapeFormat
-  line: LineFormat
-  fill_color: Color
+class Node
+  !location: Point
+  !content: Part
 end
 
-class LineFormat
+class Connector
+  label: Text
+  !path: Point*
+  !ends: ConnectorEnd* / ConnectorEnd.owner
+end
+
+class ConnectorEnd
+  arrow: str
+  !label: Text
+  to: Shape / Shape.connectors
+  owner: Connector / Connector.ends
+end
+
+// styles
+class Style end
+
+class Pen < Style
   width: int
   style: str
-  color: Color
+  !color: Color
 end
 
-class LinkEnd
-  arrow: str
-  label: Text
-  link: Link / Link.ends
-  part: Shape / Shape.links
+class Brush < Style
+  !color: Color
 end
 
-class Link
-  line: LineFormat
-  path: Point*
-  label: Text
-  ends: LinkEnd* / LinkEnd.link
-end
-  
-class Point
-  xp: int
-  yp: int
-end
-
-class Rect
-  x: int
-  y: int
-  w: int
-  h: int
+class Font < Style
+  name: str
+  size: int
+  style: str
+  weight: int  // 400 is normal
+  !color: Color
 end
 
 class Color
@@ -69,6 +79,32 @@ class Color
   b: int
 end
 
+// basics
+  
+class Point
+  x: int
+  y: int
+end
+
+class Size
+  width: int
+  height: int
+end
+
+class Rect
+  pos: Point
+  size: Size
+end
+
+class SizeConstraints
+  width: Constraint
+  height: Constraint
+end
+
+class Constraint
+  min: int?
+  var: str?
+end
 
 primitive \int
 primitive \str

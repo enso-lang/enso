@@ -1,3 +1,4 @@
+=begin
 
 what we need is a pair of models
   * schema
@@ -66,3 +67,13 @@ look something like this:
   create C(e*)            -- create a new instance
   delete e                -- delete an instance
   send m(e*) to e         -- post an async message to an object
+
+=end
+
+require 'core/system/load/load'
+require 'core/grammar/code/layout'
+
+LL = Loader.load('xuml.schema')
+
+DisplayFormat.print(Loader.load('schema.grammar'), LL)
+

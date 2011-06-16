@@ -1,0 +1,39 @@
+start Stencil
+
+// diagrams
+Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Part
+
+Part ::= [Alt] alts:{Part "|"}+
+      | [For] "for" Props?  "(" var:sym ":" iter:Exp Index? ")" body:Part
+      | [Test] "if" condition:Exp body:Part
+      | [Let] "let" decls:Assign* "in" body:Part
+      | [Label] "label" Props? label:Loc body:Part
+
+      | [Container] direction:Dir Props? "{" items:Part* "}"
+     // | [Graph] "graph" Props? "{" GraphPart* "}"
+      | [Connector] "connector" Props? "(" label:Exp? ":" from:ConnectorEnd "--" to:ConnectorEnd ")"
+      | [Text] "text" Props? string:Exp
+      | [Shape] "box" Props? "{" content:Part? "}"
+
+//GraphPart ::= "node" Point Part
+
+Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2"
+ConnectorEnd ::= [ConnectorEnd] arrow:sym? part:Part^
+Index ::= "," index:sym
+
+Props ::= "[" props:{ Assign ","}* "]"
+Assign ::= [Assign] loc:Loc "=" exp:Exp
+
+Exp ::= [InstanceOf] base:Exp1 "is" class_name:sym
+      | Exp1
+
+Exp1 ::= Loc
+      | [Literal] value:(str | int)
+      | [Binary] left:Exp op:"==" right:Exp
+      | "(" Exp ")"
+
+Loc ::= [Field] base:Loc "@" field:sym
+      | [Binary] left:Loc "[" right:Loc "]" @"@op='[]'"
+      | [Var] name:sym
+      
+      
