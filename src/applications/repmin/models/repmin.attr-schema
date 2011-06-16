@@ -1,0 +1,16 @@
+
+primitive int
+
+class Tree
+  @globmin: int = if parent then parent->globmin else locmin end
+end
+
+class Fork
+  @repmin: Tree = Fork {left: left->repmin; right: right->repmin }
+  @locmin: int = min(left->locmin, right->locmin)
+end
+
+class Leaf
+  @repmin: Tree = Leaf {value: globmin}
+  @locmin: int = value
+end

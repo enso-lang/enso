@@ -1,0 +1,7 @@
+
+start Tree
+
+Tree ::= [Fork] "fork" "(" left:Tree "," right:Tree ")"
+      |  [Leaf] value:int
+
+

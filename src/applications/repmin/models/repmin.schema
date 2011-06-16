@@ -1,0 +1,15 @@
+
+primitive int
+
+class Tree
+  parent: Tree? 
+end
+
+class Fork < Tree
+  !left: Tree / Tree.parent
+  !right: Tree / Tree.parent
+end
+
+class Leaf < Tree
+  value: int
+end
