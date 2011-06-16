@@ -3,6 +3,7 @@
   Grammar ::= [Grammar] "start" \start:Rule^ rules:Rule*
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
+         | [Rule] "abstract" name:sym
 
   Alt ::= [Alt] alts:{Create "|"}+
 
