@@ -1,0 +1,18 @@
+
+
+primitive str
+
+class Graph
+  !nodes: Node*
+  !edges: Edge*
+end
+
+class Node
+  #name: str
+end
+
+class Edge
+  from: Node
+  to: Node
+end
+
