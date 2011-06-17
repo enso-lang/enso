@@ -11,7 +11,6 @@ module AttributeSchema
     end
 
     def <<(o)
-      #puts "Writing #{o} to ----> #{@field} in #{@obj}"
       @obj[@field] = o
     end
 
@@ -36,16 +35,6 @@ module AttributeSchema
     end
   end
 
-  class Obj
-    def initialize(o)
-      @obj = obj
-    end
-
-    def value
-      @obj
-    end
-  end
-
   class EvalAttr
     def initialize(factory)
       @factory = factory
@@ -54,127 +43,94 @@ module AttributeSchema
 
     def self.eval(obj, name, factory)
       # we assume name is an attribute field
-      coll = []
-      EvalAttr.new(factory).eval_field(name, obj, coll)
-      coll.first
+      EvalAttr.new(factory).run(obj, name)
+    end
+
+    def run(obj, name)
+      capture do |r|
+        eval_field(name, obj, r)
+      end
     end
 
     def eval(exp, obj, out)
-      #puts ";::::::::: evaling: #{exp.schema_class.name}"
       send(exp.schema_class.name, exp, obj, out)
     end
 
-    def bottom(type)
-      case type.name
-      when 'str' then ''
-      when 'int' then 0
-      when 'bool' then false
-      else
-        raise "Unsupported primitive: #{type.name}"
-      end
-    end
-
     def eval_field(name, recv, out)
-      #puts "NAME: #{name}"
-      #puts "recv: #{recv}"
-      #puts "out: #{out}"
       field = recv.schema_class.all_fields[name]
-      if field.schema_class.name == 'Attribute' then
-        if field.type.Primitive? then
-          #v = Result.new(bottom(field.type))
-          eval(field.result, recv, out)
-          #out << v.value
-        else
-          if @memo[[recv, name]] then
-            out << @memo[[recv, name]]
-          else
-            if field.many then
-              eval(field.result, recv, out)
-            else
-              obj = @factory[field.type.name]
-              @memo[[recv, name]] = obj
-              r = Result.new(nil)
-              #puts "################## r = #{r}  value = #{r.value} OBJ = #{obj}"
-              eval(field.result, recv, r)
-              #puts "R>VALUE: #{r.value}"
-              obj.become!(r.value)
-              #puts "#####after become######### r = #{r}  value = #{r.value} OBJ = #{obj}"
-              #puts "obj.kids: #{obj.kids}" if obj.schema_class.name == 'Fork'
-              #puts "OUT: #{out}"
-              out << obj
-            end
-          end
-        end
-      else
-        
-        out << recv[name]
+      return out << recv[name] if field.schema_class.name != 'Attribute'
+
+      return eval(field.result, recv, out) if field.type.Primitive?
+
+      key = [recv, name]
+      return out << @memo[key] if @memo[key]
+      return eval(field.result, recv, out) if field.many
+      
+      obj = @factory[field.type.name]
+      @memo[key] = obj
+      new = capture do |r|
+        eval(field.result, recv, r)
       end
+      # TODO: for fixpoints, test if the object has changed
+      # if so, run this attribute again.
+      obj.become!(new)
+      out << obj
     end
+    
+    def capture(v = nil)
+      r = Result.new(v)
+      yield r
+      r.value
+    end
+  
 
     def Variable(this, recv, out)
       eval_field(this.name, recv, out)
     end
 
     def Dot(this, recv, out)
-      #puts "DOTFIELD: #{this.field}"
-      x = Result.new(nil)
-      eval(this.obj, recv, x)
-      #puts "DOT: #{x.value} #{x.value.class}"
-      if x.value.is_a?(BaseManyField) then
-        #puts "------------ A many field"
-        # ugh, this must change
-        i = 0
-        x.value.each do |elt|
-          #puts "#{i} ELT = #{elt}"
-          #puts "\tOUT: #{out}"
+      x = capture { |r| eval(this.obj, recv, r) }
+      if x.is_a?(BaseManyField) then
+        x.each do |elt|
           eval_field(this.field, elt, out)
-          i += 1
         end
-        #puts "Nothing added to output"
       else
-        eval_field(this.field, x.value, out)
+        eval_field(this.field, x, out)
       end
     end
 
     def Cons(this, recv, out)
-      #puts "Constructing: #{this.type}"
-      #puts "OUTPUT = #{out} value = #{out.value}"
-      x = @factory[this.type]
+      obj = @factory[this.type]
       this.contents.each do |assign|
         assign.expressions.each do |exp|
-          if x.schema_class.fields[assign.name].many then
-            #puts "********* Assigning to: #{assign.name}"
-            eval(exp, recv, x[assign.name])
-            #puts "AFTER x = #{x} &&&&&&&&&&&&&&&&&&&& #{x[assign.name]}"
+          if obj.schema_class.fields[assign.name].many then
+            eval(exp, recv, obj[assign.name])
           else
-            eval(exp, recv, Write.new(x, assign.name))
+            eval(exp, recv, Write.new(obj, assign.name))
           end
         end
       end
-      out << x
+      out << obj
     end
 
     def IfThen(this, recv, out)
-      c = Result.new(nil)
-      eval(this.cond, recv, c)
-      if c.value then
-        eval(this.body, recv, out)
-      else
-        this.elsifs.each do |ei|
-          c = Result.new(nil)
-          eval(ei.cond, recv, c)
-          if c.value then
-            eval(ei.body, recv, out)
-            return
-          end
-        end
-        eval(this.else, recv, out)
+      c = capture { |r| eval(this.cond, recv, r) }
+      return eval(this.body, recv, out) if c
+
+      this.elsifs.each do |ei|
+        c = capture { |r| eval(ei.cond, recv, r) }
+        return eval(ei.body, recv, out) if c
       end
+      eval(this.else, recv, out)
     end
 
     def Call(this, recv, out)
+      # apparently this reverses the list of args !?!?!?!?!?
+      # args = this.args.map do |arg|
+      #    capture { |r| eval(arg, recv, r) }
+      #end
       args = []
-      this.args.map do |arg|
+      this.args.each do |arg|
         eval(arg, recv, args)
       end
       out << send(this.name, *args)
