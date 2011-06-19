@@ -99,7 +99,11 @@ end
 
 def Copy(factory, a)
   return CopyInto.new(factory).copy(a, nil).finalize
-end   
+end
+
+def Clone(a)
+  return Copy(a.factory, a)
+end
     
 def Union(factory, *parts)
   copier = CopyInto.new(factory)
