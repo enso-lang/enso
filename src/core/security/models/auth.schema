@@ -60,12 +60,11 @@ class EVar < Expr
 end
 
 class EListComp < Expr
+  op:str
   var:str
   !list:Expr
   !e:Expr
 end
-class ELForall < EListComp end
-class ELExists < EListComp end
 
 class EConst < Expr end
 class EStrConst < EConst
