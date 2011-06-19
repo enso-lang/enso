@@ -45,6 +45,12 @@ class Copy
 end
 
 
+def copy(obj)
+  f = Factory.new(obj._graph_id.schema)
+  obj = Copy.new(f).copy(obj)
+  obj.finalize
+end
+
 if __FILE__ == $0 then
 
   require 'core/system/load/load'

@@ -127,11 +127,8 @@ class StencilFrame
   def Binary(this, env)
     a = eval_exp(this.left, env)
     b = eval_exp(this.right, env)
-    case op
-    when "+" then return a + b
-    when "==" then return a + b
-    when "[]" then return a[b]
-    end
+    puts "BINARY #{a}#{this.op.to_sym}#{b}"
+    a.send(this.op.to_sym, b)
   end
   
   def Field(this, env)

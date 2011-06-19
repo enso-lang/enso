@@ -29,17 +29,7 @@ class Shape < Part
   connectors: ConnectorEnd* 
 end
 
-class Graph < Part
-  !nodes: Node*
-  !edges: Connector
-end
-
-class Node
-  !location: Point
-  !content: Part
-end
-
-class Connector
+class Connector < Part
   label: Text
   !path: Point*
   !ends: ConnectorEnd* / ConnectorEnd.owner

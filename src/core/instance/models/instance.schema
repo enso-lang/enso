@@ -1,4 +1,5 @@
 #ruby
 
-union(load('value.schema'), load('proto.schema'))
+union(load('construct.schema'), load('origin.schema'))
+
 

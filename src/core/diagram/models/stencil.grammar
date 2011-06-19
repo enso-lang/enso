@@ -10,30 +10,34 @@ Part ::= [Alt] alts:{Part "|"}+
       | [Label] "label" Props? label:Loc body:Part
 
       | [Container] direction:Dir Props? "{" items:Part* "}"
-     // | [Graph] "graph" Props? "{" GraphPart* "}"
       | [Connector] "connector" Props? "(" label:Exp? ":" from:ConnectorEnd "--" to:ConnectorEnd ")"
       | [Text] "text" Props? string:Exp
       | [Shape] "box" Props? "{" content:Part? "}"
 
-//GraphPart ::= "node" Point Part
-
-Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2"
+Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2" | "graph"  @"@direction=3" | "do"  @"@direction=4"
 ConnectorEnd ::= [ConnectorEnd] arrow:sym? part:Part^
 Index ::= "," index:sym
 
 Props ::= "[" props:{ Assign ","}* "]"
 Assign ::= [Assign] loc:Loc "=" exp:Exp
 
-Exp ::= [InstanceOf] base:Exp1 "is" class_name:sym
-      | Exp1
+Exp ::= [Binary] left:Exp2 op:"&" right:Exp2
+      | Exp2
 
-Exp1 ::= Loc
+Exp2 ::= [Binary] left:Exp3 op:"|" right:Exp3
+      | Exp3
+
+Exp3 ::= [Binary] left:Exp4 (op:"==" | op:"!=") right:Exp4
+      | [InstanceOf] base:Exp4 "is" class_name:sym
+      | Exp4
+
+Exp4 ::= Loc
       | [Literal] value:(str | int)
-      | [Binary] left:Exp op:"==" right:Exp
       | "(" Exp ")"
 
 Loc ::= [Field] base:Loc "@" field:sym
       | [Binary] left:Loc "[" right:Loc "]" @"@op='[]'"
+      | [Literal] "nil" @"@value=nil"
       | [Var] name:sym
       
       

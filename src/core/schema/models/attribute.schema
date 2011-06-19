@@ -7,60 +7,11 @@ primitive bool
 class Field
 end
 
+class Expression
+end
+
 class Attribute < Field
-  result: Expression 
+  !result: Expression 
 end
 
-class Expression < Condition
-end
-
-
-class Instance < Expression // adds a super type to Instance
-end
-
-class Value < Expression  // adds a super type to Value
-end
-
-class Variable < Expression
-  name: str
-end
-
-class Dot < Expression
-  obj: Expression
-  field: str
-end
-
-class Collection < Expression
-  elements: Expression*
-  ordered: bool
-end
-
-
-class Content
-end
-
-class Update < Expression
-  obj: Expression
-  contents: Content+
-end
-
-class Comprehension < Expression
-  results: Result+
-  conditions: Condition+
-  ordered: bool
-  first: bool
-end
-
-class Result
-  expression: Expression
-  splicing: bool
-end
-
-class Condition
-end
-
-class Generator < Condition
-  var: str
-  expression: Expression
-end
   

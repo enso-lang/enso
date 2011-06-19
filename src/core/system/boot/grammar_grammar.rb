@@ -11,6 +11,7 @@ class GrammarGrammar < GrammarGenerator
 
   rule Rule do
     alt [:Rule], {name: :sym}, "::=", {arg: Alt}
+    alt [:Rule], "abstract", {name: :sym}
   end
 
   rule Alt do

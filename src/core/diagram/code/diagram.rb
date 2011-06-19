@@ -26,13 +26,12 @@ class DiagramFrame < Wx::Frame
     evt_motion :on_move
     evt_left_up :on_mouse_up
 
-    @down = false
     @move_selection = nil
     set_root(root)
   end
 
-  def refresh
-    super
+  def clear_refresh
+    refresh
     @cs = ConstraintSystem.new
     @positions = {}
   end
@@ -40,7 +39,7 @@ class DiagramFrame < Wx::Frame
   def set_root(root)
     #puts "ROOT #{root.class}"
     @root = root
-    refresh
+    clear_refresh
   end
 
   
@@ -49,9 +48,10 @@ class DiagramFrame < Wx::Frame
     @move_selection = nil
     @down_x = e.x
     @down_y = e.y
-    find(@root, e)
-    if @edit_selection
-      @down = false
+    move, edit = find(@root, e)
+    puts "FIND #{move}, #{edit}"
+    if edit && edit.Text?
+      @edit_selection = edit
       @edit_control = Wx::TextCtrl.new(self, 0)
       r = boundary(@edit_selection)
       n = 0
@@ -73,46 +73,51 @@ class DiagramFrame < Wx::Frame
       @edit_selection = nil
       @edit_control = nil
     end
-    @down = true
     @move_selection = nil
-    @down_x = e.x
-    @down_y = e.y
-    find(@root, e)
+    move, edit = find(@root, e)
+    puts "FIND #{move}, #{edit}"
+    if move
+      @down_x = e.x
+      @down_y = e.y
+      @move_selection = move
+      @move_base = boundary(@move_selection)
+    end    
     refresh if need_refresh
   end
   
   def on_mouse_up(e)
-    @down = false
+    @move_selection = false
   end
 
   def on_move(e)
-    return unless @move_selection && @down
-    @positions[@move_selection].x.value += e.x - @down_x
-    @positions[@move_selection].y.value += e.y - @down_y
+    return unless @move_selection
+    @positions[@move_selection].x.value = @move_base.x + (e.x - @down_x)
+    @positions[@move_selection].y.value = @move_base.y + (e.y - @down_y)
     refresh
   end
 
   # ---- finding ------
   def find(part, pnt)
-    catch :found do
-      find1(part, pnt)
+    b = boundary(part)
+    puts "#{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
+    move, edit = nil, nil
+    if rect_contains(b, pnt)
+      if part.Container?
+        part.items.each do |sub|
+          move, edit = find(sub, pnt)
+          move = sub if edit && part.direction == 3
+          return move, edit if edit
+        end
+      elsif part.Shape?
+        move, edit = find(part.content, pnt) if part.content
+        edit = part if !edit
+      elsif part.Text?
+        edit = part
+      end
     end
+    return move, edit
   end
     
-  def find1(part, pnt)
-    if part.Container?
-      part.items.each do |s|
-        find1(s, pnt)
-      end
-    elsif part.Shape?
-      if rect_contains(boundary(part), pnt)
-        find1(part.content, pnt) if part.content
-        @move_selection = part # largest enclosing part
-      end
-    elsif part.Text?
-      @edit_selection = part
-    end
-  end
   
   def rect_contains(rect, pnt)
     rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
@@ -124,7 +129,7 @@ class DiagramFrame < Wx::Frame
     if constraint && constraint.var
       var = @cs[constraint.var]
     else
-      var = @cs.new
+      var = @cs.var
     end    
     var >= constraint.min if constraint && constraint.min
     return var
@@ -152,6 +157,7 @@ class DiagramFrame < Wx::Frame
 
   def constrainContainer(part, basex, basey, width, height)
     pos = @cs.value(0)
+    otherpos = @cs.value(0)
     x, y = basex, basey
     #puts "CONTAINER #{width.to_s}, #{height.to_s}"
     part.items.each_with_index do |item, i|
@@ -166,6 +172,11 @@ class DiagramFrame < Wx::Frame
         pos = pos + w
         x = basex + pos
         height >= h
+      when 3 then #graph
+        pos = pos + w
+        otherpos = otherpos + h
+        x = basex + pos
+        y = basey + otherpos
       end
     end
     case part.direction
@@ -173,6 +184,9 @@ class DiagramFrame < Wx::Frame
       height >= pos
     when 2 then #horizontal
       width >= pos
+    when 3 then #horizontal
+      width >= pos
+      height >= otherpos
     end
   end  
   

@@ -4,18 +4,18 @@ class ConstraintSystem
     @number = 0
   end
   
-  def new(name = "v#{@number}", value = nil)
+  def var(name = "v#{@number}", value = nil)
     @number += 1
     return Variable.new(name, value)
   end
   
   def value(n)
-    new("(#{n})", n)
+    var("(#{n})", n)
   end
   
   def [](name)
     var = @vars[name]  
-    var = @vars[name] = self.new if !var
+    var = @vars[name] = self.var if !var
     return var
   end
 end
@@ -73,7 +73,7 @@ class Variable
         end
       end
       path.pop
-      self.value = @aggregate ? @block.call(vals) : @block.call(*vals)
+      @value = @aggregate ? @block.call(vals) : @block.call(*vals)
     end
     @bounds.each do |b|
       val = if b.is_a?(Variable) then b.value else b end
@@ -102,6 +102,7 @@ class Variable
   end
   
   def value=(x)
+    @block = nil
     notify
     @value = x
   end

@@ -1,10 +1,15 @@
 
+require 'ostruct'
+
 class SchemaModel #< BasicObject
   @@ids = 0
 
   attr_accessor :schema_class
+#  attr_reader :_graph_id
 	
   def initialize()
+#     @_graph_id = OpenStruct.new
+#     @_graph_id.schema = schema
     @data = {}
     @id = @@ids += 1
   end
@@ -80,7 +85,15 @@ class ValueHash < Hash
     self[x[@key]] = x
   end
 
-    
+  # sligthly nonstandard zip, includes all elements of this and other
+  def outer_join(other)
+    keys = self.keys | other.keys
+    #puts "JOIN: #{self} | #{other}"
+    keys.each do |key_val|
+      yield self[key_val], other[key_val], key_val
+    end
+  end
+
 end
 
 class SchemaGenerator
