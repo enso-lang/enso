@@ -14,6 +14,7 @@ class StencilFrame
     @stencil = stencil
     @data = data
     @factory = Factory.new(Load('diagram.schema'))
+    @labels = {}
 
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
@@ -25,12 +26,20 @@ class StencilFrame
       :brush => @factory.Brush(white)
     }
     
-    @root = eval(stencil.body, env)
-    #puts "DONE"
+    eval stencil.body, env do |x| 
+      @root = x 
+    end
+    puts "DONE"
+    Print.print(@root)
+    
     ViewDiagram(@root)
   end
 
-  def eval(stencil, env, container = nil)
+  def eval(stencil, env, &block)
+    send stencil.schema_class.name, stencil, env, &block
+  end
+  
+  def make_styles(stencil, shape, env)
     newEnv = nil
     font = nil
     pen = nil
@@ -41,75 +50,118 @@ class StencilFrame
       newEnv = {}.update(env) if !newEnv
       case prop.loc.name
       when "font.size" then
-        puts "FONT SIZE #{val}"
+        #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
         font.size = val
       when "font.weight" then
         font = newEnv[:font] = env[:font]._clone if !font
         font.weight = val
+      when "pen.width" then
+        puts "PEN #{val} for #{stencil}"
+        pen = newEnv[:pen] = env[:pen]._clone if !pen
+        pen.width = val
+      when "pen.color" then
+        pen = newEnv[:pen] = env[:pen]._clone if !pen
+        pen.color = val
       end
     end
-    container = WrapStyles.new(container, font, pen, brush) if newEnv    
-    send(stencil.schema_class.name, stencil, newEnv || env, container)
+    # TODO: why do I need to set the style on every object????
+    shape.styles << (font || env[:font])
+    shape.styles << (pen || env[:pen])
+    shape.styles << (brush || env[:brush])
   end
   
-  def Alt(this, env, container)
+  def Alt(this, env, &block)
     this.alts.each do |alt|
       catch :fail do
-        return eval(alt, env, container)
+        return eval(alt, env, &block)
       end
     end
     throw :fail
   end
 
-  def For(this, env, container) 
+  def For(this, env, &block) 
     r = eval_exp(this.iter, env)
     nenv = {}.update(env)
     r.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
-      eval(this.body, nenv, container)
+      eval(this.body, nenv, &block)
     end
   end
     
-  def Test(this, env, container)
+  def Test(this, env, &block)
     test = eval_exp(this.condition, env)
-    eval(this.body, env, container) if test
+    eval(this.body, env, &block) if test
   end
 
-  def Label(this, env, container)
-    label = eval_exp(this.label, env)
-    result = eval(this.body, env, container)
-    @labels[label] = result
-    return result
+  def Label(this, env, &block)
+    key = eval_label(this.label, env)
+    eval this.body, env do |result|
+      #puts "LABEL #{key} => #{result}"
+      @labels[key] = result
+      block.call(result)
+    end
+  end
+
+  def eval_label(label, env)
+    if label.Prim?    # it has the form Loc[foo]
+      tag = label.args[0]
+      raise "foo" if !tag.Var?
+      tag = tag.name
+      index = eval_exp(label.args[1], env)
+      return [tag,index]
+    else
+      return eval_exp(label, env)
+    end
   end
   
   # shapes
-  def Container(this, env, container)
+  def Container(this, env, &block)
     group = @factory.Container(nil, nil, this.direction)
     this.items.each do |item|
-      eval(item, env, group.items)
+      eval item, env do |x|
+        group.items << x
+      end
     end
-    result container, group
+    make_styles(this, group, env)
+    block.call group
   end
   
-  def Text(this, env, container)
-    result container, @factory.Text(nil, nil, eval_exp(this.string, env))
+  def Text(this, env, &block)
+    text = @factory.Text(nil, nil, eval_exp(this.string, env))
+    make_styles(this, text, env)
+    block.call text
   end
   
-  def Shape(this, env, container)
-    result container, @factory.Shape(nil, nil, eval(this.content, env)) # not many!!!
+  def Shape(this, env, &block)
+    s = @factory.Shape(nil, nil) # not many!!!
+    eval this.content, env do |x|
+      s.content = x
+    end
+    make_styles(this, s, env)
+    block.call s
   end
 
-  def result(container, item)
-    return item if container.nil?
-    container << item
+  def Connector(this, env, &block)
+    # label?
+    label = nil
+    conn = @factory.Connector(nil, nil, label)
+    this.ends.each do |e|
+      de = @factory.ConnectorEnd(e.arrow, label)
+      de.owner = conn
+      key = eval_label(e.part, env)
+      #puts @labels
+      de.to = @labels[key]
+      conn.ends << de
+    end
+    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
+    conn.path << @factory.Point(0,0)
+    conn.path << @factory.Point(1,0)
+    conn.path << @factory.Point(1,1)
+    make_styles(this, conn, env)
+    block.call conn
   end
-  
-#  def Connector(this, env, container)
-#    !ends: ConnectorEnd* / ConnectorEnd.Connector
-#    !label: Expression
-#  end
 
   #### expressions
   
@@ -123,16 +175,36 @@ class StencilFrame
   def Literal(this, env)
     return this.value
   end
+
+  def Color(this, env)
+    return @factory.Color(this.r, this.g, this.b)
+  end
   
-  def Binary(this, env)
-    a = eval_exp(this.left, env)
-    b = eval_exp(this.right, env)
-    puts "BINARY #{a}#{this.op.to_sym}#{b}"
-    a.send(this.op.to_sym, b)
+  
+  def Prim(this, env)
+    op = this.op.to_sym
+    case op
+    when :| then 
+      return this.args.any? do |a|
+        eval_exp(a, env)
+      end
+    when :& then 
+      return this.args.all? do |a|
+        eval_exp(a, env)
+      end
+    else
+      args = this.args.collect do |a|
+        eval_exp(a, env)
+      end
+      a = args.shift
+      #puts "BINARY #{a}.#{this.op.to_sym}(#{args})"
+      return a.send(this.op.to_sym, *args)
+    end
   end
   
   def Field(this, env)
     a = eval_exp(this.base, env)
+    return a._id if this.field == "_id"
     return a[this.field]
   end
     
@@ -149,18 +221,3 @@ class StencilFrame
 
 end
 
-class WrapStyles
-  def initialize(container, font, pen, brush)
-    @container = container
-    @font = font
-    @pen = pen
-    @brush = brush
-  end
-  
-  def <<(x)
-    x.styles << @font if @font
-    x.styles << @pen if @pen
-    x.styles << @brush if @brush    
-    @container << x
-  end
-end

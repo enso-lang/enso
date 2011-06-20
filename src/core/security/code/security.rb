@@ -77,7 +77,7 @@ class Security
           if r.cond.nil?
             disj.nil? ? factory.EBoolConst(true) : factory.EBinOp('or', disj, factory.EConst(true))
           else
-            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'self'})
+            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'@self'})
             disj.nil? ? subst_r : factory.EBinOp('or', disj, subst_r)
           end
         else
@@ -90,7 +90,7 @@ class Security
           if r.cond.nil?
             disj.nil? ? factory.EBoolConst(true) : factory.EBinOp('or', disj, r.factory.EConst(true))
           else
-            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'self'})
+            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'@self'})
             disj.nil? ? subst_r : factory.EBinOp('or', disj, subst_r)
           end
         else
@@ -206,16 +206,9 @@ class Security
     end
   end
 
-  def eval_ELForall(expr, env)
+  def eval_EListComp(expr, env)
     list = eval(expr.list, env)
-    list.all? do |l|
-      eval(expr.expr, env.merge({expr.var => l}))
-    end
-  end
-
-  def eval_ELExists(expr, env)
-    list = eval(expr.list, env)
-    list.any? do |l|
+    list.send(expr.op) do |l|
       eval(expr.expr, env.merge({expr.var => l}))
     end
   end
@@ -284,8 +277,9 @@ class Security
     path = expr.name.split('.')
     res = env[path[0]]
     if not res.nil?
-      if res=="self" #it's a path, eg 'self'
+      if res[0]=='@' #it's a path, eg '@self'
         # replace the physical string and return
+        #path[0] = res[1..-1] #TODO: some problems when replacing more than once if remove @
         path[0] = res
         expr.name = path.join('.')
         return expr
@@ -298,14 +292,7 @@ class Security
     expr
   end
 
-  def bind_ELForall!(expr, env)
-    bind!(expr.list, env)
-    #remove vars from env which are now outside their scope due to expr.var
-    bind!(expr.expr, env.reject {| key, value | key == expr.var })
-    expr
-  end
-
-  def bind_ELExists!(expr, env)
+  def bind_EListComp!(expr, env)
     bind!(expr.list, env)
     #remove vars from env which are now outside their scope due to expr.var
     bind!(expr.expr, env.reject {| key, value | key == expr.var })
@@ -335,5 +322,6 @@ class Security
       nil
     end
   end
+
 
 end
