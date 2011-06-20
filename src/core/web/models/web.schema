@@ -28,6 +28,12 @@ end
 class Stat
 end
 
+class Do < Stat
+  call: Exp
+  cond: Exp?
+end
+
+
 class For < Stat
   var: str
   iter: Exp
@@ -58,7 +64,7 @@ class Let < Stat
   body:Stat
 end
 
-class Call < Stat, Exp
+class Call < Exp, Stat
   exp: Exp
   args: Exp*
   block: Stat?
@@ -107,10 +113,6 @@ class Tail < Abstraction
 end
 
 class Exp
-end
-
-class Link < Exp
-  exp: Exp
 end
 
 class Str < Exp
