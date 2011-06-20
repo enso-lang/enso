@@ -211,7 +211,7 @@ class CheckedObject
           r[field.name] << o
         end
       else
-        puts "CLONE #{field.name} #{self[field.name]}"
+        #puts "CLONE #{field.name} #{self[field.name]}"
         r[field.name] = self[field.name]
       end
     end
