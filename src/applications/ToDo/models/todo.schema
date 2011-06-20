@@ -9,5 +9,5 @@ end
 class Todo
   todo: str
   done: bool
+  related: Todo*
 end
-

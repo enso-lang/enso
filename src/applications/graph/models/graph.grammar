@@ -1,0 +1,10 @@
+
+
+start Graph
+
+Graph ::= [Graph] "graph" "{" nodes:Node* edges:Edge* "}"
+
+Node ::= [Node] "node" name:sym
+
+Edge ::= [Edge] "edge" from:Node^ "->" to:Node^
+

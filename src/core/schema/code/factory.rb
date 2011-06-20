@@ -89,6 +89,10 @@ class CheckedObject
     @factory
   end
 
+  def _hash
+    @hash
+  end
+
   def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
     @_id = @@_id += 1
     @hash = {}
@@ -107,6 +111,55 @@ class CheckedObject
       end
     end
   end
+
+  def assimilate!(obj)
+    # TODO:
+    raise "Must be from same factory" if obj._graph_id != _graph_id
+    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
+
+    @hash.clear
+    obj.schema_class.fields.each do |field|
+      if field.many
+        key = ClassKey(field.type)
+        if key
+          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
+        else
+          @hash[field.name] = ManyField.new(self, field)
+        end
+        obj[field.name].each do |x|
+          @hash[field.name] << x
+        end
+      else
+        @hash[k] = v
+      end
+    end
+
+    @_origin_of = obj._origin_of
+    @_origin = obj._origin
+    @schema_class = obj.schema_class
+    @_id =  @@_id += 1 #obj._id ???
+  end
+
+
+  # TODO: write one that returns true upon changes
+  # and false is obj is equal to self
+  def become!(obj)
+    raise "Must be from same factory" if obj._graph_id != _graph_id
+    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
+
+    @schema_class = obj.schema_class
+
+    @hash.clear
+    obj.schema_class.fields.each do |field|
+      @hash[field.name] = obj[field.name]
+    end
+
+    @_origin_of = obj._origin_of
+    @_origin = obj._origin
+    @_id =  @@_id += 1 #obj._id ???
+  end
+      
+    
   
   def hash
     @_id

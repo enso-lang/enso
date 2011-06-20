@@ -6,8 +6,8 @@ class Tree
 end
 
 class Fork
-  @repmin: Tree = Fork {kids: left->repmin; right: right->repmin }
-  @locmin: int = min(kids.locmin)
+  @repmin: Tree = Fork {kids: kids->repmin }
+  @locmin: int = min(kids->locmin)
 end
 
 class Leaf

@@ -35,6 +35,7 @@ Print.print(ex)
 
 require 'core/schema/code/eval-attr'
 
+include AttributeSchema
 
 
 rm = EvalAttr.eval(ex, 'repmin', Factory.new(attr2))
@@ -48,4 +49,29 @@ DisplayFormat.print(repmin_g, ex)
 puts "RESULT"
 DisplayFormat.print(repmin_g, rm)
 
+
+#############################
+
+
+
+ss = Loader.load('schema.schema')
+schema2graph_ag = Loader.load('schema-graph.attr-schema')
+graph_schema = Loader.load('graph.schema')
+attr_schema = Loader.load('attr-schema.schema')
+schema2graph = union(union(schema2graph_ag, ss), graph_schema)
+
+DisplayFormat.print(ag, schema2graph)
+
+a_schema = Copy.new(Factory.new(schema2graph)).copy(ss)
+
+
+graph_grammar = Loader.load('graph.grammar')
+
+to_graph = EvalAttr.eval(a_schema, 'graph', Factory.new(graph_schema))
+
+DisplayFormat.print(graph_grammar, to_graph)
+
+Print.print(to_graph)
+
+#DisplayFormat.print(ag, a_schema)
 

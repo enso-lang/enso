@@ -21,11 +21,12 @@ class SecurityTest < Test::Unit::TestCase
     @todo.factory.set_user('Alice')
     assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), alice_const))
 
-    bob_const = fact.EVar("self.done")
+    bob_const = fact.EVar("@self.done")
     @todo.factory.set_user('Bob')
+    Print.print(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]))
     assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), bob_const))
 
-    emily_const = fact.EUnOp("not", fact.EVar("self.done"))
+    emily_const = fact.EUnOp("not", fact.EVar("@self.done"))
     @todo.factory.set_user('Emily')
     assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), emily_const))
   end

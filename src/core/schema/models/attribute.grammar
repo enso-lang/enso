@@ -4,8 +4,9 @@ start Schema
 abstract Schema
 abstract Expression
 abstract Type
+abstract Multiplicity
 
-Field ::= [Attribute] "@" name:sym ":" type:Type^ "=" result:Expression
+Field ::= [Attribute] "@" name:sym ":" type:Type^ Multiplicity "=" result:Expression
 
 
 

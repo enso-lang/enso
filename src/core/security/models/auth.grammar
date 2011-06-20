@@ -32,9 +32,7 @@ EUnOp ::= [EUnOp] op:"not" e:Expr
         | EConst
         | [EVar] name:sym
         | "(" Expr ")"
-EListComp ::= ELForall | ELExists
-ELForall ::= [ELForall] "all?" var:sym "in" list:Expr ":" e:Expr
-ELExists ::= [ELExists] "any?" var:sym "in" list:Expr ":" e:Expr
+EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:Expr
 EConst ::= EStrConst | EIntConst
 EStrConst ::= [EStrConst] val:str
 EIntConst ::= [EIntConst] val:int

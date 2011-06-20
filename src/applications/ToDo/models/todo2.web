@@ -1,0 +1,18 @@
+
+def index {
+  "Completed notes"
+  for (t:root->todos) {
+    if (t->done == true) {
+      $t->todo
+      "is related to: "
+      for (r:t->related) {
+        if (r->done) {
+          $r->todo
+          $t->done
+        }
+      }
+      <br />
+    }
+  }
+}
+
