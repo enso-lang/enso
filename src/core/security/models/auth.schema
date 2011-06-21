@@ -55,6 +55,11 @@ class EFunCall < Expr
   !args:Expr*
 end
 
+class EField < Expr
+  !e:Expr
+  fname:str
+end
+
 class EVar < Expr
   name:str
 end

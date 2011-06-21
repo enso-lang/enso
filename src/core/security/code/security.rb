@@ -7,8 +7,12 @@ See securefactory.rb for rule semantics
 =end
 
 require 'core/schema/tools/union'
+require 'core/security/code/bind'
+require 'core/security/code/eval'
 
 class Security
+  include ExprEval, ExprBind
+
   attr_accessor :user, :root
 
   def initialize(rulefile)
@@ -23,19 +27,17 @@ class Security
         @denyrules << r
       end
     end
-    @root = nil
     @user = nil
     @trusted = 0
   end
 
-  # check if the current user has privileges to perform operation op on object obj or one of its field
+  # check if the current user has privileges to perform operatr on object obj or one of its field
   def check_privileges(op, obj, *field)
     #disable checks if in trusted mode
     return true, '' if @trusted > 0
 
     #verify that obj is part of root. if not, just return success
     return true, '' unless obj.is_a? CheckedObject
-    return true, '' unless obj._graph_id == @root._graph_id
 
     #trusted_mode {
       @trusted = @trusted+1
@@ -64,7 +66,7 @@ class Security
   #   conjunction (forall a in allowrules, s.t. a.op=op and f E a.fields, subst(a.cond))
   #   and not disjunction (forall d in denyrules, s.t d.op=op and f E d.fields, subst(d.cond))
   #      where subst(expr)=bind(expr, {'user'=>@user, rule.action.obj=>'self'})
-  def get_allow_constraints(op, obj, *field)
+  def get_allow_constraints(op, classname, *field)
     trusted_mode {
       if @allowrules.empty? and @denyrules.empty?
         return nil   #I would like to return EBoolConst(false) here but I can't even get a factory
@@ -73,11 +75,11 @@ class Security
 
       #allowcond = disjunction of all relevant allow rules
       allowcond = @allowrules.reduce(nil) do |disj, r|
-        if rule_applies?(r, op, obj, *field)
+        if rule_applies?(r, op, classname, *field)
           if r.cond.nil?
-            disj.nil? ? factory.EBoolConst(true) : factory.EBinOp('or', disj, factory.EConst(true))
+            factory.EBoolConst(true)
           else
-            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'@self'})
+            subst_r = bind!(Copy(factory, r.cond), {"user"=>@user, r.action.obj=>"@self"})
             disj.nil? ? subst_r : factory.EBinOp('or', disj, subst_r)
           end
         else
@@ -86,11 +88,11 @@ class Security
       end
       #denycond = disjunction of all relevant deny rules
       denycond = @denyrules.reduce(nil) do |disj, r|
-        if rule_applies?(r, op, obj, *field)
+        if rule_applies?(r, op, classname, *field)
           if r.cond.nil?
-            disj.nil? ? factory.EBoolConst(true) : factory.EBinOp('or', disj, r.factory.EConst(true))
+            factory.EBoolConst(true)
           else
-            subst_r = bind!(Copy(factory, r.cond), {'user'=>@user, r.action.obj=>'@self'})
+            subst_r = bind!(Copy(factory, r.cond), {"user"=>@user, r.action.obj=>"@self"})
             disj.nil? ? subst_r : factory.EBinOp('or', disj, subst_r)
           end
         else
@@ -100,7 +102,7 @@ class Security
 
       # derive the propositional logic formula by allowcond && !denycond
       if allowcond.nil?
-        res = factory.EConst(false)
+        res = factory.EBoolConst(false)
       else
         if denycond.nil?
           res = allowcond
@@ -143,9 +145,9 @@ class Security
   end
 
   #check if rule is even relevant
-  def rule_applies?(rule, op, obj, *field)
+  def rule_applies?(rule, op, classname, *field)
     return false unless rule.action.op.map{|op|op.schema_class.name}.include? op
-    return false unless obj.schema_class.name == rule.action.type
+    return false unless classname == rule.action.type
     if field.empty?
       return false unless rule.action.fields.empty?
     else
@@ -157,11 +159,11 @@ class Security
 
   # checks if a rule hold and returns a boolean
   def check_rule(rule, op, obj, *field)
-    return false unless rule_applies?(rule, op, obj, *field)
+    return false unless rule_applies?(rule, op, obj.schema_class.name, *field)
     #evaluate condition
     return true if rule.cond.nil?
     env = {'user'=>@user, rule.action.obj=>obj}
-    return eval(rule.cond, env)
+    eval(rule.cond, env)
   end
 
 

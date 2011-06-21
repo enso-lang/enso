@@ -56,7 +56,6 @@ class SecureFactory < Factory
 
   def set_root(root)
     @root = root
-    @security.root = root
   end
 
   def set_user(user)
