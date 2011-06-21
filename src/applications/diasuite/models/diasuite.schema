@@ -1,0 +1,87 @@
+
+primitive \str
+
+class Document
+  !defs: Def*
+end
+
+class Def
+  #name: str
+end
+
+class Device < Def
+  super: str?
+  !elements: Def*
+end
+
+class Context < Def
+  !type: Type
+  !indices: Variable*
+  !elements: Def*
+end
+
+class Controller < Def
+  !elements: Ref*
+end
+
+class ActionImpl < Def
+end
+
+class Action < Def
+  !actions: ActionDecl+
+end
+
+class ActionDecl
+  #name: str
+  !variables: Variable*
+end
+
+class Struct < Def
+  !variables: Variable*
+end
+
+class Enum < Def
+  values: str*
+end
+
+class Source < Def
+  !type: Type
+  !indices: Variable*
+end
+
+class Variable < Def
+  !type: Type
+end
+
+class Ref
+end
+
+class SourceRef < Ref
+  name: str
+  device: Device
+end
+
+class ContextRef < Ref
+  context: Context
+end
+
+class ActionRef < Ref
+  action: Action
+  device: Device
+end
+
+class Type
+end
+
+class Primitive < Type
+  kind: str
+end
+
+class Class < Type
+  name: str
+end
+
+class Array < Type
+  !type: Type
+end
+
