@@ -21,6 +21,8 @@ The idea is: attributes "render" into a schema-typed "canvas".
   to the new thing merged into the already existing object?
 - generators also work on single valued things f <- c.fields[name]
 - if is exists + binding, for is all + binding
+- obj[assignment*] to non-destructively update fields in an object
+- in field assignments, many-valued elts are separated by , no [], or {}
 
 - short hands
  any(alts.nullable) // short for

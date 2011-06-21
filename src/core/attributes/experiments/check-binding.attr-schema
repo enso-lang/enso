@@ -1,0 +1,57 @@
+
+
+class Grammar
+  @schema: Schema = Schema { types: rules.types, subtypes:  }
+end
+
+class Rule
+  @type: Type = Klass {name: name} 
+  @types: Type* = arg.types
+  @fields: Field* = arg.fields
+end
+
+class Expression
+end
+
+class Alt
+  @type: Type = let subs = alts.type; x = Klass {name: gensym} in
+                   { s.supers << x | s <- subs }
+  @fields: Field* = alts.fields
+end
+
+class Sequence
+  @fields: Field* = elements.fields
+end
+
+class Field
+  @fields: Field* = Field {name: name; type: arg.type; 
+  	   	    	   optional: arg.optional;
+ 			   many: arg.many  }
+end
+
+class Create
+  @fields: Field* = {} // stop here
+  @type: Type = Class {name: name}
+end
+
+class Call
+  @fields: Field* = rule.fields
+  @type: Type = rule.type
+end
+
+class Regular
+  @type: Type = arg.type
+end
+
+class Value < Expression 
+  @type: Type = Primitive {name: kind}
+end 
+
+class Ref < Expression 
+  @type: Type = Klass {name: name}
+end 
+
+class Lit < Expression 
+  @type: Type = Primitive {name: "str"}
+end 
+
