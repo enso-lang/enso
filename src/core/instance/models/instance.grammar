@@ -10,7 +10,7 @@ Content ::= [Field] name:sym ":" values:{Value ","}*
 
 Value ::= Instance origin:Location?
        |  [Prim]  value:str? "(" kind:sym ")" origin:Location?
-       |  [Ref] name:sym "^" origin:Location?
+       |  [Ref] name:sym "(" type:sym ")" "^" origin:Location? 
        |  [List] "[" elements:{Value ","}* "]" origin:Location?
 
 Location ::= "<" path:str ","

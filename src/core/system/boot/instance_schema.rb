@@ -36,6 +36,7 @@ class InstanceSchema < SchemaGenerator
 
   klass Ref, :super => Value do
     field :name, :type => :str
+    field :type, :type => :str
   end
 
   klass Content do

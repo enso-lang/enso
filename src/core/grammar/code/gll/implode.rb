@@ -80,7 +80,7 @@ class Implode
   end
 
   def Ref(this, sppf, accu, in_field)
-    accu << @if.Ref(origin(sppf), sppf.value)
+    accu << @if.Ref(origin(sppf), sppf.value, sppf.type.name)
   end
 
   def Code(this, sppf, accu, in_field)
