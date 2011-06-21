@@ -147,15 +147,6 @@ class Matrix
     Matrix.new(row_keys, cols, nh)
   end
 
-  def transpose
-    raise "Not square" unless square?
-    raise "Not implemented"
-    nh.each_key do |rk|      
-      # each row key becomes a column key
-      # TODO
-    end
-    Matrix.new(col_keys, row_keys, nh)
-  end
 
   def scale(n)
     raise "Not an int: #{n}" unless n.is_a?(Numeric)
@@ -268,7 +259,7 @@ class Matrix
 
   def to_s
     lst = row_keys.map do |k|
-      "#{k}:\n\t#{hash[k]}"
+      "#{k}:\n\t#{hash[k] || Vector.make({}, col_keys)}"
     end
     lst.join(",\n")
   end
@@ -330,6 +321,19 @@ class Matrix
 
   def closure
     (identity - self).inverse
+  end
+
+  def transpose
+    m = Matrix.new(col_keys, row_keys)
+    hash.each_key do |r|
+      v = hash[r]
+      if v then
+        v.hash.each_key do |c| 
+          m.set!(c, r, v.hash[c])
+        end
+      end
+    end
+    return m
   end
 
   private

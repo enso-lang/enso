@@ -23,6 +23,7 @@ end
 // need this, because there can be multiple
 // arcs between the same p/t, t/p
 // an manyfields do not allow multiple things with the same key.
+// NB: the sign multiplicity indicates direction`
 class Arc 
   multiplicity: int
   place: Place

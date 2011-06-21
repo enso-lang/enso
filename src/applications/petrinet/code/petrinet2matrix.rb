@@ -15,6 +15,8 @@ class PetriNet2Matrix
     end
     return m
   end
+
+  private
  
   def keys_for_class(petrinet, klass)
     nodes_by_class(petrinet, klass).map do |x| 

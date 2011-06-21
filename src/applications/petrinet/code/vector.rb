@@ -145,6 +145,7 @@ class Vector
   end
   
   private
+
   def ensure_compatible(v)
     raise "Not a vector: #{v}" unless v.is_a?(Vector)
     raise "Incompatible indices" unless inds == v.inds

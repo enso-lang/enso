@@ -15,23 +15,23 @@ transition t4
 
 arcs
 
-p1_idle: t1 (-1)
-p1_idle: t4 (1)
+p1_idle: t1 (1)
+p1_idle: t4 (-1)
 
-p2_wait: t1 (1)
-p2_wait: t2 (-1)
+p2_wait: t1 (-1)
+p2_wait: t2 (1)
 
-p3_address: t2 (1)
-p3_address: t3 (-1)
+p3_address: t2 (-1)
+p3_address: t3 (1)
 
-p4_data: t3 (1)
-p4_data: t4 (-1)
+p4_data: t3 (-1)
+p4_data: t4 (1)
 
-p5_idle: t2 (-1)
-p5_idle: t4 (1)
+p5_idle: t2 (1)
+p5_idle: t4 (-1)
 
-p6_busy: t2 (1)
-p6_busy: t4 (-1)
+p6_busy: t2 (-1)
+p6_busy: t4 (1)
 
 
 
