@@ -33,7 +33,7 @@ ex = Copy.new(Factory.new(attr2)).copy(ex)
 
 Print.print(ex)
 
-require 'core/schema/code/eval-attr'
+require 'core/attributes/code/eval-attr'
 
 include AttributeSchema
 

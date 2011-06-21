@@ -1,0 +1,49 @@
+
+
+
+class Rule
+  @new: Rule = `$sym("_" + name) ::= ${Create "|"}+[arg.temp]
+  	          |  [$sym("_" + name + "_Cond")]
+                        "$if" "(" cond:EXP ")" "{" body:$sym("_" + name) "}"
+			    "else" "{" body:$sym("_" + name) "}"
+end
+
+class Alt
+  @temp = alts.temp
+end
+
+class Create
+  @temp = self[name: "_" + name, arg: arg.temp]
+end
+
+class Sequence
+  @temp = elements.temp
+end
+
+class Field
+  @temp = self[arg.temp]
+end
+
+class Value
+  @temp = Call{rule: ...}
+end
+
+class Ref
+  @temp = Call{rule: ...}
+end
+
+class Lit
+  @temp = self
+end
+
+class Regular
+  @temp = if many then 
+            Call{rule: @iter} 
+          elsif optional
+            Call{rule: @opt }
+          else
+            Call{rule: arg.temp}
+          end
+  @iter = 
+  @opt
+end

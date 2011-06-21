@@ -1,0 +1,41 @@
+
+
+class Schema
+  // untyped, so only expressions (can use type inference)
+  @temp = self[types: primitives + { t.temp, t.stat | t <- classes }
+end
+
+
+class Klass
+  @temp: Klass = `class $sym(name) < $ref(iter), $ref(alt), $ref(opt)
+                    $Field*{ defined_fields.temp }
+                  end`
+
+  @iter: Klass = `class $sym(name + "_Iter") < ITER
+                    body: $ref(iter)+
+                  end`
+         
+  @alt: Klass = `class $sym(name + "_Alt") < $ref(temp), $ref(iter)
+                    then: $ref(alt)+
+                    else: $ref(alt)+
+                  end`
+
+  @opt: Klass = `class $sym(name + "_Opt") < $ref(iter)
+                    then: $ref(opt)
+                  end`
+  
+  @stat = { iter, alt, opt, def }
+
+end
+
+class Field
+  @temp = if type.Primitive? then
+            self[type: EXP]
+  	  elsif !many && !optional then
+            self[type: type.temp]
+          elsif !many && optional
+            self[type: type.opt]
+          else
+            self[type: type.iter]
+          end
+end  

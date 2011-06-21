@@ -1,0 +1,35 @@
+
+
+class Schema
+  @temp = self[types: types + { t.temp, t.stat | t <- classes }]
+end
+
+
+class Klass
+  @temp = Klass { name: name; supers: supers + [iter, alt, opt];
+           fields: { f.temp | f <- defined_fields } }
+  @iter = Klass {name: name + "_Iter"; supers: [ITER];
+           fields: Field {name: "body", type: iter, many: true} }
+  @alt  = Klass {name: name + "_Alt"; supers: supers + [temp, iter];
+           fields: Field {name: "then", type: alt, many: true},
+           	   Field {name: "else", type: alt, many: true} 
+  @opt  = Klass {name: name + "_Opt"; supers: supers + [iter] }
+           fields: Field {name: "then", type: opt, many: true} }
+  @call = Klass {name: name + "_Call"; supers: supers + [CALL, iter, alt] }
+  @def  = Klass {name: name + "_Def"; supers: [DEF]; body: temp }
+
+  @stat = { iter, alt, opt, call, def }
+
+end
+
+class Field
+  @temp = if type.Primitive? then
+            self[type: EXP]
+  	  elsif !many && !optional then
+            self[type: type.temp]
+          elsif !many && optional
+            self[type: type.opt]
+          else
+            self[type: type.iter]
+          end
+end  
