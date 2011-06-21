@@ -8,10 +8,15 @@ module AttributeSchema
     def initialize(x, f)
       @obj = x
       @field = f
+      @many = x.schema_class.fields[f].many
     end
 
     def <<(o)
-      @obj[@field] = o
+      if @many then
+        @obj[@field] << o
+      else
+        @obj[@field] = o
+      end
     end
 
     def value
@@ -34,6 +39,9 @@ module AttributeSchema
       @value = v
     end
   end
+
+  # TODO: make the attributed schema a parameter
+  # (for partial evaluation)
 
   class EvalAttr
     def initialize(factory)
@@ -65,15 +73,20 @@ module AttributeSchema
       key = [recv, name]
       return out << @memo[key] if @memo[key]
       return eval(field.result, recv, out) if field.many
+
+      # Store place holder
+      obj = @memo[key] = @factory[field.type.name]
       
-      obj = @factory[field.type.name]
-      @memo[key] = obj
-      new = capture do |r|
-        eval(field.result, recv, r)
-      end
+      # Compute new object
+      new = capture { |r| eval(field.result, recv, r) }
+
       # TODO: for fixpoints, test if the object has changed
       # if so, run this attribute again.
+
+      # Let placeholder become new object
       obj.become!(new)
+      
+      # Output it.
       out << obj
     end
     
@@ -103,11 +116,7 @@ module AttributeSchema
       obj = @factory[this.type]
       this.contents.each do |assign|
         assign.expressions.each do |exp|
-          if obj.schema_class.fields[assign.name].many then
-            eval(exp, recv, obj[assign.name])
-          else
-            eval(exp, recv, Write.new(obj, assign.name))
-          end
+          eval(exp, recv, Write.new(obj, assign.name))
         end
       end
       out << obj
@@ -125,10 +134,6 @@ module AttributeSchema
     end
 
     def Call(this, recv, out)
-      # apparently this reverses the list of args !?!?!?!?!?
-      # args = this.args.map do |arg|
-      #    capture { |r| eval(arg, recv, r) }
-      #end
       args = []
       this.args.each do |arg|
         eval(arg, recv, args)
