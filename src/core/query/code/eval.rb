@@ -115,7 +115,8 @@ class EvalOQL
 
   def Select(this, env)
     # TODO: we only allow named froms now
-    # TOOD: no support for aggregation (count etc)
+    # TODO: if no name is given, add the fields of the thing to the env
+    # TODO: no support for aggregation (count etc)
     # group by, ordering and having.
 
     froms = eval_nameds(this.from, env)
