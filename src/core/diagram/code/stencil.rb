@@ -46,7 +46,7 @@ class StencilFrame
     brush = nil
     stencil.props.each do |prop|
       val = eval_exp(prop.exp, env)
-      puts "SET #{prop.loc.name} = #{val}"
+      #puts "SET #{prop.loc.name} = #{val}"
       newEnv = {}.update(env) if !newEnv
       case prop.loc.name
       when "font.size" then
@@ -57,7 +57,7 @@ class StencilFrame
         font = newEnv[:font] = env[:font]._clone if !font
         font.weight = val
       when "pen.width" then
-        puts "PEN #{val} for #{stencil}"
+        #puts "PEN #{val} for #{stencil}"
         pen = newEnv[:pen] = env[:pen]._clone if !pen
         pen.width = val
       when "pen.color" then

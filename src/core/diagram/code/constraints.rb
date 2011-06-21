@@ -68,7 +68,6 @@ class Variable
     end
     #puts "#{vars}"
     @block = block
-    evaluate 
     return self
   end
   
