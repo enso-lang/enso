@@ -215,12 +215,12 @@ class DiagramFrame < Wx::Frame
     #puts "POS #{@positions.keys}"
     from = @positions[part.ends[0].to]
     to = @positions[part.ends[1].to]
-    start_x = from.x + 5 # from.width / 2
-    start_y = from.y + 5 # from.height
-    end_x = to.x + 0
-    end_y = to.y + 5 # from.height / 2
-    mid_x = start_x + 1
-    mid_y = end_y + 1
+    start_x = from.x + (from.w / 2)
+    start_y = from.y + from.h
+    end_x = to.x
+    end_y = to.y + (from.h / 2)
+    mid_x = start_x
+    mid_y = end_y
     @positions[part.path[0]] = Pnt.new(start_x, start_y)
     @positions[part.path[1]] = Pnt.new(mid_x, mid_y)
     @positions[part.path[2]] = Pnt.new(end_x, end_y)
@@ -278,7 +278,6 @@ class DiagramFrame < Wx::Frame
     p3 = position(part.path[2])
     coords = [[p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]]
     #puts "#{coords}"
-    puts "#{@dc.get_pen().get_width()}"
     @dc.draw_lines(coords)
   end
 
