@@ -6,8 +6,12 @@ Transforms a web query to a batch version
 
 require 'core/schema/tools/union'
 require 'core/web/code/closure'
+require 'core/security/code/bind'
+require 'core/batches/code/webinline'
 
 class BatchTransform
+
+  include ExprBind
 
   def initialize
     @factory = Factory.new(Loader.load('batch.schema'))
@@ -15,7 +19,7 @@ class BatchTransform
 
   # main function to extract batch scripts from web documents
   def self.batch_web(web, rootschema)
-    BatchTransform.new.batch_Web(web, rootschema)
+    BatchTransform.new.batch_Web(WebInline.inline(web), rootschema)
   end
 
   # web is the .web EnsoWeb obj to be processed
@@ -94,8 +98,8 @@ class BatchTransform
     inner = batch(web.exp, filters, qmap)
     schema_class = @schema.types[inner.classname]
     fname = web.name
-    tgt_classname = schema_class.all_fields[fname].type.name
-    q = @factory.Query(tgt_classname)
+    tgt_class = schema_class.all_fields[fname].type
+    q = tgt_class.Primitive? ? nil : @factory.Query(tgt_class.name)
     f = @factory.Field(fname, q)
     inner.fields << f
     return q
@@ -103,7 +107,7 @@ class BatchTransform
 
   def batch_Var(web, filters, qmap)
     q = qmap[web.name]
-    env = {web.name => @factory.EVar("self")}
+    env = {web.name => @factory.EVar("@self")}
     if !q.filter.nil?
       q.filter = bind!(@factory.EBinOp("or", q.filter, Clone(filters)), env)
     else
@@ -150,110 +154,6 @@ class BatchTransform
   def make_exp_Concat(exp, env)
     @factory.EBinOp('+', make_exp(exp.lhs,env), make_exp(exp.rhs,env))
   end
-
-
-
-  #################################
-  # Predicate expression binding
-  #################################
-
-  def bind!(expr, env)
-    return nil if expr.nil?
-    send("bind_#{expr.schema_class.name}!", expr, env)
-  end
-
-  def bind_EBinOp!(expr, env)
-    expr.e1 = bind!(expr.e1, env)
-    expr.e2 = bind!(expr.e2, env)
-    if expr.e1.EConst? and expr.e2.EConst?
-      return make_const(eval(expr, env), expr.factory)
-    elsif expr.op == 'or' or expr.op == '||'
-      if expr.e1.EBoolConst? and expr.e1.val==true
-        return make_const(true, expr.factory)
-      elsif expr.e1.EBoolConst? and expr.e1.val==false
-        return expr.e2
-      elsif expr.e2.EBoolConst? and expr.e2.val==true
-        return make_const(true, expr.factory)
-      elsif expr.e2.EBoolConst? and expr.e2.val==false
-        return expr.e1
-      end
-    elsif expr.op == 'and' or expr.op == '&&'
-      if expr.e1.EBoolConst? and expr.e1.val==true
-        return expr.e2
-      elsif expr.e1.EBoolConst? and expr.e1.val==false
-        return make_const(false, expr.factory)
-      elsif expr.e2.EBoolConst? and expr.e2.val==true
-        return expr.e1
-      elsif expr.e2.EBoolConst? and expr.e2.val==false
-        return make_const(false, expr.factory)
-      end
-    end
-    expr
-  end
-
-  def bind_EUnOp!(expr, env)
-    expr.e = bind!(expr.e, env)
-    if expr.e.EConst?
-      return make_const(eval(expr, env), expr.factory)
-    elsif expr.e.EUnOp? and (expr.e.op == 'not' or expr.e.op == '!') #dbl negation
-      return expr.e.e
-    end
-    expr
-  end
-
-  def bind_EVar!(expr, env)
-    if expr.name=="*" or expr.name=="self"
-      expr
-    else
-      if env.keys.include?(expr.name)
-        return env[expr.name]
-      else
-        #TODO: try and figure out relationhip btw vars here
-        expr.name = "*"
-        expr
-      end
-    end
-  end
-
-  def bind_EField!(expr, env)
-    expr.exp = bind!(expr.exp, env)
-    if expr.exp.schema_class.name=="EVar" and expr.exp.name=="*"
-      return expr.exp
-    end
-    expr
-  end
-
-  def bind_EListComp!(expr, env)
-    bind!(expr.list, env)
-    #remove vars from env which are now outside their scope due to expr.var
-    bind!(expr.expr, env.reject {| key, value | key == expr.var })
-    expr
-  end
-
-  def bind_EStrConst!(expr, env)
-    expr
-  end
-
-  def bind_EIntConst!(expr, env)
-    expr
-  end
-
-  def bind_EBoolConst!(expr, env)
-    expr
-  end
-
-  def make_const(val, factory)
-    if val.is_a?(String)
-      factory.EStrConst(val)
-    elsif val.is_a?(Integer)
-      factory.EIntConst(val)
-    elsif val.is_a?(TrueClass) or val.is_a?(FalseClass)
-      factory.EBoolConst(val)
-    else
-      nil
-    end
-  end
-
 
 end
 

@@ -10,7 +10,7 @@ module ExprEval
   # All the expression evaluation functions #
   ###########################################
 
-  def eval(expr, env)
+  def eval(expr, env={})
     send("eval_#{expr.schema_class.name}", expr, env)
   end
 

@@ -1,0 +1,24 @@
+
+def index {
+  html("Completed notes") {
+    form {
+      for (t:root->todos) {
+        if (t->done) {
+          "Completed: "
+          $t->todo
+          checkbox(t->done);
+          "           is related to: "
+          for (r:t->related) {
+            if (r->done) {
+              $r->todo
+            }
+          }
+          <br />
+        }
+      }
+      submit("Update", index());
+      navigate("New", new_todo(root->todos, new(Todo)));
+    }
+  }
+}
+

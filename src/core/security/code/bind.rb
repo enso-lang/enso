@@ -5,17 +5,20 @@ bind!(expr, env) will partially evaluate expr wrt to bindings found in env
 
 =end
 
+require 'core/security/code/eval'
+
 module ExprBind
+
+  include ExprEval
+
   # substitute all instances of variables in env with their value
   # also does reduction while binding
 
-  def bind!(expr, env)
+  def bind!(expr, env={})
     send("bind_#{expr.schema_class.name}!", expr, env)
   end
 
   def bind_EBinOp!(expr, env)
-    Print.print(expr.e1)
-    puts env.to_s
     expr.e1 = bind!(expr.e1, env)
     expr.e2 = bind!(expr.e2, env)
     if expr.e1.EConst? and expr.e2.EConst?
@@ -40,6 +43,11 @@ module ExprBind
       elsif expr.e2.EBoolConst? and expr.e2.val==false
         return make_const(false, expr.factory)
       end
+    end
+    if expr.e1.schema_class.name=="EVar" and expr.e1.name=="*" and (expr.op == 'or' or expr.op == '||' or expr.op == 'and' or expr.op == '&&')
+      return expr.e2
+    elsif expr.e2.schema_class.name=="EVar" and expr.e2.name=="*" and (expr.op == 'or' or expr.op == '||' or expr.op == 'and' or expr.op == '&&')
+      return expr.e1
     end
     expr
   end
@@ -68,7 +76,7 @@ module ExprBind
         end
       else
         #TODO: try and figure out relationhip btw vars here
-        #expr.name = "*"
+        expr.name = "*"
         expr
       end
     end
@@ -76,9 +84,9 @@ module ExprBind
 
   def bind_EField!(expr, env)
     expr.e = bind!(expr.e, env)
-#    if expr.exp.schema_class.name=="EVar" and expr.exp.name=="*"
-#      return expr.exp
-#    end
+    if expr.e.schema_class.name=="EVar" and expr.e.name=="*"
+      return expr.e
+    end
     expr
   end
 
