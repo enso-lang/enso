@@ -1,0 +1,27 @@
+
+primitive \str
+primitive \bool
+primitive \int
+
+class Ledger
+  !accounts: Account*
+  !transactions: Transaction*
+end
+
+class Account
+  #name: str
+  asset: bool
+end
+
+class Transaction
+  #name: str
+  !transfers: Transfer*
+  proration: int
+end
+
+class Transfer
+  account: Account
+  amount: int
+end
+
+  

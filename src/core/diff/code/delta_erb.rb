@@ -32,9 +32,6 @@ class DeltaERB
     template_string = File.read(DELTA_ERB)
     template = ERB.new(template_string)
     ds = template.result(binding) 
-    File.open('bla', 'w') do |f|
-      f.write(ds)
-    end
     return ds
   end  
 

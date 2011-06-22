@@ -6,6 +6,8 @@ class ConstraintSystem
   
   def var(name = "v#{@number}", value = nil)
     @number += 1
+    #puts "#{name} = #{value}"
+    raise "BAD!" if name == "v156" 
     return Variable.new(name, value)
   end
   
@@ -47,17 +49,25 @@ class Variable
       a + b
     end
   end
+
+  def /(other)
+    var = Variable.new("p#{self.to_s}#{other.to_s}")
+    #puts "#{var}=#{self.to_s}+#{other}"
+    var.define(self, other) do |a, b|
+      a / b
+    end
+  end
   
   def define(*vars, &block)
     @aggregate = vars[0].is_a?(Array) && vars.length == 1
     vars = vars[0] if @aggregate
+    raise "nil definition" if vars.any?(&:nil?)
     @vars = vars
     @vars.each do |v|
       v.add_listener(self) if v.is_a?(Variable)
     end
     #puts "#{vars}"
     @block = block
-    evaluate 
     return self
   end
   
@@ -66,11 +76,9 @@ class Variable
     if @block
       path << self
       vals = @vars.collect do |var|
-        if var.is_a?(Variable)
-          var.evaluate(path)
-        else
-          var
-        end
+        val = var.is_a?(Variable) ? var.evaluate(path) : var
+        raise "undefined variable '#{var.name}'" if val.nil?
+        val
       end
       path.pop
       @value = @aggregate ? @block.call(vals) : @block.call(*vals)

@@ -1,27 +1,42 @@
 
-asset account Money
-asset account Frames
-asset account Wheels
-asset account Bicycles
+asset Money
+asset Frames
+asset Wheels
+asset Bicycles
 
-journal PurchaseFrame (1) {
-  - 100 Money
-  + 1 Frames
+// this also defines workflow.
+// e.g. at the start, you have to buy two wheels
+// (i.e. issue PurchaseWheel twice)
+// and buy one frame, before assembly is enabled
+
+// so it seems prorations are redundant?
+// since PurchaseWheel adds only 1 bike?
+// but then workflow would be defined by values?
+// Currently, it is defined by markings.
+
+// Actually this thing is parameterized by a bill of materials
+// which specifies prices, and united quantities
+// or is it just the same thing, really? YES!
+// so the values here are really editable.
+
+
+transaction PurchaseFrame (1) {
+  Money: -100
+  Frames: 1
 }
 
-journal PurchaseWheel (2) {
-  - 15 Money
-  + 1 Wheels
+transaction PurchaseWheel (2) {
+  Money: -25
+  Wheels: 1
 }
 
-journal Assemblage (1) {
-  - 2 Wheels
-  - 1 Frames
-  + 1 Bicycles
+transaction Assemblage (1) {
+  Wheels: -2
+  Frames: -1
+  Bicycles: 1
 }
 
-journal Sales (1) {
-  - 1 Bicycles
-  + 300 Money
+transaction Sales (1) {
+  Bicycles: -1
+  Money: 300
 }
-

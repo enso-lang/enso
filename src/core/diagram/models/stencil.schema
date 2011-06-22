@@ -47,10 +47,9 @@ class Literal < Expression
   value: atom?
 end
 
-class Binary < Expression
+class Prim < Expression
   op: str
-  !left: Expression
-  !right: Expression
+  !args: Expression*
 end
 
 class InstanceOf < Expression
@@ -65,6 +64,12 @@ end
 
 class Var < Expression
   name: str
+end
+
+class Color < Expression
+  r: int
+  g: int
+  b: int
 end
 
 // DIAGRAMS
@@ -84,14 +89,14 @@ class Shape < Part
 end
 
 class Connector < Part
-  !label: Expression
-  !ends: ConnectorEnd*
+  !label: Expression?
+  ends: ConnectorEnd*
 end
 
 class ConnectorEnd
-  arrow: str
-  label: Expression
-  part: Shape / Shape.Connectors
+  arrow: str?
+  !label: Expression?
+  !part: Expression
 end
 
  

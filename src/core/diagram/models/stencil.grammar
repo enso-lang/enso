@@ -10,34 +10,37 @@ Part ::= [Alt] alts:{Part "|"}+
       | [Label] "label" Props? label:Loc body:Part
 
       | [Container] direction:Dir Props? "{" items:Part* "}"
-      | [Connector] "connector" Props? "(" label:Exp? ":" from:ConnectorEnd "--" to:ConnectorEnd ")"
+      | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
       | [Text] "text" Props? string:Exp
       | [Shape] "box" Props? "{" content:Part? "}"
 
 Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2" | "graph"  @"@direction=3" | "do"  @"@direction=4"
-ConnectorEnd ::= [ConnectorEnd] arrow:sym? part:Part^
+ConnectorEnd1 ::= [ConnectorEnd] (label:Exp ":")? part:Loc (arrow:"<" | arrow:"*")? 
+ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Loc (":" label:Exp)? 
 Index ::= "," index:sym
 
 Props ::= "[" props:{ Assign ","}* "]"
 Assign ::= [Assign] loc:Loc "=" exp:Exp
 
-Exp ::= [Binary] left:Exp2 op:"&" right:Exp2
+Exp ::= [Prim] args:Exp2 op:"&" args:Exp
       | Exp2
 
-Exp2 ::= [Binary] left:Exp3 op:"|" right:Exp3
+Exp2 ::= [Prim] args:Exp3 op:"|" args:Exp2
       | Exp3
 
-Exp3 ::= [Binary] left:Exp4 (op:"==" | op:"!=") right:Exp4
+Exp3 ::= [Prim] args:Exp4 (op:"==" | op:"!=" | op:"<" | op:">" | op:"<=" | op:">=") args:Exp4
       | [InstanceOf] base:Exp4 "is" class_name:sym
       | Exp4
 
 Exp4 ::= Loc
-      | [Literal] value:(str | int)
+      | [Prim] op:"!" args:Exp4
       | "(" Exp ")"
 
 Loc ::= [Field] base:Loc "@" field:sym
-      | [Binary] left:Loc "[" right:Loc "]" @"@op='[]'"
+      | [Prim] args:Loc "[" args:Loc "]" @"@op='[]'"
+      | [Color] "(" r:int "," g:int "," b:int ")"
       | [Literal] "nil" @"@value=nil"
       | [Var] name:sym
+      | [Literal] value:(str | int)
       
       

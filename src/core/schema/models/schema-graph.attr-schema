@@ -1,0 +1,22 @@
+
+
+class Graph end
+class Node end
+class Edge end
+
+
+class Schema
+  @graph: Graph = Graph {nodes: types->node; edges: classes->edges}
+end
+
+class Type
+  @node: Node = Node {name: name}
+end
+
+class Klass
+  @edges: Edge* = defined_fields->edge
+end
+
+class Field
+  @edge: Edge = Edge {from: owner->node; to: type->node}
+end

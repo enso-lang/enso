@@ -2,7 +2,7 @@
 primitive str
 
 class Instances
-  !instance: Instance*
+  !instances: Instance*
 end
 
 class Value
@@ -20,6 +20,7 @@ end
 
 class Ref < Value
   name: str
+  type: str
 end
 
 class Content

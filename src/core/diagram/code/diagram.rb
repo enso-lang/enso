@@ -7,6 +7,14 @@ def ViewDiagram(content)
   Wx::App.run { DiagramFrame.new(content).show }
 end
 
+class Pnt
+  def initialize(x, y)
+    @x = x
+    @y = y
+  end
+  attr_accessor :x, :y
+end
+
 class Rect
   def initialize(x, y, w, h)
     @x = x
@@ -28,6 +36,7 @@ class DiagramFrame < Wx::Frame
 
     @move_selection = nil
     set_root(root)
+    @depth = 0
   end
 
   def clear_refresh
@@ -49,7 +58,7 @@ class DiagramFrame < Wx::Frame
     @down_x = e.x
     @down_y = e.y
     move, edit = find(@root, e)
-    puts "FIND #{move}, #{edit}"
+    #puts "FIND #{move}, #{edit}"
     if edit && edit.Text?
       @edit_selection = edit
       @edit_control = Wx::TextCtrl.new(self, 0)
@@ -75,7 +84,7 @@ class DiagramFrame < Wx::Frame
     end
     @move_selection = nil
     move, edit = find(@root, e)
-    puts "FIND #{move}, #{edit}"
+    #puts "FIND #{move}, #{edit}"
     if move
       @down_x = e.x
       @down_y = e.y
@@ -99,7 +108,8 @@ class DiagramFrame < Wx::Frame
   # ---- finding ------
   def find(part, pnt)
     b = boundary(part)
-    puts "#{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
+    return if b.nil?
+    #puts "#{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
     move, edit = nil, nil
     if rect_contains(b, pnt)
       if part.Container?
@@ -125,43 +135,40 @@ class DiagramFrame < Wx::Frame
   end
   
   # ----- constrain -----
-  def get_var(constraint)
+  def get_var(name, constraint)
     if constraint && constraint.var
       var = @cs[constraint.var]
     else
-      var = @cs.var
+      var = @cs.var(name)
     end    
     var >= constraint.min if constraint && constraint.min
     return var
   end
   
-  def constrainPart(part, x, y)
-    return if part.nil?
-    w = get_var(part.constraints && part.constraints.width)
-    h = get_var(part.constraints && part.constraints.height)
-    
-    with_styles part do
-      if part.Container?
-        constrainContainer(part, x, y, w, h)
-      elsif part.Shape?
-        constrainShape(part, x, y, w, h)
-      elsif part.Text?
-        constrainText(part, x, y, w, h)
+  def constrain(part, x, y)
+    w, h = nil
+    with_styles part do 
+      if part.Connector?
+        send(("constrain" + part.schema_class.name).to_sym, part)
       else
-        raise "unknown shape"
+        w = get_var("#{part}_w", part.constraints && part.constraints.width)
+        h = get_var("#{part}_h", part.constraints && part.constraints.height)
+    
+        send(("constrain" + part.schema_class.name).to_sym, part, x, y, w, h)
+        @positions[part] = Rect.new(x, y, w, h)
       end
     end
-    @positions[part] = Rect.new(x, y, w, h)
     return w, h
   end
 
   def constrainContainer(part, basex, basey, width, height)
     pos = @cs.value(0)
     otherpos = @cs.value(0)
-    x, y = basex, basey
+    x, y = basex + 0, basey + 0
     #puts "CONTAINER #{width.to_s}, #{height.to_s}"
     part.items.each_with_index do |item, i|
-      w, h = constrainPart(item, x, y)
+      w, h = constrain(item, x, y)
+      next if w.nil?
       #puts "ITEM #{i}/#{part.items.length}"
       case part.direction
       when 1 then #vertical
@@ -192,7 +199,7 @@ class DiagramFrame < Wx::Frame
   
   def constrainShape(part, x, y, width, height)
     margin = @dc.get_pen.get_width
-    ow, oh = constrainPart(part.content, x + margin, y + margin)
+    ow, oh = constrain(part.content, x + margin, y + margin)
     width >= ow + (2 * margin)
     height >= oh + (2 * margin)
   end
@@ -203,17 +210,32 @@ class DiagramFrame < Wx::Frame
     height >= h
   end
 
-  def constrainGraph(part, x, y, width, height)
-    part.items.each do |item|
-      ow, oh = constrainPart(item.content, cs.value(item.location.x), cs.value(item.location.y))
-      width >= base.x + ow
-      height >= base.y + oh
-    end
-  end  
+  def constrainConnector(part)
+    #puts "#{part.ends[0].to}"
+    #puts "POS #{@positions.keys}"
+    from = @positions[part.ends[0].to]
+    to = @positions[part.ends[1].to]
+    start_x = from.x + (from.w / 2)
+    start_y = from.y + from.h
+    end_x = to.x
+    end_y = to.y + (from.h / 2)
+    mid_x = start_x
+    mid_y = end_y
+    @positions[part.path[0]] = Pnt.new(start_x, start_y)
+    @positions[part.path[1]] = Pnt.new(mid_x, mid_y)
+    @positions[part.path[2]] = Pnt.new(end_x, end_y)
+  end
+
 
   def boundary(shape)
     r = @positions[shape]
+    return nil if r.nil?
     return Rect.new(r.x.value, r.y.value, r.w.value, r.h.value)
+  end
+
+  def position(shape)
+    p = @positions[shape]
+    return Pnt.new(p.x.value, p.y.value)
   end
   
   
@@ -222,34 +244,41 @@ class DiagramFrame < Wx::Frame
   def on_paint
     paint do | dc |
       @dc = dc
-      constrainPart(@root,@cs.value(0), @cs.value(0)) if @positions == {}
+      @pen = @brush = @font = nil
+      constrain(@root,@cs.value(0), @cs.value(0)) if @positions == {}
       s = get_client_size()
-      drawPart(@root)
+      @pen = @brush = @font = nil
+      draw(@root)
     end
   end
-      
-  def drawPart(part)
-    with_styles part do
-      if part.Container?
-        (part.items.length-1).downto(0).each do |i|
-          drawPart(part.items[i])
-        end
-      elsif part.Shape?
-        drawShape(part)
-      elsif part.Text?
-        drawText(part)
-      else
-        raise "unknown shape"
-      end
+  
+  def draw(part)
+    with_styles part do 
+      send(("draw" + part.schema_class.name).to_sym, part)
     end
   end
+
+  def drawContainer(part)
+    (part.items.length-1).downto(0).each do |i|
+      draw(part.items[i])
+    end
+  end  
   
   def drawShape(shape)
     r = boundary(shape)
     margin = @dc.get_pen.get_width
     m2 = margin - (margin % 2)
     @dc.draw_rectangle(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
-    drawPart(shape.content)
+    draw(shape.content)
+  end
+
+  def drawConnector(part)
+    p1 = position(part.path[0])
+    p2 = position(part.path[1])
+    p3 = position(part.path[2])
+    coords = [[p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]]
+    #puts "#{coords}"
+    @dc.draw_lines(coords)
   end
 
   def drawText(text)
@@ -260,26 +289,28 @@ class DiagramFrame < Wx::Frame
   #  --- helper functions ---
   def with_styles(part)
     return if part.nil?
+    @depth = @depth + 1
     oldPen = oldFont = oldBrush = oldForeground = nil
     part.styles.each do |style|
       if style.Pen?
-        oldPen = @dc.get_pen unless oldPen
-        @dc.set_pen(Pen(style))
+        oldPen = @pen
+        @dc.set_pen(Pen(@pen = style))
       elsif style.Font?
-        oldFont = @dc.get_font unless oldFont
+        oldFont = @font
         oldForeground = @dc.get_text_foreground unless oldForeground
         @dc.set_text_foreground(Color(style.color))
-        @dc.set_font(Font(style))
+        @dc.set_font(Font(@font = style))
       elsif style.Brush?
-        oldBrush = @dc.get_brush unless oldBrush
-        @dc.set_brush(Brush(style))
+        oldBrush = @brush
+        @dc.set_brush(Brush(@brush = style))
       end
     end
     yield
-    @dc.set_pen(oldPen) if oldPen
+    @dc.set_pen(Pen(oldPen)) if oldPen
     @dc.set_text_foreground(oldForeground) if oldForeground
-    @dc.set_font(oldFont) if oldFont
-    @dc.set_brush(oldBrush) if oldBrush
+    @dc.set_font(Font(oldFont)) if oldFont
+    @dc.set_brush(Brush(oldBrush)) if oldBrush
+    @depth = @depth - 1
   end
 
   def Color(c)

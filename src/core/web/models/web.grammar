@@ -19,6 +19,8 @@ Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [Text] value:str
        | [Switch] "switch" "(" exp:Exp ")" "{" Case*
        	 	  	   ("default" default:Stat)? "}"
+       | [Do] "do" call:Exp ";"
+       | [Do] "doif" cond:Exp call:Exp ";"
 
 Block ::= [Block] "{" stats:Stat* "}"
 
@@ -37,10 +39,8 @@ Exp ::= Primary
       | [Str] value:str
       | [Int] value:int
       | Call  
-      | [Link] "link" "(" exp:Exp ")"
       | [New] "new" "(" class:sym ")"
       | [Address] "address" "(" exp:Exp ")"
-      | [GenSym] "gensym"
       | [Concat] lhs:Exp "+" rhs:Exp  // TODO: precedences
       | [Equal] lhs:Exp "==" rhs:Exp 
       | [In] lhs:Exp "in" rhs:Exp 

@@ -71,7 +71,5 @@ to_graph = EvalAttr.eval(a_schema, 'graph', Factory.new(graph_schema))
 
 DisplayFormat.print(graph_grammar, to_graph)
 
-Print.print(to_graph)
-
 #DisplayFormat.print(ag, a_schema)
 
