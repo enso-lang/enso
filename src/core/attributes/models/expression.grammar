@@ -4,29 +4,48 @@ start Schema
 
 abstract Schema
 
+Body ::= body:{Expression ";"}+
+
+// TODO: this is ambiguous, use at own risk
 Expression ::= [Variable] name:sym
-            | [Comprehension] "[" results:{Expression ","}+ "|" conditions:Condition+ "]"
-	      		      @"@ordered = true"
-	    | [Comprehension] "{" results:{Expression ","}+ "|" conditions:Condition+ "}"
-	    | [Comprehension] "(" results:{Expression ","}+ "|" conditions:Condition+ ")" @"@first = true"
-	    | [Collection] "{" elements:{Expression ","}* "}"
-	    | [Collection] "[" elements:{Expression ","}* "]" @"@ordered = true"
-	    | [Lookup] obj:Expression "[" key:Expression "]"
-	    | [IfThen] "if" cond:Expression "then" body:Expression
-	      	       elsifs:ElsIf* "else" else:Expression "end"
-            | [Call] name:sym "(" args:{Expression ","}* ")"
-            | [Cons] type:sym  "{" contents:{Assign ";"}* "}"
-	    | [Dot]  obj:Expression "->" field:sym
 	    | [Int] value:int
 	    | [Str] value:str
             | [Bool] Bool
+
+	    | [Lookup] obj:Expression "[" key:Expression "]"
+	    | [Update] obj:Expression "[" contents:{Assign ";"}* "]"
+	    | [Dot]  obj:Expression "->" field:sym
+
+	    | [Unary] op:"!" arg:Expression
+	    | [Binary] lhs:Expression op:"+" rhs:Expression
+	    | [Binary] lhs:Expression op:"==" rhs:Expression
+	    | [Binary] lhs:Expression op:"!=" rhs:Expression
+	    | [Binary] lhs:Expression op:">" rhs:Expression
+	    | [Binary] lhs:Expression op:"<" rhs:Expression
+	    | [Binary] lhs:Expression op:">=" rhs:Expression
+	    | [Binary] lhs:Expression op:"<=" rhs:Expression
+
+	    | [IfThen] "if" conds:{Condition ","}+ "then" Body
+	      	       elsifs:ElsIf* else:Else? "end"
+  	    | [For] "for" conds:{Condition ","}+ "do" Body "end"
+
+            | [Call] name:sym "(" args:{Argument ","}* ")"
+            | [Cons] type:sym  "{" contents:{Assign ";"}* "}"
+
+	    | "(" Expression ")"
+	    
+
+Argument ::= [Splat] "*" arg:Expression
+	  | Expression
+
 
 Bool ::= [Bool] "true" @"value = true"
       |  [Bool] "false" @"value = false"
 
 Assign ::= [Assign] name:sym ":" expressions:{Expression ","}*
 
-ElsIf ::= [IfThen] "elsif" cond:Expression "then" body:Expression
+ElsIf ::= [IfThen] "elsif" cond:Expression "then" Body
+Else ::= [Else] "else" Body
 
 Condition ::= Expression
            |  [Generator] var:sym "<-" expression:Expression

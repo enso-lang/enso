@@ -12,6 +12,11 @@ end
 
 class Attribute < Field
   !result: Expression 
+  !formals: Formal*
+end
+
+class Formal
+  name: str
 end
 
   

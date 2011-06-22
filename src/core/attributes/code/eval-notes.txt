@@ -32,6 +32,16 @@ The idea is: attributes "render" into a schema-typed "canvas".
                        false
                     end
 - may introduce a fix operator fix(first) with optional init value?
+   then the fixpoint stuff is explicit:
+    if !in_fix
+      out << init
+      in_fix = true
+      while change
+        out << eval(recv, fix.exp)
+      end
+      in_fix = false
+    end
+    
 - break to terminate loop
 
 

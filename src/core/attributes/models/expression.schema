@@ -40,17 +40,37 @@ class Bool < Expression
   value: bool
 end
 
+class Operator < Expression
+  op: str
+end
+
+class Unary < Operator
+  arg: Expression
+end
+
+class Binary < Operator
+  lhs: Expression
+  rhs: Expression
+end
+
 class Cond < Expression
-  !cond: Expression
-  !body: Expression
+  !conds: Expression+
+  !body: Expression+
+end
+
+class For < Cond
 end
 
 class IfThen < Cond
   !elsifs: ElsIf*
-  !else: Expression
+  !else: Else?
 end
 
 class ElsIf < Cond
+end
+
+class Else 
+  !body: Expression*
 end
 
 class Call < Expression
@@ -58,13 +78,12 @@ class Call < Expression
   !args: Expression*
 end
 
-class Lookup < Access
-  !key: Expression
+class Splat < Expression
+  !arg: Expression
 end
 
-class Collection < Expression
-  !elements: Expression*
-  ordered: bool
+class Lookup < Access
+  !key: Expression
 end
 
 class Content
@@ -73,13 +92,6 @@ end
 class Update < Expression
   !obj: Expression
   !contents: Content+
-end
-
-class Comprehension < Expression
-  !results: Expression+
-  !conditions: Condition+
-  ordered: bool
-  first: bool
 end
 
 class Condition
