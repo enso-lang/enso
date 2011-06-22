@@ -14,23 +14,6 @@ class SecurityTest < Test::Unit::TestCase
     @todo = SecureFactory.make_secure(Loader.load('test.todo'), 'todo.auth')
   end
 
-  def test_constraints
-    fact = Factory.new(Loader.load("auth.schema"))
-
-    alice_const = fact.EBoolConst(true)
-    @todo.factory.set_user('Alice')
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), alice_const))
-
-    bob_const = fact.EVar("@self.done")
-    @todo.factory.set_user('Bob')
-    Print.print(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]))
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), bob_const))
-
-    emily_const = fact.EUnOp("not", fact.EVar("@self.done"))
-    @todo.factory.set_user('Emily')
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", @todo.todos[0]), emily_const))
-  end
-
   def test_read
     @todo.factory.set_user('Alice')
     assert(@todo.todos.length == 2)
@@ -77,4 +60,19 @@ class SecurityTest < Test::Unit::TestCase
     assert(@todo.todos.length == 1)
   end
 
+  def test_constraints
+    fact = Factory.new(Loader.load("auth.schema"))
+
+    alice_const = fact.EBoolConst(true)
+    @todo.factory.set_user('Alice')
+    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), alice_const))
+
+    bob_const = fact.EField(fact.EVar("@self"), "done")
+    @todo.factory.set_user('Bob')
+    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), bob_const))
+
+    emily_const = fact.EUnOp("not", fact.EField(fact.EVar("@self"), "done"))
+    @todo.factory.set_user('Emily')
+    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), emily_const))
+  end
 end

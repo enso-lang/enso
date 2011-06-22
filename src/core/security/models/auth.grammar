@@ -30,10 +30,12 @@ EUnOp ::= [EUnOp] op:"not" e:Expr
         | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
         | EListComp
         | EConst
-        | [EVar] name:sym
+        | Primary
         | "(" Expr ")"
+Primary ::= [EField] e:Primary "->" fname:sym
+          | [EVar] name:sym
 EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:Expr
-EConst ::= EStrConst | EIntConst
+EConst ::= EStrConst | EIntConst | EBoolConst
 EStrConst ::= [EStrConst] val:str
 EIntConst ::= [EIntConst] val:int
-EBoolConst ::= [EBoolConst] val:sym
+EBoolConst ::= [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"

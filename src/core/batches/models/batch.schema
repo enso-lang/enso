@@ -27,7 +27,7 @@ class EUnOp < Expr
 end
 
 class EField < Expr
-  !exp:Expr
+  !e:Expr
   fname:str
 end
 
