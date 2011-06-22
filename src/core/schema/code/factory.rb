@@ -75,15 +75,26 @@ class Factory
   end
 end
 
-class CheckedObject
+class Stub
+  def become!(obj)
+    @factory = obj._graph_id
+    @hash = obj._hash
+    @_origin_of = obj._origin_of
+    @_origin = obj._origin
+    @schema_class = obj.schema_class
+    @_id = obj._id
+    self.extend(CheckedObjectMixin)
+  end
+end
 
+
+module CheckedObjectMixin
   attr_reader :schema_class
   attr_reader :factory
   attr_reader :_id
   attr_accessor :_origin
   attr_reader :_origin_of
 
-  @@_id = 0
   
   def _graph_id
     @factory
@@ -91,75 +102,7 @@ class CheckedObject
 
   def _hash
     @hash
-  end
-
-  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
-    @_id = @@_id += 1
-    @hash = {}
-    @_origin_of = OpenStruct.new
-    @schema_class = schema_class
-    @factory = factory
-    schema_class.fields.each do |field|
-      if field.many
-        # TODO: check for primitive many-valued???
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = ManyField.new(self, field)
-        end
-      end
-    end
-  end
-
-  def assimilate!(obj)
-    # TODO:
-    raise "Must be from same factory" if obj._graph_id != _graph_id
-    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
-
-    @hash.clear
-    obj.schema_class.fields.each do |field|
-      if field.many
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = ManyField.new(self, field)
-        end
-        obj[field.name].each do |x|
-          @hash[field.name] << x
-        end
-      else
-        @hash[k] = v
-      end
-    end
-
-    @_origin_of = obj._origin_of
-    @_origin = obj._origin
-    @schema_class = obj.schema_class
-    @_id =  @@_id += 1 #obj._id ???
-  end
-
-
-  # TODO: write one that returns true upon changes
-  # and false is obj is equal to self
-  def become!(obj)
-    raise "Must be from same factory" if obj._graph_id != _graph_id
-    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
-
-    @schema_class = obj.schema_class
-
-    @hash.clear
-    obj.schema_class.fields.each do |field|
-      @hash[field.name] = obj[field.name]
-    end
-
-    @_origin_of = obj._origin_of
-    @_origin = obj._origin
-    @_id =  @@_id += 1 #obj._id ???
-  end
-      
-    
+  end    
   
   def hash
     @_id
@@ -224,12 +167,14 @@ class CheckedObject
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
-        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject)
-        raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
-        unless _subtypeOf(new.schema_class, field.type)
-          puts "a: #{new.schema_class.supers}"
-          puts "b: #{field.type}"
-          raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
+        if !new.is_a?(Stub) then
+          raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
+          raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
+          unless _subtypeOf(new.schema_class, field.type)
+            puts "a: #{new.schema_class.supers}"
+            puts "b: #{field.type}"
+            raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
+          end
         end
       end
     end
@@ -308,6 +253,32 @@ class CheckedObject
     CheckRequired.new("REQUIRED").finalize(self)
     return self
   end  
+end
+
+class CheckedObject
+  include CheckedObjectMixin
+
+  @@_id = 0
+
+  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
+    @_id = @@_id += 1
+    @hash = {}
+    @_origin_of = OpenStruct.new
+    @schema_class = schema_class
+    @factory = factory
+    schema_class.fields.each do |field|
+      if field.many
+        # TODO: check for primitive many-valued???
+        key = ClassKey(field.type)
+        if key
+          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
+        else
+          @hash[field.name] = ManyField.new(self, field)
+        end
+      end
+    end
+  end
+
 end
 
 

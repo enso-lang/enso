@@ -70,7 +70,7 @@ class ElsIf < Cond
 end
 
 class Else 
-  !body: Expression*
+  !body: Expression+
 end
 
 class Call < Expression
@@ -99,5 +99,16 @@ end
 
 class Generator < Condition
   var: str
+  !expression: Expression
+end
+
+class Let < Expression
+  !bindings: Binding+
+  !body: Expression+
+end
+
+class Binding
+  name: str
+  many: bool
   !expression: Expression
 end

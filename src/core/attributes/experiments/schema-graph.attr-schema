@@ -10,7 +10,11 @@ class Schema
 end
 
 class Type
-  @node: Node = Node {name: name}
+  @node: Node = let 
+                   x = Node {name: name}
+                in
+                   x
+                end
 end
 
 class Klass
@@ -18,5 +22,11 @@ class Klass
 end
 
 class Field
-  @edge: Edge = Edge {from: owner->node; to: type->node}
+  @edge: Edge* = 
+          let
+             n = Node {name: if many then "*" else "1" end }
+          in
+            Edge {from: owner->node; to: n};
+	    Edge {from: n; to: type->node}
+          end
 end

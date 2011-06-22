@@ -32,8 +32,14 @@ Expression ::= [Variable] name:sym
             | [Call] name:sym "(" args:{Argument ","}* ")"
             | [Cons] type:sym  "{" contents:{Assign ";"}* "}"
 
+	    | [Let] "let" bindings:{Binding ";"}+ "in" Body "end"
+
 	    | "(" Expression ")"
 	    
+
+Binding ::= [Binding] name:sym Many? "=" expression:Expression
+
+Many ::= "*" @"@many = true"
 
 Argument ::= [Splat] "*" arg:Expression
 	  | Expression
