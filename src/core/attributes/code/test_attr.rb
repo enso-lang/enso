@@ -50,11 +50,14 @@ def graph_basics
   result = EvalAttr.eval_attr_schema(attr_schema, src, 'odds', src_schema)
   DisplayFormat.print(pointer_grammar, result)
 
+  result = EvalAttr.eval_attr_schema(attr_schema, src, 'trc', src_schema)
+  DisplayFormat.print(pointer_grammar, result)
+
 end
 
 
 if __FILE__ == $0 then
-  graph_basics
   repmin
-  schema2graph
+  graph_basics
+  #schema2graph  diverges because edges do not have a (composite) key
 end

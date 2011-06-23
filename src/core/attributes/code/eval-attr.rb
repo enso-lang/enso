@@ -18,15 +18,44 @@ require 'core/system/library/schema'
 
  - collections: for keyed collections, only add an element if an
    object with the same key does not already exist. If it does exist,
-   let the existing object become the new one. For sequential collections
-   a new object is always added.
+   let the existing object become the new one. For sequential
+   collections a new object is always added. (This is why the
+   schema2graph trafo currently does not terminate: edges have no keys).
+
+Misc notes:
+
+- sum over a cyclic graph diverges: the value of sum keeps
+  increasing. It is not a fix point: sum should return zero upon *any*
+  revisit of a node, not just upon the first cycle.
+
+- there's still abug somewhere that makes the factory complain:
+  inserting into the wrong model. Have to add automatic copying.
+
+- Letrec does not work yet
+
+- Transitive closure: this works, because the init of Node* is empty
+  @trc: Node* = Node {name: name; value: value; out: out, out->trc->out }
+
+  but this doesn't: error when trying to evaluate trc on a stub
+  when hitting a cycle:
+
+  @trc: Node = Node {name: name; value: value; out: out, out->trc->out }
+
+  Should there be an init like: Node {name: name; value: value; out: }????  
+
+
+Todos
+
+- make the attributed schema a parameter
+  (for partial evaluation)
+
+- Allow ; as toplevel attribute expression
+
+
 
 =end
 
 module AttributeSchema
-
-  # TODO: make the attributed schema a parameter
-  # (for partial evaluation)
 
   class EvalAttr
 
@@ -226,10 +255,10 @@ module AttributeSchema
         else
           # Problem: with the schema2graph example
           # needs composite keys...
-          # this is wrong now: it assumes lists are sets.
-          unless coll.find { |x| x.shallow_equal?(new) }
+          # the unless solution is wrong: it assumes lists are sets.
+          #unless coll.find { |x| x.shallow_equal?(new) }
             coll << new
-          end
+          #end
         end
       end
       return change
@@ -346,11 +375,17 @@ module AttributeSchema
           eval(exp, recv, env) do |val, _|
             #puts "Adding #{val} to field: #{assign.name} of #{obj}"
             if obj[assign.name].is_a?(BaseManyField) then
-              # TODO: only test for include if keyed
+              coll = obj[assign.name]
+              # TODO:  test for include if keyed (???)
               #if !obj[assign.name].include?(val) then
-              obj[assign.name] << val
-              #end
+              if val.is_a?(Stub) && coll.is_a?(ManyIndexedField) then
+                # it might not have a key until it becomes something
+                val.delayed_add(obj, assign.name)
+              else
+                obj[assign.name] << val
+              end
             else
+              #puts "ASSIGNING: #{val}"
               obj[assign.name] = val
             end
           end
@@ -375,7 +410,7 @@ module AttributeSchema
           return eval_seq(ei.body, recv, env, &block) 
         end
       end
-      eval_seq(this.else.body, recv, env, &block)
+      eval_seq(this.else.body, recv, env, &block) if this.else
     end
 
     def Splat(this, recv, env, &block)
@@ -423,7 +458,9 @@ module AttributeSchema
 
         if @binding.many then
           # don't cache (for now)
+          # @env[name] = []
           @eval.eval(@binding.expression, @recv, @env) do |x, _|
+            # @env[name] << x
             yield x, env
           end
         else

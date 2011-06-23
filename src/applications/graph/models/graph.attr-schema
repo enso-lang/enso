@@ -26,6 +26,7 @@ class Graph
                       Graph {root: Node {name: "root"; out: }; nodes: }
                    end
                 end
+   @trc: Graph = Graph {root: root->trc; nodes: nodes->trc}
 end
 
 
@@ -37,6 +38,9 @@ class Node
 		 else
 		    out->odds
 		 end
+
+  @trc: Node* = Node {name: name; value: value; out: out, out->trc->out }
+
 end
 
 
