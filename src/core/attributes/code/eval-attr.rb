@@ -3,15 +3,26 @@
 require 'core/system/load/load'
 require 'core/schema/code/factory'
 
+require 'core/schema/tools/union'
+require 'core/schema/tools/copy'
+
+require 'core/system/library/schema'
+
+
 module AttributeSchema
 
   # TODO: make the attributed schema a parameter
   # (for partial evaluation)
 
   class EvalAttr
+
     def initialize(factory)
       @factory = factory
+      @CHANGE = false
+      @IN_CIRCLE = false
       @memo = {}
+      @computed = {}
+      @visited = {}
       @op_map = {
         '==' => 'eq',
         '!=' => 'neq',
@@ -27,6 +38,33 @@ module AttributeSchema
       EvalAttr.new(factory).run(obj, name, args)
     end
 
+    def debug_info
+      puts "COMPUTED:"
+      @computed.each do |k, v|
+        puts "\t#{k}: #{v}"
+      end
+      puts "MEMO:"
+      @memo.each do |k, v|
+        puts "\t#{k}: #{v}"
+      end
+      puts "VISITED:"
+      @visited.each do |k, v|
+        puts "\t#{k}: #{v}"
+      end
+      puts "INCIRCLE: #{@IN_CIRCLE}"
+      puts "CHANGE: #{@CHANGE}"
+    end
+
+
+    def self.eval_attr_schema(attr_schema, src, name,
+                              src_schema = nil, trg_schema = nil, args = [])
+      u = attr_schema
+      u = union(u, src_schema) if src_schema
+      u = union(u, trg_schema) if trg_schema
+      src = Copy.new(Factory.new(u)).copy(src)
+      eval(src, name, Factory.new(u), args)
+    end
+
     def run(obj, name, args)
       attr = field(obj, name)
       eval_attribute(attr, obj, {}, args) do |x, _|
@@ -35,6 +73,7 @@ module AttributeSchema
     end
 
     def eval(exp, obj, env, &block)
+      #debug_info
       send(exp.schema_class.name, exp, obj, env, &block)
     end
 
@@ -79,46 +118,156 @@ module AttributeSchema
     end
 
     def eval_attribute(attr, recv, env, args = [], &block)
-      if attr.type.Primitive? || attr.many then
-        eval_fresh_attribute(attr, recv, env, args, &block)
+      if attr.type.Primitive? 
+        eval_primitive_attribute(attr, recv, env, args, &block)
+      elsif attr.many then
+        eval_collection_attribute(attr, recv, env, args, &block)
       else
-        eval_cached_attribute(attr, recv, env, args, &block)
+        eval_object_attribute(attr, recv, env, args, &block)
       end
     end
 
-
-    def eval_fresh_attribute(attr, recv, env, args, &block)
-      env = bind_formals(attr, env, args)
-      eval(attr.result, recv, env, &block)
-    end
-
-    def eval_cached_attribute(attr, recv, env, args, &block)
-      env = bind_formals(attr, env, args)
+    def eval_primitive_attribute(attr, recv, env, args, &block)
       key = [recv, attr.name, args]
-      if @memo[key] then
+      if @computed[key] then
         yield @memo[key], env
-      else
-        obj = @memo[key] = Stub.new
-        eval(attr.result, recv, env) do |new, env|
-          obj.become!(new)
+        return
+      end
+      new_env = bind_formals(attr, env, args)
+      @memo[key] ||= attr.default && attr.default.value  # INIT
+      if !@IN_CIRCLE then
+        @IN_CIRCLE = true
+        @visited[key] = true
+        begin
+          @CHANGE = prim_iter(@memo, key, attr, recv, new_env)
+        end while @CHANGE
+        @visited[key] = false
+        @computed[key] = true
+        @IN_CIRCLE = false
+      elsif !@visited[key] then
+        @visited[key] = true
+        @CHANGE = prim_iter(@memo, key, attr, recv, new_env)
+        @visited[key] = false
+      end
+      yield @memo[key], env # RETURN
+    end
+
+    def prim_iter(tbl, key, attr, recv, env) 
+      eval(attr.result, recv, env) do |new, _|
+        if new != tbl[key] then
+          tbl[key] = new
+          return true
         end
-        yield obj, env
+        return false
       end
     end
+          
+
+    def yield_all(coll, env, &block)
+      coll.each do |elt|
+        yield elt, env
+      end
+    end
+
+    def eval_collection_attribute(attr, recv, env, args, &block)
+      key = [recv, attr.name, args]
+      if @computed[key] then
+        return yield_all(@memo[key], env, &block)
+      end
+
+      new_env = bind_formals(attr, env, args)
+      @memo[key] ||= []  # INIT
+      if !@IN_CIRCLE then
+        @IN_CIRCLE = true
+        @visited[key] = true
+        begin
+          @CHANGE = coll_iter(@memo[key], attr, recv, new_env)
+        end while @CHANGE
+        @visited[key] = false
+        @computed[key] = true
+        @IN_CIRCLE = false
+      elsif !@visited[key] then
+        @visited[key] = true
+        @CHANGE = coll_iter(@memo[key], attr, recv, new_env)
+        @visited[key] = false
+      end
+      yield_all(@memo[key], env, &block) # RETURN
+    end
+
+    def coll_iter(coll, attr, recv, env) 
+      change = false
+      eval(attr.result, recv, env) do |new, _|
+        key_field = ClassKey(new.schema_class)
+        if key_field then
+          found = coll.find { |x| x[key_field.name] == new[key_field.name] }
+          if !found then
+            change = true
+            coll << new
+          else
+            if !found.shallow_equal?(new) then
+              change = true
+              found.become!(new)
+            end
+          end
+        else
+          # Problem: with the schema2graph example
+          # needs composite keys...
+          # this is wrong now: it assumes lists are sets.
+          unless coll.find { |x| x.shallow_equal?(new) }
+            coll << new
+          end
+        end
+      end
+      return change
+    end
+
+
+    def eval_object_attribute(attr, recv, env, args, &block)
+      key = [recv, attr.name, args]
+      if @computed[key] then
+        yield @memo[key], env
+        return
+      end
+
+      new_env = bind_formals(attr, env, args)
+      @memo[key] ||= Stub.new  # INIT
+      if !@IN_CIRCLE then
+        @IN_CIRCLE = true
+        @visited[key] = true
+        begin
+          @CHANGE = obj_iter(@memo[key], attr, recv, new_env)
+        end while @CHANGE
+        @visited[key] = false
+        @computed[key] = true
+        @IN_CIRCLE = false
+      elsif !@visited[key] then
+        @visited[key] = true
+        @CHANGE = obj_iter(@memo[key], attr, recv, new_env)
+        @visited[key] = false
+      end
+      yield @memo[key], env # RETURN
+    end
+          
+    def obj_iter(obj, attr, recv, env)
+      eval(attr.result, recv, env) do |new, _|
+        if !obj.shallow_equal?(new) then
+          obj.become!(new) # UPDATE
+          return true
+        end
+      end
+      return false
+    end
+
 
 
 
     def eval_conds(conds, recv, env, &block)
-      head = conds[0]
-
-      if conds.length == 1 then
-        eval(head, recv, env) do |x, env|
-          yield x, env if x
-        end
-      else
-        tail = list[1..-1]
-        eval(head, recv, env) do |x, env|
-          eval_conds(tail, recv, env, &block) if x
+      eval(conds.first, recv, env) do |x, env|
+        return unless x
+        if conds.length == 1 then
+          yield x, env
+        else
+          eval_conds(conds[1..-1], recv, env, &block)
         end
       end
     end
@@ -176,12 +325,17 @@ module AttributeSchema
     end
 
     def Cons(this, recv, env, &block)
+      #puts "CREATING: #{this.type}"
       obj = @factory[this.type]
       this.contents.each do |assign|
         assign.expressions.each do |exp|
           eval(exp, recv, env) do |val, _|
+            #puts "Adding #{val} to field: #{assign.name} of #{obj}"
             if obj[assign.name].is_a?(BaseManyField) then
+              # TODO: only test for include if keyed
+              #if !obj[assign.name].include?(val) then
               obj[assign.name] << val
+              #end
             else
               obj[assign.name] = val
             end
@@ -281,8 +435,8 @@ module AttributeSchema
 
     def Generator(this, recv, env, &block)
       env = {}.update(env)
-      eval(this.exp, recv, env) do |x, _|
-        yield true, env.update({this.name => x})
+      eval(this.expression, recv, env) do |x, _|
+        yield true, env.update({this.var => x})
       end
     end
 
@@ -314,14 +468,32 @@ module AttributeSchema
 
     # operators and functions
 
-    def eq(a, b)
-      a == b
-    end
+    def eq(a, b) a == b; end
+
+    def add(a, b) a + b; end
+
+    def gt(a, b) a > b; end
+
+    def lt(a, b) a < b; end
+
+    def geq(a, b) a >= b; end
+
+    def leq(a, b) a <= b; end
+      
 
     def min(*x)
       x.inject(x.first) do |cur, y|
         y < cur ? y : cur
       end
+    end
+    
+    def odd(x)
+      x % 2 != 0
+    end
+    
+
+    def sum(*x)
+      x.inject(0, &:+)
     end
   end
 

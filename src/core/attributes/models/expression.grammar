@@ -8,9 +8,7 @@ Body ::= body:{Expression ";"}+
 
 // TODO: this is ambiguous, use at own risk
 Expression ::= [Variable] name:sym
-	    | [Int] value:int
-	    | [Str] value:str
-            | [Bool] Bool
+	    | Value
 
 	    | [Lookup] obj:Expression "[" key:Expression "]"
 	    | [Update] obj:Expression "[" contents:{Assign ";"}* "]"
@@ -43,6 +41,11 @@ Many ::= "*" @"@many = true"
 
 Argument ::= [Splat] "*" arg:Expression
 	  | Expression
+
+
+Value ::= [Int] value:int
+       | [Str] value:str
+       | [Bool] Bool
 
 
 Bool ::= [Bool] "true" @"value = true"

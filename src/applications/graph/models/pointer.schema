@@ -1,21 +1,16 @@
 
-
 primitive str
 primitive int
 
 class Graph
+  root: Node
   !nodes: Node*
-  !edges: Edge*
 end
 
 class Node
   #name: str
-  value: int?
-end
-
-class Edge
-  label: str?
-  from: Node
-  to: Node
+  value: int
+  in: Node* / Node.out
+  out: Node* / Node.in
 end
 

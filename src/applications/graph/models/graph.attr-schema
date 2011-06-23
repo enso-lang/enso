@@ -1,0 +1,42 @@
+
+
+primitive int
+
+
+class Sum
+  value: int
+end
+
+class Min
+  value: int
+end
+
+// todo min/max, count, delete, add
+
+class Graph
+  @add: Sum = Sum {value: root->add}
+  @globmin: Min = Min {value: root->globmin}
+  @odds: Graph = let
+                  os* = root->odds;
+                  ns* = nodes->odds
+                in
+                   if o <- os then
+                      Graph {root: o; nodes: os, ns}
+                   else // no odds
+                      Graph {root: Node {name: "root"; out: }; nodes: }
+                   end
+                end
+end
+
+
+class Node
+  @add: int (0) = value + sum(*out->add)
+  @globmin: int (1000) = min(value, *out->globmin)
+  @odds: Node* = if odd(value) then
+                    Node {name: name; value: value; out: out->odds}
+		 else
+		    out->odds
+		 end
+end
+
+

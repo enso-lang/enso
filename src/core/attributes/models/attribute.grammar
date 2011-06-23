@@ -5,8 +5,12 @@ abstract Schema
 abstract Expression
 abstract Type
 abstract Multiplicity
+abstract Value
 
-Field ::= [Attribute] "@" name:sym Formals? ":" type:Type^ Multiplicity "=" result:Expression
+Field ::= [Attribute] "@" name:sym Formals? ":" type:Type^ 
+      	  	      	  Multiplicity Default? "=" result:Expression
+
+Default ::= "(" default:Value ")"
 
 Formals ::= "(" formals:{Formal ","}* ")"
 

@@ -1,0 +1,7 @@
+
+graph x { 
+    node x (10) [z y]
+    node y (3)  [z c]
+    node z (4)  [x]
+    node c (7)  [y]
+}

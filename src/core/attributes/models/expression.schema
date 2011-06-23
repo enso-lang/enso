@@ -28,15 +28,18 @@ class Assign
   !expressions: Expression*
 end
 
-class Int < Expression
+class Value
+end
+
+class Int < Value
   value: int
 end
 
-class Str < Expression
+class Str < Value
   value: str
 end
 
-class Bool < Expression
+class Bool < Value
   value: bool
 end
 
@@ -45,12 +48,12 @@ class Operator < Expression
 end
 
 class Unary < Operator
-  arg: Expression
+  !arg: Expression
 end
 
 class Binary < Operator
-  lhs: Expression
-  rhs: Expression
+  !lhs: Expression
+  !rhs: Expression
 end
 
 class Cond < Expression

@@ -1,0 +1,13 @@
+
+
+start Graph
+
+Graph ::= [Graph] "graph" root:Node^ "{" nodes:Node*  "}"
+
+Node ::= [Node] "node" name:sym Number? Out
+
+Out ::= "[" out:Node^* "]"
+
+Number ::= "(" value:int ")"
+
+
