@@ -28,8 +28,6 @@ Misc notes:
   increasing. It is not a fix point: sum should return zero upon *any*
   revisit of a node, not just upon the first cycle.
 
-- there's still abug somewhere that makes the factory complain:
-  inserting into the wrong model. Have to add automatic copying.
 
 - Letrec does not work yet
 
@@ -43,6 +41,16 @@ Misc notes:
 
   Should there be an init like: Node {name: name; value: value; out: }????  
 
+- This does not terminate: again because where accessing something
+  (through a cycle) that has not been created yet
+
+   @mul2: Node = Node {name: name; value: value * 2; out: out->mul2}
+
+  Again, this works:
+
+  @mul2: Node* = Node {name: name; value: value * 2; out: out->mul2}
+
+
 
 Todos
 
@@ -51,6 +59,12 @@ Todos
 
 - Allow ; as toplevel attribute expression
 
+- there's still abug somewhere that makes the factory complain:
+  inserting into the wrong model. Have to add  copying when this happens. 
+  but it will be a full copy...
+
+- All the is_a? stuff should be gone (except maybe for internal
+  stuff), and the schema should be used.
 
 
 =end
@@ -73,7 +87,10 @@ module AttributeSchema
         '<=' => 'leq',
         '>' => 'gt',
         '<' => 'lt',
-        '+' => 'add'
+        '+' => 'add',
+        '-' => 'sub',
+        '*' => 'mul',
+        '/' => 'div'
       }
     end
 
@@ -267,6 +284,31 @@ module AttributeSchema
 
     def eval_object_attribute(attr, recv, env, args, &block)
       key = [recv, attr.name, args]
+
+      # Don't fix objects; they stabilize badly...
+
+
+#       if recv.is_a?(Stub) then
+#         @memo.each do |old_key, obj|
+#           if obj == recv && old_key[1] == attr.name && old_key[2] == args then
+#             yield recv, env
+#             return
+#           end
+#         end
+#       end
+
+      if !@memo[key] then
+        new_env = bind_formals(attr, env, args)
+        @memo[key] = Stub.new
+        eval(attr.result, recv, new_env) do |new, _|
+          @memo[key].become!(new)
+        end
+      end
+      yield @memo[key], env
+      return  
+
+      ##################
+
       if @computed[key] then
         yield @memo[key], env
         return
@@ -519,16 +561,16 @@ module AttributeSchema
 
     # operators and functions
 
-    def eq(a, b) a == b; end
 
     def add(a, b) a + b; end
+    def sub(a, b) a - b; end
+    def mul(a, b) a * b; end
+    def div(a, b) a / b; end
 
+    def eq(a, b) a == b; end
     def gt(a, b) a > b; end
-
     def lt(a, b) a < b; end
-
     def geq(a, b) a >= b; end
-
     def leq(a, b) a <= b; end
       
 

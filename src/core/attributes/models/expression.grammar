@@ -16,6 +16,7 @@ Expression ::= [Variable] name:sym
 
 	    | [Unary] op:"!" arg:Expression
 	    | [Binary] lhs:Expression op:"+" rhs:Expression
+	    | [Binary] lhs:Expression op:"*" rhs:Expression
 	    | [Binary] lhs:Expression op:"==" rhs:Expression
 	    | [Binary] lhs:Expression op:"!=" rhs:Expression
 	    | [Binary] lhs:Expression op:">" rhs:Expression

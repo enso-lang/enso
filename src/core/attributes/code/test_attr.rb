@@ -43,6 +43,7 @@ def graph_basics
 
   #result = EvalAttr.eval_attr_schema(attr_schema, src, 'add', src_schema)
   #Print.print(result)
+
   result = EvalAttr.eval_attr_schema(attr_schema, src, 'globmin', src_schema)
   Print.print(result)
 
@@ -51,6 +52,9 @@ def graph_basics
   DisplayFormat.print(pointer_grammar, result)
 
   result = EvalAttr.eval_attr_schema(attr_schema, src, 'trc', src_schema)
+  DisplayFormat.print(pointer_grammar, result)
+
+  result = EvalAttr.eval_attr_schema(attr_schema, src, 'mul2', src_schema)
   DisplayFormat.print(pointer_grammar, result)
 
 end

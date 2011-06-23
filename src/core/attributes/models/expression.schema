@@ -28,7 +28,7 @@ class Assign
   !expressions: Expression*
 end
 
-class Value
+class Value < Expression
 end
 
 class Int < Value

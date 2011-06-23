@@ -27,6 +27,7 @@ class Graph
                    end
                 end
    @trc: Graph = Graph {root: root->trc; nodes: nodes->trc}
+   @mul2: Graph = Graph {root: root->mul2; nodes: nodes->mul2}
 end
 
 
@@ -40,7 +41,7 @@ class Node
 		 end
 
   @trc: Node* = Node {name: name; value: value; out: out, out->trc->out }
-
+  @mul2: Node* = Node {name: name; value: value * 2; out: out->mul2}
 end
 
 
