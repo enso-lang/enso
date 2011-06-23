@@ -9,6 +9,20 @@ require 'core/schema/tools/copy'
 require 'core/system/library/schema'
 
 
+=begin 
+
+ - primitives: update memo table while successive results are different
+
+ - objects: become! until the computed object is shallow_equal to the
+   object of the previous iteration
+
+ - collections: for keyed collections, only add an element if an
+   object with the same key does not already exist. If it does exist,
+   let the existing object become the new one. For sequential collections
+   a new object is always added.
+
+=end
+
 module AttributeSchema
 
   # TODO: make the attributed schema a parameter
