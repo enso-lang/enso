@@ -13,7 +13,7 @@ require 'core/system/library/schema'
 
  - primitives: update memo table while successive results are different
 
- - objects: become! until the computed object is shallow_equal to the
+ - objects: become! until the computed object is semantic_equal? to the
    object of the previous iteration
 
  - collections: for keyed collections, only add an element if an
@@ -78,7 +78,8 @@ module AttributeSchema
 
   class EvalAttr
 
-    def initialize(factory)
+    def initialize(attr_schema, factory)
+      @attr_schema = attr_schema
       @factory = factory
       @CHANGE = false
       @IN_CIRCLE = false
@@ -87,8 +88,16 @@ module AttributeSchema
       @visited = {}
     end
 
-    def self.eval(obj, name, factory, args = [])
-      EvalAttr.new(factory).run(obj, name, args)
+=begin
+
+X -> X : factory should be the factory of the source
+X -> Y : factory should be  the factory of the target
+X -> X + Y: factory should be a factory over X + Y *and*
+        X should be copied first using that factory.
+=end
+
+    def self.eval(attr_schema, obj, name, factory = obj._graph_id, args = [])
+      EvalAttr.new(attr_schema, factory).run(obj, name, args)
     end
 
     def debug_info
@@ -106,16 +115,6 @@ module AttributeSchema
       end
       puts "INCIRCLE: #{@IN_CIRCLE}"
       puts "CHANGE: #{@CHANGE}"
-    end
-
-
-    def self.eval_attr_schema(attr_schema, src, name,
-                              src_schema = nil, trg_schema = nil, args = [])
-      u = attr_schema
-      u = union(u, src_schema) if src_schema
-      u = union(u, trg_schema) if trg_schema
-      src = Copy.new(Factory.new(u)).copy(src)
-      eval(src, name, Factory.new(u), args)
     end
 
     def run(obj, name, args)
@@ -141,7 +140,12 @@ module AttributeSchema
     end
 
     def field(recv, name)
-      recv.schema_class.all_fields[name]
+      ac = @attr_schema.classes[recv.schema_class.name]
+      fld = ac.fields[name]
+      #puts "Requesting field #{name} of #{recv}"
+      #Print.print(recv)
+      #Print.print(recv.schema_class)
+      fld || recv.schema_class.all_fields[name]
     end
 
     def attribute?(field)
@@ -274,7 +278,21 @@ module AttributeSchema
       return change
     end
 
+    module Uniqueness
+      def ==(o)
+        object_id == o.object_id
+      end
+
+      def hash
+        object_id
+      end
+    end
+
     class KeyString < String
+      include Uniqueness
+      def to_s
+        "UNIQUE_KEY_#{object_id}"
+      end
     end
 
     def placeholder(type)
@@ -343,9 +361,6 @@ module AttributeSchema
       return false
     end
 
-
-
-
     def eval_conds(conds, recv, env, &block)
       eval(conds.first, recv, env) do |x, env|
         return unless x
@@ -394,26 +409,8 @@ module AttributeSchema
       end
     end
 
-    #### Dispatch methods
-    
-    def Variable(this, recv, env, &block)
-      if env[this.name] then
-        eval_local(env[this.name], env, &block) 
-      else 
-        eval_access(this.name, recv, env, &block)
-      end
-    end
-
-    def Dot(this, recv, env, &block)
-      eval(this.obj, recv, env) do |x, env|
-        eval_access(this.field, x, env, &block)
-      end
-    end
-
-    def Cons(this, recv, env, &block)
-      #puts "CREATING: #{this.type}"
-      obj = @factory[this.type]
-      this.contents.each do |assign|
+    def eval_assigns(obj, contents, recv, env, &block)
+      contents.each do |assign|
         assign.expressions.each do |exp|
           eval(exp, recv, env) do |val, _|
             if obj.schema_class.fields[assign.name].many then
@@ -425,6 +422,77 @@ module AttributeSchema
         end
       end
       yield obj, env
+    end
+
+
+    #### Dispatch methods
+    
+    def Variable(this, recv, env, &block)
+      if this.name == 'self' then
+        yield recv, env
+      elsif env[this.name] then
+        eval_local(env[this.name], env, &block) 
+      else 
+        eval_access(this.name, recv, env, &block)
+      end
+    end
+
+    def Dot(this, recv, env, &block)
+      eval(this.obj, recv, env) do |x, env|
+        eval_access(this.field, x, env, &block)
+      end
+    end
+    
+    def Lookup(this, recv, env, &block)
+      eval(this.obj, recv, env) do |x, env|
+        eval(this.key, recv, env) do |f, env|
+          eval_access(f, x, env, &block)
+        end
+      end
+    end
+
+    def Update(this, recv, env, &block)
+      # I don't like the way this looks...
+      later = {}
+      obj = nil
+      eval(this.obj, recv, env) do |x, env|
+        obj = x
+        # shallow copy
+        #obj = @factory[x.schema_class.name]
+        #obj.become!(x)
+        #eval_assigns(x, this.contents, recv, env, &block)
+        this.contents.each do |assign|
+          assign.expressions.each do |exp|
+            eval(exp, recv, env) do |val, _|
+              if obj.schema_class.fields[assign.name].many then
+                later[assign.name] ||= []
+                later[assign.name] << val
+              else
+                obj[assign.name] = val
+              end
+            end
+          end
+        end
+      end
+      later.each do |fname, elts|
+        elts.each do |elt|
+          obj[fname] << elt
+        end
+      end
+      yield obj, env
+    end
+
+
+    def Cons(this, recv, env, &block)
+      obj = @factory[this.type]
+      eval_assigns(obj, this.contents, recv, env, &block)
+    end
+
+    def Not(this, recv, env, &block)
+      eval(this.arg, recv, env) do |_, _|
+        return
+      end
+      yield true, env
     end
 
     def For(this, recv, env, &block)

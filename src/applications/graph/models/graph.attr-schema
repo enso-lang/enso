@@ -24,7 +24,7 @@ class Node
   @add: int (0) = value + sum(*out->add)
   @globmin: int (1000) = min(value, *out->globmin)
   @odds: Node* = if odd(value) then
-                    Node {name: name; value: value; out: out->odds}
+                    self[out: out->odds]
 		 else
 		    out->odds
 		 end
