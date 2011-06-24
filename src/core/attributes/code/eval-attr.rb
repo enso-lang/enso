@@ -71,7 +71,7 @@ Todos
 - All the is_a? stuff should be gone (except maybe for internal
   stuff), and the schema should be used.
 
-
+- Clearing of collections does not update inverses.
 =end
 
 module AttributeSchema
@@ -301,29 +301,19 @@ X -> X + Y: factory should be a factory over X + Y *and*
       if k then
         # TODO: for each type
         # it's ugly, but seems to work.
-        obj[k.name] = KeyString.new
+        obj[k.name] = case k.type.name
+                      when 'str' then KeyString.new
+                      when 'int' then KeyInt.new
+                      when 'bool' then KeyBool.new
+                      when 'real' then KeyReal.new
+                      else raise "Unsupported primitive: #{k.type}"
+                      end
       end
       return obj
     end
 
     def eval_object_attribute(attr, recv, env, args, &block)
       key = [recv, attr.name, args]
-
-      ###################
-      # Don't fix objects;
-      # now does not work transitive closure
-
-#       if !@memo[key] then
-#         new_env = bind_formals(attr, env, args)
-#         @memo[key] = placeholder(attr.type)
-#         eval(attr.result, recv, new_env) do |new, _|
-#           @memo[key].become!(new)
-#         end
-#       end
-#       yield @memo[key], env
-#       return  
-
-      ##################
 
       if @computed[key] then
         yield @memo[key], env
@@ -424,6 +414,46 @@ X -> X + Y: factory should be a factory over X + Y *and*
       yield obj, env
     end
 
+    def updates(fields, contents, recv, env)
+      updates = {}
+      contents.each do |assign|
+        if assign.expressions.empty? then
+          if fields[assign.name].many then
+            updates[assign.name] = :clear
+          else
+            updates[assign.name] = :delete
+          end
+        else
+          assign.expressions.each do |exp|
+            eval(exp, recv, env) do |val, _|
+              if fields[assign.name].many then
+                updates[assign.name] ||= []
+                updates[assign.name] << val
+              else
+                updates[assign.name] = val
+              end
+            end
+          end
+        end
+      end
+      return updates
+    end
+
+    def apply_updates(obj, changes)
+      changes.each do |fname, x|
+        if x == :clear then
+          obj[fname].clear
+        elsif x == :delete
+          obj[fname] = nil
+        elsif x.is_a?(Array)
+          x.each do |elt|
+            obj[fname] << elt
+          end
+        else
+          obj[fname] = x
+        end
+      end
+    end
 
     #### Dispatch methods
     
@@ -451,48 +481,11 @@ X -> X + Y: factory should be a factory over X + Y *and*
       end
     end
 
-    def updates(fields, contents, recv, env)
-      updates = {}
-      contents.each do |assign|
-        if assign.expressions.empty? then
-          if fields[assign.name].many then
-            updates[assign.name] = :clear
-          else
-            updates[assign.name] = :delete
-          end
-        else
-          assign.expressions.each do |exp|
-            eval(exp, recv, env) do |val, _|
-              if fields[assign.name].many then
-                updates[assign.name] ||= []
-                updates[assign.name] << val
-              else
-                updates[assign.name] = val
-              end
-            end
-          end
-        end
-      end
-      return updates
-    end
 
     def Update(this, recv, env, &block)
-      # I don't like the way this looks...
       eval(this.obj, recv, env) do |obj, env|
         changes = updates(obj.schema_class.fields, this.contents, recv, env)
-        changes.each do |fname, x|
-          if x == :clear then
-            obj[fname].clear
-          elsif x == :delete
-            obj[fname] = nil
-          elsif x.is_a?(Array)
-            x.each do |elt|
-              obj[fname] << elt
-            end
-          else
-            obj[fname] = x
-          end
-        end
+        apply_updates(obj, changes)
         yield obj, env
       end
     end
@@ -520,7 +513,6 @@ X -> X + Y: factory should be a factory over X + Y *and*
       eval_conds(this.conds, recv, env) do |x, env|
         return eval_seq(this.body, recv, env, &block) 
       end
-
       this.elsifs.each do |ei|
         eval_conds(ei.conds, recv, env) do |_, env|
           return eval_seq(ei.body, recv, env, &block) 
@@ -540,21 +532,19 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
     def Call(this, recv, env, &block)
       fld = field(recv, this.name)
-      if fld && attribute?(fld) then
-        eval_args(this.args, recv, env) do |args, env|
+      eval_args(this.args, recv, env) do |args, env|
+        if fld && attribute?(fld) then
           eval_attribute(fld, recv, env, args, &block)
-        end
-      else
-        eval_args(this.args, recv, env) do |args, env|
+        else
           yield send(this.name, *args), env
-        end
+        end  
       end
     end
 
     def Generator(this, recv, env, &block)
       env = {}.update(env)
       eval(this.expression, recv, env) do |x, _|
-        yield true, env.update({this.var => x})
+        yield x, env.update({this.var => x})
       end
     end
 
