@@ -1,0 +1,16 @@
+
+primitive str
+
+class Persons
+  !persons: Person*
+end
+
+class Person
+  #full_name: str
+end
+
+class Male < Person
+end
+
+class Female < Person
+end

@@ -1,0 +1,23 @@
+
+primitive str
+
+// This must be the most stupid model ever..
+// from: http://www.eclipse.org/m2m/atl/doc/ATLUseCase_Families2Persons.pdf
+
+class Family
+  #last_name: str
+  !father: Member / Member.family_father
+  !mother: Member / Member.family_mother
+  !sons: Member* / Member.family_son
+  !daughters: Member* / Member.family_daughter
+end
+
+class Member
+  first_name: str
+  family_father: Family? / Family.father
+  family_mother: Family? / Family.mother
+  family_son: Family? / Family.sons
+  family_daughter: Family? / Family.daughters
+end
+
+  
