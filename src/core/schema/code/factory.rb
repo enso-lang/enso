@@ -75,7 +75,8 @@ class Factory
   end
 end
 
-class Stub
+class MetaObjectRoot
+
   def become!(obj)
     @factory = obj._graph_id
     @hash = obj._hash
@@ -83,8 +84,50 @@ class Stub
     @_origin = obj._origin
     @schema_class = obj.schema_class
     @_id = obj._id
-    self.extend(CheckedObjectMixin)
   end
+
+  def shallow_equal?(obj)
+    # NB: this depends on ManyFields performing
+    # equality of their elements.
+    obj._hash == @hash
+  end
+end
+
+class Stub < MetaObjectRoot
+  attr_reader :__born
+
+  def initialize
+    @__born = false
+    # @__adds = []
+  end
+
+  def become!(obj)
+    super(obj)
+    self.extend(CheckedObjectMixin) 
+    @__born = true
+#     @__adds.each do |obj, name|
+#       key_field = ClassKey(self.schema_class)
+#       if key_field then
+#         found = obj[name].find { |x| x[key_field.name] == self[key_field.name] }
+#         if !found then
+#           obj[name] << self
+#         else
+#           if !found.shallow_equal?(self) then
+#             found.become!(self)
+#           end
+#         end
+#       else
+#         obj[name] << self
+#       end
+#       puts "ADDED: myself #{self} to  #{obj[name]} in #{obj}"
+#     end
+  end
+
+  def delayed_add(obj, name)
+    @__adds << [obj, name]
+  end
+
+
 end
 
 
@@ -110,7 +153,7 @@ module CheckedObjectMixin
   
   def ==(other)
     return false if other.nil?
-    return false unless other.is_a?(CheckedObject)
+    return false unless other.is_a?(CheckedObject) || other.is_a?(Stub)
     return _id == other._id
   end
   
@@ -255,7 +298,7 @@ module CheckedObjectMixin
   end  
 end
 
-class CheckedObject
+class CheckedObject < MetaObjectRoot
   include CheckedObjectMixin
 
   @@_id = 0
@@ -315,9 +358,24 @@ class ManyIndexedField < BaseManyField
     @hash = {}
     @key = key
   end
+
+  def include?(x)
+    !@hash[x.send(@key)].nil?
+  end
   
   def [](x)
     @hash[x]
+  end
+
+  def ==(o)
+    return false unless o.length == length
+    each do |x|
+      return false unless o.include?(x)
+    end
+    o.each do |x|
+      return false unless include?(x)
+    end
+    return true
   end
   
   def length
@@ -424,6 +482,10 @@ class ManyField < BaseManyField
   def length
     @list.length
   end
+
+  def include?(x)
+    @list.include?(x)
+  end
   
   def nil?
     false
@@ -431,6 +493,14 @@ class ManyField < BaseManyField
   
   def last
     @list.last
+  end
+
+  def ==(o)
+    return false if o.length != length
+    @list.each_with_index do |x, i|
+      return false if x != o[i]
+    end
+    return true
   end
   
   def <<(v)

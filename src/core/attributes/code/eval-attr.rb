@@ -156,6 +156,9 @@ module AttributeSchema
     end
 
     def eval_access(name, recv, env, &block)
+      #return if recv.is_a?(Stub)
+
+
       fld = field(recv, name)
       raise "No such field or attribute: #{name}" unless fld
 
@@ -168,7 +171,7 @@ module AttributeSchema
 
     def eval_normal_field(field, recv, env, &block)
       x = recv[field.name]
-      if x.class.include?(Enumerable) then
+      if field.many then
         x.each do |elt|
           yield elt, env
         end
@@ -281,6 +284,8 @@ module AttributeSchema
       return change
     end
 
+    class KeyString < String
+    end
 
     def eval_object_attribute(attr, recv, env, args, &block)
       key = [recv, attr.name, args]
@@ -297,15 +302,15 @@ module AttributeSchema
 #         end
 #       end
 
-      if !@memo[key] then
-        new_env = bind_formals(attr, env, args)
-        @memo[key] = Stub.new
-        eval(attr.result, recv, new_env) do |new, _|
-          @memo[key].become!(new)
-        end
-      end
-      yield @memo[key], env
-      return  
+#       if !@memo[key] then
+#         new_env = bind_formals(attr, env, args)
+#         @memo[key] = @factory[attr.type.name]
+#         eval(attr.result, recv, new_env) do |new, _|
+#           @memo[key].become!(new)
+#         end
+#       end
+#       yield @memo[key], env
+#       return  
 
       ##################
 
@@ -315,7 +320,16 @@ module AttributeSchema
       end
 
       new_env = bind_formals(attr, env, args)
-      @memo[key] ||= Stub.new  # INIT
+      if !@memo[key] then
+        obj = @factory[attr.type.name]  # INIT
+        @memo[key] = obj
+        k = ClassKey(obj.schema_class)
+        if k then
+          # TODO: for each type
+          # it's ugly, but seems to work.
+          obj[k.name] = KeyString.new
+        end
+      end
       if !@IN_CIRCLE then
         @IN_CIRCLE = true
         @visited[key] = true
@@ -385,9 +399,7 @@ module AttributeSchema
     end
 
     def eval_local(val, env, &block)
-      if val.is_a?(Delayed) then
-        val.force(env, &block)
-      elsif val.class.include?(Enumerable) then
+      if val.class.include?(Enumerable) then
         val.each do |elt|
           yield elt, env
         end
@@ -399,8 +411,11 @@ module AttributeSchema
     #### Dispatch methods
     
     def Variable(this, recv, env, &block)
-      return eval_local(env[this.name], env, &block) if env[this.name]
-      eval_access(this.name, recv, env, &block)
+      if env[this.name] then
+        eval_local(env[this.name], env, &block) 
+      else 
+        eval_access(this.name, recv, env, &block)
+      end
     end
 
     def Dot(this, recv, env, &block)
@@ -415,19 +430,9 @@ module AttributeSchema
       this.contents.each do |assign|
         assign.expressions.each do |exp|
           eval(exp, recv, env) do |val, _|
-            #puts "Adding #{val} to field: #{assign.name} of #{obj}"
-            if obj[assign.name].is_a?(BaseManyField) then
-              coll = obj[assign.name]
-              # TODO:  test for include if keyed (???)
-              #if !obj[assign.name].include?(val) then
-              if val.is_a?(Stub) && coll.is_a?(ManyIndexedField) then
-                # it might not have a key until it becomes something
-                val.delayed_add(obj, assign.name)
-              else
-                obj[assign.name] << val
-              end
+            if obj.schema_class.fields[assign.name].many then
+              obj[assign.name] << val
             else
-              #puts "ASSIGNING: #{val}"
               obj[assign.name] = val
             end
           end
@@ -475,55 +480,6 @@ module AttributeSchema
           yield send(this.name, *args), env
         end
       end
-    end
-
-    class Delayed
-      # Lazy bindings that self-destruct into values
-      # they evaluate to
-
-      def initialize(eval, binding, recv, env)
-        @eval = eval
-        @binding = binding
-        @recv = recv
-        @env = env
-      end
-
-      def name
-        @binding.name
-      end
-
-      def force(env, &block)
-        # no need to check whether
-        # we should evaluate or not
-        # since the Delayed thing is replaced
-        # with what it evaluates to for caching
-
-        if @binding.many then
-          # don't cache (for now)
-          # @env[name] = []
-          @eval.eval(@binding.expression, @recv, @env) do |x, _|
-            # @env[name] << x
-            yield x, env
-          end
-        else
-          obj = Stub.new
-          @env[name] = obj
-          @eval.eval(@binding.expression, @recv, @env) do |x, _|
-            # detect stuff like "let x = x"
-            raise "cycle without construction" if x.is_a?(Stub)
-            obj.become!(x)            
-          end
-          yield obj, env
-        end
-      end
-    end
-
-    def Let(this, recv, env, &block)
-      env = {}.update(env)
-      this.bindings.each do |binding|
-        env[binding.name] = Delayed.new(self, binding, recv, env)
-      end
-      eval_seq(this.body, recv, env, &block)
     end
 
     def Generator(this, recv, env, &block)

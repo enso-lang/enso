@@ -11,21 +11,14 @@ class Min
   value: int
 end
 
-// todo min/max, count, delete, add
-
 class Graph
   @add: Sum = Sum {value: root->add}
   @globmin: Min = Min {value: root->globmin}
-  @odds: Graph = let
-                  os* = root->odds;
-                  ns* = nodes->odds
-                in
-                   if o <- os then
-                      Graph {root: o; nodes: os, ns}
+  @odds: Graph =   if o <- root->odds then
+                      Graph {root: o; nodes: nodes->odds}
                    else // no odds
                       Graph {root: Node {name: "root"; out: }; nodes: }
                    end
-                end
    @trc: Graph = Graph {root: root->trc; nodes: nodes->trc}
    @mul2: Graph = Graph {root: root->mul2; nodes: nodes->mul2}
 end
@@ -40,8 +33,8 @@ class Node
 		    out->odds
 		 end
 
-  @trc: Node* = Node {name: name; value: value; out: out, out->trc->out }
-  @mul2: Node* = Node {name: name; value: value * 2; out: out->mul2}
+  @trc: Node = Node {name: name; value: value; out: out, out->trc->out }
+  @mul2: Node = Node {name: name; value: value * 2; out: out->mul2}
 end
 
 
