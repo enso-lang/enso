@@ -72,6 +72,10 @@ Todos
   stuff), and the schema should be used.
 
 - Clearing of collections does not update inverses.
+
+- Check/think about spine fields: should we copy when assigning to
+  such fields?
+
 =end
 
 module AttributeSchema
@@ -400,13 +404,20 @@ X -> X + Y: factory should be a factory over X + Y *and*
     end
 
     def eval_assigns(obj, contents, recv, env, &block)
+      fields = obj.schema_class.fields
       contents.each do |assign|
+        name = assign.name
         assign.expressions.each do |exp|
           eval(exp, recv, env) do |val, _|
-            if obj.schema_class.fields[assign.name].many then
-              obj[assign.name] << val
+            # this makes repmin not terminate...
+            # if !fields[name].type.Primitive? && 
+#                 fields[name].traversal then
+#               val = val.clone
+#             end
+            if fields[name].many then
+              obj[name] << val
             else
-              obj[assign.name] = val
+              obj[name] = val
             end
           end
         end
@@ -417,20 +428,25 @@ X -> X + Y: factory should be a factory over X + Y *and*
     def updates(fields, contents, recv, env)
       updates = {}
       contents.each do |assign|
+        name = assign.name
         if assign.expressions.empty? then
-          if fields[assign.name].many then
-            updates[assign.name] = :clear
+          if fields[name].many then
+            updates[name] = :clear
           else
-            updates[assign.name] = :delete
+            updates[name] = :delete
           end
         else
           assign.expressions.each do |exp|
             eval(exp, recv, env) do |val, _|
-              if fields[assign.name].many then
-                updates[assign.name] ||= []
-                updates[assign.name] << val
+              if !fields[name].type.Primitive? && 
+                  fields[name].traversal then
+                val = val.clone
+              end
+              if fields[name].many then
+                updates[name] ||= []
+                updates[name] << val
               else
-                updates[assign.name] = val
+                updates[name] = val
               end
             end
           end
