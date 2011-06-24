@@ -9,7 +9,7 @@ end
 
 class Klass < Type
   @remove_inheritance: Klass =
-      self[super: ; defined_fields: defined_fields, supers->parent_field]
+      self[supers: ; defined_fields: defined_fields, supers->parent_field]
 // this does not work: it tries to access stubs...
 //     Klass {name: name;
 //            supers: ;

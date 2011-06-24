@@ -62,6 +62,8 @@ def schema_examples
   src_schema = Loader.load('schema.schema')
   trg_schema = Loader.load('schema.schema')
   src = Loader.load('schema.schema')
+  # Copy: otherwise we mess up Enso badly
+  src = Copy.new(Factory.new(src_schema)).copy(src)
   
   schema_grammar = Loader.load('schema.grammar')
   DisplayFormat.print(schema_grammar, src)

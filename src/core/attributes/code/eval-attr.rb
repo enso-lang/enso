@@ -451,35 +451,50 @@ X -> X + Y: factory should be a factory over X + Y *and*
       end
     end
 
-    def Update(this, recv, env, &block)
-      # I don't like the way this looks...
-      later = {}
-      obj = nil
-      eval(this.obj, recv, env) do |x, env|
-        obj = x
-        # shallow copy
-        #obj = @factory[x.schema_class.name]
-        #obj.become!(x)
-        #eval_assigns(x, this.contents, recv, env, &block)
-        this.contents.each do |assign|
+    def updates(fields, contents, recv, env)
+      updates = {}
+      contents.each do |assign|
+        if assign.expressions.empty? then
+          if fields[assign.name].many then
+            updates[assign.name] = :clear
+          else
+            updates[assign.name] = :delete
+          end
+        else
           assign.expressions.each do |exp|
             eval(exp, recv, env) do |val, _|
-              if obj.schema_class.fields[assign.name].many then
-                later[assign.name] ||= []
-                later[assign.name] << val
+              if fields[assign.name].many then
+                updates[assign.name] ||= []
+                updates[assign.name] << val
               else
-                obj[assign.name] = val
+                updates[assign.name] = val
               end
             end
           end
         end
       end
-      later.each do |fname, elts|
-        elts.each do |elt|
-          obj[fname] << elt
+      return updates
+    end
+
+    def Update(this, recv, env, &block)
+      # I don't like the way this looks...
+      eval(this.obj, recv, env) do |obj, env|
+        changes = updates(obj.schema_class.fields, this.contents, recv, env)
+        changes.each do |fname, x|
+          if x == :clear then
+            obj[fname].clear
+          elsif x == :delete
+            obj[fname] = nil
+          elsif x.is_a?(Array)
+            x.each do |elt|
+              obj[fname] << elt
+            end
+          else
+            obj[fname] = x
+          end
         end
+        yield obj, env
       end
-      yield obj, env
     end
 
 
