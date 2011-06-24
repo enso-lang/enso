@@ -3,6 +3,8 @@ graph x {
     node x (10) [z y]
     node y (3)  [z c]
     node z (4)  [x]
-    node c (7)  [y]
-    node l (23) []
+    node c (7)  [y l]
+    node l (23) [m]
+    node m (55) [n]
+    node n (44) []
 }

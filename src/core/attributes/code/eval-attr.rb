@@ -149,9 +149,6 @@ module AttributeSchema
     end
 
     def eval_access(name, recv, env, &block)
-      #return if recv.is_a?(Stub)
-
-
       fld = field(recv, name)
       raise "No such field or attribute: #{name}" unless fld
 
@@ -260,7 +257,7 @@ module AttributeSchema
             change = true
             coll << new
           else
-            if !found.shallow_equal?(new) then
+            if !found.semantic_equal?(new) then
               change = true
               found.become!(new)
             end
@@ -269,7 +266,7 @@ module AttributeSchema
           # Problem: with the schema2graph example
           # needs composite keys...
           # the unless solution is wrong: it assumes lists are sets.
-          #unless coll.find { |x| x.shallow_equal?(new) }
+          #unless coll.find { |x| x.semantic_equal?(new) }
             coll << new
           #end
         end
@@ -338,7 +335,7 @@ module AttributeSchema
           
     def obj_iter(obj, attr, recv, env)
       eval(attr.result, recv, env) do |new, _|
-        if !obj.shallow_equal?(new) then
+        if !obj.semantic_equal?(new) then
           obj.become!(new) # UPDATE
           return true
         end

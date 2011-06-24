@@ -75,8 +75,13 @@ class Factory
   end
 end
 
-class MetaObjectRoot
-
+module CheckedObjectMixin
+  attr_reader :schema_class
+  attr_reader :factory
+  attr_reader :_id
+  attr_accessor :_origin
+  attr_reader :_origin_of
+  
   def become!(obj)
     @factory = obj._graph_id
     @hash = obj._hash
@@ -86,59 +91,12 @@ class MetaObjectRoot
     @_id = obj._id
   end
 
-  def shallow_equal?(obj)
+  def semantic_equal?(obj)
     # NB: this depends on ManyFields performing
     # equality of their elements.
     obj._hash == @hash
   end
-end
 
-class Stub < MetaObjectRoot
-  attr_reader :__born
-
-  def initialize
-    @__born = false
-    # @__adds = []
-  end
-
-  def become!(obj)
-    super(obj)
-    self.extend(CheckedObjectMixin) 
-    @__born = true
-#     @__adds.each do |obj, name|
-#       key_field = ClassKey(self.schema_class)
-#       if key_field then
-#         found = obj[name].find { |x| x[key_field.name] == self[key_field.name] }
-#         if !found then
-#           obj[name] << self
-#         else
-#           if !found.shallow_equal?(self) then
-#             found.become!(self)
-#           end
-#         end
-#       else
-#         obj[name] << self
-#       end
-#       puts "ADDED: myself #{self} to  #{obj[name]} in #{obj}"
-#     end
-  end
-
-  def delayed_add(obj, name)
-    @__adds << [obj, name]
-  end
-
-
-end
-
-
-module CheckedObjectMixin
-  attr_reader :schema_class
-  attr_reader :factory
-  attr_reader :_id
-  attr_accessor :_origin
-  attr_reader :_origin_of
-
-  
   def _graph_id
     @factory
   end
@@ -153,7 +111,7 @@ module CheckedObjectMixin
   
   def ==(other)
     return false if other.nil?
-    return false unless other.is_a?(CheckedObject) || other.is_a?(Stub)
+    return false unless other.is_a?(CheckedObject)
     return _id == other._id
   end
   
@@ -210,14 +168,12 @@ module CheckedObjectMixin
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
-        if !new.is_a?(Stub) then
-          raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
-          raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
-          unless _subtypeOf(new.schema_class, field.type)
-            puts "a: #{new.schema_class.supers}"
-            puts "b: #{field.type}"
-            raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
-          end
+        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
+        raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
+        unless _subtypeOf(new.schema_class, field.type)
+          puts "a: #{new.schema_class.supers}"
+          puts "b: #{field.type}"
+          raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
         end
       end
     end
@@ -298,7 +254,7 @@ module CheckedObjectMixin
   end  
 end
 
-class CheckedObject < MetaObjectRoot
+class CheckedObject 
   include CheckedObjectMixin
 
   @@_id = 0
