@@ -91,6 +91,12 @@ module CheckedObjectMixin
     @_id = obj._id
   end
 
+  def clone
+    obj = @factory[schema_class.name]
+    obj.become!(self)
+    return obj
+  end
+
   def semantic_equal?(obj)
     # NB: this depends on ManyFields performing
     # equality of their elements.
