@@ -2,18 +2,9 @@
 
 primitive int
 
-
-class Sum
-  value: int
-end
-
-class Min
-  value: int
-end
-
 class Graph
-  @add: Sum = Sum {value: root->add}
-  @globmin: Min = Min {value: root->globmin}
+  @add: int = sum(*root->collect->value)
+  @globmin: int = root->globmin
   @odds: Graph =   if o <- root->odds then
                       Graph {root: o; nodes: nodes->odds}
                    else // no odds
@@ -25,6 +16,11 @@ end
 
 
 class Node
+  @collect: Node* = if true then 
+                      Node {name: name; value: value; out: out};
+		      out->collect
+		    end
+		      
   @add: int (0) = value + sum(*out->add)
   @globmin: int (1000) = min(value, *out->globmin)
   @odds: Node* = if odd(value) then

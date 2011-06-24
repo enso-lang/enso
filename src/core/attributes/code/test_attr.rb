@@ -41,8 +41,8 @@ def graph_basics
   pointer_grammar = Loader.load('pointer.grammar')
   DisplayFormat.print(pointer_grammar, src)
 
-  #result = EvalAttr.eval_attr_schema(attr_schema, src, 'add', src_schema)
-  #Print.print(result)
+  result = EvalAttr.eval_attr_schema(attr_schema, src, 'add', src_schema)
+  Print.print(result)
 
   result = EvalAttr.eval_attr_schema(attr_schema, src, 'globmin', src_schema)
   Print.print(result)
@@ -63,5 +63,5 @@ end
 if __FILE__ == $0 then
   repmin
   graph_basics
-  #schema2graph  diverges because edges do not have a (composite) key
+  #schema2graph  #diverges because edges do not have a (composite) key
 end

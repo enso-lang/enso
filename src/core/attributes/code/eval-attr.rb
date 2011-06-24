@@ -24,10 +24,13 @@ require 'core/system/library/schema'
 
 Misc notes:
 
-- sum over a cyclic graph diverges: the value of sum keeps
+- sum over a cyclic graph diverges if fixing: the value of sum keeps 
   increasing. It is not a fix point: sum should return zero upon *any*
   revisit of a node, not just upon the first cycle.
 
+- If object attrs are not fixed, fixpoints only work on collections
+  Do we want to specify fix behaviour explicitly? Sum still diverges.
+  
 
 - Letrec does not work yet
 
@@ -57,6 +60,8 @@ Todos
 - make the attributed schema a parameter
   (for partial evaluation)
 
+- Replace ; with comma ,
+
 - Allow ; as toplevel attribute expression
 
 - there's still abug somewhere that makes the factory complain:
@@ -80,18 +85,6 @@ module AttributeSchema
       @memo = {}
       @computed = {}
       @visited = {}
-      @op_map = {
-        '==' => 'eq',
-        '!=' => 'neq',
-        '>=' => 'geq',
-        '<=' => 'leq',
-        '>' => 'gt',
-        '<' => 'lt',
-        '+' => 'add',
-        '-' => 'sub',
-        '*' => 'mul',
-        '/' => 'div'
-      }
     end
 
     def self.eval(obj, name, factory, args = [])
@@ -287,24 +280,27 @@ module AttributeSchema
     class KeyString < String
     end
 
+    def placeholder(type)
+      obj = @factory[type.name]  # INIT
+      k = ClassKey(obj.schema_class)
+      if k then
+        # TODO: for each type
+        # it's ugly, but seems to work.
+        obj[k.name] = KeyString.new
+      end
+      return obj
+    end
+
     def eval_object_attribute(attr, recv, env, args, &block)
       key = [recv, attr.name, args]
 
-      # Don't fix objects; they stabilize badly...
-
-
-#       if recv.is_a?(Stub) then
-#         @memo.each do |old_key, obj|
-#           if obj == recv && old_key[1] == attr.name && old_key[2] == args then
-#             yield recv, env
-#             return
-#           end
-#         end
-#       end
+      ###################
+      # Don't fix objects;
+      # now does not work transitive closure
 
 #       if !@memo[key] then
 #         new_env = bind_formals(attr, env, args)
-#         @memo[key] = @factory[attr.type.name]
+#         @memo[key] = placeholder(attr.type)
 #         eval(attr.result, recv, new_env) do |new, _|
 #           @memo[key].become!(new)
 #         end
@@ -321,14 +317,7 @@ module AttributeSchema
 
       new_env = bind_formals(attr, env, args)
       if !@memo[key] then
-        obj = @factory[attr.type.name]  # INIT
-        @memo[key] = obj
-        k = ClassKey(obj.schema_class)
-        if k then
-          # TODO: for each type
-          # it's ugly, but seems to work.
-          obj[k.name] = KeyString.new
-        end
+        @memo[key] = placeholder(attr.type)
       end
       if !@IN_CIRCLE then
         @IN_CIRCLE = true
@@ -448,7 +437,7 @@ module AttributeSchema
     end
 
     def IfThen(this, recv, env, &block)
-      eval_conds(this.conds, recv, env) do |_, env|
+      eval_conds(this.conds, recv, env) do |x, env|
         return eval_seq(this.body, recv, env, &block) 
       end
 
@@ -491,14 +480,14 @@ module AttributeSchema
 
     def Unary(this, recv, env, &block)
       eval(this.arg, recv, env) do |arg, _|
-        yield send(@op_map[this.op], arg), env
+        yield arg.send(this.op), env
       end
     end
 
     def Binary(this, recv, env, &block)
       eval(this.lhs, recv, env) do |lhs, _|
         eval(this.rhs, recv, env) do |rhs, _|
-          yield send(@op_map[this.op], lhs, rhs), env
+          yield lhs.send(this.op, rhs), env
         end
       end
     end
@@ -515,20 +504,6 @@ module AttributeSchema
       yield this.value, env
     end
 
-    # operators and functions
-
-
-    def add(a, b) a + b; end
-    def sub(a, b) a - b; end
-    def mul(a, b) a * b; end
-    def div(a, b) a / b; end
-
-    def eq(a, b) a == b; end
-    def gt(a, b) a > b; end
-    def lt(a, b) a < b; end
-    def geq(a, b) a >= b; end
-    def leq(a, b) a <= b; end
-      
 
     def min(*x)
       x.inject(x.first) do |cur, y|

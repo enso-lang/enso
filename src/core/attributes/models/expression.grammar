@@ -46,11 +46,11 @@ Argument ::= [Splat] "*" arg:Expression
 
 Value ::= [Int] value:int
        | [Str] value:str
-       | [Bool] Bool
+       | Bool
 
 
-Bool ::= [Bool] "true" @"value = true"
-      |  [Bool] "false" @"value = false"
+Bool ::= [Bool] "true" @"@value = true"
+      |  [Bool] "false" @"@value = false"
 
 Assign ::= [Assign] name:sym ":" expressions:{Expression ","}*
 
