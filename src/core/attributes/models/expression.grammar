@@ -14,7 +14,8 @@ Expression ::= [Variable] name:sym
 	    | [Update] obj:Expression "[" contents:{Assign ";"}* "]"
 	    | [Dot]  obj:Expression "->" field:sym
 
-	    | [Unary] op:"!" arg:Expression
+	    | [Not] "!" arg:Expression // is special
+
 	    | [Binary] lhs:Expression op:"+" rhs:Expression
 	    | [Binary] lhs:Expression op:"*" rhs:Expression
 	    | [Binary] lhs:Expression op:"==" rhs:Expression
@@ -54,7 +55,7 @@ Bool ::= [Bool] "true" @"@value = true"
 
 Assign ::= [Assign] name:sym ":" expressions:{Expression ","}*
 
-ElsIf ::= [IfThen] "elsif" cond:Expression "then" Body
+ElsIf ::= [IfThen] "elsif" conds:{Condition ","}+  "then" Body
 Else ::= [Else] "else" Body
 
 Condition ::= Expression
