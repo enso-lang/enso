@@ -20,7 +20,9 @@ class Print
   end
     
   def print(obj, indent=0, back_link=nil)
-    if obj.nil?
+    if !obj.respond_to?(:schema_class) then
+      @output << "#{obj}\n"
+    elsif obj.nil?
       @output << "nil\n"
     else
       klass = obj.schema_class   # TODO: pass as an argument for partial evaluation
