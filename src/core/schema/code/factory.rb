@@ -91,6 +91,13 @@ module CheckedObjectMixin
     @_id = obj._id
   end
 
+
+  # NB: JRuby --1.9 requires this: in it Object#type still exists
+  # (although deprecated) so our method_missing does not fire.
+  def type
+    @hash['type']
+  end
+
   def clone
     obj = @factory[schema_class.name]
     obj.become!(self)
