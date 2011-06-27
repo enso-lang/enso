@@ -28,29 +28,57 @@ class Assign
   !expressions: Expression*
 end
 
-class Int < Expression
+class Value < Expression
+end
+
+class Int < Value
   value: int
 end
 
-class Str < Expression
+class Str < Value
   value: str
 end
 
-class Bool < Expression
+class Bool < Value
   value: bool
 end
 
+class Not < Expression
+  arg: Expression
+end
+
+class Operator < Expression
+  op: str
+end
+
+
+class Unary < Operator
+  !arg: Expression
+end
+
+class Binary < Operator
+  !lhs: Expression
+  !rhs: Expression
+end
+
 class Cond < Expression
-  !cond: Expression
-  !body: Expression
+  !conds: Expression+
+  !body: Expression+
+end
+
+class For < Cond
 end
 
 class IfThen < Cond
   !elsifs: ElsIf*
-  !else: Expression
+  !else: Else?
 end
 
 class ElsIf < Cond
+end
+
+class Else 
+  !body: Expression+
 end
 
 class Call < Expression
@@ -58,13 +86,12 @@ class Call < Expression
   !args: Expression*
 end
 
-class Lookup < Access
-  !key: Expression
+class Splat < Expression
+  !arg: Expression
 end
 
-class Collection < Expression
-  !elements: Expression*
-  ordered: bool
+class Lookup < Access
+  !key: Expression
 end
 
 class Content
@@ -75,17 +102,21 @@ class Update < Expression
   !contents: Content+
 end
 
-class Comprehension < Expression
-  !results: Expression+
-  !conditions: Condition+
-  ordered: bool
-  first: bool
-end
-
 class Condition
 end
 
 class Generator < Condition
   var: str
+  !expression: Expression
+end
+
+class Let < Expression
+  !bindings: Binding+
+  !body: Expression+
+end
+
+class Binding
+  name: str
+  many: bool
   !expression: Expression
 end

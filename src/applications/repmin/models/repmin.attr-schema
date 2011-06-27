@@ -5,12 +5,12 @@ class Tree
   @globmin: int = if parent then parent->globmin else locmin end
 end
 
-class Fork
+class Fork < Tree
   @repmin: Tree = Fork {kids: kids->repmin }
-  @locmin: int = min(kids->locmin)
+  @locmin: int = min(*kids->locmin)
 end
 
-class Leaf
+class Leaf < Tree
   @repmin: Tree = Leaf {value: globmin}
   @locmin: int = value
 end

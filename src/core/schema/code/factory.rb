@@ -75,91 +75,41 @@ class Factory
   end
 end
 
-class CheckedObject
-
+module CheckedObjectMixin
   attr_reader :schema_class
   attr_reader :factory
   attr_reader :_id
   attr_accessor :_origin
   attr_reader :_origin_of
-
-  @@_id = 0
   
+  def become!(obj)
+    @factory = obj._graph_id
+    @hash = obj._hash
+    @_origin_of = obj._origin_of
+    @_origin = obj._origin
+    @schema_class = obj.schema_class
+    @_id = obj._id
+  end
+
+  def clone
+    obj = @factory[schema_class.name]
+    obj.become!(self)
+    return obj
+  end
+
+  def semantic_equal?(obj)
+    # NB: this depends on ManyFields performing
+    # equality of their elements.
+    obj._hash == @hash
+  end
+
   def _graph_id
     @factory
   end
 
   def _hash
     @hash
-  end
-
-  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
-    @_id = @@_id += 1
-    @hash = {}
-    @_origin_of = OpenStruct.new
-    @schema_class = schema_class
-    @factory = factory
-    schema_class.fields.each do |field|
-      if field.many
-        # TODO: check for primitive many-valued???
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = ManyField.new(self, field)
-        end
-      end
-    end
-  end
-
-  def assimilate!(obj)
-    # TODO:
-    raise "Must be from same factory" if obj._graph_id != _graph_id
-    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
-
-    @hash.clear
-    obj.schema_class.fields.each do |field|
-      if field.many
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = ManyField.new(self, field)
-        end
-        obj[field.name].each do |x|
-          @hash[field.name] << x
-        end
-      else
-        @hash[k] = v
-      end
-    end
-
-    @_origin_of = obj._origin_of
-    @_origin = obj._origin
-    @schema_class = obj.schema_class
-    @_id =  @@_id += 1 #obj._id ???
-  end
-
-
-  # TODO: write one that returns true upon changes
-  # and false is obj is equal to self
-  def become!(obj)
-    raise "Must be from same factory" if obj._graph_id != _graph_id
-    raise "Target must be subtype" unless _subtypeOf(obj.schema_class, schema_class)
-
-    @schema_class = obj.schema_class
-
-    @hash.clear
-    obj.schema_class.fields.each do |field|
-      @hash[field.name] = obj[field.name]
-    end
-
-    @_origin_of = obj._origin_of
-    @_origin = obj._origin
-    @_id =  @@_id += 1 #obj._id ???
-  end
-      
-    
+  end    
   
   def hash
     @_id
@@ -224,7 +174,7 @@ class CheckedObject
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
-        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject)
+        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
         unless _subtypeOf(new.schema_class, field.type)
           puts "a: #{new.schema_class.supers}"
@@ -310,6 +260,32 @@ class CheckedObject
   end  
 end
 
+class CheckedObject 
+  include CheckedObjectMixin
+
+  @@_id = 0
+
+  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
+    @_id = @@_id += 1
+    @hash = {}
+    @_origin_of = OpenStruct.new
+    @schema_class = schema_class
+    @factory = factory
+    schema_class.fields.each do |field|
+      if field.many
+        # TODO: check for primitive many-valued???
+        key = ClassKey(field.type)
+        if key
+          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
+        else
+          @hash[field.name] = ManyField.new(self, field)
+        end
+      end
+    end
+  end
+
+end
+
 
 class BaseManyField 
   include Enumerable
@@ -344,9 +320,24 @@ class ManyIndexedField < BaseManyField
     @hash = {}
     @key = key
   end
+
+  def include?(x)
+    !@hash[x.send(@key)].nil?
+  end
   
   def [](x)
     @hash[x]
+  end
+
+  def ==(o)
+    return false unless o.length == length
+    each do |x|
+      return false unless o.include?(x)
+    end
+    o.each do |x|
+      return false unless include?(x)
+    end
+    return true
   end
   
   def length
@@ -453,6 +444,10 @@ class ManyField < BaseManyField
   def length
     @list.length
   end
+
+  def include?(x)
+    @list.include?(x)
+  end
   
   def nil?
     false
@@ -460,6 +455,14 @@ class ManyField < BaseManyField
   
   def last
     @list.last
+  end
+
+  def ==(o)
+    return false if o.length != length
+    @list.each_with_index do |x, i|
+      return false if x != o[i]
+    end
+    return true
   end
   
   def <<(v)

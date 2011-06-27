@@ -4,7 +4,11 @@ start Graph
 
 Graph ::= [Graph] "graph" "{" nodes:Node* edges:Edge* "}"
 
-Node ::= [Node] "node" name:sym
+Node ::= [Node] "node" name:sym Number?
 
-Edge ::= [Edge] "edge" from:Node^ "->" to:Node^
+Number ::= "(" value:int ")"
+
+Edge ::= [Edge] "edge" from:Node^ "->" to:Node^ Label?
+
+Label ::= "(" label:sym ")"
 

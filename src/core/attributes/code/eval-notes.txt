@@ -1,0 +1,262 @@
+
+
+The idea is: attributes "render" into a schema-typed "canvas".
+
+- Automatic mapping of attr-eval over collections
+- Automatic splicing (nevert construct nested collections)
+- Sequencing using ; is concatenation of output
+- for loop is the same as a comprehension value
+- let/if capture the (single!) result of an expression
+- let is letrec
+- comperehension [|], {|} and (|) (= find)
+   (may be just [|] or {|} since type of collection is schema defined)
+- objects passed from source to target model are automatically copied
+  using the target factory.
+- if an attribute is not defined for an object, nil/unit/empty is
+  produced (so in a collection through splicing, it won't be there).
+- generators are conditions in if's etc. too (can be specialized 
+  for type: Field f <- contents), and it binds.
+- rendering into a keyed collection automatically merges (!) elements
+  with the same key????? Do we want this? Can there be references
+  to the new thing merged into the already existing object?
+- generators also work on single valued things f <- c.fields[name]
+- if is exists + binding, for is all + binding
+- obj[assignment*] to non-destructively update fields in an object
+- in field assignments, many-valued elts are separated by , no [], or {}
+
+- short hands
+ any(alts.nullable) // short for
+                    if a <- alts, a.nullable then
+                       true
+                    else 
+                       false
+                    end
+- may introduce a fix operator fix(first) with optional init value?
+   then the fixpoint stuff is explicit:
+    if !in_fix
+      out << init
+      in_fix = true
+      while change
+        out << eval(recv, fix.exp)
+      end
+      in_fix = false
+    end
+    
+- break to terminate loop
+
+
+
+Example use cases
+
+----------------------------------------
+- Simply cyclic attributes
+  This is solved using attribute memoization and pre-creation, 
+  then evaluating the attribute and letting the memoized object
+  become! the result (possibly later)
+
+class Type
+  @node: Node = Node {name: name}
+end
+
+class Klass
+  @edges: Edge* = defined_fields->edge
+end
+
+class Field
+  @edge: Edge = Edge {from: owner->node; to: type->node}
+end
+
+---------------------------------------------
+- let-rec (here don't have to memoize/eval keys
+   because we can just construct all bindings
+   and then run the assignments. What about constructions
+   nested (i.e. non top-level binding expressions)?
+
+let
+  x = Foo {x: x, y: y}
+  y = Bar {x: x}
+in 
+   ...
+
+---------------------------------------------
+- sharing/cycles through ordinary creation
+  say we have collection of n objects that are mapped
+  the same number of different objects where each
+  object has a pointer to a shared root
+
+class Top
+ @result = Bla {foos: foos.result, root: Baz {name: Baz}}
+end
+
+class Foo
+ @result = Bar {y: x, parent: Baz {name: "Baz"}}
+end
+
+in this case we would not like to have n Baz instances
+ (which would in a sense be impossible since we assume
+  here that name is a key) but every Bar should point
+  to the same, shared, object. Note that name in this 
+  case must be the only key here; otherwise Baz {name: "Baz"}
+  should be added to a keyed collection somewhere else. 
+  Is this possible at all then? Should all keyed objects
+  (eventually) end up in some collection? It seems so,
+  we cannot decide here, which one it will be, though. In this case,
+  if name is the *only* key, we could maintain a table since
+  the key is then globally unique. 
+  But what if it isn't, (like field).... then, I think, it should
+  be an error: because it actually means there could be two
+  Baz's with name: Baz, since the (as of yet) missing key would
+  discriminate them. Just like we could have two fields with the same
+  name. Ergo, keys should be completely evaluated upon construction. 
+  But then grammar2schema, for instance would not work: if we
+  instantiate the Primitive klass for a Value, the schema is not there
+  yet, and schema is a key! So upon creation, if a (non-prim) key is
+  still nil, we create a stub.
+
+Another way: do not automatically share objects, but let the user use
+let and argumnents to explicitly do sharing. E.g.:
+
+class Top
+ @result: Bla = let root = Baz {name: Baz} in
+               Bla {foos: foos.result(root), root: root}
+           end
+end
+
+class Foo
+ @result(root): Bar = Bar {y: x, parent: root}
+end
+
+
+---------------------------------------------
+ - fixpoints, a la dataflow equations, nullable, first and follow etc.
+
+....
+
+=================================================================
+
+What do we want???
+- the smallest model that is an instance of the target schema
+  and satisfies the constraints of the equations. This notion of
+  smallest means that there will be sharing where possible... 
+  basically it means no two objects with the same key(s) will exist
+  in the system.
+
+Idea: as soon as objects become key-stable (??) merge/unify them if
+there are duplicates...
+
+Precondition: there must be a class in the cycle that has no class
+keys (i.e. no keys that are of class type).
+
+NB: basically if you create an object with the same key (the class has
+a key) for the second time, you get the one created earlier. This
+allows any object to be successively enriched. 
+
+Q: can an object have itself as key? NO! 
+
+Instantiate object:
+
+ Invoke constructor and get X of class C
+ evaluate assignments to primitive fields (or only the key field?)
+
+---
+ if the keys are still nil, then schedule them for merging if they
+ are added to a keyed collection (throw otherwise). But now there may
+ be references to both things... But how to get a pointer to it
+ anyway?
+ it is not in a collection yet, so the only way to get to it is
+ through attribute evaluation. 
+ Then maybe, is merging upon adding to collection/or setting to field
+ enough?
+  let x be the new obj, (if there are no keys, you cannot add, except
+ to lists many fields, no keys/or nil keys, and keyed coll: error).
+
+  if key(x) in dom(y.coll), then y.coll[key(x)].become!(x) else add
+  if key(y.z) == key(x) then y.z.become!(x) else set!
+  
+
+NB: all refs to something are produced using either field or attr
+access, so they will refer to the objects of the previous round.
+
+Three aspects that have to be integrated
+  - caching/sharing/merging of created objects
+  - memoization of attributes, including pre-creating objects to
+  resolve cycles, and merging/become upon return
+  - fixpoints
+
+---
+
+ if the class has a primitive (can it have a non-primitive key?) key:
+   lookup in the memo table if a similarly-keyed object already exists
+      the key in the memo table is a pair (u, v)
+        u = the (super-)class X that defines the key field
+        v = the key value of X
+      if it already exists as Y
+        run Y.becomes!(X)
+      else (not in memo)
+        put X in memo under (u, v)
+   run all assignments to non-primitive fields on memo[u, v]
+else if it does not have key
+   run the other field assignments on X
+   do not memoize (since we don't have key)
+
+
+Eval attribute:
+  let recv be the receiver, a the attribute
+  if a is a field
+    return recv[a]
+
+  if memo[recv, a] && !in_circle then
+    return memo[recv,a]
+
+  if memo[recv, a] && in_circle then
+    x = eval a in the context of recv
+    if x == memo[recv, a]
+      return x
+    else 
+      do {
+        memo[recv, a] = x
+        x = eval a in the context of recv
+      } while (x != memo[recv, a])
+    end
+      
+
+  if a has primitive type t
+    put bottom(t) in mem[recv,a] // todo user specified
+    in_circle = true
+    evaluate the body of a in the context of recv
+
+ 
+
+JastAdd
+
+if computed[recv, a]
+  return memo[recv, a]
+
+if !IN_CIRC
+  IN_CIRC = true
+  visited[recv,a] = true
+  do 
+     change[recv, a] = false
+     new = eval(recv, a.body)
+     if new != memo[recv,a]
+       change[recv, a] = true
+     memo[recv, a] = new
+  while change;
+  visited[recv, a] = false
+  IN_CIRC = false
+  return memo[recv, a]
+elsif !visited[recv, a]
+  visited[recv, a] = true
+  new = eval(recv, a.body)
+  if new != memo[recv, a] then
+     change[recv, a] = true
+  memo[recv, a] = new
+  visited[recv, a] = false
+end
+
+return memo[recv, a]
+
+  
+
+  
+ 

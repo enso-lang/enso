@@ -1,0 +1,36 @@
+
+
+primitive int
+
+class Graph
+  @add: int = sum(*root->collect->value)
+  @globmin: int = root->globmin
+  @odds: Graph =   if o <- root->odds then
+                      Graph {root: o; nodes: nodes->odds}
+                   else // no odds
+                      Graph {root: Node {name: "root"; out: }; nodes: }
+                   end
+   @trc: Graph = Graph {root: root->trc; nodes: nodes->trc}
+   @mul2: Graph = Graph {root: root->mul2; nodes: nodes->mul2}
+end
+
+
+class Node
+  @collect: Node* = if true then 
+                      Node {name: name; value: value; out: out};
+		      out->collect
+		    end
+		      
+  @add: int (0) = value + sum(*out->add)
+  @globmin: int (1000) = min(value, *out->globmin)
+  @odds: Node* = if odd(value) then
+                    self[out: out->odds]
+		 else
+		    out->odds
+		 end
+
+  @trc: Node = Node {name: name; value: value; out: out, out->trc->out }
+  @mul2: Node = Node {name: name; value: value * 2; out: out->mul2}
+end
+
+

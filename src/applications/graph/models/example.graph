@@ -1,0 +1,10 @@
+
+graph { 
+    node x (10)
+    node y (2)
+    node z (4)
+    edge x -> y
+    edge y -> z
+    edge z -> x
+    edge x -> z
+}

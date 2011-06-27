@@ -1,12 +1,7 @@
 
 
 class Schema
-  @temp = self[types: { *t.temp, *t.stat | t <- types } +
-end
-
-class Primitive
-  @temp = Klass { name: name; supers: { EXP } }
-  @stat = {} 
+  @temp = self[types: types + { t.temp, t.stat | t <- classes }]
 end
 
 
