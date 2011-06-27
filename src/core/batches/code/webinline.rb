@@ -115,6 +115,8 @@ class WebInline
   end
 
   def Call(this, env, out)
+    puts "Calling:"
+    Print.print(this)
     func = eval_exp(this.exp, env)
     if !func then
       tag(func.name, {}, out) do
@@ -123,6 +125,7 @@ class WebInline
     else
       func.apply(this.args, this.block, env, out)
     end
+    puts "End Call"
   end
 
   def Block(this, env, out)

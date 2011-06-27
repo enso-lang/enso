@@ -1,0 +1,61 @@
+primitive int
+primitive str
+primitive real
+primitive bool
+
+class Category
+    #CategoryID: int
+    CategoryName: str
+    Description: str
+    Picture: str
+    Products: Product*
+end
+
+class Customer
+	#CustomerID: str
+	CompanyName: str
+	ContactName: str
+	Country: str
+	Orders: Order*
+	Region: str
+end
+
+class Northwind
+	Categories: Category*
+	Products: Product*
+	Suppliers: Supplier*
+	Customers: Customer*
+	Orders: Order*
+end
+
+class Order_Details
+	Order: Order / Order.OrderDetails
+	Product: Product
+	UnitPrice: real
+	Quantity: int
+	Discount: real
+end
+
+class Order
+	#OrderID: int
+	OrderDate: int
+    RequiredDate: int
+    ShippedDate: int
+	Customer: Customer / Customer.Orders
+	OrderDetails: Order_Details*
+    Freight: int
+end
+
+class Product
+    int #ProductID: int
+    ProductName: str
+    QuantityPerUnit: str
+    UnitPrice: real
+    UnitsInStock: int
+    UnitsOnOrder: int
+    int ReorderLevel: int
+    Discontinued: bool
+    Category: Category / Category.Products
+    Supplier: Supplier
+    OrderDetails: Order_Details*
+end

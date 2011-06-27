@@ -36,10 +36,14 @@ class SecureBatch
     # Write Permissions
     #------------------
     #what do i need to update these fields?
-    update_fields = query.fields.reduce(nil) do |conj, f|
+    tmp = []
+    query.fields.each do |f|
       exp = Copy(queryfact,securityobj.get_allow_constraints("OpUpdate", classname, f.name))
-      conj.nil? ? exp : queryfact.EBinOp('and', conj, exp)
+      wf = queryfact.ComputedField("_write_"+f.name)
+      wf.expr = exp
+      tmp << wf
     end
+    tmp.each {|wf| query.fields << wf}
 
     query.fields.each do |f|
       secure_transform!(f.query, securityobj) unless f.query.nil?
