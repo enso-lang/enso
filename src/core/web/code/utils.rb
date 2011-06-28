@@ -1,88 +1,80 @@
 
+require 'core/web/code/helpers'
 
 module WebUtils
+  include Helpers
 
-  def defines?(name)
-    @env[name]
-  end
-  
-  def eval_req(name, params, out)
-    env = {}.update(@env)
-    news = {}
-    params.each do |k, v|
-      if v =~ /^\./ then
-        env[k] = Result.new(deref(@root, v), v)
-      elsif v =~ /^@/ then
-        obj, _ = create(v, @root._graph_id, news)
-        log.debug "Converting param: #{k}  #{v}"
-        # it cannot have subpaths, since it is new
-        # so the path is actually v itself
-        env[k] = Result.new(obj, v)
-      else
-        env[k] = Result.new(v)
-      end
-    end
-    env[name].value.run(env, out)
-  end
-
-  def handle_submit(params, out)
+  def eval_req(name, url, params, out)
     params.each do |k, v|
       log.debug "VAR: #{k}: #{v}"
     end
 
-    key = params.keys.find do |name|
-      # todo factor this sigil out and reuse it also with gensym
-      name =~ /^\$\$/
+    env = {}.update(@env)
+    news = {}
+    params.each do |k, v|
+      # assert k is simple name, not a ref with paths
+      # because they are formals
+      env[k] = v.deref(@root)
     end
-    url = params["redirect_#{key}"]
+    env['self'] = Result.new(url)
+    env['errors'] = Result.new({})
+    env[name].value.run(env, out)
+  end
 
-    # update the assignments    
-    # and create new objects
+  def handle_submit(url, params, out)
+    errors = {}
 
     # first create new objects and assign values
     news = {}
     params.each do |k, v|
-      if k =~ /^@/ then
-        obj, path = create(k, @root._graph_id, news)
-        update(obj, path, v, news)
-      end
+      lv = k.deref(@root, news)
+      rv = v.deref(@root, news)
+      lv.update(rv)
     end
 
-    # then do additional assignments
+    # then execute actions
     params.each do |k, v|
-      if k !~ /^@/ && k !~ /^!/ then
-        update(@root, k, v, news)
-      end
-    end
-
-    # then deletions
-    params.each do |k, v|
-      if k =~ /^!/ then
-        coll = deref(@root, k[1..-1]) # strip !
-        v.each do |key, flag| 
-          if !flag.empty? then
-            log.debug "Deleting #{key} from #{k}"
-            x = coll[convert_key(key)]
-            coll.delete(x)
-          else
-            log.debug "Not deleting #{key}"
-          end
+      if action_ref?(k) then
+        begin
+          handle_action(action(k), action_args(v))
+        rescue Redirect => e
+          return e.link
         end
       end
     end
 
-    return url
+    rerender(url, errors, params, news, out)
+    return nil
   end
 
 
-  def tag(name, attrs, out)
-    out << "<#{name}"
-    attrs.each do |k, v|
-      out << " #{k}=\"#{@coder.encode(v)}\""
+  def field_ref?(key)
+    key =~ /^./
+  end
+
+  def new_ref?(key)
+    key =~ /^@/
+  end
+
+  def action_ref?(key)
+    key =~ /^action\(.+\)$/
+  end
+
+  def action(key)
+    return $1 if key =~ /^action\((.+)\)$/
+  end
+
+  def action_args(value)
+    # TODO? this means : should not occur in 
+    # the values themselves...
+    value.split(/:/)
+  end
+
+  def handle_action(name, args, params)
+    args = args.map do |arg|
+      deref(@root, v, news)
     end
-    out << ">"
-    yield
-    out << "</#{name}>"
+    actions.send(ac, *args, params)
   end
 
   def convert(field, value)
@@ -101,14 +93,6 @@ module WebUtils
       # TODO: this uses @root directly...
       deref(@root, value)
     end
-  end
-
-  def deref(obj, ref)
-    log.debug "Dereffing: #{ref}"
-    return obj unless ref
-    return obj if ref.empty?
-    key, ref = deref1(ref)
-    deref(obj[key], ref)
   end
 
   def deref1(ref)
@@ -144,12 +128,10 @@ module WebUtils
   # deref, except it has to traverse the 
   # hashes (representing the path) at the same time
   def update(obj, k, v, news)
-    return update_new(k, v) if k =~ /^@/
-
-    fn, _ = deref1(k)
-    return unless fn
-
+    return update_new(k, v) if new_ref?(k)
+    fn = deref1(obj, k)
     log.debug "Updating: #{fn} in #{obj} to #{v}"
+    v = deref(obj, v) if field_ref?(v)
 
     fld = obj.schema_class.fields[fn]
 

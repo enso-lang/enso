@@ -33,11 +33,18 @@ def html(title, yield[]) {
 
 
 def navigate(title, page) {
-  <a href=link(page)>$title</a>
+  <a href=page>$title</a>
 }
 
 def textedit(data) {
-  <input name=address(data) type="text" value=data/>
+  let
+    key = address(data)
+  in {
+    if (errors[key]) {
+      <span style="color: red;">$errors[key]</span>
+    }
+    <input name=key type="text" value=data/>
+  }
 }
 
 def crud(obj, return) {
@@ -104,34 +111,35 @@ def checkbox(data) {
 }
 
 def form(yield[]) {
-  <form action="/$submit" method="post">
+  <form action=self method="post">
     yield();
   </form>
 }
 
-def submit(text, action) {
-  let
+
+def button(text, action) {
+  let 
     name = gensym
   in {
-    <input type="hidden" name="redirect_" + name value=link(action)/>
-    <input type="submit" name=name value=text /> 
+     <input type="submit" name=name value=text /> 
+     doif name action;
   }
 }
 
-
-def delete(x, action) {
- let
-    name = gensym
-    delfield = "!" + address(x)
-
-    // yegh, need precedence handling
-    a = "document.getElementById('" + delfield
-    event = a  + "').value='true'; this.form.submit();"
- in {
-    <input type="hidden" id=delfield name=delfield value=""/>
-    <input type="hidden" name="redirect_" + name value=link(action)/>
-    <input type="hidden" name=name/>
-    <input type="button" value="Delete" onclick=event/>
- }
+def submit(text, url) {
+  button(text, submit_action(url));
 }
 
+
+def delete(x, url) {
+  button("Delete", delete_action(x, url));
+}
+
+def delete_checkbox(x) {
+  let
+    name = gensym
+  in {
+    <input type="checkbox" name=name value="true"/>
+    doif name check_delete(x);
+  }
+}

@@ -1,7 +1,7 @@
 
 
 require 'core/system/load/load'
-require 'core/web/code/eval'
+require 'core/web/code/ensoweb'
 
 require 'rack'
 
@@ -24,31 +24,34 @@ class Stream
 end
 
 
+
 class Toplevel
   def initialize(web, root, log)
-    @eval = EvalWeb.new(web, root, log)
+    @ew = EnsoWeb.new(web, root, log)
   end
 
   def call(env, stream = Stream.new)
     req = Rack::Request.new(env)
-    name = req.path_info[1..-1]
-    params = req.params
-    if @eval.defines?(name) then
-      @eval.eval_req(name, params, stream)
-      respond(stream)
-    elsif name == '$submit' then
-      url = @eval.handle_submit(params, stream)
-      redirect(url)
+    begin
+      @ew.handle(req, stream)
+    rescue Redirect => e
+      redirect(e.link)
+    rescue Exception => e
+      stream << "<pre>#{e.to_s}\n"
+      e.backtrace.each do |x|
+        stream << "#{x}\n"
+      end
+      not_found(stream)
     else
-      not_found(name)
+      respond(stream)
     end
   end
 
-  def not_found(name)
+  def not_found(msg)
     [404, {
      'Content-type' => 'text/html',
-     'Content-Length' => name.length.to_s
-     }, [name]]
+     'Content-Length' => msg.length.to_s
+     }, msg]
   end
 
   def redirect(url)
@@ -67,6 +70,7 @@ class Toplevel
       'Content-Length' => stream.length.to_s,
      }, stream]
   end
+
 
 end
 

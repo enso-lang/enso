@@ -160,9 +160,6 @@ class In < Exp
   !rhs: Exp
 end
 
-class GenSym < Exp
-end
-
 class List < Exp
   !elements: Exp*
 end
@@ -170,3 +167,6 @@ end
 class New < Exp
   \class: str
 end
+
+
+// skdjaksdj

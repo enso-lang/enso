@@ -1,6 +1,4 @@
 
-require 'htmlentities'
-require 'uri'
 
 require 'core/system/library/schema'
 require 'core/system/load/load'
@@ -9,28 +7,22 @@ require 'core/web/code/closure'
 require 'core/web/code/utils'
 
 class EvalWeb
-  include WebUtils
-
   attr_reader :log
   
   PRELUDE_NAME = 'prelude'
   PRELUDE = Loader.load("#{PRELUDE_NAME}.web")
   
-  def initialize(web, root, log)
+  def initialize(web, root, actions, log)
     @web = web
     @root = root
+    @actions = actions
     @imports = {}
-    @coder = HTMLEntities.new
     @log = log
-    @eval_exp = EvalExp.new(root, @log)
+    @eval_exp = EvalExp.new(root, @actions, @log)
     @env = {}
-    import_prelude(@env)
-    eval(web, @env)
-  end
-
-  def import_prelude(env)
     @imports[PRELUDE_NAME] = PRELUDE
-    eval(PRELUDE, env)
+    eval(PRELUDE, @env)
+    eval(web, @env)
   end
 
   def eval(obj, *args)
@@ -67,7 +59,7 @@ class EvalWeb
   def Element(this, env, out)
     attrs = {}
     this.attrs.each do |attr|
-      attrs[attr.name] = eval_exp(attr.exp, env).value
+      attrs[attr.name] = eval_exp(attr.exp, env)
     end
     tag(this.tag, attrs, out) do
       this.body.each do |stat|
@@ -77,8 +69,8 @@ class EvalWeb
   end
 
   def Output(this, env, out)
-    r = eval_exp(this.exp, env)
-    out << @coder.encode(r.value)
+    result = eval_exp(this.exp, env)
+    result.render(out)
   end
 
   def For(this, env, out) 
@@ -91,6 +83,7 @@ class EvalWeb
         # NB: the list contains Result objects.
         nenv[this.var] = Result.new(v.value, v.path)
       else
+        # TODO: add each_with_index to ManyField
         key_field = ClassKey(v.schema_class)
         key = key_field ? v[key_field.name] : i
         nenv[this.var] = Result.new(v, r.path + "[#{key}]")
@@ -98,6 +91,12 @@ class EvalWeb
       nenv[this.index] = Result.new(i) if this.index
       eval(this.body, nenv, out)
     end
+  end
+
+  def Do(this, env, out)
+    action = eval_exp(this.call)
+    cond = this.cond && eval_exp(this.cond)
+    action.render(out, cond)
   end
 
   def If(this, env, out)
@@ -112,7 +111,7 @@ class EvalWeb
   def Let(this, env, out)
     nenv = {}.update(env)
     this.decls.each do |assign|
-      log.debug "Evaling assingment to: #{assign.name}"
+      log.debug "Evaling assignment to: #{assign.name}"
       # NB: use nenv, so basically let is let*
       nenv[assign.name] = eval_exp(assign.exp, nenv)
     end
@@ -121,12 +120,10 @@ class EvalWeb
 
   def Call(this, env, out)
     func = eval_exp(this.exp, env).value
-    if !func then
-      tag(func.name, {}, out) do 
-        eval(this.block, env, out) if this.block
-      end
-    else
+    if func then
       func.apply(this.args, this.block, env, out)
+    else
+      log.warn("Undefined template function: #{this.name}")
     end
   end
 
