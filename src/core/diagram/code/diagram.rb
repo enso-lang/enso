@@ -1,56 +1,54 @@
-
 require 'wx'
 include Wx
+
+require 'core/diagram/code/base_window'
 require 'core/diagram/code/constraints'
 
-def ViewDiagram(content)
-  Wx::App.run { DiagramFrame.new(content).show }
-end
-
-class Pnt
-  def initialize(x, y)
-    @x = x
-    @y = y
+def RunDiagramApp(content = nil)
+  Wx::App.run do
+    win = DiagramFrame.new
+    win.set_root content if content
+    win.show 
   end
-  attr_accessor :x, :y
 end
 
-class Rect
-  def initialize(x, y, w, h)
-    @x = x
-    @y = y
-    @w = w
-    @h = h
-  end
-  attr_accessor :x, :y, :w, :h
-end
-
-class DiagramFrame < Wx::Frame
-  def initialize(root)
-    super(nil, :title => 'Diagram')
+class DiagramFrame < BaseWindow
+  def initialize(title = 'Diagram')
+    super(title)
     evt_paint :on_paint
     evt_left_dclick :on_double_click
     evt_left_down :on_mouse_down
     evt_motion :on_move
     evt_left_up :on_mouse_up
 
+    @menu_id = 0
     @move_selection = nil
-    set_root(root)
-    @depth = 0
   end
-
-  def clear_refresh
-    refresh
-    @cs = ConstraintSystem.new
-    @positions = {}
+  
+  attr_accessor :listener
+  
+  def on_open
+    dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;")
+    if dialog.show_modal() == ID_OK
+      path = dialog.get_path
+      extension = File.extname(path)
+      raise "File is not a diagram" if extension != "diagram"
+      content = Load(dialog.get_path())
+      set_root(content)
+    end
   end
-      
+  
   def set_root(root)
     #puts "ROOT #{root.class}"
     @root = root
     clear_refresh
   end
 
+  def clear_refresh
+    refresh
+    @cs = ConstraintSystem.new
+    @positions = {}
+  end      
   
   # ------- event handling -------  
   def on_double_click(e)
@@ -76,7 +74,9 @@ class DiagramFrame < Wx::Frame
   def on_mouse_down(e)
     need_refresh = false
     if @edit_control
-      @edit_selection.string = @edit_control.get_value()
+      new_text = @edit_control.get_value()
+      @edit_selection.string = new_text
+      @listener.notify_change(@edit_selection, new_text) if @listener
       @edit_control.destroy
       need_refresh = true
       @edit_selection = nil
@@ -289,43 +289,41 @@ class DiagramFrame < Wx::Frame
   #  --- helper functions ---
   def with_styles(part)
     return if part.nil?
-    @depth = @depth + 1
     oldPen = oldFont = oldBrush = oldForeground = nil
     part.styles.each do |style|
       if style.Pen?
         oldPen = @pen
-        @dc.set_pen(Pen(@pen = style))
+        @dc.set_pen(makePen(@pen = style))
       elsif style.Font?
         oldFont = @font
         oldForeground = @dc.get_text_foreground unless oldForeground
-        @dc.set_text_foreground(Color(style.color))
-        @dc.set_font(Font(@font = style))
+        @dc.set_text_foreground(makeColor(style.color))
+        @dc.set_font(makeFont(@font = style))
       elsif style.Brush?
         oldBrush = @brush
-        @dc.set_brush(Brush(@brush = style))
+        @dc.set_brush(makeBrush(@brush = style))
       end
     end
     yield
-    @dc.set_pen(Pen(oldPen)) if oldPen
+    @dc.set_pen(makePen(oldPen)) if oldPen
     @dc.set_text_foreground(oldForeground) if oldForeground
-    @dc.set_font(Font(oldFont)) if oldFont
-    @dc.set_brush(Brush(oldBrush)) if oldBrush
-    @depth = @depth - 1
+    @dc.set_font(makeFont(oldFont)) if oldFont
+    @dc.set_brush(makeBrush(oldBrush)) if oldBrush
   end
 
-  def Color(c)
+  def makeColor(c)
     return Wx::Colour.new(c.r, c.g, c.b)
   end
 
-  def Pen(pen)
-    return Wx::Pen.new(Color(pen.color), pen.width) # style!!!
+  def makePen(pen)
+    return Wx::Pen.new(makeColor(pen.color), pen.width) # style!!!
   end
     
-  def Brush(brush)
-    return Wx::Brush.new(Color(brush.color))
+  def makeBrush(brush)
+    return Wx::Brush.new(makeColor(brush.color))
   end
 
-  def Font(font)
+  def makeFont(font)
     weight = case
       when font.weight < 400 then Wx::FONTWEIGHT_LIGHT
       when font.weight > 400 then Wx::FONTWEIGHT_BOLD
@@ -350,3 +348,20 @@ class DiagramFrame < Wx::Frame
   
 end
 
+class Pnt
+  def initialize(x, y)
+    @x = x
+    @y = y
+  end
+  attr_accessor :x, :y
+end
+
+class Rect
+  def initialize(x, y, w, h)
+    @x = x
+    @y = y
+    @w = w
+    @h = h
+  end
+  attr_accessor :x, :y, :w, :h
+end

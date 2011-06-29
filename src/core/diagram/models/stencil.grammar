@@ -9,7 +9,7 @@ Part ::= [Alt] alts:{Part "|"}+
       | [Let] "let" decls:Assign* "in" body:Part
       | [Label] "label" Props? label:Loc body:Part
 
-      | [Container] direction:Dir Props? "{" items:Part* "}"
+      | [Container] Dir Props? "{" items:Part* "}"
       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
       | [Text] "text" Props? string:Exp
       | [Shape] "box" Props? "{" content:Part? "}"

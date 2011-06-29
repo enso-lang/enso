@@ -1,0 +1,17 @@
+
+There are various ways to do the UI. 
+For simplicity, i'll do a progressive selection
+idea, with right-click menus.
+
+* text field changes mapped back to source
+* drop-down list (with conditions from source)
+    - finding conditions that apply!
+* delete actions
+* insert actions (this is the most difficult?)
+* saving (source and diagram)
+* loading (and merging the saved diagram)
+    - needs to have standard "address" for objects
+* editing points of a connector 
+    - positions
+    - add/remove points
+
