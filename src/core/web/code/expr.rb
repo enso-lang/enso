@@ -100,7 +100,7 @@ module Web::Eval
       @log.debug("CALLABLE = #{callable.inspect}")
 
       if callable.is_a?(Method) then # a controller action
-        Action.new(callable, args)
+        Action.new(callable, nil, args)
       elsif callable.is_a?(Function) then
         Link.new(callable, args)
       else

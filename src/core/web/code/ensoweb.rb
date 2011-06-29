@@ -14,9 +14,9 @@ class EnsoWeb
 
   def handle(req, out)
     handler = if req.get? then
-                Get.new(req.url, req.params, @env, @root, @log)
+                Get.new(req.url, req.GET, @env, @root, @log)
               elsif req.post? then
-                Post.new(req.url, req.params, @env, @root, @log)
+                Post.new(req.url, req.GET, @env, @root, @log, req.POST)
               else
                 raise "Unsupported request: #{req}"
               end

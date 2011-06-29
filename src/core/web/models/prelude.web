@@ -140,6 +140,6 @@ def delete_checkbox(x) {
     name = gensym
   in {
     <input type="checkbox" name=name value="true"/>
-    doif name check_delete(x);
+    doif name check_delete_action(x);
   }
 }

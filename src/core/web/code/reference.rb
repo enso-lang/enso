@@ -2,11 +2,20 @@
 require 'core/web/code/web'
 
 module Web::Eval
-  class Assignable
-  end
 
-  class Value < Assignable
+  class Value
+    def self.parse(v)
+      if v =~ /^[@.]/ then
+        Ref.make(v)
+      elsif v.is_a?(Array) then
+        v.map { |x| Ref.make(x) }
+      else
+        Value.new(v)
+      end
+    end
+
     def initialize(value)
+      puts "MAKING VALUE: #{value} #{value.class}"
       @value = value
     end
 
@@ -17,6 +26,10 @@ module Web::Eval
     def result(root, store)
       Result.new(value(root, store))
     end
+
+    def to_s
+      @value.to_s
+    end
   end
 
   class PathElt 
@@ -26,25 +39,46 @@ module Web::Eval
       @key = key
     end
 
+    def update!(obj, rvalue)
+      fld = obj.schema_class.fields[key]
+      if fld.many then
+        obj[key] << rvalue
+      else
+        obj[key] = convert(fld, rvalue)
+      end
+    end
+
+    private
+
+    def convert(field, value)
+      if field.type.Primitive? then
+        case  field.type.name 
+        when 'int' 
+          Integer(value)
+        when 'bool'
+          value == 'true'
+        when 'real'
+          Float(value)
+        when 'str'
+          value
+        end
+      else
+        # LValue.update already has deref'fed any paths.
+        value
+      end
+    end
+
   end
 
   class Key < PathElt
     def to_s
       "[#{key}]"
     end
-
-    def update!(obj, rvalue)
-      obj[key] << rvalue
-    end
   end
 
   class Field < PathElt
     def to_s
       ".#{key}"
-    end
-
-    def update!(obj, rvalue)
-      obj[key] = rvalue
     end
   end
 
@@ -62,14 +96,19 @@ module Web::Eval
     end
 
     def self.parse(value)
+      value = value[1..-1] if value =~ /^\./
       value.split(/\./).flat_map do |x|
         if x =~ /^(.*)\[(.*)\]$/ then
+          fld = $1
           key = $2
           key = Integer(key) if key =~ /^[0-9]+$/
-          [Field.new($1), Key.new(key)]
+          puts "MAKING fld + key: #{fld} [#{key}]"
+          [Field.new(fld), Key.new(key)]
         elsif x =~ /^@/ then
+          puts "MAKING NEW: #{x}"
           New.new(x)
         else
+          puts "MAKING FIELD: #{x}"
           Field.new(x)
         end
       end
@@ -119,6 +158,7 @@ module Web::Eval
     end
 
     def lookup(owner, path_elt, store)
+      puts "---------- looking up: #{path_elt} in #{owner}"
       if Store.new?(path_elt.key) then
         store[path_elt.key]
       else
@@ -136,7 +176,7 @@ module Web::Eval
       owner = base.inject(root) do |cur, x|
         lookup(cur, x, store)
       end
-      fld.update!(owner, rvalue)
+      fld.update!(owner, rvalue.value(root, store))
     end
 
   end

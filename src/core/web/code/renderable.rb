@@ -34,7 +34,12 @@ class Result < Renderable
   end
   
   def render(out)
-    out << CODER.encode(value)
+    # TODO: factor out in object
+    if value.respond_to?(:schema_class) then
+      out << CODER.encode(path)
+    else
+      out << CODER.encode(value)
+    end
   end
 end
 
