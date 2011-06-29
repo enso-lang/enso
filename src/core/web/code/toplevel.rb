@@ -1,7 +1,9 @@
 
 
 require 'core/system/load/load'
-require 'core/web/code/ensoweb'
+require 'core/web/code/web'
+require 'core/web/code/handlers'
+require 'core/web/code/module'
 
 require 'rack'
 
@@ -23,28 +25,31 @@ class Stream
   end
 end
 
+class Web::EnsoWeb
+  include Web::Eval
 
-
-class Toplevel
   def initialize(web, root, log)
-    @ew = EnsoWeb.new(web, root, log)
+    @root = root
+    @log = log
+    @env = {'root' => Result.new(root, Ref.new([]))}
+    mod_eval = Mod.new(@env)
+    mod_eval.eval(web)
   end
+
+  def handle(req, out)
+    handler = 
+    handler.handle(out)
+  end
+
 
   def call(env, stream = Stream.new)
     req = Rack::Request.new(env)
-    begin
-      @ew.handle(req, stream)
-    rescue Redirect => e
-      redirect(e.link)
-    rescue Exception => e
-      stream << "<pre>#{e.to_s}\n"
-      e.backtrace.each do |x|
-        stream << "#{x}\n"
-      end
-      not_found(stream)
-    else
-      respond(stream)
+    if req.get? then
+      Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)
+    elsif req.post? then
+      Post.new(req.url, req.GET, @env, @root, @log, req.POST).handle(self, stream)
     end
+    # do nothing otherwise.
   end
 
   def not_found(msg)

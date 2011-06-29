@@ -1,14 +1,15 @@
 
-require 'core/web/code/reference'
+require 'core/web/code/web'
+require 'core/web/code/values'
 
 module Web::Eval
   class Form
-    attr_reader :actions
+    attr_reader :actions, :env
 
     def initialize(data)
       @bindings = {}
       @actions = []
-      @variables = {}
+      @env = {}
       parse(flatten(data))
       puts "________: #{to_s}"
     end
@@ -16,11 +17,6 @@ module Web::Eval
     def each(&block)
       @bindings.each(&block)
     end
-
-    def env
-      @variables
-    end
-      
 
     def to_s
       s = "BINDINGS:\n"
@@ -32,7 +28,7 @@ module Web::Eval
         s << "\t#{a}\n"
       end      
       s << "VARIABLES:\n"
-      @variables.each do |k, v|
+      @env.each do |k, v|
         s << "\t#{k}:\t#{v}\n"
       end
       return s
@@ -65,10 +61,13 @@ module Web::Eval
         if k =~ /^!/ then 
           @actions << Action.make(k, v)
         elsif k =~ /^[@.]/ then
+          # NB: also when starting with @
+          # since @X:3.bla is a valid LValue
+          # maybe check that .bla present
           lv = LValue.make(k)
           @bindings[lv] = Value.parse(v)
         else
-          @variables[k] = Value.parse(v)
+          @env[k] = Value.parse(v)
         end
       end
     end

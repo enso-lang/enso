@@ -1,24 +1,14 @@
 
 require 'core/web/code/expr'
 require 'core/web/code/render'
-require 'core/web/code/reference'
+require 'core/web/code/values'
 require 'core/web/code/actions'
 require 'core/web/code/module'
 require 'core/web/code/store'
-require 'core/web/code/params'
-
+require 'core/web/code/form'
 
 
 module Web::Eval
-
-  # TODO: get rid of this
-  class NoRoute < RuntimeError
-    attr_reader :url
-    def initialize(url)
-      @url = url
-    end
-  end
-
 
   class Handler
 
@@ -32,7 +22,7 @@ module Web::Eval
       @eval = Render.new(Expr.new(@store, log, @actions), log)
     end
 
-    def render(out, params, form = {}, errors = {})
+    def render(func, out, params, form = {}, errors = {})
       env = {}.update(@env)
 
       # TODO: get rid of the side-effect in root_env
@@ -46,7 +36,6 @@ module Web::Eval
         env[k] = Value.parse(v).result(@root, @store)
       end
 
-      func = lookup(@url)
       func.run(@eval, env, out, errors)    
     end
 
@@ -55,23 +44,26 @@ module Web::Eval
     def lookup(url)
       r = @env[route(url)]
       return r.value if r
-      raise "No such function: #{r}" 
     end
 
     def route(url)
       puts "URL = #{url}"
       if url =~ /\/\/[^\/]*\/([a-zA-Z][A-Za-z0-9_]*)/ then
         return $1
-      else
-        raise NoRoute.new(url)
       end
     end
     
   end
 
   class Get < Handler
-    def handle(out)
-      render(out, @params)
+    def handle(http, out)
+      func = lookup(@url)
+      if func then
+        render(func, out, @params)
+        http.respond(out)
+      else
+        http.not_found(@url)
+      end
     end
   end
 
@@ -79,23 +71,27 @@ module Web::Eval
 
     def initialize(url, params, env, root, log, form)
       super(url, params, env, root, log)
-      puts "FORM: #{form}"
       @form = Form.new(form)
     end
 
-    def handle(out)
+    def handle(http, out)
       errors = {}
       bind(@root, @form, @store, errors)
-      execute(@root, @form, @store, errors) # throws redirect if ok
-      # TODO: merge @params and @form.env?
-      render(out, @params, @form.env, errors)
+      begin
+        execute(@root, @form, @store, errors)
+      rescue Web::Redirect => e
+        http.redirect(e.link)
+      else
+        # TODO: merge @params and @form.env?
+        render(lookup(@url), out, @params, @form.env, errors)
+      end
     end
 
     private
 
     def bind(root, form, store, errors)
       form.each do |k, v|
-        k.update(v, root, @store)
+        k.update(v, root, store)
       end
     end
 
