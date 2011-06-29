@@ -7,6 +7,10 @@ require "../../batches/libs/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.IEntityType
 
+require 'core/batches/code/java_impl/attribute'
+require 'core/batches/code/java_impl/relationship'
+require 'core/batches/code/java_impl/member'
+
 class EntityType_Enso
   include IEntityType
 
@@ -18,7 +22,7 @@ class EntityType_Enso
 
   #public String getTableName();
   def getTableName()
-    return @klass.name
+    return @klass.table
   end
 
   #public IMember get(String name);

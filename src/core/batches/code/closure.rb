@@ -50,13 +50,11 @@ class BaseClosure
       puts "Capturing tail block"
       env[tail.name] = Closure.new(@eval, call_env, tail, block)
       puts "Capturing tail block done: env[#{tail.name}] = #{env[tail.name]}, block="
-      Print(block)
     end
 
     if !bind_tail && block then
       # run the constructor block to fill in the rest of env
       puts "into interenv and stuff"
-      Print.print(block)
       @eval.eval(block, inter_env, out)
     end
 

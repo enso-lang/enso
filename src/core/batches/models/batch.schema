@@ -14,7 +14,7 @@ class Field
 end
 
 class ComputedField < Field
-  expr:Expr
+  !expr:Expr
 end
 
 class Expr end

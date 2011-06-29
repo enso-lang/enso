@@ -7,18 +7,21 @@ require "../../batches/libs/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.ISchema
 
+require 'core/batches/code/java_impl/entitytype'
+
 class Schema_Enso
   include ISchema
 
   #@schema : CheckedObject
 
-  def initialize(schema)
-    @schema = schema
+  def initialize(root_klass)
+    @root_klass = root_klass
   end
 
   #public IEntityType getEntity(String name);
   def getEntity(name)
-    return @schema.klasses['name']
+    puts "name=#{name} class=#{@root_klass.fields[name].type}"
+    return EntityType_Enso.new(@root_klass.fields[name].type)
   end
 
 end

@@ -3,7 +3,7 @@ primitive str
 primitive real
 primitive bool
 
-class Category
+class Category table=Categories
     #CategoryID: int
     CategoryName: str
     Description: str
@@ -11,7 +11,7 @@ class Category
     Products: Product*
 end
 
-class Customer
+class Customer table=Customers
 	#CustomerID: str
 	CompanyName: str
 	ContactName: str
@@ -20,7 +20,7 @@ class Customer
 	Region: str
 end
 
-class Northwind
+class Northwind table=Northwind
 	Categories: Category*
 	Products: Product*
 	Suppliers: Supplier*
@@ -28,7 +28,7 @@ class Northwind
 	Orders: Order*
 end
 
-class Order_Details
+class Order_Details table=Order_Details
 	Order: Order / Order.OrderDetails
 	Product: Product
 	UnitPrice: real
@@ -36,7 +36,7 @@ class Order_Details
 	Discount: real
 end
 
-class Order
+class Order table=Orders
 	#OrderID: int
 	OrderDate: int
     RequiredDate: int
@@ -46,16 +46,32 @@ class Order
     Freight: int
 end
 
-class Product
-    int #ProductID: int
+class Product table=Products
+    #ProductID: int
     ProductName: str
     QuantityPerUnit: str
     UnitPrice: real
     UnitsInStock: int
     UnitsOnOrder: int
-    int ReorderLevel: int
+    ReorderLevel: int
     Discontinued: bool
     Category: Category / Category.Products
-    Supplier: Supplier
+    Supplier: Supplier / Supplier.Products
     OrderDetails: Order_Details*
+end
+
+class Supplier table=Suppliers
+	SupplierID: int
+	CompanyName: str
+	ContactName: str
+	ContactTitle: str
+    Address: str
+    City: str
+    Region: str
+    PostalCode: str
+    Country: str
+    Phone: str
+    Fax: str
+    HomePage: str
+    Products: Product*
 end

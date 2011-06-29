@@ -6,7 +6,8 @@ TypeDef ::= Primitive | Klass
 
 Primitive ::= [Primitive] "primitive" name:sym
 
-Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
+Klass ::= [Klass] "class" name:sym Details defined_fields:Field* "end"
+Details ::= Parent?
 Parent ::= "<" supers:{Super ","}+
 Super ::= Klass^
 

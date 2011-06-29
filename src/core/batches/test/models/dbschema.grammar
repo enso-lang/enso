@@ -1,0 +1,4 @@
+#ruby
+
+union(load('dbext.grammar'),
+   load('schema.grammar'))

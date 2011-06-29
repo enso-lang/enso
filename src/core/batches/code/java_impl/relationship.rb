@@ -7,6 +7,9 @@ require "../../batches/libs/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.IRelationship
 
+require 'core/batches/code/java_impl/entitytype'
+require 'core/batches/code/java_impl/member'
+
 class Relationship_Enso < Member_Enso
   include IRelationship
 

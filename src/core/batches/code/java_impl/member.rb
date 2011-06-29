@@ -7,6 +7,8 @@ require "../../batches/libs/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.IMember
 
+require 'core/batches/code/java_impl/attribute'
+
 class Member_Enso
   include IMember
 
