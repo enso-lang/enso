@@ -93,11 +93,15 @@ module Loading
     end
     
     def find_model(name) 
-      path = Dir['**/*.*'].find do |p|
-        File.basename(p) == name
+      if File.exists?(name)
+        yield name
+      else
+        path = Dir['**/*.*'].find do |p|
+          File.basename(p) == name
+        end
+        raise "File not found #{name}" unless path
+        yield path
       end
-      raise "File not found #{name}" unless path
-      yield path
     end
 
   end
