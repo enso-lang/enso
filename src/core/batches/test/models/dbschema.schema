@@ -1,0 +1,4 @@
+#ruby
+
+union(load('dbext.schema'),
+   load('schema.schema'))

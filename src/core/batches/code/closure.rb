@@ -49,10 +49,12 @@ class BaseClosure
       # bind the block as a closure to name of tail
       puts "Capturing tail block"
       env[tail.name] = Closure.new(@eval, call_env, tail, block)
+      puts "Capturing tail block done: env[#{tail.name}] = #{env[tail.name]}, block="
     end
 
     if !bind_tail && block then
       # run the constructor block to fill in the rest of env
+      puts "into interenv and stuff"
       @eval.eval(block, inter_env, out)
     end
 
@@ -95,29 +97,34 @@ class ConsClosure < BaseClosure
     @target = target
   end
 
-
-  def apply(args, block, call_env, out) 
+  def apply(args, block, call_env, out)
     # add a record to target with fields according to formals
+
+    Print.print(block)
 
     factory = block.factory
     record = {}
     with_args(args, block, call_env, out) do |env|
       bound_tail = true
       formals.each do |frm|
+        puts "Formal #{frm.name}, #{frm.cons}"
         if frm.cons then
           bound_tail = false
         end
-        record[frm.name] = env[frm.name].value
+        record[frm.name] = env[frm.name]
+        puts "record[#{frm.name}] = #{record[frm.name].value}"
       end
       if tail && block && bound_tail then
         # block is bound to the name of tail
         # set the closure as value 
         name = tail.name
-        record[name] = env[name].value
+        record[name] = env[name]
+        puts "2. record[#{name}] = #{record[name]}"
       end
     end
     @target << record
     nil
+    blablabla
   end
 
 end

@@ -1,0 +1,6 @@
+primitive str
+primitive bool
+
+class Klass
+  table: str
+end

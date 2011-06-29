@@ -85,7 +85,6 @@ end
 
 class Shape < Part
   !content: Part?
-  Connectors: ConnectorEnd* 
 end
 
 class Connector < Part

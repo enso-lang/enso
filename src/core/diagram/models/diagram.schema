@@ -34,7 +34,7 @@ end
 class Connector < Part
   label: Text?
   !path: Point*
-  !ends: ConnectorEnd* / ConnectorEnd.owner
+  !ends: ConnectorEnd*
 end
 
 class ConnectorEnd
@@ -76,16 +76,6 @@ end
 class Point
   x: int
   y: int
-end
-
-class Size
-  width: int
-  height: int
-end
-
-class Rect
-  pos: Point
-  size: Size
 end
 
 class SizeConstraints

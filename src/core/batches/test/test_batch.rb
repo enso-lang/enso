@@ -34,8 +34,8 @@ class BatchTest < Test::Unit::TestCase
     todo = Loader.load('todo3.web')
     schema = Loader.load('todo.schema')
     Print.print(todo)
-    res = BatchTransform.batch_web(todo, schema.classes['Todos'])
-    Print.print(res['index'])
+    #res = BatchTransform.batch_web(todo, schema.classes['Todos'])
+    #Print.print(res['index'])
   end
 
 end

@@ -8,35 +8,88 @@ require 'core/diagram/code/diagram'
 
 # render(Stencil, data) = diagram
 
-class StencilFrame 
+def RunStencilApp(path = nil)
+  Wx::App.run do
+    win = StencilFrame.new(path)
+    win.show 
+  end
+end
 
-  def initialize(stencil, data)
-    @stencil = stencil
-    @data = data
+class StencilFrame < DiagramFrame
+
+  def initialize(path = nil)
+    super("Diagram Editor")
+    @listener = self
+    self.path = path if path
+  end
+  
+  attr_writer :stencil
+  
+  def path=(path)
+    ext = File.extname(path)
+    raise "File has no extension" if ext.length < 2
+    @extension = ext[1..-1]
+    @stencil = Load("#{@extension}.stencil")
+    @path = path
+    set_title path
+    @data = Load(@path)
     @factory = Factory.new(Load('diagram.schema'))
-    @labels = {}
-
+    
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
         
     env = { 
-      stencil.root => data,
+      @stencil.root => @data,
       :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
       :brush => @factory.Brush(white)
     }
     
-    eval stencil.body, env do |x| 
-      @root = x 
+    @binding = {}
+    @labels = {}
+    construct @stencil.body, env do |x| 
+      set_root(x) 
     end
+    refresh()
     puts "DONE"
-    Print.print(@root)
-    
-    ViewDiagram(@root)
+    #Print.print(@root)
+    on_export
   end
 
-  def eval(stencil, env, &block)
-    send stencil.schema_class.name, stencil, env, &block
+  def setup_menus()
+    super()
+    file = self.menu_bar.get_menu( self.menu_bar.find_menu("File") )
+    add_menu(file, "&Export\tCmd-E", "Export Diagram", :on_export)
+  end
+
+  def on_open
+    dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*")
+    if dialog.show_modal() == ID_OK
+      self.path = dialog.get_path
+    end
+  end
+  
+  def on_save
+    grammar = Loader.load("#{@extension}.grammar")
+    File.open("#{@path}-NEW", "w") do |output|
+      DisplayFormat.print(grammar, @data, 80, output)
+    end
+  end
+
+  def on_export
+    grammar = Loader.load("diagram.grammar")
+    File.open("#{@path}-diagram", "w") do |output|
+      DisplayFormat.print(grammar, @root, 80, output)
+    end
+  end
+
+  def notify_change(diagram_object, new_text)
+    addr = @binding[diagram_object]
+    addr.obj[addr.field] = new_text
+  end
+  
+  def construct(stencil, env, &block)
+    send(stencil.schema_class.name, stencil, env, &block)
   end
   
   def make_styles(stencil, shape, env)
@@ -45,7 +98,7 @@ class StencilFrame
     pen = nil
     brush = nil
     stencil.props.each do |prop|
-      val = eval_exp(prop.exp, env)
+      val, _ = eval(prop.exp, env)
       #puts "SET #{prop.loc.name} = #{val}"
       newEnv = {}.update(env) if !newEnv
       case prop.loc.name
@@ -74,45 +127,46 @@ class StencilFrame
   def Alt(this, env, &block)
     this.alts.each do |alt|
       catch :fail do
-        return eval(alt, env, &block)
+        return construct(alt, env, &block)
       end
     end
     throw :fail
   end
 
   def For(this, env, &block) 
-    r = eval_exp(this.iter, env)
+    source, _ = eval(this.iter, env)
     nenv = {}.update(env)
-    r.each_with_index do |v, i|
+    source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
-      eval(this.body, nenv, &block)
+      construct(this.body, nenv, &block)
     end
   end
     
   def Test(this, env, &block)
-    test = eval_exp(this.condition, env)
-    eval(this.body, env, &block) if test
+    test, _ = eval(this.condition, env)
+    construct(this.body, env, &block) if test
   end
 
   def Label(this, env, &block)
-    key = eval_label(this.label, env)
-    eval this.body, env do |result|
+    key = evallabel(this.label, env)
+    construct this.body, env do |result|
       #puts "LABEL #{key} => #{result}"
       @labels[key] = result
       block.call(result)
     end
   end
 
-  def eval_label(label, env)
+  def evallabel(label, env)
     if label.Prim?    # it has the form Loc[foo]
       tag = label.args[0]
       raise "foo" if !tag.Var?
       tag = tag.name
-      index = eval_exp(label.args[1], env)
+      index, _ = eval(label.args[1], env)
       return [tag,index]
     else
-      return eval_exp(label, env)
+      val, _ = eval(label, env)
+      return val
     end
   end
   
@@ -120,27 +174,32 @@ class StencilFrame
   def Container(this, env, &block)
     group = @factory.Container(nil, nil, this.direction)
     this.items.each do |item|
-      eval item, env do |x|
+      construct item, env do |x|
         group.items << x
       end
     end
     make_styles(this, group, env)
+    @binding[group] = this
     block.call group
   end
   
   def Text(this, env, &block)
-    text = @factory.Text(nil, nil, eval_exp(this.string, env))
+    val, address = eval(this.string, env)
+    text = @factory.Text(nil, nil, val)
     make_styles(this, text, env)
+    @binding[text] = address
     block.call text
   end
   
   def Shape(this, env, &block)
-    s = @factory.Shape(nil, nil) # not many!!!
-    eval this.content, env do |x|
-      s.content = x
+    shape = @factory.Shape(nil, nil) # not many!!!
+    construct this.content, env do |x|
+      error "Shape can only have one element" if shape.content
+      shape.content = x
     end
-    make_styles(this, s, env)
-    block.call s
+    make_styles(this, shape, env)
+    @binding[shape] = this
+    block.call shape
   end
 
   def Connector(this, env, &block)
@@ -150,7 +209,7 @@ class StencilFrame
     this.ends.each do |e|
       de = @factory.ConnectorEnd(e.arrow, label)
       de.owner = conn
-      key = eval_label(e.part, env)
+      key = evallabel(e.part, env)
       #puts @labels
       de.to = @labels[key]
       conn.ends << de
@@ -160,64 +219,74 @@ class StencilFrame
     conn.path << @factory.Point(1,0)
     conn.path << @factory.Point(1,1)
     make_styles(this, conn, env)
+    @binding[conn] = this
     block.call conn
   end
 
   #### expressions
   
-  def eval_exp(exp, env)
-    #puts "EVAL #{exp}"
-    r = send(exp.schema_class.name, exp, env)
-    #puts "RETURN #{exp} = #{r}"
-    return r
+  def eval(exp, env)
+    send("eval#{exp.schema_class.name}", exp, env)
   end
      
-  def Literal(this, env)
-    return this.value
+  def evalLiteral(this, env)
+    return this.value, nil
   end
 
-  def Color(this, env)
-    return @factory.Color(this.r, this.g, this.b)
+  def evalColor(this, env)
+    return @factory.Color(this.r, this.g, this.b), nil
   end
   
-  
-  def Prim(this, env)
+  def evalPrim(this, env)
     op = this.op.to_sym
     case op
     when :| then 
-      return this.args.any? do |a|
-        eval_exp(a, env)
+      val = this.args.any? do |a|
+        v, _ = eval(a, env)
+        v
       end
+      #puts "BINARY #{this.op.to_sym} = #{val}"
     when :& then 
-      return this.args.all? do |a|
-        eval_exp(a, env)
+      val = this.args.all? do |a|
+        v, _ = eval(a, env)
+        v
       end
+      #puts "BINARY #{this.op.to_sym} = #{val}"
     else
       args = this.args.collect do |a|
-        eval_exp(a, env)
+        v, _ = eval(a, env)
+        v
       end
       a = args.shift
-      #puts "BINARY #{a}.#{this.op.to_sym}(#{args})"
-      return a.send(this.op.to_sym, *args)
+      val = a.send(this.op.to_sym, *args)
+      #puts "BINARY #{a}.#{this.op.to_sym}(#{args}) = #{val}"
     end
+    return val, nil
   end
   
-  def Field(this, env)
-    a = eval_exp(this.base, env)
-    return a._id if this.field == "_id"
-    return a[this.field]
+  def evalField(this, env)
+    a, _ = eval(this.base, env)
+    return a._id, Address.new(a, this.field) if this.field == "_id"
+    return a[this.field], Address.new(a, this.field)
   end
     
-  def InstanceOf(this, env)
-    a = eval_exp(this.base, env)
-    return Subclass?(a.schema_class, this.class_name)
+  def evalInstanceOf(this, env)
+    a, _ = eval(this.base, env)
+    return Subclass?(a.schema_class, this.class_name), nil
   end
     
-  def Var(this, env)
+  def evalVar(this, env)
     #puts "VAR #{this.name} #{env}"
     raise "undefined variable '#{this.name}'" if !env.has_key?(this.name)
-    return env[this.name]
+    return env[this.name], nil
   end
 
 end
 
+class Address
+  def initialize(obj, field)
+    self.obj = obj
+    self.field = field
+  end
+  attr_accessor :obj, :field
+end

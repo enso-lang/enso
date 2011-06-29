@@ -1,0 +1,30 @@
+start Part
+
+Part ::= [Container] Dir Props "{" items:Part* "}"
+      | [Connector] "connector" Props "(" ends:{ConnectorEnd "--"}+ ")" "path" path:Point*
+      | Text
+      | [Shape] "box" Location? Props "{" content:Part? "}"
+Location ::= location:Point
+Text ::= [Text] "text" Props string:str
+
+Dir ::= "vertical" @"@direction=1" | "horizontal" @"@direction=2" | "graph" @"@direction=3" | "do" @"@direction=4"
+
+ConnectorEnd ::= [ConnectorEnd] (label:Text ":")?  (arrow:"<" | arrow:"*")? 
+
+Props ::= styles:Style* Constraints?
+Style ::= 
+    [Pen] "pen" width:int style:sym color:Color
+  | [Brush] "brush" color:Color
+  | [Font] "font" name:sym style:sym size:int "pt" weight:int color:Color
+
+Constraints ::= [SizeConstraints] Width? Height?
+Width ::= "width" width:Constraint
+Height ::= "height" height:Constraint
+Constraint ::= [Constraint] Var? Min?
+Var ::= "=" var:sym
+Min ::= ">" min:int
+
+Color ::= [Color] "(" r:int "," g:int "," b:int ")"
+
+Point ::= [Point] "(" x:int "," y:int ")"      
+
