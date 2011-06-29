@@ -1,11 +1,6 @@
 
 require 'core/web/code/reference'
 
-
-# TODO: distinguish between get params (is env like)
-# and post params, which are updates.
-
-
 module Web::Eval
   class Form
     attr_reader :actions
