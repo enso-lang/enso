@@ -16,6 +16,7 @@ end
 
 class Dot < Access
   field: str
+  args: Expression*
 end
 
 class Cons < Expression

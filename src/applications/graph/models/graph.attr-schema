@@ -12,6 +12,14 @@ class Graph
                    end
    @trc: Graph = Graph {root: root->trc; nodes: nodes->trc}
    @mul2: Graph = Graph {root: root->mul2; nodes: nodes->mul2}
+   @merge(g): Graph = if o <- root->merge(g->root) then
+   	      	         Graph {root: o;
+   	      	      	     nodes: nodes->merge(g->nodes), g->nodes}
+ 		      else
+   	      	         Graph {root: root;
+   	      	      	     nodes: nodes->merge(g->nodes), g->nodes}
+ 		      end
+	
 end
 
 
@@ -31,6 +39,15 @@ class Node
 
   @trc: Node = Node {name: name; value: value; out: out, out->trc->out }
   @mul2: Node = Node {name: name; value: value * 2; out: out->mul2}
+
+  @merge(n): Node* = if name == (n->name) then
+  	     	       self[value: sum(value, n->value); out: out->merge(n->out)]
+		     else
+		       Node {name: name; value: value; out: out->merge(n->out)}; n
+		       // gives exception: modif. hash during iter.
+		       // self[out: out->merge(n->out)]; n
+
+		     end
 end
 
 
