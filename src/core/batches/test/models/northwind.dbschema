@@ -8,7 +8,7 @@ class Category table=Categories
     CategoryName: str
     Description: str
     Picture: str
-    Products: Product*
+    Products: Product* / Product.Category
 end
 
 class Customer table=Customers
@@ -16,7 +16,7 @@ class Customer table=Customers
 	CompanyName: str
 	ContactName: str
 	Country: str
-	Orders: Order*
+	Orders: Order* / Order.Customer
 	Region: str
 end
 
@@ -29,8 +29,8 @@ class Northwind table=Northwind
 end
 
 class Order_Details table=Order_Details
-	Order: Order / Order.OrderDetails
-	Product: Product
+	Order: Order column=OrderID
+	Product: Product column=ProductID
 	UnitPrice: real
 	Quantity: int
 	Discount: real
@@ -41,8 +41,8 @@ class Order table=Orders
 	OrderDate: int
     RequiredDate: int
     ShippedDate: int
-	Customer: Customer / Customer.Orders
-	OrderDetails: Order_Details*
+	Customer: Customer column=CustomerID
+	OrderDetails: Order_Details* / Order_Details.Order
     Freight: int
 end
 
@@ -55,13 +55,13 @@ class Product table=Products
     UnitsOnOrder: int
     ReorderLevel: int
     Discontinued: bool
-    Category: Category / Category.Products
-    Supplier: Supplier / Supplier.Products
-    OrderDetails: Order_Details*
+    Category: Category column=CategoryID
+    Supplier: Supplier column=SupplierID
+    OrderDetails: Order_Details* / Order_Details.Product
 end
 
 class Supplier table=Suppliers
-	SupplierID: int
+	#SupplierID: int
 	CompanyName: str
 	ContactName: str
 	ContactTitle: str
@@ -73,5 +73,5 @@ class Supplier table=Suppliers
     Phone: str
     Fax: str
     HomePage: str
-    Products: Product*
+    Products: Product* / Product.Supplier
 end

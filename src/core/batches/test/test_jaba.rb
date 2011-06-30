@@ -54,14 +54,17 @@ class BatchTest < Test::Unit::TestCase
     result_t = connection_t.execute(query_test, Jaba::Forest.new())
     list_j = []
     result_j.getIteration("root").each do |x|
-      list_j << "name=#{x.getString("root_CompanyName")}"
+      list_j << "name=#{x.getString("CompanyName")}"
     end
     list_t = []
     result_t.getIteration("root").each do |x|
-      list_t << "name=#{x.getString("root_CompanyName")}"
+      list_t << "name=#{x.getString("CompanyName")}"
     end
-
     assert (list_j == list_t)
+
+    #3. create a CheckedObject
+
+
   end
 
 end

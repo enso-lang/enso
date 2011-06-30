@@ -4,3 +4,7 @@ primitive bool
 class Klass
   table: str
 end
+
+class Field
+  column: str
+end

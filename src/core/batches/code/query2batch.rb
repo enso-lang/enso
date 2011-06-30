@@ -59,11 +59,11 @@ class Query2Batch
   end
 
   def e2b_Field(field, pname)
-    fname = pname+"_"+field.name
+    fname = field.name
     if field.query.nil?
       @factory.Out(fname, @factory.Prop(@factory.Var(pname), field.name))
     elsif
-      list = @factory.Prop(@factory.Var(pname), field.fname)
+      list = @factory.Prop(@factory.Var(pname), fname)
       e2b(field.query, fname, list)
     end
   end

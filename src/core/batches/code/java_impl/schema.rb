@@ -20,7 +20,6 @@ class Schema_Enso
 
   #public IEntityType getEntity(String name);
   def getEntity(name)
-    puts "name=#{name} class=#{@root_klass.fields[name].type}"
     return EntityType_Enso.new(@root_klass.fields[name].type)
   end
 

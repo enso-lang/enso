@@ -3,5 +3,6 @@ start Schema
 abstract Schema
 abstract Parent
 
-Details ::= Parent? | Parent? TableName
+ClassAnnot ::= Parent? TableName
 TableName ::= "table" "=" table:sym
+Annot ::= "column" "=" column:sym
