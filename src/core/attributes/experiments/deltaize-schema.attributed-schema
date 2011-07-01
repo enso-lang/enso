@@ -2,7 +2,7 @@
 
 class Schema
   @delta = self[
-     types: types + { t.delta, t.ops, t.many_ops | t <- types }
+     types: types +  t.delta, t.ops, t.many_ops | t <- types }
      	    + { p.many_ref, p.ref_ops | p <-primitives }]
 end
 

@@ -14,6 +14,6 @@ log = Logger.new($stderr)
 # TODO: detect when thin is debug mode, otherwise use WARN
 log.level = Logger::DEBUG
 
-app = Toplevel.new(web, root, log)
+app = Web::EnsoWeb.new(web, root, log)
 use Rack::CommonLogger
 run app

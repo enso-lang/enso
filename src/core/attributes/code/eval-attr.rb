@@ -76,6 +76,33 @@ Todos
 - Check/think about spine fields: should we copy when assigning to
   such fields?
 
+Notes
+
+- data structure rewriting seems to be a term
+- Semantics of Database Transformations (Buneman et al)
+
+A graph data type Node ->* Node
+
+- mul2
+- odds2
+- trc
+- join/merge/union (nodes with same value get merged into one)
+
+Categories
+- cyclic source
+- cyclic target
+- cyclic operation
+
+Case studies
+
+- remove inheritance
+- NFA2DFA
+- first/follow
+- derivatives (parsing/regexps)
+
+Self-application? Interpreter for equations as equations.
+
+
 =end
 
 module AttributeSchema
@@ -100,7 +127,7 @@ X -> X + Y: factory should be a factory over X + Y *and*
         X should be copied first using that factory.
 =end
 
-    def self.eval(attr_schema, obj, name, factory = obj._graph_id, args = [])
+    def self.eval(attr_schema, obj, name, args = [], factory = obj._graph_id)
       EvalAttr.new(attr_schema, factory).run(obj, name, args)
     end
 
@@ -130,6 +157,7 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
     def eval(exp, obj, env, &block)
       #debug_info
+      #puts "EVALING: #{exp} at #{exp._origin}"
       send(exp.schema_class.name, exp, obj, env, &block)
     end
 
@@ -144,11 +172,11 @@ X -> X + Y: factory should be a factory over X + Y *and*
     end
 
     def field(recv, name)
+      #puts "OBtaining field: #{name} from a #{recv.schema_class.name}"
       ac = @attr_schema.classes[recv.schema_class.name]
+      #puts "AC class: #{ac}"
       fld = ac.fields[name]
-      #puts "Requesting field #{name} of #{recv}"
-      #Print.print(recv)
-      #Print.print(recv.schema_class)
+      #puts "ATTRIBUTE? '#{fld}'"
       fld || recv.schema_class.all_fields[name]
     end
 
@@ -158,6 +186,8 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
     def eval_access(name, recv, env, &block)
       fld = field(recv, name)
+      #puts "FLD: #{name} #{recv}: #{fld}"
+
       raise "No such field or attribute: #{name}" unless fld
 
       if attribute?(fld) then
@@ -179,6 +209,8 @@ X -> X + Y: factory should be a factory over X + Y *and*
     end
 
     def eval_attribute(attr, recv, env, args = [], &block)
+      #puts "EVALUATING #{attr.name} on #{recv} with #{args}"
+      #Print.print(attr.result)
       if attr.type.Primitive? 
         eval_primitive_attribute(attr, recv, env, args, &block)
       elsif attr.many then
@@ -374,7 +406,11 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
       eval(head, recv, env) do |x, env|
         eval_args(tail, recv, env) do |xs, env|
-          yield [*x, *xs], env
+          if x.is_a?(Array) then
+            yield [*x, *xs], env
+          else
+            yield [x, *xs], env
+          end
         end
       end
     end
@@ -404,18 +440,17 @@ X -> X + Y: factory should be a factory over X + Y *and*
     end
 
     def eval_assigns(obj, contents, recv, env, &block)
+      # TODO: primitives first, raise error if key is not
+      # assigned.
       fields = obj.schema_class.fields
       contents.each do |assign|
         name = assign.name
         assign.expressions.each do |exp|
           eval(exp, recv, env) do |val, _|
-            # this makes repmin not terminate...
-            # if !fields[name].type.Primitive? && 
-#                 fields[name].traversal then
-#               val = val.clone
-#             end
             if fields[name].many then
-              obj[name] << val
+              if !obj[name].include?(val) then
+                obj[name] << val
+              end
             else
               obj[name] = val
             end
@@ -456,6 +491,8 @@ X -> X + Y: factory should be a factory over X + Y *and*
     end
 
     def apply_updates(obj, changes)
+      # TODO: do primitive fields first,
+      # raise error if key field exists and is about to be deleted
       changes.each do |fname, x|
         if x == :clear then
           obj[fname].clear
@@ -463,7 +500,9 @@ X -> X + Y: factory should be a factory over X + Y *and*
           obj[fname] = nil
         elsif x.is_a?(Array)
           x.each do |elt|
-            obj[fname] << elt
+            if !obj[fname].include?(elt) then
+              obj[fname] << elt
+            end
           end
         else
           obj[fname] = x
@@ -485,7 +524,16 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
     def Dot(this, recv, env, &block)
       eval(this.obj, recv, env) do |x, env|
-        eval_access(this.field, x, env, &block)
+        if !this.args.empty? then
+          eval_args(this.args, recv, env) do |args, env|
+            #puts "Eval'ed ags: #{args}"
+            # we assume it is an attribute
+            attr = field(x, this.field)
+            eval_attribute(attr, x, env, args, &block)
+          end
+        else
+          eval_access(this.field, x, env, &block)
+        end
       end
     end
     
@@ -499,10 +547,14 @@ X -> X + Y: factory should be a factory over X + Y *and*
 
 
     def Update(this, recv, env, &block)
+      chs = {}
       eval(this.obj, recv, env) do |obj, env|
         changes = updates(obj.schema_class.fields, this.contents, recv, env)
-        apply_updates(obj, changes)
+        chs[obj] = changes
         yield obj, env
+      end
+      chs.each do |obj, changes|
+        apply_updates(obj, changes)
       end
     end
 

@@ -1,7 +1,9 @@
 
 
 require 'core/system/load/load'
-require 'core/web/code/eval'
+require 'core/web/code/web'
+require 'core/web/code/handlers'
+require 'core/web/code/module'
 
 require 'rack'
 
@@ -23,32 +25,38 @@ class Stream
   end
 end
 
+class Web::EnsoWeb
+  include Web::Eval
 
-class Toplevel
   def initialize(web, root, log)
-    @eval = EvalWeb.new(web, root, log)
+    @root = root
+    @log = log
+    @env = {'root' => Result.new(root, Ref.new([]))}
+    mod_eval = Mod.new(@env)
+    mod_eval.eval(web)
   end
+
+  def handle(req, out)
+    handler = 
+    handler.handle(out)
+  end
+
 
   def call(env, stream = Stream.new)
     req = Rack::Request.new(env)
-    name = req.path_info[1..-1]
-    params = req.params
-    if @eval.defines?(name) then
-      @eval.eval_req(name, params, stream)
-      respond(stream)
-    elsif name == '$submit' then
-      url = @eval.handle_submit(params, stream)
-      redirect(url)
-    else
-      not_found(name)
+    if req.get? then
+      Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)
+    elsif req.post? then
+      Post.new(req.url, req.GET, @env, @root, @log, req.POST).handle(self, stream)
     end
+    # do nothing otherwise.
   end
 
-  def not_found(name)
+  def not_found(msg)
     [404, {
      'Content-type' => 'text/html',
-     'Content-Length' => name.length.to_s
-     }, [name]]
+     'Content-Length' => msg.length.to_s
+     }, msg]
   end
 
   def redirect(url)
@@ -67,6 +75,7 @@ class Toplevel
       'Content-Length' => stream.length.to_s,
      }, stream]
   end
+
 
 end
 

@@ -1,12 +1,13 @@
-
 def index {
   html("Todos") {
     form {
       datatable(root->todos) {
         column("Todo") { textedit(row->todo); }
-        column("Done") { checkbox(row->done); delete(row, index()); }
+//        column("Done") { checkbox(row->done); delete(row, index()); }
+        column("Done") { checkbox(row->done); }
+        column("Delete") { delete_checkbox(row); }
       }
-      submit("Update", index());
+      submit("Submit", index());
       navigate("New", new_todo(root->todos, new(Todo)));
     }  
   }
