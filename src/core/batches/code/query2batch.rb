@@ -8,6 +8,9 @@ include Java
 
 $CLASSPATH<<'../../batches/jaba/target/test-classes'
 
+require "core/system/library/schema"
+require "core/batches/code/utils"
+
 require "../../batches/runtime/target/runtime-1.0-SNAPSHOT.jar"
 
 module Jaba
@@ -17,11 +20,12 @@ end
 
 class Query2Batch
 
-  def self.query2batch(expr)
-    Query2Batch.new.e2b(expr, "root", nil)
+  def self.query2batch(query, schema)
+    Query2Batch.new(schema).e2b(query, query.classname, nil)
   end
 
-  def initialize
+  def initialize(schema)
+    @schema = schema  # NOTE: factory is NOT a factory for this schema!!!!
     @factory = Jaba::Factory.factory
     @opmap = {
       "+"  => Jaba::Op::ADD,
@@ -51,8 +55,11 @@ class Query2Batch
   def e2b_Query(query, pname, list)
     if list.nil?
       #should only happen at query root
-      list = @factory.Prop(@factory.Root(), query.classname)
+      list = @factory.Prop(@factory.Root(), tablename_from_name(query.classname))
     end
+    #additionally always retrieve keys because they are mandatory
+    keyfield = ClassKey(@schema.classes[query.classname])
+    query.fields << query.factory.Field(keyfield.name)
     body = @factory.Prim(Jaba::Op::SEQ, query.fields.map{|f|e2b(f, pname)})
     cond = query.filter.nil? ? body : @factory.If(e2b(query.filter), body, nil)
     @factory.Loop(Jaba::Op::SEQ, pname, list, cond)
@@ -61,7 +68,7 @@ class Query2Batch
   def e2b_Field(field, pname)
     fname = field.name
     if field.query.nil?
-      @factory.Out(fname, @factory.Prop(@factory.Var(pname), field.name))
+      @factory.Out(fname, @factory.Prop(@factory.Var(pname), fname))
     elsif
       list = @factory.Prop(@factory.Var(pname), fname)
       e2b(field.query, fname, list)
