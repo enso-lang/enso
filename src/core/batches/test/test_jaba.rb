@@ -79,7 +79,7 @@ class BatchTest < Test::Unit::TestCase
 
     #2. assert that the results from evaluating query_test and query_jaba are equal
     String cstr = "jdbc:mysql://localhost/Northwind?user=root&password="
-    connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.classes['Northwind']), cstr)
+    connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.root_class), cstr)
     result_t = connection_t.execute(query_test, Jaba::Forest.new())
 
     root_obj = Result2Object.result2object(result_t, q, @schema)

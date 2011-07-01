@@ -1,0 +1,15 @@
+primitive str
+primitive bool
+
+class Schema
+  root: str?
+  root_class: Klass = "@classes[@root]"
+end
+
+class Klass
+  table: str?
+end
+
+class Field
+  column: str?
+end

@@ -16,7 +16,7 @@ class Result2Object
   def initialize(schema)
     @schema = schema
     @factory = Factory.new(schema)
-    @root = @factory['Northwind']
+    @root = @factory[schema.root]
   end
 
   def r2o_start(resultset, query)

@@ -25,7 +25,7 @@ class Member_Enso
 
 	#public String columnName();
   def columnName()
-    return @field.column!="" ? @field.column : @field.name
+    return !@field.column.nil? ? @field.column : @field.name
   end
 
   def self.make(field)
