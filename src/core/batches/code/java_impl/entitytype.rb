@@ -37,7 +37,8 @@ class EntityType_Enso
 
   #public IAttribute getKey();
   def getKey()
-    return Attribute_Enso.new(@klass.fields.find {|f| f.key})
+    key = @klass.fields.find {|f| f.key}
+    return key ? Attribute_Enso.new(key) : nil
   end
 
 end

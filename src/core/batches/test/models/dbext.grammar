@@ -1,7 +1,0 @@
-start Schema
-
-abstract Schema
-abstract Parent
-
-Details ::= Parent? | Parent? TableName
-TableName ::= "table" "=" table:sym
