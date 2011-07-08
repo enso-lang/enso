@@ -63,7 +63,7 @@ module Web::Eval
         elsif k =~ /^[@.]/ then
           # NB: also when starting with @
           # since @X:3.bla is a valid LValue
-          # maybe check that .bla present
+          # TODO: maybe check that .bla present
           lv = LValue.make(k)
           @bindings[lv] = Value.parse(v)
         else
