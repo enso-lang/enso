@@ -95,24 +95,28 @@ module Web::Eval
       @cond = cond
     end
 
+
+    def redirecting?
+      # TODO: make this true coding convention
+      func =~ /^submit_action$/
+    end
+
     def render(out, cond = nil)
       out << "<input type=\"hidden\" name=\"#{unparse_name(cond)}"
       out << "\" value=\"#{unparse_args}\" />"
     end
 
-    def execute(obj, env, root, store)
-      puts "ARGS: #{@args}"
-      args = @args.map do |arg|
-        puts "ARG: #{arg.inspect} #{arg.class}"
-        x = arg.value(root, store)
-        puts "ARG value: #{x} (#{x.inspect}) #{x.class}"
-        x
+    def bind!(root, store)
+      @bound_args = @args.map do |arg|
+        arg.value(root, store)
       end
-      puts "ARGS: #{args}"
+    end
+
+    def execute(obj, env)
       if cond then
-        obj.send(func, *args) if env[cond]
+        obj.send(func, *@bound_args) if env[cond]
       else
-        obj.send(func, *args)
+        obj.send(func, *@bound_args)
       end
     end
 

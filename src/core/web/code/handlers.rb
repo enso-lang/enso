@@ -8,6 +8,8 @@ require 'core/web/code/store'
 require 'core/web/code/form'
 
 
+require 'core/schema/tools/print'
+
 module Web::Eval
 
   class Handler
@@ -76,6 +78,9 @@ module Web::Eval
 
     def handle(http, out)
       errors = {}
+      puts "BEFORE BINDING"
+      Print.print(@root)
+
       bind(@root, @form, @store, errors)
       begin
         execute(@root, @form, @store, errors)
@@ -90,6 +95,7 @@ module Web::Eval
     private
 
     def bind(root, form, store, errors)
+      Print.print(root)
       form.each do |k, v|
         k.update(v, root, store)
       end
@@ -97,8 +103,19 @@ module Web::Eval
 
     def execute(root, form, store, errors)
       form.actions.each do |action|
-        action.execute(@actions, form.env, root, store)
+        # first bind object-refs to their values
+        action.bind!(root, store)
       end
+      # only then execute
+      later = []
+      form.actions.each do |action|
+        if action.redirecting? then
+          later << action
+        else
+          action.execute(@actions, form.env)
+        end
+      end
+      later.first.execute(@actions, form.env)
     end
 
   end
