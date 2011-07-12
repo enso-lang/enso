@@ -51,7 +51,7 @@ module Loading
         
     def setup
       @cache = {}
-      puts "Initializing.."
+      $stderr << "Initializing..\n"
 
       @cache[INSTANCE_SCHEMA] = InstanceSchema.schema
       
