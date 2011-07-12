@@ -84,10 +84,10 @@ module Loading
     def load_path(path, grammar, schema)
       header = File.open(path, &:readline)
       if header =~ /#ruby/
-        puts "## building #{path}..."
+        $stderr << "## building #{path}...\n"
         instance_eval(File.read(path))
       else
-        puts "## loading #{path}..."
+        $stderr << "## loading #{path}...\n"
         Parse.load_file(path, grammar, schema)
       end
     end
