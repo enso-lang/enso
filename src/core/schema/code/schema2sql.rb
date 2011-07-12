@@ -16,7 +16,6 @@ class Database
   end
 end
 
-
 class Table 
   attr_reader :name
 
@@ -24,34 +23,84 @@ class Table
     @name = name
     @columns = {}
     @foreign_keys = {}
+    @constraints = {}
+    @cascades = {}
+    @spine_triggers = {}
   end
 
   def column(name, type)
     @columns[name] = type
   end
 
+  def spine_trigger(name, kid, kid_col)
+    @spine_triggers[name] = [kid, kid_col]
+  end
+
+  def render_triggers(out = '')
+    @spine_triggers.each do |parent_col, pair|
+      kid, kid_col = pair
+      out << "create trigger delete_#{parent_col}\n"
+      out << "\tbefore delete on #{table_name} for each row\n"
+      out << "\tbegin delete from #{kid.table_name} where\n"
+      out << "\t\t#{kid.table_name}.#{kid_col} = old.#{id_col};\n"
+      out << "\tend;\n"
+    end
+  end
+
   def foreign_key(name, type)
     @foreign_keys[name] = type
   end
 
+  def cascade(name)
+    @cascades[name] = "on delete cascade"
+  end
+
   def not_null(name)
-    puts "Not null: #{name}"
+    add_constraint(name, "not null")
   end
 
   def unique(name)
-    puts "unique: #{name}"
+    add_constraint(name, "unique")
   end
 
+  def default(name, value)
+    add_constraint(name, "default '#{value}'")
+  end
+
+  def add_constraint(name, cons)
+    @constraints[name] ||= []
+    @constraints[name] << cons
+  end
+    
+
+  def table_name
+    # "#{name}_table"
+    name
+  end
+  
+  def id_col
+    return '_id'
+  end
+  
   def render(out = '')
-    out << "create table #{name} (\n"
-    out << "\tinteger id primary key autoincrement\n"
-    @columns.each do |n, t|
-      out << "\t#{t.type} #{n}\n"
+    out << "create table #{table_name} (\n"
+    cols = ["\t#{id_col} integer primary key autoincrement"]
+    cols += @columns.map do |n, t|
+      col = "\t#{n} #{t.type}"
+      if @constraints[n] then
+        col << ' ' + @constraints[n].join(' ')
+      end
+      col
     end
-    @foreign_keys.each do |n, t|
-      out << "\tinteger #{n} references #{t.name}\n"
+    cols += @foreign_keys.map do |n, t|
+      col = "\t#{n} integer references #{t.table_name} (#{id_col})"
+      if @cascades[n] then
+        col << " #{@cascades[n]}"
+      end
+      col
     end
-    out << ")\n"
+    out << cols.join(",\n") + "\n);\n"
+    render_triggers(out)
   end
 end
 
@@ -70,6 +119,17 @@ class Scalar
       raise "Unsupported primitive: #{@name}"
     end
   end
+
+  def default
+    case @name 
+    when 'str' then return ''
+    when 'int' then return 0
+    when 'bool' then return false
+    else
+      raise "Unsupported primitive: #{@name}"
+    end
+  end
+
 end
 
 
@@ -96,6 +156,10 @@ class Schema2SQL
     return obj
   end
 
+  def super_column(name)
+    "#{name}_super"
+  end
+
   def Schema(this)
     db = Database.new
     this.classes.each do |c|
@@ -106,28 +170,46 @@ class Schema2SQL
   
   def Klass(this)
     with(Table.new(this.name)) do |tbl|
-      this.fields.each do |f|
+      this.defined_fields.each do |f|
         eval(f)
       end
       this.supers.each do |c|
-        tbl.foreign_key(c.name, eval(c));
+        tbl.foreign_key(super_column(c.name), eval(c));
+        tbl.cascade(super_column(c.name))
+      end
+      this.subtypes.each do |c|
+       tbl.spine_trigger(super_column(c.name), eval(c), super_column(this.name))
       end
     end
   end
   
   def Field(this)
+    return if this.computed
     tbl = eval(this.owner)
     if !this.many then
       if this.type.Primitive? then
-        tbl.column(this.name, eval(this.type))
+        pt = eval(this.type)
+        tbl.column(this.name, pt)
+        tbl.default(this.name, pt.default)
       else
         tbl.foreign_key(this.name, eval(this.type))
+        if this.traversal then
+          tbl.cascade(this.name)
+        end
       end
       if !this.optional then
         tbl.not_null(this.name)
       end
     elsif this.many && this.inverse then
-      eval(this.type).foreign_key(this.inverse.name, tbl)
+      target = eval(this.type)
+      target.foreign_key(this.inverse.name, tbl)
+      tbl.spine_trigger(this.name, target, this.inverse.name)
+    elsif this.many then
+      puts "Warning: no inverse on many field  #{this.name}"
+      target = eval(this.type)
+      inv = "#{this.name}_inverse"
+      target.foreign_key(inv, tbl)
+      tbl.spine_trigger(this.name, target, inv)
     end
     if this.key then
       tbl.unique(this.name)
@@ -144,8 +226,10 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
 
   ss = Loader.load('schema.schema')
-
   puts Schema2SQL.to_sql(ss).render
+
+  #gs = Loader.load('grammar.schema')
+  #puts Schema2SQL.to_sql(gs).render
   
 
 end
