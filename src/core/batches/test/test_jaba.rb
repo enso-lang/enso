@@ -28,7 +28,7 @@ end
 
 java_import Java::tests.sql.northwind.schema.Northwind
 
-class BatchTest < Test::Unit::TestCase
+class JabaTest < Test::Unit::TestCase
 
   # test setup
   def setup

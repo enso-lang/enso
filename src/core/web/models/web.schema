@@ -29,8 +29,8 @@ class Stat
 end
 
 class Do < Stat
-  call: Exp
-  cond: Exp?
+  !call: Exp
+  !cond: Exp?
 end
 
 

@@ -1,0 +1,7 @@
+def index {
+  "Northwind Customer Relationship Management" <br />
+  for (p:root->Products) {
+    $p->ProductName " is peddled by " $p->Supplier->CompanyName
+    <br />
+  }
+}

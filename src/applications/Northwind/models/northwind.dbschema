@@ -5,6 +5,14 @@ primitive str
 primitive real
 primitive bool
 
+class Northwind table=Northwind
+	!Categories: Category*
+	!Products: Product*
+	!Suppliers: Supplier*
+	!Customers: Customer*
+	!Orders: Order*
+end
+
 class Category table=Categories
     #CategoryID: int
     CategoryName: str
@@ -20,14 +28,6 @@ class Customer table=Customers
 	Country: str
 	!Orders: Order* / Order.Customer
 	Region: str
-end
-
-class Northwind table=Northwind
-	!Categories: Category*
-	!Products: Product*
-	!Suppliers: Supplier*
-	!Customers: Customer*
-	!Orders: Order*
 end
 
 class Order_Details table=Order_Details
