@@ -249,7 +249,7 @@ module CheckedObjectMixin
   
   def to_s
     k = ClassKey(schema_class)
-    "<#{schema_class.name} #{k && self[k.name]? self[k.name] + " " : ""}#{@_id}>"
+    "<#{schema_class.name} #{k && self[k.name]? self[k.name].inspect + " " : ""}#{@_id}>"
   end
 
   def inspect
