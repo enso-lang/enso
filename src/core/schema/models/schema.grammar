@@ -11,7 +11,7 @@ ClassAnnot ::= Parent?
 Parent ::= "<" supers:{Super ","}+
 Super ::= Klass^
 
-Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot?
+Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot*
 Key ::= "#" @"@key = true"
 Traversal ::= "!" @"@traversal = true"
 

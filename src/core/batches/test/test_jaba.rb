@@ -44,10 +44,12 @@ class JabaTest < Test::Unit::TestCase
     f = Jaba::Factory.factory
     query_jaba = f.Loop(Jaba::Op::SEQ, "Customer", f.Prop(f.Root(), "Customers"),
                         f.Prim(Jaba::Op::SEQ,
-                            [f.Out("CompanyName", f.Prop(f.Var("Customer"), "CompanyName")),
-                             f.Out("CustomerID", f.Prop(f.Var("Customer"), "CustomerID"))]))
+                            [f.Out("Customer_CompanyName", f.Prop(f.Var("Customer"), "CompanyName")),
+                             f.Out("Customer_CustomerID", f.Prop(f.Var("Customer"), "CustomerID"))]))
 
     #1. assert that query_test == query_jaba
+    puts query_test.toString()
+    puts query_jaba.toString()
     assert(query_test.toString() == query_jaba.toString())
 
     #2. assert that the results from evaluating query_test and query_jaba are equal
@@ -58,11 +60,11 @@ class JabaTest < Test::Unit::TestCase
     result_t = connection_t.execute(query_test, Jaba::Forest.new())
     list_j = []
     result_j.getIteration("Customer").each do |x|
-      list_j << "name=#{x.getString("CompanyName")}"
+      list_j << "name=#{x.getString("Customer_CompanyName")}"
     end
     list_t = []
     result_t.getIteration("Customer").each do |x|
-      list_t << "name=#{x.getString("CompanyName")}"
+      list_t << "name=#{x.getString("Customer_CompanyName")}"
     end
     assert (list_j == list_t)
 

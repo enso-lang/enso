@@ -1,7 +1,10 @@
 def index {
   "Northwind Customer Relationship Management" <br />
-  for (p:root->Products) {
-    $p->ProductName " is peddled by " $p->Supplier->CompanyName
-    <br />
+  datatable(root->Products) {
+    column("Name") { textedit(row->ProductName); }
+    column("In stock") { textedit(row->UnitsInStock); }
+    column("On order") { textedit(row->UnitsOnOrder); }
+    column("Reorder level") { textedit(row->ReorderLevel); }
+    column("Discontinued") { checkbox(row->Discontinued); }
   }
 }

@@ -18,7 +18,7 @@ class Category table=Categories
     CategoryName: str
     Description: str
     Picture: str
-    !Products: Product* / Product.Category
+    Products: Product* / Product.Category
 end
 
 class Customer table=Customers
@@ -26,13 +26,13 @@ class Customer table=Customers
 	CompanyName: str
 	ContactName: str
 	Country: str
-	!Orders: Order* / Order.Customer
+	Orders: Order* / Order.Customer
 	Region: str
 end
 
 class Order_Details table=Order_Details
-	!Order: Order column=OrderID
-	!Product: Product column=ProductID
+	Order: Order column=OrderID
+	Product: Product column=ProductID
 	UnitPrice: real
 	Quantity: int
 	Discount: real
@@ -43,8 +43,8 @@ class Order table=Orders
 	OrderDate: int
     RequiredDate: int
     ShippedDate: int
-	!Customer: Customer column=CustomerID
-	!OrderDetails: Order_Details* / Order_Details.Order
+	Customer: Customer column=CustomerID
+	OrderDetails: Order_Details* / Order_Details.Order
     Freight: int
 end
 
@@ -52,14 +52,14 @@ class Product table=Products
     #ProductID: int
     ProductName: str
     QuantityPerUnit: str
-    UnitPrice: real
+    UnitPrice: real?
     UnitsInStock: int
     UnitsOnOrder: int
     ReorderLevel: int
-    Discontinued: bool
-    !Category: Category column=CategoryID
-    !Supplier: Supplier column=SupplierID
-    !OrderDetails: Order_Details* / Order_Details.Product
+    Discontinued: int
+    Category: Category? column=CategoryID
+    Supplier: Supplier? column=SupplierID
+    OrderDetails: Order_Details* / Order_Details.Product
 end
 
 class Supplier table=Suppliers
@@ -75,5 +75,5 @@ class Supplier table=Suppliers
     Phone: str
     Fax: str
     HomePage: str
-    !Products: Product* / Product.Supplier
+    Products: Product* / Product.Supplier
 end

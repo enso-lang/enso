@@ -21,7 +21,7 @@ end
 class Query2Batch
 
   def self.query2batch(query, schema)
-    Query2Batch.new(schema).e2b(query, query.classname, nil)
+    Query2Batch.new(schema).query2batch(query)
   end
 
   def initialize(schema)
@@ -48,35 +48,54 @@ class Query2Batch
     }
   end
 
+  def query2batch(query)
+    fname = query.classname
+    env1 = {fname => @factory.Var(fname)}
+    @factory.Loop(Jaba::Op::SEQ, fname,
+                  @factory.Prop(@factory.Root(), tablename_from_name(@schema.root_class, query.classname)),
+                  e2b_Query(query, fname, env1))
+  end
+
+  def wrap(classname)
+    oldclassname = @classname
+    @classname = classname
+    res = yield
+    @classname = oldclassname
+    res
+  end
+
+  def e2b_Query(query, pname, env)
+    keyfield = ClassKey(@schema.classes[query.classname])
+    if query.fields.none? {|f| f.name == keyfield.name}
+      query.fields << query.factory.Field(keyfield.name)
+    end
+    body = @factory.Prim(Jaba::Op::SEQ, query.fields.map{|f|e2b_Field(f, pname, env)})
+    body = @factory.If(e2b(query.filter), body, @factory.Prim(Jaba::Op::SEQ, [])) if !query.filter.nil?
+    body
+  end
+
+  def e2b_Field(field, pname, env)
+    fname = pname+"_"+field.name
+    if field.query.nil?
+      res = @factory.Out(fname, @factory.Prop(env[pname], field.name))
+    else
+      multi = @schema.classes[field.owner.classname].fields[field.name].many
+      if multi
+        env1 = env.merge({fname => @factory.Var(fname)})
+        res = @factory.Loop(Jaba::Op::SEQ, fname, @factory.Prop(env[pname], field.name), e2b_Query(field.query, fname, env1))
+      else
+        env1 = env.merge({fname => @factory.Prop(env[pname], field.name)})
+        res = e2b_Query(field.query, fname, env1)
+      end
+    end
+  end
+
+  def e2b_ComputedField(field, pname)
+    @factory.Out(pname+"_"+field.name, e2b(field.expr))
+  end
+
   def e2b(this, *args)
     send("e2b_#{this.schema_class.name}", this, *args)
-  end
-
-  def e2b_Query(query, pname, list)
-    if list.nil?
-      #should only happen at query root
-      list = @factory.Prop(@factory.Root(), tablename_from_name(query.classname))
-    end
-    #additionally always retrieve keys because they are mandatory
-    keyfield = ClassKey(@schema.classes[query.classname])
-    query.fields << query.factory.Field(keyfield.name)
-    body = @factory.Prim(Jaba::Op::SEQ, query.fields.map{|f|e2b(f, pname)})
-    cond = query.filter.nil? ? body : @factory.If(e2b(query.filter), body, nil)
-    @factory.Loop(Jaba::Op::SEQ, pname, list, cond)
-  end
-
-  def e2b_Field(field, pname)
-    fname = field.name
-    if field.query.nil?
-      @factory.Out(fname, @factory.Prop(@factory.Var(pname), fname))
-    elsif
-      list = @factory.Prop(@factory.Var(pname), fname)
-      e2b(field.query, fname, list)
-    end
-  end
-
-  def e2b_ComputedField(field)
-    @factory.Out(pname+"_"+field.name, e2b(field.expr))
   end
 
   def e2b_EBinOp(expr)
@@ -89,15 +108,19 @@ class Query2Batch
     @factory.Prim(@opmap[expr.op], args)
   end
 
-  def e2b_EField(expr, env)
+  def e2b_EField(expr)
     @factory.Prop(e2b(expr.e), expr.fname)
   end
 
-  def e2b_EVar(expr, env)
-    @factory.Var(expr.name)
+  def e2b_EVar(expr)
+    if expr.name == "@self"
+      @factory.Var(@classname)
+    else
+      @factory.Var(expr.name)
+    end
   end
 
-  def e2b_EListComp(expr, env)
+  def e2b_EListComp(expr)
     if expr.op == "all?"
       op = Jaba::Op::AND
     elsif expr.op == "any?"
@@ -107,15 +130,15 @@ class Query2Batch
   end
 
   def e2b_EStrConst(expr)
-    @factory.Constant(expr.val)
+    @factory.Data(expr.val)
   end
 
   def e2b_EIntConst(expr)
-    @factory.Constant(expr.val)
+    @factory.Data(expr.val)
   end
 
   def e2b_EBoolConst(expr)
-    @factory.Constant(expr.val)
+    @factory.Data(expr.val)
   end
 
 end

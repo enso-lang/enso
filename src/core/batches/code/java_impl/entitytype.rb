@@ -27,7 +27,7 @@ class EntityType_Enso
 
   #public IMember get(String name);
   def get(name)
-    return Attribute_Enso.new(@klass.fields[name])
+    return Member_Enso.make(@klass.fields[name])
   end
 
   #public IRelationship getRelationship(String name);
@@ -40,5 +40,12 @@ class EntityType_Enso
     key = @klass.fields.find {|f| f.key}
     return key ? Attribute_Enso.new(key) : nil
   end
+
+  def toString()
+		"Entity-#{@klass.name} #{@klass.inspect}"
+  end
+
+  alias :inspect :toString
+  alias :to_s :toString
 
 end

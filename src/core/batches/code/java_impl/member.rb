@@ -15,6 +15,7 @@ class Member_Enso
   #@field : CheckedObject
 
   def initialize(field)
+    raise "Tried to create a member with nil" if field.nil?
     @field = field
   end
 
