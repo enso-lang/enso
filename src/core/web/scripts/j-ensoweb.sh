@@ -9,4 +9,3 @@ export WEB=$1
 export ROOT=$2
 
 RUBYOPT="-I." jruby --1.9 -S rackup ${WEBSCRIPTS}/serve-batch.ru
-#RUBYOPT="-I." jruby --1.9 -S rackup ${WEBSCRIPTS}/serve.ru

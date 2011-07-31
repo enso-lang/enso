@@ -4,6 +4,10 @@ def ClassKey(klass)
   klass.fields.find { |f| f.key && f.type.Primitive? }
 end
 
+def ObjectKey(obj)
+  obj[ClassKey(obj.schema_class).name]
+end
+
 def IsKeyed?(klass)
   not klass.Primitive? and not ClassKey(klass).nil?
 end

@@ -2,7 +2,7 @@
 
 # RUBYOPT="-I." thin start -V -D --stats . -R core/web/code/serve.ru
 
-require 'core/web/code/toplevel-batch'
+require 'core/web/code/batch-toplevel'
 require 'core/system/load/load'
 
 require 'logger'
@@ -14,6 +14,6 @@ log = Logger.new($stderr)
 # TODO: detect when thin is debug mode, otherwise use WARN
 log.level = Logger::DEBUG
 
-app = Web::EnsoBatchWeb.new(web, root, log)
+app = BatchWeb::EnsoWeb.new(web, root, log)
 use Rack::CommonLogger
 run app

@@ -6,6 +6,10 @@ Note that unlike SecureFacotry, BatchFactory has nothing to do with the original
 
 include Java
 
+require 'rubygems'
+require 'jdbc/mysql'
+include_class "com.mysql.jdbc.Driver"
+
 $CLASSPATH<<'../../batches/jaba/target/test-classes'
 
 require 'core/system/load/load'
@@ -34,36 +38,72 @@ end
 
 class BatchFactory
 
-  def initialize(schema, query, db, user, password)
+  def initialize(web, schema, db, user, password)
+    @all_queries = BatchEval.batch(web, schema.root_class)
     @schema = schema
     @factory = Factory.new(schema)
     #init db here
     @database = db
     @user = user
     @password = password
-    #pass query object to db and get back a resultset
-    @query = query
-    String cstr = "jdbc:#{@database}?user=#{@user}&password=#{@password}"
-    connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.root_class), cstr)
+    @jaba_addr = "jdbc:#{@database}?user=#{@user}&password=#{@password}"
+    @connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.root_class), @jaba_addr)
 
-    @root = @factory[@schema.root_class.name]
+    @address = "jdbc:#{@database}"
+    @jdbc_conn = java.sql.DriverManager.getConnection(@address, @user, @password)
+
+  end
+
+  #return a checked object corresponding to the root of the query
+  def query(query_name)
+    query = @all_queries[query_name]
+    root = @factory[@schema.root_class.name]
     query.fields.each do |f|
       q = f.query
       next if q.nil?
       bq = Query2Batch.query2batch(q, @schema)
-      result_t = connection_t.execute(bq, Jaba::Forest.new())
+      result_t = @connection_t.execute(bq, Jaba::Forest.new())
       obj = Result2Object.result2object(result_t, q, @schema)
-      CopyInto(@factory, obj, @root)
+      CopyInto(@factory, obj, root)
     end
+    root
   end
 
-  #return a checked object corresponding to the root of the query
-  def root()
-    @root
+  def update(obj, field, value)
+    klass = obj.schema_class
+    table = klass.table
+    puts "klass = #{klass.name}"
+    keyfield = ClassKey(klass).name
+    puts "keyfield = #{keyfield}"
+    puts "value = #{value}"
+    key = obj[keyfield]
+    puts "key = #{key.inspect}"
+    #check if this is a relationship or an attribute.
+    puts "setting key #{key} in table #{table} to value #{value}"
+    if klass.fields[field].type.Primitive?
+      # attribute - simple update
+      puts "as an attribute"
+      query = "update #{table} set #{field}=#{value} where #{keyfield}=#{key.inspect}"
+    else
+      # relationship - simple update on foreign key
+      puts "as a relation"
+    end
+    puts query
+    jdbc_exec(query)
   end
 
-  #turn this resultset into a bunch of checked objects
-  def populate_with_db(factory, resultset)
+  def create(path, value)
+    jdbc_exec(query)
+  end
+
+  private
+
+  def jdbc_exec(query)
+    @jdbc_conn.createStatement.execute(query)
+  end
+
+  def jdbc_query(query)
+    @jdbc_conn.createStatement.executeQuery(query)
   end
 
 end

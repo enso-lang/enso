@@ -46,6 +46,7 @@ module Web::Eval
       else
         obj[key] = convert(fld, rvalue)
       end
+      obj
     end
 
     private

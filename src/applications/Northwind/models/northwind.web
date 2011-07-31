@@ -1,10 +1,12 @@
 def index {
-  "Northwind Customer Relationship Management" <br />
-  datatable(root->Products) {
-    column("Name") { textedit(row->ProductName); }
-    column("In stock") { textedit(row->UnitsInStock); }
-    column("On order") { textedit(row->UnitsOnOrder); }
-    column("Reorder level") { textedit(row->ReorderLevel); }
-    column("Discontinued") { checkbox(row->Discontinued); }
+  html("Northwind Trading Incorporated") {
+    form {
+        "Northwind Customer Relationship Management" <br />
+        datatable(root->Categories) {
+            column("Name") { $row->CategoryName }
+            column("Title") { textedit(row->Description); }
+        }
+        submit("Submit", index());
+    }
   }
 }

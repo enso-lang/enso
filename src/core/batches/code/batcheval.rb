@@ -48,11 +48,15 @@ class BatchEval < Web::Eval::Render
   end
 
   def eval(obj, *args)
+    puts "Evaling"
+    Print.print(obj)
     send(obj.schema_class.name, obj, *args)
   end
 
-  def eval_exp(exp, env, errors)
-    send("exp_"+exp.schema_class.name, exp, env, errors)
+  def eval_exp(obj, env, errors)
+    puts "Evaling exp"
+    Print.print(obj)
+    send("exp_"+obj.schema_class.name, obj, env, errors)
   end
 
   def save_filter(newfilter=@filter)
@@ -130,6 +134,7 @@ class BatchEval < Web::Eval::Render
         q = existing_f.query
       else
         schema_class = @schema.types[inner.classname]
+        puts "Schema: #{schema_class} fname: #{fname}"
         tgt_class = schema_class.all_fields[fname].type
         q = tgt_class.Primitive? ? nil : @factory.Query(tgt_class.name)
         f = @factory.Field(fname, q)
