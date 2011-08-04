@@ -1,0 +1,12 @@
+def index {
+  html("Northwind Trading Incorporated") {
+    form {
+        "Northwind Customer Relationship Management" <br />
+        datatable(root->Categories) {
+            column("Name") { $row->CategoryName }
+            column("Title") { textedit(row->Description); }
+        }
+        submit("Submit", index());
+    }
+  }
+}

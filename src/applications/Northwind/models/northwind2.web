@@ -1,0 +1,9 @@
+def index {
+  "Northwind Customer Relationship Management" <br />
+  form {
+      for (p:root->Products) {
+        $p->ProductName " has " textedit(p->UnitsInStock); " in stock" <br />
+      }
+      submit("Submit", index());
+  }
+}

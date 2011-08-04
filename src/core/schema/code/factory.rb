@@ -73,6 +73,25 @@ class Factory
     raise "too many constructor arguments supplied for '#{class_name} (#{n} fields, #{args.length} args)" if n < args.length
     return obj
   end
+
+
+  def delete_obj(obj)
+    sc = obj.schema_class
+    sc.fields.each do |fld|
+      next if fld.type.Primitive?
+      if fld.traversal then
+        delete_obj(obj[fld.name])
+      else
+        if fld.inverse then
+          if fld.inverse.many then
+            obj[fld.name][fld.inverse.name].delete(obj)
+          else
+            obj[fld.name][fld.inverse.name] = nil
+          end
+        end
+      end
+    end
+  end
 end
 
 module CheckedObjectMixin
@@ -230,7 +249,7 @@ module CheckedObjectMixin
   
   def to_s
     k = ClassKey(schema_class)
-    "<#{schema_class.name} #{k && self[k.name]? self[k.name] + " " : ""}#{@_id}>"
+    "<#{schema_class.name} #{k && self[k.name]? self[k.name].inspect + " " : ""}#{@_id}>"
   end
 
   def inspect
@@ -258,6 +277,10 @@ module CheckedObjectMixin
         # don't do this now... it will get done during finalize
       end
     end
+  end
+
+  def delete!
+    _graph_id.delete_obj(self)
   end
   
   def finalize

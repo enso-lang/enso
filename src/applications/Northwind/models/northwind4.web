@@ -1,0 +1,14 @@
+def index {
+  "Northwind Customer Relationship Management" <br />
+  datatable(root->Products) {
+   if (row->ProductID < 3) {
+    column("Name") { textedit(row->ProductName); }
+    column("In stock") { textedit(row->UnitsInStock); }
+    column("On order") { textedit(row->UnitsOnOrder); }
+    column("Reorder level") { textedit(row->ReorderLevel); }
+    column("Discontinued") { checkbox(row->Discontinued); }
+    column("Supplier") { textedit(row->Supplier->CompanyName); }
+    column("Country") { textedit(row->Supplier->Country); }
+    }
+  }
+}

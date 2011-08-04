@@ -11,6 +11,11 @@ end
 class Field
   #name: str
   !query: Query?
+  #owner: Query / Query.fields
+end
+
+class ComputedField < Field
+  !expr:Expr
 end
 
 class Expr end

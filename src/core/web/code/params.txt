@@ -100,22 +100,25 @@ Actions
   and value the actual parameters.
 
 Action ::= !A
+        |  !A?name
 
 Params ::= {Value ":"}* 
 
 A "do" statement
 
    do f(a_1, ..., a_n);
+   doif c f(a_1, ..., a_n);
 
 is rendered as:
 
   <input type="hidden" name="!f" value="v_1:...:v_n">
+  <input type="hidden" name="!f?v" value="v_1:...:v_n">
 
-Where v_1,...,v_n are the (value) results of evaluating
-the a_1, ..., a_n expressions.
+Where v_1,...,v_n are the (value) results of evaluating the a_1, ...,
+a_n expressions. And v is the result of evaluating c.
 
 Note: that upon rendering, the : should be escaped in Values, and upon
-action processing, be unescaped. 
+action processing, be unescaped.
 
 Note to self:
 escape: str.gsub(/:/, ':@')

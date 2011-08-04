@@ -13,6 +13,7 @@ Expression ::= [Variable] name:sym
 	    | [Lookup] obj:Expression "[" key:Expression "]"
 	    | [Update] obj:Expression "[" contents:{Assign ";"}* "]"
 	    | [Dot]  obj:Expression "->" field:sym
+	    | [Dot]  obj:Expression "->" field:sym "(" args:{Expression ","}+ ")"
 
 	    | [Not] "!" arg:Expression // is special
 

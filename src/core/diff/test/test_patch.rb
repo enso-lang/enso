@@ -25,17 +25,6 @@ class PatchTest < Test::Unit::TestCase
     patch = Diff.new.diff(@point_schema, @p1, @p2)
     p3 = Patch.patch(@p1, patch)
 
-=begin
-    puts "Result of p3 = patch!(p1, diff(p1, p2))"
-    Print.print(patch)
-    puts "p1="
-    DisplayFormat.print(@point_grammar, @p1)
-    puts "p2="
-    DisplayFormat.print(@point_grammar, @p2)
-    puts "p3="
-    DisplayFormat.print(@point_grammar, p3)
-=end
-
     assert(Equals.equals(@p2, p3))
   end
   

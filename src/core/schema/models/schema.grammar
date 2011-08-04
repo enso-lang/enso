@@ -6,11 +6,12 @@ TypeDef ::= Primitive | Klass
 
 Primitive ::= [Primitive] "primitive" name:sym
 
-Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
+Klass ::= [Klass] "class" name:sym ClassAnnot defined_fields:Field* "end"
+ClassAnnot ::= Parent?
 Parent ::= "<" supers:{Super ","}+
 Super ::= Klass^
 
-Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot?
+Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot*
 Key ::= "#" @"@key = true"
 Traversal ::= "!" @"@traversal = true"
 

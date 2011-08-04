@@ -14,7 +14,7 @@ Default ::= "(" default:Value ")"
 
 Formals ::= "(" formals:{Formal ","}* ")"
 
-Formal ::= name:sym
+Formal ::= [Formal] name:sym
 
 
 
