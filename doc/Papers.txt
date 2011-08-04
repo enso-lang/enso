@@ -1,0 +1,177 @@
+
+Papers
+--------------------
+Enso overview
+  - Quadmodel
+  - grammars
+  - Generic Addresses???
+  - Bootstrapping
+  - Selecting a host language
+  - Previous attempts (summary)
+  - Consistency of models??
+    (deltas?)
+   Models, OOPSLA, ECOOP, SLE, GPCE
+   @@Language paper, little evaluation???
+   @@Related work
+   (non-published!!!)
+--------------------
+
+Modular Implementation for Integrating Cross-cutting Domain-Specific Languages
+  Problem?
+    Integrating multiple domain-specific languages
+     Is the compilers/interpreter modularity
+     How does this apply to aspects
+  - Security
+  - Dynamic versus static binding
+       interpreters do dynamic lookup of names
+  - Factory
+     - In memory / database
+  - DBEnsoWeb calls EnsoWeb
+  - TODO: reuse expressions everywhere
+  - Consistency of models??
+  - Talk about alternative view of aspects
+   - what about partial evaluation??? is it slower???
+  @@Evaluation of different combinations of interpreters
+    Related work
+      "Decoupling Web Application Concerns through Weaving Operations"
+       WebDSL
+       Homogeneous Language Embedding (Tony Clark)
+       Language integration (syntactic/semantic embedding/extension)
+          facets of a language
+          dominant/sublanguage
+          what we want is *combination*
+       Modular interprets (extension of a language)
+  @@Ready to write
+
+
+     o.foo
+
+    o.get("foo")
+
+
+  interface EnsoSchema {
+     make: String -> EnsoObj;
+  }
+  Value has type: Primitive, EnsoObj, EnsoCol<T of Prim*>
+  interface EnsoObj {
+     get: String -> Value;
+     set: String, Value -> Void
+  }
+  interface SecureEnsoObj < EnsoObj {
+     readable: String -> bool
+      writeable: String -> bool
+  }
+  interface EnsoCol<T> {
+     size: -> Int
+     get: T -> Value;
+     set: T, Value -> Void
+     remove: Value -> Void
+     removeAt: T -> Void 
+  }
+
+ 
+  interface Root {
+    query:  Query -> EnsoObj
+}
+
+  interface SecureRoot {
+    login: String, String -> Root
+}
+
+  interface EnsoSchema {
+     make: String -> EnsoObj;
+  }
+  Value has type: Primitive, EnsoObj, EnsoCol<T of Prim*>
+  interface EnsoObj {
+     get: String -> EnsoProp;
+  }
+  interface ManyEnsoProp<T> {
+     size: -> Int
+     get: T -> Value;
+     set: T, Value -> Void
+     remove: Value -> Void
+     removeAt: T -> Void 
+  }
+ interface SingleEnsoProp {
+     get: -> Value
+     set: Value ->
+  }   
+  interface SecureEnsoObj < EnsoProp {
+     readable:  -> bool
+      writeable:  -> bool
+  }
+
+
+  interface ExpressionSystem {
+    eval : CallManager, expression,  environment -> value
+  }
+
+  interface ExpressionSystemA {
+    setup : CallManager -> ExpressionSystemB
+  }
+  interface ExpressionSystemB {
+    eval : expression,  environment -> value
+  }
+
+  interface EnsoWeb {
+     process: UI, Schema, root, request -> HTML
+  }    
+
+  interface QueryEnsoWeb {
+     process: UI, Schema, dataManager, request -> HTML
+  }
+
+WebQE(dbQuerable, UI, request)
+  Q = GetQuery(UI, request)
+  root = dbq.runQuery(Q)
+   EnsoWeb(root, IU, request)
+
+updates???
+
+
+
+
+--------------------
+
+EnsoWeb
+  - ConsClosures
+  - QueryExtraction
+  - "A better WebDSL"
+  - (pointer to the modular interpreters)
+    (deltas?)
+  @@Need evaluation (performance and comparison)
+
+Bidirectional Transformations
+  theory? 
+    variant on lenses? something else?
+    primitive recursion?
+  examples
+    Grammars
+    Diagrams
+    (deltas?)
+    ?????
+  @@Needs research on related work 
+
+--------------------
+
+Cyclic Equational Transformation
+  - Implementation/use
+  - Theory
+  - Applications???
+  - What is the computational value?
+  - JastAdd AG… .how does it differ?
+       source is a tree
+       creating a new thing, or cross links to same structure? 
+           (is this essential)
+  @@NEEDS MORE RESEARCH -- BRUNO?
+  @@Needs research on related owrk
+
+--------------------
+
+* Deltas
+  - Unison
+  - Evolution
+  - Modularity
+  @@needs more research??
+  "A metamodel inde- pendent approach to difference representation"
+

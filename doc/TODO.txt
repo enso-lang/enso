@@ -7,6 +7,16 @@ Errors to check
 * Put an invariant on SchemaSchema.Class that the supertype relation must be asyclic
 * Deal with keys that change and need to be rehashed
 
+New core functionality
+* Composite keys
+* changing many to finite list (restriction)
+* invariants
+* wrap all single-valued fields
+* addresses as a general service
+* allow "listening" to changes 
+* REDO The differencing model
+   
+
 Cleanup tasks
 * Finalize: seals from changes, run invariants (close to being right)
 * sanitize the loader namespace (remove boot stuff)
@@ -52,9 +62,6 @@ Library (+ means done)
   GUI
     like Diagram, but for GUIs
     
-New core functionality
-* fixedpoint cyclic map??
-* allow "listening" to changes 
 
 Applications
 * graphical editors
