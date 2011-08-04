@@ -5,6 +5,7 @@
 # Process mouse clicks as actions
 
 require 'core/diagram/code/diagram'
+require 'yaml' 
 
 # render(Stencil, data) = diagram
 
@@ -50,12 +51,31 @@ class StencilFrame < DiagramFrame
     construct @stencil.body, env do |x| 
       set_root(x) 
     end
+    puts "FINDING #{path}-positions"
+    @old_map = {}
+    if File.exists?("#{path}-positions")
+      @old_map = YAML::load_file("#{path}-positions")
+    end
     refresh()
     puts "DONE"
     #Print.print(@root)
-    on_export
   end
 
+  def do_constraints
+    super
+    @old_map.each do |label, pnt|
+      puts "CHECK #{label} #{pnt}"
+      obj = @labels[label]
+      continue if !obj
+      puts "   Has OBJ #{label} #{pnt}"
+      pos = @positions[obj]
+      continue if !pos
+      puts "   Has POS #{label} #{pnt}"
+      pos.x.value = pnt.x
+      pos.y.value = pnt.y
+    end
+  end
+  
   def setup_menus()
     super()
     file = self.menu_bar.get_menu( self.menu_bar.find_menu("File") )
@@ -73,6 +93,17 @@ class StencilFrame < DiagramFrame
     grammar = Loader.load("#{@extension}.grammar")
     File.open("#{@path}-NEW", "w") do |output|
       DisplayFormat.print(grammar, @data, 80, output)
+    end
+
+    # save the positions
+    positions = {}
+    @labels.each do |label, obj|
+      puts "FOO #{label}: #{obj}"
+      positions[label] = position(obj)
+    end
+    puts positions
+    File.open("#{@path}-positions", "w") do |output|
+      YAML.dump(positions, output)
     end
   end
 
@@ -163,7 +194,7 @@ class StencilFrame < DiagramFrame
       raise "foo" if !tag.Var?
       tag = tag.name
       index, _ = eval(label.args[1], env)
-      return [tag,index]
+      return "#{tag}_#{index.name}"  #HACK: should use the real path
     else
       val, _ = eval(label, env)
       return val

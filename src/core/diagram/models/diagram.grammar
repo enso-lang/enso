@@ -3,13 +3,13 @@ start Part
 Part ::= [Container] Dir Props "{" items:Part* "}"
       | [Connector] "connector" Props "(" ends:{ConnectorEnd "--"}+ ")" "path" path:Point*
       | Text
-      | [Shape] "box" Location? Props "{" content:Part? "}"
+      | [Shape] "box" "#" _id:int Location? Props "{" content:Part? "}"
 Location ::= location:Point
 Text ::= [Text] "text" Props string:str
 
 Dir ::= "vertical" @"@direction=1" | "horizontal" @"@direction=2" | "graph" @"@direction=3" | "do" @"@direction=4"
 
-ConnectorEnd ::= [ConnectorEnd] (label:Text ":")?  (arrow:"<" | arrow:"*")? 
+ConnectorEnd ::= [ConnectorEnd] (label:Text ":")? to:Part^ (arrow:"<" | arrow:"*")? 
 
 Props ::= styles:Style* Constraints?
 Style ::= 

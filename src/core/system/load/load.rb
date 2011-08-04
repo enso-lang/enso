@@ -25,11 +25,11 @@ module Loading
     GRAMMAR_SCHEMA = 'grammar.schema'
     INSTANCE_SCHEMA = 'instance.schema'
     
-    def load(name)
+    def load(name, type = nil)
       setup() if @cache.nil?
       
       return @cache[name] if @cache[name]
-      @cache[name] = _load(name)
+      @cache[name] = _load(name, type)
     end
     
     def load_text(type, factory, source, show = false)
@@ -41,9 +41,9 @@ module Loading
         
     #private
 
-    def _load(name)
+    def _load(name, type)
       # this is very cool!
-      model, type = name.split(/\./)
+      model, type = name.split(/\./) if type.nil?
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
       return load_with_models(name, g, s)

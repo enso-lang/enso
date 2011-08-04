@@ -59,7 +59,7 @@ module Parsers
   end
 
   def Ref(this, nxt = nil)
-    with_token('sym') do |pos, tk, ws|
+    with_token('atom') do |pos, tk, ws|
       terminal(this, pos, tk, ws, nxt)
     end
   end
@@ -69,7 +69,6 @@ module Parsers
       terminal(this, pos, tk, ws, nxt)
     end
   end
-
 
   def Regular(this, nxt = nil)
     @cu = create(nxt) if nxt

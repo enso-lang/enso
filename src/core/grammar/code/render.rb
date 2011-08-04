@@ -48,8 +48,11 @@ class RenderClass < Dispatch
   end
 
   def Field(this, obj)
-    data = obj[this.name]
-    
+    if this.name == "_id"
+      data = obj._id
+    else
+      data = obj[this.name]
+    end
     # handle special case of [[ field:"text" ]] in a grammar 
     throw :fail if this.arg.Lit? && this.arg.value != data
 
@@ -78,9 +81,14 @@ class RenderClass < Dispatch
 
   def Ref(this, obj)
     throw :fail if obj.nil?
-    v = obj[ClassKey(obj.schema_class).name]
-    #puts "RENDER REF #{obj}=#{v}"
-    return space(v)  # TODO: need "." keys
+    key = ClassKey(obj.schema_class)
+    if key
+      v = obj[key.name]
+      #puts "RENDER REF #{obj}=#{v}"
+      return space(v)  # TODO: need "." keys
+    else
+      return space(obj._id)
+    end
   end
 
   def Lit(this, obj)

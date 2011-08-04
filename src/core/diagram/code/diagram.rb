@@ -145,6 +145,10 @@ class DiagramFrame < BaseWindow
     return var
   end
   
+  def do_constraints
+    constrain(@root, @cs.value(0), @cs.value(0)) 
+  end
+  
   def constrain(part, x, y)
     w, h = nil
     with_styles part do 
@@ -218,7 +222,7 @@ class DiagramFrame < BaseWindow
     start_x = from.x + (from.w / 2)
     start_y = from.y + from.h
     end_x = to.x
-    end_y = to.y + (from.h / 2)
+    end_y = to.y + (to.h / 2)
     mid_x = start_x
     mid_y = end_y
     @positions[part.path[0]] = Pnt.new(start_x, start_y)
@@ -235,6 +239,7 @@ class DiagramFrame < BaseWindow
 
   def position(shape)
     p = @positions[shape]
+    return nil if p.nil?
     return Pnt.new(p.x.value, p.y.value)
   end
   
@@ -245,7 +250,7 @@ class DiagramFrame < BaseWindow
     paint do | dc |
       @dc = dc
       @pen = @brush = @font = nil
-      constrain(@root,@cs.value(0), @cs.value(0)) if @positions == {}
+      do_constraints() if @positions == {}
       s = get_client_size()
       @pen = @brush = @font = nil
       draw(@root)

@@ -20,7 +20,7 @@ graph [font.size=12] {
   // create the subclass links
   for (class : schema@classes)
     for (super : class@supers)
-      connector [pen.width=3,pen.color=(255,0,0)] (ClassBox[class] --> ClassBox[super])
+      connector [pen.width=3,pen.color=(255,0,0)] (ClassBox[super] --> ClassBox[class])
   
   // create the relationship edges that go between nodes
   for (class : schema@classes)

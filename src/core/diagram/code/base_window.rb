@@ -25,12 +25,12 @@ class BaseWindow < Wx::Frame
     menu = Wx::MenuBar.new
  
     file = Wx::Menu.new
-    add_menu(file, "&Open\tCmd-O", "Open File", :on_open)
-    add_menu(file, "&Save\tCmd-S", "Save File", :on_save)
-    add_menu(file, "&Close\tCmd-W", "Close File", :on_close)
+    add_menu(file, "&Open\tAlt-O", "Open File", :on_open)
+    add_menu(file, "&Save\tAlt-S", "Save File", :on_save)
+    add_menu(file, "&Close\tAlt-W", "Close File", :on_close)
      
     file.append_separator 
-    add_menu(file, "E&xit\tCmd-Q", "Quit", :on_quit, 0, Wx::ID_EXIT)
+    add_menu(file, "E&xit\tAlt-Q", "Quit", :on_quit, 0, Wx::ID_EXIT)
     menu.append( file, "&File" )
  
     # Create the Help menu
