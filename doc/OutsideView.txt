@@ -1,0 +1,111 @@
+
+An Outsider's View of Model-Driven Development
+   
+William: I think Model-Driven Development is "next big thing", and it will replace objects as dominant paradigm
+Academic: Yeah, I don't understand that models stuff… its all just hooey and informal pictures
+
+What's the plan
+   Observer what seems to be going on
+   Personal Critique/judgements about what we think of it
+   What is novel/significant in all this stuff
+   Suggestions for future research
+
+   Avoid thinking that "Everything is a…."  
+       (If you have hammer, everything looks like a nail)
+ 
+    "Everything is not Something"
+    "Everything is not an instance of your pet theory"
+
+Feeling the Elephant
+	Sentence : Grammar
+	Model : Meta-Model
+   A *model* is an sentence in a *language*
+   "Model-Driven Development": named for the sentences
+     lots of variants: MDA, Data-Driven, ("Model-Ware")
+   "Domain-Specific Languages": named after the language ("GrammarWare")
+      lots of variants: Language Engineering, Embedded DSL, External DSL
+	"Domain" is confusing
+  		We are talking about horizontal domains, not "verticals"
+  		More like "aspects of a system"
+       "Domain-Specific Modeling" graphical models but not tied to UML
+   "Domain-Driven Development"…. more about requirements/analysis/design
+   "OntologyWare"
+
+Key ideas
+   What versus How
+      Domain-Specific *Specification* Languages
+
+Imperative/Declarative
+  term rewriting
+        rules are not ordered, but when we use it in practice we encode order into the data
+	to get complex behaviors, you encode control flow/state into the terms
+            Eelco's grammar normalizer is too complex to understand
+  "coherence": assignments are bad, but ordering them is
+  Attribute grammars (and Excel) do not specify order
+     (under the covers, there may be "imperative" effects to make it happen"
+  Cycles are a big issue (e.g. Excel), but we want to do graphs!
+  "How to Declare an Imperative"
+  What really matters:
+     Compositionality and Predictability are what matter
+         SQL is not very compositional (but the realtional algebra is)
+     Locally-functional, globally imperative: Erlang, SQL
+        "make a state in which these predicates are true"
+     Viewing intermediate states a the problem
+     what about constraint solving!!
+
+Examples
+  Grammars, RegEx, Excel, SQL, ERD(Class Diagram), StateCharts, HTML, ….
+
+Graphs are Good
+  Trees look like trees but they are also graphs (with complex scoping issues, for Tree->Graph)
+  Often matches natural structure of the problem
+   Slogan that "Trees are better for transformation" doesn't make sense, 
+        because they have to derive graph structure during the transformation anyway
+  give arguments why?
+  They are different from traditional "data structures"
+     Sums of products: trees
+     Objects: nodes with pointers, not "graphs"
+  Resist saying "Everything is a graph"!!!
+
+Semantics
+  Interpretation
+  Transformation to models
+     Code Generation is Bad
+     (corollary: Code is a model, but it is not useful to think of it that way)
+  Don't assume that "transformation" is the only kind of semantics
+
+Model Transformation is Good, but not everything
+  Many styles, with pluses and minuses (critique these)
+    Functional
+       Computed Attributes
+    Imperative
+    Rule-Based
+      Term Rewriting
+      Graph Rewriting
+         Graphical Rules
+         Textual Rules
+  Challenges
+    Scale up to real applications and real problems (e.g Grammar to LR1)
+    Cyclicity
+    Small-step versus Big-step: Incremental Changing structure versus creating new structure
+    Creating structures versus Creating Analyses
+
+Don't be Afraid of Code!
+   Avoid slogans like "Everything is a model"
+
+Text versus Graphics does not matter
+  Just two different presentations of semantic structures
+
+UML is Not Helping
+  Originally created to model OO designs
+  Overly complex
+  Not targeted at application models
+  Sterotypes are clumbsy and complex
+
+MDA: PIM/PSM
+  This distinction seems artificial
+
+Experimenting in
+   DSL + Graphical/Textual + Graphs + Cyclic Functional Transformation + Interepreters + Partial Evaluation + Database feel
+
+
