@@ -1,3 +1,7 @@
+Partial evaluation for Macros
+   $VAU the ultimate 
+      John Shutt
+
 
 Papers
 --------------------
