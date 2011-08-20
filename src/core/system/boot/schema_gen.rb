@@ -79,7 +79,7 @@ end
 
 class ValueHash < Hash
   include Enumerable
-  def initialize(key = "name")
+  def initialize(key = "UNKONWN")
     @key = key
   end
 
@@ -125,10 +125,10 @@ class SchemaGenerator
   def self.inherited(subclass)
     schema = SchemaModel.new
     @@schemas[subclass.to_s] = schema
-    schema.classes = ValueHash.new
-    schema.primitives = ValueHash.new
-    schema.types = ValueHash.new
-    schema.sym_primitives = ValueHash.new
+    schema.classes = ValueHash.new("name")
+    schema.primitives = ValueHash.new("name")
+    schema.types = ValueHash.new("name")
+    schema.sym_primitives = ValueHash.new("name")
   end
 
   def self.schema
@@ -210,11 +210,11 @@ class SchemaGenerator
       #puts "Getting class #{name} (#{m._id})"
       m.name = name
       m.schema = schema
-      m.fields = ValueHash.new
-      m.defined_fields = ValueHash.new
-      m.all_fields = ValueHash.new
-      m.subtypes = ValueHash.new
-      m.supers = ValueHash.new
+      m.fields = ValueHash.new("name")
+      m.defined_fields = ValueHash.new("name")
+      m.all_fields = ValueHash.new("name")
+      m.subtypes = ValueHash.new("name")
+      m.supers = ValueHash.new("name")
       return m
     end
     
