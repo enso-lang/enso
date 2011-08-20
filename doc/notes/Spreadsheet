@@ -1,0 +1,124 @@
+This is what I had sent Simon-Peyton Jones on 06/29/2001.
+
+==========================================================================================
+I am calling the project KEx, for killer of Excel.
+
+Axioms
+------
+
+* Excel remains intact. No one will be forced to work woth kEx. kEx
+  sits on top on Excel.
+
+* kEx provides a visual environment for:
+   building structured objects: scalar, array/vector, matrix.
+   defining functions over them.
+   permitting link/import/export of objects and functions.
+
+* kEx separates the logic and display:
+   both can be programmed visually together, as we do today in Excel.
+   logic may be paired with different display functions.
+   kEx also provides a non-visual environment for coding functions.
+
+A scenario
+----------
+
+I would like to enter the scores for my students in 2 tests and
+average them. I assign them grades based on a pre-determined policy:
+30% As, 40% Bs, 20% Cs, 10% Ds. At a later date, I would like to input
+the scores in the 3rd test and assign final grades. I use a
+different averaging formula then, assign 30% weight to the first test
+and 35% to the other two. The same grading policy is to be
+followed. After the last test I would also like to compute certain
+statistics, such as mean, median, variance, etc. I also want a matrix
+in which the rows (students) are ordered according to their scores.
+
+Now, I should be able to export this spreadsheet (including the
+defined functions) to my Teaching Assistant (TA). The TA then adds a
+distribution plot and sends me only the plot, which I integrate into
+my package. I also send the package minus the grade data to a
+colleague. She uses the template for her class, adds the scores on a
+fourth test, and overrides my averaging function and the grading
+policy with her own. Finally, I send this data WITHOUT any information
+about the policies (the functions for averaging and assigning grades)
+to a departmental administrator who combines similar information from
+several professors.
+
+I would like kEx to provide a VISUAL environment for all these
+capabilities.
+
+More on the Visual Environment
+------------------------------
+
+Let me talk about the matrix/table part. I expect to be presented with a
+chart, much like what Excel gives today. For the moment, let the rows
+stand for the tuples (a student's name, id number, scores, wweighted
+score, grade) and the columns for the fields (in relational calculus
+terminology). The matrix that is presented for fill in is rather
+small, say 2 X 2, to begin with. Its boundaries are flexible though
+and they grow as I add more data. I may define a column as a function
+of other columns; we can define map and scan style functions here
+(weighted score, grade). The aggregation or fold-style functions will
+go as rows at the end; thus a column or a row may be defined as a
+function of other rows and/or columns.
+
+The entire object (or its specific columns and rows) will have an
+identity and it can be referenced elsewhere. For instance, I may wish
+to extract enough of this table that contains only the students with
+As. I should be able to apply a filter function to a column.
+
+I may define a DISPLAY function to arrange a number of tables on the screen in
+a specific way. My TA may apply a different DISPLAY function because
+he wants to couple my table with other tables (homework grades) on
+the same screen.
+
+
+
+I have a few points. One is that I think it is a mistake to think
+of relational database or Excel spreadsheets as tables or matrices.
+For one thing, a matrix is typically homogenous in both vertical
+and horizontal directions, while in a table the row and columns
+have different meanings (fields versus items).
+
+Relational databases are actually graphs, because of the use
+of "foreign keys".
+
+I know you know all this.
+
+So what I think we need is this:
+* A way to flexibly and easily describe the structure and
+    properties of data. This is what database schemas do, but
+    in a very poor notation/theory. There are good and expressive
+    ways to do this. I'm talking about defining the structures
+    of arbitrary labelled graphs here, not just a matrix or a list.
+    You might call it an "information structure" rather than
+    a data structure.
+
+* A way to flexibly and map the information structures onto
+    presentations.  There are two
+    things that are needed, which excel does not provide:
+   - full compositionality: anything can be put inside anything.
+      so a cell can contain a sheet, or a stack of sheets, or a chart
+   - flexible layout: so that a "conceptual row" can be mapped
+     into an arbitrary organized layout (which might take several
+       physical rows, or have lots of multi-column/multi-row spans).
+   - Note that excel does have a "matrix projection" model, called
+      a "PivotTable".. but it is not integrated with the rest of Excel's
+     functionality. If you haven't looked at it, you should!
+
+* A consistent *naming* model
+    This is what Excel is best at: every cell has a name,
+     and these names can be used uniformly from anywhere.
+    But excel is limited by its flat structure.
+    The names should be defined on the abstract data, not on
+    the presentation.
+
+* Reactivity: so that the system can detect interesting conditions
+    and respond with an orchestrated behavior.
+
+* Multi-user capability: the same "spreadsheet" should be useable
+   by one or many people.
+
+Again, I'm pretty sure you have the same idea in mind.. but I'm
+trying to make it more precise and concrete here.
+
+William
