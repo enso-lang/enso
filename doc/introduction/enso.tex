@@ -66,15 +66,154 @@
 
 \begin{document}
 \maketitle
-%\section{}
-%\subsection{}
 
+\begin{abstract}
+\Enso\ is a new approach to software development
+based on integrated executable specification languages.
+An executable specification language (ESL) allows programmers
+to specify \textit{what} should be computed while
+relying on the language implementation to determine
+exactly \textit{how} the computation should be performed.
+Examples of ESLs include grammars, spreadsheets, 
+attribute grammars, database queries, 
+access control policies, and makefiles.
+In its goals, \Enso\ is closely related to 
+domain-specific language (DSL) workbenches and 
+model-driven development (MDD) systems. \Enso\ differs
+from existing systems in several ways.
+\Enso\ focuses on language \textit{interpreters}
+rather than language embedding or transformation/compilation. 
+These interpreters are examples of \textit{generic operations},
+which are operations that are guided by an ESL. 
+To integrate multiple ESLs and implement cross-cutting aspects,
+\Enso\ uses interpreter wrapping and composition.
+\Enso\ supports both textual and graphical presentations.
+\Enso\ is implemented using itself with a tight bootstrap process
+and dynamic typing. 
+\Enso\ will ship with a collection of
+extensible languages for data modeling,
+web programming, GUI development, access control, database access,
+software evolution, among others. 
+\end{abstract}
 
-\Enso\ is a theoretically sound and practical reformulation of the 
-concepts of model-driven software development. \Enso\ is based
-on first-class \textit{structural descriptions}, 
-invertable \textit{transformations}, \textit{generic operations} 
-and \textit{interpretation}.
+The concept of an \textit{executable specification language} (ESL) is
+to many computer scientists an oxymoron. The key characteristic
+of a specification language is that it specifies \textit{what} should
+be computed without saying \textit{how} to compute it.
+General-purpose specification languages, including Z and B,
+are far too expressive to admit any direct execution of specifications.
+However, by restricting the specification language to
+describe what should be computed within a limited scope of
+problems, it is possible to create useful languages that specify
+what should be computed, while still supporting efficient
+and fully-automatic execution.
+
+Well-known examples of ESLs include grammars, spreadsheets,
+attribute grammars, database queries,
+access control policies, and makefiles. These are not normally
+considered to be specification languages, but we believe the term
+applies because they describe what should be computed rather
+than how to compute the results.
+A grammar specifies
+what language should be recognized, but not how to recognize it.
+Spreadsheets and attribute grammars give
+equations that must be satisfied, but does not specify order of execution.
+Access control policies specify the conditions under which
+a user is allowed to perform an operation on an object, but
+does not specify how to efficiently enforce the policy everywhere
+in the program that the rule might apply.
+
+In its goals, \Enso\ is closely related to
+domain-specific language (DSL) workbenches and
+model-driven development (MDD) systems. [describe them?]
+
+We avoid the phrase ``domain specific'' because the word
+``domain'' is ambiguous and potentially misleading. We believe that
+executability is the essential requirement.
+Restricting a language to a special purpose, or domain of
+application, is the means to achieve this goal
+but is not the goal itself. Some languages, like datalog
+and attribute grammars, are executable but they are
+sufficiently general-purpose that it seems an abuse of terminology
+to call them domain specific. 
+We avoid the phrase ``domain specific'' because the word
+``domain'' is ambiguous and potentially misleading. We believe that
+executability is the essential requirement.
+Restricting a language to a special purpose, or domain of
+application, is the means to achieve this goal
+but is not the goal itself. Some languages, like datalog
+and attribute grammars, are executable but they are
+sufficiently general-purpose that it seems an abuse of terminology
+to call them domain-specific. Given the right context,
+we do believe that ``domain-specific'' is a reasonable
+description for most ESLs.
+
+Similarly, we also avoid the word ``declarative''.
+Although it is often used to mean
+``specifying what to compute, not how to compute it'',
+it also means the absence of imperative
+effects, especially mutable state and assignment.
+This brings up the question of whether statecharts
+can be considered a declarative language, because they
+have an inherent notion of mutable state.
+On the other hand functional languages, including
+Haskell, are always described as declarative, but we do not
+consider them specification languages because
+they specify how to compute
+a result rather than describing what result is desired.
+Thus we prefer ``specification language'' over
+``declarative language''.
+
+The word ``model'' is a natural name for specification
+written in an executable specification language. This usage
+ties nicely with the idea that a model is a schematic description
+of some phenomenon of interest. This usage
+should not be confused with the usage of ``model'' in logic,
+where it describes a structure that satisfies a set of formula.
+In the software world, ``model'' has come to mean a graphical
+description, or picture, as in the Unified Modeling Language (UML).
+However, we use the term ``model'' to refer to either textual
+or graphical presentations of a specification.
+
+\Enso\ differs from existing systems in several ways.
+
+\Enso\ is based on interpretation rather than code generation. 
+While it is possible to define transformations that generate code
+in conventional languages, this is rarely (if ever) done in \Enso.
+Instead all structural descriptions and transformations are 
+interpreted dynamically. Although the current incarnation of \Enso\
+does not include it, we have previously demonstrated that partial
+evaluation can be applied to \Enso-style interpreters to automatically
+generate efficient code.
+
+To integrate multiple ESLs and implement cross-cutting aspects,
+\Enso\ uses interpreter wrapping and composition.
+
+\Enso\ supports both textual and graphical presentations.
+
+\Enso\ is implemented using itself with a tight bootstrap process
+and dynamic typing. 
+
+\Enso\ will ship with a collection of
+extensible languages for data modeling,
+web programming, GUI development, access control, database access,
+software evolution, among others. 
+
+What follows is a rapid introduction to the concepts and use of
+\Enso. To avoid too many digressions, 
+the many connections between \Enso\ and existing approaches,
+including programming models
+(model-driven, object-oriented, polytypic, functional, constraint-based), theory (dependent types, coalgebra, category theory),
+and related ideas (relational databases, domain-specific languages)
+are discussed in Section~\ref{relatedwork}.
+
+\section{Data Description}
+
+The most important kind of ESL in \Enso\ is the 
+\textit{data description language}. While \Enso\ does not
+require that a particular kind of data description be used,
+it does provide a fundamental data description language that
+is used to build \Enso\ itself. 
 
 Structures in \Enso\ are a specialized kind of graph,
 whose nodes are either primitive data or collections of observable
@@ -97,51 +236,6 @@ while the structure is being created, but other can only be checked
 once the structure is complete. \Enso\ allows modification of structures,
 which is necessary to create cyclic graphs, but also allows 
 valid structures to be sealed to prevent further changes.
-
-Invertible transformations are used to map one structure into
-another kind of structure, such that mapping can be inverted to 
-(partially) recover the original structure from the result.
-One common kind of transformation is called a \textit{grammar},
-which is an invertible transformation between structures and text.
-Text grammars are invertable because they can be used for parsing
-and also rendering. Other transformations include Diagram grammars,
-which map structures into diagrams, were edits on the diagram are
-reflected in the original structure. Grammars that describe
-the structure and behavior of user interfaces are used to generate
-very natural applications.
-Transformations are also used for querying, template processing, 
-and serialization.
-
-Operations can be guided by schemas or grammars, allowing highly
-generic operations to be defined for comparison, differencing, 
-merging, projecting and otherwise manipulating cyclic structures.
-These operations are cyclic maps, which correspond to coinductive 
-transformations.
-Since schemas and transformations are also structures, they can
-be merged and transformed using these same generic operations.
-Transformations on schemas can be applied to instances, to support
-upgrade and change management of data.
-The resulting system supports powerful modularity constructs,
-including feature modules, inheritance, and mixins.
-
-\Enso\ is based on interpretation rather than code generation. 
-While it is possible to define transformations that generate code
-in conventional languages, this is rarely (if ever) done in \Enso.
-Instead all structural descriptions and transformations are 
-interpreted dynamically. Although the current incarnation of \Enso\
-does not include it, we have previously demonstrated that partial
-evaluation can be applied to \Enso-style interpreters to automatically
-generate efficient code.
-
-What follows is a rapid introduction to the concepts and use of
-\Enso. To avoid too many digressions, 
-the many connections between \Enso\ and existing approaches,
-including programming models
-(model-driven, object-oriented, polytypic, functional, constraint-based), theory (dependent types, coalgebra, category theory),
-and related ideas (relational databases, domain-specific languages)
-are discussed in Section~\ref{relatedwork}.
-
-\section{Structures}
 
 \subsection{Schemas}
 
@@ -172,7 +266,7 @@ which are optional \C|Person|s. The \C|father| and \C|mother| are optional
 because every geneology is partial, so that not all fathers and mothers
 can be included.
 
-\subsection{Data}
+\subsection{Instances}
 
 A particular collection of genealogy information, which conforms to the
 above schema, might be written as follows:
@@ -185,6 +279,12 @@ Person "Thomas Snook" 12/30/43 male
 \end{verbatim}
 
 \subsection{Inverses}
+
+
+
+\section{Interpretation}
+
+Model -> Behavior
 
 \subsection{Factories}
 
@@ -201,7 +301,24 @@ the \textit{factory} that creates the structure is parameterized by a
 schema, which the factory uses to check the legality of operations
 on the objects it creates.
 
-\section{Grammars}
+\section{Transformations}
+
+TransformationModel -> (InstA -> InstB) \\
+TransformationModel -> (InstB -> InstA)
+
+Invertible transformations are used to map one structure into
+another kind of structure, such that mapping can be inverted to 
+(partially) recover the original structure from the result.
+One common kind of transformation is called a \textit{grammar},
+which is an invertible transformation between structures and text.
+Text grammars are invertable because they can be used for parsing
+and also rendering. Other transformations include Diagram grammars,
+which map structures into diagrams, were edits on the diagram are
+reflected in the original structure. Grammars that describe
+the structure and behavior of user interfaces are used to generate
+very natural applications.
+Transformations are also used for querying, template processing, 
+and serialization.
 
 \subsection{Textual Grammars}
 
@@ -209,10 +326,115 @@ on the objects it creates.
 \subsection{Instantiation}
 
 
+\section{QuadModel}
 
 
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{QuadModel.pdf}
+\caption{The four core schema and grammar models}
+\label{default}
+\end{center}
+\end{figure}
 
-\subsection{Relationship to Other Approaches}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender1.pdf}
+\caption{Invertable grammar transformations}
+\label{default}
+\end{center}
+\end{figure}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender2.pdf}
+\caption{Parsing matches \textit{syntactic structure} and generates \textit{instance structure}}
+\label{default}
+\end{center}
+\end{figure}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender3.pdf}
+\caption{Rendering matches \textit{instance structure} and generates \textit{syntactic structure}}
+\label{default}
+\end{center}
+\end{figure}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender4.pdf}
+\caption{Relationship between parsing and dumping}
+\label{default}
+\end{center}
+\end{figure}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender5.pdf}
+\caption{Rendering to dump format}
+\label{default}
+\end{center}
+\end{figure}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{ParseRender6.pdf}
+\caption{Reading dump format to create objects}
+\label{default}
+\end{center}
+\end{figure}
+
+
+\section{Generic Operations}
+
+Model -> Function
+
+Operations can be guided by schemas or grammars, allowing highly
+generic operations to be defined for comparison, differencing, 
+merging, projecting and otherwise manipulating cyclic structures.
+These operations are cyclic maps, which correspond to coinductive 
+transformations.
+Since schemas and transformations are also structures, they can
+be merged and transformed using these same generic operations.
+Transformations on schemas can be applied to instances, to support
+upgrade and change management of data.
+The resulting system supports powerful modularity constructs,
+including feature modules, inheritance, and mixins.
+
+
+\section{Implementation} 
+
+\subsection{Requirements for a programming language}
+
+The programming model is based on cyclic graphs.
+Graphs are kept distinct from each other. That is,
+each graph is considered a self-contained
+artifact, without links or pointers to other graphs.
+
+A natural way to create such graphs is with 
+imperative effects.
+
+This potentially requires more copying of data
+than would be the case in tree-based representations.
+
+To modify graphs, place-holder objects are useful,
+as is the ability to ``become'' another object.
+
+\subsubsection{Simple reflection}
+
+Fields can be created dynamically and accessed with
+``.'' notation or reflective access.
+
+\begin{verbatim}
+o.foo   == o.get("foo")
+\end{verbatim}
+
+Assignment to fields can be overriden
+\begin{verbatim}
+   o.bar = 3   ==> o.set("bar", 3)
+\end{verbatim}
+
+\subsection{Bootstrapping}
+
+
+\section{Relationship to Other Approaches}
 \label{relatedwork}
 
 \Enso\ data is based on traditional 
@@ -266,7 +488,8 @@ Data Representation Synthesis
 Peter Hawkins, Alex Aiken, Kathleen Fisher, Martin Rinard, Mooly Sagiv. In Programming Language Design and Implementation (PLDI), ACM, 2011
 
 
-[From CSSE 490 Model-Based Software Engineering: Transformational ProgrammingShawn Bohner]
+[From CSSE 490 Model-Based Software Engineering: Transformational Programming
+Shawn Bohner]
   Program Transformation Paradigms
   Interactive Program Transformation 
   Syntactic Abstractions in Intentional Programming 
@@ -337,92 +560,8 @@ Every time we add a feature we should refactor the interpreter
 code to make it possible. Eventually we will have very
 extensible interpreters.
 
-\section{Requirements for a programming language}
-
-The programming model is based on cyclic graphs.
-Graphs are kept distinct from each other. That is,
-each graph is considered a self-contained
-artifact, without links or pointers to other graphs.
-
-A natural way to create such graphs is with 
-imperative effects.
-
-This potentially requires more copying of data
-than would be the case in tree-based representations.
-
-To modify graphs, place-holder objects are useful,
-as is the ability to "become" another object.
-
-\subsection{Simple reflection}
-
-Fields can be created dynamically and accessed with
-"." notation or reflective access.
-
-\begin{verbatim}
-o.foo   == o.get("foo")
-\end{verbatim}
-
-Assignment to fields can be overriden
-\begin{verbatim}
-   o.bar = 3   ==> o.set("bar", 3)
-\end{verbatim}
 
 
-
-\section{QuadModel}
-
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{QuadModel.pdf}
-\caption{The four core schema and grammar models}
-\label{default}
-\end{center}
-\end{figure}
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender1.pdf}
-\caption{Invertable grammar transformations}
-\label{default}
-\end{center}
-\end{figure}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender2.pdf}
-\caption{Parsing matches \textit{syntactic structure} and generates \textit{instance structure}}
-\label{default}
-\end{center}
-\end{figure}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender3.pdf}
-\caption{Rendering matches \textit{instance structure} and generates \textit{syntactic structure}}
-\label{default}
-\end{center}
-\end{figure}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender4.pdf}
-\caption{Relationship between parsing and dumping}
-\label{default}
-\end{center}
-\end{figure}
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender5.pdf}
-\caption{Rendering to dump format}
-\label{default}
-\end{center}
-\end{figure}
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{ParseRender6.pdf}
-\caption{Reading dump format to create objects}
-\label{default}
-\end{center}
-\end{figure}
 
 
 \end{document}  
