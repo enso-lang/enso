@@ -1,6 +1,6 @@
 include Java
 
-$CLASSPATH<<'../../batches/jaba/target/test-classes'
+$CLASSPATH<<'lib/runtime-1.0-SNAPSHOT.jar'
 
 require 'test/unit'
 
@@ -14,8 +14,8 @@ require 'core/batches/code/query2batch'
 require 'core/batches/code/result2object'
 require 'core/batches/code/java_impl/schema'
 
-require "../../batches/runtime/target/runtime-1.0-SNAPSHOT.jar"
-require "../../batches/libs/mysql-connector-java-5.1.10.jar"
+require "lib/runtime-1.0-SNAPSHOT.jar"
+require "lib/mysql-connector-java-5.1.10.jar"
 
 module Jaba
 include_class Java::batch.Op

@@ -1,9 +1,9 @@
 include Java 
 
-$CLASSPATH<<'../../batches/jaba/target/test-classes'
+$CLASSPATH<<'lib/runtime-1.0-SNAPSHOT.jar'
 
-require "../../batches/runtime/target/runtime-1.0-SNAPSHOT.jar"
-require "../../batches/libs/mysql-connector-java-5.1.10.jar"
+require "lib/runtime-1.0-SNAPSHOT.jar"
+require "lib/mysql-connector-java-5.1.10.jar"
 java_import Java::tests.sql.northwind.schema.Northwind
 
 include_class Java::batch.Op

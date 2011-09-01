@@ -6,12 +6,12 @@ Converts an Enso expression into a batch script expression
 
 include Java
 
-$CLASSPATH<<'../../batches/jaba/target/test-classes'
+$CLASSPATH<<'lib/runtime-1.0-SNAPSHOT.jar'
 
 require "core/system/library/schema"
 require "core/batches/code/utils"
 
-require "../../batches/runtime/target/runtime-1.0-SNAPSHOT.jar"
+require "lib/runtime-1.0-SNAPSHOT.jar"
 
 module Jaba
 include_class Java::batch.Op
