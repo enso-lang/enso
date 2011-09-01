@@ -6,6 +6,7 @@ Transform a batch script query into a secure version with the help of a security
 
 require 'core/security/code/security'
 require 'core/security/code/bind'
+require 'core/batches/code/secureschema'
 
 class SecureBatch
 
@@ -18,6 +19,7 @@ class SecureBatch
   def secure_transform!(query, securityobj)
     queryfact = query.factory
     classname = query.classname
+    puts "classname = #{classname}"
 
     #figure out the predicate expressions by asking securityobj:
 
@@ -25,6 +27,7 @@ class SecureBatch
     #-----------------
     #what do i need to read this class?
     read_obj = Copy(queryfact,securityobj.get_allow_constraints("OpRead", classname))
+    Print.print(read_obj)
     #what do i need to read these fields?
     read_fields = query.fields.reduce(nil) do |conj, f|
       exp = Copy(queryfact,securityobj.get_allow_constraints("OpRead", classname, f.name))
@@ -39,7 +42,7 @@ class SecureBatch
     tmp = []
     query.fields.each do |f|
       exp = Copy(queryfact,securityobj.get_allow_constraints("OpUpdate", classname, f.name))
-      wf = queryfact.ComputedField("_write_"+f.name)
+      wf = queryfact.ComputedField(SecureSchema.write_prefix+f.name)
       wf.expr = exp
       tmp << wf
     end

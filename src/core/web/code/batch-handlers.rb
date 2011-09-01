@@ -10,9 +10,7 @@ require 'core/web/code/form'
 
 require 'core/schema/tools/print'
 
-
 module Web::Eval
-
 
   class Handler
 

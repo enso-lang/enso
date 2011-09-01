@@ -1,0 +1,12 @@
+
+allow read(root:Northwind)
+allow read(root:Northwind{*})
+allow update(root:Northwind{*})
+
+allow read(p:Product) if user == "Alice"
+allow read(p:Product{*}) if user == "Alice"
+allow update(p:Product{*}) if user == "Alice"
+
+allow read(p:Product) if user == "Bob" and p->UnitsInStock < 30
+allow read(p:Product{*}) if user == "Bob" and p->UnitsInStock < 30
+allow update(p:Product{*}) if user == "Bob" and p->UnitsInStock < 20

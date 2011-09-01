@@ -6,6 +6,7 @@
 WEBSCRIPTS=core/web/scripts
 
 export WEB=$1
-export ROOT=$2
+export SCHEMA=$2
+export AUTH=$3
 
 RUBYOPT="-I." jruby --1.9 -S rackup ${WEBSCRIPTS}/serve-batch.ru

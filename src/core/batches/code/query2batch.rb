@@ -56,21 +56,20 @@ class Query2Batch
                   e2b_Query(query, fname, env1))
   end
 
-  def wrap(classname)
-    oldclassname = @classname
-    @classname = classname
-    res = yield
-    @classname = oldclassname
-    res
-  end
-
   def e2b_Query(query, pname, env)
     keyfield = ClassKey(@schema.classes[query.classname])
     if query.fields.none? {|f| f.name == keyfield.name}
       query.fields << query.factory.Field(keyfield.name)
     end
-    body = @factory.Prim(Jaba::Op::SEQ, query.fields.map{|f|e2b_Field(f, pname, env)})
-    body = @factory.If(e2b(query.filter), body, @factory.Prim(Jaba::Op::SEQ, [])) if !query.filter.nil?
+    env1 = env.merge({"@self" => env[pname]})
+    body = @factory.Prim(Jaba::Op::SEQ,
+                         query.fields.map {|f| f.ComputedField? ? e2b_ComputedField(f, pname, env1) : e2b_Field(f, pname, env1)})
+    if !query.filter.nil?
+      body = @factory.If(
+                e2b(query.filter, env1),
+                body,
+                @factory.Prim(Jaba::Op::SEQ, []))
+    end
     body
   end
 
@@ -82,62 +81,61 @@ class Query2Batch
       multi = @schema.classes[field.owner.classname].fields[field.name].many
       if multi
         env1 = env.merge({fname => @factory.Var(fname)})
-        res = @factory.Loop(Jaba::Op::SEQ, fname, @factory.Prop(env[pname], field.name), e2b_Query(field.query, fname, env1))
+        @factory.Loop(Jaba::Op::SEQ, fname, @factory.Prop(env[pname], field.name), e2b_Query(field.query, fname, env1))
       else
         env1 = env.merge({fname => @factory.Prop(env[pname], field.name)})
-        res = e2b_Query(field.query, fname, env1)
+        e2b_Query(field.query, fname, env1)
       end
     end
   end
 
-  def e2b_ComputedField(field, pname)
-    @factory.Out(pname+"_"+field.name, e2b(field.expr))
+  def e2b_ComputedField(field, pname, env)
+    @factory.Out(pname+"_"+field.name, e2b(field.expr, env))
   end
 
-  def e2b(this, *args)
-    send("e2b_#{this.schema_class.name}", this, *args)
+  def e2b(this, env)
+    send("e2b_#{this.schema_class.name}", this, env)
   end
 
-  def e2b_EBinOp(expr)
-    args = [e2b(expr.e1), e2b(expr.e2)]
+  def e2b_EBinOp(expr, env)
+    Print.print(expr)
+    args = [e2b(expr.e1, env), e2b(expr.e2, env)]
     @factory.Prim(@opmap[expr.op], args)
   end
 
-  def e2b_EUnOp(expr)
-    args = [e2b(expr.e1)]
+  def e2b_EUnOp(expr, env)
+    Print.print(expr)
+    args = [e2b(expr.e, env)]
     @factory.Prim(@opmap[expr.op], args)
   end
 
-  def e2b_EField(expr)
-    @factory.Prop(e2b(expr.e), expr.fname)
+  def e2b_EField(expr, env)
+    @factory.Prop(e2b(expr.e, env), expr.fname)
   end
 
-  def e2b_EVar(expr)
-    if expr.name == "@self"
-      @factory.Var(@classname)
-    else
-      @factory.Var(expr.name)
-    end
+  def e2b_EVar(expr, env)
+    puts "e2b var on #{expr.name}, which is #{env[expr.name].nil? ? "NIL" : env[expr.name]}"
+    env[expr.name]
   end
 
-  def e2b_EListComp(expr)
+  def e2b_EListComp(expr, env)
     if expr.op == "all?"
       op = Jaba::Op::AND
     elsif expr.op == "any?"
       op = Jaba::Op::OR
     end
-    @factory.Loop(op, expr.var, e2b(expr.list), e2b(expr.expr))
+    @factory.Loop(op, expr.var, e2b(expr.list, env), e2b(expr.expr, env))
   end
 
-  def e2b_EStrConst(expr)
+  def e2b_EStrConst(expr, env)
     @factory.Data(expr.val)
   end
 
-  def e2b_EIntConst(expr)
+  def e2b_EIntConst(expr, env)
     @factory.Data(expr.val)
   end
 
-  def e2b_EBoolConst(expr)
+  def e2b_EBoolConst(expr, env)
     @factory.Data(expr.val)
   end
 

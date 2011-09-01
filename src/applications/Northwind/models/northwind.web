@@ -2,9 +2,10 @@ def index {
   html("Northwind Trading Incorporated") {
     form {
         "Northwind Customer Relationship Management" <br />
-        datatable(root->Categories) {
-            column("Name") { $row->CategoryName }
-            column("Title") { textedit(row->Description); }
+        datatable(root->Customers) {
+            column("Customer") { $row->CompanyName }
+            column("Country") { $row->Country }
+            column("Contact") { textedit(row->ContactName); }
         }
         submit("Submit", index());
     }

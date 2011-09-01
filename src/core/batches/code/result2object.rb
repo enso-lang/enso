@@ -6,6 +6,7 @@ Create a structure of objects from a result set
 
 require 'core/schema/code/factory'
 require 'core/batches/code/utils'
+require 'core/batches/code/secureschema'
 
 class Result2Object
 
@@ -14,9 +15,11 @@ class Result2Object
   end
 
   def initialize(schema)
-    @schema = schema
-    @factory = Factory.new(schema)
-    @root = @factory[schema.root]
+    @schema = SecureSchema.secure_transform!(Clone(schema))
+    puts "Schema is: "
+    Print.print(@schema)
+    @factory = Factory.new(@schema)
+    @root = @factory[@schema.root]
   end
 
   def r2o_start(resultset, query)
@@ -25,6 +28,8 @@ class Result2Object
     end
     @root
   end
+
+  private
 
   def r2o(resultset, query, prefix)
     #get key first to check if object already exists
@@ -35,7 +40,7 @@ class Result2Object
       pname = prefix+"_"+f.name
       if f.query.nil?
         #primitive fields
-        obj[f.name] = resultset.get(pname)
+        obj[f.name] = coerce(resultset.get(pname), obj.schema_class.fields[f.name].type)
       elsif
         if !obj.schema_class.fields[f.name].many
           #non-primitive field (single)
@@ -48,6 +53,7 @@ class Result2Object
         end
       end
     end
+    Print.print(obj)
     obj
   end
 
@@ -59,6 +65,14 @@ class Result2Object
       @root[tablename] << obj
     else
       @root[tablename][key]
+    end
+  end
+
+  def coerce(val, type)
+    if val.is_a? Integer and type.name == "bool"
+      val!=0
+    else
+      val
     end
   end
 

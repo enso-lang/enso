@@ -21,7 +21,7 @@ class Category table=Categories
     Products: Product* / Product.Category
 end
 
-class Customer table=Customers
+class Customer table=Customers2
 	#CustomerID: str
 	CompanyName: str
 	ContactName: str

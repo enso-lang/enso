@@ -23,6 +23,10 @@ require 'core/schema/code/factory'
 require 'core/batches/code/query2batch'
 require 'core/batches/code/result2object'
 require 'core/batches/code/java_impl/schema'
+require 'core/batches/code/securebatch'
+require 'core/batches/code/secureschema'
+require 'core/security/code/security'
+require 'core/security/code/nullsecurity'
 
 require "../../batches/runtime/target/runtime-1.0-SNAPSHOT.jar"
 require "../../batches/libs/mysql-connector-java-5.1.10.jar"
@@ -38,62 +42,84 @@ end
 
 class BatchFactory
 
-  def initialize(web, schema, db, user, password)
+  def initialize(web, schema, auth = NullSecurity.new, db, dbuser, password)
+    if auth == ""
+      @auth = NullSecurity.new()
+    else
+      @auth = Security.new(auth)
+    end
     @all_queries = BatchEval.batch(web, schema.root_class)
     @schema = schema
     @factory = Factory.new(schema)
     #init db here
     @database = db
-    @user = user
+    @dbuser = dbuser
     @password = password
-    @jaba_addr = "jdbc:#{@database}?user=#{@user}&password=#{@password}"
+    @jaba_addr = "jdbc:#{@database}?user=#{@dbuser}&password=#{@password}"
     @connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.root_class), @jaba_addr)
 
     @address = "jdbc:#{@database}"
-    @jdbc_conn = java.sql.DriverManager.getConnection(@address, @user, @password)
-
+    @jdbc_conn = java.sql.DriverManager.getConnection(@address, @dbuser, @password)
   end
 
   #return a checked object corresponding to the root of the query
-  def query(query_name)
+  def query(query_name, user = nil)
     query = @all_queries[query_name]
+    @auth.user = user
+    secure_query = SecureBatch.secure_transform!(Copy(query.factory, query), @auth)
     root = @factory[@schema.root_class.name]
-    query.fields.each do |f|
+    secure_query.fields.each do |f|
       q = f.query
       next if q.nil?
       bq = Query2Batch.query2batch(q, @schema)
+      puts "Batch query is #{bq.toString}"
       result_t = @connection_t.execute(bq, Jaba::Forest.new())
+      if result_t.nil?
+        crash with terminate force
+      end
       obj = Result2Object.result2object(result_t, q, @schema)
       CopyInto(@factory, obj, root)
     end
     root
   end
 
-  def update(obj, field, value)
+  def update(obj, field_name, value, user = nil)
+
+    #privilege = obj[SecureSchema.write_prefix+field_name]
+    #if !privilege
+    #  return false
+    #end
+
     klass = obj.schema_class
     table = klass.table
     puts "klass = #{klass.name}"
     keyfield = ClassKey(klass).name
     puts "keyfield = #{keyfield}"
     puts "value = #{value}"
-    key = obj[keyfield]
+    key = obj[field_name]
     puts "key = #{key.inspect}"
     #check if this is a relationship or an attribute.
     puts "setting key #{key} in table #{table} to value #{value}"
-    if klass.fields[field].type.Primitive?
+    if klass.fields[field_name].type.Primitive?
       # attribute - simple update
       puts "as an attribute"
-      query = "update #{table} set #{field}=#{value} where #{keyfield}=#{key.inspect}"
+      query = "update #{table} set #{field_name}=#{value.inspect} where #{keyfield}=#{key.inspect}"
     else
       # relationship - simple update on foreign key
       puts "as a relation"
     end
     puts query
     jdbc_exec(query)
+    true
   end
 
   def create(path, value)
+    privilege = @auth.check_privileges("OpCreate", obj, field)
+    if !privilege
+      return false
+    end
     jdbc_exec(query)
+    true
   end
 
   private

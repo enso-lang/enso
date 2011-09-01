@@ -8,12 +8,12 @@ require 'core/system/load/load'
 require 'logger'
 
 web = Loader.load(ENV['WEB'])
-root = Loader.load(ENV['ROOT'])
+schema = Loader.load(ENV['SCHEMA'])
 log = Logger.new($stderr)
 
 # TODO: detect when thin is debug mode, otherwise use WARN
 log.level = Logger::DEBUG
 
-app = BatchWeb::EnsoWeb.new(web, root, log)
+app = BatchWeb::EnsoWeb.new(web, schema, ENV['AUTH'], log)
 use Rack::CommonLogger
 run app
