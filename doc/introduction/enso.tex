@@ -117,11 +117,14 @@ than how to compute the results.
 A grammar specifies
 what language should be recognized, but not how to recognize it.
 Spreadsheets and attribute grammars give
-equations that must be satisfied, but does not specify order of execution.
+equations that must be satisfied, but do not specify order of execution.
 Access control policies specify the conditions under which
 a user is allowed to perform an operation on an object, but
 does not specify how to efficiently enforce the policy everywhere
-in the program that the rule might apply.
+in the program that the rule might apply. Different languages
+provide different degrees of abstraction away from the raw ``how''
+of computation, and there is no absolute objective measure
+of this quality. 
 
 In its goals, \Enso\ is closely related to
 domain-specific language (DSL) workbenches and
@@ -144,7 +147,10 @@ application, is the means to achieve this goal
 but is not the goal itself. Some languages, like datalog
 and attribute grammars, are executable but they are
 sufficiently general-purpose that it seems an abuse of terminology
-to call them domain-specific. Given the right context,
+to call them domain-specific. As another example, consider
+that the relational calculus and the relational algebra are
+both domain-specific, but the relational algebraic is more specific
+about how a query will be computed. Given the right context,
 we do believe that ``domain-specific'' is a reasonable
 description for most ESLs.
 
@@ -209,11 +215,94 @@ are discussed in Section~\ref{relatedwork}.
 
 \section{Data Description}
 
-The most important kind of ESL in \Enso\ is the 
-\textit{data description language}. While \Enso\ does not
-require that a particular kind of data description be used,
-it does provide a fundamental data description language that
-is used to build \Enso\ itself. 
+One of the most important kinds of ESL is the 
+\textit{data description language}. The intent of a data
+description language is to specify the structure and
+behavior of data. The history of the development of data
+description covers much of the history of programming languages themselves.
+
+Type systems in programming languages are
+well-known examples of data description languages, including
+records/arrays/unions in Pascal or C, or sums of products
+data types in Haskell and ML. These systems are very useful
+for describing the structure of data. Such structures are 
+important because they can be checked automatically via a
+static type system. Data types are specifications because they
+define what data is needed, not how to implement it.
+
+The problem is that the actual data in a system 
+almost always obeys additional invariants and behaviors that
+are not expressible in a structural data description. 
+Dynamic languages also have this problem, because they 
+provide only a single universal type that is flexible 
+enough to express any desired data. 
+
+\textit{Abstract data types} (ADTs) and \textit{objects} 
+wrap raw structures with a 
+set of procedures that enforce invariants and supply 
+higher-level operations or behaviors. The difference is
+that ADTs manage a set of values with hidden representation,
+while objects bundle the procedures into the actual values
+themselves. Despite the differences, ADTs and objects are
+similar in their level of description.
+
+One problem with both ADTs and objects is that they are
+both fundamentally \textit{operational}. That is, they define \textit{how}
+to implement the desired properties of data, rather than
+specifying \textit{what} properties are needed. If an invariant
+can be affected by multiple operations in an ADT, then code
+must be written to check or enforce the invariant in multiple places.
+In many cases the invariants span multiple individual data
+items, so code must be coordinated between data abstractions. 
+One common example is the owner/items pointers that must
+be coordinated to ensure consistency of a hierarchical structure.
+
+A second problem with implementation-oriented descriptions of
+data types is that they do not scale well when an application has 
+dozens or hundreds of different data types,
+each with specific behavior and named properties but also many common properties and
+behaviors. Global behaviors like caching, persistence, security,
+and common repeated patterns like cached computed attributes and
+bidirectional relationships cannot be expressed as libraries or
+reusable class definitions. These concepts can easily be described
+as \textit{design patterns}, but the programmer must still implement
+them in each specific instance, in some cases hundreds or 
+thousands of times! It becomes impossible to change such
+pervasive design decisions after the code is written.
+
+One reason for this is that these 
+features require quantification over \textit{names} and/or \textit{types}
+rather than values. [Example is bidirectional relationships]. 
+In sophisticated object-oriented frameworks,
+reflection is often used to implement these general features. However,
+reflection is quite complex to use. It is a very powerful tool to
+solve what might otherwise be relatively simple problems.
+
+If ADTs and objects are not sufficient, what about about existing
+specification languages?
+Maude and Alloy are examples of the alternative: they define 
+properties of data. [more on these? basically they are good, but they
+aren't as ``executable'' as we would like].
+
+The question, then, is whether it is possible to express useful global
+and local properties of data, while still allowing pervasive strategies
+for implementing the data and its properties. We believe that there
+are several approaches that make sense, including entity-relationship
+modeling, attribute grammars, and excel-style spreadsheets. 
+
+\Enso\ does \textit{not} mandate
+an particular data structuring mechanism. 
+\Enso\ includes predefined data structuring techniques based on these 
+models, but also mixes them together to make useful hybrids.
+These were designed 
+with specific purposes in mind: one is used in the implementation of
+\Enso\ itself, and a variant is useful for access to relational databases.
+But \Enso\ encourages users to define their own data description
+strategy, or modify one of the basic ones to suit their needs. In
+what follows we describe several of the data structuring techniques
+that we have found useful in \Enso\ so far.
+
+\subsection{Structures}
 
 Structures in \Enso\ are a specialized kind of graph,
 whose nodes are either primitive data or collections of observable
