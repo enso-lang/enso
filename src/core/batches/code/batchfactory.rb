@@ -83,28 +83,23 @@ class BatchFactory
     root
   end
 
-  def update(obj, field_name, value, user = nil)
+  def update(table, key, field_name, value, user = nil)
 
     #privilege = obj[SecureSchema.write_prefix+field_name]
     #if !privilege
     #  return false
     #end
 
-    klass = obj.schema_class
-    table = klass.table
-    puts "klass = #{klass.name}"
-    keyfield = ClassKey(klass).name
-    puts "keyfield = #{keyfield}"
-    puts "value = #{value}"
-    key = obj[field_name]
-    puts "key = #{key.inspect}"
+    klass = @schema.classes.find {|t| t.table==table}
+    keyfield = ClassKey(klass)
+    keycol = keyfield.column || keyfield.name
     #check if this is a relationship or an attribute.
     puts "setting key #{key} in table #{table} to value #{value}"
     if klass.fields[field_name].type.Primitive?
       # attribute - simple update
       puts "as an attribute"
-      query = "update #{table} set #{field_name}=#{value.inspect} where #{keyfield}=#{key.inspect}"
-    else
+      query = "update #{table} set #{field_name}=#{value.inspect} where #{keycol}=#{key.inspect}"
+    else #TODO!
       # relationship - simple update on foreign key
       puts "as a relation"
     end

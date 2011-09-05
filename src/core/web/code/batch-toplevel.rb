@@ -65,15 +65,12 @@ class BatchWeb::EnsoWeb
       @env['root'] = Result.new(@root, Ref.new([]))
       res = Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)
       @root = root
-      puts "@@ root after GET"
-      Print.print(@env['root'].value)
       res
     elsif req.post? then
-      puts "@@ root before POST"
-      Print.print(@root)
       # if POST then find the required indices to use for updating based on the old root first
+
       @form = Form.new(req.POST)
-      bind_to_db(@root, @form, {})
+      bind_to_db(@form)
 
       @root = @bfact.query(pagename, @env['user'])
       @env['root'] = Result.new(@root, Ref.new([]))
@@ -81,17 +78,16 @@ class BatchWeb::EnsoWeb
     end
   end
 
-  def bind_to_db(root, form, errors)
-    store = Store.new(root._graph_id)
-    Print.print(root)
-    puts "@@@@@@@@@@@@@@@@@@@@@@@@@@"
+  def bind_to_db(form)
+#    store = Store.new(root._graph_id)
     form.each do |k, v|
-      puts "Trying to bind #{k.to_s} to #{v.value(nil,nil).inspect}"
-      field = k.to_s.split(".")[-1]
-      obj = lookup_path(k.path, root, store)
-      @bfact.update(obj, field, v.value(nil,nil))
+      puts "k = #{k.to_s}"
+      k.to_s =~ /^(.*)\[(.*)\](.*)$/
+      typ = $1[1..$1.length]
+      key = $2
+      field = $3[1..$3.length]
+      @bfact.update(typ, key, field, v.value(nil,nil))
     end
-    Print.print(root)
   end
 
   def lookup_path(path, root, store)
