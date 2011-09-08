@@ -140,7 +140,7 @@ class Patch
       if i < old_l.length #no need to check for deletions and modifications when past end of array
         if not lmods[i].nil?
           #if modified, replace current copy with new object
-          o[fname] << patch_obj(old_l[i], lmods[i], factory)
+          res << patch_obj(old_l[i], lmods[i], factory)
         elsif not ldels[i]
           #if not deleted, copy into new array 
           res << old_l[i]
