@@ -61,6 +61,10 @@ class Patch
         end
       end
 
+      if DeltaTransform.isKeyedMany?(deltas)
+        res[ClassKey(res.schema_class).name] = deltas.pos
+      end
+
       return res
     end
   end
@@ -88,6 +92,10 @@ class Patch
           end
         end
       end
+    end
+
+    if DeltaTransform.isKeyedMany?(delta)
+      obj[ClassKey(obj.schema_class).name] = delta.pos
     end
 
     return obj
