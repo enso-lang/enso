@@ -27,5 +27,6 @@ graph [font.size=12] {
     for (field : class@defined_fields)
      if (field@computed == nil)
       if (!(field@type is Primitive) & (field@inverse == nil | field@_id < field@inverse@_id))
-        connector (ClassBox[field@owner] -- ClassBox[field@type])
+        connector (field@name : ClassBox[field@owner] 
+                  -- ClassBox[field@type] : field@inverse@name)
  }

@@ -47,7 +47,7 @@ class StencilFrame < DiagramFrame
     }
     
     @binding = {}
-    @labels = {}
+    @nodeTable = {}
     construct @stencil.body, env do |x| 
       set_root(x) 
     end
@@ -63,14 +63,14 @@ class StencilFrame < DiagramFrame
 
   def do_constraints
     super
-    @old_map.each do |label, pnt|
-      puts "CHECK #{label} #{pnt}"
-      obj = @labels[label]
+    @old_map.each do |key, pnt|
+      puts "CHECK #{key} #{pnt}"
+      obj = @nodeTable[key]
       continue if !obj
-      puts "   Has OBJ #{label} #{pnt}"
+      puts "   Has OBJ #{key} #{pnt}"
       pos = @positions[obj]
       continue if !pos
-      puts "   Has POS #{label} #{pnt}"
+      puts "   Has POS #{key} #{pnt}"
       pos.x.value = pnt.x
       pos.y.value = pnt.y
     end
@@ -97,9 +97,9 @@ class StencilFrame < DiagramFrame
 
     # save the positions
     positions = {}
-    @labels.each do |label, obj|
-      puts "FOO #{label}: #{obj}"
-      positions[label] = position(obj)
+    @nodeTable.each do |key, obj|
+      puts "FOO #{key}: #{obj}"
+      positions[key] = position(obj)
     end
     puts positions
     File.open("#{@path}-positions", "w") do |output|
@@ -183,7 +183,7 @@ class StencilFrame < DiagramFrame
     key = evallabel(this.label, env)
     construct this.body, env do |result|
       #puts "LABEL #{key} => #{result}"
-      @labels[key] = result
+      @nodeTable[key] = result
       block.call(result)
     end
   end
@@ -234,15 +234,16 @@ class StencilFrame < DiagramFrame
   end
 
   def Connector(this, env, &block)
-    # label?
-    label = nil
-    conn = @factory.Connector(nil, nil, label)
+    conn = @factory.Connector(nil, nil, nil)
     this.ends.each do |e|
+      labelStr, _ = eval(e.label, env)
+      label = nil
+      label = @factory.Text(nil, nil, labelStr) if labelStr
       de = @factory.ConnectorEnd(e.arrow, label)
-      de.owner = conn
       key = evallabel(e.part, env)
-      #puts @labels
-      de.to = @labels[key]
+      de.to = @nodeTable[key]
+      
+      puts "END #{labelStr}"
       conn.ends << de
     end
     # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
@@ -257,6 +258,7 @@ class StencilFrame < DiagramFrame
   #### expressions
   
   def eval(exp, env)
+    return nil if exp.nil?
     send("eval#{exp.schema_class.name}", exp, env)
   end
      
@@ -297,6 +299,7 @@ class StencilFrame < DiagramFrame
   
   def evalField(this, env)
     a, _ = eval(this.base, env)
+    return nil, nil if a.nil?  # NOTE THIS IS A HACK!!!
     return a._id, Address.new(a, this.field) if this.field == "_id"
     return a[this.field], Address.new(a, this.field)
   end

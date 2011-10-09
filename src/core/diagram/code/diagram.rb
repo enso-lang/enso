@@ -228,9 +228,14 @@ class DiagramFrame < BaseWindow
     @positions[part.path[0]] = Pnt.new(start_x, start_y)
     @positions[part.path[1]] = Pnt.new(mid_x, mid_y)
     @positions[part.path[2]] = Pnt.new(end_x, end_y)
+    constrainConnectorEnd(part.ends[0], start_x, start_y)
+    constrainConnectorEnd(part.ends[1], end_x, end_y)
   end
 
-
+  def constrainConnectorEnd(e, x, y)
+    constrain(e.label, x, y) if e.label
+  end
+  
   def boundary(shape)
     r = @positions[shape]
     return nil if r.nil?
@@ -282,8 +287,16 @@ class DiagramFrame < BaseWindow
     p2 = position(part.path[1])
     p3 = position(part.path[2])
     coords = [[p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]]
+    drawEnd part.ends[0]
+    drawEnd part.ends[1]
     #puts "#{coords}"
     @dc.draw_lines(coords)
+  end
+
+  def drawEnd(cend)
+    # todo: draw the arrow
+    # position correctly!!
+    draw(cend.label) if cend.label
   end
 
   def drawText(text)
