@@ -1,0 +1,95 @@
+
+primitive int
+primitive real
+primitive str
+primitive bool
+
+class Catalog
+  !categories: Category*
+  !products: Product*
+  !tags: Tag*
+end
+
+class Category
+  #name: str
+  description: str
+  imageURL: str
+  coords: str
+  !products: Product / Product.category
+end
+
+class Product
+  name: str
+  description: str
+  imageURL: str
+  category: Category / Category.products
+  !items: Item* / Item.product
+end
+
+
+class Item
+  name: str
+  description: str
+  imageURL: str
+  imageThumbURL: str
+  price: real
+  !address: Address
+  !contactInfo: SellerContactInfo
+  totalScore: int
+  numberOfVotes: int
+  disabled: int
+  tags: Tag* / Tag.items
+  product: Product / Product.items
+  !ratings: Rating* / Rating.item
+end
+
+
+class SellerContactInfo
+  lastName: str
+  firstName: str
+  email: str
+end
+
+class Rating
+  item: Item / Item.ratings
+  grade: int
+end
+
+class Address 
+  street1: str
+  street2: str
+  city: str
+  state: str
+  zip: str
+  latitude: real
+  longitude: real
+end
+
+
+class Tag
+  items: Item* / Item.tags
+  tag: str
+  refCount: int
+  style: str = 
+    "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
+end
+
+
+class ZipLocation
+  zipCode: int
+  city: str
+  state: str
+end
+
+class FileUploadResponse
+  item: Item
+  product: Product
+  message: str
+  status: str
+  duration: str
+  durationString: str
+  startDate: str
+  endDate: str
+  uploadSize: str
+  thumbnail: str
+end
