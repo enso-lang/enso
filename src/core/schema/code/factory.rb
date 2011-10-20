@@ -197,6 +197,7 @@ module CheckedObjectMixin
       case field.type.name
       when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
       when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
+      when "float" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(Numeric)
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
@@ -224,7 +225,7 @@ module CheckedObjectMixin
     end
   end
   
-  def method_missing(m, *args, &block)
+  def method_missing(m, *args)
     if m =~ /(.*)=/
       self[$1] = args[0]
     else

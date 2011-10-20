@@ -7,7 +7,6 @@ class ConstraintSystem
   def var(name = "v#{@number}", value = nil)
     @number += 1
     #puts "#{name} = #{value}"
-    raise "BAD!" if name == "v156" 
     return Variable.new(name, value)
   end
   
@@ -42,25 +41,16 @@ class Variable
     @bounds << other
   end
 
-  def +(other)
-    var = Variable.new("p#{self.to_s}#{other.to_s}")
-    #puts "#{var}=#{self.to_s}+#{other}"
-    var.define(self, other) do |a, b|
-      a + b
+  def method_missing(m, *args)
+    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round].include? m 
+    var = Variable.new("p#{self.to_s}#{args.to_s}")
+    #puts "#{var}=#{self.to_s}+#{args}"
+    var.define(self, *args) do |a, *other|
+      a.send(m, *other)
     end
   end
 
-  def /(other)
-    var = Variable.new("p#{self.to_s}#{other.to_s}")
-    #puts "#{var}=#{self.to_s}+#{other}"
-    var.define(self, other) do |a, b|
-      a / b
-    end
-  end
-  
   def define(*vars, &block)
-    @aggregate = vars[0].is_a?(Array) && vars.length == 1
-    vars = vars[0] if @aggregate
     raise "nil definition" if vars.any?(&:nil?)
     @vars = vars
     @vars.each do |v|
@@ -81,7 +71,7 @@ class Variable
         val
       end
       path.pop
-      @value = @aggregate ? @block.call(vals) : @block.call(*vals)
+      @value = @block.call(*vals)
     end
     @bounds.each do |b|
       val = if b.is_a?(Variable) then b.value else b end

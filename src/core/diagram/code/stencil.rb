@@ -235,6 +235,8 @@ class StencilFrame < DiagramFrame
 
   def Connector(this, env, &block)
     conn = @factory.Connector(nil, nil, nil)
+    ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
+    i = 0
     this.ends.each do |e|
       labelStr, _ = eval(e.label, env)
       label = nil
@@ -242,14 +244,14 @@ class StencilFrame < DiagramFrame
       de = @factory.ConnectorEnd(e.arrow, label)
       key = evallabel(e.part, env)
       de.to = @nodeTable[key]
+      de.attach = ptemp[i]
+      i = i + 1
       
       puts "END #{labelStr}"
       conn.ends << de
     end
     # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
-    conn.path << @factory.Point(0,0)
-    conn.path << @factory.Point(1,0)
-    conn.path << @factory.Point(1,1)
+    
     make_styles(this, conn, env)
     @binding[conn] = this
     block.call conn

@@ -33,15 +33,25 @@ end
 
 class Connector < Part
   label: Text?
-  !path: Point*
   !ends: ConnectorEnd*
+  path: Point*
 end
 
 class ConnectorEnd
   arrow: str?
   !label: Text?
   to: Shape / Shape.connectors
+  attach: EdgePos
+  minOut: int
+  minLeft: int
+  minRight: int
   owner: Connector / Connector.ends
+end
+
+class EdgePos
+  // x==1 or x==0 or y==1 or y==0
+  x: float
+  y: float
 end
 
 // styles
@@ -88,6 +98,7 @@ class Constraint
   var: str?
 end
 
-primitive \int
-primitive \str
-primitive \bool
+primitive float
+primitive int
+primitive str
+primitive bool

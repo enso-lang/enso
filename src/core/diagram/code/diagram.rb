@@ -4,6 +4,49 @@ include Wx
 require 'core/diagram/code/base_window'
 require 'core/diagram/code/constraints'
 
+  # a path is specified by a constraint system
+  #   the end is connected to a position on the part (h,w) 
+  #       where (h==0 || h==1) || (w==0 || w==1)
+  #   the path depends on the orientation. There are three cases:
+  #     opp:   a--+
+  #               |
+  #               +--b
+  #       
+  #                 var:    a--+
+  #                            |
+  #                      +-----+
+  #                      |
+  #                      +--b
+  #
+  #                 var: +----------+
+  #                      |          |
+  #                      +--a    b--+
+  #
+  #     orth:  a--+    if a.P + a.PW + a.minP <= b.P + attach.P
+  #               |
+  #               b
+  #       
+  #                 var:    a--+     
+  #                            |
+  #                      +-----+
+  #                      |
+  #                      b
+  #
+  #                 var: +------+    
+  #                      |      |
+  #                      b   a--+
+  #
+  #     same:  a--+
+  #               |
+  #            b--+
+  #       
+  #                 var: b--+   a--+
+  #                         |      |
+  #                         +------+
+  #
+  #  but these can be in any orientation.
+  #  Within each case there are some subcases
+
 def RunDiagramApp(content = nil)
   Wx::App.run do
     win = DiagramFrame.new
@@ -23,6 +66,7 @@ class DiagramFrame < BaseWindow
 
     @menu_id = 0
     @move_selection = nil
+    @select_color = Wx::Colour.new(0, 255, 0)
   end
   
   attr_accessor :listener
@@ -59,20 +103,27 @@ class DiagramFrame < BaseWindow
     #puts "FIND #{move}, #{edit}"
     if edit && edit.Text?
       @edit_selection = edit
-      @edit_control = Wx::TextCtrl.new(self, 0)
       r = boundary(@edit_selection)
-      n = 0
+      n = 3
       #puts r.x, r.y, r.w, r.h
-      @edit_control.set_dimensions(r.x - n, r.y - n, r.w + 2 * n, r.h + 2 * n)
-      #@edit_control.set_style(Wx::TE_MULTILINE)
-      @edit_control.set_value(@edit_selection.string)
+      extraWidth = 10
+      @edit_control = Wx::TextCtrl.new(self, 0, "", 
+        Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n),
+        0)  # Wx::TE_MULTILINE
+      
+      style = Wx::TextAttr.new()
+      style.set_text_colour(makeColor(@foreground))
+      style.set_font(makeFont(@font))      
+      @edit_control.set_default_style(style)
+      
+      @edit_control.append_text(@edit_selection.string)
       @edit_control.show
       @edit_control.set_focus
     end
   end
 
   def on_mouse_down(e)
-    need_refresh = false
+    need_refresh = !@move_selection.nil?
     if @edit_control
       new_text = @edit_control.get_value()
       @edit_selection.string = new_text
@@ -107,27 +158,37 @@ class DiagramFrame < BaseWindow
 
   # ---- finding ------
   def find(part, pnt)
-    b = boundary(part)
-    return if b.nil?
-    #puts "#{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-    move, edit = nil, nil
-    if rect_contains(b, pnt)
-      if part.Container?
-        part.items.each do |sub|
-          move, edit = find(sub, pnt)
-          move = sub if edit && part.direction == 3
-          return move, edit if edit
+    if pat.Connector?
+      part.path.each do {
+        from = nil
+        ps.each do |to|
+          continue if from.nil?
+          if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y)
+            if near_line(pnt, from, to)
+              
         end
-      elsif part.Shape?
-        move, edit = find(part.content, pnt) if part.content
-        edit = part if !edit
-      elsif part.Text?
-        edit = part
+    else
+      b = boundary(part)
+      return if b.nil?
+      #puts "#{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
+      move, edit = nil, nil
+      if rect_contains(b, pnt)
+        if part.Container?
+          part.items.each do |sub|
+            move, edit = find(sub, pnt)
+            move = sub if edit && part.direction == 3
+            return move, edit if edit
+          end
+        elsif part.Shape?
+          move, edit = find(part.content, pnt) if part.content
+          edit = part if !edit
+        elsif part.Text?
+          edit = part
+        end
       end
     end
     return move, edit
   end
-    
   
   def rect_contains(rect, pnt)
     rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
@@ -215,23 +276,15 @@ class DiagramFrame < BaseWindow
   end
 
   def constrainConnector(part)
-    #puts "#{part.ends[0].to}"
-    #puts "POS #{@positions.keys}"
-    from = @positions[part.ends[0].to]
-    to = @positions[part.ends[1].to]
-    start_x = from.x + (from.w / 2)
-    start_y = from.y + from.h
-    end_x = to.x
-    end_y = to.y + (to.h / 2)
-    mid_x = start_x
-    mid_y = end_y
-    @positions[part.path[0]] = Pnt.new(start_x, start_y)
-    @positions[part.path[1]] = Pnt.new(mid_x, mid_y)
-    @positions[part.path[2]] = Pnt.new(end_x, end_y)
-    constrainConnectorEnd(part.ends[0], start_x, start_y)
-    constrainConnectorEnd(part.ends[1], end_x, end_y)
+    part.ends.each do |ce|
+      to = @positions[ce.to]
+      x = ( to.x + to.w * ce.attach.x ).round
+      y = ( to.y + to.h * ce.attach.y ).round
+      @positions[ce] = Pnt.new(x, y)
+      constrainConnectorEnd(ce, x, y)
+    end
   end
-
+  
   def constrainConnectorEnd(e, x, y)
     constrain(e.label, x, y) if e.label
   end
@@ -254,10 +307,10 @@ class DiagramFrame < BaseWindow
   def on_paint
     paint do | dc |
       @dc = dc
-      @pen = @brush = @font = nil
+      @pen = @brush = @font = @foreground = nil
       do_constraints() if @positions == {}
       s = get_client_size()
-      @pen = @brush = @font = nil
+      @pen = @brush = @font = @foreground = nil
       draw(@root)
     end
   end
@@ -281,16 +334,79 @@ class DiagramFrame < BaseWindow
     @dc.draw_rectangle(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
     draw(shape.content)
   end
-
+  
   def drawConnector(part)
-    p1 = position(part.path[0])
-    p2 = position(part.path[1])
-    p3 = position(part.path[2])
-    coords = [[p1.x, p1.y], [p2.x, p2.y], [p3.x, p3.y]]
     drawEnd part.ends[0]
     drawEnd part.ends[1]
-    #puts "#{coords}"
-    @dc.draw_lines(coords)
+    
+    pFrom = position(part.ends[0])
+    pTo = position(part.ends[1])
+
+    sideFrom = getSide(part.ends[0].attach)
+    sideTo = getSide(part.ends[1].attach)
+    if sideFrom == sideTo   # this it the "same" case
+      ps = simpleSameSide(pFrom, pTo, sideFrom)
+    elsif (sideFrom - sideTo).abs % 2 == 0  # this is the "opposite" case
+      ps = simpleOppositeSide(pFrom, pTo, sideFrom)
+    else  # this is the "orthogonal" case
+      ps = simpleOrthogonalSide(pFrom, pTo, sideFrom)
+    end
+    
+    ps.unshift(pFrom)
+    ps << pTo
+    
+    part.path.clear
+    ps.each do {|p| part.path << part.factory.Point(p.x, p.y) }
+    @dc.draw_lines(ps.collect {|p| [p.x, p.y] })
+  end
+
+  def simpleSameSide(a, b, d)
+    case d
+    when 2 # DOWN
+      z = [a.y + 10, b.y + 10].max
+      return [Pnt.new(a.x, z), Pnt.new(b.x, z)]
+    when 0 # UP
+      z = [a.y - 10, b.y - 10].min
+      return [Pnt.new(a.x, z), Pnt.new(b.x, z)]
+    when 1 # RIGHT
+      z = [a.x + 10, b.x + 10].max
+      return [Pnt.new(z, a.y), Pnt.new(z, b.y)]
+    when 3 # LEFT
+      z = [a.x - 10, b.x - 10].min
+      return [Pnt.new(z, a.y), Pnt.new(z, b.y)]
+    end  
+  end
+
+  def simpleOppositeSide(a, b, d)
+    case d
+    when 0, 2 # UP, DOWN
+      z = average(a.y, b.y)
+      return [Pnt.new(a.x, z), Pnt.new(b.x, z)]
+    when 1, 3# LEFT, RIGHT
+      z = average(a.x, b.x)
+      return [Pnt.new(z, a.y), Pnt.new(z, b.y)]
+    end
+  end
+
+  def average(m, n)
+    return Integer((m + n) / 2)
+  end
+
+  def simpleOrthogonalSide(a, b, d)
+    case d
+    when 0, 2 # UP, DOWN
+      return [Pnt.new(a.x, b.y)]
+    when 1, 3# LEFT, RIGHT
+      return [Pnt.new(b.x, a.y)]
+    end  
+  end
+
+  # sides are labeld top=0, right=1, bottom=2, left=3  
+  def getSide(cend)
+    return 0 if cend.y == 0 #top
+    return 1 if cend.x == 1 #right
+    return 2 if cend.y == 1 #bottom
+    return 3 if cend.x == 0 #left
   end
 
   def drawEnd(cend)
@@ -314,19 +430,23 @@ class DiagramFrame < BaseWindow
         @dc.set_pen(makePen(@pen = style))
       elsif style.Font?
         oldFont = @font
-        oldForeground = @dc.get_text_foreground unless oldForeground
-        @dc.set_text_foreground(makeColor(style.color))
+        oldForeground = @foreground
+        @dc.set_text_foreground(makeColor(@foreground = style.color))
         @dc.set_font(makeFont(@font = style))
       elsif style.Brush?
         oldBrush = @brush
         @dc.set_brush(makeBrush(@brush = style))
       end
     end
+    if part == @move_selection
+      oldPen = @pen
+      @dc.set_pen(Wx::Pen.new(@select_color, @pen.width))
+    end
     yield
-    @dc.set_pen(makePen(oldPen)) if oldPen
-    @dc.set_text_foreground(oldForeground) if oldForeground
-    @dc.set_font(makeFont(oldFont)) if oldFont
-    @dc.set_brush(makeBrush(oldBrush)) if oldBrush
+    @dc.set_pen(makePen(@pen = oldPen)) if oldPen
+    @dc.set_text_foreground(makeColor(@foreground = oldForeground)) if oldForeground
+    @dc.set_font(makeFont(@font = oldFont)) if oldFont
+    @dc.set_brush(makeBrush(@brush = oldBrush)) if oldBrush
   end
 
   def makeColor(c)
