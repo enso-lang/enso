@@ -24,6 +24,48 @@ class Stream
   end
 end
 
+module Web::Eval
+
+  class Expr
+    # overwrites the original address evaluation in expr.rb such that
+    # all addresses are flattened to be directly under the root
+    # eg. "Student[Tim]->Class->Teacher->salary" becomes "Teacher[Bob]->salary"
+    # note: assumes that the schema used is a dbschema (ie uses 'table')
+    def Address(this, env, errors)
+      path = eval(this.exp, env, errors).path
+      root = env['root']
+      obj = lookup_path(path.path, root.value, Store.new(root.value._graph_id))
+      key = ObjectKey(obj)
+      field = path.to_s.split(".")[-1]
+
+      #the path we want is: .type[key].field
+      r = root.path
+      r = r && r.descend_field(obj.schema_class.table)
+      r = r && r.descend_collection(key)
+      r = r && r.descend_field(field)
+      path = r
+
+      @log.warn("Address asked, but path is nil (val = #{path})") if path.nil?
+      Result.new(path)
+    end
+
+    def lookup_path(path, root, store)
+      *base, fld = path
+      base.inject(root) do |cur, x|
+        lookup(cur, x, store)
+      end
+    end
+
+    def lookup(owner, path_elt, store)
+      if Store.new?(path_elt.key) then
+        store[path_elt.key]
+      else
+        owner[path_elt.key]
+      end
+    end
+
+  end
+end
 
 class BatchWeb::EnsoWeb
   include Web::Eval
@@ -65,15 +107,11 @@ class BatchWeb::EnsoWeb
       @env['root'] = Result.new(@root, Ref.new([]))
       res = Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)
       @root = root
-      puts "@@ root after GET"
-      Print.print(@env['root'].value)
       res
     elsif req.post? then
-      puts "@@ root before POST"
-      Print.print(@root)
       # if POST then find the required indices to use for updating based on the old root first
       @form = Form.new(req.POST)
-      bind_to_db(@root, @form, {})
+      bind_to_db(@form)
 
       @root = @bfact.query(pagename, @env['user'])
       @env['root'] = Result.new(@root, Ref.new([]))
@@ -81,17 +119,15 @@ class BatchWeb::EnsoWeb
     end
   end
 
-  def bind_to_db(root, form, errors)
-    store = Store.new(root._graph_id)
-    Print.print(root)
-    puts "@@@@@@@@@@@@@@@@@@@@@@@@@@"
+  def bind_to_db(form)
+#    store = Store.new(root._graph_id)
     form.each do |k, v|
-      puts "Trying to bind #{k.to_s} to #{v.value(nil,nil).inspect}"
-      field = k.to_s.split(".")[-1]
-      obj = lookup_path(k.path, root, store)
-      @bfact.update(obj, field, v.value(nil,nil))
+      k.to_s =~ /^(.*)\[(.*)\](.*)$/
+      typ = $1[1..$1.length]
+      key = $2
+      field = $3[1..$3.length]
+      @bfact.update(typ, key, field, v.value(nil,nil))
     end
-    Print.print(root)
   end
 
   def lookup_path(path, root, store)

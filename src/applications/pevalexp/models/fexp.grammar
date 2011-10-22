@@ -1,0 +1,37 @@
+
+start Prog
+
+Prog ::= [Prog] main:Expr "in" funcs:FuncDef*
+
+FuncDef ::= [FuncDef] "fun" name:sym "(" formals:{Var ","}* ")" "=" body:Expr ";"
+
+Expr ::= [Const] value:Value
+      |  Var
+      |  [Prim] "(" Op args:Expr* ")"
+      |  [If] "if" cond:Expr "then" body:Expr "else" elseBody:Expr "end"
+      |  [Apply] name:sym "(" args:{Expr ","}* ")"
+
+Var ::= [Var] name:sym
+
+Value ::= [Int] value:int
+       |  [Bool] ("true" @"@value=true") | ("false" @"@value=false")
+       |  [Pair] "<" first:Value "," second:Value ">"
+       |  [List] "[" elements:{Value ","}* "]"
+
+Op ::= op:"==" 
+    | op:"+" 
+    | op:"-" 
+    | op:"*" 
+    | op:"/" 
+    | op:"%" 
+    | op:"." 
+    | op:"cons" 
+    | op:"fst" 
+    | op:"snd" 
+    | op:"null" 
+    | op:"head" 
+    | op:"tail"
+
+
+
+

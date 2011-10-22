@@ -1,9 +1,12 @@
 def index {
   "Northwind Customer Relationship Management" <br />
-  for (s:root->Suppliers) {
-    $s->CompanyName " sells the following junk:" <br/>
-    for (p:s->Products) {
-      $p->ProductName " for $" $p->Supplier->Country <br />
+  form {
+    for (s:root->Suppliers) {
+        $s->CompanyName " sells the following junk:" <br/>
+        for (p:s->Products) {
+            $p->ProductName " for $" textedit(p->QuantityPerUnit); <br />
+        }
     }
+    submit("Submit", index());
   }
 }

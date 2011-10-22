@@ -1,0 +1,95 @@
+
+
+
+def page(yield[]) {
+ <html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+        <title>enso(); "Pet Store Reference Application"</title>
+        <link type="text/css" rel="stylesheet" href="tag.css" />
+	// TODO: jquery etc.
+    </head>
+    <body>
+    yield();
+    </body>
+ </html>
+}
+
+def index() {
+  page {
+    banner();
+    fishEye();
+    petMap()
+    tagCloud();
+  }
+}
+
+def tagCloud() {
+  for (t: root.tags) {
+    <a style=tag->style href=link(byTag(tag))>$tag->tag</a>
+  }
+}
+
+def fishEye() {
+  <div dojoType="FisheyeList"
+    itemWidth="170" itemHeight="50"
+    itemMaxWidth="340" itemMaxHeight="100"
+    orientation="vertical"
+    effectUnits="2"
+    itemPadding="10"
+    attachEdge="top"
+    labelEdge="bottom"
+    enableCrappySvgSupport="false">
+    for (c: catalog.categories) {
+      <div dojoType="FisheyeListItem" onClick=link(byCategory(c)) 
+        iconstrc=downcase(c->name) + "_icon.gif" >
+      </div>
+    }
+  </div>
+}
+
+def petMap() {
+  <map name="petmap">
+  for (c: catalog.categories) {
+    <area onmouseover="javascript:this.style.cursor='pointer';" 
+       // TODO: js
+       onclick=link(byCategory(c)) alt=cat->name coords=c->coords >
+    </area>
+  }
+  </map>
+  <img src="images/splash.gif" 
+    alt="Pet Selection Map"
+    usemap="#petmap" 
+    width="350" 
+    height="355" 
+    border="0" />
+}
+
+
+def accordion(id, panes: pane(title, content[]) {
+  <div id=id>
+    for (p: panes) {
+      <h3><a href="#">$p->title</a></h3>
+      <div>
+        p->content();
+      </div>
+    }
+  </div>
+}
+
+
+def sliderGallery(labels, items: item(content[])) {
+  <div class="sliderGallery">
+    <ul class="items">
+      for (i: items) 
+        <li>i->content()</li>
+    </ul>
+    <div class="slider">
+      <!-- the handler to action the slide -->
+      <div class="handle"></div>
+      <!-- labels appear against the slider, as pointers to the user -->
+      for (l : labels, i)
+       <span class="slider-lb" + i>$l</span>
+    </div>
+  </div>
+}

@@ -8,6 +8,10 @@ require 'core/system/library/schema'
 
 class Diff
 
+  def self.diff(o1, o2)
+    Diff.new.diff(o1.schema_class.schema, o1, o2)
+  end
+
   def diff (schema, o1, o2)
     #result of a diff is a graph that conforms to specified schema
     # nodes and edges in the graph are the union of the nodes in both instances
@@ -120,8 +124,8 @@ class Diff
       end
     end
     #for each pair of matched items, traverse the tree to figure out if we need to make an object
-    matches.keys.each do |o|
-      if l1.include?(o)
+    l1.each do |o|
+      if matches.keys.include? o
         keyname = keyed ? ClassKey(field.type).name : ""
         if field.traversal #recurse down the tree
           x = generate_matched_diff(o, matches[o], matches)
@@ -149,7 +153,7 @@ class Diff
     return nil if res.empty?
     return res
   end
-  
+
   def generate_matched_single_diff(field, o1, o2, matches)
 
     #handle optional fields that were added or deleted

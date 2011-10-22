@@ -1,0 +1,29 @@
+
+// TODO: js files etc.
+
+def banner() {
+  table(border=0, bordercolor="gray", cellpadding=0, cellspacing=0, bgcolor="white", width="100%") {
+    tr#injectionPoint {
+      td(width=100) menuLink(link(index), logo())
+      td(align="left") div.banner enso(); " Pet Store";
+      td#bannerRight(align="right") {
+        menuLink(link(fileUpload), "Seller") menuSep()
+        menuLink(link(search), "Search") menuSep()
+        menuLink(link(catalog), "Catalog") menuSep()
+        menuLink(link(mapAll), "Map") menuSep()
+        menuLink(link(tag), "Tags") menuSep()
+        menuLink(link(index), "Home")
+      }
+    }
+    // TODO: rss bar
+  }
+}
+
+def menuSep() {
+  span.menuItem { "|" }
+}
+
+def menuLink(link, label) {
+  <a class="menuLink" onmouseover="this.className='menuLinkHover';" 
+     onmouseout="this.className='menuLink' href=link>$label</a>
+}
