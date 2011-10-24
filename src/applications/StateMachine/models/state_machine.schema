@@ -1,14 +1,15 @@
 
 class StateMachine
   start: State
-  states: State*
+  current: State
+  !states: State*
 end
 
 class State
   #name: str
   enter: str
   leave: str
-  out: Transition*
+  !out: Transition*
   in: Transition*
 end
 

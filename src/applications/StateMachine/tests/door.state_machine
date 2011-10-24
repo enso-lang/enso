@@ -1,5 +1,6 @@
 
 start Opened
+current Locked
 
 state Opened
   on "close" go Closed

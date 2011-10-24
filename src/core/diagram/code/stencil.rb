@@ -34,7 +34,6 @@ class StencilFrame < DiagramFrame
     @path = path
     set_title path
     @data = Load(@path)
-    @factory = Factory.new(Load('diagram.schema'))
     
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
@@ -48,31 +47,56 @@ class StencilFrame < DiagramFrame
     
     @binding = {}
     @nodeTable = {}
+    @connectors = []
     construct @stencil.body, env do |x| 
       set_root(x) 
     end
-    puts "FINDING #{path}-positions"
+    #puts "FINDING #{path}-positions"
     @old_map = {}
     if File.exists?("#{path}-positions")
       @old_map = YAML::load_file("#{path}-positions")
     end
     refresh()
-    puts "DONE"
+    #puts "DONE"
     #Print.print(@root)
   end
 
   def do_constraints
     super
     @old_map.each do |key, pnt|
-      puts "CHECK #{key} #{pnt}"
+      #puts "CHECK #{key} #{pnt}"
+      field = nil
+      if key =~ /(.*)\.(.*)/
+        key = $1
+        field = $2
+      end
       obj = @nodeTable[key]
-      continue if !obj
-      puts "   Has OBJ #{key} #{pnt}"
-      pos = @positions[obj]
-      continue if !pos
-      puts "   Has POS #{key} #{pnt}"
-      pos.x.value = pnt.x
-      pos.y.value = pnt.y
+      next if !obj
+      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
+      begin
+	      if field.nil?
+		      pos = @positions[obj]
+		      next if !pos
+		      #puts "   Has POS #{key} #{pnt}"
+		      pos.x.value = pnt.x
+		      pos.y.value = pnt.y
+		    else
+		      obj.connectors.each do |ce|
+	          l = ce.label ? ce.label.string : ""
+		        #puts "   CHECKING #{l}"
+	          if field == l
+	            conn = ce.owner
+	            #puts "   Has ATTACH #{field}"
+	            conn.ends[0].attach.x = pnt[0].x
+	            conn.ends[0].attach.y = pnt[0].y
+	            conn.ends[1].attach.x = pnt[1].x
+	            conn.ends[1].attach.y = pnt[1].y
+	            break
+		        end
+		      end
+		    end
+	    rescue
+	    end
     end
   end
   
@@ -97,15 +121,28 @@ class StencilFrame < DiagramFrame
 
     # save the positions
     positions = {}
+    inverse = {}
     @nodeTable.each do |key, obj|
-      puts "FOO #{key}: #{obj}"
       positions[key] = position(obj)
+      inverse[obj] = key
     end
-    puts positions
+    @connectors.each do |conn|
+      ce = conn.ends[0]
+      ce2 = conn.ends[1]
+      k = inverse[ce.to]
+      l = ce.label.string if ce.label
+      positions["#{k}.#{l}"] = [ EnsoPoint.new(ce.attach.x, ce.attach.y), EnsoPoint.new(ce2.attach.x, ce2.attach.y) ]
+    end
+    #puts positions
     File.open("#{@path}-positions", "w") do |output|
       YAML.dump(positions, output)
     end
   end
+  
+  def connection_other_end(ce)
+    conn = ce.connection
+    return conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
+  end    
 
   def on_export
     grammar = Loader.load("diagram.grammar")
@@ -140,13 +177,16 @@ class StencilFrame < DiagramFrame
       when "font.weight" then
         font = newEnv[:font] = env[:font]._clone if !font
         font.weight = val
-      when "pen.width" then
+      when "line.width" then
         #puts "PEN #{val} for #{stencil}"
         pen = newEnv[:pen] = env[:pen]._clone if !pen
         pen.width = val
-      when "pen.color" then
+      when "line.color" then
         pen = newEnv[:pen] = env[:pen]._clone if !pen
         pen.color = val
+      when "fill.color" then
+        brush = newEnv[:brush] = env[:brush]._clone if !brush
+        brush.color = val
       end
     end
     # TODO: why do I need to set the style on every object????
@@ -189,7 +229,7 @@ class StencilFrame < DiagramFrame
   end
 
   def evallabel(label, env)
-    if label.Prim?    # it has the form Loc[foo]
+    if label.Prim? && label.op == "[]"   # it has the form Loc[foo]
       tag = label.args[0]
       raise "foo" if !tag.Var?
       tag = tag.name
@@ -224,6 +264,7 @@ class StencilFrame < DiagramFrame
   
   def Shape(this, env, &block)
     shape = @factory.Shape(nil, nil) # not many!!!
+    shape.kind = this.kind
     construct this.content, env do |x|
       error "Shape can only have one element" if shape.content
       shape.content = x
@@ -235,19 +276,21 @@ class StencilFrame < DiagramFrame
 
   def Connector(this, env, &block)
     conn = @factory.Connector(nil, nil, nil)
+    @connectors << conn
     ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
     i = 0
     this.ends.each do |e|
       labelStr, _ = eval(e.label, env)
-      label = nil
-      label = @factory.Text(nil, nil, labelStr) if labelStr
-      de = @factory.ConnectorEnd(e.arrow, label)
+      label = labelStr && @factory.Text(nil, nil, labelStr)
+      labelStr, _ = eval(e.other_label, env)
+      other_label = labelStr && @factory.Text(nil, nil, labelStr)
+      de = @factory.ConnectorEnd(e.arrow, label, other_label)
       key = evallabel(e.part, env)
       de.to = @nodeTable[key]
       de.attach = ptemp[i]
       i = i + 1
       
-      puts "END #{labelStr}"
+      #puts "END #{labelStr}"
       conn.ends << de
     end
     # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
@@ -287,6 +330,14 @@ class StencilFrame < DiagramFrame
         v
       end
       #puts "BINARY #{this.op.to_sym} = #{val}"
+    when :"?" then
+      v, _ = eval(this.args[0], env)
+      #puts "IF #{this.args[0]} ==> #{v}"
+      if v
+        return eval(this.args[1], env)
+      else
+        return eval(this.args[2], env)
+      end
     else
       args = this.args.collect do |a|
         v, _ = eval(a, env)
@@ -313,7 +364,7 @@ class StencilFrame < DiagramFrame
     
   def evalVar(this, env)
     #puts "VAR #{this.name} #{env}"
-    raise "undefined variable '#{this.name}'" if !env.has_key?(this.name)
+    throw "undefined variable '#{this.name}'" if !env.has_key?(this.name)
     return env[this.name], nil
   end
 

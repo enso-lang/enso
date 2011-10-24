@@ -108,6 +108,7 @@ module CheckedObjectMixin
     @_origin = obj._origin
     @schema_class = obj.schema_class
     @_id = obj._id
+    @listeners = nil
   end
 
 
@@ -257,9 +258,27 @@ module CheckedObjectMixin
     to_s
   end
   
+  def add_listener(fieldname, listener)
+    @listeners = {} if !@listeners
+    ls = @listeners[fieldname]
+    @listeners[fieldname] = ls = [] if !ls
+	  ls.push(listener)
+  end
+  
+  def dynamic_update
+    @dyn = DynamicUpdateProxy.new(self) if !@dyn
+    return @dyn
+  end
+  
   def notify_update(field, old, new)
     inverse = field.inverse
     #puts "NOTIFY #{self}.#{field}/#{inverse} FROM '#{old}' to '#{new}'" if field.name=="types"
+    if @listeners
+      @listeners[field.name].each do |listener|
+      	listener.value = new
+     end
+    end
+      
     return if inverse.nil?
     # remove the old one
     if old
@@ -314,7 +333,27 @@ class CheckedObject
       end
     end
   end
+end
 
+class DynamicUpdateProxy
+  def initialize(obj)
+    @obj = obj
+    @fields = {}
+  end
+  
+  def method_missing(m, *args)
+    if m =~ /(.*)=/
+      @obj[$1] = args[0]
+    else
+      name = m.to_s
+      var = @fields[name]
+      return var if var
+      val = @obj[name]
+      @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
+      @obj.add_listener(name, var)
+      return var
+    end
+  end
 end
 
 

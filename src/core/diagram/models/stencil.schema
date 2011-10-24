@@ -84,6 +84,7 @@ class Text < Part
 end
 
 class Shape < Part
+  kind: str
   !content: Part?
 end
 
@@ -95,6 +96,7 @@ end
 class ConnectorEnd
   arrow: str?
   !label: Expression?
+  !other_label: Expression?
   !part: Expression
 end
 

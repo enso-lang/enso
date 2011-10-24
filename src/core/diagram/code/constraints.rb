@@ -30,11 +30,11 @@ class Variable
     @bounds = []
   end
 
-  attr_reader :name
   def to_s
-    return name
+    return @name 
   end
  
+  # special case for >= to implement MAX behavior
   def >=(other)
     #puts "#{self} >= #{other}"
     other.add_listener(self) if other.is_a?(Variable)
@@ -42,15 +42,16 @@ class Variable
   end
 
   def method_missing(m, *args)
-    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round].include? m 
+    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round, :to_int].include? m 
     var = Variable.new("p#{self.to_s}#{args.to_s}")
     #puts "#{var}=#{self.to_s}+#{args}"
-    var.define(self, *args) do |a, *other|
+    var.internal_define(self, *args) do |a, *other|
       a.send(m, *other)
     end
+    return var
   end
 
-  def define(*vars, &block)
+  def internal_define(*vars, &block)
     raise "nil definition" if vars.any?(&:nil?)
     @vars = vars
     @vars.each do |v|
@@ -58,16 +59,15 @@ class Variable
     end
     #puts "#{vars}"
     @block = block
-    return self
   end
   
-  def evaluate(path = [])
+  def internal_evaluate(path = [])
     raise "circular constraint #{path.collect(&:to_s)}" if path.include?(self)
     if @block
       path << self
       vals = @vars.collect do |var|
-        val = var.is_a?(Variable) ? var.evaluate(path) : var
-        raise "undefined variable '#{var.name}'" if val.nil?
+        val = var.is_a?(Variable) ? var.internal_evaluate(path) : var
+        raise "undefined variable '#{var}'" if val.nil?
         val
       end
       path.pop
@@ -86,22 +86,22 @@ class Variable
     @dependencies << x
   end
 
-  def notify
+  def internal_notify_change
     @dependencies.each do |var|
-      var.notify
+      var.internal_notify_change
     end
     #puts "CLEAR #{self.to_s}"
     @value = nil
   end
     
   def value
-    evaluate unless @value
+    internal_evaluate unless @value
     return @value
   end
   
   def value=(x)
     @block = nil
-    notify
+    internal_notify_change
     @value = x
   end
 end
