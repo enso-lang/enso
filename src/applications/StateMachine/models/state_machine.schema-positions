@@ -1,0 +1,45 @@
+--- 
+ClassBox_StateMachine: !ruby/object:EnsoPoint 
+  x: 49
+  y: 11
+ClassBox_State: !ruby/object:EnsoPoint 
+  x: 78
+  y: 101
+ClassBox_Transition: !ruby/object:EnsoPoint 
+  x: 70
+  y: 242
+ClassBox_StateMachine.start: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.3996167334270037
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.38398752827894567
+ClassBox_StateMachine.current: 
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5489251818824714
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.40830819642858995
+ClassBox_StateMachine.states: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.35373094485044804
+  y: 0
+ClassBox_State.out: 
+- !ruby/object:EnsoPoint 
+  x: 0.8498045830679744
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.7790210752991202
+  y: 0
+ClassBox_State.in: 
+- !ruby/object:EnsoPoint 
+  x: 0.17680350502691516
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.15916753378125287
+  y: 0

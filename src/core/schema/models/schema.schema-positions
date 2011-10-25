@@ -1,0 +1,58 @@
+--- 
+ClassBox_Schema: !ruby/object:EnsoPoint 
+  x: 37
+  y: 14
+ClassBox_Type: !ruby/object:EnsoPoint 
+  x: 91
+  y: 90
+ClassBox_Primitive: !ruby/object:EnsoPoint 
+  x: 37
+  y: 181
+ClassBox_Klass: !ruby/object:EnsoPoint 
+  x: 143
+  y: 184
+ClassBox_Field: !ruby/object:EnsoPoint 
+  x: 201
+  y: 287
+ClassBox_Primitive.: 
+- !ruby/object:EnsoPoint 
+  x: 0.4575195154884588
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.4357055152519716
+  y: 1
+ClassBox_Klass.: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.45296395658082006
+  y: 1
+ClassBox_Schema.types: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+ClassBox_Klass.supers: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.02038353981354102
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.9302260704077596
+ClassBox_Klass.defined_fields: 
+- !ruby/object:EnsoPoint 
+  x: 0.44686147920958963
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+ClassBox_Field.type: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.16733620440612518
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5
