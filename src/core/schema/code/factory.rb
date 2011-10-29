@@ -258,11 +258,11 @@ module CheckedObjectMixin
     to_s
   end
   
-  def add_listener(fieldname, listener)
+  def add_listener(fieldname, &block)
     @listeners = {} if !@listeners
     ls = @listeners[fieldname]
     @listeners[fieldname] = ls = [] if !ls
-	  ls.push(listener)
+	  ls.push(block)
   end
   
   def dynamic_update
@@ -275,7 +275,7 @@ module CheckedObjectMixin
     #puts "NOTIFY #{self}.#{field}/#{inverse} FROM '#{old}' to '#{new}'" if field.name=="types"
     if @listeners
       @listeners[field.name].each do |listener|
-      	listener.value = new
+      	listener.call new
      end
     end
       
@@ -350,7 +350,9 @@ class DynamicUpdateProxy
       return var if var
       val = @obj[name]
       @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
-      @obj.add_listener(name, var)
+      @obj.add_listener name do |val|
+        var.value = val
+      end
       return var
     end
   end

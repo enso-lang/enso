@@ -78,6 +78,7 @@ class DiagramFrame < BaseWindow
     evt_paint :on_paint
     evt_left_dclick :on_double_click
     evt_left_down :on_mouse_down
+    evt_right_down :on_right_down
     evt_motion :on_move
     evt_left_up :on_mouse_up
 
@@ -129,6 +130,17 @@ class DiagramFrame < BaseWindow
     end
   end
 
+  def on_right_down(e)
+    select, edit, actions = find(@root, e)
+    if actions
+      pop = Wx::Menu.new
+      actions.each do |name, action|
+    		add_menu(pop, name, name, action) 
+      end
+      popup_menu(pop, Wx::Point.new(e.x, e.y))
+    end
+  end
+
   def on_mouse_down(e)
     #puts "DOWN #{e.x} #{e.y}"
     @mouse_down = true
@@ -174,35 +186,49 @@ class DiagramFrame < BaseWindow
   # ---- finding ------
   def find(part, pnt)
     if part.Connector?
-      select, edit = findConnector(part, pnt)
+      select, edit, actions = findConnector(part, pnt)
     else
       b = boundary(part)
       return if b.nil?
       #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-      select, edit = nil, nil
+      select, edit, actions = nil, nil, nil
       if rect_contains(b, pnt)
         if part.Container?
           part.items.each do |sub|
-            select, edit = find(sub, pnt)
+            select, edit, actions = find(sub, pnt)
             select = sub if edit && part.direction == 3
-            return select, edit if select || edit
+				    break if edit || select
           end
+          return select, edit, actions if select && part.direction == 3
         elsif part.Shape?
-          select, edit = find(part.content, pnt) if part.content
-          edit = part if !edit
+          select, edit, actions = find(part.content, pnt) if part.content
+          select = edit = part if !edit
         elsif part.Text?
-          edit = part
+          select = edit = part
         end
+        actions = collect_part_actions part, actions
       end
     end
-    return select, edit
+    return select, edit, actions
   end
-
+  
+  def collect_part_actions part, actions = nil
+    if @actions[part]
+      actions = {} if !actions
+      if @actions[part]
+	      actions.update @actions[part] 
+	    end
+    end
+    return actions
+	end
+	
   def findConnector(part, pnt)
     part.ends.each do |e|
       if e.label
-        select, edit = find(e.label, pnt)
-        return select, edit if select
+        select, edit, actions = find(e.label, pnt)
+        return select, edit, actions if select
+        select, edit, actions = find(e.other_label, pnt)
+        return select, edit, actions if select
       end
     end
     from = nil
@@ -211,12 +237,12 @@ class DiagramFrame < BaseWindow
       if !from.nil?
 	      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
 	      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
-	        return part, nil
+	        return part, nil, (collect_part_actions part)
 	      end
 	    end
 			from = to
     end
-    return nil, nil
+    return nil, nil, nil
   end
 
   # ----- constrain -----
@@ -747,7 +773,6 @@ class TextEditSelection
   def clear
     new_text = @edit_control.get_value()
     @edit_selection.string = new_text
-    @listener.notify_change(@edit_selection, new_text) if @listener
     @edit_control.destroy
     return nil
   end

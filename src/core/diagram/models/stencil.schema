@@ -16,6 +16,7 @@ end
 
 class For < Part
   var: str
+  label: str?
   !iter: Expression
   !body: Part
   index: str?

@@ -4,7 +4,7 @@ start Stencil
 Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Part
 
 Part ::= [Alt] alts:{Part "|"}+
-      | [For] "for" Props?  "(" var:sym ":" iter:Exp Index? ")" body:Part
+      | [For] "for" Props?  "(" (label:str)? var:sym ":" iter:Exp Index? ")" body:Part
       | [Test] "if" condition:Exp body:Part
       | [Let] "let" decls:Assign* "in" body:Part
       | [Label] "label" Props? label:Loc body:Part

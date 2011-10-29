@@ -20,7 +20,7 @@ class StencilFrame < DiagramFrame
 
   def initialize(path = nil)
     super("Diagram Editor")
-    @listener = self
+    @actions = {}
     self.path = path if path
   end
   
@@ -45,10 +45,9 @@ class StencilFrame < DiagramFrame
       :brush => @factory.Brush(white)
     }
     
-    @binding = {}
     @nodeTable = {}
     @connectors = []
-    construct @stencil.body, env do |x| 
+    construct @stencil.body, env, nil do |x| 
       set_root(x) 
     end
     #puts "FINDING #{path}-positions"
@@ -151,13 +150,8 @@ class StencilFrame < DiagramFrame
     end
   end
 
-  def notify_change(diagram_object, new_text)
-    addr = @binding[diagram_object]
-    addr.obj[addr.field] = new_text
-  end
-  
-  def construct(stencil, env, &block)
-    send(stencil.schema_class.name, stencil, env, &block)
+  def construct(stencil, env, container, &block)
+    send("construct#{stencil.schema_class.name}", stencil, env, container, &block)
   end
   
   def make_styles(stencil, shape, env)
@@ -195,33 +189,59 @@ class StencilFrame < DiagramFrame
     shape.styles << (brush || env[:brush])
   end
   
-  def Alt(this, env, &block)
+  def constructAlt(this, env, container, &block)
     this.alts.each do |alt|
       catch :fail do
-        return construct(alt, env, &block)
+        return construct(alt, env, container, &block)
       end
     end
     throw :fail
   end
 
-  def For(this, env, &block) 
-    source, _ = eval(this.iter, env)
+  def constructFor(this, env, container, &block) 
+    source, address = eval(this.iter, env)
     nenv = {}.update(env)
+    kind = address.field.type.name
     source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
-      construct(this.body, nenv, &block)
+      construct this.body, nenv, container do |shape|
+        if this.label
+          action = address.is_traversal ? "Delete" : "Remove"
+	        add_action shape, "#{action} #{this.label} '#{v.name}'" do    # TODO: delete versus remove???
+	          v.delete
+	        end
+	      end
+     		block.call shape
+      end
     end
-  end
-    
-  def Test(this, env, &block)
+    if this.label
+      action = address.is_traversal ? "Create" : "Add"
+      begin
+	      shape = @nodeTable[address.obj.name]
+	    rescue
+	    end
+	    shape = container if !shape
+	    puts "#{action} #{this.label} #{address.obj} #{shape}"
+	    add_action shape, "#{action} #{this.label}" do 
+	      address.insert_new address.field.type
+	    end
+	  end
+	end
+	
+	def add_action shape, name, &block
+	  @actions[shape] = {} if !@actions[shape]
+	  @actions[shape][name] = block
+	end
+	    
+  def constructTest(this, env, container, &block)
     test, _ = eval(this.condition, env)
-    construct(this.body, env, &block) if test
+    construct(this.body, env, container, &block) if test
   end
 
-  def Label(this, env, &block)
+  def constructLabel(this, env, container, &block)
     key = evallabel(this.label, env)
-    construct this.body, env do |result|
+    construct this.body, env, container do |result|
       #puts "LABEL #{key} => #{result}"
       @nodeTable[key] = result
       block.call(result)
@@ -234,47 +254,48 @@ class StencilFrame < DiagramFrame
       raise "foo" if !tag.Var?
       tag = tag.name
       index, _ = eval(label.args[1], env)
-      return "#{tag}_#{index.name}"  #HACK: should use the real path
+      return "#{tag}_#{index.name}"  #TODO: hack!!! should use the real path
     else
       val, _ = eval(label, env)
+      val = val.name  #TODO: hack!!!
       return val
     end
   end
   
   # shapes
-  def Container(this, env, &block)
+  def constructContainer(this, env, container, &block)
     group = @factory.Container(nil, nil, this.direction)
     this.items.each do |item|
-      construct item, env do |x|
+      construct item, env, group do |x|
         group.items << x
       end
     end
     make_styles(this, group, env)
-    @binding[group] = this
     block.call group
   end
   
-  def Text(this, env, &block)
+  def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
     text = @factory.Text(nil, nil, val)
     make_styles(this, text, env)
-    @binding[text] = address
+    text.add_listener "string" do |val|
+      address.value = val
+    end
     block.call text
   end
   
-  def Shape(this, env, &block)
+  def constructShape(this, env, container, &block)
     shape = @factory.Shape(nil, nil) # not many!!!
     shape.kind = this.kind
-    construct this.content, env do |x|
+    construct this.content, env, shape do |x|
       error "Shape can only have one element" if shape.content
       shape.content = x
     end
     make_styles(this, shape, env)
-    @binding[shape] = this
     block.call shape
   end
 
-  def Connector(this, env, &block)
+  def constructConnector(this, env, container, &block)
     conn = @factory.Connector(nil, nil, nil)
     @connectors << conn
     ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
@@ -296,7 +317,6 @@ class StencilFrame < DiagramFrame
     # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
     
     make_styles(this, conn, env)
-    @binding[conn] = this
     block.call conn
   end
 
@@ -372,8 +392,33 @@ end
 
 class Address
   def initialize(obj, field)
-    self.obj = obj
-    self.field = field
+    @obj = obj
+    @field = field
   end
-  attr_accessor :obj, :field
+  
+  attr_reader :obj
+  
+  def value=(val)
+    @obj[@field] = val
+  end
+
+  def field
+    #puts "GET TYPE #{@obj}.#{@field}"
+    @obj.schema_class.all_fields[@field]
+  end
+  
+  def is_traversal
+    real = field
+    if field.computed
+      # this determines if a computed field is a selection of a traversal field
+      # the semantics it implements is correct, but it does it using a quick hack
+      # as a syntactic check, rather than a semantic analysis
+      if field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
+				real = @obj.schema_class.all_fields[$1]    
+		  else
+		    return false
+      end
+    end
+    return real.traversal
+  end
 end
