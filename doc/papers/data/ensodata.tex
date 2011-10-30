@@ -69,7 +69,7 @@
 
 \begin{abstract}
 \Enso\ is a new approach to software development
-based on interpretation of executable specification languages.
+based on interpretation of domain-specific languages.
 Unlike most programming models, \Enso\ does not have a built-in
 mechanism for structuring and manipulating data.
 Instead the mechanisms for data structuring are developed 
@@ -78,92 +78,78 @@ that \Enso\ allows programmers to override the dot (o.f) operator
 that is commonly used for access to fields of a data structure.
 \end{abstract}
 
-One of the most important kinds of ESL is the 
-\textit{data description language}. The intent of a data
-description language is to specify the structure and
-behavior of data. The history of the development of data
-description covers much of the history of programming languages themselves.
+\section{Introduction}
 
-Type systems in programming languages are
-well-known examples of data description languages, including
-records/arrays/unions in Pascal or C, or sums of products
-data types in Haskell and ML. These systems are very useful
-for describing the structure of data. Such structures are 
-important because they can be checked automatically via a
-static type system. Data types are specifications because they
-define what data is needed, not how to implement it.
 
-The problem is that the actual data in a system 
-almost always obeys additional invariants and behaviors that
-are not expressible in a structural data description. 
-Dynamic languages also have this problem, because they 
-provide only a single universal type that is flexible 
-enough to express any desired data. 
 
-\textit{Abstract data types} (ADTs) and \textit{objects} 
-wrap raw structures with a 
-set of procedures that enforce invariants and supply 
-higher-level operations or behaviors. The difference is
-that ADTs manage a set of values with hidden representation,
-while objects bundle the procedures into the actual values
-themselves. Despite the differences, ADTs and objects are
-similar in their level of description.
 
-One problem with both ADTs and objects is that they are
-both fundamentally \textit{operational}. That is, they define \textit{how}
-to implement the desired properties of data, rather than
-specifying \textit{what} properties are needed. If an invariant
-can be affected by multiple operations in an ADT, then code
-must be written to check or enforce the invariant in multiple places.
-In many cases the invariants span multiple individual data
-items, so code must be coordinated between data abstractions. 
-One common example is the owner/items pointers that must
-be coordinated to ensure consistency of a hierarchical structure.
+Mechanisms for organizing and managing data are a fundamental
+aspect of any programming model. Most programing models provide
+built-in mechanisms for organizing data. Well known approaches 
+include \textit{data structure definitions} (as in Pascal, C, Haskell, ML),
+\textit{object/class models} (as in Java, Smalltalk, Self), and \textit{predefined
+data structures} (as in Lisp, Matlab).
+Languages may also support type abstraction (as in ML, Ada), a combination of 
+multiple approaches (e.g JavaScript, Scala), or other variations.
+The key characteristic of all these approaches is that the
+fundamental mechanisms for structuring and manipulating data are 
+predefined.
+Predefined data structuring mechanisms allow programmers to create
+specific kinds of data, but they do not usually allow 
+fundamental changes to the underlying data structuring and 
+management mechanisms. 
 
-A second problem with implementation-oriented descriptions of
-data types is that they do not scale well when an application has 
-dozens or hundreds of different data types,
-each with specific behavior and named properties but also many common properties and
-behaviors. Global behaviors like caching, persistence, security,
-and common repeated patterns like cached computed attributes and
-bidirectional relationships cannot be expressed as libraries or
-reusable class definitions. These concepts can easily be described
-as \textit{design patterns}, but the programmer must still implement
-them in each specific instance, in some cases hundreds or 
-thousands of times! It becomes impossible to change such
-pervasive design decisions after the code is written.
+Predefined data structuring mechanisms are insufficient to cleanly
+implement many important and common requirements for data management,
+including persistence, caching, serialization, transactions, change logging,
+access control, automated traversals, 
+multi-object invariants, and bi-directional relationships. 
+The difficulty with all these requirements is that they are best 
+implemented as pervasive features of the underlying data management
+mechanism. It is possible to defined such features individually for
+each particular kind of data in a program, but this typically leads to
+large amounts of repeated code. To implement these kinds of crosscutting
+concerns, developers often
+resort to preprocessors, code generates, byte-code transformation, 
+or modified runtimes or compilers. The resulting systems are typically ad-hoc,
+fragile, poorly integrated, and difficult to maintain.
 
-One reason for this is that these 
-features require quantification over \textit{names} and/or \textit{types}
-rather than values. [Example is bidirectional relationships]. 
-In sophisticated object-oriented frameworks,
-reflection is often used to implement these general features. However,
-reflection is quite complex to use. It is a very powerful tool to
-solve what might otherwise be relatively simple problems.
+What is involved in making fundamental and potentially pervasive 
+changes to the way data is managed in a programming model? There are
+several ways to approach this question, but one concrete example is to
+consider what it would mean to override the ``dot'' operator, which 
+selects a field of a structure or object in many languages. One might also
+consider a global override of the field assignment operator. Giving the
+programmer control over the data manipulation mechanisms means defining
+or modifying the behavior of all the data manipulation operations that
+are often considered built-in primitives, including initialization, type tests, 
+casting, pointer equality, and field access. In this view, the
+data structuring mechanisms are an \textit{aspect} of an overall programming
+system. 
 
-If ADTs and objects are not sufficient, what about about existing
-specification languages?
-Maude and Alloy are examples of the alternative: they define 
-properties of data. [more on these? basically they are good, but they
-aren't as ``executable'' as we would like].
+Some programming systems support a degree of control over 
+the data structuring mechanisms. Meta-classes in Smalltalk define how
+classes are instantiated and compiled. 
+The reflective features of Ruby, Python and Smalltalk 
+can be used to trap and handle undefined methods and properties, 
+which can be used to create proxies or implement virtual objects.
+Scheme macros can be used to create data structuring mechanisms, 
+for example \lstinline{defstruct}.
 
-The question, then, is whether it is possible to express useful global
-and local properties of data, while still allowing pervasive strategies
-for implementing the data and its properties. We believe that there
-are several approaches that make sense, including entity-relationship
-modeling, attribute grammars, and excel-style spreadsheets. 
 
-\Enso\ does \textit{not} mandate
-an particular data structuring mechanism. 
-\Enso\ includes predefined data structuring techniques based on these 
-models, but also mixes them together to make useful hybrids.
-These were designed 
-with specific purposes in mind: one is used in the implementation of
-\Enso\ itself, and a variant is useful for access to relational databases.
-But \Enso\ encourages users to define their own data description
-strategy, or modify one of the basic ones to suit their needs. In
-what follows we describe several of the data structuring techniques
-that we have found useful in \Enso\ so far.
+This paper presents the approach to defining 
+data structuring mechanisms used that is used in \Enso.
+
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.55]{DDL.pdf}
+\caption{Data definition mechanisms in traditional languages and \Enso}
+\label{ddl}
+\end{center}
+\end{figure}
+
 
 \subsection{Structures}
 
