@@ -76,17 +76,30 @@ class Factory
 
 
   def delete_obj(obj)
+    puts "Deleting #{obj}"
     sc = obj.schema_class
     sc.fields.each do |fld|
       next if fld.type.Primitive?
+      other = obj[fld.name]
+      next if !other
       if fld.traversal then
-        delete_obj(obj[fld.name])
+        puts "  deleting #{fld.name}"
+        if fld.many then
+          other.each do |v|
+            delete_obj(v)
+          end
+          other.clear
+        else
+          delete_obj(other)
+        end
       else
         if fld.inverse then
           if fld.inverse.many then
-            obj[fld.name][fld.inverse.name].delete(obj)
+            puts "  deleting from inverse '#{fld.name}': #{other[fld.inverse.name]}"
+            other[fld.inverse.name].delete(obj) if other[fld.inverse.name]  # HACK: why do we need this test?
           else
-            obj[fld.name][fld.inverse.name] = nil
+            puts "  clearing inverse #{fld.name} #{other[fld.inverse.name]}"
+            other[fld.inverse.name] = nil
           end
         end
       end

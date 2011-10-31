@@ -34,7 +34,10 @@ class StencilFrame < DiagramFrame
     @path = path
     set_title path
     @data = Load(@path)
+    generate_diagram
+  end
     
+  def generate_diagram
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
         
@@ -50,10 +53,10 @@ class StencilFrame < DiagramFrame
     construct @stencil.body, env, nil do |x| 
       set_root(x) 
     end
-    #puts "FINDING #{path}-positions"
+    #puts "FINDING #{@path}-positions"
     @old_map = {}
-    if File.exists?("#{path}-positions")
-      @old_map = YAML::load_file("#{path}-positions")
+    if File.exists?("#{@path}-positions")
+      @old_map = YAML::load_file("#{@path}-positions")
     end
     refresh()
     #puts "DONE"
@@ -209,7 +212,12 @@ class StencilFrame < DiagramFrame
         if this.label
           action = address.is_traversal ? "Delete" : "Remove"
 	        add_action shape, "#{action} #{this.label} '#{v.name}'" do    # TODO: delete versus remove???
-	          v.delete
+	          if address.is_traversal
+  	          v.delete!
+  	        else
+  	          address.value = nil
+  	        end
+  	        generate_diagram
 	        end
 	      end
      		block.call shape
