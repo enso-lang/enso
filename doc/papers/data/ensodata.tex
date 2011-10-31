@@ -60,7 +60,7 @@
 
 \newcommand{\Enso}{Ens\={o}}
 
-\title{\includegraphics[scale=0.25]{enso.jpg}\\\Enso\ Data:\\ Structure and Interpretation of Semantic Data Models}
+\title{\includegraphics[scale=0.25]{enso.jpg}\\  \Enso\ Data:\\ Structure and Interpretation of Semantic Data Models}
 \author{William R. Cook and Tijs van der Storm}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -133,14 +133,37 @@ classes are instantiated and compiled.
 The reflective features of Ruby, Python and Smalltalk 
 can be used to trap and handle undefined methods and properties, 
 which can be used to create proxies or implement virtual objects.
-Scheme macros can be used to create data structuring mechanisms, 
-for example \lstinline{defstruct}.
+Scheme macros are often used to create data structuring mechanisms.
+For example, the \lstinline{defstruct} macro defines mutable structures
+with a functional interface. However... <summarize>. 
+The Adaptive Object Model Architecture provides an architecture for
+this approach, but does not discuss how it is bootstrapped or integrated
+with existing languages.
 
+This paper presents \Enso\ Data, an approach to data definition
+in which programmers have control over the data structuring 
+mechanisms, either to define
+new mechanisms or modify the system's built-in mechanisms. 
+\Enso\ Data has three main features: (1) high-level data modeling languages
+for describing the structure and behavior of data, (2) 
+dynamic interpreters of data descriptions that manage the data
+instances described in a data model, and (3) a bootstrapping model
+that allows all \Enso\ Data, including meta-data, to be customized
+and managed using the approach. The \Enso\ approach to data
+places strong requirements on the host programming language, to 
+support use-defined interpretation of data.
 
-This paper presents the approach to defining 
-data structuring mechanisms used that is used in \Enso.
+\section{\Enso\ Data}
 
-
+Figure~\ref{ddl} illustrates the difference between 
+traditional built-in data structuring mechanisms and \Enso\ Data.
+In the traditional approach, the programming language includes a 
+process and data sublanguages, which are both predefined.
+With \Enso\ Data, the data structuring mechanisms are defined
+by the programmer by interpretation of data definitions.
+Since a data definition model is also data, it requires a meta-definition
+mechanism. This infinite regress is terminated by a boot-strap
+data definition that is used to build the \Enso\ Data system itself.
 
 \begin{figure}
 \begin{center}
@@ -150,8 +173,12 @@ data structuring mechanisms used that is used in \Enso.
 \end{center}
 \end{figure}
 
+This section catalogs a number of features that can be
+included in a data description facility. 
+Semantic Data Models. Relational Data models.
+Type systems. Object Models.
 
-\subsection{Structures}
+\subsection{Data Graphs}
 
 Structures in \Enso\ are a specialized kind of graph,
 whose nodes are either primitive data or collections of observable
@@ -217,6 +244,10 @@ Person "Thomas Snook" 12/30/43 male
 \end{verbatim}
 
 \subsection{Inverses}
+
+\subsection{Computed Attributes}
+
+
 
 
 
