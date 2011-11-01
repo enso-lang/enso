@@ -60,7 +60,7 @@
 
 \newcommand{\Enso}{Ens\={o}}
 
-\title{\includegraphics[scale=0.25]{enso.jpg}\\  \Enso\ Data:\\ Structure and Interpretation of Semantic Data Models}
+\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Objects:\\ Structure and Interpretation of Data in \Enso}
 \author{William R. Cook and Tijs van der Storm}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -68,14 +68,22 @@
 \maketitle
 
 \begin{abstract}
-\Enso\ is a new approach to software development
-based on interpretation of domain-specific languages.
-Unlike most programming models, \Enso\ does not have a built-in
-mechanism for structuring and manipulating data.
-Instead the mechanisms for data structuring are developed 
-as libraries by the programmer. One way to understand this is
-that \Enso\ allows programmers to override the dot (o.f) operator
-that is commonly used for access to fields of a data structure.
+Managed Objects allow programmers to define or modify the
+fundamental data definition mechanisms in a programming language. 
+The programmer can change the language used to define data, implement
+that language by writing or modifying interpreters, and
+integrate the new data mechanisms with existing language
+support for data access and manipulation. For example,
+Managed Objects allow programmers to override the field/method
+access operator (the ``dot operator''). Managed Objects allow
+easy implementation of many aspects of data, including 
+logging/subscription, access/change control, bidirectional 
+relationships, invariants and validation.
+A bootstrap process is used so that all data, including the
+data used to implement Managed Objects, is managed.
+This paper describes the implementation of Managed Objects
+as the foundation of \Enso, a new programming system based on 
+model interpretation.
 \end{abstract}
 
 \section{Introduction}
@@ -137,37 +145,37 @@ The Adaptive Object Model Architecture provides an architecture for
 this approach, but does not discuss how it is bootstrapped or integrated
 with existing languages.
 
-This paper presents \Enso\ Data, an approach to data definition
+This paper presents Managed Objects, an approach to data definition
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-\Enso\ Data has four main features: (1) high-level \textit{data models}
+Managed Objects has four main features: (1) high-level \textit{data models}
 that specify the structure and behavior of data, 
 (2) \textit{data model interpreters} that manage data instances, 
 (3) \textit{programming language integration} so that managed instances
 can be created and accessed just like normal data,
 and (4) a \textit{bootstrapping} process
-that allows all \Enso\ Data, including data models, to be customized
-and managed. The \Enso\ approach to data
+that allows all Managed Objects, including data models, to be customized
+and managed. Managed Data
 places strong requirements on the host programming language, to 
 support use-defined interpretation of data.
 
-\section{\Enso\ Data}
+\section{Managed Objects}
 
 Figure~\ref{ddl} illustrates the difference between 
-traditional built-in data structuring mechanisms and \Enso\ Data.
+traditional built-in data structuring mechanisms and Managed Objects.
 In the traditional approach, the programming language includes a 
 process and data sublanguages, which are both predefined.
-With \Enso\ Data, the data structuring mechanisms are defined
+With Managed Objects, the data structuring mechanisms are defined
 by the programmer by interpretation of data definitions.
 Since a data definition model is also data, it requires a meta-definition
 mechanism. This infinite regress is terminated by a boot-strap
-data definition that is used to build the \Enso\ Data system itself.
+data definition that is used to build the Managed Objects system itself.
 
 \begin{figure}
 \begin{center}
 \includegraphics[scale=0.5]{DDL.pdf}
-\caption{Data definition mechanisms in traditional languages and \Enso}
+\caption{Traditional versus Managed data definitions}
 \label{ddl}
 \end{center}
 \end{figure}
@@ -281,6 +289,12 @@ on the objects it creates.
 
 change tracking
 
+Managed Objects supports controlled imperative effects. Objects are
+mutable during construction or modification, while the data may be in an
+inconstent state, but before it can be used it must be validated
+and locked from further changes. This is similar to a transaction.
+
+
 \subsection{Differences}
 
 
@@ -339,7 +353,7 @@ Assignment to fields can be overriden
 \section{Related Work}
 \label{relatedwork}
 
-\Enso\ data is based on traditional 
+Managed Objects is based on traditional 
 entity-relationship (ER) models \cite{FOO},
 which are also known as information models. 
 ER models were the basis for class diagrams in UML.
@@ -350,11 +364,6 @@ object graphs, rather than individual objects. \Enso\
 does allow data to include some behavior, for example constraints
 and computed fields, but \Enso\ does not associated methods
 with data objects.
-
-\Enso\ supports controlled imperative effects. Objects are
-mutable during construction or modification, while the data may be in an
-inconstent state, but before it can be used it must be validated
-and locked from further changes. This is similar to a transaction.
 
 The rendering transformation is similar to Smaragdakis's notion of
 Morphing \cite{Morphing} (or is it SafeGen?). 
