@@ -144,12 +144,14 @@ This paper presents \Enso\ Data, an approach to data definition
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-\Enso\ Data has three main features: (1) high-level data modeling languages
-for describing the structure and behavior of data, (2) 
-dynamic interpreters of data descriptions that manage the data
-instances described in a data model, and (3) a bootstrapping model
-that allows all \Enso\ Data, including meta-data, to be customized
-and managed using the approach. The \Enso\ approach to data
+\Enso\ Data has four main features: (1) high-level \textit{data models}
+that specify the structure and behavior of data, 
+(2) \textit{data model interpreters} that manage data instances, 
+(3) \textit{programming language integration} so that managed instances
+can be created and accessed just like normal data,
+and (4) a \textit{bootstrapping} process
+that allows all \Enso\ Data, including data models, to be customized
+and managed. The \Enso\ approach to data
 places strong requirements on the host programming language, to 
 support use-defined interpretation of data.
 

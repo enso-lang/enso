@@ -2,13 +2,13 @@ diagram(machine)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
-  for (state : machine@states)
+  for ("State" state : machine@states)
    label State[state]
      oval [line.width=(state==machine@start ? 3 : 1), fill.color=(state==machine@current ? (255,0,0) : (255,228,181))] { // this is the class rectangle
        text [font.size=16,font.weight=700] state@name
      }
   // create the links
   for (state : machine@states)
-    for (trans : state@out)
+    for ("Transition" trans : state@out)
       connector (trans@event, trans@action : State[trans@from] --> State[trans@to])
  }
