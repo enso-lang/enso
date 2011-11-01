@@ -80,9 +80,6 @@ that is commonly used for access to fields of a data structure.
 
 \section{Introduction}
 
-
-
-
 Mechanisms for organizing and managing data are a fundamental
 aspect of any programming model. Most programing models provide
 built-in mechanisms for organizing data. Well known approaches 
@@ -245,13 +242,21 @@ Person "Jane Snook"    3/17/48 female
 Person "Thomas Snook" 12/30/43 male 
 \end{verbatim}
 
+
 \subsection{Inverses}
 
 \subsection{Computed Attributes}
 
+\subsection{Invariants}
 
+\subsection{Constraints}
 
+\subsection{Collections}
 
+\subsubsection{Bags and Sets}
+\subsubsection{Keys}
+
+\subsection{Modularity}
 
 \section{Interpretation}
 
@@ -272,24 +277,18 @@ the \textit{factory} that creates the structure is parameterized by a
 schema, which the factory uses to check the legality of operations
 on the objects it creates.
 
+\subsection{Instance Modification}
+
+change tracking
+
+\subsection{Differences}
+
+
 \subsection{Instantiation}
 
 
-\section{QuadModel}
 
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{QuadModel.pdf}
-\caption{The four core schema and grammar models}
-\label{default}
-\end{center}
-\end{figure}
-
-
-\section{Implementation} 
-
-\subsection{Requirements for a programming language}
+\section{Programming Language Integration}
 
 The programming model is based on cyclic graphs.
 Graphs are kept distinct from each other. That is,
@@ -305,7 +304,7 @@ than would be the case in tree-based representations.
 To modify graphs, place-holder objects are useful,
 as is the ability to ``become'' another object.
 
-\subsubsection{Simple reflection}
+\subsection{Simple reflection}
 
 Fields can be created dynamically and accessed with
 ``.'' notation or reflective access.
@@ -319,10 +318,25 @@ Assignment to fields can be overriden
    o.bar = 3   ==> o.set("bar", 3)
 \end{verbatim}
 
-\subsection{Bootstrapping}
+\subsection{Dynamic Objects}
+
+\section{Bootstrapping}
 
 
-\section{Relationship to Other Approaches}
+\subsection{QuadModel}
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{QuadModel.pdf}
+\caption{The four core schema and grammar models}
+\label{default}
+\end{center}
+\end{figure}
+
+
+
+\section{Related Work}
 \label{relatedwork}
 
 \Enso\ data is based on traditional 
@@ -337,18 +351,10 @@ does allow data to include some behavior, for example constraints
 and computed fields, but \Enso\ does not associated methods
 with data objects.
 
-In contrast to
-most theories of functional programming, \Enso\ is based on
-coalgebraic signatures rather than algebraic ones. In practice
-this means that \Enso\ structures are cyclic graphs rather than
-trees. Lazy functional languages can also represent cyclic 
-structures, but the cycles are not observable.
-
 \Enso\ supports controlled imperative effects. Objects are
 mutable during construction or modification, while the data may be in an
 inconstent state, but before it can be used it must be validated
 and locked from further changes. This is similar to a transaction.
-
 
 The rendering transformation is similar to Smaragdakis's notion of
 Morphing \cite{Morphing} (or is it SafeGen?). 
@@ -357,43 +363,13 @@ so that any kind of structure can be morphed into any other
 kind of structure. On the other hand, \Enso\ is not statically
 typed.
 
-\Enso's generic operations are a form of polytypic programming, 
-like Generic Haskell \cite{TH}. \Enso's operations can use
-arbitrary meta-data, not just sum/product type structure.
-On the other hand, \Enso's operations are not statically typed.
-\Enso\ certainly shares the same goal to ``Write everything once''.
-
 \subsection{Other Related Work}
 
 Look up work on "instant-generics"
 
-
-Eelco Lempsink, Sean Leather, and Andres L\&\#246;h. 2009. Type-safe diff for families of datatypes. In Proceedings of the 2009 ACM SIGPLAN workshop on Generic programming (WGP '09). ACM, New York, NY, USA, 61-72. DOI=10.1145/1596614.1596624 http://doi.acm.org/10.1145/1596614.1596624 
-
 Dave Clarke, Michiel Helvensteijn, and Ina Schaefer. 2010. Abstract delta modeling. In Proceedings of the ninth international conference on Generative programming and component engineering (GPCE '10). ACM, New York, NY, USA, 13-22. DOI=10.1145/1868294.1868298 http://doi.acm.org/10.1145/1868294.1868298 
 
-Data Representation Synthesis
-Peter Hawkins, Alex Aiken, Kathleen Fisher, Martin Rinard, Mooly Sagiv. In Programming Language Design and Implementation (PLDI), ACM, 2011
-
-
-[From CSSE 490 Model-Based Software Engineering: Transformational Programming
-Shawn Bohner]
-  Program Transformation Paradigms
-  Interactive Program Transformation 
-  Syntactic Abstractions in Intentional Programming 
-  Simple Tree Parsing 
-  Tree Parsing with Dynamic Programming 
-  Term Rewriting 
-  Term Rewriting with Strategy Annotations 
-  Functional Rewriting 
-  Rewriting with Traversal Functions 
-  Controlling Rewritingby Reflection 
-  Sequences of Canonical Forms 
-  Non-deterministic Sequential Strategies 
-  Generic Traversal Strategies
-
 \subsection{FOSD}
-
 
 - Forests are the key data structure in a formal model of FOSD [1]. The goal is similar to yours: be language-independent and represent object collaborations.
 
@@ -416,39 +392,6 @@ Shawn Bohner]
 [4] P. Hšfner, R. Khedri, B. Mšller. Supplementing Product Families with Behaviour. International Journal of Software and Informatics, 2011. To appear. 
 
 Dave Clarke, Michiel Helvensteijn, Ina Schaefer. Abstract delta modeling. GPCE'10
-
-\section{Notes}
-
-Grammar equivalence should ignore differences of non-terminals.
-That is, inserting a new definition is not an "equal" grammar,
-but it can be "equivalent" observably. For example
-
-\begin{verbatim}
-A = "one" "two"
-
-B = "one" C
-C = "two"
-\end{verbatim}
-
-We should say that A and B are equivalent. To make this
-work, equivalence has to be able to reason about "stutter"
-steps in the state machines. This is similar to the
-fact that Alt is injective in the grammar schema, and
-the injection is sometimes needed during rendering.
-By injective I mean that Alt([A])==A, or that an Alt with
-one sub-time is the same as the subitem itself. 
-Sequence is also injective, Seq([A])==A. These differences
-should be ignored by equivalence. If we put a boolean on 
-klasses in the schema schema for "injective" then this could
-be implemented. 
-
-We should also implement unordered collections. 
-I wonder how hard this would be to add in a feature-oriented way.
-Every time we add a feature we should refactor the interpreter
-code to make it possible. Eventually we will have very
-extensible interpreters.
-
-
 
 
 
