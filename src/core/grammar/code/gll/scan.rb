@@ -15,14 +15,49 @@ module Scanner
     real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/
   }
   
-  # ([\\t\\n\\r\\f ]*(//[^\n]*\n)?)*
   LAYOUT = /(\s*(\/\/[^\n]*\n)?)*/
 
   def init_scanner(grammar, source)
-    @keywords = CollectKeywords.run(grammar)
+    init_literals(grammar)
     @source = source
     @scanner = StringScanner.new(@source)
-    @lit_cache = {}
+  end
+
+  def with_token(kind)
+    @scanner.pos = @ci
+    tk, kind = scan_token(kind)
+    if tk then
+      # keywords are reserved
+      return if @keywords.include?(tk)
+      ws, pos = skip_ws
+      yield pos, unescape(tk, kind), ws 
+    end
+  end
+
+  def skip_ws
+    ws = @scanner.scan(LAYOUT)
+    return ws, @scanner.pos
+  end
+
+  def with_literal(lit)
+    @lit_res[lit] ||= Regexp.new(Regexp.escape(lit))
+    @scanner.pos = @ci
+    val = @scanner.scan(@lit_res[lit])
+    if val then
+      ws, pos = skip_ws
+      yield pos, ws
+    end
+  end
+
+  private
+
+  def init_literals(grammar)
+    @keywords = CollectKeywords.run(grammar)
+    @lit_res = {}
+    # \ also has a follow restriction
+    (['\\'] + @keywords).each do |kw|
+      @lit_res[kw] = Regexp.new(Regexp.escape(kw) + "(?![a-zA-Z_$0-9])")
+    end
   end
 
   class CollectKeywords < CyclicCollectShy
@@ -47,53 +82,17 @@ module Scanner
     end
   end
 
-
-  def with_token(kind)
-    #puts "token #{kind} at #{@ci}"
-    @scanner.pos = @ci
-    tk = nil
+  def scan_token(kind)
     if kind == 'atom' then
       TOKENS.each_key do |type|
         tk = @scanner.scan(TOKENS[type])
-        if tk then
-          kind = type.to_s
-          break
-        end
+        # return the token with its concrete (i.e. non-atom) type
+        return tk, type.to_s if tk 
       end
-    else
-      tk = @scanner.scan(TOKENS[kind.to_sym])
+      return nil
     end
-    if tk then
-      return if @keywords.include?(tk)
-      ws, pos = skip_ws
-      yield pos, unescape(tk, kind), ws 
-    end
-  end
-
-  def skip_ws
-    ws = @scanner.scan(LAYOUT)
-    #puts "Skipped whitespace '#{ws}'"
-    return ws, @scanner.pos
-  end
-
-  def with_literal(lit)
-    #puts "literal #{lit} at #{@ci}"
-    @scanner.pos = @ci
-    litre = Regexp.escape(lit)
-    if @keywords.include?(lit) || lit == '\\' then
-      re = Regexp.new(litre + "(?![a-zA-Z_$0-9])")
-    else
-      re = Regexp.new(litre)
-    end
-    val = @scanner.scan(re)
-    if val then
-      ws, pos = skip_ws
-      yield pos, ws
-    end
-  end
-
-  def eos?(pos)
-    pos == @source.length
+    tk = @scanner.scan(TOKENS[kind.to_sym])
+    return tk, kind
   end
 
 end
