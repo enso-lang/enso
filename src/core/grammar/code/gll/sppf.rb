@@ -51,6 +51,7 @@ class Leaf < BaseNode
 
   def initialize(starts, ends, type = nil, value = nil, ws = nil)
     super(starts, ends, type)
+    #puts "MAKING LEAF: #{value}"
     @value = value
     @ws = ws
     @hash += 13 * value.hash
@@ -62,12 +63,44 @@ class Leaf < BaseNode
     super(x) && value == x.value
   end
 
+  def ends
+    super + ws.length
+  end
+
+  def to_s
+    "T('#{value}', ws = '#{ws}')"
+  end
+
 end
 
 class Node < BaseNode
   attr_reader :kids
 
-  def self.new(item, current, nxt)
+  def self.new(item, z, w)
+    if item.dot == 1 && item.elements.length > 1 then
+      return w
+    end
+    t = item
+    if item.dot == item.elements.length then
+      t = item.expression
+    end
+    x = w.type
+    k = w.starts
+    i = w.ends
+    if z != nil then
+      s = z.type
+      j = z.starts
+      # assert k == z.ends
+      y = super(j, i, t)
+      y.add_kid(Pack.new(item, k, z, w))
+    else
+      y = super(k, i, t)
+      y.add_kid(Pack.new(item, k, nil, w))
+    end
+    return y
+  end
+
+  def self.new_(item, current, nxt)
     if item.dot == 1 && item.elements.length > 1 then
       return nxt
     end

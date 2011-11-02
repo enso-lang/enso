@@ -2,7 +2,7 @@
 require 'set'
 
 class GSS
-  attr_reader :parser, :pos, :edges
+  attr_reader :item, :pos, :edges
 
   @@nodes = {}
   
@@ -13,13 +13,13 @@ class GSS
   def self.nodes
     @@nodes
   end
-
   
-  def initialize(parser, pos)
-    @parser = parser
+  def initialize(item, pos)
+    raise if item.schema_class.name != 'Item'
+    @item = item
     @pos = pos
     @edges = {}
-    @hash = parser.hash * 3 + pos * 17
+    @hash = item.hash * 3 + pos * 17
   end
 
   def add_edge(node, gss)
@@ -35,10 +35,14 @@ class GSS
   def ==(o)
     return true if self.equal?(o)
     return false unless o.is_a?(GSS)
-    return parser == o.parser && pos == o.pos
+    return item == o.item && pos == o.pos
   end
 
   def hash
     @hash
+  end
+
+  def to_s
+    "GSS(#{item} @ #{pos})"
   end
 end

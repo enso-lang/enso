@@ -3,7 +3,10 @@ require 'strscan'
 require 'core/system/library/cyclicmap'
 
 module Scanner
-  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(\\.[a-zA-Z_][a-zA-Z_0-9]*)*"
+  REF_SEP = '.'
+
+  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(" + 
+    Regexp.escape(REF_SEP) + "[a-zA-Z_][a-zA-Z_0-9]*)*"
 
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
@@ -19,6 +22,7 @@ module Scanner
     @keywords = CollectKeywords.run(grammar)
     @source = source
     @scanner = StringScanner.new(@source)
+    @lit_cache = {}
   end
 
   class CollectKeywords < CyclicCollectShy
@@ -31,12 +35,11 @@ module Scanner
       # since we visit regular explicitly, we have to recurse explicitly
       recurse(this.arg, accu)
     end
-
   end
 
   def unescape(tk, kind)
     if kind == 'str' then
-      tk[1..-2]
+      tk[1..-2] # todo: backslash blues
     elsif kind == 'sym' then
       tk.sub(/^\\/, '')
     else
@@ -46,6 +49,7 @@ module Scanner
 
 
   def with_token(kind)
+    #puts "token #{kind} at #{@ci}"
     @scanner.pos = @ci
     tk = nil
     if kind == 'atom' then
@@ -68,10 +72,12 @@ module Scanner
 
   def skip_ws
     ws = @scanner.scan(LAYOUT)
+    #puts "Skipped whitespace '#{ws}'"
     return ws, @scanner.pos
   end
 
   def with_literal(lit)
+    #puts "literal #{lit} at #{@ci}"
     @scanner.pos = @ci
     litre = Regexp.escape(lit)
     if @keywords.include?(lit) || lit == '\\' then

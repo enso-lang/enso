@@ -15,7 +15,7 @@ class GLL
   include Parsers
 
   def self.parse(source, grammar, top, org)
-    GLL.new(org).parse(source, grammar, top)
+    self.new(org).parse(source, grammar, top)
   end
 
   def initialize(org)
@@ -41,6 +41,7 @@ class GLL
 
     @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
     @ci = @begin
+    # TODO introduce internal start symbol...
     @start = GSS.new(item(top.arg, [top.arg], 1), 0)
     @cu = @start
     @cn = nil
@@ -48,6 +49,9 @@ class GLL
 
   def item(exp, elts, dot)
     key = [exp, elts, dot]
+    #unless @items[key]
+    #  puts "Making item (dot = #{dot}): #{elts.inspect}"
+    #end    
     @items[key] ||= @gf.Item(exp, elts, dot)
   end
 
@@ -71,6 +75,11 @@ class GLL
       #if n.starts == @begin then
       last = n.ends > last ? n.ends : last
       #end
+#       puts "start: #{n.starts} == #{@begin}?"
+#       puts "end  : #{n.ends} == #{@source.length}?"
+#       puts "n.is_a?(Node): #{n.is_a?(Node)}"
+#       puts "n.type = #{n.type} (should be #{top})"
+      
       n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
     end
     unless pt
@@ -84,10 +93,12 @@ class GLL
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
-    #puts "Adding #{parser} (i = #{i}, u =  #{u}, w = #{w})"
     @done[i] ||= {}
+    # NB: not using an array here might save time.
+    # hashing on array is the second most expensive call.
     conf = [parser, u, w]
     unless @done[i][conf]
+      #puts "\t really adding #{parser} (i = #{i}, u =  #{u}, w = #{w})"
       @done[i][conf] = true
       @todo << [parser, u, w, i]
     end
@@ -97,7 +108,7 @@ class GLL
     return if @cu == @start
     @toPop[@cu] ||= {}
     @toPop[@cu][@cn] ||= @cn
-    cnt = @cu.parser
+    cnt = @cu.item
     @cu.edges.each do |w, gs|
       gs.each do |u|
         x = Node.new(cnt, w, @cn)
@@ -107,14 +118,17 @@ class GLL
     end
   end
 
-  def create(parser)
+  def create(item)
     w = @cn
-    v = GSS.new(parser, @ci)
+    v = GSS.new(item, @ci)
     if v.add_edge(w, @cu) then
       if @toPop[v] then
         @toPop[v].each_key do |z|
-          x = Node.new(parser, w, z)
-          add(parser, @cu, z.starts, z)
+          #puts "Making node for: #{item} with #{w} and z = #{z}"
+          x = Node.new(item, w, z)
+          # HMM, last params used to be z.starts and z
+          # and there seems to be no problem....
+          add(item, @cu, z.ends, x)
         end
       end
     end
@@ -144,7 +158,7 @@ class GLL
 
   def terminal(type, pos, value, ws, nxt)
     # NB: pos includes the ws that has ben matched
-    # so subtract it from the length.
+    # so subtract the length of ws from pos.
     cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
     if nxt then
