@@ -93,9 +93,24 @@ Specification.
 Jouault, Bezivin. On the specification of Textual Syntaxes for
 Models. 
 
-Muller et al. Model-driven Analysis and Synthesis of Concrete Syntax.
+Muller et al. Model-driven Analysis and Synthesis of Concrete
+Syntax. (Sintaks)
 
 OMG. Human-Usable Textual Notation (HUTN) Specification.
+
+Rose et al. Constructing Models with the Human-Usable Textual Notation
+
+Goldschmidt et al. Classification of Concrete Textual Syntax Mapping
+Approaches
+
+Krahn et al. MontiCore: Modular Development of Textual Domain Specific
+Languages
+
+Groenniger et al. MontiCore: A Framework for the Development of
+Textual Domain Specific Languages
+
+Alanen, Porres. A Relation Between Context-Free Grammars and Meta
+Object Facility Metamodels.
 
 ### Future work
 
