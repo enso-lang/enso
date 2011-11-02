@@ -149,7 +149,7 @@ class Matrix
 
 
   def scale(n)
-    raise "Not an int: #{n}" unless n.is_a?(Numeric)
+    raise "Not an number: #{n}" unless n.is_a?(Numeric)
     nh = {}
     hash.each_key do |k|
       nh[k] = hash[k] * n
@@ -171,11 +171,9 @@ class Matrix
     return scale(m) if m.is_a?(Numeric)
     return times_vector(m) if m.is_a?(Vector)
 
-    raise "Not a matrix {m}" unless m.is_a?(Matrix)
+    raise "Not a matrix #{m}" unless m.is_a?(Matrix)
     raise "Incompatible row/col set" if m.row_keys != col_keys
     
-    # todo: check col/row compatibility
-
     rh = {}
     row_keys.each do |r|
       ch = {}
