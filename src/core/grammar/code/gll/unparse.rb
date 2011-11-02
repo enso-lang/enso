@@ -34,7 +34,7 @@ class Unparse
     out << sppf.ws
   end
 
-  def Ref(this, sppf, accu, in_field)
+  def Ref(this, sppf, out)
     out << sppf.value
     out << sppf.ws
   end
