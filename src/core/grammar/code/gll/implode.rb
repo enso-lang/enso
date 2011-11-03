@@ -58,7 +58,6 @@ class Implode
   end
 
   def Create(this, sppf, accu, in_field)
-    #puts "Creating: #{this.name}"
     inst = @if.Instance(origin(sppf), this.name)
     kids(sppf, inst.contents, false)
     accu << inst

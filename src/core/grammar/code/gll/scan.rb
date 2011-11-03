@@ -11,7 +11,7 @@ module Scanner
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
     int: /[-+]?[0-9]+/,
-    str: /"(\\\\.|[^\"])*"/,
+    str: Regexp.new("\"(\\\\.|[^\"])*\"".encode('UTF-8')),
     real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/
   }
   
@@ -40,6 +40,7 @@ module Scanner
   end
 
   def with_literal(lit)
+    # cache literal regexps as we go
     @lit_res[lit] ||= Regexp.new(Regexp.escape(lit))
     @scanner.pos = @ci
     val = @scanner.scan(@lit_res[lit])

@@ -64,6 +64,7 @@ class Leaf < BaseNode
   end
 
   def ends
+    # TODO: this messes up error messages.
     super + ws.length
   end
 
@@ -100,23 +101,7 @@ class Node < BaseNode
     return y
   end
 
-  def self.new_(item, current, nxt)
-    if item.dot == 1 && item.elements.length > 1 then
-      return nxt
-    end
-    k = nxt.starts
-    i = nxt.ends
-    j = k
-    j = current.starts if current
-    at_end = item.dot == item.elements.length
-    #puts "// Making node: #{at_end} => #{item.expression}"
-    y = super(j, i, at_end ? item.expression : item)
-    # apparently, epsilon nodes (leaves) get kids to... bug?
-    y.add_kid(Pack.new(item, k, current, nxt))
-    return y
-  end
-
-  def initialize(starts, ends, type)
+   def initialize(starts, ends, type)
     super(starts, ends, type)
     @kids = []
     @hash += 13 * type.hash
