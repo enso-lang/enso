@@ -1,0 +1,28 @@
+
+start Spec
+
+Spec ::= [Spec] groups:Group*
+
+Group ::= [Group] "group" name:str "{" datums:Datum* "}"
+
+Datum ::= [Datum] "datum" id:sym ":" type:Type 
+      	  "{" Name Description conditions:Condition* Explanation "}"
+
+Condition ::= [Condition] "cond" Response description:str
+
+Response ::= "[" code:int "]" @"@subscript = 0"
+	  |  "[" code:int "/" subscript:int "]"
+
+
+Name ::= "name" name:str
+
+Description ::= "description" description:str
+
+Explanation ::= "explanation" explanation:str
+
+Type ::= [DateTime] "Datum" @"@time = false"
+      | [DateTime] "Datumtijd" @"@time = true"
+      | [Currency] "Bedrag" "(" length:int "," decimals:int ")"
+      | [Currency] "Bedrag" "(" length:int ")" @"@decimals = 0"
+      | [Number] "N" "(" length:int ")"
+      | [Chars] "X" "(" length:int ")"

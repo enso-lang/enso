@@ -1,0 +1,48 @@
+
+primitive str
+primitive int
+primitive bool
+
+
+class Spec
+  !groups: Group*
+end
+
+class Group
+  #name: str
+  !datums: Datum*
+end
+
+class Datum
+  #id: str
+  !type: Type
+  name: str
+  description: str
+  !conditions: Condition*
+  explanation: str
+end
+
+class Condition
+  description: str
+  code: int
+  subscript: int
+end
+
+class Type
+end
+
+class DateTime < Type
+  time: bool
+end
+
+class Number < Type
+  length: int
+end
+
+class Currency < Number
+  decimals: int
+end
+
+class Chars < Type
+  length: int
+end
