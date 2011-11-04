@@ -15,11 +15,12 @@ class GLL
   include Parsers
 
   def self.parse(source, grammar, top, org)
-    GLL.new(org).parse(source, grammar, top)
+    self.new(org).parse(source, grammar, top)
   end
 
-  def initialize(org)
+  def initialize(org, dot_output = nil)
     @origins = org
+    @dot_output = dot_output
   end
 
   def init_parser(grammar, top)
@@ -41,6 +42,7 @@ class GLL
 
     @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
     @ci = @begin
+
     @start = GSS.new(item(top.arg, [top.arg], 1), 0)
     @cu = @start
     @cn = nil
@@ -63,28 +65,20 @@ class GLL
   end
 
   def result(source, top)
-    #puts "/* GSS: #{GSS.nodes.length} */"
-    #puts "/* Nodes: #{Node.nodes.length} */"
-    #puts "CI: #{@ci}"
     last = 0;
     pt = Node.nodes.values.find do |n|
-      #if n.starts == @begin then
       last = n.ends > last ? n.ends : last
-      #end
       n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
     end
     unless pt
       loc = @origins.str(last)
       raise "Parse error at #{loc}:\n'#{source[last,50]}...'" 
     end
-#     File.open('sppf.dot', 'w') do |f|
-#       ToDot.to_dot(pt, f)
-#     end
+    ToDot.to_dot(pt, @dot_output) if @dot_output
     return pt
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
-    #puts "Adding #{parser} (i = #{i}, u =  #{u}, w = #{w})"
     @done[i] ||= {}
     conf = [parser, u, w]
     unless @done[i][conf]
@@ -97,24 +91,23 @@ class GLL
     return if @cu == @start
     @toPop[@cu] ||= {}
     @toPop[@cu][@cn] ||= @cn
-    cnt = @cu.parser
+    cnt = @cu.item
     @cu.edges.each do |w, gs|
       gs.each do |u|
         x = Node.new(cnt, w, @cn)
-        #puts "Adding in pop"
         add(cnt, u, @ci, x)
       end
     end
   end
 
-  def create(parser)
+  def create(item)
     w = @cn
-    v = GSS.new(parser, @ci)
+    v = GSS.new(item, @ci)
     if v.add_edge(w, @cu) then
       if @toPop[v] then
         @toPop[v].each_key do |z|
-          x = Node.new(parser, w, z)
-          add(parser, @cu, z.starts, z)
+          x = Node.new(item, w, z)
+          add(item, @cu, z.ends, x)
         end
       end
     end
@@ -122,7 +115,6 @@ class GLL
   end
 
   def recurse(this, *args)
-    #puts "Sending #{this.schema_class.name}"
     send(this.schema_class.name, this, *args)
   end
 
@@ -144,7 +136,10 @@ class GLL
 
   def terminal(type, pos, value, ws, nxt)
     # NB: pos includes the ws that has ben matched
-    # so subtract it from the length.
+    # so subtract the length of ws from pos.
+    # TODO: fix this consistently: introduce
+    # two positions (incl and excl ws)
+    # currently this is undone in Leaf#ends
     cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
     if nxt then

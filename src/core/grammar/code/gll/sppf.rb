@@ -51,6 +51,7 @@ class Leaf < BaseNode
 
   def initialize(starts, ends, type = nil, value = nil, ws = nil)
     super(starts, ends, type)
+    #puts "MAKING LEAF: #{value}"
     @value = value
     @ws = ws
     @hash += 13 * value.hash
@@ -62,28 +63,45 @@ class Leaf < BaseNode
     super(x) && value == x.value
   end
 
+  def ends
+    # TODO: this messes up error messages.
+    super + ws.length
+  end
+
+  def to_s
+    "T('#{value}', ws = '#{ws}')"
+  end
+
 end
 
 class Node < BaseNode
   attr_reader :kids
 
-  def self.new(item, current, nxt)
+  def self.new(item, z, w)
     if item.dot == 1 && item.elements.length > 1 then
-      return nxt
+      return w
     end
-    k = nxt.starts
-    i = nxt.ends
-    j = k
-    j = current.starts if current
-    at_end = item.dot == item.elements.length
-    #puts "// Making node: #{at_end} => #{item.expression}"
-    y = super(j, i, at_end ? item.expression : item)
-    # apparently, epsilon nodes (leaves) get kids to... bug?
-    y.add_kid(Pack.new(item, k, current, nxt))
+    t = item
+    if item.dot == item.elements.length then
+      t = item.expression
+    end
+    x = w.type
+    k = w.starts
+    i = w.ends
+    if z != nil then
+      s = z.type
+      j = z.starts
+      # assert k == z.ends
+      y = super(j, i, t)
+      y.add_kid(Pack.new(item, k, z, w))
+    else
+      y = super(k, i, t)
+      y.add_kid(Pack.new(item, k, nil, w))
+    end
     return y
   end
 
-  def initialize(starts, ends, type)
+   def initialize(starts, ends, type)
     super(starts, ends, type)
     @kids = []
     @hash += 13 * type.hash

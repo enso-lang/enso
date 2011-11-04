@@ -76,17 +76,30 @@ class Factory
 
 
   def delete_obj(obj)
+    puts "Deleting #{obj}"
     sc = obj.schema_class
     sc.fields.each do |fld|
       next if fld.type.Primitive?
+      other = obj[fld.name]
+      next if !other
       if fld.traversal then
-        delete_obj(obj[fld.name])
+        puts "  deleting #{fld.name}"
+        if fld.many then
+          other.each do |v|
+            delete_obj(v)
+          end
+          other.clear
+        else
+          delete_obj(other)
+        end
       else
         if fld.inverse then
           if fld.inverse.many then
-            obj[fld.name][fld.inverse.name].delete(obj)
+            puts "  deleting from inverse '#{fld.name}': #{other[fld.inverse.name]}"
+            other[fld.inverse.name].delete(obj) if other[fld.inverse.name]  # HACK: why do we need this test?
           else
-            obj[fld.name][fld.inverse.name] = nil
+            puts "  clearing inverse #{fld.name} #{other[fld.inverse.name]}"
+            other[fld.inverse.name] = nil
           end
         end
       end
@@ -108,6 +121,7 @@ module CheckedObjectMixin
     @_origin = obj._origin
     @schema_class = obj.schema_class
     @_id = obj._id
+    @listeners = nil
   end
 
 
@@ -197,6 +211,7 @@ module CheckedObjectMixin
       case field.type.name
       when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
       when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
+      when "float" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(Numeric)
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
       when "atom" then 
       else 
@@ -224,7 +239,7 @@ module CheckedObjectMixin
     end
   end
   
-  def method_missing(m, *args, &block)
+  def method_missing(m, *args)
     if m =~ /(.*)=/
       self[$1] = args[0]
     else
@@ -256,9 +271,27 @@ module CheckedObjectMixin
     to_s
   end
   
+  def add_listener(fieldname, &block)
+    @listeners = {} if !@listeners
+    ls = @listeners[fieldname]
+    @listeners[fieldname] = ls = [] if !ls
+	  ls.push(block)
+  end
+  
+  def dynamic_update
+    @dyn = DynamicUpdateProxy.new(self) if !@dyn
+    return @dyn
+  end
+  
   def notify_update(field, old, new)
     inverse = field.inverse
     #puts "NOTIFY #{self}.#{field}/#{inverse} FROM '#{old}' to '#{new}'" if field.name=="types"
+    if @listeners
+      @listeners[field.name].each do |listener|
+      	listener.call new
+     end
+    end
+      
     return if inverse.nil?
     # remove the old one
     if old
@@ -313,7 +346,29 @@ class CheckedObject
       end
     end
   end
+end
 
+class DynamicUpdateProxy
+  def initialize(obj)
+    @obj = obj
+    @fields = {}
+  end
+  
+  def method_missing(m, *args)
+    if m =~ /(.*)=/
+      @obj[$1] = args[0]
+    else
+      name = m.to_s
+      var = @fields[name]
+      return var if var
+      val = @obj[name]
+      @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
+      @obj.add_listener name do |val|
+        var.value = val
+      end
+      return var
+    end
+  end
 end
 
 

@@ -1,0 +1,450 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage[pdftex]{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.8]{beramono}
+
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage{listings} 
+
+\lstset{%
+  frame=none,
+  xleftmargin=5pt,
+  stepnumber=1,
+  numbers=left,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny,
+  belowcaptionskip=\bigskipamount,
+  captionpos=b,
+  escapeinside={<|}{|>},
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  keywordstyle=\bfseries,
+  morekeywords={in,do,print},
+  columns=flexible,
+  basicstyle=\sffamily,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+\lstdefinelanguage{Enso}{%
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={schema,type},
+  keywordstyle=\bfseries,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+\newcommand{\C}{\lstinline}
+
+\lstset{language=Enso}
+
+\newcommand{\Enso}{Ens\={o}}
+
+\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Objects:\\ Structure and Interpretation of Data in \Enso}
+\author{William R. Cook and Tijs van der Storm}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Managed Objects allow programmers to define or modify the
+fundamental data definition mechanisms in a programming language. 
+The programmer can change the language used to define data, implement
+that language by writing or modifying interpreters, and
+integrate the new data mechanisms with existing language
+support for data access and manipulation. For example,
+Managed Objects allow programmers to override the field/method
+access operator (the ``dot operator''). Managed Objects allow
+easy implementation of many aspects of data, including 
+logging/subscription, access/change control, bidirectional 
+relationships, invariants and validation.
+A bootstrap process is used so that all data, including the
+data used to implement Managed Objects, is managed.
+This paper describes the implementation of Managed Objects
+as the foundation of \Enso, a new programming system based on 
+model interpretation.
+\end{abstract}
+
+\section{Introduction}
+
+Mechanisms for organizing and managing data are a fundamental
+aspect of any programming model. Most programing models provide
+built-in mechanisms for organizing data. Well known approaches 
+include \textit{data structure definitions} (as in Pascal, C, Haskell, ML),
+\textit{object/class models} (as in Java, Smalltalk, Self), and \textit{predefined
+data structures} (as in Lisp, Matlab).
+Languages may also support type abstraction (as in ML, Ada), a combination of 
+multiple approaches (e.g JavaScript, Scala), or other variations.
+The key characteristic of all these approaches is that the
+fundamental mechanisms for structuring and manipulating data are 
+predefined.
+Predefined data structuring mechanisms allow programmers to create
+specific kinds of data, but they do not usually allow 
+fundamental changes to the underlying data structuring and 
+management mechanisms. 
+
+Predefined data structuring mechanisms are insufficient to cleanly
+implement many important and common requirements for data management,
+including persistence, caching, serialization, transactions, change logging,
+access control, automated traversals, 
+multi-object invariants, and bi-directional relationships. 
+The difficulty with all these requirements is that they are best 
+implemented as pervasive features of the underlying data management
+mechanism. It is possible to defined such features individually for
+each particular kind of data in a program, but this typically leads to
+large amounts of repeated code. To implement these kinds of crosscutting
+concerns, developers often
+resort to preprocessors, code generates, byte-code transformation, 
+or modified runtimes or compilers. The resulting systems are typically ad-hoc,
+fragile, poorly integrated, and difficult to maintain.
+
+What is involved in making fundamental and potentially pervasive 
+changes to the way data is managed in a programming model? There are
+several ways to approach this question, but one concrete example is to
+consider what it would mean to override the ``dot'' operator, which 
+selects a field of a structure or object in many languages. One might also
+consider a global override of the field assignment operator. Giving the
+programmer control over the data manipulation mechanisms means defining
+or modifying the behavior of all the data manipulation operations that
+are often considered built-in primitives, including initialization, type tests, 
+casting, pointer equality, and field access. In this view, the
+data structuring mechanisms are an \textit{aspect} of an overall programming
+system. 
+
+Some programming systems support a degree of control over 
+the data structuring mechanisms. Meta-classes in Smalltalk define how
+classes are instantiated and compiled. 
+The reflective features of Ruby, Python and Smalltalk 
+can be used to trap and handle undefined methods and properties, 
+which can be used to create proxies or implement virtual objects.
+Scheme macros are often used to create data structuring mechanisms.
+For example, the \lstinline{defstruct} macro defines mutable structures
+with a functional interface. However... <summarize>. 
+The Adaptive Object Model Architecture provides an architecture for
+this approach, but does not discuss how it is bootstrapped or integrated
+with existing languages.
+
+This paper presents Managed Objects, an approach to data definition
+in which programmers have control over the data structuring 
+mechanisms, either to define
+new mechanisms or modify the system's built-in mechanisms. 
+Managed Objects has four main features: (1) high-level \textit{data models}
+that specify the structure and behavior of data, 
+(2) \textit{data model interpreters} that manage data instances, 
+(3) \textit{programming language integration} so that managed instances
+can be created and accessed just like normal data,
+and (4) a \textit{bootstrapping} process
+that allows all Managed Objects, including data models, to be customized
+and managed. Managed Data
+places strong requirements on the host programming language, to 
+support use-defined interpretation of data.
+
+\section{Managed Objects}
+
+Figure~\ref{ddl} illustrates the difference between 
+traditional built-in data structuring mechanisms and Managed Objects.
+In the traditional approach, the programming language includes a 
+process and data sublanguages, which are both predefined.
+With Managed Objects, the data structuring mechanisms are defined
+by the programmer by interpretation of data definitions.
+Since a data definition model is also data, it requires a meta-definition
+mechanism. This infinite regress is terminated by a boot-strap
+data definition that is used to build the Managed Objects system itself.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{DDL.pdf}
+\caption{Traditional versus Managed data definitions}
+\label{ddl}
+\end{center}
+\end{figure}
+
+This section catalogs a number of features that can be
+included in a data description facility. 
+Semantic Data Models. Relational Data models.
+Type systems. Object Models.
+
+\subsection{Data Graphs}
+
+Structures in \Enso\ are a specialized kind of graph,
+whose nodes are either primitive data or collections of observable
+properties, whose values are either nodes or collections of nodes.
+From a programming language viewpoint this may seem an odd 
+choice for data representation. However, it is essentially the
+Entity-Relationship (ER) model \cite{FOO}, also known as Information
+Models \cite{FOO}, which is widely used in the design of relational databases
+and is also the basis for Class Diagrams in 
+the Unified Modeling Language (UML) \cite{FOO}, which 
+describe the structure of networks of objects.
+The key point is that structures in \Enso\ are 
+viewed holistically as \textit{graphs}, not as individual values
+or traditional sums-and-products data structures.
+
+A structural description, or \textit{schema}, specifies some 
+of the observable properties of structures. Schemas are used to
+check the consistency structures. Some properties can be checked
+while the structure is being created, but other can only be checked
+once the structure is complete. \Enso\ allows modification of structures,
+which is necessary to create cyclic graphs, but also allows 
+valid structures to be sealed to prevent further changes.
+
+\subsection{Schemas}
+
+The following schema describes a collection of genealogy information:
+
+\begin{verbatim}
+schema GenealogySchema
+
+  class Genealogy
+    name: str
+    members: Person*
+
+  class Person
+    name: str (key)
+    birth: date
+    female: bool
+    father: Person?
+    mother: Person?
+\end{verbatim}
+
+In a schema, a \textit{class} defines a kind of value, which is
+followed by its properties or \textit{fields}. Each field has a name
+and a type, where the type may be followed by \C|*| to indicate a 
+many-valued field, or by \C|?| to indicate an optional value.
+In this case, \C|Genealogy| has \C|members| which is a set of \C|Person|.
+A \C|Person| has a \C|name| string, a \C|birth| date, and a \C|father| and \C|mother|,
+which are optional \C|Person|s. The \C|father| and \C|mother| are optional
+because every geneology is partial, so that not all fathers and mothers
+can be included.
+
+\subsection{Instances}
+
+A particular collection of genealogy information, which conforms to the
+above schema, might be written as follows:
+
+\begin{verbatim}
+Genealogy "Sam's Ancestors"
+Person "Albert Snook"  11/1/89 male  +"Jane Snook" ^"Thomas Snook"
+Person "Jane Snook"    3/17/48 female 
+Person "Thomas Snook" 12/30/43 male 
+\end{verbatim}
+
+
+\subsection{Inverses}
+
+\subsection{Computed Attributes}
+
+\subsection{Invariants}
+
+\subsection{Constraints}
+
+\subsection{Collections}
+
+\subsubsection{Bags and Sets}
+\subsubsection{Keys}
+
+\subsection{Modularity}
+
+\section{Interpretation}
+
+Model -> Behavior
+
+\subsection{Factories}
+
+Structure are created by \textit{factories}, which create
+and manage the nodes in the structure. The factory also
+ensures that structures are distinct: a factory identifies the 
+collection of nodes that belong to a graph, and any given node 
+can only be connected to other nodes in the same graph, which were
+created by the same factory.
+
+In \Enso\ most properties of a structure are
+checked when the structure is being created. In other words, 
+the \textit{factory} that creates the structure is parameterized by a
+schema, which the factory uses to check the legality of operations
+on the objects it creates.
+
+\subsection{Instance Modification}
+
+change tracking
+
+Managed Objects supports controlled imperative effects. Objects are
+mutable during construction or modification, while the data may be in an
+inconstent state, but before it can be used it must be validated
+and locked from further changes. This is similar to a transaction.
+
+
+\subsection{Differences}
+
+
+\subsection{Instantiation}
+
+
+
+\section{Programming Language Integration}
+
+The programming model is based on cyclic graphs.
+Graphs are kept distinct from each other. That is,
+each graph is considered a self-contained
+artifact, without links or pointers to other graphs.
+
+A natural way to create such graphs is with 
+imperative effects.
+
+This potentially requires more copying of data
+than would be the case in tree-based representations.
+
+To modify graphs, place-holder objects are useful,
+as is the ability to ``become'' another object.
+
+\subsection{Simple reflection}
+
+Fields can be created dynamically and accessed with
+``.'' notation or reflective access.
+
+\begin{verbatim}
+o.foo   == o.get("foo")
+\end{verbatim}
+
+Assignment to fields can be overriden
+\begin{verbatim}
+   o.bar = 3   ==> o.set("bar", 3)
+\end{verbatim}
+
+\subsection{Dynamic Objects}
+
+\section{Bootstrapping}
+
+
+\subsection{QuadModel}
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{QuadModel.pdf}
+\caption{The four core schema and grammar models}
+\label{default}
+\end{center}
+\end{figure}
+
+
+
+\section{Related Work}
+\label{relatedwork}
+
+Managed Objects is based on traditional 
+entity-relationship (ER) models \cite{FOO},
+which are also known as information models. 
+ER models were the basis for class diagrams in UML.
+
+In contrast to
+object-oriented programming, \Enso\ is focused on holistic
+object graphs, rather than individual objects. \Enso\ 
+does allow data to include some behavior, for example constraints
+and computed fields, but \Enso\ does not associated methods
+with data objects.
+
+The rendering transformation is similar to Smaragdakis's notion of
+Morphing \cite{Morphing} (or is it SafeGen?). 
+However, \Enso\ generalizes the transformation
+so that any kind of structure can be morphed into any other
+kind of structure. On the other hand, \Enso\ is not statically
+typed.
+
+\subsection{Other Related Work}
+
+Look up work on "instant-generics"
+
+Dave Clarke, Michiel Helvensteijn, and Ina Schaefer. 2010. Abstract delta modeling. In Proceedings of the ninth international conference on Generative programming and component engineering (GPCE '10). ACM, New York, NY, USA, 13-22. DOI=10.1145/1868294.1868298 http://doi.acm.org/10.1145/1868294.1868298 
+
+\subsection{FOSD}
+
+- Forests are the key data structure in a formal model of FOSD [1]. The goal is similar to yours: be language-independent and represent object collaborations.
+
+- Recently, forests have been extended to graphs to encode more semantics and to support more automatic reasoning activities [2].
+
+- Operations on forests (e.g., composition or conflict detection) are defined generically and can be plugged in on demand [3].
+
+- The entire FOSD model is language-independent and has been used with many different artifact types (e.g., Java, C, Haskell, Alloy programs) [3].
+
+- FOSD tools (the internal parsers and reasoning tools) are generated based on annotated grammars, whose annotations supply semantic information [3].
+
+- The entire forest/grammar/annotation-based model has been enriched by adding behavior to features [4]. 
+
+[1] Sven Apel, Christian Lengauer, Bernhard Mšller, and Christian KŠstner. An Algebraic Foundation for Automatic Feature-Based Program Synthesis. Science of Computer Programming (SCP), 75(11):1022Ð1047, November 2010.
+
+[2] Sven Apel, Wolfgang Scholz, Christian Lengauer, and Christian KŠstner. Language-Independent Reference Checking in Software Product Lines. In Proceedings of the International Workshop on Feature-Oriented Software Development (FOSD), pages 65Ð71. ACM Press, October 2010.
+
+[3] Sven Apel, Christian KŠstner, and Christian Lengauer. FeatureHouse: Language-Independent, Automated Software Composition. In Proceedings of the ACM/IEEE International Conference on Software Engineering (ICSE), pages 221Ð231. IEEE Computer Society, May 2009.
+
+[4] P. Hšfner, R. Khedri, B. Mšller. Supplementing Product Families with Behaviour. International Journal of Software and Informatics, 2011. To appear. 
+
+Dave Clarke, Michiel Helvensteijn, Ina Schaefer. Abstract delta modeling. GPCE'10
+
+
+
+\end{document}  
+
+
+
+\begin{verbatim}
+schema Geometry
+
+class Shape
+
+class Point < Shape
+  x: int
+  y: int
+
+class Rectangle < Shape
+  upper_left: Point
+  lower_right: Point
+
+class Circle < Shape
+  center: Point
+  radius: int
+
+class Polygon < Shape
+  points: Point*
+  
+class Composite < Shape
+  items: Shape*
+\end{verbatim}
+
+It says that the class \C|Point| has fields \C|x| and \C|y|.
+--------
+This example converts schemas into constructor grammars
+\begin{verbatim}
+grammar NAME:sym
+   CLASSES:
+     rule NAME:sym = 
+        (SUBTYPES: { NAME:sym "|") "|" @"!SUBTYPES.empty?")?
+         [NAME:sym] NAME:str "{" 
+            FIELDS: { (NAME:str ":" (NAME:sym): (
+                 "[" { TYPE.NAME:sym^ "," } "]"   @"MANY=true"
+               | TYPE.NAME:sym^ ?                  @"OPTIONAL=true"
+               | TYPE.NAME:sym^
+               )) ";" }
+             "}"
+\end{verbatim}

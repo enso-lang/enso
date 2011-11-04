@@ -4,7 +4,7 @@ start Stencil
 Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Part
 
 Part ::= [Alt] alts:{Part "|"}+
-      | [For] "for" Props?  "(" var:sym ":" iter:Exp Index? ")" body:Part
+      | [For] "for" Props?  "(" (label:str)? var:sym ":" iter:Exp Index? ")" body:Part
       | [Test] "if" condition:Exp body:Part
       | [Let] "let" decls:Assign* "in" body:Part
       | [Label] "label" Props? label:Loc body:Part
@@ -12,17 +12,20 @@ Part ::= [Alt] alts:{Part "|"}+
       | [Container] Dir Props? "{" items:Part* "}"
       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
       | [Text] "text" Props? string:Exp
-      | [Shape] "box" Props? "{" content:Part? "}"
+      | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? "{" content:Part? "}"
 
 Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2" | "graph"  @"@direction=3" | "do"  @"@direction=4"
-ConnectorEnd1 ::= [ConnectorEnd] (label:Exp ":")? part:Loc (arrow:"<" | arrow:"*")? 
-ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Loc (":" label:Exp)? 
+ConnectorEnd1 ::= [ConnectorEnd] (label:Exp ("," other_label:Exp)? ":")? part:Loc (arrow:"<" | arrow:"*")? 
+ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Loc (":" label:Exp ("," other_label:Exp)?)? 
 Index ::= "," index:sym
 
 Props ::= "[" props:{ Assign ","}* "]"
 Assign ::= [Assign] loc:Loc "=" exp:Exp
 
-Exp ::= [Prim] args:Exp2 op:"&" args:Exp
+Exp ::= [Prim] args:Exp1 op:"?" args:Exp1 ":" args:Exp
+      | Exp1
+
+Exp1 ::= [Prim] args:Exp2 op:"&" args:Exp1
       | Exp2
 
 Exp2 ::= [Prim] args:Exp3 op:"|" args:Exp2

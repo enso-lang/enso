@@ -20,7 +20,7 @@ class StencilFrame < DiagramFrame
 
   def initialize(path = nil)
     super("Diagram Editor")
-    @listener = self
+    @actions = {}
     self.path = path if path
   end
   
@@ -34,8 +34,10 @@ class StencilFrame < DiagramFrame
     @path = path
     set_title path
     @data = Load(@path)
-    @factory = Factory.new(Load('diagram.schema'))
+    generate_diagram
+  end
     
+  def generate_diagram
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
         
@@ -46,33 +48,57 @@ class StencilFrame < DiagramFrame
       :brush => @factory.Brush(white)
     }
     
-    @binding = {}
-    @labels = {}
-    construct @stencil.body, env do |x| 
+    @nodeTable = {}
+    @connectors = []
+    construct @stencil.body, env, nil do |x| 
       set_root(x) 
     end
-    puts "FINDING #{path}-positions"
+    #puts "FINDING #{@path}-positions"
     @old_map = {}
-    if File.exists?("#{path}-positions")
-      @old_map = YAML::load_file("#{path}-positions")
+    if File.exists?("#{@path}-positions")
+      @old_map = YAML::load_file("#{@path}-positions")
     end
     refresh()
-    puts "DONE"
+    #puts "DONE"
     #Print.print(@root)
   end
 
   def do_constraints
     super
-    @old_map.each do |label, pnt|
-      puts "CHECK #{label} #{pnt}"
-      obj = @labels[label]
-      continue if !obj
-      puts "   Has OBJ #{label} #{pnt}"
-      pos = @positions[obj]
-      continue if !pos
-      puts "   Has POS #{label} #{pnt}"
-      pos.x.value = pnt.x
-      pos.y.value = pnt.y
+    @old_map.each do |key, pnt|
+      #puts "CHECK #{key} #{pnt}"
+      field = nil
+      if key =~ /(.*)\.(.*)/
+        key = $1
+        field = $2
+      end
+      obj = @nodeTable[key]
+      next if !obj
+      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
+      begin
+	      if field.nil?
+		      pos = @positions[obj]
+		      next if !pos
+		      #puts "   Has POS #{key} #{pnt}"
+		      pos.x.value = pnt.x
+		      pos.y.value = pnt.y
+		    else
+		      obj.connectors.each do |ce|
+	          l = ce.label ? ce.label.string : ""
+		        #puts "   CHECKING #{l}"
+	          if field == l
+	            conn = ce.owner
+	            #puts "   Has ATTACH #{field}"
+	            conn.ends[0].attach.x = pnt[0].x
+	            conn.ends[0].attach.y = pnt[0].y
+	            conn.ends[1].attach.x = pnt[1].x
+	            conn.ends[1].attach.y = pnt[1].y
+	            break
+		        end
+		      end
+		    end
+	    rescue
+	    end
     end
   end
   
@@ -97,15 +123,28 @@ class StencilFrame < DiagramFrame
 
     # save the positions
     positions = {}
-    @labels.each do |label, obj|
-      puts "FOO #{label}: #{obj}"
-      positions[label] = position(obj)
+    inverse = {}
+    @nodeTable.each do |key, obj|
+      positions[key] = position(obj)
+      inverse[obj] = key
     end
-    puts positions
+    @connectors.each do |conn|
+      ce = conn.ends[0]
+      ce2 = conn.ends[1]
+      k = inverse[ce.to]
+      l = ce.label.string if ce.label
+      positions["#{k}.#{l}"] = [ EnsoPoint.new(ce.attach.x, ce.attach.y), EnsoPoint.new(ce2.attach.x, ce2.attach.y) ]
+    end
+    #puts positions
     File.open("#{@path}-positions", "w") do |output|
       YAML.dump(positions, output)
     end
   end
+  
+  def connection_other_end(ce)
+    conn = ce.connection
+    return conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
+  end    
 
   def on_export
     grammar = Loader.load("diagram.grammar")
@@ -114,13 +153,8 @@ class StencilFrame < DiagramFrame
     end
   end
 
-  def notify_change(diagram_object, new_text)
-    addr = @binding[diagram_object]
-    addr.obj[addr.field] = new_text
-  end
-  
-  def construct(stencil, env, &block)
-    send(stencil.schema_class.name, stencil, env, &block)
+  def construct(stencil, env, container, &block)
+    send("construct#{stencil.schema_class.name}", stencil, env, container, &block)
   end
   
   def make_styles(stencil, shape, env)
@@ -140,13 +174,16 @@ class StencilFrame < DiagramFrame
       when "font.weight" then
         font = newEnv[:font] = env[:font]._clone if !font
         font.weight = val
-      when "pen.width" then
+      when "line.width" then
         #puts "PEN #{val} for #{stencil}"
         pen = newEnv[:pen] = env[:pen]._clone if !pen
         pen.width = val
-      when "pen.color" then
+      when "line.color" then
         pen = newEnv[:pen] = env[:pen]._clone if !pen
         pen.color = val
+      when "fill.color" then
+        brush = newEnv[:brush] = env[:brush]._clone if !brush
+        brush.color = val
       end
     end
     # TODO: why do I need to set the style on every object????
@@ -155,108 +192,146 @@ class StencilFrame < DiagramFrame
     shape.styles << (brush || env[:brush])
   end
   
-  def Alt(this, env, &block)
+  def constructAlt(this, env, container, &block)
     this.alts.each do |alt|
       catch :fail do
-        return construct(alt, env, &block)
+        return construct(alt, env, container, &block)
       end
     end
     throw :fail
   end
 
-  def For(this, env, &block) 
-    source, _ = eval(this.iter, env)
+  def constructFor(this, env, container, &block) 
+    source, address = eval(this.iter, env)
     nenv = {}.update(env)
+    kind = address.field.type.name
     source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
-      construct(this.body, nenv, &block)
+      construct this.body, nenv, container do |shape|
+        if this.label
+          action = address.is_traversal ? "Delete" : "Remove"
+	        add_action shape, "#{action} #{this.label} '#{v.name}'" do    # TODO: delete versus remove???
+	          if address.is_traversal
+  	          v.delete!
+  	        else
+  	          address.value = nil
+  	        end
+  	        generate_diagram
+	        end
+	      end
+     		block.call shape
+      end
     end
-  end
-    
-  def Test(this, env, &block)
+    if this.label
+      action = address.is_traversal ? "Create" : "Add"
+      begin
+	      shape = @nodeTable[address.obj.name]
+	    rescue
+	    end
+	    shape = container if !shape
+	    puts "#{action} #{this.label} #{address.obj} #{shape}"
+	    add_action shape, "#{action} #{this.label}" do 
+	      address.insert_new address.field.type
+	    end
+	  end
+	end
+	
+	def add_action shape, name, &block
+	  @actions[shape] = {} if !@actions[shape]
+	  @actions[shape][name] = block
+	end
+	    
+  def constructTest(this, env, container, &block)
     test, _ = eval(this.condition, env)
-    construct(this.body, env, &block) if test
+    construct(this.body, env, container, &block) if test
   end
 
-  def Label(this, env, &block)
+  def constructLabel(this, env, container, &block)
     key = evallabel(this.label, env)
-    construct this.body, env do |result|
+    construct this.body, env, container do |result|
       #puts "LABEL #{key} => #{result}"
-      @labels[key] = result
+      @nodeTable[key] = result
       block.call(result)
     end
   end
 
   def evallabel(label, env)
-    if label.Prim?    # it has the form Loc[foo]
+    if label.Prim? && label.op == "[]"   # it has the form Loc[foo]
       tag = label.args[0]
       raise "foo" if !tag.Var?
       tag = tag.name
       index, _ = eval(label.args[1], env)
-      return "#{tag}_#{index.name}"  #HACK: should use the real path
+      return "#{tag}_#{index.name}"  #TODO: hack!!! should use the real path
     else
       val, _ = eval(label, env)
+      val = val.name  #TODO: hack!!!
       return val
     end
   end
   
   # shapes
-  def Container(this, env, &block)
+  def constructContainer(this, env, container, &block)
     group = @factory.Container(nil, nil, this.direction)
     this.items.each do |item|
-      construct item, env do |x|
+      construct item, env, group do |x|
         group.items << x
       end
     end
     make_styles(this, group, env)
-    @binding[group] = this
     block.call group
   end
   
-  def Text(this, env, &block)
+  def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
     text = @factory.Text(nil, nil, val)
     make_styles(this, text, env)
-    @binding[text] = address
+    text.add_listener "string" do |val|
+      address.value = val
+    end
     block.call text
   end
   
-  def Shape(this, env, &block)
+  def constructShape(this, env, container, &block)
     shape = @factory.Shape(nil, nil) # not many!!!
-    construct this.content, env do |x|
+    shape.kind = this.kind
+    construct this.content, env, shape do |x|
       error "Shape can only have one element" if shape.content
       shape.content = x
     end
     make_styles(this, shape, env)
-    @binding[shape] = this
     block.call shape
   end
 
-  def Connector(this, env, &block)
-    # label?
-    label = nil
-    conn = @factory.Connector(nil, nil, label)
+  def constructConnector(this, env, container, &block)
+    conn = @factory.Connector(nil, nil, nil)
+    @connectors << conn
+    ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
+    i = 0
     this.ends.each do |e|
-      de = @factory.ConnectorEnd(e.arrow, label)
-      de.owner = conn
+      labelStr, _ = eval(e.label, env)
+      label = labelStr && @factory.Text(nil, nil, labelStr)
+      labelStr, _ = eval(e.other_label, env)
+      other_label = labelStr && @factory.Text(nil, nil, labelStr)
+      de = @factory.ConnectorEnd(e.arrow, label, other_label)
       key = evallabel(e.part, env)
-      #puts @labels
-      de.to = @labels[key]
+      de.to = @nodeTable[key]
+      de.attach = ptemp[i]
+      i = i + 1
+      
+      #puts "END #{labelStr}"
       conn.ends << de
     end
     # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
-    conn.path << @factory.Point(0,0)
-    conn.path << @factory.Point(1,0)
-    conn.path << @factory.Point(1,1)
+    
     make_styles(this, conn, env)
-    @binding[conn] = this
     block.call conn
   end
 
   #### expressions
   
   def eval(exp, env)
+    return nil if exp.nil?
     send("eval#{exp.schema_class.name}", exp, env)
   end
      
@@ -283,6 +358,14 @@ class StencilFrame < DiagramFrame
         v
       end
       #puts "BINARY #{this.op.to_sym} = #{val}"
+    when :"?" then
+      v, _ = eval(this.args[0], env)
+      #puts "IF #{this.args[0]} ==> #{v}"
+      if v
+        return eval(this.args[1], env)
+      else
+        return eval(this.args[2], env)
+      end
     else
       args = this.args.collect do |a|
         v, _ = eval(a, env)
@@ -297,6 +380,7 @@ class StencilFrame < DiagramFrame
   
   def evalField(this, env)
     a, _ = eval(this.base, env)
+    return nil, nil if a.nil?  # NOTE THIS IS A HACK!!!
     return a._id, Address.new(a, this.field) if this.field == "_id"
     return a[this.field], Address.new(a, this.field)
   end
@@ -308,7 +392,7 @@ class StencilFrame < DiagramFrame
     
   def evalVar(this, env)
     #puts "VAR #{this.name} #{env}"
-    raise "undefined variable '#{this.name}'" if !env.has_key?(this.name)
+    throw "undefined variable '#{this.name}'" if !env.has_key?(this.name)
     return env[this.name], nil
   end
 
@@ -316,8 +400,33 @@ end
 
 class Address
   def initialize(obj, field)
-    self.obj = obj
-    self.field = field
+    @obj = obj
+    @field = field
   end
-  attr_accessor :obj, :field
+  
+  attr_reader :obj
+  
+  def value=(val)
+    @obj[@field] = val
+  end
+
+  def field
+    #puts "GET TYPE #{@obj}.#{@field}"
+    @obj.schema_class.all_fields[@field]
+  end
+  
+  def is_traversal
+    real = field
+    if field.computed
+      # this determines if a computed field is a selection of a traversal field
+      # the semantics it implements is correct, but it does it using a quick hack
+      # as a syntactic check, rather than a semantic analysis
+      if field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
+				real = @obj.schema_class.all_fields[$1]    
+		  else
+		    return false
+      end
+    end
+    return real.traversal
+  end
 end

@@ -3,63 +3,31 @@ require 'strscan'
 require 'core/system/library/cyclicmap'
 
 module Scanner
-  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(\\.[a-zA-Z_][a-zA-Z_0-9]*)*"
+  REF_SEP = '.'
+
+  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(" + 
+    Regexp.escape(REF_SEP) + "[a-zA-Z_][a-zA-Z_0-9]*)*"
 
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
     int: /[-+]?[0-9]+/,
-    str: /"(\\\\.|[^\"])*"/,
+    str: Regexp.new("\"(\\\\.|[^\"])*\"".encode('UTF-8')),
     real: /[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?/
   }
   
-  # ([\\t\\n\\r\\f ]*(//[^\n]*\n)?)*
   LAYOUT = /(\s*(\/\/[^\n]*\n)?)*/
 
   def init_scanner(grammar, source)
-    @keywords = CollectKeywords.run(grammar)
+    init_literals(grammar)
     @source = source
     @scanner = StringScanner.new(@source)
   end
 
-  class CollectKeywords < CyclicCollectShy
-    def Lit(this, accu)
-      accu << this.value if this.value.match(SYMBOL)
-    end
-
-    def Regular(this, accu)
-      accu << this.sep if this.sep && this.sep.match(SYMBOL)
-      # since we visit regular explicitly, we have to recurse explicitly
-      recurse(this.arg, accu)
-    end
-
-  end
-
-  def unescape(tk, kind)
-    if kind == 'str' then
-      tk[1..-2]
-    elsif kind == 'sym' then
-      tk.sub(/^\\/, '')
-    else
-      tk
-    end
-  end
-
-
   def with_token(kind)
     @scanner.pos = @ci
-    tk = nil
-    if kind == 'atom' then
-      TOKENS.each_key do |type|
-        tk = @scanner.scan(TOKENS[type])
-        if tk then
-          kind = type.to_s
-          break
-        end
-      end
-    else
-      tk = @scanner.scan(TOKENS[kind.to_sym])
-    end
+    tk, kind = scan_token(kind)
     if tk then
+      # keywords are reserved
       return if @keywords.include?(tk)
       ws, pos = skip_ws
       yield pos, unescape(tk, kind), ws 
@@ -72,22 +40,60 @@ module Scanner
   end
 
   def with_literal(lit)
+    # cache literal regexps as we go
+    @lit_res[lit] ||= Regexp.new(Regexp.escape(lit))
     @scanner.pos = @ci
-    litre = Regexp.escape(lit)
-    if @keywords.include?(lit) || lit == '\\' then
-      re = Regexp.new(litre + "(?![a-zA-Z_$0-9])")
-    else
-      re = Regexp.new(litre)
-    end
-    val = @scanner.scan(re)
+    val = @scanner.scan(@lit_res[lit])
     if val then
       ws, pos = skip_ws
       yield pos, ws
     end
   end
 
-  def eos?(pos)
-    pos == @source.length
+  private
+
+  def init_literals(grammar)
+    @keywords = CollectKeywords.run(grammar)
+    @lit_res = {}
+    # \ also has a follow restriction
+    (['\\'] + @keywords).each do |kw|
+      @lit_res[kw] = Regexp.new(Regexp.escape(kw) + "(?![a-zA-Z_$0-9])")
+    end
+  end
+
+  class CollectKeywords < CyclicCollectShy
+    def Lit(this, accu)
+      accu << this.value if this.value.match(SYMBOL)
+    end
+
+    def Regular(this, accu)
+      accu << this.sep if this.sep && this.sep.match(SYMBOL)
+      # since we visit regular explicitly, we have to recurse explicitly
+      recurse(this.arg, accu)
+    end
+  end
+
+  def unescape(tk, kind)
+    if kind == 'str' then
+      tk[1..-2] # todo: backslash blues
+    elsif kind == 'sym' then
+      tk.sub(/^\\/, '')
+    else
+      tk
+    end
+  end
+
+  def scan_token(kind)
+    if kind == 'atom' then
+      TOKENS.each_key do |type|
+        tk = @scanner.scan(TOKENS[type])
+        # return the token with its concrete (i.e. non-atom) type
+        return tk, type.to_s if tk 
+      end
+      return nil
+    end
+    tk = @scanner.scan(TOKENS[kind.to_sym])
+    return tk, kind
   end
 
 end

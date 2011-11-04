@@ -14,7 +14,11 @@ end
 
 # lookup a dotted name relative to a base object
 def Lookup(obj, path)
-  result = Lookup1(obj, path.split("."))
+  begin
+    result = Lookup1(obj, path.split("."))
+  rescue
+    result = nil
+  end
   raise "Could not find path '#{path}'" if !result
   return result
 end

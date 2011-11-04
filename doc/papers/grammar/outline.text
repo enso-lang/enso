@@ -1,0 +1,125 @@
+
+Enso Grammars
+=============
+
+Motivation (?): readable (de)serialization for data/object/language
+models representing executable specification languages. Focus on
+grammars and models, *not* parsing.
+
+### Unique features
+
+Interpretive: parsing is interpretive, (we could do interpreter
+composition to extend the interpreter for regular operators, for
+instance; this could also simplify the bootstrap grammar if we can
+rewrite it to not use iter_star etc.)
+
+No AST, but schema instance. Asynchronous transformation/binding. Case
+in point (?): all binary expressions map to BinExp class, op:"+" sets
+the operator literal. Other case in point: populating a collection
+field, using your own recursive rule (TODO: check that it works this
+way, i.e. a:X* does it append the Xs to a or set them? It should be
+monotone, never overwrite anything, for collections this should mean
+append). Way it works: intermediate, generic tree (also a model; the
+instance tree); one visit to construct objects and populate fields,
+final fixup phase for cross refs. NB: xText does it the same, but no
+details, and Node tree is not a model.
+
+Bi-directional: rendering/layouting. Key thing: constructor directives
+become predicates, and assignments become predicates (also in @"" code
+things; sequencing is conjunction). Interesting point: insertion of
+required parens, with expressions.
+
+Modular: merge on both schema and grammar. Should we fully discuss
+merge here? Can we modularly type check 2 grammars against 2 schemas
+each, and ensure that the merged composition will type check? Abstract
+rules. Modularity enabled by general parsing strategy + fixed
+tokenizer (however, more keywords will be reserved).
+
+References: xText calls this their unique feature, and it is almost
+completely the same as in Enso, even the fact that refs refer to
+schema classes, not non-terminals.... However, it might provide an
+interesting point for the bootstrapping, since grammar.grammar also
+uses it.
+
+Fixed tokenizer: builtin paths for references, identifiers, int, real,
+string, whitespace and comments. Escaping of identifiers to avoid
+clashes. Automatic reservation of (alpha-numeric) literals. Code
+symbols (@"code"). NB: naive implementation; could go scannerless, but
+need to implement lookahead restrictions on identifiers and whitespace
+to avoid ambiguities.
+
+Bootstrapped/self-describing: initial grammar in
+ruby. Grammar.grammar, grammar.schema etc. This is a major
+(implementation) different with xText.
+
+Model origin tracking: distinguish ref and reffed origin (Maybe too
+much engineering issue, but possibly interesting because of merging
+Location model into Instance model etc.
+
+General: left-recursion etc., infinite lookahead. GLL. 
+
+Typechecking: TODO. I think this would be an interesting extra
+interpreter.
+
+Debugging: could we do a simple grammar debugger by interpreter
+composition? Our interpreter approach really makes debugging output
+easy.
+
+Schema inference: TODO (Do we want this? If this is really easy to
+implement, we can use it to compare with xText.)
+
+### Evaluation
+
+Grammars we have: grammar, schema, web, security, stencil, diagram
+(?), attributes, instance. LOC metrics. Showcasing modularity (?)
+using expressions.
+
+
+### Related work
+
+XText
+
+Jouault et al. TCS: a DSL for the Specification of Textual Concrete
+Syntaxes in Model Engineering
+
+Heidenreich et al. Derivation and Refinement of Textual Syntax for
+Models
+
+Wimmer, Kramler. Briding Grammarware and Modelware.
+
+Fondement et al. Metamodel-Aware Textual Concrete Syntax
+Specification.
+
+Jouault, Bezivin. On the specification of Textual Syntaxes for
+Models. 
+
+Muller et al. Model-driven Analysis and Synthesis of Concrete
+Syntax. (Sintaks)
+
+OMG. Human-Usable Textual Notation (HUTN) Specification.
+
+Rose et al. Constructing Models with the Human-Usable Textual Notation
+
+Goldschmidt et al. Classification of Concrete Textual Syntax Mapping
+Approaches
+
+Krahn et al. MontiCore: Modular Development of Textual Domain Specific
+Languages
+
+Groenniger et al. MontiCore: A Framework for the Development of
+Textual Domain Specific Languages
+
+Alanen, Porres. A Relation Between Context-Free Grammars and Meta
+Object Facility Metamodels.
+
+### Future work
+
+Scoping directive in grammars: or more (generic) reference resolving
+in the grammar.
+
+Partial evaluation.
+
+Performance.
+
+
+

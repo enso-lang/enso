@@ -7,7 +7,6 @@ class ConstraintSystem
   def var(name = "v#{@number}", value = nil)
     @number += 1
     #puts "#{name} = #{value}"
-    raise "BAD!" if name == "v156" 
     return Variable.new(name, value)
   end
   
@@ -31,36 +30,28 @@ class Variable
     @bounds = []
   end
 
-  attr_reader :name
   def to_s
-    return name
+    return @name 
   end
  
+  # special case for >= to implement MAX behavior
   def >=(other)
     #puts "#{self} >= #{other}"
     other.add_listener(self) if other.is_a?(Variable)
     @bounds << other
   end
 
-  def +(other)
-    var = Variable.new("p#{self.to_s}#{other.to_s}")
-    #puts "#{var}=#{self.to_s}+#{other}"
-    var.define(self, other) do |a, b|
-      a + b
+  def method_missing(m, *args)
+    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round, :to_int].include? m 
+    var = Variable.new("p#{self.to_s}#{args.to_s}")
+    #puts "#{var}=#{self.to_s}+#{args}"
+    var.internal_define(self, *args) do |a, *other|
+      a.send(m, *other)
     end
+    return var
   end
 
-  def /(other)
-    var = Variable.new("p#{self.to_s}#{other.to_s}")
-    #puts "#{var}=#{self.to_s}+#{other}"
-    var.define(self, other) do |a, b|
-      a / b
-    end
-  end
-  
-  def define(*vars, &block)
-    @aggregate = vars[0].is_a?(Array) && vars.length == 1
-    vars = vars[0] if @aggregate
+  def internal_define(*vars, &block)
     raise "nil definition" if vars.any?(&:nil?)
     @vars = vars
     @vars.each do |v|
@@ -68,20 +59,19 @@ class Variable
     end
     #puts "#{vars}"
     @block = block
-    return self
   end
   
-  def evaluate(path = [])
+  def internal_evaluate(path = [])
     raise "circular constraint #{path.collect(&:to_s)}" if path.include?(self)
     if @block
       path << self
       vals = @vars.collect do |var|
-        val = var.is_a?(Variable) ? var.evaluate(path) : var
-        raise "undefined variable '#{var.name}'" if val.nil?
+        val = var.is_a?(Variable) ? var.internal_evaluate(path) : var
+        raise "undefined variable '#{var}'" if val.nil?
         val
       end
       path.pop
-      @value = @aggregate ? @block.call(vals) : @block.call(*vals)
+      @value = @block.call(*vals)
     end
     @bounds.each do |b|
       val = if b.is_a?(Variable) then b.value else b end
@@ -96,22 +86,22 @@ class Variable
     @dependencies << x
   end
 
-  def notify
+  def internal_notify_change
     @dependencies.each do |var|
-      var.notify
+      var.internal_notify_change
     end
     #puts "CLEAR #{self.to_s}"
     @value = nil
   end
     
   def value
-    evaluate unless @value
+    internal_evaluate unless @value
     return @value
   end
   
   def value=(x)
     @block = nil
-    notify
+    internal_notify_change
     @value = x
   end
 end

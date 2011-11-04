@@ -8,6 +8,7 @@ require 'core/schema/tools/print'
 class RenderClass < Dispatch
   def initialize()
     @factory = Factory.new(Loader.load('layout.schema'))
+    @depth = 0
   end
 
   def Grammar(this, obj)
@@ -17,8 +18,14 @@ class RenderClass < Dispatch
   end
 
   def recurse(obj, *args)
-    #puts "RENDER #{obj} #{arg}"
-    return send(obj.schema_class.name, obj, *args)
+    #puts "#{' '*@depth}RENDER #{obj} #{args}"
+    @depth = @depth + 1
+		begin
+  	  val = send(obj.schema_class.name, obj, *args)
+		ensure
+	    @depth = @depth - 1
+		end
+    return val
   end
 
   def Rule(this, obj)
@@ -39,7 +46,7 @@ class RenderClass < Dispatch
   end
 
   def Sequence(this, obj)
-    @factory.Sequence(this.elements.map {|x| recurse(x, obj)});
+    @factory.Sequence(this.elements.map {|x| recurse(x, obj)})
   end
 
   def Create(this, obj)
@@ -111,7 +118,7 @@ class RenderClass < Dispatch
   end
   
   def Code(this, obj)
-    code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.");
+    code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.")
     throw :fail unless obj.instance_eval(code)
     @factory.Sequence()
   end

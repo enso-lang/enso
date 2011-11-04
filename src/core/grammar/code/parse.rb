@@ -7,8 +7,15 @@ require 'core/schema/tools/print'
 
 class Parse
 
-  def self.load_file(path, grammar, schema)
-    load(File.read(path), grammar, schema, path)
+  def self.load_file(path, grammar, schema, encoding = nil)
+    if encoding then
+      File.open(path, 'r', :encoding => encoding) do |f|
+        src = f.read
+        return load(src, grammar, schema, path)
+      end
+    else
+      load(File.read(path), grammar, schema, path)
+    end
   end
   
   def self.load(source, grammar, schema, filename = '-')
