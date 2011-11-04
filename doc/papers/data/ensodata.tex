@@ -60,7 +60,7 @@
 
 \newcommand{\Enso}{Ens\={o}}
 
-\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Objects:\\ Structure and Interpretation of Data in \Enso}
+\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Data:\\ Structure and Interpretation of Data in \Enso}
 \author{William R. Cook and Tijs van der Storm}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -68,20 +68,20 @@
 \maketitle
 
 \begin{abstract}
-Managed Objects allow programmers to define or modify the
+Managed Data allow programmers to define or modify the
 fundamental data definition mechanisms in a programming language. 
-The programmer can change the language used to define data, implement
+The programmer can change the language used to describe data, implement
 that language by writing or modifying interpreters, and
 integrate the new data mechanisms with existing language
 support for data access and manipulation. For example,
-Managed Objects allow programmers to override the field/method
-access operator (the ``dot operator''). Managed Objects allow
+Managed Data allow programmers to override the field/method
+access operator (the ``dot operator''). Managed Data allow
 easy implementation of many aspects of data, including 
 logging/subscription, access/change control, bidirectional 
 relationships, invariants and validation.
 A bootstrap process is used so that all data, including the
-data used to implement Managed Objects, is managed.
-This paper describes the implementation of Managed Objects
+data used to implement Managed Data, is managed.
+This paper describes the implementation of Managed Data
 as the foundation of \Enso, a new programming system based on 
 model interpretation.
 \end{abstract}
@@ -145,32 +145,98 @@ The Adaptive Object Model Architecture provides an architecture for
 this approach, but does not discuss how it is bootstrapped or integrated
 with existing languages.
 
-This paper presents Managed Objects, an approach to data definition
+This paper presents Managed Data, an approach to data definition
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-Managed Objects has four main features: (1) high-level \textit{data models}
+Managed Data has four main features: (1) high-level \textit{data models}
 that specify the structure and behavior of data, 
 (2) \textit{data model interpreters} that manage data instances, 
 (3) \textit{programming language integration} so that managed instances
 can be created and accessed just like normal data,
 and (4) a \textit{bootstrapping} process
-that allows all Managed Objects, including data models, to be customized
+that allows all Managed Data, including data models, to be customized
 and managed. Managed Data
 places strong requirements on the host programming language, to 
 support use-defined interpretation of data.
 
-\section{Managed Objects}
+\section{Managed Data}
+
+Managed Data allows a programmer to 
+build libraries, or data managers, that implement the fundamental
+data manipulation primitives in a programming language. 
+Different approaches to Managed Data might be developed 
+based on the choice of primitives to support. 
+
+We develop an approach to Managed Data
+based on primitives for \textit{construction},
+\textit{component selection/update}, and \textit{case distinction}. We also define operations on
+collections for \textit{indexed access}, \textit{insertion}
+and \textit{deletion}. 
+The concept of construction is common to all programming
+languages and is usually implemented by defining an appropriate
+function or procedure. 
+Component selection \lstinline{o.f} corresponds to 
+projecting a field of a labeled product, or record. 
+Case distinction can be understood as analyzing the cases of a labeled sum,
+or variant record. Object-oriented programming supports 
+method dispatch as the preferred form of case distinction, 
+although explicit type tests (\lstinline{instanceof}) may also be used. 
+Indexed access \lstinline{a[k]} is used for arrays or maps,
+where \lstinline{k} may be an integer or some other key.
+Some languages use pattern matching to analyze and decompose data. 
+However, pattern matching can be rewritten
+using the more primitive operations of component selection and
+case distinction.
+
+One issue with implementing
+the component selection operator is that its second argument
+is a \textit{field name}. This requires that field names be
+represented reflectively as values. In this paper we use Ruby
+to implement Managed Data. In Ruby the form \lstinline{o.f}
+can be implemented by defining a \lstinline{method_missing} method.
+Figure~\ref{sdm} illustrates a simple data manager in Ruby.
+
+\begin{figure}
+\begin{lstlisting}
+class SimpleDataManager
+  def initialize(initial_values)
+    @types = {}
+    initial_values.each_pair { |key, value| @types[key] = value.class }
+    @values = initial_values
+  end
+  def method_missing(name, *args)
+    if name =~ /(.*)=/
+      name = $1.to_sym
+      raise "unknown field '#{name}'" if !@types.has_key?(name)
+      raise "'#{name}' must be #{@types[name]}" if @types[name] != args[0].class
+      @values[name] = args[0]
+    else
+      raise "unknown field '#{name}'" if !@types.has_key?(name)
+      return @values[name]
+    end
+  end
+end
+\end{lstlisting}
+\caption{A simple data manager in Ruby}
+\label{sdm}
+\end{figure}
+
+
+
+
+
+
 
 Figure~\ref{ddl} illustrates the difference between 
-traditional built-in data structuring mechanisms and Managed Objects.
+traditional built-in data structuring mechanisms and Managed Data.
 In the traditional approach, the programming language includes a 
 process and data sublanguages, which are both predefined.
-With Managed Objects, the data structuring mechanisms are defined
+With Managed Data, the data structuring mechanisms are defined
 by the programmer by interpretation of data definitions.
 Since a data definition model is also data, it requires a meta-definition
 mechanism. This infinite regress is terminated by a boot-strap
-data definition that is used to build the Managed Objects system itself.
+data definition that is used to build the Managed Data system itself.
 
 \begin{figure}
 \begin{center}
@@ -184,6 +250,13 @@ This section catalogs a number of features that can be
 included in a data description facility. 
 Semantic Data Models. Relational Data models.
 Type systems. Object Models.
+
+object  field  value
+
+
+
+
+
 
 \subsection{Data Graphs}
 
@@ -289,7 +362,7 @@ on the objects it creates.
 
 change tracking
 
-Managed Objects supports controlled imperative effects. Objects are
+Managed Data supports controlled imperative effects. Objects are
 mutable during construction or modification, while the data may be in an
 inconstent state, but before it can be used it must be validated
 and locked from further changes. This is similar to a transaction.
@@ -353,7 +426,7 @@ Assignment to fields can be overriden
 \section{Related Work}
 \label{relatedwork}
 
-Managed Objects is based on traditional 
+Managed Data is based on traditional 
 entity-relationship (ER) models \cite{FOO},
 which are also known as information models. 
 ER models were the basis for class diagrams in UML.
