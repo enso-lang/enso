@@ -110,4 +110,8 @@ if __FILE__ == $0 then
   e2 = PEval.peval(e)
   DisplayFormat.print(g, e2)
 
+  e = Loader.load('full-exp.fexp')
+  e2 = PEval.peval(e)
+  DisplayFormat.print(g, e2)
+
 end

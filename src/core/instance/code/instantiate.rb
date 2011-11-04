@@ -70,9 +70,9 @@ class Instantiate
     when "bool" then
       v == "true"
     when "int" then
-      Integer(v)
+      v.to_i
     when "real" then
-      Float(v)
+      v.to_f
     when "sym" then
       v
     when "atom" then

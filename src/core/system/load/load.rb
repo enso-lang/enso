@@ -24,8 +24,17 @@ module Loading
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
     INSTANCE_SCHEMA = 'instance.schema'
+
+    def load_encoded(name, encoding, type = nil)
+      setup() if @cache.nil?
+      
+      return @cache[name] if @cache[name]
+      @cache[name] = _load_encoded(name, encoding, type)
+    end
+      
     
     def load(name, type = nil)
+      # todo: delegate to load_encoded
       setup() if @cache.nil?
       
       return @cache[name] if @cache[name]
@@ -47,6 +56,14 @@ module Loading
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
       return load_with_models(name, g, s)
+    end
+
+    def _load_encoded(name, encoding, type)
+      # this is very cool!
+      model, type = name.split(/\./) if type.nil?
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      return load_with_models(name, g, s, encoding)
     end
         
     def setup
@@ -75,20 +92,20 @@ module Loading
       is = @cache[INSTANCE_SCHEMA] = load_with_models(INSTANCE_SCHEMA, sg, ss)
     end
         
-    def load_with_models(name, grammar, schema)
+    def load_with_models(name, grammar, schema, encoding = nil)
       find_model(name) do |path|
-        load_path(path, grammar, schema)
+        load_path(path, grammar, schema, encoding)
       end
     end
 
-    def load_path(path, grammar, schema)
+    def load_path(path, grammar, schema, encoding = nil)
       header = File.open(path, &:readline)
       if header =~ /#ruby/
         $stderr << "## building #{path}...\n"
         instance_eval(File.read(path))
       else
         $stderr << "## loading #{path}...\n"
-        Parse.load_file(path, grammar, schema)
+        Parse.load_file(path, grammar, schema, encoding)
       end
     end
     
