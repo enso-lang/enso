@@ -168,6 +168,24 @@ data manipulation primitives in a programming language.
 Different approaches to Managed Data might be developed 
 based on the choice of primitives to support. 
 
+Figure~\ref{ddl} illustrates the difference between 
+traditional built-in data structuring mechanisms and Managed Data.
+In the traditional approach, the programming language includes a 
+process and data sublanguages, which are both predefined.
+With Managed Data, the data structuring mechanisms are defined
+by the programmer by interpretation of data definitions.
+Since a data definition model is also data, it requires a meta-definition
+mechanism. This infinite regress is terminated by a boot-strap
+data definition that is used to build the Managed Data system itself.
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{DDL.pdf}
+\caption{Traditional versus Managed data definitions}
+\label{ddl}
+\end{center}
+\end{figure}
+
 We develop an approach to Managed Data
 based on primitives for \textit{construction},
 \textit{component selection/update}, and \textit{case distinction}. We also define operations on
@@ -222,54 +240,54 @@ end
 \label{sdm}
 \end{figure}
 
+There are at least two problems with this simple data manager.
+One is that it only manages individual records, while we want to
+manage collections of interrelated objects. A second problem
+is that it is not reflexive, in that the input specification
+to the data manager is not managed data. To address both these
+issues, we need to define a richer data structuring mechanism
+that is sufficiently powerful to be self-describing.
 
-
-
-
-
-
-Figure~\ref{ddl} illustrates the difference between 
-traditional built-in data structuring mechanisms and Managed Data.
-In the traditional approach, the programming language includes a 
-process and data sublanguages, which are both predefined.
-With Managed Data, the data structuring mechanisms are defined
-by the programmer by interpretation of data definitions.
-Since a data definition model is also data, it requires a meta-definition
-mechanism. This infinite regress is terminated by a boot-strap
-data definition that is used to build the Managed Data system itself.
-
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{DDL.pdf}
-\caption{Traditional versus Managed data definitions}
-\label{ddl}
-\end{center}
-\end{figure}
-
-This section catalogs a number of features that can be
-included in a data description facility. 
-Semantic Data Models. Relational Data models.
-Type systems. Object Models.
-
-object  field  value
-
-
-
-
-
+One more subtle issue is what organizational principle to use for
+structuring data. 
+Two obvious options are \textit{trees} or \textit{graphs}. Trees are
+frequently used in functional languages and are appealing because
+of their strong support for induction. Graphs can be 
+created in any language with mutable
+data structures, including object-oriented languages. 
+However, this style of representation is essentially
+node-oriented, as the graph emerges from the structure of connected
+nodes rather than being described at the level of the graph itself.
+Much of the work on model-driven development is done using graphs
+and graph transformation. 
+The relational model is also graph-based. 
+Rows correspond to nodes and foreign keys are edges.
+Graphs are explicit in the 
+Entity-Relationship (ER) model \cite{FOO}, also known as Information
+Models \cite{FOO}, and Class Diagrams in 
+the Unified Modeling Language (UML) \cite{FOO}
+The relational model also has a solid formal foundation, and 
+subsumes trees as a special case.
+But no general-purpose programming language, to our knowledge,
+has used graphs as its primary data structure. While there may
+be other ways to define Managed Data, we choose to investigate
+the use of graphs to represent data in \Enso.
 
 \subsection{Data Graphs}
+
+Database = Table*
+Table = Row*
+Row = (Value, Value*)
+Value = Number | String | Date
+
+
+
 
 Structures in \Enso\ are a specialized kind of graph,
 whose nodes are either primitive data or collections of observable
 properties, whose values are either nodes or collections of nodes.
 From a programming language viewpoint this may seem an odd 
-choice for data representation. However, it is essentially the
-Entity-Relationship (ER) model \cite{FOO}, also known as Information
-Models \cite{FOO}, which is widely used in the design of relational databases
-and is also the basis for Class Diagrams in 
-the Unified Modeling Language (UML) \cite{FOO}, which 
-describe the structure of networks of objects.
+choice for data representation. 
 The key point is that structures in \Enso\ are 
 viewed holistically as \textit{graphs}, not as individual values
 or traditional sums-and-products data structures.
@@ -323,6 +341,9 @@ Person "Jane Snook"    3/17/48 female
 Person "Thomas Snook" 12/30/43 male 
 \end{verbatim}
 
+\subsection{Collections}
+\subsubsection{Bags and Sets}
+\subsubsection{Keys}
 
 \subsection{Inverses}
 
@@ -331,11 +352,6 @@ Person "Thomas Snook" 12/30/43 male
 \subsection{Invariants}
 
 \subsection{Constraints}
-
-\subsection{Collections}
-
-\subsubsection{Bags and Sets}
-\subsubsection{Keys}
 
 \subsection{Modularity}
 
