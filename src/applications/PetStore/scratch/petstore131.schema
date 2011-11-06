@@ -1,78 +1,86 @@
 
 primitive int
-primitive float
+primitive real
 primitive str
 primitive bool
 
 class Catalog
+  // todo
+  !customers: Customer*
   !categories: Category*
   !products: Product*
-  !items: Item*
-  !sellers: SellerContactInfo*
-  !addresses: Address*
+  !ziplocations: ZipLocation*
   !tags: Tag*
 end
 
 class Category
-  #id: str
-  name: str
+  #name: str
   description: str
-  imageurl: str
-  products: Product* / Product.category
+  imageURL: str
+  coords: str
+  products: Product / Product.category
 end
 
 class Product
-  #id: str
   name: str
   description: str
   imageURL: str
   category: Category / Category.products
-  items: Item* / Item.product
+  !items: Item* / Item.product
 end
 
 
 class Item
-  #id: str
-  product: Product / Product.items
   name: str
   description: str
   imageURL: str
   imageThumbURL: str
-  price: int
-  address: Address
-  contactInfo: SellerContactInfo
+  price: real
+  !address: Address
+  !contactInfo: SellerContactInfo
   totalScore: int
   numberOfVotes: int
   disabled: int
   tags: Tag* / Tag.items
+  product: Product / Product.items
+  !ratings: Rating* / Rating.item
 end
 
-class Address 
-  #id: str
-  street1: str
-  street2: str
-  city: str
-  state: str
-  zip: str
-  latitude: float
-  longitude: float
-end
 
 class SellerContactInfo
-  #id: str
   lastName: str
   firstName: str
   email: str
 end
 
+class Rating
+  item: Item / Item.ratings
+  grade: int
+end
+
+class Address 
+  street1: str
+  street2: str
+  city: str
+  state: str
+  zip: str
+  latitude: real
+  longitude: real
+end
+
+
 class Tag
-  #id: int
+  items: Item* / Item.tags
   tag: str
   refCount: int
-  items: Item* / Item.tags
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
 end
 
 
+class ZipLocation
+  zipCode: int
+  city: str
+  state: str
+end
 
