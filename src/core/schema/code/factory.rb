@@ -65,7 +65,11 @@ class Factory
         case field.type.name
         when "str" then obj[field.name] = ""
         when "int" then obj[field.name] = 0
+        when "float" then obj[field.name] = 0.0
         when "bool" then obj[field.name] = false
+        when "datetime" then obj[field.name] = DateTime.now
+        else
+          raise "Unknown type: #{field.type.name}"
         end
       end
       n += 1
