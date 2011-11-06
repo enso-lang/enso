@@ -679,7 +679,7 @@ This example converts schemas into constructor grammars
 grammar NAME:sym
    CLASSES:
      rule NAME:sym = 
-        (SUBTYPES: { NAME:sym "|") "|" @"!SUBTYPES.empty?")?
+        (subclasses: { NAME:sym "|") "|" @"!subclasses.empty?")?
          [NAME:sym] NAME:str "{" 
             FIELDS: { (NAME:str ":" (NAME:sym): (
                  "[" { TYPE.NAME:sym^ "," } "]"   @"MANY=true"

@@ -1,11 +1,11 @@
 
 
 class Grammar
-  @schema: Schema = Schema { types: rules.types, subtypes:  }
+  @schema: Schema = Schema { types: rules.types, subclasses:  }
 end
 
 class Rule
-  @type: Type = Klass {name: name} 
+  @type: Type = Class {name: name} 
   @types: Type* = arg.types
   @fields: Field* = arg.fields
 end
@@ -14,7 +14,7 @@ class Expression
 end
 
 class Alt
-  @type: Type = let subs = alts.type; x = Klass {name: gensym} in
+  @type: Type = let subs = alts.type; x = Class {name: gensym} in
                    { s.supers << x | s <- subs }
   @fields: Field* = alts.fields
 end
@@ -48,7 +48,7 @@ class Value < Expression
 end 
 
 class Ref < Expression 
-  @type: Type = Klass {name: name}
+  @type: Type = Class {name: name}
 end 
 
 class Lit < Expression 

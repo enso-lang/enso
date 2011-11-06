@@ -9,8 +9,8 @@ end
 class Type
   @d_name = "Delta_" + name  
   @op_names = {"Insert", "Delete", "Modify"}
-  @ops = { Klass {name: n + "_" + name; supers: [delta]} | n <- op_names }
-  @many_ops = { Klass {name: "Many_" + n + "_" + name, supers: [delta, key];
+  @ops = { Class {name: n + "_" + name; supers: [delta]} | n <- op_names }
+  @many_ops = { Class {name: "Many_" + n + "_" + name, supers: [delta, key];
 	           Field {name: "pos"; type: pos_key }} | n <- op_names }
   @key = is_keyed? ? KEYED : MANY
   @pos_key = is_keyed? ? self.key.type : Primitive {name: "int"}
@@ -18,16 +18,16 @@ class Type
 end
 
 class Primitive
-  @delta = Klass {name: d_name; fields: Field {name: val, type: self}}
-  @many_ref = Klass {name: "DeltaRef_" + name; supers: [DELTAREF, KEYED];
+  @delta = Class {name: d_name; fields: Field {name: val, type: self}}
+  @many_ref = Class {name: "DeltaRef_" + name; supers: [DELTAREF, KEYED];
   	      	    fields: Field {name: pos; type: self} }
-  @ref_ops = {Klass {name: n + "Ref_" + name, supers: [many_ref]} | n <- op_names }
+  @ref_ops = {Class {name: n + "Ref_" + name, supers: [many_ref]} | n <- op_names }
   @primitive = true
 end
 
 
-class Klass
-  @delta = Klass { name: d_name; supers: supers.delta };
+class Class
+  @delta = Class { name: d_name; supers: supers.delta };
            defined_fields: defined_fields.delta }
   @key = ( f | f <- fields, f.key, f.primitive )
 end

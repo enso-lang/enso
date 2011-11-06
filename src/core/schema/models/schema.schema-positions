@@ -8,7 +8,7 @@ Type: !ruby/object:EnsoPoint
 Primitive: !ruby/object:EnsoPoint 
   x: 40
   y: 180
-Klass: !ruby/object:EnsoPoint 
+Class: !ruby/object:EnsoPoint 
   x: 160
   y: 178
 Field: !ruby/object:EnsoPoint 
@@ -21,7 +21,7 @@ Primitive.:
 - !ruby/object:EnsoPoint 
   x: 0.48096940567073465
   y: 1
-Klass.: 
+Class.: 
 - !ruby/object:EnsoPoint 
   x: 0.4277136062748584
   y: 0
@@ -35,14 +35,14 @@ Schema.types:
 - !ruby/object:EnsoPoint 
   x: 0.374733913583747
   y: 0
-Klass.supers: 
+Class.supers: 
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.8230764492692344
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.031489514857141465
-Klass.defined_fields: 
+Class.defined_fields: 
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 1

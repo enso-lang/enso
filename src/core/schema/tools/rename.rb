@@ -121,8 +121,8 @@ if __FILE__ == $0 then
   ss_copy = copy(ss)
 
   map = {
-    "Klass" => "Class",
-    {"Klass" => "supers"} => "supertypes"
+    "Class" => "Class",
+    {"Class" => "supers"} => "supertypes"
   }
   rename!(ss_copy, map)
 

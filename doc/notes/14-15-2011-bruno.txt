@@ -152,7 +152,7 @@ primitive \str
 
   class Schema
     types: Type*
-    classes: Klass* = "@types.select(&:Klass?)"
+    classes: Class* = "@types.select(&:Class?)"
     primitives: Primitive* = "@types.select(&:Primitive?)"
   end
 
@@ -164,9 +164,9 @@ primitive \str
   class Primitive < Type
   end
   
-  class Klass < Type
-    supers: Klass*
-    subtypes: Klass* / Klass.supers
+  class Class < Type
+    supers: Class*
+    subclasses: Class* / Class.supers
     defined_fields: Field*
     fields: Field* = "@all_fields.select {|f| !f.computed}"
     all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
@@ -174,7 +174,7 @@ primitive \str
   
   class Field
     #name: str
-    #owner: Klass / Klass.defined_fields
+    #owner: Class / Class.defined_fields
     type: Type
     optional: bool
     many: bool
@@ -217,7 +217,7 @@ William: (well, we should say "*a* datastructure language".. because Enso can ha
 William: because, it is an Enso data structure :-)
 Bruno: so the word "class" in this file
 Bruno: is being described by
-Bruno: Klass
+Bruno: Class
 Bruno: ?
 William: wait.. don't get confused between the textural representation and the semantics
 Bruno: sure; I understand this
@@ -227,20 +227,20 @@ William: right.. let me show you the grammar
 -------------------------schema.grammar--------------------------------
 Schema ::= [Schema] types:TypeDef* 
 
-TypeDef ::= Primitive | Klass
+TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
 
-Klass ::= [Klass] "class" name:sym Parent? defined_fields:Field* "end"
+Class ::= [Class] "class" name:sym Parent? defined_fields:Field* "end"
 Parent ::= "<" supers:{Super ","}+
-Super ::= Klass^
+Super ::= Class^
 
 Field ::= [Field] Key? Traversal? name:sym ":" type:Type Multiplicity Annot?
 Key ::= "#" @"@key = true"
 Traversal ::= "!" @"@traversal = true"
 
 Type ::=  Primitive^
-  | Klass^
+  | Class^
 
 Multiplicity ::= "*" @"@many = true; @optional = true"
          | "?" @"@optional = true" 
@@ -251,8 +251,8 @@ Annot ::= "/" inverse:Field^
         | "=" computed:str
 ----------------------------------------------------------------------
 Bruno: but, ok, this is what I meant:
-Bruno: the "class" in this grammar file, is described  by Klass
-William: right, on the line that begins "Klass".. that the word "class" is connected to the class [Klass]
+Bruno: the "class" in this grammar file, is described  by Class
+William: right, on the line that begins "Class".. that the word "class" is connected to the class [Class]
 Bruno: this is what got me
 Bruno: and this "class" keyword is the same as "class" in the previous file, right?
 William: yes

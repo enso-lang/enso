@@ -14,24 +14,19 @@
 \usepackage{listings} 
 
 \lstset{%
-  frame=none,
-  xleftmargin=5pt,
-  stepnumber=1,
-  numbers=left,
-  numbersep=5pt,
-  numberstyle=\ttfamily\tiny,
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={<|}{|>},
-  tabsize=2,
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
   emphstyle={\bf},
   commentstyle=\it,
   stringstyle=\mdseries\ttfamily,
   showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={schema,type},
   keywordstyle=\bfseries,
-  morekeywords={in,do,print},
   columns=flexible,
-  basicstyle=\sffamily,
   showstringspaces=false,
   morecomment=[l]\%,
 }
@@ -56,7 +51,7 @@
 
 \newcommand{\C}{\lstinline}
 
-\lstset{language=Enso}
+\lstset{language=Ruby}
 
 \newcommand{\Enso}{Ens\={o}}
 
@@ -149,24 +144,418 @@ This paper presents Managed Data, an approach to data definition
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-Managed Data has four main features: (1) high-level \textit{data models}
+Managed Data has four main features: (1) high-level data models,
+called \textit{schemas},
 that specify the structure and behavior of data, 
-(2) \textit{data model interpreters} that manage data instances, 
+(2) \textit{data managers} that interpret schemas and that manage data instances, 
 (3) \textit{programming language integration} so that managed instances
-can be created and accessed just like normal data,
+can accessed just like normal data,
 and (4) a \textit{bootstrapping} process
 that allows all Managed Data, including data models, to be customized
 and managed. Managed Data
 places strong requirements on the host programming language, to 
 support use-defined interpretation of data.
 
-\section{Managed Data}
+In this paper we illustrate the concept of Managed Data in an object-oriented
+style. It is also possible to imagine implementations for other
+programming styles, including functional or logic programming. Some of
+these options are discussed further in Section~\ref{discussion}.
+
+\section{Examples}
+
+This section gives examples of using and implementing Managed Data.
+
+\begin{figure}
+\begin{minipage}{0.5\columnwidth}
+\begin{lstlisting}
+class Machine
+  start: State
+  states: State*
+
+class State
+  machine: Machine / Machine.states
+  name: str
+  out: Transition*
+  in: Transition*
+  
+class Transition
+  event: str
+  from: State / State.out
+  to: State / State.in
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}{0.5\columnwidth}
+\includegraphics[scale=0.9]{state_machine.png}
+\end{minipage}
+\caption{A schema for simple state machines}
+\label{sm_schema}
+\end{figure}
+
+\subsection{Using Managed Data}
 
 Managed Data allows a programmer to 
-build libraries, or data managers, that implement the fundamental
+build libraries, or \textit{data managers}, that implement the fundamental
 data manipulation primitives in a programming language. 
-Different approaches to Managed Data might be developed 
-based on the choice of primitives to support. 
+The input to a data manager is a \textit{schema},
+which describes the structure and behavior of the data to be managed.
+Although there can be many flavors of schemas and data managers in a 
+Managed Data system, it is useful to illustrate the concepts using a
+specific example. This section presents illustrates schemas and
+the creation and use of managed data instances. Following sections will 
+describe how to implement data managers and integrate them with programming
+languages. 
+
+Figure~\ref{sm_schema} defines a schema for a simple form of
+state machine. The schema consists of three \textit{classes}, for
+state machines, states, and transitions. The body of a class definition
+is a list of \textit{fields} of the form \textit{name}\lstinline{:}\textit{type}, where \textit{type}
+is either a class name or one of the primitive types (\lstinline{int}, \lstinline{str}, \lstinline{bool}). 
+The field definition is followed by some attributes. The suffix 
+\lstinline{*} after the name means
+that the field is multi-valued.
+For example, the \lstinline{Machine}
+class has two fields, a \lstinline{start} state and a 
+multivalued field \lstinline{states} containing a set of states.
+A class-valued field may also have an \textit{inverse}. For example,
+the \lstinline{machine} field of the \lstinline{State} class is the
+inverse of the \lstinline{states} field in the \lstinline{StateMachine} class.
+A field and its inverse are semantically tied. For example, setting the
+\lstinline{machine} field of a state causes the state to be added to the
+\lstinline{states} collection of the machine. In general, any change to
+\lstinline{states} or \lstinline{machine} requires a corresponding change 
+to the other field of the related object.
+The concept of inverse fields is frequently used in object-relational
+mapping. 
+
+\begin{figure}[t]
+\begin{lstlisting}
+state_machine_schema = Load("state_machine.schema")
+f = InMemoryDataManager.new(state_machine_schema)
+
+# create the state machine, by calling constructors of the factory
+door = f.Machine                # create the door state machine
+open = f.State(door, "Open")     # create and add the open state to the door
+closed = f.State(door, "Closed")                   # create and add the closed state to the door
+f.Transition("close", open, closed)  # create a transition from open to closed
+f.Transition("open", closed, open)              # create a transition from closed to open
+door.start = open         # set the start state of the machine
+door.finalize             # finalize the state machine graph, checking invariants
+
+run_state_machine(door)    # run the machine (see next figure)
+\end{lstlisting}
+\caption{Creating a simple state machine using an in-memory data manager}
+\label{sm_create}
+\end{figure}
+
+A schema defines the structure and behavior of data. The simple schema
+for state machines is primarily structural, but it does include some
+behavioral constraints, in the form of field inverses. More complex schemas
+can include invariants, constraints, computed fields, database information,
+or other kinds of meta-data. Several of these options are described in later
+sections. 
+
+Once a schema is written, it can be loaded into a data manager to
+create and manage instances of classes defined in the schema. 
+There is no need for an additional code generation step to
+translate the schema into code. 
+Instead, a data manager interprets the schema directly, and
+creates dynamic objects that act according to the specification of the
+schema, but without needing to write any more code. 
+The data manager can then be used instantiate objects, which are
+given fields (and behaviors) as defined in the schema.
+
+Figure~\ref{sm_create} illustrates using the state machine schema
+to create a simple state machine for a door. The \lstinline{Load}
+function loads objects from a file, in this case it loads the
+schema defined in Figure~\ref{sm_schema}. 
+The \lstinline{InMemoryDataManager} is a particular data manager
+that manages in-memory objects. The \lstinline{InMemoryDataManager}
+is passed a schema as an input and returns a \textit{factory}.
+The factory \lstinline{f} has dynamically defined methods for each class in the
+schema. For example, the methods \lstinline{f.Machine} and 
+\lstinline{f.State} create machines and states, respectively.
+These constructor functions take an arbitrary number of arguments,
+which are used to initialize the fields (in order) of the class.
+The \lstinline{f.Machine} call just creates a state machine with
+no intialization. The \lstinline{f.State(sm, "Open")} call creates
+a state, initializing its \lstinline{machine} and \lstinline{name} fields.
+As mentioned above, setting the \lstinline{machine} of a state has the 
+side effect of adding the state to the machine's \lstinline{states} collection.
+A state machine can also be read from a file, using a parser and a 
+state machine grammar.
+
+Once the machine is created, it is finalized. In this case finalization
+means that the machine is checked for consistency and then locked, so
+that it cannot be changed. The semantics of finalization is determined
+by the particular data manager that is used. 
+
+A data manager works very much like a
+relational database management system (RDBMS), 
+where the SQL Data Definition Language (DDL) defines a schema. 
+The RDBMS interprets the schema to create tables, which can then
+be accessed in SQL queries. 
+Managed Data imports this approach from databases into
+the core of a programming language. 
+
+\begin{figure}[t]
+\begin{lstlisting}
+# this function runs a state machine, by reading events from an input stream
+def run_state_machine(sm)
+  current = sm.start   # access the start state of the state machine
+  puts current.name        # print the current state
+  while gets               # read a line of input and check for end of file
+    input = $_.strip   # capture the input line
+    current.out.each do |trans|   # iterate over each outgoing transitions
+      if trans.event == input            # test of the transition event equals the input
+        current = trans.to               # if so, change to the new state
+      end
+    end
+    puts current.name  # print the current state (which may not have changed)
+  end
+end
+\end{lstlisting}
+\caption{A function to interpret a state machine}
+\label{sm_run}
+\end{figure}
+
+Managed Data also 
+drops the idea of a single predefined schema language, and
+allows programmers to create their own 
+(or variations on existing) schema languages and schema managers.
+Data managers naturally manage many schemas, but 
+there can also be multiple data managers for a given 
+schema, for example, to implement in-memory strategy versus
+a database strategy for managing the data. 
+
+Finally, the machine is run. The code for running a state machine is
+given in Figure~\ref{sm_run}. At this point the dynamic state machine object
+\lstinline{sm} is treated just like any other object. It has a field 
+named \lstinline{start} that is directly accessed using dot notation. 
+The \lstinline{current} variable is a state object, which has a fields
+\lstinline{name} and \lstinline{out}, which is a collection of transitions, 
+which have fields \lstinline{event} and \lstinline{to}.
+
+\subsection{Implementing Managed Data}
+
+The example usage illustrated in the previous section cannot
+be implemented easily in most programming languages. In many
+object-oriented languages (e.g. Java, C\#, JavaScript, and PHP) 
+the dot operator, which is used to access
+fields \lstinline{o.f} and methods \lstinline{o.m(args)},
+requires a declared class or record that defines 
+a field \lstinline{f} or a method \lstinline{m}. 
+But the example in the previous section requires dynamic
+definitions of fields and methods: the factory implements methods 
+based on the classes listed in the metadata object, and the
+objects created by the factory contain fields that are specified
+in a schema.
+To get around this problem, most approaches to model-driven 
+development resort to code generation.  However, our approach
+is based on dynamic interpretation, so alternative techniques
+are required.
+
+\begin{figure}
+\begin{lstlisting}
+class RecordManager
+  def initialize(types)
+    @types = types
+    @values = {}
+    puts types
+    types.each_pair do |key, type| 
+      @values[key] = type.default
+    end
+  end
+  def method_missing(name, *args)
+    assign = (name =~ /(.*)=/)
+    name = $1.to_sym if assign
+    raise "unknown field #{name}" if !@types[name]
+    if assign
+      raise "#{name} must be #{@types[name]}" if @types[name] != args[0].class
+      @values[name] = args[0]
+    else
+      return @values[name]
+    end
+  end
+end
+\end{lstlisting}
+\caption{Definition and use of a simple data manager in Ruby}
+\label{sdm}
+\end{figure}
+
+In what follows, we used the reflective capabilities
+found in some object-oriented languages, including Smalltalk, Ruby,
+and Python, to implement Managed Data.
+In Ruby the form \lstinline{o.f}
+can be implemented by defining a \lstinline{method_missing} method.
+This technique is illustrated in 
+Figure~\ref{sdm}, which defines a simple data manager for 
+updatable records, using Ruby.
+This data manager is simpler than the one used in in the previous
+section, but it illustrates the basic technique.
+As in the previous section, the data manager is initialized with
+a schema, but in this case the schema is a record of types rather than
+a full data model. The managed object stores the type record in the
+\lstinline{@types} member variable. It then defines a \lstinline{@values}
+record and initializes it with default values for each type (the way
+that default values are defined is omitted). 
+
+Here is an example using the record manager:
+
+\begin{lstlisting}
+x = RecordManager.new :foo => Fixnum, :bar => String
+puts x.foo
+x.foo = 32
+x.biff            # throws undefined field
+x.foo = "asdf"    # throws a type exception
+puts x.foo
+\end{lstlisting}
+
+The key mechanism for implementing a dynamic object is the 
+\lstinline{method_missing} method. It is called whenever a method (or field)
+is called on the object that is not defined. Since the class does not
+define any methods, the \lstinline{method_missing} is called for all fields
+and methods. The arguments to \lstinline{method_missing} are the method
+name and the arguments of the original call. There is one special case. 
+In Ruby, an assignment to a field,
+of the form \lstinline{obj.field = val} is converted into a  
+call of the form \lstinline{o.method_missing(:field=, val)}, where
+\lstinline{:field=} is a symbol formed by appending \lstinline{=} to the
+field name.
+
+The \lstinline{method_missing} method first checks if the call is a 
+field assignment, in which case it sets \lstinline{assign} to true. 
+If it is an assignment, the field name is updated to remove the \lstinline{=}.
+It then checks if the field is defined in the schema, and returns an 
+error if not. For an assignment, it checks if the argument is 
+of the right type, and raises an error if not. It then updates the
+\lstinline{@values} map with the new value. For regular field access,
+it returns the current value for the named field in \lstinline{@values}.
+
+\section{Schemas}
+
+While there are many kinds of schemas and data managers in \Enso,
+there is one basic schema that is used in the implementation of
+\Enso\ itself. This schema is called the Schema Schema. In this
+section we identify the \textit{features} used in the Schema Schema.
+
+\begin{figure}
+\begin{lstlisting}
+primitive str
+primitive int
+primitive bool
+primitive real
+
+class Schema
+  !types: Type*
+  classes: Class* = "@types.select(&:Class?)"
+  primitives: Primitive* = "@types.select(&:Primitive?)"
+
+class Type
+  #name: str
+  schema: Schema / Schema.types
+
+class Primitive < Type
+  
+class Class < Type
+  supers: Class*
+  subtypes: Class* / Class.supers
+  !defined_fields: Field*
+  fields: Field* = "@all_fields.select {|f| !f.computed}"
+  all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
+  
+class Field
+  #name: str
+  #owner: Class / Class.defined_fields
+  type: Type
+  optional: bool
+  many: bool
+  key: bool
+  inverse: Field? / Field.inverse 
+  computed: str?
+  traversal: bool
+\end{lstlisting}
+\caption{Definition and use of a simple data manager in Ruby}
+\label{sdm}
+\end{figure}
+
+\subsection{Collections}
+
+\subsubsection{Bags and Sets}
+\subsubsection{Keys}
+
+\subsection{Computed Attributes}
+
+\subsection{Invariants}
+
+\subsection{Constraints}
+
+\subsection{Spanning Trees}
+
+\subsection{Modularity}
+
+\section{Data Managers}
+
+Structure are created by \textit{factories}, which create
+and manage the nodes in the structure. The factory also
+ensures that structures are distinct: a factory identifies the 
+collection of nodes that belong to a graph, and any given node 
+can only be connected to other nodes in the same graph, which were
+created by the same factory.
+
+In \Enso\ most properties of a structure are
+checked when the structure is being created. In other words, 
+the \textit{factory} that creates the structure is parameterized by a
+schema, which the factory uses to check the legality of operations
+on the objects it creates.
+
+The programming model is based on cyclic graphs.
+Graphs are kept distinct from each other. That is,
+each graph is considered a self-contained
+artifact, without links or pointers to other graphs.
+
+A natural way to create such graphs is with 
+imperative effects.
+
+\subsection{Instance Modification}
+
+change tracking
+
+Managed Data supports controlled imperative effects. Objects are
+mutable during construction or modification, while the data may be in an
+inconsistent state, but before it can be used it must be validated
+and locked from further changes. This is similar to a transaction.
+
+
+\subsection{Differences}
+
+
+\subsection{Instantiation}
+
+
+\section{Bootstrapping}
+
+
+\subsection{QuadModel}
+
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{QuadModel.pdf}
+\caption{The four core schema and grammar models}
+\label{default}
+\end{center}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[scale=0.5]{DDL.pdf}
+\caption{Traditional versus Managed data definitions}
+\label{ddl}
+\end{center}
+\end{figure}
+
+\section{Discussion}
 
 Figure~\ref{ddl} illustrates the difference between 
 traditional built-in data structuring mechanisms and Managed Data.
@@ -178,14 +567,33 @@ Since a data definition model is also data, it requires a meta-definition
 mechanism. This infinite regress is terminated by a boot-strap
 data definition that is used to build the Managed Data system itself.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{DDL.pdf}
-\caption{Traditional versus Managed data definitions}
-\label{ddl}
-\end{center}
-\end{figure}
+One more subtle issue is what organizational principle to use for
+structuring data. 
+Two obvious options are \textit{trees} or \textit{graphs}. Trees are
+frequently used in functional languages and are appealing because
+of their strong support for induction. Graphs can be 
+created in any language with mutable
+data structures, including object-oriented languages. 
+However, this style of representation is essentially
+node-oriented, as the graph emerges from the structure of connected
+nodes rather than being described at the level of the graph itself.
+Much of the work on model-driven development uses graphs
+and graph transformation. 
+The relational model is also graph-based. 
+Rows correspond to nodes and foreign keys are edges.
+Graphs are explicit in the 
+Entity-Relationship (ER) model \cite{FOO}, also known as Information
+Models \cite{FOO}, and Class Diagrams in 
+the Unified Modeling Language (UML) \cite{FOO}
+The relational model also has a solid formal foundation, and 
+subsumes trees as a special case.
+But no general-purpose programming language, to our knowledge,
+has used graphs as its primary data structure. While there may
+be other ways to define Managed Data, we choose to investigate
+the use of graphs to represent data in \Enso.
 
+Different approaches to Managed Data might be developed 
+based on the choice of primitives to support. 
 We develop an approach to Managed Data
 based on primitives for \textit{construction},
 \textit{component selection/update}, and \textit{case distinction}. We also define operations on
@@ -206,237 +614,6 @@ Some languages use pattern matching to analyze and decompose data.
 However, pattern matching can be rewritten
 using the more primitive operations of component selection and
 case distinction.
-
-One issue with implementing
-the component selection operator is that its second argument
-is a \textit{field name}. This requires that field names be
-represented reflectively as values. In this paper we use Ruby
-to implement Managed Data. In Ruby the form \lstinline{o.f}
-can be implemented by defining a \lstinline{method_missing} method.
-Figure~\ref{sdm} illustrates a simple data manager in Ruby.
-
-\begin{figure}
-\begin{lstlisting}
-class SimpleDataManager
-  def initialize(initial_values)
-    @types = {}
-    initial_values.each_pair { |key, value| @types[key] = value.class }
-    @values = initial_values
-  end
-  def method_missing(name, *args)
-    if name =~ /(.*)=/
-      name = $1.to_sym
-      raise "unknown field '#{name}'" if !@types.has_key?(name)
-      raise "'#{name}' must be #{@types[name]}" if @types[name] != args[0].class
-      @values[name] = args[0]
-    else
-      raise "unknown field '#{name}'" if !@types.has_key?(name)
-      return @values[name]
-    end
-  end
-end
-\end{lstlisting}
-\caption{A simple data manager in Ruby}
-\label{sdm}
-\end{figure}
-
-There are at least two problems with this simple data manager.
-One is that it only manages individual records, while we want to
-manage collections of interrelated objects. A second problem
-is that it is not reflexive, in that the input specification
-to the data manager is not managed data. To address both these
-issues, we need to define a richer data structuring mechanism
-that is sufficiently powerful to be self-describing.
-
-One more subtle issue is what organizational principle to use for
-structuring data. 
-Two obvious options are \textit{trees} or \textit{graphs}. Trees are
-frequently used in functional languages and are appealing because
-of their strong support for induction. Graphs can be 
-created in any language with mutable
-data structures, including object-oriented languages. 
-However, this style of representation is essentially
-node-oriented, as the graph emerges from the structure of connected
-nodes rather than being described at the level of the graph itself.
-Much of the work on model-driven development is done using graphs
-and graph transformation. 
-The relational model is also graph-based. 
-Rows correspond to nodes and foreign keys are edges.
-Graphs are explicit in the 
-Entity-Relationship (ER) model \cite{FOO}, also known as Information
-Models \cite{FOO}, and Class Diagrams in 
-the Unified Modeling Language (UML) \cite{FOO}
-The relational model also has a solid formal foundation, and 
-subsumes trees as a special case.
-But no general-purpose programming language, to our knowledge,
-has used graphs as its primary data structure. While there may
-be other ways to define Managed Data, we choose to investigate
-the use of graphs to represent data in \Enso.
-
-\subsection{Data Graphs}
-
-Database = Table*
-Table = Row*
-Row = (Value, Value*)
-Value = Number | String | Date
-
-
-
-
-Structures in \Enso\ are a specialized kind of graph,
-whose nodes are either primitive data or collections of observable
-properties, whose values are either nodes or collections of nodes.
-From a programming language viewpoint this may seem an odd 
-choice for data representation. 
-The key point is that structures in \Enso\ are 
-viewed holistically as \textit{graphs}, not as individual values
-or traditional sums-and-products data structures.
-
-A structural description, or \textit{schema}, specifies some 
-of the observable properties of structures. Schemas are used to
-check the consistency structures. Some properties can be checked
-while the structure is being created, but other can only be checked
-once the structure is complete. \Enso\ allows modification of structures,
-which is necessary to create cyclic graphs, but also allows 
-valid structures to be sealed to prevent further changes.
-
-\subsection{Schemas}
-
-The following schema describes a collection of genealogy information:
-
-\begin{verbatim}
-schema GenealogySchema
-
-  class Genealogy
-    name: str
-    members: Person*
-
-  class Person
-    name: str (key)
-    birth: date
-    female: bool
-    father: Person?
-    mother: Person?
-\end{verbatim}
-
-In a schema, a \textit{class} defines a kind of value, which is
-followed by its properties or \textit{fields}. Each field has a name
-and a type, where the type may be followed by \C|*| to indicate a 
-many-valued field, or by \C|?| to indicate an optional value.
-In this case, \C|Genealogy| has \C|members| which is a set of \C|Person|.
-A \C|Person| has a \C|name| string, a \C|birth| date, and a \C|father| and \C|mother|,
-which are optional \C|Person|s. The \C|father| and \C|mother| are optional
-because every geneology is partial, so that not all fathers and mothers
-can be included.
-
-\subsection{Instances}
-
-A particular collection of genealogy information, which conforms to the
-above schema, might be written as follows:
-
-\begin{verbatim}
-Genealogy "Sam's Ancestors"
-Person "Albert Snook"  11/1/89 male  +"Jane Snook" ^"Thomas Snook"
-Person "Jane Snook"    3/17/48 female 
-Person "Thomas Snook" 12/30/43 male 
-\end{verbatim}
-
-\subsection{Collections}
-\subsubsection{Bags and Sets}
-\subsubsection{Keys}
-
-\subsection{Inverses}
-
-\subsection{Computed Attributes}
-
-\subsection{Invariants}
-
-\subsection{Constraints}
-
-\subsection{Modularity}
-
-\section{Interpretation}
-
-Model -> Behavior
-
-\subsection{Factories}
-
-Structure are created by \textit{factories}, which create
-and manage the nodes in the structure. The factory also
-ensures that structures are distinct: a factory identifies the 
-collection of nodes that belong to a graph, and any given node 
-can only be connected to other nodes in the same graph, which were
-created by the same factory.
-
-In \Enso\ most properties of a structure are
-checked when the structure is being created. In other words, 
-the \textit{factory} that creates the structure is parameterized by a
-schema, which the factory uses to check the legality of operations
-on the objects it creates.
-
-\subsection{Instance Modification}
-
-change tracking
-
-Managed Data supports controlled imperative effects. Objects are
-mutable during construction or modification, while the data may be in an
-inconstent state, but before it can be used it must be validated
-and locked from further changes. This is similar to a transaction.
-
-
-\subsection{Differences}
-
-
-\subsection{Instantiation}
-
-
-
-\section{Programming Language Integration}
-
-The programming model is based on cyclic graphs.
-Graphs are kept distinct from each other. That is,
-each graph is considered a self-contained
-artifact, without links or pointers to other graphs.
-
-A natural way to create such graphs is with 
-imperative effects.
-
-This potentially requires more copying of data
-than would be the case in tree-based representations.
-
-To modify graphs, place-holder objects are useful,
-as is the ability to ``become'' another object.
-
-\subsection{Simple reflection}
-
-Fields can be created dynamically and accessed with
-``.'' notation or reflective access.
-
-\begin{verbatim}
-o.foo   == o.get("foo")
-\end{verbatim}
-
-Assignment to fields can be overriden
-\begin{verbatim}
-   o.bar = 3   ==> o.set("bar", 3)
-\end{verbatim}
-
-\subsection{Dynamic Objects}
-
-\section{Bootstrapping}
-
-
-\subsection{QuadModel}
-
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.7]{QuadModel.pdf}
-\caption{The four core schema and grammar models}
-\label{default}
-\end{center}
-\end{figure}
-
 
 
 \section{Related Work}
