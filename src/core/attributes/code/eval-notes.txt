@@ -58,7 +58,7 @@ class Type
   @node: Node = Node {name: name}
 end
 
-class Klass
+class Class
   @edges: Edge* = defined_fields->edge
 end
 

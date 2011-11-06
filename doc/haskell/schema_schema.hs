@@ -98,7 +98,7 @@ schema_schema = schema [
   
   def_class "Class" (get_class "Type") [
     def_field "super"     	"Class" [OPTIONAL],
-    def_field "subtypes"  	"Class" [MANY, INVERSE "Class" "super"],
+    def_field "subclasses"  	"Class" [MANY, INVERSE "Class" "super"],
     def_field "fields"    	"Field" [MANY]
     ],
   

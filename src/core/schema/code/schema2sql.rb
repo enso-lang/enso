@@ -168,7 +168,7 @@ class Schema2SQL
     return db
   end
   
-  def Klass(this)
+  def Class(this)
     with(Table.new(this.name)) do |tbl|
       this.defined_fields.each do |f|
         eval(f)
@@ -177,7 +177,7 @@ class Schema2SQL
         tbl.foreign_key(super_column(c.name), eval(c));
         tbl.cascade(super_column(c.name))
       end
-      this.subtypes.each do |c|
+      this.subclasses.each do |c|
        tbl.spine_trigger(super_column(c.name), eval(c), super_column(this.name))
       end
     end

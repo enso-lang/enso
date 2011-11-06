@@ -11,7 +11,7 @@ and a "engine state" schema
      ports: Port
      instances: Object*
    end
-   class XMLClass < Klass
+   class XMLClass < Class
      machine: StateMachine
    end
 

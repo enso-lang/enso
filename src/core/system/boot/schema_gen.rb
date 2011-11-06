@@ -160,7 +160,7 @@ class SchemaGenerator
     def super_class(klass)
       @@current.supers << klass.internal_wrapped_value
       @@current.supers.each do |sup|
-        sup.subtypes << @@current
+        sup.subclasses << @@current
         sup.all_fields.each do |f|
           @@current.all_fields[f.name] = f 
         end    
@@ -183,7 +183,9 @@ class SchemaGenerator
     end
 
     def const_missing(name)
-      Wrap.new(get_class(name.to_s), self)
+      name = name.to_s
+      name = $1 if name =~ /(.*)_/
+      Wrap.new(get_class(name), self)
     end
 
     def get_field(klass, name)
@@ -213,7 +215,7 @@ class SchemaGenerator
       m.fields = ValueHash.new("name")
       m.defined_fields = ValueHash.new("name")
       m.all_fields = ValueHash.new("name")
-      m.subtypes = ValueHash.new("name")
+      m.subclasses = ValueHash.new("name")
       m.supers = ValueHash.new("name")
       return m
     end
@@ -221,7 +223,7 @@ class SchemaGenerator
     def patch_schema_pointers(schema, schema_schema = SchemaSchema.schema)
       kschema = schema_schema.classes["Schema"]
       prim = schema_schema.types["Primitive"]
-      klass = schema_schema.types["Klass"]
+      klass = schema_schema.types["Class"]
       field = schema_schema.types["Field"]
       
       # Yes, we are breaking encapsulation here. Necessary for bootstrapping

@@ -11,8 +11,8 @@ class SchemaSchema < SchemaGenerator
 
   klass Schema do
     field :types, :type => Type, :optional => true, :many => true, :traversal => true
-    field :classes, :type => Klass, :optional => true, :many => true, \
-      :computed => "@types.select(&:Klass?)"
+    field :classes, :type => Class_, :optional => true, :many => true, \
+      :computed => "@types.select(&:Class?)"
     field :primitives, :type => Primitive, :optional => true, :many => true, \
       :computed => "@types.select(&:Primitive?)"
   end
@@ -25,9 +25,9 @@ class SchemaSchema < SchemaGenerator
   klass Primitive, :super => Type do
   end
 
-  klass Klass, :super => Type do
-    field :supers, :type => Klass, :optional => true, :many => true
-    field :subtypes, :type => Klass, :optional => true, :many => true, :inverse => Klass.supers
+  klass Class_, :name => "Class", :super => Type do
+    field :supers, :type => Class_, :optional => true, :many => true
+    field :subclasses, :type => Class_, :optional => true, :many => true, :inverse => Class_.supers
     field :defined_fields, :type => Field, :optional => true, :many => true, :traversal => true
     field :fields, :type => Field, :optional => true, :many => true, \
       :computed => "@all_fields.select {|f| !f.computed}"
@@ -37,7 +37,7 @@ class SchemaSchema < SchemaGenerator
 
   klass Field do
     field :name, :type => :str, :key => true
-    field :owner, :type => Klass, :inverse => Klass.defined_fields, :key => true
+    field :owner, :type => Class_, :inverse => Class_.defined_fields, :key => true
     field :type, :type => Type
     field :optional, :type => :bool
     field :many, :type => :bool

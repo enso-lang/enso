@@ -6,21 +6,21 @@ class Schema
 end
 
 
-class Klass
-  @temp: Klass = `class $sym(name) < $ref(iter), $ref(alt), $ref(opt)
+class Class
+  @temp: Class = `class $sym(name) < $ref(iter), $ref(alt), $ref(opt)
                     $Field*{ defined_fields.temp }
                   end`
 
-  @iter: Klass = `class $sym(name + "_Iter") < ITER
+  @iter: Class = `class $sym(name + "_Iter") < ITER
                     body: $ref(iter)+
                   end`
          
-  @alt: Klass = `class $sym(name + "_Alt") < $ref(temp), $ref(iter)
+  @alt: Class = `class $sym(name + "_Alt") < $ref(temp), $ref(iter)
                     then: $ref(alt)+
                     else: $ref(alt)+
                   end`
 
-  @opt: Klass = `class $sym(name + "_Opt") < $ref(iter)
+  @opt: Class = `class $sym(name + "_Opt") < $ref(iter)
                     then: $ref(opt)
                   end`
   

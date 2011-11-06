@@ -5,7 +5,7 @@ class Grammar
 end
 
 class Rule
-  @type: Type = Klass {name: name; subtypes: arg.types} 
+  @type: Type = Class {name: name; subclasses: arg.types} 
   @types: Type* = type
   @fields: Field* = arg.fields
 end
@@ -48,7 +48,7 @@ class Value < Expression
 end 
 
 class Ref < Expression 
-  @type: Type = Klass {name: name}
+  @type: Type = Class {name: name}
 end 
 
 class Lit < Expression 

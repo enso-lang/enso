@@ -20,7 +20,7 @@ class Instance
                                   origin: origin }
                         end
 
-  @check_type(t): Error* =      if c <- type.all_subtypes, c.name = t.name then
+  @check_type(t): Error* =      if c <- type.all_subclasses, c.name = t.name then
 				  contents.check(c);
 				  for f <- c.fields, !f.optional do
  				     check_presence(f)

@@ -435,7 +435,48 @@ it returns the current value for the named field in \lstinline{@values}.
 
 While there are many kinds of schemas and data managers in \Enso,
 there is one basic schema that is used in the implementation of
-\Enso\ itself. This schema is called the Schema Schema.
+\Enso\ itself. This schema is called the Schema Schema. In this
+section we identify the \textit{features} used in the Schema Schema.
+
+\begin{figure}
+\begin{lstlisting}
+primitive str
+primitive int
+primitive bool
+primitive real
+
+class Schema
+  !types: Type*
+  classes: Class* = "@types.select(&:Class?)"
+  primitives: Primitive* = "@types.select(&:Primitive?)"
+
+class Type
+  #name: str
+  schema: Schema / Schema.types
+
+class Primitive < Type
+  
+class Class < Type
+  supers: Class*
+  subtypes: Class* / Class.supers
+  !defined_fields: Field*
+  fields: Field* = "@all_fields.select {|f| !f.computed}"
+  all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
+  
+class Field
+  #name: str
+  #owner: Class / Class.defined_fields
+  type: Type
+  optional: bool
+  many: bool
+  key: bool
+  inverse: Field? / Field.inverse 
+  computed: str?
+  traversal: bool
+\end{lstlisting}
+\caption{Definition and use of a simple data manager in Ruby}
+\label{sdm}
+\end{figure}
 
 \subsection{Collections}
 

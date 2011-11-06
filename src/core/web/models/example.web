@@ -53,7 +53,7 @@ def schema_table(schema) {
    </table>
    submit("Submit", hello_world("Tijs"));
   }
-  navigate("Add class", add_class(root->types, new(Klass)));
+  navigate("Add class", add_class(root->types, new(Class)));
 
 }
 

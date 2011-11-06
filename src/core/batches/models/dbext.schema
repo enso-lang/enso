@@ -3,10 +3,10 @@ primitive bool
 
 class Schema
   root: str?
-  root_class: Klass = "@classes[@root]"
+  root_class: Class = "@classes[@root]"
 end
 
-class Klass
+class Class
   table: str?
 end
 
