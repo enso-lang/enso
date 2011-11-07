@@ -31,7 +31,7 @@
   morecomment=[l]\%,
 }
 
-\lstdefinelanguage{Enso}{%
+\lstdefinelanguage{Schema}{%
   numbers=none,
   sensitive=true,
   morecomment=[l]{//},
@@ -42,7 +42,7 @@
   stringstyle=\mdseries\ttfamily,
   showspaces=false,
   basicstyle=\ttfamily,
-  morekeywords={schema,type},
+  morekeywords={class},
   keywordstyle=\bfseries,
   columns=flexible,
   showstringspaces=false,
@@ -165,7 +165,7 @@ these options are discussed further in Section~\ref{discussion}.
 
 This section gives examples of using and implementing Managed Data.
 
-\begin{figure}
+\begin{figure}[language=Schema]
 \begin{minipage}{0.5\columnwidth}
 \begin{lstlisting}
 class Machine
@@ -239,7 +239,7 @@ closed = f.State(door, "Closed")                   # create and add the closed s
 f.Transition("close", open, closed)  # create a transition from open to closed
 f.Transition("open", closed, open)              # create a transition from closed to open
 door.start = open         # set the start state of the machine
-door.finalize             # finalize the state machine graph, checking invariants
+door.validate             # validate the state machine graph, checking invariants
 
 run_state_machine(door)    # run the machine (see next figure)
 \end{lstlisting}
@@ -284,9 +284,9 @@ side effect of adding the state to the machine's \lstinline{states} collection.
 A state machine can also be read from a file, using a parser and a 
 state machine grammar.
 
-Once the machine is created, it is finalized. In this case finalization
+Once the machine is created, it is validated. In this case validation
 means that the machine is checked for consistency and then locked, so
-that it cannot be changed. The semantics of finalization is determined
+that it cannot be changed. The semantics of validation is determined
 by the particular data manager that is used. 
 
 A data manager works very much like a
@@ -302,7 +302,7 @@ the core of a programming language.
 # this function runs a state machine, by reading events from an input stream
 def run_state_machine(sm)
   current = sm.start   # access the start state of the state machine
-  puts current.name        # print the current state
+  puts current        # print the current state
   while gets               # read a line of input and check for end of file
     input = $_.strip   # capture the input line
     current.out.each do |trans|   # iterate over each outgoing transitions
@@ -439,33 +439,25 @@ there is one basic schema that is used in the implementation of
 section we identify the \textit{features} used in the Schema Schema.
 
 \begin{figure}
-\begin{lstlisting}
-primitive str
-primitive int
-primitive bool
-primitive real
-
+\begin{lstlisting}[language=Schema]
 class Schema
-  !types: Type*
-  classes: Class* = "@types.select(&:Class?)"
-  primitives: Primitive* = "@types.select(&:Primitive?)"
+! types: Type*
 
 class Type
-  #name: str
+# name: str
   schema: Schema / Schema.types
 
 class Primitive < Type
   
 class Class < Type
   supers: Class*
-  subtypes: Class* / Class.supers
-  !defined_fields: Field*
-  fields: Field* = "@all_fields.select {|f| !f.computed}"
-  all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
+  subclasses: Class* / Class.supers
+! defined_fields: Field*
+  fields: Field* = (supers.flat_map(&:fields) + defined_fields)
   
 class Field
-  #name: str
-  #owner: Class / Class.defined_fields
+# name: str
+  owner: Class / Class.defined_fields
   type: Type
   optional: bool
   many: bool
@@ -474,22 +466,22 @@ class Field
   computed: str?
   traversal: bool
 \end{lstlisting}
-\caption{Definition and use of a simple data manager in Ruby}
-\label{sdm}
+\caption{The Schema of Schemas}
+\label{schema_schema}
 \end{figure}
 
-\subsection{Collections}
+Collections
 
-\subsubsection{Bags and Sets}
-\subsubsection{Keys}
+Keys, Bags and Sets, Order
 
-\subsection{Computed Attributes}
+Computed Attributes
 
-\subsection{Invariants}
+Spanning Trees
 
-\subsection{Constraints}
+Invariants
 
-\subsection{Spanning Trees}
+Constraints
+
 
 \subsection{Modularity}
 
@@ -508,13 +500,96 @@ the \textit{factory} that creates the structure is parameterized by a
 schema, which the factory uses to check the legality of operations
 on the objects it creates.
 
+\begin{figure}[t]
+\begin{lstlisting}
+class Factory
+  def initialize(schema)
+    @schema = schema
+  end
+
+  # factory.Class(args) creates an instance of Class initialized with arguments  
+  def method_missing(name, *args)
+    klass = @schema.classes[name.to_s]
+    raise "Unknown class '#{name}'" unless klass
+    obj = CheckedObject.new(klass, self)
+    klass.fields.each_with_index do |field, n|
+      if n < args.length  # if there is an initializer
+        if field.many     # add items for many-valued fields
+          args[n].each { |x| obj[field.name] << x }
+        else              
+          obj[field.name] = args[n]  # else initialize the field
+        end
+      elsif !field.key && !field.optional && field.type.Primitive?
+        obj[field.name] = field.type.default   # initialize required primitive fields
+      end
+    end
+    raise "too many initializers in #{name}(#{args})" if n < args.length
+    return obj # return the new object
+  end
+end
+\end{lstlisting}
+\caption{Data manager for any schema}
+\label{sm_run}
+\end{figure}
+
+
+\begin{figure}[t]
+\begin{lstlisting}
+class CheckedObject 
+  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
+    @schema_class = schema_class
+    @values = {}
+    schema_class.fields.each do |field|
+      continue if !field.many
+      if (key = ClassKey(field.type))
+        @values[field.name] = ManyIndexedField.new(key.name, self, field)
+      else
+        @values[field.name] = ManyField.new(self, field)
+      end
+    end
+  end
+
+  def method_missing(m, *args)
+    (m =~ /(.*)=/) ? (self[$1] = args[0]) : self[m.to_s]
+  end
+  
+  def [](name)
+    if name[-1] == "?"
+      name = name[0..-2]
+      return Subclass?(@schema_class, @schema_class.schema.types[name])
+    end
+    field = @schema_class.fields[name]; 
+    raise "Accessing non-existant field '#{name}'" unless field
+    return field.computed ? instance_eval(field.computed) : @values[name]
+  end
+
+  def []=(name, new)
+    field = @schema_class.fields[name]
+    raise "Assign to invalid field '#{name}'" unless field
+    raise "Can't assign field '#{name}'" if field.computed || field.many
+    raise "Can't clear required field '#{name}'" if new.nil? && !field.optional
+    check_type field.type, new
+    old = @values[name]
+    return new if old == new
+    @values[name] = new
+    notify_update(field, old, new)
+    return new
+  end
+\end{lstlisting}
+\caption{Checked object implements dynamic object conforming to schema class}
+\label{sm_run}
+\end{figure}
+
+\subsection{Graph Ownership}
+
 The programming model is based on cyclic graphs.
 Graphs are kept distinct from each other. That is,
 each graph is considered a self-contained
 artifact, without links or pointers to other graphs.
 
-A natural way to create such graphs is with 
-imperative effects.
+\subsection{Dynamic Updates}
+
+\subsection{Listeners}
 
 \subsection{Instance Modification}
 
@@ -617,6 +692,9 @@ case distinction.
 
 
 \section{Related Work}
+
+Talk about the new F\# feature of dynamic type instantiation (is it in C\# too?)
+
 \label{relatedwork}
 
 Managed Data is based on traditional 
@@ -672,45 +750,3 @@ Dave Clarke, Michiel Helvensteijn, Ina Schaefer. Abstract delta modeling. GPCE'1
 
 \end{document}  
 
-
-
-\begin{verbatim}
-schema Geometry
-
-class Shape
-
-class Point < Shape
-  x: int
-  y: int
-
-class Rectangle < Shape
-  upper_left: Point
-  lower_right: Point
-
-class Circle < Shape
-  center: Point
-  radius: int
-
-class Polygon < Shape
-  points: Point*
-  
-class Composite < Shape
-  items: Shape*
-\end{verbatim}
-
-It says that the class \C|Point| has fields \C|x| and \C|y|.
---------
-This example converts schemas into constructor grammars
-\begin{verbatim}
-grammar NAME:sym
-   CLASSES:
-     rule NAME:sym = 
-        (SUBTYPES: { NAME:sym "|") "|" @"!SUBTYPES.empty?")?
-         [NAME:sym] NAME:str "{" 
-            FIELDS: { (NAME:str ":" (NAME:sym): (
-                 "[" { TYPE.NAME:sym^ "," } "]"   @"MANY=true"
-               | TYPE.NAME:sym^ ?                  @"OPTIONAL=true"
-               | TYPE.NAME:sym^
-               )) ";" }
-             "}"
-\end{verbatim}

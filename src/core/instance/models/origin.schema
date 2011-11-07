@@ -3,7 +3,7 @@ primitive \int
 primitive \str
 
 class Value
-  !origin: Location?
+! origin: Location?
 end
 
 class Location

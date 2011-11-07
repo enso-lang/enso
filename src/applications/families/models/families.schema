@@ -5,11 +5,11 @@ primitive str
 // from: http://www.eclipse.org/m2m/atl/doc/ATLUseCase_Families2Persons.pdf
 
 class Family
-  #last_name: str
-  !father: Member / Member.family_father
-  !mother: Member / Member.family_mother
-  !sons: Member* / Member.family_son
-  !daughters: Member* / Member.family_daughter
+# last_name: str
+! father: Member / Member.family_father
+! mother: Member / Member.family_mother
+! sons: Member* / Member.family_son
+! daughters: Member* / Member.family_daughter
 end
 
 class Member

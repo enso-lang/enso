@@ -2,42 +2,42 @@
 primitive \str
 
 class Document
-  !defs: Def*
+! defs: Def*
 end
 
 class Def
-  #name: str
+# name: str
 end
 
 class Device < Def
   super: str?
-  !elements: Def*
+! elements: Def*
 end
 
 class Context < Def
-  !type: Type
-  !indices: Variable*
-  !elements: Def*
+! type: Type
+! indices: Variable*
+! elements: Def*
 end
 
 class Controller < Def
-  !elements: Ref*
+! elements: Ref*
 end
 
 class ActionImpl < Def
 end
 
 class Action < Def
-  !actions: ActionDecl+
+! actions: ActionDecl+
 end
 
 class ActionDecl
-  #name: str
-  !variables: Variable*
+# name: str
+! variables: Variable*
 end
 
 class Struct < Def
-  !variables: Variable*
+! variables: Variable*
 end
 
 class Enum < Def
@@ -45,12 +45,12 @@ class Enum < Def
 end
 
 class Source < Def
-  !type: Type
-  !indices: Variable*
+! type: Type
+! indices: Variable*
 end
 
 class Variable < Def
-  !type: Type
+! type: Type
 end
 
 class Ref
@@ -82,6 +82,6 @@ class Class < Type
 end
 
 class Array < Type
-  !type: Type
+! type: Type
 end
 

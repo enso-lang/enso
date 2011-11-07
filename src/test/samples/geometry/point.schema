@@ -3,19 +3,19 @@ primitive str
 primitive bool
 
 class Canvas
-  !drawings : Drawing*
+! drawings : Drawing*
 end
 
 class Drawing
-  # name : str
-  !shapes : Shape *
+#  name : str
+! shapes : Shape *
 end
 
 class Shape
 end
 
 class Line < Shape
-  !pts : Point *
+! pts : Point *
   is_straight : bool = "@pts.length <= 2"
 end
 

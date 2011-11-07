@@ -4,7 +4,7 @@ primitive \int
 primitive \bool
 
 class Web
-  !toplevels: Toplevel*
+! toplevels: Toplevel*
 end
 
 class Toplevel
@@ -12,82 +12,82 @@ end
 
 
 class Abstraction
-  !formals: Formal*
-  !tail: Tail?
+! formals: Formal*
+! tail: Tail?
 end
 
 class Def < Toplevel, Abstraction
-  #name: str
-  !body: Stat
+# name: str
+! body: Stat
 end
 
 class Import < Toplevel
-  #module: str
+# module: str
 end
 
 class Stat
 end
 
 class Do < Stat
-  !call: Exp
-  !cond: Exp?
+! call: Exp
+! cond: Exp?
 end
 
 
 class For < Stat
   var: str
-  !iter: Exp
-  !body: Stat
+! iter: Exp
+! body: Stat
   index: str?
 end
 
 class If < Stat
-  !cond: Exp
-  !body: Stat
-  !else: Stat?
+! cond: Exp
+! body: Stat
+! else: Stat?
 end
 
 class Switch < Stat
-  !exp: Exp
-  !cases: Case*
-  !default: Stat?
+! exp: Exp
+! cases: Case*
+! default: Stat?
 end
 
 class Case
   name: str
-  !body: Stat
+! body: Stat
 end
 
 
 class Let < Stat
-  !decls:Assign*
-  !body:Stat
+! decls:Assign*
+! body:Stat
 end
 
 class Call < Stat, Exp
-  !exp: Exp
-  !args: Exp*
-  !block: Stat?
+! exp: Exp
+! args: Exp*
+! block: Stat?
 end
 
 class Assign
   name: str
-  !exp: Exp
+! exp: Exp
 end
 
 class Element < Stat
   tag: str
-  !attrs: Attr*
-  !body: Stat*
+! attrs: Attr*
+! body: Stat*
 end
 
 class Attr 
   name: str
-  !exp: Exp
+! exp: Exp
 end
 
 class Block < Stat
-  !stats: Stat*
+! stats: Stat*
 end
 
 
@@ -96,12 +96,12 @@ class Text < Stat
 end
 
 class Output < Stat
-  !exp: Exp
+! exp: Exp
 end
 
 class Formal 
   name: str
-  !cons: Cons?
+! cons: Cons?
 end
 
 class Cons < Abstraction
@@ -116,7 +116,7 @@ class Exp
 end
 
 class Str < Exp
-  !value: str
+! value: str
 end
 
 class Int < Exp
@@ -132,36 +132,36 @@ class All < Exp
 end
 
 class Field < Exp
-  !exp: Exp
+! exp: Exp
   name: str
 end
 
 class Subscript < Exp
-  !obj: Exp
-  !exp: Exp
+! obj: Exp
+! exp: Exp
 end
 
 class Address < Exp
-  !exp: Exp
+! exp: Exp
 end
 
 class Concat < Exp
-  !lhs: Exp
-  !rhs: Exp
+! lhs: Exp
+! rhs: Exp
 end
 
 class Equal < Exp
-  !lhs: Exp
-  !rhs: Exp
+! lhs: Exp
+! rhs: Exp
 end
 
 class In < Exp
-  !lhs: Exp
-  !rhs: Exp
+! lhs: Exp
+! rhs: Exp
 end
 
 class List < Exp
-  !elements: Exp*
+! elements: Exp*
 end
 
 class New < Exp

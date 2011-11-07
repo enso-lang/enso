@@ -4,11 +4,11 @@ primitive int
 
 class Graph
   root: Node
-  !nodes: Node*
+! nodes: Node*
 end
 
 class Node
-  #name: str
+# name: str
   value: int
   in: Node* / Node.out
   out: Node* / Node.in

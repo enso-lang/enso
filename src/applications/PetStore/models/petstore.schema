@@ -5,17 +5,17 @@ primitive str
 primitive bool
 
 class Catalog
-  !categories: Category*
-  !products: Product*
-  !tags: Tag*
+! categories: Category*
+! products: Product*
+! tags: Tag*
 end
 
 class Category
-  #name: str
+# name: str
   description: str
   imageURL: str
   coords: str
-  !products: Product / Product.category
+! products: Product / Product.category
 end
 
 class Product
@@ -23,7 +23,7 @@ class Product
   description: str
   imageURL: str
   category: Category / Category.products
-  !items: Item* / Item.product
+! items: Item* / Item.product
 end
 
 
@@ -33,14 +33,14 @@ class Item
   imageURL: str
   imageThumbURL: str
   price: real
-  !address: Address
-  !contactInfo: SellerContactInfo
+! address: Address
+! contactInfo: SellerContactInfo
   totalScore: int
   numberOfVotes: int
   disabled: int
   tags: Tag* / Tag.items
   product: Product / Product.items
-  !ratings: Rating* / Rating.item
+! ratings: Rating* / Rating.item
 end
 
 

@@ -10,6 +10,7 @@ def run_state_machine(sm)
     current.out.each do |trans|
       if trans.event == input
         current = trans.to
+        break
       end
     end
     puts "#{current.name}"

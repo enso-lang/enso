@@ -3,12 +3,12 @@ primitive \str
 primitive \int
 
 class PetriNet
-  !nodes: Node*
-  !arcs: Arc*
+! nodes: Node*
+! arcs: Arc*
 end
 
 class Node
-  #name: str
+# name: str
 end
 
 class Place < Node

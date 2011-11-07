@@ -1,7 +1,7 @@
 
 
 class Program
-  !body:Stm
+! body:Stm
 end
 
 class Stm
@@ -10,23 +10,23 @@ end
 
 class Assign < Stm
   var: str
-  !exp: Exp
+! exp: Exp
 end
 
 class Flow < Stm
-  !cond: Exp
-  !body: Stm*
+! cond: Exp
+! body: Stm*
 end
 
 class While < Flow
 end
 
 class If < Flow
-  !else: Stm
+! else: Stm
 end
 
 class Return < Stm
-  !ret: Exp
+! ret: Exp
 end
 
 class Empty < Stm

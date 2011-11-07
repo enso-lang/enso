@@ -1,6 +1,6 @@
 start Machine
 
-Machine ::= [StateMachine] "start" \start:State^ states:State*
+Machine ::= [Machine] "start" \start:State^ states:State*
 
 State ::= [State] "state" name:sym out:Transition*
 

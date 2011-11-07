@@ -12,12 +12,12 @@
 
 class Part 
   constraints: SizeConstraints?
-  !styles: Style*
+! styles: Style*
 end
     
 class Container < Part
   direction: int
-  !items: Part*
+! items: Part*
 end
 
 class Text < Part
@@ -25,7 +25,7 @@ class Text < Part
 end
 
 class Shape < Part
-  !content: Part?
+! content: Part?
   kind: str
   location: Point?  // only used for graph shapes
   connectors: ConnectorEnd* 
@@ -33,14 +33,14 @@ end
 
 class Connector < Part
   label: Text?
-  !ends: ConnectorEnd*
+! ends: ConnectorEnd*
   path: Point*
 end
 
 class ConnectorEnd
   arrow: str?
-  !label: Text?
-  !other_label: Text?
+! label: Text?
+! other_label: Text?
   to: Shape / Shape.connectors
   attach: EdgePos
   minOut: int
@@ -61,11 +61,11 @@ class Style end
 class Pen < Style
   width: int
   style: str
-  !color: Color
+! color: Color
 end
 
 class Brush < Style
-  !color: Color
+! color: Color
 end
 
 class Font < Style
@@ -73,7 +73,7 @@ class Font < Style
   size: int
   style: str
   weight: int  // 400 is normal
-  !color: Color
+! color: Color
 end
 
 class Color

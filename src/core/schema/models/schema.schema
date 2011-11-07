@@ -4,13 +4,13 @@ primitive bool
 primitive real
 
 class Schema
-  !types: Type*
+! types: Type*
   classes: Class* = "@types.select(&:Class?)"
   primitives: Primitive* = "@types.select(&:Primitive?)"
 end
 
 class Type
-  #name: str
+# name: str
   schema: Schema / Schema.types
 end
 
@@ -20,14 +20,14 @@ end
 class Class < Type
   supers: Class*
   subclasses: Class* / Class.supers
-  !defined_fields: Field*
+! defined_fields: Field*
   fields: Field* = "@all_fields.select {|f| !f.computed}"
   all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
 end
   
 class Field
-  #name: str
-  #owner: Class / Class.defined_fields
+# name: str
+  owner: Class / Class.defined_fields
   type: Type
   optional: bool
   many: bool

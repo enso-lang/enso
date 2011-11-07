@@ -10,5 +10,3 @@ state Closed
 
 state Locked
   on unlock go Closed
-
-  

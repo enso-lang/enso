@@ -211,7 +211,7 @@ class StencilFrame < DiagramFrame
       construct this.body, nenv, container do |shape|
         if this.label
           action = address.is_traversal ? "Delete" : "Remove"
-	        add_action shape, "#{action} #{this.label} '#{v.name}'" do    # TODO: delete versus remove???
+	        add_action shape, "#{action} #{this.label}" do    # TODO: delete versus remove???
 	          if address.is_traversal
   	          v.delete!
   	        else

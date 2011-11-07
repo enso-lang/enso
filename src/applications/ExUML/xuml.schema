@@ -7,7 +7,7 @@ ss = Load('schema.schema')
 
 connection = Load_text 'schema', Factory.new(ss), <<-PART, true
   class Class
-    !machine: StateMachine?
+  ! machine: StateMachine?
   end
   class StateMachine
     klass: Class / Class.machine
