@@ -431,13 +431,6 @@ of the right type, and raises an error if not. It then updates the
 \lstinline{@values} map with the new value. For regular field access,
 it returns the current value for the named field in \lstinline{@values}.
 
-\section{Schemas}
-
-While there are many kinds of schemas and data managers in \Enso,
-there is one basic schema that is used in the implementation of
-\Enso\ itself. This schema is called the Schema Schema. In this
-section we identify the \textit{features} used in the Schema Schema.
-
 \begin{figure}
 \begin{lstlisting}[language=Schema]
 class Schema
@@ -453,7 +446,7 @@ class Class < Type
   supers: Class*
   subclasses: Class* / Class.supers
 ! defined_fields: Field*
-  fields: Field* = (supers.flat_map(&:fields) + defined_fields)
+  fields: Field* = "supers.flat_map(&:fields) + defined_fields"
   
 class Field
 # name: str
@@ -465,25 +458,72 @@ class Field
   inverse: Field? / Field.inverse 
   computed: str?
   traversal: bool
+
+primitives str, int, bool, real
 \end{lstlisting}
 \caption{The Schema of Schemas}
 \label{schema_schema}
 \end{figure}
 
-Collections
+\section{Schemas}
 
-Keys, Bags and Sets, Order
+While there are many kinds of schemas and data managers in \Enso,
+there is one basic schema, the Schema Schema, that is used in the implementation of
+\Enso\ itself. The goal of a Schema Schema is to be rich enough to describe useful
+data and be self-describing w
+hile still small enough to act as a kernel language of schemas.
+The Schema Schema we have designed for \Enso\ is certainly not as
+minimal as possible, but it is still simpler than UML MOF, for
+example.
 
-Computed Attributes
+Figure~\ref{schema_schema} defines the Schema Schema in \Enso. 
+A \lstinline{Schema} has a collection of \lstinline{types}. 
+The \lstinline{!} annotation indicates that \lstinline{types}
+is a \textit{traversal} field. Traversal fields defined a spanning tree
+in the graph, which can be used to visit every node in the graph efficiently.
+Traversal fields are also used for naming.
+A \lstinline{Type} has a \lstinline{name} and a reference
+to the \lstinline{schema} that it belongs to (defined as the inverse of the
+\lstinline{Schema.types} field, as discussed in Section~\ref{inverse}).
+The \lstinline[language=Schema]{#} annotation indicates that the \lstinline{name} field
+is a \textit{key} field within any collection of types. This ensures that
+no two types have the same name.
 
-Spanning Trees
+The two subclasses of \lstinline{Type} are 
+primitive types and class definitions. A primitive has
+no additional fields. A class has a set of super classes and
+subclasses. The \lstinline{subclass} field is the inverse of the \lstinline{supers} field.
+A class has a set of \lstinline{defined fields}, which are the fields that
+are directly defined in the class. Classes also have a computed field, \lstinline{fields},
+which implements inheritance. The \lstinline{fields} of a class are computed as
+the sum of the fields of all superclasses, combined with the defined fields of the class.
+The expression that implements a computed field is currently quoted Ruby code,
+although future versions of \Enso\ will have a DSL for computed field expressions.
 
-Invariants
+A \lstinline{Field} has a \lstinline{name} and a \lstinline{type} and an \lstinline{owner}.
+The \lstinline{owner} is the class that defines the field (i.e. the inverse of \lstinline{Class.defined_fields}).
+The \lstinline{type} is the \lstinline{Type} of the value of the field.
+Boolean flags are used to identify the field as \textit{optional}, \textit{many valued},
+\textit{key}, and \textit{traversal}. An optional \lstinline{computed} field defines the
+expression for computing the field. A field also has an optional \lstinline{inverse}, 
+which, interestingly enough is its own inverse.
+
+Some invariants (why aren't these in the schema?):
+\begin{lstlisting}
+  !f.inverse.nil? => f.inverse.inverse = f
+  !f.inverse.nil? => f.inverse.owner = f.type
+  !f.inverse.nil? => f.inverse.type = f.owner
+  f.key => !f.many && !f.optional && f.type.Primitive?
+\end{lstlisting}
+  
+The \textit{traversal} fields in a schema have a special role. <MORE>
 
 Constraints
 
 
 \subsection{Modularity}
+
+talk about merging schemas!!
 
 \section{Data Managers}
 
@@ -586,6 +626,10 @@ The programming model is based on cyclic graphs.
 Graphs are kept distinct from each other. That is,
 each graph is considered a self-contained
 artifact, without links or pointers to other graphs.
+
+\subsection{Maintaining Inverses}
+
+\subsection{Preserving Order}
 
 \subsection{Dynamic Updates}
 
