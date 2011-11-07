@@ -5,8 +5,11 @@ primitive str
 primitive bool
 
 class Catalog
+  // todo
+  !customers: Customer*
   !categories: Category*
   !products: Product*
+  !ziplocations: ZipLocation*
   !tags: Tag*
 end
 
@@ -15,7 +18,7 @@ class Category
   description: str
   imageURL: str
   coords: str
-  !products: Product / Product.category
+  products: Product / Product.category
 end
 
 class Product
@@ -81,15 +84,3 @@ class ZipLocation
   state: str
 end
 
-class FileUploadResponse
-  item: Item
-  product: Product
-  message: str
-  status: str
-  duration: str
-  durationString: str
-  startDate: str
-  endDate: str
-  uploadSize: str
-  thumbnail: str
-end
