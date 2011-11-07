@@ -1,15 +1,12 @@
 
 start Opened
-current Locked
 
 state Opened
-  on "close" go Closed
+  on close go Closed
   
 state Closed
-  on "open" go Opened
-  on "lock" go Locked
+  on open go Opened
+  on lock go Locked
 
 state Locked
-  on "unlock" go Closed
-
-  
+  on unlock go Closed

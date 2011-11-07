@@ -1,0 +1,26 @@
+#rss-bar {
+    margin: 0 auto 0px;
+}
+
+#rss-bar table td#rss-channel {
+    background-repeat: no-repeat;
+    background-position: top left;
+    font-size: 14px;
+    font-weight: bold;
+    vertical-align: top;
+    text-align: center;
+    width: 254px;
+}
+
+#rss-bar table td#rss-item {
+    background-repeat: no-repeat;
+    font-size: 14px;
+    width: 534px;
+    text-align: left;
+}
+
+#rss-bar table a {
+    color: white;
+    text-decoration: none;
+}
+#rss-bar table a:hover { color: #ffff00;}

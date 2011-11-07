@@ -1,0 +1,35 @@
+
+import personalization;
+import utils;
+
+def site(title, yield[]) {
+  <html>
+     <head >
+       <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+       <title>$title;</title>
+       <link href="/static/css/site.css" rel="stylesheet" type="text/css" />
+     </head>
+  <body>
+    <a id="top" href="#begin-main-content" class="skip-nav">Skip Navigation</a>
+    <div id="pg">
+      <div id="hd">
+        <div id="logo"><a href="" title="Home"><img src="/static/images/logo.png" /></a></div>
+        pers_summary();
+        <div id="main-nav">
+          <ul>
+            <li class="first">navigate("Home", home());</li>
+            <li>navigate("About", about());</li>
+          </ul>
+        </div>
+       </div>
+       <div id="bd"><div id="sd-nav">category_list();</div>
+       <div id="content">
+          <a href="#begin-main-content" title="begin main content" id="begin-main-content"></a>
+          yield();
+       </div>
+     </div>
+     <div id="ft"><p>enso(); "StoreFront"</p></div>
+    </div>
+  </body>
+  </html>
+}

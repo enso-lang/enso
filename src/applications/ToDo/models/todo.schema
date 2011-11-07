@@ -3,7 +3,7 @@ primitive \str
 primitive \bool
 
 class Todos
-  !todos: Todo*
+! todos: Todo*
 end
 
 class Todo

@@ -6,11 +6,11 @@ require 'core/schema/tools/union'
 ss = Load('schema.schema')
 
 connection = Load_text 'schema', Factory.new(ss), <<-PART, true
-  class Klass
-    !machine: StateMachine?
+  class Class
+  ! machine: StateMachine?
   end
   class StateMachine
-    klass: Klass / Klass.machine
+    klass: Class / Class.machine
   end
 PART
 

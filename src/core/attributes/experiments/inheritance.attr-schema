@@ -7,12 +7,12 @@ class Schema
   		       	      	       classes->remove_inheritance]
 end
 
-class Klass < Type
-  @remove_inheritance: Klass =
+class Class < Type
+  @remove_inheritance: Class =
       self[supers: ; defined_fields: defined_fields, supers->parent_field,
       		   supers->delegates]
 // this does not work: it tries to access stubs...
-//     Klass {name: name;
+//     Class {name: name;
 //            supers: ;
 //            defined_fields: defined_fields,
 //	       supers->parent_field }

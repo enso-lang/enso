@@ -1,45 +1,45 @@
 
 class Stencil
   root: str
-  !body: Part
+! body: Part
 end
   
 class Part 
-  !props: Assign*
+! props: Assign*
 end
 
 // TEMPLATE STUFF
 
 class Alt < Part 
-  !alts: Part+
+! alts: Part+
 end 
 
 class For < Part
   var: str
   label: str?
-  !iter: Expression
-  !body: Part
+! iter: Expression
+! body: Part
   index: str?
 end
 
 class Test < Part
-  !condition: Expression
-  !body: Part
+! condition: Expression
+! body: Part
 end
 
 class Label < Part
-  !label: Expression
-  !body:  Part
+! label: Expression
+! body:  Part
 end
 
 class Let < Part
-  !decls: Assign* 
-  !body:  Part
+! decls: Assign* 
+! body:  Part
 end
 
 class Assign
-  !loc: Expression
-  !exp: Expression
+! loc: Expression
+! exp: Expression
 end
 
 class Expression end
@@ -50,16 +50,16 @@ end
 
 class Prim < Expression
   op: str
-  !args: Expression*
+! args: Expression*
 end
 
 class InstanceOf < Expression
-  !base: Expression
+! base: Expression
   class_name: str
 end
 
 class Field < Expression
-  !base: Expression
+! base: Expression
   field: str
 end
 
@@ -77,28 +77,28 @@ end
 
 class Container < Part
   direction: int // 1=vert, 2=hoiz, 3=graph
-  !items: Part*
+! items: Part*
 end
 
 class Text < Part
-  !string: Expression
+! string: Expression
 end
 
 class Shape < Part
   kind: str
-  !content: Part?
+! content: Part?
 end
 
 class Connector < Part
-  !label: Expression?
+! label: Expression?
   ends: ConnectorEnd*
 end
 
 class ConnectorEnd
   arrow: str?
-  !label: Expression?
-  !other_label: Expression?
-  !part: Expression
+! label: Expression?
+! other_label: Expression?
+! part: Expression
 end
 
  

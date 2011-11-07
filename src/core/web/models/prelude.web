@@ -36,6 +36,16 @@ def navigate(title, page) {
   <a href=page>$title</a>
 }
 
+def navigate_tip(title, tip, page) {
+  <a href=page title=tip>$title</a>
+}
+
+def img_navigate(img, title, page) {
+  <a href=page title=title><img src=img /></a>
+}
+
+
+
 def textedit(data) {
   let
     key = address(data)
@@ -69,7 +79,7 @@ def edit_field(owner, field, data) {
        else 
          textedit(data);
     }
-    case Klass: {
+    case Class: {
        if (field->many)
          select(data, owner[field->name]);
        else
@@ -133,6 +143,10 @@ def submit(text, url) {
 
 def delete(x, url) {
   button("Delete", delete_action(x, url));
+}
+
+def add(txt, x, to, url) {
+  button(txt, add_action(x, to, url));
 }
 
 def delete_checkbox(x) {

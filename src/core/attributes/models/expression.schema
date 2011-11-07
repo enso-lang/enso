@@ -11,7 +11,7 @@ class Variable < Expression
 end
 
 class Access < Expression
-  !obj: Expression
+! obj: Expression
 end
 
 class Dot < Access
@@ -21,12 +21,12 @@ end
 
 class Cons < Expression
   type: str
-  !contents: Assign*
+! contents: Assign*
 end
 
 class Assign
   name: str
-  !expressions: Expression*
+! expressions: Expression*
 end
 
 class Value < Expression
@@ -54,53 +54,53 @@ end
 
 
 class Unary < Operator
-  !arg: Expression
+! arg: Expression
 end
 
 class Binary < Operator
-  !lhs: Expression
-  !rhs: Expression
+! lhs: Expression
+! rhs: Expression
 end
 
 class Cond < Expression
-  !conds: Expression+
-  !body: Expression+
+! conds: Expression+
+! body: Expression+
 end
 
 class For < Cond
 end
 
 class IfThen < Cond
-  !elsifs: ElsIf*
-  !else: Else?
+! elsifs: ElsIf*
+! else: Else?
 end
 
 class ElsIf < Cond
 end
 
 class Else 
-  !body: Expression+
+! body: Expression+
 end
 
 class Call < Expression
   name: str
-  !args: Expression*
+! args: Expression*
 end
 
 class Splat < Expression
-  !arg: Expression
+! arg: Expression
 end
 
 class Lookup < Access
-  !key: Expression
+! key: Expression
 end
 
 class Content
 end
 
 class Update < Expression
-  !obj: Expression
-  !contents: Content+
+! obj: Expression
+! contents: Content+
 end
 
 class Condition
@@ -108,16 +108,16 @@ end
 
 class Generator < Condition
   var: str
-  !expression: Expression
+! expression: Expression
 end
 
 class Let < Expression
-  !bindings: Binding+
-  !body: Expression+
+! bindings: Binding+
+! body: Expression+
 end
 
 class Binding
   name: str
   many: bool
-  !expression: Expression
+! expression: Expression
 end

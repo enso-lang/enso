@@ -1,0 +1,43 @@
+
+def _useIt
+  page("The title") {
+    header() {
+      "ajshaksd"
+    }
+    body() {
+      "asdasd"
+    }
+    footer() {
+      "sdasas"
+    }
+  }
+end
+
+
+def page(title, header: header(yield[]), body: body(yield[]), footer: footer(yield[])) {
+  doctype html;
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8"></meta>
+  <title>$title</title>
+  <link rel="stylesheet" href="css/style.css"></link>
+  <script src="js/libs/modernizr-2.0.6.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <header>
+      header->yield();
+    </header>
+    <div id="main" role="main">
+      body();
+    </div>
+    <footer>
+      footer->yield();
+    </footer>
+  </div> 
+  <script src="js/libs/jquery-1.6.2.min.js"></script>
+  <script src="js/plugins.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>
+}

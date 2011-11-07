@@ -1,26 +1,26 @@
 	primitive \str
 class Domain
-  ! sources: Source *
-  ! rules: Rule *
+!  sources: Source *
+!  rules: Rule *
 end
 
 class Source
-  # name: str
-  ! basedir: Node ?
+#  name: str
+!  basedir: Node ?
   path: str
 end
 class Node
-  # name: str
+#  name: str
 end
 class File < Node
   checksum: str
 end
 class Dir < Node
-  ! nodes: Node *
+!  nodes: Node *
 end
 
 class Rule
-  # name: str
+#  name: str
 end
 class SyncRule < Rule
   s1: Source

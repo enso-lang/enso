@@ -4,18 +4,18 @@ primitive \bool
 primitive \int
 
 class Ledger
-  !accounts: Account*
-  !transactions: Transaction*
+! accounts: Account*
+! transactions: Transaction*
 end
 
 class Account
-  #name: str
+# name: str
   asset: bool
 end
 
 class Transaction
-  #name: str
-  !transfers: Transfer*
+# name: str
+! transfers: Transfer*
   proration: int
 end
 

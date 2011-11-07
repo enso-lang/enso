@@ -2,7 +2,7 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 
-def StateMachine_Interp(sm)
+def run_state_machine(sm)
   current = sm.start
   puts "#{current.name}"
   while gets
@@ -10,14 +10,10 @@ def StateMachine_Interp(sm)
     current.out.each do |trans|
       if trans.event == input
         current = trans.to
+        break
       end
     end
     puts "#{current.name}"
   end
 end
-
-sm = Loader.load("door.state_machine")
-Print.print(sm)
-
-StateMachine_Interp(sm)
 

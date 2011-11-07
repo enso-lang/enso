@@ -2,14 +2,14 @@ start Schema
 
 Schema ::= [Schema] types:TypeDef* 
 
-TypeDef ::= Primitive | Klass
+TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
 
-Klass ::= [Klass] "class" name:sym ClassAnnot defined_fields:Field* "end"
+Class ::= [Class] "class" name:sym ClassAnnot defined_fields:Field* "end"
 ClassAnnot ::= Parent?
 Parent ::= "<" supers:{Super ","}+
-Super ::= Klass^
+Super ::= Class^
 
 Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot?
 Key ::= "#" @"@key = true"

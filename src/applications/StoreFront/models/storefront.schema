@@ -1,0 +1,312 @@
+primitive int
+primitive str
+primitive datetime
+primitive bool
+
+class Address
+  user_name: str
+  first_name: str
+  last_name: str
+  email: str
+  street1: str
+  street2: str
+  city: str
+  state_or_province: str
+  zip: str
+  country: str
+  longitude: str
+  latitude: str
+  is_default: bool
+  full_name: str = "@first_name + ' ' + @last_name"
+end  
+
+class Category
+  #name: str
+  parent: Category?
+  !sub_categories: Category* / Category.parent
+  !products: Product
+  image: CategoryImage
+  is_default: bool
+end
+
+class Coupon
+end
+
+class AmountOffItemCoupon < Coupon
+  products: Product*
+  amount_off: int 
+end
+
+class AmountOffOrderCoupon < Coupon
+  amount_off: int
+end
+
+class Incentive
+  code: str
+  coupon: Coupon
+  expires_on: str // todo: data-time
+  is_expired: bool
+  minimum_items: int
+  minimum_purchace: int
+  must_have_products: Product* // was string[]
+  // todo: needs more validation expiration computation etc.
+end
+
+class PercentOffItemCoupon < Coupon
+  products: Product*
+  percent_off: int
+end
+
+class PercentOffOrderCoupon < Coupon
+  percent_off: int
+end
+
+class Credicard < PaymentMethod
+  card_type: str
+  name: str
+  account_number: str
+  verification_code: str
+  expiration_year: int
+  expiration_month: int
+  // todo: validation, masking
+end
+
+class Image
+  thumbnail_photo: str
+  full_size_phote: str
+end
+
+class CategoryImage < Image
+  category: Category / Category.image
+end
+
+class ProductImage < Image
+  product: Product / Product.image
+end
+
+class InventoryRecord 
+  product: Product
+  date_entered: str // todo DateTime
+  increment: int
+  notes: str
+end
+
+
+// public enum MailerStatus {
+//         Queued,
+//         Sent,
+//         Retrying,
+//         Failed
+//     }
+
+//     public enum MailerType {
+//         CustomerOrderReceived=1,
+//         CustomerPaymentAuthFailed=2,
+//         CustomerOrderShipped=3,
+//         CustomerOrderCancelled=4,
+//         AdminOrderReceived=5,
+//         CustomerAddressValidationFailed=6,
+//         InventoryCheckFailed=7,
+//         AdminProcessingError=8
+//     }
+
+class Mailer
+  to_email_address: str
+  from_email_address: str
+  user_name: str
+  subject: str
+  body: str
+  date_created: str
+  date_last_tried: str
+  smtp_repsone: str
+  status: str // enum above
+  mail_type: str // idem.
+  is_html: bool
+end
+
+//     public enum OrderStatus
+//     {
+//         NotCheckoutOut=1,
+//         Submitted=2,
+//         Verified=3,
+//         Charged=4,
+//         Packaging=5,
+//         Shipped=6,
+//         Returned=7,
+//         Cancelled=8,
+//         Refunded=9
+//     }
+
+class Order
+  order_number: str
+  user_name: str
+  date_created: datetime
+  items: OrderItem*
+  transactions: Transaction*
+  user_language_code: str
+  status: str // enum above
+  shipping_address: Address
+  billing_address: Address
+  shipping_method: ShippingMethod
+  tax_amount: int
+  payment_method: PaymentMethod
+  date_shipped: datetime?
+  estimated_delivery: datetime?
+  tracking_number: str
+  incentives_used: Incentive
+end
+
+class OrderItem
+  product: Product
+  quantity: int
+  order: Order
+  line_item_price: int
+  line_total: int = "@quantity * @line_item_price"
+  items_weight: int = "@quantity * @product.weight_in_pounds"
+  date_added: datetime
+end 
+
+
+class PaymentMethod
+  name: str
+  account_number: str
+  expiration: datetime
+  verification_code: str
+end
+
+//     public enum InventoryStatus {
+//         InStock=1, 
+//         BackOrder=2,
+//         PreOrder=3,
+//         SpecialOrder=4,
+//         Discontinued=5,
+//         CurrentlyUnavailable=6
+//     }
+
+//     public enum DeliveryMethod
+//     {
+//         Shipped = 1,
+//         Download = 2
+//     }
+
+
+class Product
+  name: str
+  description: str
+  short_description: str
+  price: int
+  discount_percent: int
+  product_code: str
+  manufacturer: str
+  delivery_method: str // enum above
+  weight_in_pounds: int
+  is_taxable: bool
+  inventory_status: str // idem.
+  allow_back_order: bool
+  estimated_delivery: str
+  default_image_path: str = "@images.length > 0 ? @images[0].thumbnail_photo : ''"
+  discounted_price: int = "@price * (100 - @discount_percent) / 100"
+  reviews: ProductReview* / ProductReview.product
+  images: ProductImage*
+  related_products: Product*
+  cross_sells: Product*
+  descriptors: ProductDescriptor*
+  recommended: Product*
+  categories: Category* / Category.products
+  image: ProductImage
+end
+
+class ProductDescriptor
+  product: Product / Product.descriptors
+  title: str
+  body: str
+end
+
+class ProductReview
+  author: str
+  email: str
+  created_on: datetime
+  product: Product / Product.reviews
+  body: str
+end
+
+class Role
+  #name: str
+  is_admin: bool
+end
+
+class ShippingMethod
+  carrier: str
+  service_name: str
+  rate_per_pound: int
+  estimated_delivery: str
+  days_to_deliver: int
+  cost: int
+end
+
+class TaxRate
+  rate: int
+  region: str
+  country: str
+  zip: str
+end
+
+//     public enum TransactionProcessor
+//     {
+//         FakePaymentProcessor=1,
+//         PayPal=2
+//     }
+  
+class Transaction
+  #order: Order
+  amount: int
+  date_executed: datetime
+  authorization_code: str
+  notes: str
+  processor: str // enum above
+end 
+
+class User
+  user_name: str
+  first_name: str
+  last_name: str
+  email: str
+  cart: Order
+  is_anonymous: bool
+end
+    
+//     public enum UserBehavior
+//     {
+//         LoggingIn=1,
+//         LoggingOut = 2,
+//         AddItemToBasket = 3,
+//         RemoveItemFromBasket=4,
+//         CheckoutBilling=5,
+//         CheckoutShipping=6,
+//         CheckoutFinal=7,
+//         ViewOrder=8,
+//         ViewBasket=9,
+//         ViewCategory=10,
+//         ViewProduct=11
+//     }
+    
+  
+class UserEvent
+  user_name: str
+  ip: str
+  date_created: datetime
+  category: Category?
+  product: Product?
+  order: Order?
+  behavior: str // enum above
+end
+ 
+class UserProfile
+  #user_name: str
+  address_book: Address
+  last_products_viewed: Product*
+  last_categories_viewed: Category*
+  recommended: Product*
+  favorite_category: Category
+  current_order: Order
+end

@@ -4,12 +4,12 @@ primitive str
 primitive int
 
 class Graph
-  !nodes: Node*
-  !edges: Edge*
+! nodes: Node*
+! edges: Edge*
 end
 
 class Node
-  #name: str
+# name: str
   value: int?
 end
 

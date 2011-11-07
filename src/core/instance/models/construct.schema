@@ -2,7 +2,7 @@
 primitive str
 
 class Instances
-  !instances: Instance*
+! instances: Instance*
 end
 
 class Value
@@ -10,7 +10,7 @@ end
 
 class Instance < Value
   type: str
-  !contents: Content*
+! contents: Content*
 end
 
 class Prim < Value
@@ -28,7 +28,7 @@ end
 
 class Field < Content
   name: str
-  !values: Value*
+! values: Value*
 end
 
 class Code < Content

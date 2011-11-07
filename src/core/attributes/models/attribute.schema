@@ -11,9 +11,9 @@ class Expression end
 class Value end
 
 class Attribute < Field
-  !result: Expression 
-  !formals: Formal*
-  !default: Value?
+! result: Expression 
+! formals: Formal*
+! default: Value?
 end
 
 class Formal

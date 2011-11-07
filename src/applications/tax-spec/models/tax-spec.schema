@@ -5,20 +5,20 @@ primitive bool
 
 
 class Spec
-  !groups: Group*
+! groups: Group*
 end
 
 class Group
-  #name: str
-  !datums: Datum*
+# name: str
+! datums: Datum*
 end
 
 class Datum
-  #id: str
-  !type: Type
+# id: str
+! type: Type
   name: str
   description: str
-  !conditions: Condition*
+! conditions: Condition*
   explanation: str
 end
 

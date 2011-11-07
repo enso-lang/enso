@@ -161,7 +161,7 @@ class Match
     return true
   end
   
-  def eq_Klass (o1, o2)
+  def eq_Class (o1, o2)
     # define class equality as all their keys being equal
     # if this class has no keys then check that all their primitive fields are equal
 
@@ -200,7 +200,7 @@ class Match
     return true
   end
 
-  def eq_Klass_allfields (o1, o2)
+  def eq_Class_allfields (o1, o2)
     # check if two objects that are klasses are shallow-equivalent
     #ie. all fields of primitive types must contain the same result
     #and of course the primitive types match
