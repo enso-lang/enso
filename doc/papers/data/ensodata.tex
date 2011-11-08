@@ -467,6 +467,8 @@ primitives str, int, bool, real
 
 \section{Schemas}
 
+%<alex-comment: is it better to talk about a normal schema first and introduce the Schema schema later? Might be confusing here. And it is easier to argue why the Schema-schema is important and what cool things you can do with it once the big picture is obvious />
+
 While there are many kinds of schemas and data managers in \Enso,
 there is one basic schema, the Schema Schema, that is used in the implementation of
 \Enso\ itself. The goal of a Schema Schema is to be rich enough to describe useful
@@ -656,6 +658,57 @@ and locked from further changes. This is similar to a transaction.
 
 \subsection{QuadModel}
 
+%<alex
+%Quad Model
+%AKA Self-describing meta-models
+
+%-*** Not sure if it is really a 'quad' model as this paper does not 
+% introduce the notion of a grammar or any other presentation
+% model ***
+
+%0) Introduce grammar????
+%- Or just present a recursive 'stack' model?
+
+%2) WHY do we want this (the beginning)
+%- Schemas are also data
+%  - we need to describe data
+%  - we want flexibility in how data is organized
+
+(In order to ...)
+(we need ... expose data structuring ... to programmers)
+(how is this a problem in other languages that support meta-programming? eg smalltalk) 
+
+%1) WHAT is it
+%- schema are data
+%  - schema-schema
+%  - self-describing 
+%  - similar to ER diagram
+%  - explicitly specified 
+%  - and can be changed
+%= analogous to the self-conforming meta-meta-model in MDE or Class class in Smalltalk
+One of the key features of \Enso\ is that schemas are modeled as data, complete with their own "schema of schemas" which describes how all schemas are organized, including itself. The schema of schema is (similar to ER diagram, rationale for design...)
+
+Like any other data definitions, the schema schema is not hardcoded but explicitly specified, allowing it to be extended or modified. This allows the programmer to alter the data structuring mechanism in very fundamental ways. An immediate use case is to refine the schema schema for different data managers. For instance, a database manager might expect the schema to hold information about mappings between classes and tables, maximum text sizes, and primary keys, on top of the entity-relationship model. A relational database may also preclude many-to-many relationships between entities. Both the constraints and extra information can be encoded naturally by augmenting the schema schema with new attributes and invariants to Fields.
+
+<add picture of how the schema schema can be refined?>
+
+%4) More cool stuff we can do with it
+%- add more levels
+%  - eg?
+%- modify the base 
+%  - eg DB needs table name
+%  - what else?
+
+The editable and recursive nature of the schema meta-stack means that the way data is defined can be changed in very fundamental ways.
+
+%- reuse tools at meta level
+Yet another benefit of the congruence between data and schema is that the same support tools such as editors and formatters can be used both when designing schemas and specifying their data. Not only will we have one less set of tools to build, but programmers also face lower hurdles when learning /Enso/.
+
+% 3) HOW do we do it
+TODO ... Something about bootstraps
+
+
+%/alex>
 
 \begin{figure}[htbp]
 \begin{center}
@@ -777,7 +830,7 @@ Model-driven engineering (MDE) [?] is a programming paradigm based on definable 
 %- we have a 'language' approach (what does this even mean? streamlined syntax?)
 %- recursive self-definition
 %- interpreted, not generate. except this is supposed to be a data paper
-Model-driven engineering share our ultimate goal of factoring out commonality that defy traditional divisions of code modularization. However, unlike the tool-oriented implementations of MDE, \Enso\ takes a more language-oriented approach that integrates model definition and use into the programming language itself. Additionally, \Enso\ data meta-definitions can recursively described itself, and can be refined or extended to admit additional meta-levels. In comparison, MDE only allows the first level of data description to be changed.
+Model-driven engineering share our ultimate goal of factoring out commonality that defy traditional divisions of code modularization. However, unlike the tool-oriented implementations of MDE, \Enso takes a more language-oriented approach that integrates model definition and use into the programming language itself. Additionally, \Enso data meta-definitions recursively describes itself, and can be refined or extended to admit additional meta-levels. In comparison, MDE only allows the first level of data description to be changed.
 %/alex>
 
 %<alex
@@ -814,11 +867,11 @@ Dave Clarke, Michiel Helvensteijn, and Ina Schaefer. 2010. Abstract delta modeli
 
 - The entire forest/grammar/annotation-based model has been enriched by adding behavior to features [4]. 
 
-[1] Sven Apel, Christian Lengauer, Bernhard Mšller, and Christian KŠstner. An Algebraic Foundation for Automatic Feature-Based Program Synthesis. Science of Computer Programming (SCP), 75(11):1022Ð1047, November 2010.
+[1] Sven Apel, Christian Lengauer, Bernhard Mšller, and Christian KŠstner. An Algebraic Foundation for Automatic Feature-Based Program Synthesis. Science of Computer Programming (SCP), 75(11):1022?047, November 2010.
 
-[2] Sven Apel, Wolfgang Scholz, Christian Lengauer, and Christian KŠstner. Language-Independent Reference Checking in Software Product Lines. In Proceedings of the International Workshop on Feature-Oriented Software Development (FOSD), pages 65Ð71. ACM Press, October 2010.
+[2] Sven Apel, Wolfgang Scholz, Christian Lengauer, and Christian KŠstner. Language-Independent Reference Checking in Software Product Lines. In Proceedings of the International Workshop on Feature-Oriented Software Development (FOSD), pages 65?1. ACM Press, October 2010.
 
-[3] Sven Apel, Christian KŠstner, and Christian Lengauer. FeatureHouse: Language-Independent, Automated Software Composition. In Proceedings of the ACM/IEEE International Conference on Software Engineering (ICSE), pages 221Ð231. IEEE Computer Society, May 2009.
+[3] Sven Apel, Christian KŠstner, and Christian Lengauer. FeatureHouse: Language-Independent, Automated Software Composition. In Proceedings of the ACM/IEEE International Conference on Software Engineering (ICSE), pages 221?31. IEEE Computer Society, May 2009.
 
 [4] P. Hšfner, R. Khedri, B. Mšller. Supplementing Product Families with Behaviour. International Journal of Software and Informatics, 2011. To appear. 
 
