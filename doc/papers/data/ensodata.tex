@@ -760,6 +760,40 @@ so that any kind of structure can be morphed into any other
 kind of structure. On the other hand, \Enso\ is not statically
 typed.
 
+%<alex
+%Model driven engineering [one of those Bezivin papers or OMG stuff]
+%MDE will be the absolute closest thing to our data description! Models people will say MDE=managed data. MDE implements many of the conveniences in Enso's data management --- inverses, cardinality, abstraction over lists, etc --- as well as automatic handling of cross-cutting concerns like persistence and logging (via generation).
+%MDE is: 
+%- defineable data model descriptions (metamodels)
+%- code generation for common functionality
+Model-driven engineering (MDE) [?] is a programming paradigm based on definable data descriptions that is typically specialized to a specific application domain. Like us, their data models are managed, with native support for inverse and cardinality constraints. The respective MDE platform uses the data description to generate code for commonly used scaffoldings, such as persistence, logging. More advanced MDE platforms also create customized editors for creating and updating such data models.
+
+% TODO: I want to add a few lines about M2M transformations here, as it exemplifies processing of data *holistically*, and *as a graph*, a recurring theme in this paper. Also it is tangentially related to how we do change management and 
+
+%Similar to us:
+%- goals; managed data
+%- editable metamodels
+%Differences:
+%- we have a 'language' approach (what does this even mean? streamlined syntax?)
+%- recursive self-definition
+%- interpreted, not generate. except this is supposed to be a data paper
+Model-driven engineering share our ultimate goal of factoring out commonality that defy traditional divisions of code modularization. However, unlike the tool-oriented implementations of MDE, \Enso\ takes a more language-oriented approach that integrates model definition and use into the programming language itself. Additionally, \Enso\ data meta-definitions can recursively described itself, and can be refined or extended to admit additional meta-levels. In comparison, MDE only allows the first level of data description to be changed.
+%/alex>
+
+%<alex
+%Embedded DSLs [Hudak98]
+%EDSLs are not really that closely related
+%EDSLs are:
+%- Language extensions that allow customized data description notations
+%Similar:
+%- EDSLs are not about managed data but *specialized* data. 
+%  - Notation specific to purpose (eg Sam's Ancestors)
+%  - Is that a theme here?
+%Different:
+%- No managed data, obviously, though it is possible to hide it under the covers
+%- Many crosscutting scenarios are still notoriously hard to specify modularly
+%/alex>
+
 \subsection{Other Related Work}
 
 Look up work on "instant-generics"
