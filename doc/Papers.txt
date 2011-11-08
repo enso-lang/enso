@@ -4,23 +4,35 @@ Partial evaluation for Macros
 
 
 Papers
---------------------
-Enso overview
-  - Quadmodel
-  - grammars
-  - Generic Addresses???
-  - Bootstrapping
-  - Selecting a host language
-  - Previous attempts (summary)
-  - Consistency of models??
-    (deltas?)
-   Models, OOPSLA, ECOOP, SLE, GPCE
-   @@Language paper, little evaluation???
-   @@Related work
-   (non-published!!!)
---------------------
 
-Modular Implementation for Integrating Cross-cutting Domain-Specific Languages
+1. Enso Data
+     all about creating managed data
+       graphs, naming
+       bootstrapping (but just the data/schema part?)
+       modularity???
+  - Quadmodel???
+        
+2. Enso Grammar
+     not so much about parsing, as about nice grammars
+     references
+     bi-directional parser/pretty printer
+     predicates/assignments
+     instantiate
+  - Quadmodel???
+
+3. Enso Diagrams
+     projectional editing
+     bi-directional for loops
+     
+4. Enso Web
+  - ConsClosures
+  - QueryExtraction
+  - "A better WebDSL"
+  - (pointer to the modular interpreters)
+    (deltas?)
+  @@Need evaluation (performance and comparison)
+
+5. Interpreter Composition
   Problem?
     Integrating multiple domain-specific languages
      Is the compilers/interpreter modularity
@@ -134,27 +146,6 @@ updates???
 
 
 
-
---------------------
-
-EnsoWeb
-  - ConsClosures
-  - QueryExtraction
-  - "A better WebDSL"
-  - (pointer to the modular interpreters)
-    (deltas?)
-  @@Need evaluation (performance and comparison)
-
-Bidirectional Transformations
-  theory? 
-    variant on lenses? something else?
-    primitive recursion?
-  examples
-    Grammars
-    Diagrams
-    (deltas?)
-    ?????
-  @@Needs research on related work 
 
 --------------------
 
