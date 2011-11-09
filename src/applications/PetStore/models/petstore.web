@@ -3,6 +3,7 @@ def page(yield[]) {
     <head>
         <title>enso(); " Pet Store Reference Application"</title>
         <link type="text/css" rel="stylesheet" href="/static/normalize.css" />
+        <link type="text/css" rel="stylesheet" href="/static/tag.css" />
     </head>
     <body>
     <div id="container" style="width: 80%; margin: 0 auto; min-width:40em;">
@@ -12,8 +13,11 @@ def page(yield[]) {
       <div id="menu" style="float: left; width: 20%;">
         menu();
       </div>
-      <div id="main" style="float: left; width: 70%;">
+      <div id="main" style="float: left; width: 50%;">
         yield();
+      </div>
+      <div id="tags" style="float: left; width: 20%;">
+        tagcloud();
       </div>
       <div id="sidebar" style="float: left; width: 10%;">
         "Sidebar"
@@ -31,6 +35,24 @@ def index() {
   page() {
     petMap();
   }
+}
+
+def tagcloud() {
+  <table border="0">
+    <tr><th colspan="2" style="text-align:center;">"Most Popular Tags"</th></tr>
+    for (t: root->tags, i) { // todo i % 2 == 0 thing
+      <tr>
+      <td class="tagCell" style="text-align: center;">
+        <a href=bytag(t)><span class=t->style > $t->tag </span></a>
+      </td>
+      </tr>
+    }
+  </table>
+}
+
+
+def bytag(tag) {
+
 }
 
 def menu() {
