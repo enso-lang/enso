@@ -1,0 +1,6 @@
+#ruby
+
+require 'applications/PetStore/code/load'
+load_petstore()
+
+

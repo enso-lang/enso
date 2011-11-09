@@ -6,11 +6,23 @@ def page(yield[]) {
     <head>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
         <title>enso(); "Pet Store Reference Application"</title>
-        <link type="text/css" rel="stylesheet" href="tag.css" />
-	// TODO: jquery etc.
+        <link type="text/css" rel="stylesheet" href="static/tag.css" />
     </head>
     <body>
-    yield();
+    <div id="container">
+      <div id="header">
+      </div>
+      <div id="menu" style="float: left;">
+      </div>
+      <div id="main" style="float: left;">
+        yield();
+      </div>
+      <div id="sidebar" style="float: left;">
+      </div>
+      <div style="clear: both;"> </div>
+      <div id="footer">
+      </div>
+    </div>
     </body>
  </html>
 }
@@ -19,7 +31,7 @@ def index() {
   page {
     banner();
     fishEye();
-    petMap()
+    petMap();
     tagCloud();
   }
 }

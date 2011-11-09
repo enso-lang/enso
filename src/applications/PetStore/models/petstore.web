@@ -1,0 +1,87 @@
+def page(yield[]) {
+ <html>
+    <head>
+        <title>enso(); " Pet Store Reference Application"</title>
+        <link type="text/css" rel="stylesheet" href="/static/normalize.css" />
+    </head>
+    <body>
+    <div id="container" style="min-width:80%;">
+      <div id="header">
+        banner();
+      </div>
+      <div id="menu" style="float: left;">
+        "Menu!"
+      </div>
+      <div id="main" style="float: left;">
+        yield();
+      </div>
+      <div id="sidebar" style="float: left;">
+        "Sidebar"
+      </div>
+      <div style="clear: both;"> </div>
+      <div id="footer">
+        "Footer"
+      </div>
+    </div>
+    </body>
+ </html>
+}
+
+def index() {
+  page() {
+    petMap();
+  }
+}
+
+
+
+def petMap() {
+  <map name="petmap">
+     area("Birds", root->categories["BIRDS"], "72,2,280,250");
+     area("Fish", root->categories["FISH"], "2,180,72,250");
+     area("Dogs", root->categories["DOGS"], "60,250,130,320");
+     area("Reptiles", root->categories["REPTILES"], "140,270,210,340");
+     area("Cats", root->categories["CATS"], "225,240,295,310");
+     area("Birds", root->categories["BIRDS"], "280,180,350,250");
+  </map>
+  <img src="static/images/splash.gif" 
+    alt="Pet Selection Map"
+    usemap="#petmap" 
+    width="350" 
+    height="355" 
+    border="0" />
+}
+
+def area(title, cat, coords) {
+     <area onmouseover="javascript:this.style.cursor='pointer';" 
+           href=catalog(address(cat))
+
+           alt=title
+           coords=coords />
+}
+
+def catalog(cat) {
+
+}
+
+def banner() {
+  navigate("Upload", index()); menuSep();
+  navigate("Search", index()); menuSep();
+  navigate("Catalog", index()); menuSep();
+  navigate("Map", index()); menuSep();
+  navigate("Tags", index()); menuSep();
+  navigate("Home", index());
+  // TODO: rss bar
+}
+
+
+
+def menuSep() {
+  <span class="menuItem"> "|" </span>
+}
+
+
+def enso() {
+  // todo: allow o makron
+  "Enso"
+}

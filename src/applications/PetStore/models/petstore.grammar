@@ -1,0 +1,6 @@
+
+// Dummy to fool the loader there is a grammar for petstores.
+
+start Catalog
+
+abstract Catalog
