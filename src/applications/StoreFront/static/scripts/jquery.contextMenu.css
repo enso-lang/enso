@@ -1,0 +1,63 @@
+/* Generic context menu styles */
+.contextMenu {
+	position: absolute;
+	width: 160px;
+	z-index: 99999;
+	border: solid 1px #cccccc;
+	background: #f5f5f5;
+	padding: 0px;
+	margin: 0px;
+	display: none;
+}
+
+.contextMenu LI {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+}
+
+.contextMenu A {
+	color: #333;
+	text-decoration: none;
+	display: block;
+	line-height: 25px;
+	height: 25px;
+	background-position: 6px center;
+	background-repeat: no-repeat;
+	outline: none;
+	padding: 1px 5px;
+	padding-left: 28px;
+}
+
+.contextMenu LI.hover A {
+	color: #FFF;
+	background-color: #3399FF;
+}
+
+.contextMenu LI.disabled A {
+	color: #AAA;
+	cursor: default;
+}
+
+.contextMenu LI.hover.disabled A {
+	background-color: transparent;
+}
+
+.contextMenu LI.separator {
+	border-top: solid 1px #CCC;
+}
+
+/*
+	Adding Icons
+	
+	You can add icons to the context menu by adding
+	classes to the respective LI element(s)
+*/
+
+.contextMenu LI.featured A { background-image: url(/content/icons/star.png); }
+.contextMenu LI.productlist A { background-image: url(/content/icons/text_align_left.png); }
+.contextMenu LI.recent A { background-image: url(/content/icons/resultset_first.png); }
+.contextMenu LI.favorite A { background-image: url(/content/icons/heart.png); }
+.contextMenu LI.textandtitle A { background-image: url(/content/icons/pencil.png); }
+.contextMenu LI.textonly A { background-image: url(/content/icons/page_white_edit.png); }
+.contextMenu LI.ad A { background-image: url(/content/icons/group.png); }

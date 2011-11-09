@@ -1,0 +1,103 @@
+class Coupon
+end
+
+class AmountOffItemCoupon < Coupon
+  products: Product*
+  amount_off: int 
+end
+
+class AmountOffOrderCoupon < Coupon
+  amount_off: int
+end
+
+class Incentive
+  code: str
+  coupon: Coupon
+  expires_on: str // todo: data-time
+  is_expired: bool
+  minimum_items: int
+  minimum_purchace: int
+  must_have_products: Product* // was string[]
+  // todo: needs more validation expiration computation etc.
+end
+
+class PercentOffItemCoupon < Coupon
+  products: Product*
+  percent_off: int
+end
+
+class PercentOffOrderCoupon < Coupon
+  percent_off: int
+end
+
+class CategoryImage < Image
+  category: Category / Category.image
+end
+
+class ProductImage < Image
+  product: Product / Product.image
+end
+
+class Image
+  thumbnail_photo: str
+  full_size_phote: str
+end
+
+
+
+// public enum MailerStatus {
+//         Queued,
+//         Sent,
+//         Retrying,
+//         Failed
+//     }
+
+//     public enum MailerType {
+//         CustomerOrderReceived=1,
+//         CustomerPaymentAuthFailed=2,
+//         CustomerOrderShipped=3,
+//         CustomerOrderCancelled=4,
+//         AdminOrderReceived=5,
+//         CustomerAddressValidationFailed=6,
+//         InventoryCheckFailed=7,
+//         AdminProcessingError=8
+//     }
+
+class Credicard < PaymentMethod
+  card_type: str
+  name: str
+  account_number: str
+  verification_code: str
+  expiration_year: int
+  expiration_month: int
+  // todo: validation, masking
+end
+
+class Mailer
+  to_email_address: str
+  from_email_address: str
+  user_name: str
+  subject: str
+  body: str
+  date_created: str
+  date_last_tried: str
+  smtp_repsone: str
+  status: MailerStatus
+  mail_type: MailerType
+  is_html: bool
+end
+
+//     public enum OrderStatus
+//     {
+//         NotCheckoutOut=1,
+//         Submitted=2,
+//         Verified=3,
+//         Charged=4,
+//         Packaging=5,
+//         Shipped=6,
+//         Returned=7,
+//         Cancelled=8,
+//         Refunded=9
+//     }
+
+class OrderStatus

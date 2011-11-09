@@ -1,0 +1,35 @@
+
+
+def pers_summary() {
+  <div id="useraccount">
+  if (user->is_authenticated) {
+     "Welcome Back " $user->friendly_user_name();
+  }
+  <img src="/content/images/cart.gif" />
+  link("Your Cart", show(user->current_order)) "(" $user->current_order->items->length ")"
+  if (user->is_authenticated) {    
+     "|" navigate("Logout", logout(user));
+  }
+  else {
+     "|" navigate("Login", login()) // cannot return to self
+  }
+  </div>
+}
+
+def pers_addressbook(return) {
+  for (add: something->addresses) {
+    form {
+      hidden(address(blabla->address), add)  //     
+      <div style="margin-bottom:20px">
+        <b> $add->full_name; </b> <br />
+        $add->street1;
+        if (add->street2) {
+          $add->street2; <br />
+        }
+        $add->city; "," $add->state_or_province; <br />
+        $add->country; <br />
+        submit("Use this address", return)
+      </div>
+    }
+  }
+}

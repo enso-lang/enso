@@ -1,0 +1,269 @@
+primitive int
+primitive str
+primitive datetime
+primitive bool
+
+class Address
+  #id: int
+  user_name: str
+  first_name: str
+  last_name: str
+  email: str
+  street1: str
+  street2: str
+  city: str
+  state_or_province: str
+  zip: str
+  country: str
+  longitude: str
+  latitude: str
+  is_default: bool
+  full_name: str = "@first_name + ' ' + @last_name"
+end  
+
+class Category
+  #id: int
+  // name: str
+  parent: Category?
+  !sub_categories: Category* / Category.parent
+  products: Product
+  thumbnail_photo: str
+  full_size_photo: str
+  is_default: bool
+  cultures: Culture*
+end
+
+class Culture
+  #id: int
+  language_code: str
+  locale: str
+  default_currency_code: str
+end
+
+class DeliveryMethod
+  #id: int
+  description: str
+end
+
+
+class InventoryRecord 
+  #id: int
+  product: Product
+  date_entered: datetime
+  increment: int
+  notes: str
+end
+
+class InventoryStatus
+  #id: int
+  description: str
+end
+
+class MailerTemplateType
+  #id: int
+  description: str
+end
+
+class MailerTemplate
+  mailer_type: MailerTemplateType
+  culture: Culture
+  subject: str
+  body: str
+  is_html: str
+end
+
+class OrderItem
+  order: Order
+  product: Product
+  quantity: int
+  discount_amount: int
+  quantity: int
+  date_added: datetime
+end 
+
+class OrderStatus
+  #id: str
+  description: str
+end
+
+class Order
+  #id: str // guid
+  order_number: str
+  user_name: str
+  user_language_code: str
+  tax_amount: int
+  shipping_ammount: int
+  date_shipped: datetime?
+  tracking_number: str
+  estimated_delivery: datetime?
+  sub_total: int
+  order_status: OrderStatus
+  created_on: datetime
+  modified_on: datetime
+  shipping_address: Address
+  billing_address: Address
+  shipping_method: ShippingMethod
+
+  items: OrderItem*
+  transactions: Transaction*
+  user_language_code: str
+  payment_method: PaymentMethod
+  incentives_used: Incentive
+end
+
+
+
+class PaymentMethod
+  name: str
+  account_number: str
+  expiration: datetime
+  verification_code: str
+end
+
+//     public enum InventoryStatus {
+//         InStock=1, 
+//         BackOrder=2,
+//         PreOrder=3,
+//         SpecialOrder=4,
+//         Discontinued=5,
+//         CurrentlyUnavailable=6
+//     }
+
+//     public enum DeliveryMethod
+//     {
+//         Shipped = 1,
+//         Download = 2
+//     }
+
+class InventoryStatus
+  #name: str
+end
+
+
+class Product
+  name: str
+  description: str
+  short_description: str
+  price: int
+  discount_percent: int
+  product_code: str
+  manufacturer: str
+  delivery_method: DeliveryMethod
+  weight_in_pounds: int
+  is_taxable: bool
+  inventory_status: InventoryStatus
+  allow_back_order: bool
+  estimated_delivery: str
+  default_image_path: str = "@images.length > 0 ? @images[0].thumbnail_photo : ''"
+  discounted_price: int = "@price * (100 - @discount_percent) / 100"
+  reviews: ProductReview* / ProductReview.product
+  images: ProductImage*
+  related_products: Product*
+  cross_sells: Product*
+  descriptors: ProductDescriptor*
+  recommended: Product*
+  categories: Category* / Category.products
+  image: ProductImage
+end
+
+class ProductDescriptor
+  product: Product / Product.descriptors
+  title: str
+  body: str
+end
+
+class ProductReview
+  author: str
+  email: str
+  created_on: datetime
+  product: Product / Product.reviews
+  body: str
+end
+
+class Role
+  #name: str
+  is_admin: bool
+end
+
+class ShippingMethod
+  carrier: str
+  service_name: str
+  rate_per_pound: int
+  estimated_delivery: str
+  days_to_deliver: int
+  cost: int
+end
+
+class TaxRate
+  rate: int
+  region: str
+  country: str
+  zip: str
+end
+
+//     public enum TransactionProcessor
+//     {
+//         FakePaymentProcessor=1,
+//         PayPal=2
+//     }
+
+class TransactionProcessor
+  #name: str
+end
+  
+class Transaction
+  #order: Order
+  amount: int
+  date_executed: datetime
+  authorization_code: str
+  notes: str
+  processor: TransactionProcessor
+end 
+
+class User
+  user_name: str
+  first_name: str
+  last_name: str
+  email: str
+  cart: Order
+  is_anonymous: bool
+end
+    
+//     public enum UserBehavior
+//     {
+//         LoggingIn=1,
+//         LoggingOut = 2,
+//         AddItemToBasket = 3,
+//         RemoveItemFromBasket=4,
+//         CheckoutBilling=5,
+//         CheckoutShipping=6,
+//         CheckoutFinal=7,
+//         ViewOrder=8,
+//         ViewBasket=9,
+//         ViewCategory=10,
+//         ViewProduct=11
+//     }
+
+class UserBehavior
+  #name: str
+end
+  
+class UserEvent
+  user_name: str
+  ip: str
+  date_created: datetime
+  category: Category?
+  product: Product?
+  order: Order?
+  behavior: UserBehavior
+end
+ 
+class UserProfile
+  #user_name: str
+  address_book: Address
+  last_products_viewed: Product*
+  last_categories_viewed: Category*
+  recommended: Product*
+  favorite_category: Category
+  current_order: Order
+end
