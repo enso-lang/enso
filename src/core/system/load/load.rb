@@ -33,12 +33,17 @@ module Loading
     end
       
     
+    def load!(name, type = nil)
+      # ignore possibly cached model
+      @cache[name] = _load(name, type)
+    end
+
     def load(name, type = nil)
       # todo: delegate to load_encoded
       setup() if @cache.nil?
       
       return @cache[name] if @cache[name]
-      @cache[name] = _load(name, type)
+      load!(name, type)
     end
     
     def load_text(type, factory, source, show = false)
