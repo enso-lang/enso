@@ -15,10 +15,21 @@ require '../experimental/delta-debug/code/deltadebug.rb'
 # the modification on the point was recorded as an insert + delete. Thus the final
 # returned result is add-(9,7)
 
+# we can also attempt to localize the bug without a baseline model
+
 proc = Proc.new do |*args|
   testcase(*args)
 end
 
+puts "\nComparing dd1 and dd2..."
 res = DeltaDebug.new(proc).dd(Loader.load('dd1.point'), Loader.load('dd2.point'))
+puts "Failure-inducing change:"
+Print.print(res)
+
+puts "\nComparing dd0 and dd2..."
+factory = Factory.new(Loader.load('point.schema'))
+null = factory.Canvas
+res = DeltaDebug.new(proc).dd(null, Loader.load('dd2.point'))
+puts "Failure-inducing change:"
 Print.print(res)
 
