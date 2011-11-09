@@ -10,9 +10,10 @@ module Web::Eval
 
     PRELUDE = 'prelude'
 
-    def initialize(env)
+    def initialize(env, log)
       @env = env
       @imports = {}
+      @log = log
       import(PRELUDE)
     end
 
@@ -24,7 +25,7 @@ module Web::Eval
 
     def Def(this)
       if @env[this.name] then
-        log.warn("Duplicate definition #{this.name}; overwriting.")
+        @log.warn("Duplicate definition #{this.name}; overwriting.")
       end
       @env[this.name] = Result.new(Function.new(@env, this))
     end

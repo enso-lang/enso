@@ -29,11 +29,31 @@ class Web::EnsoWeb
   include Web::Eval
 
   def initialize(web, root, log)
-    @root = root
+    @web_name = web
     @log = log
-    @env = {'root' => Result.new(root, Ref.new([]))}
-    mod_eval = Mod.new(@env)
-    mod_eval.eval(web)
+    @root = Loader.load(root)
+    load!
+  end
+
+  def reload_if_needed!
+    if last_change(@web_name) > @last_change then
+      puts "------------> RELOADING!!!"
+      load!
+    end
+  end
+
+  def last_change(name)
+    Loader.find_model(name) do |path|
+      return File.stat(path).mtime
+    end    
+  end
+    
+  def load!
+    @web = Loader.load!(@web_name)
+    @last_change = last_change(@web_name)
+    @env = {'root' => Result.new(@root, Ref.new([]))}
+    mod_eval = Mod.new(@env, @log)
+    mod_eval.eval(@web)
   end
 
   def handle(req, out)
@@ -43,6 +63,7 @@ class Web::EnsoWeb
 
 
   def call(env, stream = Stream.new)
+    reload_if_needed!
     req = Rack::Request.new(env)
     if req.get? then
       Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)

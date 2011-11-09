@@ -68,7 +68,9 @@ module Web::Eval
     end
 
     def Address(this, env, errors)
-      path = eval(this.exp, env, errors).path
+      r = eval(this.exp, env, errors)
+      path = r.path
+      @log.debug("Evaluating path of result #{r}: #{path}")
       @log.warn("Address asked, but path is nil (val = #{path})") if path.nil?
       Result.new(path)
     end
@@ -87,8 +89,10 @@ module Web::Eval
       obj = eval(this.obj, env, errors)
       sub = eval(this.exp, env, errors)
       # TODO: get rid of &&
-      Result.new(obj.value[sub.value], sub.path && 
+      r = Result.new(obj.value[sub.value], sub.path && 
                  sub.path.descend_collection(sub.value))
+      @log.debug("Returning subscript result: #{r}")
+      return r
     end
 
     def Call(this, env, errors)
@@ -97,7 +101,7 @@ module Web::Eval
         eval(arg, env, errors)
       end
       
-      @log.debug("CALLABLE = #{callable.inspect}")
+      # @log.debug("CALLABLE = #{callable.inspect}")
 
       if callable.is_a?(Method) then # a controller action
         Action.new(callable, nil, args)
