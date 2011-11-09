@@ -17,8 +17,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     cats[id] = fact.Category(id, h[:name], h[:description], h[:imageurl])
   end
 
-  puts "CATEGORIES"
-  p cats
+  #puts "CATEGORIES"
+  #p cats
 
   prods = {}
   db[:Product].all.each do |h|
@@ -28,8 +28,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     cats[h[:categoryid]].products << prods[id]
   end
 
-  puts "PRODUCTS"
-  p prods
+  #puts "PRODUCTS"
+  #p prods
 
   adds = {}
   db[:Address].all.each do |h|
@@ -39,8 +39,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
                             h[:latitude], h[:longitude])
   end
 
-  puts "ADDRESSES"
-  p adds
+  #puts "ADDRESSES"
+  #p adds
 
   cis = {}
   db[:SellerContactInfo].all.each do |h|
@@ -49,8 +49,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
                                      h[:email])
   end
 
-  puts "CONTACTINFOS"
-  p cis
+  #puts "CONTACTINFOS"
+  #p cis
 
 
   items = {}
@@ -68,8 +68,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     items[id].disabled = h[:disabled]
   end
 
-  puts "ITEMS"
-  p items
+  #puts "ITEMS"
+  #p items
 
   tags = {}
   db[:Tag].all.each do |h|
@@ -77,8 +77,8 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     tags[id] = fact.Tag(id, h[:tag], h[:refcount])
   end
 
-  puts "TAGS"
-  p tags
+  #puts "TAGS"
+  #p tags
 
   db[:tag_item].all.each do |h|
     tags[h[:tagid]].items << items[h[:itemid]]

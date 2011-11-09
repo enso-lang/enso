@@ -5,17 +5,17 @@ def page(yield[]) {
         <link type="text/css" rel="stylesheet" href="/static/normalize.css" />
     </head>
     <body>
-    <div id="container" style="min-width:80%;">
+    <div id="container" style="width: 80%; margin: 0 auto; min-width:40em;">
       <div id="header">
         banner();
       </div>
-      <div id="menu" style="float: left;">
-        "Menu!"
+      <div id="menu" style="float: left; width: 20%;">
+        menu();
       </div>
-      <div id="main" style="float: left;">
+      <div id="main" style="float: left; width: 70%;">
         yield();
       </div>
-      <div id="sidebar" style="float: left;">
+      <div id="sidebar" style="float: left; width: 10%;">
         "Sidebar"
       </div>
       <div style="clear: both;"> </div>
@@ -33,6 +33,19 @@ def index() {
   }
 }
 
+def menu() {
+  <ul class="menu">
+    <li>menu_navigate("/static/images/dogs_icon.gif", "Dogs", catalog(root->categories["DOGS"]));</li>
+    <li>menu_navigate("/static/images/cats_icon.gif", "Cats", catalog(root->categories["CATS"]));</li>
+    <li>menu_navigate("/static/images/birds_icon.gif", "Birds", catalog(root->categories["BIRDS"]));</li>
+    <li>menu_navigate("/static/images/fish_icon.gif", "Fish", catalog(root->categories["FISH"]));</li>
+    <li>menu_navigate("/static/images/reptiles_icon.gif", "Reptiles", catalog(root->categories["REPTILES"]));</li>
+  </ul>
+}
+
+def menu_navigate(img, title, page) {
+  <a href=page title=title><img src=img height="40" /></a>
+}
 
 
 def petMap() {
@@ -54,8 +67,7 @@ def petMap() {
 
 def area(title, cat, coords) {
      <area onmouseover="javascript:this.style.cursor='pointer';" 
-           href=catalog(address(cat))
-
+           href=catalog(cat)
            alt=title
            coords=coords />
 }
@@ -65,6 +77,10 @@ def catalog(cat) {
 }
 
 def banner() {
+  <a href=index() title="PetStore">
+    <img src="/static/images/banner_logo.gif" width="70" height="70" />
+  </a>
+
   navigate("Upload", index()); menuSep();
   navigate("Search", index()); menuSep();
   navigate("Catalog", index()); menuSep();
