@@ -95,7 +95,7 @@ module Web::Eval
     private
 
     def bind(root, form, store, errors)
-      Print.print(root)
+      #Print.print(root)
       form.each do |k, v|
         k.update(v, root, store)
       end
@@ -104,7 +104,7 @@ module Web::Eval
     def execute(root, form, store, errors)
       form.actions.each do |action|
         # first bind object-refs to their values
-        action.bind!(root, store)
+        action.bind!(root, store, @env)
       end
       # only then execute
       later = []

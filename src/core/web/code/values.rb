@@ -177,6 +177,8 @@ module Web::Eval
       owner = base.inject(root) do |cur, x|
         lookup(cur, x, store)
       end
+      puts "Owner = #{owner}"
+      v = rvalue.value(root, store)
       fld.update!(owner, rvalue.value(root, store))
     end
 

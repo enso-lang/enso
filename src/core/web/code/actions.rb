@@ -23,6 +23,7 @@ class DefaultActions
   include Web::ActionUtils
   
   def submit_action(link)
+    puts "REDIRECTING"
     redirect(link)
   end
 

@@ -3,7 +3,7 @@ require 'core/web/code/web'
 
 require 'htmlentities'
 require 'uri'
-
+require 'ostruct'
 
 module Web::Eval
   class Renderable
@@ -85,7 +85,6 @@ module Web::Eval
       @cond = cond
     end
 
-
     def redirecting?
       # TODO: make this true coding convention
       func =~ /^submit_action$/
@@ -96,18 +95,48 @@ module Web::Eval
       out << "\" value=\"#{unparse_args}\" />"
     end
 
-    def bind!(root, store)
+    def bind!(root, store, env)
       @bound_args = @args.map do |arg|
-        arg.value(root, store)
+        # do parsing here
+        # problem = if arg has a "new" key it has to be
+        # converted to the old one.
+        # e.g. arg can be
+        #   "contact_info?item=@Item:1"
+        # and this must be something like
+        #   "contact_info?item=.items[id2222]
+
+        puts "THE ARG = #{arg}"
+        str = arg.value(root, store)
+
+        if str =~ /^([a-zA-Z0-9_]+)$/ then
+          # TODO: unparsing should *not* happen here...
+          Link.new(env[$1].value, []).value
+        elsif str =~ /^([a-zA-Z0-9_]+)\?(.+)$/
+          func = env[$1].value
+          args2 = $2.split('&').map do |x| 
+            _, arg2 = x.split('=')
+            Value.parse(arg2).result(root, store)
+          end
+          # TODO: unparsing should *not* happen here...
+          Link.new(func, args2).value
+        else
+          Value.parse(str).value(root, store)
+        end
+
+        # OK the args in the LINK are resolved correctly,
+        # if they are @news, however, the result (from .result above)
+        # still contains the old @new key, so rendering fails.
+        # How to find a path for a new object????!!!!
       end
     end
 
     def execute(obj, env)
       if cond then
-        puts "BOUND ARGS = #{@bound_args}"
+        puts "COND = #{cond} BOUND ARGS = #{@bound_args}"
         @bound_args.each_with_index do |x, i|
           puts "Arg #{@args[i]} ==> #{x}"
         end
+        puts "FUNC = #{func}"
         obj.send(func, *@bound_args) if env[cond]
       else
         obj.send(func, *@bound_args)
@@ -146,6 +175,8 @@ module Web::Eval
 
     def self.parse_args(str)
       str.split(Regexp.new(Regexp.escape(SEP) + "(?!@)")).map do |x|
+        #puts "WARNING assuming, for now, that args in actions are always calls/links"
+        #Link.parse(unescape(x))
         Value.parse(unescape(x))
       end
     end
@@ -172,6 +203,33 @@ module Web::Eval
     def to_s
       "LINK(#{value}: #{func} applied to #{args})"
     end
+
+#     def self.parse(str) 
+#       # shit, need the environment here...
+#       # to lookup func; fake it now.
+#       func = OpenStruct.new
+#       func.formals = []
+#       args = []
+#       if str =~ /^[a-zA-Z0-9_]+$/ then
+#         func.name = $1
+#       elsif str =~ /^([a-zA-Z0-9_]+)\?(.+)$/
+#         func.name = $1
+#         $2.split('&').each do |x| 
+#           name, arg = x.split('=')
+#           frm = OpenStruct.new
+#           frm.name = name
+#           puts "FRM = #{frm.name}, arg = #{arg}"
+#           func.formals << frm
+#           # TODO: I need the path if value parses to a ref
+#           # but not otherwise...
+#           v = Value.parse(arg)
+#           args << Result.new(v)
+#         end
+#       else
+#         raise "Cannot parse link #{str}"
+#       end
+#       Link.new(func, args)
+#     end
 
     private
 
