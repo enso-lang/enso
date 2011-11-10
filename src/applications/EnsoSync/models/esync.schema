@@ -1,4 +1,5 @@
 	primitive \str
+	primitive \bool
 class Domain
 !  sources: Source *
 !  rules: Rule *
@@ -11,6 +12,7 @@ class Source
 end
 class Node
 #  name: str
+   isdir: bool
 end
 class File < Node
   checksum: str

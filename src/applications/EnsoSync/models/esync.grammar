@@ -1,11 +1,8 @@
 start Domain
 
-Domain ::= [Domain] "domain" sources:Source* "rules" rules:SyncRule* "end"
+Domain ::= [Domain] "domain" sources:Source* "end"
 
 Source ::= [Source] "source" name:sym path:str basedir:Node ? "end"
 Node ::= Dir | File
-Dir ::= [Dir] name:sym ":(" nodes:Node * ")"
-File ::= [File] name:sym "["checksum:str"]"
-
-Rule ::= SyncRule
-SyncRule ::= [SyncRule] name:sym ":" "synchronize" s1:Source^ "and" s2:Source^ 
+Dir ::= [Dir] name:sym "(" nodes:Node * ")" @"@isdir = true"
+File ::= [File] name:sym "["checksum:str"]" @"@isdir = false"
