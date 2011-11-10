@@ -13,6 +13,7 @@ class Patch
   end
 
   def patch(o, delta)
+    return o if delta.nil?
     @old_name_map = generate_name_map(o)
     res = patch_obj(o, delta, o.factory)
     @new_name_map = generate_name_map(res)

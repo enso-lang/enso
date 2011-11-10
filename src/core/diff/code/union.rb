@@ -8,6 +8,10 @@ class Union
   # union takes two deltas and combine them
   def self.union(d1, d2, factory, resolver=lambda{|c|Conflicts.resolve(c)})
 
+    # if either is nil just return the other
+    return d1 if d2.nil?
+    return d2 if d1.nil?
+
     # if either is not an modify then no need to recurse
     if !DeltaTransform.isModifyChange?(d1) or !DeltaTransform.isModifyChange?(d2)
       if Equals.equals(d1,d2)
