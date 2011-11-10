@@ -1,4 +1,9 @@
 
+def div(class, yield[]) {
+  <div class=class>
+   yield();
+  </div>
+}
 
 def datatable(rows, columns: column(label, view[row])) {
     <table style="border-width: 1px; border-collapse: collapse;">
@@ -32,18 +37,33 @@ def html(title, yield[]) {
 }
 
 
-def navigate(title, page) {
-  <a href=page>$title</a>
+def span(style, txt) {
+  <span style=style>$txt</span>
 }
+
+def navigate_do(page, yield[]) {
+  <a href=page>yield();</a>
+}
+
+def navigate(title, page) {
+  navigate_do(page) {
+    $title
+  }
+}
+
+
 
 def navigate_tip(title, tip, page) {
   <a href=page title=tip>$title</a>
 }
 
-def img_navigate(img, title, page) {
+def navigate_img(img, title, page) {
   <a href=page title=title><img src=img /></a>
 }
 
+def img(src, title) {
+  <img src=src title=title />
+}
 
 
 def textedit(data) {
@@ -59,14 +79,14 @@ def textedit(data) {
 
 def crud(obj, return) {
   form {
-    table {
+    <table>
       for (f: obj->schema_class->fields) {
-        tr {
-          td { $obj[f->name] ": " }
-          td { edit_field(f, obj[f->name]); }
-        }
+        <tr>
+          <td> $obj[f->name] ": " </td>
+          <td> edit_field(f, obj[f->name]); </td>
+        </tr>
       }
-    }
+    </table>
     submit("Submit", return);
   }
 }

@@ -3,17 +3,18 @@
 # RUBYOPT="-I." thin start -V -D --stats . -R core/web/code/serve.ru
 
 require 'core/web/code/toplevel'
-require 'core/system/load/load'
 
 require 'logger'
 
-web = Loader.load(ENV['WEB'])
-root = Loader.load(ENV['ROOT'])
 log = Logger.new($stderr)
 
 # TODO: detect when thin is debug mode, otherwise use WARN
-log.level = Logger::DEBUG
+log.level = Logger::WARN
 
-app = Web::EnsoWeb.new(web, root, log)
-use Rack::CommonLogger
+app = Web::EnsoWeb.new(ENV['WEB'], ENV['ROOT'], log)
+#use Rack::CommonLogger
+
+# TODO: this is PetStore specific.
+use Rack::Static, :urls => ["/static"], :root => "applications/PetStore"
+
 run app

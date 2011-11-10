@@ -83,6 +83,7 @@ module Web::Eval
     def Field(this, env, errors)
       r = eval(this.exp, env, errors)
       # TODO: get rid of &&
+      puts "NAME = #{this.name}"
       Result.new(r.value[this.name], r.path && r.path.descend_field(this.name))
     end
 

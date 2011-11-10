@@ -159,7 +159,7 @@ module Web::Eval
     end
 
     def lookup(owner, path_elt, store)
-      puts "---------- looking up: #{path_elt} in #{owner}"
+      puts "---------- looking up: #{path_elt} (key = #{path_elt.key.inspect}) in #{owner}"
       if Store.new?(path_elt.key) then
         store[path_elt.key]
       else
