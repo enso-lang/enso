@@ -5,6 +5,77 @@ def index() {
   }
 }
 
+
+def group(lines: line(label, yield[])) {
+  <table>
+  for (l: lines) {
+    <tr>
+    <td>
+    <label>$l->label</label>
+    </td>
+    <td>
+    l->yield();
+    </td>
+    </tr>
+  }
+  </table>    
+}
+
+def textarea(rows, cols, data) {
+  let
+    key = address(data)
+  in {
+    if (errors[key]) {
+      <span style="color: red;">$errors[key]</span>
+    }
+    <textarea name=key rows=rows cols=cols>$data</textarea>
+  }
+}
+
+def fileupload(data) {
+  let
+    key = address(data)
+  in {
+    <input type="hidden" name=key value=""/>
+    <input type="file" name="upload" chars="30"/>
+  }
+}
+
+def sell(item) {
+  layout {
+    form {
+      group {
+        line("Category") {
+          select1(item->product, root->products);
+        }
+  	line("*Pet's name") {
+          textedit(item->name);
+ 	}
+        line("*Description") {
+          textarea(3, 30, item->description);
+        }
+	line("*Price (in US dollars)") {
+          textedit(item->price);
+        }
+	line("*Image File") {
+          fileupload(item->imageURL);
+        }
+	line("Custom tags (separated by spaces)") {
+	  // only one tag now....
+          select1(item->tags, root->tags); 
+        }
+        line("") {
+          submit("Submit", contact_info(item));
+        }
+      }
+    }
+  }
+}
+
+def contact_info(item) {
+
+}
+
 def catalog(cat) {
   layout {
     datatable(cat->products) {
@@ -58,8 +129,10 @@ def show_product(prod) {
       column("Price") {
         $row->price
       }
-      column("Score / Votes") {
-        $row->totalScore " / " $row->numberOfVotes
+      column ("Tags") {
+        for (t: row->tags) {
+          navigate(t->tag, search_by_tag(t)); " "
+        }
       }
     }
   }
@@ -99,9 +172,6 @@ def search_by_tag(tag) {
       column("Price") {
         $row->price
       }
-      column("Score / Votes") {
-        $row->totalScore " / " $row->numberOfVotes
-      }
     }
   }
 }
@@ -140,7 +210,7 @@ def pet_map() {
 
 def banner() {
   navigate_img("/static/images/banner_logo.gif", "PetStore", index());
-  navigate("Upload", index()); menuSep();
+  navigate("Sell", sell(new(Item))); menuSep();
   navigate("Search", index()); menuSep();
   navigate("Catalog", index()); menuSep();
   navigate("Map", index()); menuSep();
@@ -161,7 +231,6 @@ def banner() {
 def css() {
         <link type="text/css" rel="stylesheet" href="/static/normalize.css" />
         <link type="text/css" rel="stylesheet" href="/static/tag.css" />
-        <link type="text/css" rel="stylesheet" href="/static/jquery/cocoa/theme.css" />
 }
 
 def javascript() {

@@ -93,6 +93,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
 
   db[:tag_item].all.each do |h|
     tags[h[:tagid]].items << items[item_id(h[:itemid])]
+    #items[item_id(h[:itemid])].tags << tags[h[:tagid]]
   end
 
 
@@ -121,7 +122,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     catalog.tags << t
   end
 
-  return catalog
+  return catalog.finalize
 end
 
 if __FILE__ == $0 then

@@ -72,5 +72,6 @@ class Tag
   items: Item* / Item.tags
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
+  name: str = "@tag"
 end
 
