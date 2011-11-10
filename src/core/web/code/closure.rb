@@ -105,6 +105,9 @@ module Web::Eval
       eval.eval(body, env, out, errors)
     end    
 
+    def to_s
+      "FUNCTION(#{name}/#{@abs.formals.length})"
+    end
   end
 
   class ConsClosure < BaseClosure

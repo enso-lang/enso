@@ -158,6 +158,10 @@ module Web::Eval
       end
     end
 
+    def to_s
+      "LINK(#{value}: #{func} applied to #{args})"
+    end
+
     private
 
     def _render(out = '')
@@ -168,7 +172,7 @@ module Web::Eval
         if block_given? then
           params << param + (yield arg)
         else
-          param << arg.to_s
+          params << param + arg.to_s
         end
       end
       name = func.name
