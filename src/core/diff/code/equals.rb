@@ -57,3 +57,7 @@ class Equals
     return true
   end
 end
+
+def equals(a,b)
+  Equals.equals(a, b)
+end

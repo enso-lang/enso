@@ -167,6 +167,3 @@ end
 class New < Exp
   \class: str
 end
-
-
-// skdjaksdj
