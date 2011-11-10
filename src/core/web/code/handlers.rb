@@ -78,8 +78,8 @@ module Web::Eval
 
     def handle(http, out)
       errors = {}
-      puts "BEFORE BINDING"
-      Print.print(@root)
+      #puts "BEFORE BINDING"
+      #Print.print(@root)
 
       bind(@root, @form, @store, errors)
       begin

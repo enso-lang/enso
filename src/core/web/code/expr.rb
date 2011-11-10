@@ -47,7 +47,7 @@ module Web::Eval
     def Concat(this, env, errors)
       lhs = eval(this.lhs, env, errors)
       rhs = eval(this.rhs, env, errors)
-      Result.new(lhs.value + rhs.value)
+      Result.new(lhs.value.to_s + rhs.value.to_s)
     end
 
     def Equal(this, env, errors)

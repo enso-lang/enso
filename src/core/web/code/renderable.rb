@@ -73,16 +73,6 @@ module Web::Eval
       end
     end
 
-    def self.parse_args(str)
-      str.split(/:(?!@)/).map do |x|
-        Value.parse(unescape(x))
-      end
-    end
-
-    def self.unescape(arg)
-      # URI unescaping is done by the server framework
-      arg.gsub(/:@/, ':')
-    end
 
     def initialize(func, cond, args)
 
@@ -114,6 +104,10 @@ module Web::Eval
 
     def execute(obj, env)
       if cond then
+        puts "BOUND ARGS = #{@bound_args}"
+        @bound_args.each_with_index do |x, i|
+          puts "Arg #{@args[i]} ==> #{x}"
+        end
         obj.send(func, *@bound_args) if env[cond]
       else
         obj.send(func, *@bound_args)
@@ -124,11 +118,17 @@ module Web::Eval
       "#{func}(#{args.join(', ')})"
     end
 
-    private
+    #private
 
     def unparse_name(cond)
       CODER.encode("!#{func.name}#{cond && ('?' + cond)}")
     end
+
+
+    # NOTE the use of the separator
+    # and how clashes are avoided...
+
+    SEP = "##"
 
     def unparse_args
       # do we need func's formals here?
@@ -137,11 +137,22 @@ module Web::Eval
         s = ''
         arg.render(s)
         s
-      end.join(':')
+      end.join(SEP)
     end
     
     def escape(arg)
-      CODER.encode(arg.gsub(/:/, ':@'))
+      CODER.encode(arg.gsub(Regexp.new(Regexp.escape(SEP)), SEP + "@"))
+    end
+
+    def self.parse_args(str)
+      str.split(Regexp.new(Regexp.escape(SEP) + "(?!@)")).map do |x|
+        Value.parse(unescape(x))
+      end
+    end
+
+    def self.unescape(arg)
+      # URI unescaping is done by the server framework
+      arg.gsub(Regexp.new(Regexp.escape(SEP) + "@"), SEP)
     end
 
   end

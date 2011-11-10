@@ -49,6 +49,9 @@ module Web::Eval
               tbl[k + k2] = v2
             end
           end
+        elsif v.is_a?(Array)
+          ## TODO!!!
+          raise "NOT YET IMPLEMENTED: collections in forms"
         else
           tbl[k] = v
         end
