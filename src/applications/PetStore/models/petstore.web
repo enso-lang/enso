@@ -1,83 +1,162 @@
+
 def index() {
- <html>
-    <head>
-        <title>enso(); " Pet Store Reference Application"</title>
-        css();
-    </head>
-    <body>
-    <div id="container" style="width: 80%; margin: 0 auto; min-width:40em;">
-      <div id="header">
-        banner();
-      </div>
-      <div id="menu" style="float: left; width: 20%;">
-        menu();
-      </div>
-      <div id="main" style="float: left; width: 50%;">
-        petMap();
-      </div>
-      <div id="tags" style="float: left; width: 20%;">
-        tagcloud();
-      </div>
-      <div id="sidebar" style="float: left; width: 10%;">
-        "Sidebar"
-      </div>
-      <div style="clear: both;"> </div>
-      <div id="footer">
-        "Footer"
-      </div>
-    </div>
-    javascript();
-    </body>
- </html>
+  layout() {
+    pet_map();
+  }
 }
 
 def catalog(cat) {
- <html>
-    <head>
-        <title>enso(); " Pet Store Reference Application"</title>
-        css();
-    </head>
-    <body>
-    <div id="container" style="width: 80%; margin: 0 auto; min-width:40em;">
-      <div id="header">
-        banner();
-      </div>
-      <div id="menu" style="float: left; width: 20%;">
-        categoryAccordion();
-      </div>
-      <div id="main" style="float: left; width: 50%;">
-        petMap();
-      </div>
-      <div id="tags" style="float: left; width: 20%;">
-        tagcloud();
-      </div>
-      <div id="sidebar" style="float: left; width: 10%;">
-        "Sidebar"
-      </div>
-      <div style="clear: both;"> </div>
-      <div id="footer">
-        "Footer"
-      </div>
-    </div>
-    javascript();
-    </body>
- </html>
+  layout {
+    datatable(cat->products) {
+      column("Name") {
+        navigate(row->name, show_product(row));
+      }
+      column("Description") {
+        $row->description
+      }
+      column("Image") {
+        img("/static/images/" + row->imageURL, row->name);
+      }
+    }
+  }
 }
 
-def categoryAccordion() {
-  <div id="accordion">
-    for (c: root->categories) {
-      <h3><a href="#">$c->name</a></h3>
-      <div>
-         <ul>
-           for (p: c->products) {
-             <li>navigate(p->name, index());</li>
-           }
-        </ul>
-      </div>
-    }
-  </div>
+def show_item(item) {
+  layout() {
+    img("/static/" + item->imageURL, item->name);
+  }
 }
+
+
+def new_product(prod, item) {
+  layout {
+    form {
+      add_to(item, prod->items);
+      submit("Submit", show_product(prod));
+    }
+  }
+}
+
+
+def add_to(item, coll) {
+  <input type="hidden" name=address(coll) value=address(item) />
+}
+
+def show_product(prod) {
+  layout() {
+    navigate("New " + prod->name, new_product(prod, new(Item)));
+    datatable(prod->items) {
+      column("Name") {
+        navigate(row->name, show_item(row));
+      }
+      column("Description") {
+        $row->description
+      }
+      column("Image") {
+        img("/static/" + row->imageThumbURL, row->name);
+      }
+      column("Price") {
+        $row->price
+      }
+      column("Score / Votes") {
+        $row->totalScore " / " $row->numberOfVotes
+      }
+    }
+  }
+}
+
+def category_accordion() {
+  accordion() {
+    for (x: root->categories) {
+      let c = x in {
+        pane(c->name) {
+          list() {
+            for (y: c->products)  {
+              let p = y in {
+                li() { navigate(p->name, show_product(p)); }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+def search_by_tag(tag) {
+  layout() {
+    datatable(tag->items) {
+      column("Name") {
+        navigate(row->name, show_item(row));
+      }
+      column("Description") {
+        $row->description
+      }
+      column("Image") {
+        img("/static/" + row->imageThumbURL, row->name);
+      }
+      column("Price") {
+        $row->price
+      }
+      column("Score / Votes") {
+        $row->totalScore " / " $row->numberOfVotes
+      }
+    }
+  }
+}
+
+def petstore_tagcloud() {
+  tagcloud("Most popular tags", root->tags) {
+    navigate_do(search_by_tag(tag)) {
+      span(tag->style, tag->tag);
+    }
+  }
+}
+
+
+
+def petstore_menu() {
+  menu() {
+    for (x: root->categories) {
+      let c = x in { // AARGH the closure problem.... all images will be fish without let...
+        entry(c->name, catalog(c)) {
+          img("/static/images/" + c->imageurl, c->name);
+        }
+      }
+    }
+  }
+}
+
+def pet_map() {
+  image_map("petmap", "Pet Selection Map", "static/images/splash.gif", "350", "355") {
+    for (c: root->categories) {
+      area(c->name, catalog(c), c->map_coords);
+    }
+    area("Birds", catalog(root->categories["BIRDS"]), "72,2,280,250");
+  }
+}
+
+
+def banner() {
+  navigate_img("/static/images/banner_logo.gif", "PetStore", index());
+  navigate("Upload", index()); menuSep();
+  navigate("Search", index()); menuSep();
+  navigate("Catalog", index()); menuSep();
+  navigate("Map", index()); menuSep();
+  navigate("Tags", index()); menuSep();
+  navigate("Home", index());
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// stuff below should be eventually moved to another file
+
+
 
 def css() {
         <link type="text/css" rel="stylesheet" href="/static/normalize.css" />
@@ -91,78 +170,45 @@ def javascript() {
     <script type="text/javascript" src="/static/petstore.js"/>
 }
 
-def tagcloud() {
+
+def tagcloud(title, tags, yield[tag]) {
   <table border="0">
-    <tr><th colspan="2" style="text-align:center;">"Most Popular Tags"</th></tr>
-    for (t: root->tags, i) { // todo i % 2 == 0 thing
+    <tr><th style="text-align:center;">$title</th></tr>
+    for (t: tags) {
       <tr>
       <td class="tagCell" style="text-align: center;">
-        <a href=bytag(t)><span class=t->style > $t->tag </span></a>
+        yield(t);
       </td>
       </tr>
     }
   </table>
 }
 
-
-def bytag(tag) {
-
-}
-
-def menu() {
-  <ul class="menu">
-    <li>menu_navigate("/static/images/dogs_icon.gif", "Dogs", catalog(root->categories["DOGS"]));</li>
-    <li>menu_navigate("/static/images/cats_icon.gif", "Cats", catalog(root->categories["CATS"]));</li>
-    <li>menu_navigate("/static/images/birds_icon.gif", "Birds", catalog(root->categories["BIRDS"]));</li>
-    <li>menu_navigate("/static/images/fish_icon.gif", "Fish", catalog(root->categories["FISH"]));</li>
-    <li>menu_navigate("/static/images/reptiles_icon.gif", "Reptiles", catalog(root->categories["REPTILES"]));</li>
-  </ul>
-}
-
-def menu_navigate(img, title, page) {
-  <a href=page title=title><img src=img height="40" /></a>
-}
-
-
-def petMap() {
-  <map name="petmap">
-     area("Birds", root->categories["BIRDS"], "72,2,280,250");
-     area("Fish", root->categories["FISH"], "2,180,72,250");
-     area("Dogs", root->categories["DOGS"], "60,250,130,320");
-     area("Reptiles", root->categories["REPTILES"], "140,270,210,340");
-     area("Cats", root->categories["CATS"], "225,240,295,310");
-     area("Birds", root->categories["BIRDS"], "280,180,350,250");
+def image_map(name, title, src, width, height, areas: area(name, link, coords)) {
+  <map name=name>
+    for (a: areas) {
+     <area onmouseover="javascript:this.style.cursor='pointer';" 
+           href=a->link
+           alt=a->name
+           coords=a->coords />
+    }
   </map>
-  <img src="static/images/splash.gif" 
-    alt="Pet Selection Map"
-    usemap="#petmap" 
-    width="350" 
-    height="355" 
+  <img src=src
+    alt=title
+    usemap="#" + name
+    width=width 
+    height=height 
     border="0" />
 }
 
-def area(title, cat, coords) {
-     <area onmouseover="javascript:this.style.cursor='pointer';" 
-           href=catalog(cat)
-           alt=title
-           coords=coords />
+
+def menu(entries: entry(title, page, yield[])) {
+  <ul class="menu">
+  for (e: entries) {
+    <li><a href=e->page title=e->title>e->yield();</a></li>
+  }
+  </ul>
 }
-
-def banner() {
-  <a href=index() title="PetStore">
-    <img src="/static/images/banner_logo.gif" width="70" height="70" />
-  </a>
-
-  navigate("Upload", index()); menuSep();
-  navigate("Search", index()); menuSep();
-  navigate("Catalog", index()); menuSep();
-  navigate("Map", index()); menuSep();
-  navigate("Tags", index()); menuSep();
-  navigate("Home", index());
-  // TODO: rss bar
-}
-
-
 
 def menuSep() {
   <span class="menuItem"> "|" </span>
@@ -172,4 +218,72 @@ def menuSep() {
 def enso() {
   // todo: allow o makron
   "Enso"
+}
+
+def accordion(panes: pane(title, yield[])) {
+  <div class="accordion">
+    for (p: panes) {
+      <h3><a href="#">$p->title</a></h3>
+      <div>
+         p->yield();
+      </div>
+    }
+  </div>  
+}
+
+def list(elts: li(yield[])) {
+  <ul>
+    for (e: elts)
+      <li>e->yield();</li>
+  </ul>
+}
+
+def layout(yield[]) {
+ <html>
+    <head>
+        <title>enso(); " Pet Store Reference Application"</title>
+        css();
+    </head>
+    <body>
+    <div id="container" style="width: 80%; margin: 0 auto; min-width:40em;">
+      <div id="header">
+        banner();
+      </div>
+      <div id="menu" style="float: left; width: 20%;">
+        category_accordion();
+      </div>
+      <div id="main" style="float: left; width: 70%;">
+        yield();
+      </div>
+      <div id="sidebar" style="float: left; width: 10%;">
+        petstore_tagcloud();
+      </div>
+      <div style="clear: both;"> </div>
+      <div id="footer">
+        "Footer"
+      </div>
+    </div>
+    javascript();
+    </body>
+ </html>
+}
+
+def radio_group(radios: radio(value, label[])) {
+  let
+    x = gensym 
+  in {
+    for (r: radios, i) {
+      let
+        id = gensym
+      in {
+        <label \for=id>r->label();</label>
+        if (i == 0) {
+          <input type="radio" id=id name=x value=value selected="true"/>
+        }
+        else {
+          <input type="radio" id=id name=x value=value/>
+        }
+      }
+    }
+  }
 }

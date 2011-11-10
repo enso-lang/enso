@@ -5,6 +5,10 @@ require 'sequel'
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 
+def item_id(id)
+  "id#{id}"
+end
+
 def load_petstore(file = 'applications/petstore/data/petstore.db')
   db = Sequel.sqlite(file)
 
@@ -16,6 +20,12 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     id = h[:categoryid]
     cats[id] = fact.Category(id, h[:name], h[:description], h[:imageurl])
   end
+
+  cats["BIRDS"].map_coords = "280,180,350,250"
+  cats["FISH"].map_coords =  "2,180,72,250"
+  cats["DOGS"].map_coords = "60,250,130,320"
+  cats["REPTILES"].map_coords = "140,270,210,340"
+  cats["CATS"].map_coords = "225,240,295,310"
 
   #puts "CATEGORIES"
   #p cats
@@ -55,7 +65,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
 
   items = {}
   db[:Item].all.each do |h|
-    id = h[:itemid]
+    id = item_id(h[:itemid])
     items[id] = fact.Item(id, prods[h[:productid]],
                           h[:name], h[:description],
                           h[:imageurl], h[:imagethumburl],
@@ -66,6 +76,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
     items[id].totalScore = h[:totalscore]
     items[id].numberOfVotes = h[:numberofvotes]
     items[id].disabled = h[:disabled]
+    prods[h[:productid]].items << items[id]
   end
 
   #puts "ITEMS"
@@ -81,7 +92,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   #p tags
 
   db[:tag_item].all.each do |h|
-    tags[h[:tagid]].items << items[h[:itemid]]
+    tags[h[:tagid]].items << items[item_id(h[:itemid])]
   end
 
 

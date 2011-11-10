@@ -17,6 +17,7 @@ class Category
   name: str
   description: str
   imageurl: str
+  map_coords: str
   products: Product* / Product.category
 end
 
