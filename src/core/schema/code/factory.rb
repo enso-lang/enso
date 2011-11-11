@@ -146,11 +146,11 @@ module CheckedObjectMixin
 
   def _adjust(new_path)
     schema_class.fields.each do |fld|
-      if !fld.many && fld.traversal && !fld.type.Primitve? && @hash[fld.name] then
+      if !fld.many && fld.traversal && !fld.type.Primitive? && @hash[fld.name] then
         @hash[fld.name]._path.prepend!(new_path)
         @hash[fld.name]._adjust(new_path) 
       end
-      if fld.many && fld.traversal && !fld.type.Primitve? then
+      if fld.many && fld.traversal && !fld.type.Primitive? then
         @hash[fld.name].each do |x|
           x._path.prepend!(new_path)
           x._adjust(new_path) 
