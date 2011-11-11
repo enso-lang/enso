@@ -267,7 +267,7 @@ module CheckedObjectMixin
     # Update the path of the added object if the field assigned to
     # is a non-primitive traversal field.
     if field.traversal && !field.type.Primitive? && new then
-      new._path = _path.field(field)
+      new._path = _path.field(field.name)
       #puts "Field path: #{new._path}"
     end
 
@@ -496,7 +496,7 @@ class ManyIndexedField < BaseManyField
       @hash[k] = v
 
       if @field && @field.traversal && !@field.type.Primitive? then
-        v._path = @realself._path.field(@field).key(k)
+        v._path = @realself._path.field(@field.name).key(k)
         #puts "Keyed path: #{v._path}"
       end
 
@@ -620,7 +620,7 @@ class ManyField < BaseManyField
     
     if @field && @field.traversal && !@field.type.Primitive? then
       # length, because it is not added yet.
-      v._path = @realself._path.field(@field).index(length)
+      v._path = @realself._path.field(@field.name).index(length)
       #puts "Index path after append: #{v._path}"
     end
     
@@ -632,7 +632,7 @@ class ManyField < BaseManyField
     @realself.notify_update(@field, @list[i], v) if @realself
 
     if @field.traversal && !@field.type.Primitive? then
-      v._path = @realself._path.field(@field).index(i)
+      v._path = @realself._path.field(@field.name).index(i)
       #puts "Index path: #{v._path}"
     end
 

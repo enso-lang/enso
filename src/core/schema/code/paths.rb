@@ -4,6 +4,22 @@ module Paths
   class Path
     attr_reader :elts
 
+    def self.parse(str)
+      if str.empty?
+        Path.new
+      elsif str =~ /^\.([a-zA-Z_0-9]+)(.*)$/ then
+        Path.new([Field.new($1)] + parse($2).elts)
+      elsif str =~ /^\[([0-9]+)\](.*)$/ then
+        Path.new([Index.new($1)] + parse($2).elts)
+      elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\](.*)$/  then
+        rest = $4
+        s = $1.gsub('\\[', '[]').gsub('\\]',  ']')
+        Path.new([Key.new(s)] + parse(rest).elts)
+      else
+        raise "Cannot parse path: '#{str}'"
+      end
+    end
+
     def initialize(elts = [])
       @elts = elts
     end
@@ -16,8 +32,14 @@ module Paths
       @elts = path.elts + @elts
     end
 
-    def field(fld)
-      descend(Field.new(fld))
+    def deref(root)
+      elts.inject(root) do |cur, elt|
+        elt.deref(cur)
+      end
+    end
+
+    def field(name)
+      descend(Field.new(name))
     end
     
     def key(key)
@@ -53,14 +75,22 @@ module Paths
       @field = field
     end
 
+    def deref(obj)
+      obj[@field]
+    end
+
     def to_s
-      ".#{@field.name}"
+      ".#{@field}"
     end
   end
 
   class Index < Elt
     def initialize(index)
       @index = index
+    end
+
+    def deref(obj)
+      obj[@index]
     end
 
     def to_s
@@ -73,10 +103,20 @@ module Paths
       @key = key
     end
 
-    def to_s
-      s = @key.to_s.gsub('}', '\\}').gsub('{', '\\{')
-      "{#{s}}"
+    def deref(obj)
+      obj[@key]
     end
+
+    def to_s
+      "[#{escape(@key.to_s)}]"
+    end
+
+    private
+
+    def escape(s)
+      s.gsub(']', '\\]').gsub('[', '\\[')
+    end
+
   end
 end
 
@@ -110,6 +150,7 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   ss = Loader.load('schema.schema')
   ss = Loader.load('grammar.grammar')
+  ss = Loader.load('test.todo')
   print(ss)
 end
 
