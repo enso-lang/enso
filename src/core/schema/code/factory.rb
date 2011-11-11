@@ -1,6 +1,7 @@
 
 require 'core/system/library/schema'
 require 'core/schema/code/finalize'
+require 'core/schema/code/paths'
 
 require 'ostruct'
 
@@ -33,6 +34,7 @@ class Factory
 
   def initialize(schema)
     @schema = schema
+    @key_gen = 0
   end
 
   # this is the core object constructor call
@@ -70,6 +72,13 @@ class Factory
         when "datetime" then obj[field.name] = DateTime.now
         else
           raise "Unknown type: #{field.type.name}"
+        end
+      elsif field.key && field.auto && field.type.Primitive? then
+        case field.type.name
+        when "str" then obj[field.name] = "id_#{object_id}_#{@key_gen += 1}"
+        when "int" then obj[field.name] = @key_gen += 1
+        else
+          raise "Cannot autogen key for #{field.type.name}"
         end
       end
       n += 1
@@ -117,15 +126,37 @@ module CheckedObjectMixin
   attr_reader :_id
   attr_accessor :_origin
   attr_reader :_origin_of
+  attr_reader :_path
   
   def become!(obj)
     @factory = obj._graph_id
     @hash = obj._hash
     @_origin_of = obj._origin_of
     @_origin = obj._origin
+    @_path = obj._path
     @schema_class = obj.schema_class
     @_id = obj._id
     @listeners = nil
+  end
+
+  def _path=(new_path)
+    _adjust(new_path)
+    @_path = new_path
+  end
+
+  def _adjust(new_path)
+    schema_class.fields.each do |fld|
+      if !fld.many && fld.traversal && !fld.type.Primitve? && @hash[fld.name] then
+        @hash[fld.name]._path.prepend!(new_path)
+        @hash[fld.name]._adjust(new_path) 
+      end
+      if fld.many && fld.traversal && !fld.type.Primitve? then
+        @hash[fld.name].each do |x|
+          x._path.prepend!(new_path)
+          x._adjust(new_path) 
+        end
+      end
+    end
   end
 
 
@@ -232,6 +263,20 @@ module CheckedObjectMixin
     old = @hash[field_name]
     return new if old == new
     @hash[field_name] = new
+
+    # Update the path of the added object if the field assigned to
+    # is a non-primitive traversal field.
+    if field.traversal && !field.type.Primitive? && new then
+      new._path = _path.field(field)
+      #puts "Field path: #{new._path}"
+    end
+
+    if field.traversal && !field.type.Primitive? && !new && old then
+      # setting to nil means disconnecting old
+      old._path.reset!
+    end
+
+
     notify_update(field, old, new)
     return new
   end
@@ -336,6 +381,7 @@ class CheckedObject
     @_id = @@_id += 1
     @hash = {}
     @_origin_of = OpenStruct.new
+    @_path = Paths::Path.new
     @schema_class = schema_class
     @factory = factory
     schema_class.fields.each do |field|
@@ -448,6 +494,12 @@ class ManyIndexedField < BaseManyField
       raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
       @realself.notify_update(@field, @hash[k], v) if @realself
       @hash[k] = v
+
+      if @field && @field.traversal && !@field.type.Primitive? then
+        v._path = @realself._path.field(@field).key(k)
+        #puts "Keyed path: #{v._path}"
+      end
+
     end
     return v
   end
@@ -459,7 +511,16 @@ class ManyIndexedField < BaseManyField
 
   def delete(v)
     k = v[@key]
-    @hash.delete(k)
+    @hash.delete(k) do |e|
+      # not found
+      return
+    end
+
+    # collections have never primitives
+    if @field && @field.traversal then
+      v._path.reset!
+    end
+
     # TODO: notify update???
   end
   
@@ -556,19 +617,44 @@ class ManyField < BaseManyField
   
   def <<(v)
     @realself.notify_update(@field, nil, v) if @realself
+    
+    if @field && @field.traversal && !@field.type.Primitive? then
+      # length, because it is not added yet.
+      v._path = @realself._path.field(@field).index(length)
+      #puts "Index path after append: #{v._path}"
+    end
+    
     @list << v
+    
   end
 
   def []=(i, v)
     @realself.notify_update(@field, @list[i], v) if @realself
+
+    if @field.traversal && !@field.type.Primitive? then
+      v._path = @realself._path.field(@field).index(i)
+      #puts "Index path: #{v._path}"
+    end
+
     @list[i] = v
   end
 
   def delete(v)
-    @list.delete(v)
+    deleted = @list.delete(v)
+
+    # collections only allow non-primitives
+    if @field && @field.traversal && deleted then
+      deleted._path.reset!
+    end
+    return deleted
   end
 
   def clear()
+    if @field && @field.traversal then
+      @list.each do |x|
+        x._path.reset!
+      end
+    end
     @list.clear
   end
   
