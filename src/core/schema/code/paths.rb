@@ -51,7 +51,32 @@ module Paths
     end
 
     def root?
-      elts == []
+      elts.empty?
+    end
+
+    def lvalue?
+      !root? && last.is_a?(Field)
+    end
+
+    def assign(root, obj)
+      raise "Can only assign to lvalues" if not lvalue?
+      owner.deref(root)[last.name] = obj
+    end
+
+    def insert(root, obj)
+      deref(root) << obj
+    end
+
+    def insert_at(root, key, obj)
+      deref(root)[key] = obj
+    end
+
+    def owner
+      Path.new(elts[0..-2])
+    end    
+    
+    def last
+      elts.last
     end
 
     def to_s
@@ -71,16 +96,18 @@ module Paths
   end
 
   class Field < Elt
-    def initialize(field)
-      @field = field
+    attr_reader :name
+
+    def initialize(name)
+      @name = name
     end
 
     def deref(obj)
-      obj[@field]
+      obj[@name]
     end
 
     def to_s
-      ".#{@field}"
+      ".#{@name}"
     end
   end
 
