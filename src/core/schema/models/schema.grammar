@@ -13,6 +13,8 @@ Super ::= Class^
 
 Field ::= [Field] Key? Traversal? name:sym ":" type:Type^ Multiplicity Annot?
 Key ::= "#" @"@key = true"
+     |  "##" @"@key = true; @auto = true"
+
 Traversal ::= "!" @"@traversal = true"
 
 Multiplicity ::= "*" @"@many = true; @optional = true"

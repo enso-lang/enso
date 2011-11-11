@@ -32,6 +32,7 @@ class Field
   optional: bool
   many: bool
   key: bool
+  auto: bool
   inverse: Field? / Field.inverse 
   computed: str?
   traversal: bool
