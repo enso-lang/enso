@@ -3,3 +3,5 @@ allow create,read,update,delete(f:File)
 allow read,update(d:Dir{*})
 allow read,update(f:File{*})
 
+deny create,delete(d:Dir) if user == "Bob"
+deny create,delete(f:File) if user == "Bob"
