@@ -1,35 +1,93 @@
+
 def index {
+    files();
+}
 
-      <script type="text/javascript" src="static/simpletreemenu.js">
-      </script>
-      <link rel="stylesheet" type="text/css" href="static/simpletree.css" />
+def files {
+    add_menu {
+        <script type="text/javascript" src="static/simpletreemenu.js">
+        </script>
+        <link rel="stylesheet" type="text/css" href="static/simpletree.css" />
 
+        <h5>"Files"</h5>
+
+        for (s:root->sources) {
+            <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'expand')"> "Expand All"</a> " | " <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'contact')">"Contact All"</a>
+
+            <ul id="treemenu_Alice" class="treeview">
+                show_node(s->basedir);
+            </ul>
+
+              <script type="text/javascript" src="static/simpletreemenutail.js">
+              </script>
+        }
+    }
+}
+
+def history_page(blank, sel) {
+    add_menu {
+
+        form {
+            select1(sel, history->sources);
+
+            <a href=history_page(1,sel)>"Go"</a><br/>
+        }
+
+        if (blank == "0") {
+          ""
+
+        } else {
+                  <script type="text/javascript" src="static/simpletreemenu.js">
+                  </script>
+                  <link rel="stylesheet" type="text/css" href="static/simpletree.css" />
+
+                  <h5>"History"</h5>
+
+                      <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'expand')"> "Expand All"</a> " | " <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'contact')">"Contact All"</a>
+
+
+                      <ul id="treemenu_Alice" class="treeview">
+                          show_node(sel->basedir);
+                      </ul>
+
+                        <script type="text/javascript" src="static/simpletreemenutail.js">
+                        </script>
+
+        }
+    }
+}
+
+
+def users {
+    add_menu {
+
+    }
+}
+
+def rules {
+    add_menu {
+
+    }
+}
+
+def add_menu(yield[]) {
       <table cellpadding="10">
       <tr>
       <td align="left" valign="top" width="220" height="800" bgcolor="#7ec2e1">
             <h3>"Welcome to EnsoSync"</h3>
 
-            <a href="index">"Files"</a><br/>
-            <a href="index">"Users"</a><br/>
-            <a href="index">"Rules"</a><br/>
+            <a href="files">"Files"</a><br/>
+            <a href=history_page(0,new(Source))>"History"</a><br/>
+            <a href="users">"Users"</a><br/>
+            <a href="rules">"Rules"</a><br/>
       </td>
       <td align="left" valign="top">
 
-            for (s:root->sources) {
-                <h4>$s->name "  (" $s->path ")"</h4>
-                <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'expand')"> "Expand All"</a> " | " <a href="javascript:ddtreemenu.flatten('treemenu_Alice', 'contact')">"Contact All"</a>
-
-                <ul id="treemenu_Alice" class="treeview">
-                    show_node(s->basedir);
-                </ul>
-            }
+        yield();
 
       </td>
       </tr>
       </table>
-
-      <script type="text/javascript" src="static/simpletreemenutail.js">
-      </script>
 }
 
 def show_node(node) {
@@ -37,9 +95,10 @@ def show_node(node) {
   if (node->isdir) {
       <ul>
           for (c:node->nodes) {
-            show_node(c);
+            show_node(c, yield);
           }
       </ul>
   }
   </li>
 }
+

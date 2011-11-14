@@ -5,16 +5,17 @@ require 'core/diff/code/intersect'
 require 'core/diff/code/union'
 require 'core/diff/code/patch'
 
-def sync(s1, s2, base)
+def sync(s1, s2, base, factory)
 
-  # perform differencing on main updater
-  d = diff(base, s1)
+  # perform differencing on both paths
+  d1 = diff(base, s1)
+  d2 = diff(base, s2)
+
+  # merge all deltas to form a combined delta
+  d = Union.union(d1, d2, factory)
 
   # new base is the end state everyone should be in
-  newbase = s2.factory.trusted_mode {
-    Clone(s2)
-  }
-  newbase = Patch.patch(newbase, d)
+  newbase = Patch.patch(base, d)
 
   # generate updates by differencing
   d1u = diff(s1, newbase)
@@ -39,23 +40,4 @@ def collate_diffs(d, root, path)
     end
   end
   res
-end
-
-def multi_sync(s1, s2, base, factory)
-
-  # perform differencing on both paths
-  d1 = diff(base, s1)
-  d2 = diff(base, s2)
-
-  # merge all deltas to form a combined delta
-  d = Union.union(d1, d2, d1.factory)
-
-  # new base is the end state everyone should be in
-  newbase = Patch.patch(base, d)
-
-  # generate updates by differencing
-  d1u = diff(s1, newbase)
-  d2u = diff(s2, newbase)
-
-  return d1u, d2u, newbase
 end

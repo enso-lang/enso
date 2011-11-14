@@ -1,7 +1,0 @@
-domain 
-    source Alice "f" f ( 
-        d1 ( ddd [ "da39a3ee5e6b4b0d3255bfef95601890afd80709" ] ) 
-        aaa [ "972a1a11f19934401291cc99117ec614933374ce" ] 
-        eee [ "a032114ae685afabc68a00d5abea6c6068f8815e" ] 
-        ccc [ "6cb69794d8635e67549072443c48c3728cd776e5" ] 
-        bbb [ "da39a3ee5e6b4b0d3255bfef95601890afd80709" ] ) end end

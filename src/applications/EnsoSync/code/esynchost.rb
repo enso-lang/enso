@@ -5,6 +5,8 @@ Sit in tight loop waiting for someone to call me
 
 require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
+require 'core/security/code/securefactory'
+require 'core/security/code/nullsecurity'
 require 'core/system/load/load'
 require 'socket'
 require 'yaml'
@@ -24,6 +26,17 @@ def esynchost(rootpath)
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 
+  begin
+    auth_schema = Loader.load("auth.schema")
+    rules_str =  File.open("#{rootpath}/.rules.auth", "rb") { |f| f.read }
+    rules = Loader.load_text("auth", Factory.new(auth_schema), rules_str)
+    sec = Security.new(rules)
+
+  #rescue
+  #  sec = NullSecurity.new
+  #  puts "fail"
+  end
+
   server = TCPServer.open(ENSOSYNC_PORT)   # Socket to listen on port 2000
   puts "\nListening to port #{ENSOSYNC_PORT}"
 
@@ -33,6 +46,7 @@ def esynchost(rootpath)
       #initiate contact
       login = client.gets[0..-2]
       puts "\n#{login} initiated sync..."
+      sfactory = SecureFactory.new(schema, sec, true)
       factory = Factory.new(schema)
 
       cbase_str = client.read(client.gets[0..-2].to_i)
@@ -42,8 +56,11 @@ def esynchost(rootpath)
       cnode = Parse.load_raw(cnode_str, node_grammar, schema, factory, false).finalize
 
       #merge and compute deltas
-      snode = read_from_fs(rootpath, path, factory)
-      d1u, d2u, newbase = sync(cnode, snode, cbase.sources[login].basedir, factory)
+      snode1 = read_from_fs(rootpath, path, factory)
+      snode = sfactory.clone(read_from_fs(rootpath, path, factory))
+      d1u, d2u, newbase = sync(cnode, snode, cbase.sources[login].basedir)
+
+      #turn delta trees into edit lists
       s2c = collate_diffs(d1u, rootpath, path)
       c2s = collate_diffs(d2u, '', path)
 
@@ -64,7 +81,7 @@ def esynchost(rootpath)
         path = "#{rootpath}/#{k}"
         case v[0..1]
           when ['+','F']
-            puts " Updated file #{path}"
+            puts " #{fileExists?(path) ? "Modified" : "Created"} file #{path}"
             writeFile(path, v[2])
           when ['-','F']
             puts " Deleted file #{path}"

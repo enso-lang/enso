@@ -9,9 +9,11 @@ require 'logger'
 log = Logger.new($stderr)
 
 # TODO: detect when thin is debug mode, otherwise use WARN
-log.level = Logger::WARN
+log.level = Logger::DEBUG
 
-app = Web::EnsoWeb.new("esync.web", "source.esync", log)
+data = { 'root' => Loader.load("source.esync") , 'history' => Loader.load("source.esync")}
+
+app = Web::EnsoWeb.new("esync.web", data, log)
 #use Rack::CommonLogger
 
 use Rack::Static, :urls => ["/static"], :root => "applications/EnsoSync"

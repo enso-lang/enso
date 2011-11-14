@@ -1,0 +1,5 @@
+allow create,read,update,delete(d:Dir)
+allow create,read,update,delete(f:File)
+allow read,update(d:Dir{*})
+allow read,update(f:File{*})
+
