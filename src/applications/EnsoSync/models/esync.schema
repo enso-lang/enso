@@ -7,7 +7,7 @@ end
 
 class Source
 #  name: str
-!  basedir: Node ?
+!  basedir: Node
   path: str
 end
 class Node

@@ -42,28 +42,30 @@ class Patch
     else
       # apply changes to each of its fields
       schema_class = o.schema_class
-      res = factory[schema_class.name]
-
-      schema_class.fields.each do |f|
-        #get field value 
-        d = deltas[f.name]
-        if d.nil? #field is nil means it was not changed
-          res[f.name] = o[f.name]
-          next
+      #res = factory[schema_class.name]
+      res = o
+      if !res.nil?
+        schema_class.fields.each do |f|
+          #get field value
+          d = deltas[f.name]
+          if d.nil? #field is nil means it was not changed
+            res[f.name] = o[f.name]
+            next
+          end
+          if not f.many
+            res[f.name] = patch_single(o, f.name, d, factory)
+          else #many-valued field
+            if IsKeyed?(f.type)
+              patch_keyedlist(o, f.name, d, factory).each {|x|res[f.name][ObjectKey(x)]=x unless x.nil?}
+            else
+              patch_orderedlist(o, f.name, d, factory).each {|x|res[f.name]<<x unless x.nil?}
+            end
+          end
         end
-        if not f.many
-          res[f.name] = patch_single(o, f.name, d, factory)
-        else #many-valued field
-          if IsKeyed?(f.type)
-            patch_keyedlist(o, f.name, d, factory).each {|x|res[f.name]<<x}
-          else
-            patch_orderedlist(o, f.name, d, factory).each {|x|res[f.name]<<x}
-          end 
-        end
-      end
 
-      if DeltaTransform.isKeyedMany?(deltas)
-        res[ClassKey(res.schema_class).name] = deltas.pos
+        if DeltaTransform.isKeyedMany?(deltas)
+          res[ClassKey(res.schema_class).name] = deltas.pos
+        end
       end
 
       return res
@@ -75,31 +77,33 @@ class Patch
 
     if DeltaTransform.isPrimitive?(delta)
       #do nothing for now
-      return DeltaTransform.getValue(delta)
+      DeltaTransform.getValue(delta)
     else 
       classname = DeltaTransform.getObjectName(delta)
       #fill in fields
       obj = factory[classname]
-      obj.schema_class.fields.each do |f|
-        next if !f.type.Primitive? and !f.traversal
-        next if delta[f.name].nil?
-        
-        if not f.many
-          obj[f.name] = add_obj(delta[f.name], factory)
-        else
-          obj[f.name].clear()
-          delta[f.name].each do |x|
-            obj[f.name] << add_obj(x, factory)
+      if !obj.nil?
+        obj.schema_class.fields.each do |f|
+          next if !f.type.Primitive? and !f.traversal
+          next if delta[f.name].nil?
+
+          if not f.many
+            obj[f.name] = add_obj(delta[f.name], factory)
+          else
+            obj[f.name].clear()
+            delta[f.name].each do |x|
+              obj[f.name] << add_obj(x, factory)
+            end
           end
         end
+
+        if DeltaTransform.isKeyedMany?(delta)
+          obj[ClassKey(obj.schema_class).name] = delta.pos
+        end
+
+        obj
       end
     end
-
-    if DeltaTransform.isKeyedMany?(delta)
-      obj[ClassKey(obj.schema_class).name] = delta.pos
-    end
-
-    return obj
   end
 
   def patch_single(o, fname, delta, factory)
@@ -178,6 +182,7 @@ class Patch
   end
 
   def patch_refs!(o)
+    return if o.nil?
 
     o.schema_class.fields.each do |f|
       next if f.type.Primitive?

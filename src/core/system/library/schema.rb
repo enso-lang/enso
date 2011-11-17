@@ -33,6 +33,7 @@ def generate_name_map(obj)
   gen_nm_helper(obj, "")
 end
 def gen_nm_helper(obj, path)
+  return {} if obj.nil?
   res = {obj => path}
   delim = path.empty? ? "" : "."  # first item does not have delimiter
   obj.schema_class.fields.each do |f|

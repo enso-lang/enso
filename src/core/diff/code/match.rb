@@ -162,6 +162,9 @@ class Match
   end
   
   def eq_Class (o1, o2)
+    return true if o1==o2
+    return false if o1.nil? || o2.nil?
+
     # define class equality as all their keys being equal
     # if this class has no keys then check that all their primitive fields are equal
 

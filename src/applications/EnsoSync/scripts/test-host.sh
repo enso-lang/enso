@@ -1,0 +1,1 @@
+ruby -I . applications/EnsoSync/code/esynchost.rb $1/server

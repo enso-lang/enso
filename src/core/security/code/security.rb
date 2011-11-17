@@ -16,7 +16,7 @@ class Security
   attr_accessor :user, :root
 
   def initialize(rulefile)
-    allrules = Loader.load(rulefile)
+    allrules = rulefile
     @allowrules = []
     @denyrules = []
     allrules.rules.each do |r|
@@ -41,6 +41,7 @@ class Security
 
     #trusted_mode {
       @trusted = @trusted+1
+
       #find at least one allow rule that holds
       if @allowrules.none? {|r| check_rule(r, op, obj, *field)}
         @trusted = @trusted-1
