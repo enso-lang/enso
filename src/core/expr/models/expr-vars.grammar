@@ -1,0 +1,7 @@
+start Expr
+
+abstract Expr
+abstract EConst
+
+Primary ::= EConst
+          | [EVar] name:sym
