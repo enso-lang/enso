@@ -1,23 +1,24 @@
-
 module RenderExpr
-  def render_EBinOp(*args)
-    "#{e1.render(*args)} #{op} #{e2.render(*args)}"
+
+  def render_EBinOp(op, e1, e2, *args)
+    "#{e1} #{op} #{e2}"
   end
 
-  def render_EUnOp(*args)
-    "#{op} #{e.render(*args)}"
+  def render_EUnOp(op, e, *args)
+    "#{op} #{e}"
   end
 
-  def render_EStrConst(*args)
+  def render_EStrConst(val, *args)
     val
   end
 
-  def render_EIntConst(*args)
+  def render_EIntConst(val, *args)
     val
   end
 
-  def render_EBoolConst(*args)
+  def render_EBoolConst(val, *args)
     val
   end
+
 end
 

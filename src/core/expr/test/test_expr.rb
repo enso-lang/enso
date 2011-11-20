@@ -15,7 +15,7 @@ class ExprTest < Test::Unit::TestCase
     #add actions to the expression
     f = Factory.new(Loader.load("expr.schema"))
     f.add_interp(EvalExpr)
-    assert_equal(Copy(f,ex0).eval, 6)
+    assert_equal(Copy(f,ex0).eval1, 6)
 
     f.add_interp(RenderExpr)
     assert_equal(Copy(f,ex0).render, "1 + 2 + 3")
@@ -31,7 +31,7 @@ class ExprTest < Test::Unit::TestCase
     fv.add_interp(RenderExpr)
     fv.add_interp(Vars)
 
-    assert_equal(Copy(fv, ex1).eval({'a'=>5}), 22)
+    assert_equal(Copy(fv, ex1).eval1({'a'=>5}), 22)
     assert_equal(Copy(fv, ex1).render, "a + 17")
   end
 
@@ -39,11 +39,10 @@ class ExprTest < Test::Unit::TestCase
     #load an expression and display it
     ex0 = Loader.load("my-expr.expr")
 
-    #add actions to the expression
     f = Factory.new(Loader.load("expr.schema"))
     f.add_interp(RenderExpr)
     f.add_interp(Wrap)
-    Print.print Copy(f,ex0).wrap
-    assert_equal(Copy(f,ex0).wrap, "1 + 2 + 3")
+    assert_equal("((1) + ((2) + (3)))", Copy(f,ex0).wrap[:render])
   end
+
 end
