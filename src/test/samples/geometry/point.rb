@@ -13,6 +13,6 @@ Print.print(p)
 
 puts "-"*50
 
-p2 = Loader.load('test.point')
+p2 = Loader.load('point1.point')
 DisplayFormat.print(point_grammar, p2)
 

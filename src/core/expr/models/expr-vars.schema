@@ -1,0 +1,7 @@
+primitive str
+
+class Expr end
+
+class EVar < Expr
+  name:str
+end
