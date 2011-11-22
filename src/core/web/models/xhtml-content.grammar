@@ -1,0 +1,3 @@
+#ruby
+
+union(load('xhtml.grammar'), load('content.grammar'))

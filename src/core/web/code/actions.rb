@@ -1,6 +1,5 @@
 
 require 'core/web/code/web'
-require 'core/web/code/renderable'
 
 module Web
   class Redirect < Exception
@@ -21,6 +20,10 @@ end
 
 class DefaultActions
   include Web::ActionUtils
+
+  def my_actions
+    [:submit_action, :delete_action, :check_delete_action]
+  end
   
   def submit_action(link)
     puts "REDIRECTING"

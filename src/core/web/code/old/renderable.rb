@@ -115,7 +115,7 @@ module Web::Eval
           func = env[$1].value
           args2 = $2.split('&').map do |x| 
             _, arg2 = x.split('=')
-            Value.parse(arg2).result(root, store)
+            val = Value.parse(arg2).result(root, store)
           end
           # TODO: unparsing should *not* happen here...
           Link.new(func, args2).value

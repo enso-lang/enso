@@ -1,6 +1,5 @@
 
 require 'core/web/code/web'
-require 'ostruct'
 
 module Web::Eval
   class RaisingStream
@@ -30,10 +29,10 @@ module Web::Eval
     def with_args(eval, args, block, call_env, errors)
 
       # Bind arguments in clean environment
-      env = {}.update(@env)
+      env = @env.new
 
       # but conses in an env between call_env
-      inter_env = {}.update(call_env)
+      inter_env = call_env.new
 
       i = 0
       bind_tail = true
@@ -41,7 +40,7 @@ module Web::Eval
         if frm.cons then
           bind_tail = false
           target = []
-          env[frm.name] = Result.new(target)
+          env[frm.name] = List.new(target)
           
           puts "Making a cons-closure for #{frm.name}"
           # Bind a closure that will update the current
@@ -51,7 +50,7 @@ module Web::Eval
                                                                 target))
         else
           # A normal expression is just evaluated and put in the env.
-          r = eval.eval_exp(args[i], call_env, errors)
+          r = eval.expr.eval(args[i], call_env, errors)
           puts "Setting normal formal param #{frm.name} to #{r}"
           env[frm.name] = r
           i += 1
@@ -130,16 +129,16 @@ module Web::Eval
             bound_tail = false
           end
           #puts "SETTTING: #{frm.name} to #{env[frm.name].value}"
-          record[frm.name] = env[frm.name].value
+          record[frm.name] = env[frm.name]
         end
         if tail && block && bound_tail then
           # block is bound to the name of tail
           # set the closure as value 
           name = tail.name
-          record[name] = env[name].value
+          record[name] = env[name]
         end
       end
-      @target << Result.new(record)
+      @target << Record.new(record)
 
       #puts "Added #{record} to target"
     end

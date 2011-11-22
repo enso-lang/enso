@@ -1,14 +1,14 @@
 
 require 'core/web/code/expr'
 require 'core/web/code/render'
-require 'core/web/code/values'
 require 'core/web/code/actions'
 require 'core/web/code/module'
-require 'core/web/code/store'
 require 'core/web/code/form'
-
+require 'core/web/code/xhtml'
 
 require 'core/schema/tools/print'
+require 'core/grammar/code/layout'
+require 'core/system/load/load'
 
 module Web::Eval
 
@@ -20,12 +20,11 @@ module Web::Eval
       @env = env
       @actions = DefaultActions.new
       @root = root
-      @store = Store.new(root._graph_id)
       @eval = Render.new(Expr.new(@store, log, @actions), log)
     end
 
     def render(func, out, params, form = {}, errors = {})
-      env = {}.update(@env)
+      env = @env.new
 
       # TODO: get rid of the side-effect in root_env
       # which just serves to have dyn. scoping for self
@@ -35,7 +34,7 @@ module Web::Eval
       # TODO: extract into method
       params.each do |k, v|
         puts "\t********** SETTING: #{k} to #{v}"
-        env[k] = Value.parse(v).result(@root, @store)
+        env[k] = Result.parse(v, @root)
       end
 
       func.run(@eval, env, out, errors)    
@@ -62,7 +61,13 @@ module Web::Eval
       func = lookup(@url)
       if func then
         render(func, out, @params)
-        http.respond(out)
+        x = []
+        RenderXHTML.render(out[0], x)
+        Print.print(out[0])
+        #g = Loader.load('xhtml-content.grammar')
+        #DisplayFormat.print(g, out[0])
+        p x
+        http.respond(x)
       else
         http.not_found(@url)
       end
@@ -87,7 +92,6 @@ module Web::Eval
       rescue Web::Redirect => e
         http.redirect(e.link)
       else
-        # TODO: merge @params and @form.env?
         render(lookup(@url), out, @params, @form.env, errors)
       end
     end

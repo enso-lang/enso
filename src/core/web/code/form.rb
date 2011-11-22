@@ -1,16 +1,16 @@
 
 require 'core/web/code/web'
-require 'core/web/code/values'
+require 'core/web/code/result'
 
 module Web::Eval
   class Form
     attr_reader :actions, :env
 
-    def initialize(data)
+    def initialize(data, env, root)
       @bindings = {}
       @actions = []
       @env = {}
-      parse(flatten(data))
+      parse(flatten(data), env, root)
       puts "________: #{to_s}"
     end
 
@@ -59,18 +59,14 @@ module Web::Eval
       return tbl
     end
 
-    def parse(hash)
+    def parse(hash, env, root)
       hash.each do |k, v|
         if k =~ /^!/ then 
-          @actions << Action.make(k, v)
+          @actions << Action.parse(k, v, env, root)
         elsif k =~ /^[@.]/ then
-          # NB: also when starting with @
-          # since @X:3.bla is a valid LValue
-          # TODO: maybe check that .bla present
-          lv = LValue.make(k)
-          @bindings[lv] = Value.parse(v)
+          @bindings[Result.parse(k, root)] = Result.parse(v, root)
         else
-          @env[k] = Value.parse(v)
+          @env[k] = Result.parse(v, root)
         end
       end
     end

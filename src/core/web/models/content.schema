@@ -1,0 +1,20 @@
+
+primitive str
+
+// merge with XHTML
+
+class Content end
+
+class CharData < Content
+  data: str
+  encoding: str?
+end
+
+class CDATA < Content
+  data: str
+end
+
+class Value
+  value: str
+end
+

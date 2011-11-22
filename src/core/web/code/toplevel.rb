@@ -4,6 +4,8 @@ require 'core/system/load/load'
 require 'core/web/code/web'
 require 'core/web/code/handlers'
 require 'core/web/code/module'
+require 'core/web/code/env'
+require 'core/web/code/xhtml'
 
 require 'rack'
 
@@ -51,18 +53,17 @@ class Web::EnsoWeb
   def load!
     @web = Loader.load!(@web_name)
     @last_change = last_change(@web_name)
-    @env = {'root' => Result.new(@root, Ref.new([]))}
+    @env = Env.new({'root' => Ref.new(@root, @root._path, @root)})
+    actions = DefaultActions.new
+    actions.my_actions.each do |sym|
+      puts "BINDING: #{sym} to #{actions.method(sym)}"
+      @env.bind_action!(sym.to_s, actions.method(sym)) 
+    end    
     mod_eval = Mod.new(@env, @log)
     mod_eval.eval(@web)
   end
 
-  def handle(req, out)
-    handler = 
-    handler.handle(out)
-  end
-
-
-  def call(env, stream = Stream.new)
+  def call(env, stream = [])
     reload_if_needed!
     req = Rack::Request.new(env)
     if req.get? then
@@ -93,7 +94,7 @@ class Web::EnsoWeb
     [200, {
       'Content-Type' => 'text/html',
        # ugh
-      'Content-Length' => stream.length.to_s,
+      'Content-Length' => stream.join.length.to_s,
      }, stream]
   end
 

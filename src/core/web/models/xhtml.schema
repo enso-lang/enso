@@ -1,0 +1,23 @@
+
+primitive str
+
+class Value end
+
+class Document
+  !root: Element
+end
+
+class Content
+end
+
+class Element < Content
+  tag: str
+  !attrs: Attr*
+  !contents: Content*
+end
+
+class Attr
+  name: str
+  !value: Value
+end
+

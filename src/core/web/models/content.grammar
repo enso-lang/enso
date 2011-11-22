@@ -1,0 +1,10 @@
+
+
+start Document
+
+abstract Document
+
+Content ::= [CharData] data:str
+ 	 |  [CDATA] "cdata" data:str
+
+Value ::= [Value] value:str	 

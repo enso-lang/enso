@@ -1,46 +1,27 @@
 
 
 require 'core/web/code/dispatch'
-require 'core/web/code/renderable'
-
+require 'core/web/code/result'
+require 'core/schema/tools/print'
 
 module Web::Eval
   class Expr
     include Dispatch
-
-    def initialize(store, log, actions)
-      @store = store
-      @log = log
-      @gensym = 0
-      @actions = actions
-    end
 
     def Str(this, env, errors)
       Result.new(this.value)
     end
 
     def Int(this, env, errors)
-      Result.new(Integer(this.value))
+      Result.new(this.value.to_i)
     end
 
     def Var(this, env, errors)
-      @log.debug("VAR: #{this.name}")
-      # @log.debug("ENV = #{env}")
+      # TODO: pass errors in the env
       if this.name == 'errors' then
-        Result.new(errors)
-      elsif this.name == 'gensym' then
-        @gensym += 1
-        Result.new("$$#{@gensym}")        
-      elsif env[this.name] then
-        @log.debug("ENV VAR: #{env[this.name]}")
-        env[this.name] 
-      elsif @actions.respond_to?(this.name) then
-        # yikes, ruby methods as values
-        Result.new(@actions.method(this.name))
+        Record.new(errors)
       else
-        @log.warn("Undefined variable: #{this.name.inspect}")
-        @log.debug("ENV = #{env}")
-        return nil
+        env[this.name]
       end
     end
 
@@ -68,58 +49,38 @@ module Web::Eval
     end
 
     def Address(this, env, errors)
-      r = eval(this.exp, env, errors)
-      path = r.path
-      @log.debug("Evaluating path of result #{r}: '#{path}'")
-      # @log.debug("ENV = #{env}")
-      @log.warn("Address asked, but path is nil (val = #{path})") if path.nil?
-      Result.new(path)
+      eval(this.exp, env, errors).address
     end
 
     def New(this, env, errors)
-      Result.new(*@store.create(this.class))
+      # TODO: get rid of hard-wired root here
+      New.new(this.class, env['root'].value)
     end
 
     def Field(this, env, errors)
       r = eval(this.exp, env, errors)
-      # TODO: get rid of &&
-      puts "NAME = #{this.name}"
-      Result.new(r.value[this.name], r.path && r.path.descend_field(this.name))
+      puts "RESULT = #{r}"
+      r.field(this.name)
     end
 
     def Subscript(this, env, errors)
-      obj = eval(this.obj, env, errors)
-      @log.debug("OBJ = #{obj}")
-      sub = eval(this.exp, env, errors)
-      @log.debug("SUB = #{sub}")
-      # TODO: get rid of &&
-      r = Result.new(obj.value[sub.value], obj.path && 
-                 obj.path.descend_collection(sub.value))
-      @log.debug("Returning subscript result: #{r}")
-      return r
+      eval(this.obj, env, errors).subscript(eval(this.exp, env, errors).value)
     end
 
     def Call(this, env, errors)
-      callable = eval(this.exp, env, errors).value
+      Print.print(this)
+      call = eval(this.exp, env, errors)
       args = this.args.map do |arg|
         eval(arg, env, errors)
       end
-      
-      @log.warn("CALLABLE = #{callable} + args = #{args}")
-
-      if callable.is_a?(Method) then # a controller action
-        Action.new(callable, nil, args)
-      elsif callable.is_a?(Function) then
-        Link.new(callable, args)
-      else
-        @log.warn("Cannot call: #{callable}")
-      end
+      call.bind(args)
     end
 
     def List(this, env, errors)
-      this.elements.map do |elt|
+      elts = this.elements.map do |elt|
         eval(elt, env, errors)
       end
+      List.new(elts)
     end
 
   end
