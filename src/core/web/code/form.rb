@@ -66,11 +66,11 @@ module Web::Eval
     def parse(hash, env, root)
       hash.each do |k, v|
         if k =~ /^!/ then 
-          @actions << Action.parse(k, v, env, root)
+          @actions << Action.parse(k, v, root, env)
         elsif k =~ /^[@.]/ then
-          @bindings[Ref.parse(k, root)] = Result.parse(v, root)
+          @bindings[Ref.parse(k, root, env)] = Result.parse(v, root, env)
         else
-          @env[k] = Result.parse(v, root)
+          @env[k] = Result.parse(v, root, env)
         end
       end
     end

@@ -9,11 +9,13 @@ module Web::Eval
   class Result
     attr_reader :value
 
-    def self.parse(v, root)
+    def self.parse(v, root, env)
       if v =~ /^[.@]/ then
-        Ref.parse(v, root)
+        Ref.parse(v, root, env)
+      elsif v =~ /^\// then
+        Template.parse(v, root, env)
       elsif v.is_a?(Array) then
-        List.new(v.map { |x| parse(x, root) })
+        List.new(v.map { |x| parse(x, root, env) })
       else
         # TODO: how to know if a value is int or str or real?
         Result.new(v)
@@ -78,12 +80,13 @@ module Web::Eval
     # a "value" passed by reference.
     
     class NewPath
-      attr_reader :store, :klass, :id
+      attr_reader :store, :klass, :id, :obj
 
-      def initialize(klass, id, store)
+      def initialize(klass, id, store, obj)
         @klass = klass
         @id = id
         @store = store
+        @obj = obj
       end
 
       def deref(root)
@@ -92,7 +95,13 @@ module Web::Eval
       end
 
       def to_s
-        "@#{klass}:#{id}"
+        if obj._path.root? then
+          puts "-------------------> non-canon: #{klass}:#{id}"
+          "@#{klass}:#{id}"
+        else
+          puts "--------------------------> CANONICAL: #{obj._path}"
+          obj._path.to_s
+        end
       end
 
     end
@@ -105,12 +114,12 @@ module Web::Eval
         id = @@id += 1
       end
       @@store[id] ||= root._graph_id[klass]
-      start = NewPath.new(klass, id, @@store)
+      start = NewPath.new(klass, id, @@store, @@store[id])
       path = Paths::Path.new([start])
       Ref.new(@@store[id], path, root)
     end
 
-    def self.parse(str, root)
+    def self.parse(str, root, env)
       if str =~ /^@([a-zA-Z_][a-zA-Z0-9_]*):([0-9]+)(.*)$/ then
         create($1, root, $2).extend(Paths::Path.parse($3))
       else
@@ -168,12 +177,7 @@ module Web::Eval
       # this "heuristic"
       if value.respond_to?(:schema_class) then
         # NB: use the canonical path if possible
-        if !value._path.root? then
-          puts "CANONICAL------> #{value._path}"
-          value._path.to_s
-        else
-          path.to_s
-        end
+        path.to_s
       elsif value.respond_to?(:each)
         path.to_s
       else
@@ -231,7 +235,7 @@ module Web::Eval
     #   input field
     # - actually executing the action
 
-    def self.parse(key, value, env, root)
+    def self.parse(key, value, root, env)
       if key =~ /^!([^?]+)/ then
         action = env[$1] # should resolve to action
       end
@@ -239,7 +243,7 @@ module Web::Eval
         cond = $1
       end
       args = value.split(SEP).map do |x|
-        Result.parse(x, root)
+        Result.parse(x, root, env)
       end
       Action.new(action.value, args, cond)
     end
@@ -277,13 +281,29 @@ module Web::Eval
     # - representing calls to be rendered as URLs
     # - invoking template functions during rendering
 
+    def self.parse(str, root, env)
+      name, tail = str.split('?')
+      name = name[1..-1] # strip leading /
+      puts ">>>>>>>>>>>>>>>>>>> PARSING TEMPLATE: #{str.inspect}"
+      puts "\t\t in env: #{env[name]}"
+      func = env[name].value # NB env stores "calls"
+      return Template.new(func, []) if !tail
+      args = tail.split('&')
+      # currently depend on order of params in the url
+      args = args.map do |arg|
+        name, value = arg.split('=')
+        Result.parse(URI.unescape(value), root, env)
+      end
+      Template.new(func, args)
+    end
+
     def render
       params = []
       value.formals.each_with_index do |f, i|
         arg = URI.escape(args[i].render)
         params << "#{f.name}=#{arg}"
       end
-      params.empty? ? value.name : "#{value.name}?#{params.join('&')}" 
+      params.empty? ? "/#{value.name}" : "/#{value.name}?#{params.join('&')}" 
     end
 
     def invoke(eval, env, out, errors)

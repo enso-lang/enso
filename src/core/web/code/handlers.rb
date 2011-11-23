@@ -34,7 +34,7 @@ module Web::Eval
       # TODO: extract into method
       params.each do |k, v|
         puts "\t********** SETTING: #{k} to #{v}"
-        env[k] = Result.parse(v, @root)
+        env[k] = Result.parse(v, @root, @env)
       end
 
       func.run(@eval, env, out, errors)    
@@ -98,6 +98,7 @@ module Web::Eval
       if redir then
         # NB: only render here for canonical paths...
         # this must be done better and less explicit
+        puts "************ RENDERING the link: #{redir.render}"
         http.redirect(redir.render)
       else
         render(lookup(@url), out, @params, form.env, errors)
