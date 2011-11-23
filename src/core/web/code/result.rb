@@ -10,10 +10,8 @@ module Web::Eval
     attr_reader :value
 
     def self.parse(v, root)
-      if v =~ /^[.]/ then
+      if v =~ /^[.@]/ then
         Ref.parse(v, root)
-      elsif v =~ /^@/
-        New.parse(v, root)
       elsif v.is_a?(Array) then
         List.new(v.map { |x| parse(x, root) })
       else
@@ -79,16 +77,57 @@ module Web::Eval
 
     # a "value" passed by reference.
     
+    class NewPath
+      attr_reader :store, :klass, :id
+
+      def initialize(klass, id, store)
+        @klass = klass
+        @id = id
+        @store = store
+      end
+
+      def deref(root)
+        # ignore the root, but look in store
+        store[id]
+      end
+
+      def to_s
+        "@#{klass}:#{id}"
+      end
+
+    end
+
+    @@id = 0
+    @@store = {}
+
+    def self.create(klass, root, id = nil)
+      if id.nil? then
+        id = @@id += 1
+      end
+      @@store[id] ||= root._graph_id[klass]
+      start = NewPath.new(klass, id, @@store)
+      path = Paths::Path.new([start])
+      Ref.new(@@store[id], path, root)
+    end
+
     def self.parse(str, root)
-      path = Paths::Path.parse(str)
-      value = path.deref(root)
-      Ref.new(value, path, root)
+      if str =~ /^@([a-zA-Z_][a-zA-Z0-9_]*):([0-9]+)(.*)$/ then
+        create($1, root, $2).extend(Paths::Path.parse($3))
+      else
+        path = Paths::Path.parse(str)
+        value = path.deref(root)
+        Ref.new(value, path, root)
+      end
     end
 
     def initialize(value, path, root)
       super(value)
       @path = path
       @root = root
+    end
+
+    def extend(nxt)
+      Ref.new(nxt.deref(value), path.extend(nxt), root)
     end
 
     def field(n)
@@ -117,21 +156,29 @@ module Web::Eval
 
     def assign(x)
       # only for non-many a.x or a[x] refs
-      path.assign(root, x)
-    end
-    
-    def insert(x)
-      # only for many-list a.x refs
-      path.insert(root, x)
-    end
-    
-    def insert_at(key, x)
-      # only for many-list and many-keyed a[x] refs
-      path.insert_at(root, key, x)
+      path.assign(root, x.value)
     end
     
     def to_s
       "ref(#{path}, #{value})"
+    end
+
+    def render
+      # TODO: maintain the type of this reference to avoid
+      # this "heuristic"
+      if value.respond_to?(:schema_class) then
+        # NB: use the canonical path if possible
+        if !value._path.root? then
+          puts "CANONICAL------> #{value._path}"
+          value._path.to_s
+        else
+          path.to_s
+        end
+      elsif value.respond_to?(:each)
+        path.to_s
+      else
+        super
+      end
     end
   end
   
@@ -146,41 +193,6 @@ module Web::Eval
     end
   end
 
-  class New < Ref
-    attr_reader :id
-
-    # TODO: use weakrefs in the table
-    @@ids = 0
-    @@table = {}
-
-    def self.parse(str, root)
-      if str =~ /^@([a-zA-Z_][a-zA-Z0-9_]*):([0-9]+)(.*)$/ then
-        new($1, root, $2.to_i)
-      else
-        raise "Could not parse New: #{str}"
-      end
-    end
-
-
-    def self.new(klass, root, id = nil)
-      if id.nil? then
-        id = @@ids += 1
-      end
-      @@table[id] ||= root._graph_id[klass]
-      super(@@table[id], Paths::ROOT, root, klass, id)
-    end
-
-    def initialize(value, path, root, klass, id)
-      super(value, path, root)
-      @klass = klass
-      @id = id
-    end
-
-    def render
-      "@#{@klass}:#{id}"
-    end
-
-  end
   
   class Call < Result
     attr_reader :args
@@ -203,6 +215,10 @@ module Web::Eval
   class Action < Call
     SEP = '##'
 
+    attr_reader :cond
+
+    #alias value method
+
     # At rendering time this class models
     # hidden input fields that represent actions
     # that should be executed upon submit.
@@ -217,7 +233,7 @@ module Web::Eval
 
     def self.parse(key, value, env, root)
       if key =~ /^!([^?]+)/ then
-        method = env[$1] # should resolve to action
+        action = env[$1] # should resolve to action
       end
       if key =~ /\?(.+)$/ then
         cond = $1
@@ -225,7 +241,7 @@ module Web::Eval
       args = value.split(SEP).map do |x|
         Result.parse(x, root)
       end
-      Action.new(method, args, cond)
+      Action.new(action.value, args, cond)
     end
 
     def initialize(method, args = nil, cond = nil)
@@ -241,6 +257,12 @@ module Web::Eval
       args.map do |arg|
         arg.render # todo escape SEP
       end.join(SEP)
+    end
+
+    def invoke(env)
+      if !cond || (cond && env[cond]) then
+        value.call(*args)
+      end
     end
 
     def to_s

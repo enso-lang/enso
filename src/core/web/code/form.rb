@@ -14,8 +14,12 @@ module Web::Eval
       puts "________: #{to_s}"
     end
 
-    def each(&block)
+    def each_binding(&block)
       @bindings.each(&block)
+    end
+
+    def each_action(&block)
+      @actions.each(&block)
     end
 
     def to_s
@@ -64,7 +68,7 @@ module Web::Eval
         if k =~ /^!/ then 
           @actions << Action.parse(k, v, env, root)
         elsif k =~ /^[@.]/ then
-          @bindings[Result.parse(k, root)] = Result.parse(v, root)
+          @bindings[Ref.parse(k, root)] = Result.parse(v, root)
         else
           @env[k] = Result.parse(v, root)
         end

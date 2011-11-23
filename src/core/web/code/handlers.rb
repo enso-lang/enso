@@ -63,10 +63,10 @@ module Web::Eval
         render(func, out, @params)
         x = []
         RenderXHTML.render(out[0], x)
-        Print.print(out[0])
+        #Print.print(out[0])
         #g = Loader.load('xhtml-content.grammar')
         #DisplayFormat.print(g, out[0])
-        p x
+        #p x
         http.respond(x)
       else
         http.not_found(@url)
@@ -75,52 +75,35 @@ module Web::Eval
   end
 
   class Post < Handler
+    attr_reader :form
 
     def initialize(url, params, env, root, log, form)
       super(url, params, env, root, log)
-      @form = Form.new(form)
+      @form = Form.new(form, env, root)
     end
 
     def handle(http, out)
       errors = {}
-      #puts "BEFORE BINDING"
-      #Print.print(@root)
-
-      bind(@root, @form, @store, errors)
-      begin
-        execute(@root, @form, @store, errors)
-      rescue Web::Redirect => e
-        http.redirect(e.link)
-      else
-        render(lookup(@url), out, @params, @form.env, errors)
+      form.each_binding do |ref, value|
+        ref.assign(value)
       end
-    end
-
-    private
-
-    def bind(root, form, store, errors)
-      #Print.print(root)
-      form.each do |k, v|
-        k.update(v, root, store)
-      end
-    end
-
-    def execute(root, form, store, errors)
-      form.actions.each do |action|
-        # first bind object-refs to their values
-        action.bind!(root, store, @env)
-      end
-      # only then execute
-      later = []
-      form.actions.each do |action|
-        if action.redirecting? then
-          later << action
-        else
-          action.execute(@actions, form.env)
+      redir = nil
+      form.each_action do |action|
+        begin
+          action.invoke(form.env)
+        rescue Web::Redirect => e
+          redir = e.link
         end
       end
-      later.first.execute(@actions, form.env)
+      if redir then
+        # NB: only render here for canonical paths...
+        # this must be done better and less explicit
+        http.redirect(redir.render)
+      else
+        render(lookup(@url), out, @params, form.env, errors)
+      end
     end
+
 
   end
 end

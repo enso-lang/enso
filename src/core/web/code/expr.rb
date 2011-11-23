@@ -54,7 +54,7 @@ module Web::Eval
 
     def New(this, env, errors)
       # TODO: get rid of hard-wired root here
-      New.new(this.class, env['root'].value)
+      Ref.create(this.class, env['root'].value)
     end
 
     def Field(this, env, errors)
