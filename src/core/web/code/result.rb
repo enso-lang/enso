@@ -281,7 +281,8 @@ module Web::Eval
     def self.parse(str, root, env)
       name, tail = str.split('?')
       name = name[1..-1] # strip leading /
-      func = env[name].value # NB env stores "calls"
+      func = env[name] && env[name].value # NB env stores "calls"
+      return if func.nil?
       return Template.new(func, []) if !tail
       # currently we depend on order of params in the url
       # so no matching of key names and formals.
@@ -302,7 +303,17 @@ module Web::Eval
     end
 
     def invoke(eval, env, out, errors)
-      eval.eval(value.body, env, out, errors)
+      env = env.new
+      if args then
+        puts "--------------####################\n#{env}"
+        value.formals.each_with_index do |frm, i|
+          # no support for cons stuff here.
+          env[frm.name] = args[i]
+        end
+        eval.eval(value.body, env, out, errors)
+      else
+        raise "Cannot invoke template without bound argument list"
+      end
     end
 
   end

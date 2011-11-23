@@ -1,6 +1,7 @@
 
 require 'core/system/load/load'
 require 'core/web/code/dispatch'
+require 'core/schema/tools/print'
 
 module Web::Eval
   class Render
@@ -69,6 +70,8 @@ module Web::Eval
     end    
 
     def Call(this, env, out, errors)
+      # NB: cannot use Template#invoke here, since
+      # the argument expressions are evaluated lazily.
       func = expr.eval(this.exp, env, errors).value
       func.apply(self, this.args, this.block, env, out, errors)
     end

@@ -30,6 +30,10 @@ module Web::Eval
       Env.new(bindings, actions)
     end
 
+    def each(&block)
+      @bindings.each(&block)
+    end
+
     def [](name)
       return gensym if name == 'gensym'
       @bindings[name] || @actions[name]
@@ -37,6 +41,14 @@ module Web::Eval
 
     def []=(name, result)
       @bindings[name] = result
+    end
+
+    def to_s
+      s = "BINDINGS:\n"
+      @bindings.each do |k, v|
+        s += "\t#{k}\t\t: #{v}\n"
+      end
+      return s
     end
 
     private

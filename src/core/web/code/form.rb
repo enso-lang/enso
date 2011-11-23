@@ -6,10 +6,11 @@ module Web::Eval
   class Form
     attr_reader :actions, :env
 
+    # TODO: switch root and env
     def initialize(data, env, root)
       @bindings = {}
       @actions = []
-      @env = {}
+      @env = env.new
       parse(flatten(data), env, root)
       puts "________: #{to_s}"
     end
