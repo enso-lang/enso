@@ -31,6 +31,9 @@ module Web::Eval
       # (make a param?)
       @env['self'] = Result.new(@url)
 
+      # TODO: may be use Template.parse to parse the URL
+      # ourselves.  Then calling would be just calling invoke.
+
       # TODO: extract into method
       params.each do |k, v|
         puts "\t********** SETTING: #{k} to #{v}"

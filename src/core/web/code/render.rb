@@ -66,7 +66,6 @@ module Web::Eval
     end
     
     def Text(this, env, out, errors)
-      puts "LITERAL text: #{this.value}"
       out << @fact.CharData(this.value)
     end    
 

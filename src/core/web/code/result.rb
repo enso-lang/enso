@@ -54,7 +54,6 @@ module Web::Eval
     def each(&block)
       @elts.each(&block)
     end
-
   end
 
   class Record < Result
@@ -75,11 +74,15 @@ module Web::Eval
   end
 
   class Ref < Result
-    attr_reader :path, :root
-
     # a "value" passed by reference.
+
+    attr_reader :path, :root
     
     class NewPath
+      # this class implements a special path element
+      # that is used to start paths of newly created
+      # objects
+
       attr_reader :store, :klass, :id, :obj
 
       def initialize(klass, id, store, obj)
@@ -96,27 +99,24 @@ module Web::Eval
 
       def to_s
         if obj._path.root? then
-          puts "-------------------> non-canon: #{klass}:#{id}"
           "@#{klass}:#{id}"
         else
-          puts "--------------------------> CANONICAL: #{obj._path}"
           obj._path.to_s
         end
       end
-
     end
 
     @@id = 0
-    @@store = {}
+    @@store = {} # TODO: use weakrefs
 
     def self.create(klass, root, id = nil)
       if id.nil? then
         id = @@id += 1
       end
-      @@store[id] ||= root._graph_id[klass]
-      start = NewPath.new(klass, id, @@store, @@store[id])
+      obj = @@store[id] ||= root._graph_id[klass]
+      start = NewPath.new(klass, id, @@store, obj)
       path = Paths::Path.new([start])
-      Ref.new(@@store[id], path, root)
+      Ref.new(obj, path, root)
     end
 
     def self.parse(str, root, env)
@@ -165,7 +165,11 @@ module Web::Eval
 
     def assign(x)
       # only for non-many a.x or a[x] refs
-      path.assign(root, x.value)
+      # TODO: it feels wrong to coerce primitives
+      # to string values; yet it only happens 
+      # when binding (when everything non-object
+      # is a string anyway.
+      path.assign_and_coerce(root, x.value)
     end
     
     def to_s
@@ -173,10 +177,9 @@ module Web::Eval
     end
 
     def render
-      # TODO: maintain the type of this reference to avoid
-      # this "heuristic"
+      # TODO: maintain the type of this reference 
+      # to avoid this "heuristic"
       if value.respond_to?(:schema_class) then
-        # NB: use the canonical path if possible
         path.to_s
       elsif value.respond_to?(:each)
         path.to_s
@@ -188,10 +191,6 @@ module Web::Eval
   
   
   class Address < Result
-    def render
-      value.to_s
-    end
-
     def to_s
       "address(#{render})"
     end
@@ -284,13 +283,10 @@ module Web::Eval
     def self.parse(str, root, env)
       name, tail = str.split('?')
       name = name[1..-1] # strip leading /
-      puts ">>>>>>>>>>>>>>>>>>> PARSING TEMPLATE: #{str.inspect}"
-      puts "\t\t in env: #{env[name]}"
       func = env[name].value # NB env stores "calls"
       return Template.new(func, []) if !tail
-      args = tail.split('&')
       # currently depend on order of params in the url
-      args = args.map do |arg|
+      args = tail.split('&').map do |arg|
         name, value = arg.split('=')
         Result.parse(URI.unescape(value), root, env)
       end
