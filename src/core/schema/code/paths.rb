@@ -1,6 +1,7 @@
 
 
 module Paths
+
   class Path
     attr_reader :elts
 
@@ -10,7 +11,7 @@ module Paths
       elsif str =~ /^\.([a-zA-Z_0-9]+)(.*)$/ then
         Path.new([Field.new($1)] + parse($2).elts)
       elsif str =~ /^\[([0-9]+)\](.*)$/ then
-        Path.new([Index.new($1)] + parse($2).elts)
+        Path.new([Index.new($1.to_i)] + parse($2).elts)
       elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\](.*)$/  then
         rest = $4
         s = $1.gsub('\\[', '[]').gsub('\\]',  ']')
@@ -30,6 +31,10 @@ module Paths
 
     def prepend!(path)
       @elts = path.elts + @elts
+    end
+
+    def extend(path)
+      Path.new(elts + path.elts)
     end
 
     def deref(root)
@@ -59,8 +64,26 @@ module Paths
     end
 
     def assign(root, obj)
-      raise "Can only assign to lvalues" if not lvalue?
+      raise "Can only assign to lvalues not to #{self}" if not lvalue?
       owner.deref(root)[last.name] = obj
+    end
+
+    def assign_and_coerce(root, value)
+      raise "Can only assign to lvalues not to #{self}" if not lvalue?
+      obj = owner.deref(root)
+      fld = obj.schema_class.fields[last.name]
+      if fld.type.Primitive? then
+        value = 
+          case fld.type.name 
+          when 'str' then value.to_s
+          when 'int' then value.to_i
+          when 'bool' then (value.to_s == 'true') ? true : false
+          when 'real' then value.to_f
+          else
+            raise "Unknown primitive type: #{fld.type.name}"
+          end
+      end
+      owner.deref(root)[last.name] = value
     end
 
     def insert(root, obj)
@@ -89,6 +112,8 @@ module Paths
       Path.new([*elts, elt])
     end
   end
+
+  ROOT = Path.new
 
 
   class Elt
@@ -125,6 +150,7 @@ module Paths
     end
   end
 
+
   class Key < Elt
     def initialize(key)
       @key = key
@@ -143,8 +169,9 @@ module Paths
     def escape(s)
       s.gsub(']', '\\]').gsub('[', '\\[')
     end
-
   end
+
+
 end
 
 if __FILE__ == $0 then
