@@ -74,7 +74,7 @@ class Web::EnsoWeb
   def render(elts)
     str = ''
     elts.each do |elt|
-      RenderXHTML.render(elt, str)
+      XHTML.render(elt, str)
     end
     respond(str)
   end

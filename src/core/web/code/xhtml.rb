@@ -1,10 +1,9 @@
 
 require 'htmlentities'
 
-class RenderXHTML
-
+class XHTML
   def self.render(doc, out = '')
-    RenderXHTML.new.render(doc, out)
+    XHTML.new.render(doc, out)
     return out
   end
 
@@ -50,7 +49,6 @@ class RenderXHTML
   def CDATA(this, out)
     out << "<![CDATA["
     out << this.data
-    outs << "]]>"
+    out << "]]>"
   end
-
 end
