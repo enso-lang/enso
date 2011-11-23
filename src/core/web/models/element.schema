@@ -3,10 +3,6 @@ primitive str
 
 class Value end
 
-class Document
-  !root: Element
-end
-
 class Content
 end
 

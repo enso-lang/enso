@@ -11,7 +11,7 @@ module Web::Eval
     def initialize(expr, log)      
       @expr = expr
       @log = log
-      @fact = Factory.new(Loader.load('xhtml-content.schema'))
+      @fact = Factory.new(Loader.load('xml.schema'))
     end
 
     def For(this, env, out) 
@@ -51,10 +51,10 @@ module Web::Eval
     def Element(this, env, out)
       elt = @fact.Element(this.tag)
       this.attrs.each do |attr|
-        value = @fact.Value(expr.eval(attr.exp, env).render)
+        value = @fact.Value(expr.eval(attr.value, env).render)
         elt.attrs << @fact.Attr(attr.name, value)
       end
-      this.body.each do |stat|
+      this.contents.each do |stat|
         eval(stat, env, elt.contents)
       end
       out << elt

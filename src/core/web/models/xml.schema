@@ -1,0 +1,3 @@
+#ruby
+
+union(load('element.schema'), load('content.schema'))
