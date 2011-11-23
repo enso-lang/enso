@@ -7,18 +7,44 @@ def index {
         column("Delete") { delete_checkbox(row); }
       }
       submit("Submit", index());
-      navigate("New", new_todo(root->todos, new(Todo)));
+      navigate("New", todo.new());
     }  
   }
 }
 
-def new_todo(todos, todo) {
-  html("New Todo") {
-    form {
-      "Todo: " textedit(todo->todo);
-      <input type="hidden" name=address(todos) value=address(todo)/>
-      submit("Submit", index());
+def todo.new() {
+  let 
+   todo = new(Todo)
+  in {
+    html("New Todo") {
+      form {
+        "Todo: " textedit(todo->todo);
+        insert(todo, root->todos);
+        submit("Submit", todo.show(todo));
+      }
     }
+  }
+}
+
+def insert(x, coll) {
+  do insert_action(x, coll);
+}
+
+// this is to check that after a New todo is created
+// that in show_todo it will not be a @Todo:23 path
+// but a real (canonical) path from the root, e.g.
+// .todos[4]. Note that if new_todo has errors upon
+// submit, it should rerender, but this time again with
+// the @Todo:23 path.
+
+def todo.show(todo) {
+  html("Created a todo") {
+   <ul>
+    <li>"Todo: " $todo->todo</li>
+    <li>"Done: " $todo->done</li>
+    <li>"Address: " $address(todo)</li>
+   </ul>
+   navigate("Index", index());
   }
 }
 
