@@ -1,9 +1,7 @@
 
-start Document
+start Element
 
 abstract Value
-
-Document ::= [Document] root:Element
 
 Element ::= [Element] "<" tag:sym attrs:Attr* "/>"
           | [Element] "<" tag:sym attrs:Attr*  ">" contents:Content* "</" sym ">"
