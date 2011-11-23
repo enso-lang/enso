@@ -61,7 +61,6 @@ module Web::Eval
     end
 
     def Output(this, env, out, errors)
-      puts "OUTPUTING: #{this}"
       out << @fact.CharData(expr.eval(this.exp, env, errors).render)
     end
     
@@ -70,7 +69,6 @@ module Web::Eval
     end    
 
     def Call(this, env, out, errors)
-      # TODO: put apply in Template < Callable?
       func = expr.eval(this.exp, env, errors).value
       func.apply(self, this.args, this.block, env, out, errors)
     end

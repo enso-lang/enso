@@ -92,11 +92,7 @@ module Web::Eval
       end
       redir = nil
       form.each_action do |action|
-        begin
-          action.invoke(form.env)
-        rescue Web::Redirect => e
-          redir = e.link
-        end
+          redir = action.invoke(form.env)
       end
       if redir then
         # NB: only render here for canonical paths...

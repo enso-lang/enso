@@ -53,12 +53,7 @@ class Web::EnsoWeb
   def load!
     @web = Loader.load!(@web_name)
     @last_change = last_change(@web_name)
-    @env = Env.new({'root' => Ref.new(@root, @root._path, @root)})
-    actions = DefaultActions.new
-    actions.my_actions.each do |sym|
-      puts "BINDING: #{sym} to #{actions.method(sym)}"
-      @env.bind_action!(sym.to_s, actions.method(sym)) 
-    end    
+    @env = Env.root(@root, DefaultActions)
     mod_eval = Mod.new(@env, @log)
     mod_eval.eval(@web)
   end

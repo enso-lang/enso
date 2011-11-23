@@ -220,8 +220,6 @@ module Web::Eval
 
     attr_reader :cond
 
-    #alias value method
-
     # At rendering time this class models
     # hidden input fields that represent actions
     # that should be executed upon submit.
@@ -285,7 +283,8 @@ module Web::Eval
       name = name[1..-1] # strip leading /
       func = env[name].value # NB env stores "calls"
       return Template.new(func, []) if !tail
-      # currently depend on order of params in the url
+      # currently we depend on order of params in the url
+      # so no matching of key names and formals.
       args = tail.split('&').map do |arg|
         name, value = arg.split('=')
         Result.parse(URI.unescape(value), root, env)
