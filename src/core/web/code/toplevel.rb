@@ -8,7 +8,7 @@ require 'core/web/code/module'
 require 'core/web/code/env'
 require 'core/web/code/actions'
 require 'core/web/code/form'
-require 'core/web/code/xhtml'
+require 'core/web/code/xhtml2txt'
 
 require 'rack'
 
@@ -75,7 +75,7 @@ class Web::EnsoWeb
   def render(elts)
     str = ''
     elts.each do |elt|
-      XHTML.render(elt, str)
+      XHTML2Text.render(elt, str)
     end
     respond(str)
   end

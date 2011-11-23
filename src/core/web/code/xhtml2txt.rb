@@ -1,9 +1,9 @@
 
 require 'htmlentities'
 
-class XHTML
-  def self.render(doc, out = '')
-    XHTML.new.render(doc, out)
+class XHTML2Text
+  def self.render(elt, out = '')
+    self.new.render(elt, out)
     return out
   end
 
