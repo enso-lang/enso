@@ -24,27 +24,8 @@ class Web::EnsoWeb
     load!
   end
 
-  def reload_if_needed!
-    if last_change(@web_name) > @last_change then
-      @log.info("Reloading #{@web_name}")
-      load!
-    end
-  end
-
-  def last_change(name)
-    Loader.find_model(name) do |path|
-      return File.stat(path).mtime
-    end    
-  end
-    
-  def load!
-    @web = Loader.load!(@web_name)
-    @last_change = last_change(@web_name)
-    mod_eval = Mod.new(@toplevel, @log)
-    mod_eval.eval(@web)
-  end
-
-  # The interface to Rack
+  
+  ### The interface to Rack
   def call(env)
     reload_if_needed!
     req = Rack::Request.new(env)
@@ -53,14 +34,16 @@ class Web::EnsoWeb
     elsif req.post? then
       post(req) 
     end
-    # do nothing otherwise.
   end
+
+  private
 
   def get(req, env, errors = {})
     call = Template.parse(req.fullpath, @root, env)
     if call then
-      @toplevel['self'] = call # self is a dynamic variable
-      call.invoke(@eval, env.new, elts = [], errors)
+      @toplevel['errors'] = Record.new(errors)
+      @toplevel['self'] = call # self/errors are dynamic variables
+      call.invoke(@eval, env.new, elts = [])
       render(elts)
     else
       not_found(req.fullpath)
@@ -78,7 +61,7 @@ class Web::EnsoWeb
 
     link = nil
     form.each_action do |action|
-      link = action.invoke(form.env)
+      link ||= action.invoke(form.env)
     end
     
     if errors.empty? then
@@ -114,6 +97,28 @@ class Web::EnsoWeb
        'Content-Length' => str.length.to_s,
      }.update(opts), str]
   end
+
+  def reload_if_needed!
+    if last_change(@web_name) > @last_change then
+      @log.info("Reloading #{@web_name}")
+      load!
+    end
+  end
+
+  def last_change(name)
+    Loader.find_model(name) do |path|
+      return File.stat(path).mtime
+    end    
+  end
+    
+  def load!
+    @web = Loader.load!(@web_name)
+    @last_change = last_change(@web_name)
+    mod_eval = Mod.new(@toplevel, @log)
+    mod_eval.eval(@web)
+  end
+
+
 
 end
 

@@ -8,38 +8,33 @@ module Web::Eval
   class Expr
     include Dispatch
 
-    def Str(this, env, errors)
+    def Str(this, env)
       Result.new(this.value)
     end
 
-    def Int(this, env, errors)
+    def Int(this, env)
       Result.new(this.value.to_i)
     end
 
-    def Var(this, env, errors)
-      # TODO: pass errors in the env
-      if this.name == 'errors' then
-        Record.new(errors)
-      else
-        env[this.name]
-      end
+    def Var(this, env)
+      env[this.name]
     end
 
-    def Concat(this, env, errors)
-      lhs = eval(this.lhs, env, errors)
-      rhs = eval(this.rhs, env, errors)
+    def Concat(this, env)
+      lhs = eval(this.lhs, env)
+      rhs = eval(this.rhs, env)
       Result.new(lhs.value.to_s + rhs.value.to_s)
     end
 
-    def Equal(this, env, errors)
-      lhs = eval(this.lhs, env, errors)
-      rhs = eval(this.rhs, env, errors)
+    def Equal(this, env)
+      lhs = eval(this.lhs, env)
+      rhs = eval(this.rhs, env)
       Result.new(lhs.value == rhs.value)
     end
 
-    def In(this, env, errors)
-      lhs = eval(this.lhs, env, errors)
-      rhs = eval(this.rhs, env, errors) 
+    def In(this, env)
+      lhs = eval(this.lhs, env)
+      rhs = eval(this.rhs, env) 
       rhs.value.each do |x|
         if lhs.value == x then
           return Result.new(true)
@@ -48,37 +43,36 @@ module Web::Eval
       Result.new(false)
     end
 
-    def Address(this, env, errors)
-      eval(this.exp, env, errors).address
+    def Address(this, env)
+      eval(this.exp, env).address
     end
 
-    def New(this, env, errors)
-      # TODO: get rid of hard-wired root here
-      Ref.create(this.class, env['root'].value)
+    def New(this, env)
+      Ref.create(this.class, env.root)
     end
 
-    def Field(this, env, errors)
-      r = eval(this.exp, env, errors)
+    def Field(this, env)
+      r = eval(this.exp, env)
       puts "RESULT = #{r}"
       r.field(this.name)
     end
 
-    def Subscript(this, env, errors)
-      eval(this.obj, env, errors).subscript(eval(this.exp, env, errors).value)
+    def Subscript(this, env)
+      eval(this.obj, env).subscript(eval(this.exp, env).value)
     end
 
-    def Call(this, env, errors)
+    def Call(this, env)
       Print.print(this)
-      call = eval(this.exp, env, errors)
+      call = eval(this.exp, env)
       args = this.args.map do |arg|
-        eval(arg, env, errors)
+        eval(arg, env)
       end
       call.bind(args)
     end
 
-    def List(this, env, errors)
+    def List(this, env)
       elts = this.elements.map do |elt|
-        eval(elt, env, errors)
+        eval(elt, env)
       end
       List.new(elts)
     end

@@ -12,7 +12,6 @@ module Web::Eval
       @actions = []
       @env = env.new
       parse(flatten(data), env, root)
-      puts "________: #{to_s}"
     end
 
     def each_binding(&block)

@@ -17,7 +17,6 @@ module Web::Eval
       elsif v.is_a?(Array) then
         List.new(v.map { |x| parse(x, root, env) })
       else
-        # TODO: how to know if a value is int or str or real?
         Result.new(v)
       end
     end
@@ -302,15 +301,14 @@ module Web::Eval
       params.empty? ? "/#{value.name}" : "/#{value.name}?#{params.join('&')}" 
     end
 
-    def invoke(eval, env, out, errors)
-      env = env.new
+    def invoke(eval, env, out)
       if args then
-        puts "--------------####################\n#{env}"
+        env = env.new
         value.formals.each_with_index do |frm, i|
           # no support for cons stuff here.
           env[frm.name] = args[i]
         end
-        eval.eval(value.body, env, out, errors)
+        eval.eval(value.body, env, out)
       else
         raise "Cannot invoke template without bound argument list"
       end
