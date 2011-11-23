@@ -306,6 +306,7 @@ module Web::Eval
         env = env.new
         value.formals.each_with_index do |frm, i|
           # no support for cons stuff here.
+          # (maybe throw exception?)
           env[frm.name] = args[i]
         end
         eval.eval(value.body, env, out)

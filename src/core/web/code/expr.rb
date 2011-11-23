@@ -2,7 +2,6 @@
 
 require 'core/web/code/dispatch'
 require 'core/web/code/result'
-require 'core/schema/tools/print'
 
 module Web::Eval
   class Expr
@@ -53,7 +52,6 @@ module Web::Eval
 
     def Field(this, env)
       r = eval(this.exp, env)
-      puts "RESULT = #{r}"
       r.field(this.name)
     end
 
@@ -62,7 +60,6 @@ module Web::Eval
     end
 
     def Call(this, env)
-      Print.print(this)
       call = eval(this.exp, env)
       args = this.args.map do |arg|
         eval(arg, env)
