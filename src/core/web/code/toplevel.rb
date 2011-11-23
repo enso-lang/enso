@@ -41,8 +41,9 @@ class Web::EnsoWeb
   def get(req, env, errors = {})
     call = Template.parse(req.fullpath, @root, env)
     if call then
+      # self/errors are dynamic variables
       @toplevel['errors'] = Record.new(errors)
-      @toplevel['self'] = call # self/errors are dynamic variables
+      @toplevel['self'] = call
       call.invoke(@eval, env.new, elts = [])
       render(elts)
     else
@@ -117,8 +118,5 @@ class Web::EnsoWeb
     mod_eval = Mod.new(@toplevel, @log)
     mod_eval.eval(@web)
   end
-
-
-
 end
 
