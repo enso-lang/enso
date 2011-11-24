@@ -24,7 +24,7 @@ class InternalLocation
   end
 
   def inspect
-    "<#{path}: #{start_line}, #{start_column}, #{end_line}, #{end_column}, #{offset}, #{length}>"
+    "<#{path}: from line #{start_line} and col #{start_column}, to line #{end_line} and col #{end_column}, at #{offset}, length = #{length}>"
   end
 
 end

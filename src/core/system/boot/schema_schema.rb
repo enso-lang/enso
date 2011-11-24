@@ -42,6 +42,7 @@ class SchemaSchema < SchemaGenerator
     field :optional, :type => :bool
     field :many, :type => :bool
     field :key, :type => :bool
+    field :auto, :type => :bool
     field :traversal, :type => :bool
     field :inverse, :type => Field, :optional => true, :inverse => Field.inverse
     field :computed, :type => :str, :optional => true

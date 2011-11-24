@@ -76,6 +76,10 @@ module Web::Eval
         eval.eval(body, env, out)
       end
     end
+
+    def inspect
+      to_s
+    end
   end
 
 
@@ -90,6 +94,10 @@ module Web::Eval
 
     def to_s
       "FUNCTION(#{name}/#{@abs.formals.length})"
+    end
+
+    def inspect
+      to_s
     end
   end
 
@@ -118,6 +126,10 @@ module Web::Eval
         end
       end
       @target << Record.new(record)
+    end
+
+    def inspect
+      to_s
     end
   end
 

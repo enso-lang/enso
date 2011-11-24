@@ -38,20 +38,17 @@ module Web::Eval
     end
 
     def inspect
-      to_s
+      value.inspect
     end
   end
 
   class List < Result
     include Enumerable
 
-    def initialize(elts)
-      # NB: elts are results
-      @elts = elts
-    end
+    # NB: value contains results
 
     def each(&block)
-      @elts.each(&block)
+      value.each(&block)
     end
   end
 
@@ -268,6 +265,10 @@ module Web::Eval
     def to_s
       "#{render_key(@cond)}:#{args && render_args}"
     end
+
+    def inspect
+      to_s
+    end
     
   end
 
@@ -313,6 +314,10 @@ module Web::Eval
       else
         raise "Cannot invoke template without bound argument list"
       end
+    end
+
+    def inspect
+      to_s
     end
 
   end

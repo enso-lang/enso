@@ -50,6 +50,7 @@ module Web::Eval
 
     def Element(this, env, out)
       elt = @fact.Element(this.tag)
+      out << elt
       this.attrs.each do |attr|
         value = @fact.Value(expr.eval(attr.value, env).render)
         elt.attrs << @fact.Attr(attr.name, value)
@@ -57,7 +58,6 @@ module Web::Eval
       this.contents.each do |stat|
         eval(stat, env, elt.contents)
       end
-      out << elt
     end
 
     def Output(this, env, out)
