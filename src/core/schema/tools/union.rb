@@ -86,7 +86,13 @@ class CopyInto
     if key
       empty = ManyIndexedField.new(key.name)
       (a || empty).outer_join(b || empty) do |sa, sb|
-        yield sa, sb
+        if sa && sb && sa[key.name] == sb[key.name] 
+          yield sa, sb
+        elsif sa
+          yield sa, nil
+        elsif sb
+          yield nil, sb
+        end
       end
     elsif !a.empty?
       a.each do |item|
