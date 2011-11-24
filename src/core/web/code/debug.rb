@@ -18,11 +18,20 @@ require 'fiber' # needed for alive?
 require 'colorize'
 
 module Web::Eval
+
+
+  class DebugExpr < Expr
+    def eval(obj, env)
+      x = send(obj.schema_class.name, obj, env)
+      Fiber.yield(obj, env, x)
+      return x
+    end    
+  end
   
   class DebugRender < Render
-    def eval(obj, *args)
-      Fiber.yield(obj, *args)
-      send(obj.schema_class.name, obj, *args)
+    def eval(obj, env, out)
+      Fiber.yield(obj, env, nil)
+      send(obj.schema_class.name, obj, env, out)
     end
   end
 
@@ -74,11 +83,12 @@ module Web::Eval
     end
 
     def do_step
-      obj, @current_env, _ = @fiber.resume
+      obj, @current_env, x = @fiber.resume
       org = obj._origin
       puts org
       region = @sources[File.basename(org.path)][org.offset - 1..org.offset - 1 + org.length - 1]
       puts region.red
+      puts "---> #{x.inspect}"
     end
 
     ### Commands
@@ -111,7 +121,7 @@ module Web::Eval
       mod_eval = Mod.new(@toplevel, @log)
       mod_eval.eval(@web)
       @log = Logger.new($stderr)
-      @eval = DebugRender.new(Expr.new, @log)
+      @eval = DebugRender.new(DebugExpr.new, @log)
     end
 
     def get(url)
