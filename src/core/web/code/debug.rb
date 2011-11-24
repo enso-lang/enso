@@ -33,6 +33,11 @@ module Web::Eval
       Fiber.yield(obj, env, nil)
       send(obj.schema_class.name, obj, env, out)
     end
+
+    # TODO: override call to maintain a call stack
+    # for this it needs to bind the params, then
+    # push, then actually applying, then pop.
+
   end
 
 
