@@ -17,11 +17,11 @@ class GrammarEval
     @start = item(top.arg, [top.arg], 1)
   end
 
-  def eval(this, *args)
-    send(this.schema_class.name, this, *args)
+  def eval(this, gll, nxt = nil)
+    send(this.schema_class.name, this, gll, nxt)
   end
 
-  def Item(this, gll)
+  def Item(this, gll, _ = nil)
     if this.dot == this.elements.length then
       gll.pop
     else
