@@ -13,7 +13,7 @@ class RenderClass < Dispatch
 
   def Grammar(this, obj)
     # ugly, should be higher up
-    @literals = Scanner::CollectKeywords.run(this)
+    @literals = Scan.collect_keywords(this)
     return Rule(this.start, obj)
   end
 

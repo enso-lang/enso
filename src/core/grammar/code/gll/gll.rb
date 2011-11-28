@@ -1,81 +1,59 @@
-#### pop when creating a node (like reduce)
-
-require 'set'
-require 'ostruct'
 
 require 'core/grammar/code/gll/gss'
 require 'core/grammar/code/gll/todot'
 require 'core/grammar/code/gll/sppf'
-require 'core/grammar/code/gll/scan'
 require 'core/grammar/code/gll/parsers'
 
 
 class GLL
-  include Scanner
-  include Parsers
+  attr_reader :ci
 
   def self.parse(source, grammar, top, org)
-    self.new(org).parse(source, grammar, top)
+    self.new.parse(source, grammar, top, org)
   end
 
-  def initialize(org, dot_output = nil)
-    @origins = org
-    @dot_output = dot_output
-  end
-
-  def init_parser(grammar, top)
-    @gf = grammar._graph_id
+  def parse(source, grammar, top, org)
     @todo = []
     @done = {}
     @toPop = {}
+
+    @origins = org
 
     # TODO: move these tables to here
     Node.nodes.clear
     GSS.nodes.clear
 
-    # caches for dynamically created
-    # grammar things
-    @items = {}
-    @epsilon = @gf.Epsilon
-    @seps = {}
-    @iters = {}
-
-    @ws, @begin = skip_ws # NB: requires init_scanner to have been executed
-    @ci = @begin
-
-    @start = GSS.new(item(top.arg, [top.arg], 1), 0)
-    @cu = @start
+    eval = GrammarEval.new(self, grammar, source, top)
+    @start_pos = @ci = eval.start_pos
+    @cu = @start = GSS.new(eval.start, 0)
     @cn = nil
-  end
 
-  def item(exp, elts, dot)
-    key = [exp, elts, dot]
-    @items[key] ||= @gf.Item(exp, elts, dot)
-  end
-
-  def parse(source, grammar, top)
-    init_scanner(grammar, source)
-    init_parser(grammar, top)
     add(top)
     while !@todo.empty? do
       parser, @cu, @cn, @ci = @todo.shift
-      recurse(parser)
+      eval.eval(parser)
     end
     result(source, top)
   end
 
   def result(source, top)
     last = 0;
-    pt = Node.nodes.values.find do |n|
-      last = n.ends > last ? n.ends : last
-      n.is_a?(Node) && n.starts == @begin && n.ends == source.length && n.type == top
+    pt = Node.nodes.values.find do |node|
+      last = node.ends > last ? node.ends : last
+      top_node?(node, source, top)
     end
     unless pt
       loc = @origins.str(last)
       raise "Parse error at #{loc}:\n'#{source[last,50]}...'" 
     end
-    ToDot.to_dot(pt, @dot_output) if @dot_output
     return pt
+  end
+  
+  def top_node?(node, source, top)
+    node.is_a?(Node) &&
+      node.starts == @start_pos && 
+      node.ends == source.length  &&
+      node.type == top
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
@@ -111,41 +89,25 @@ class GLL
         end
       end
     end
-    return v
+    @cu = v
   end
 
-  def recurse(this, *args)
-    send(this.schema_class.name, this, *args)
-  end
-
-  def chain(this, nxt)
-    @cu = create(nxt) if nxt
-    add(item(this, [this.arg], 0))
-  end
-
-  def continue(nxt)
-    Item(nxt) if nxt
-  end
-
-  def empty(item, nxt)
-    cr = Empty.new(@ci, @epsilon)
-    @cn = Node.new(item, @cn, cr)
+  def empty_node(item, eps)
+    cr = Empty.new(@ci, eps)
+    @cn = item_node(item, cr)
     pop
-    continue(nxt)
   end
 
-  def terminal(type, pos, value, ws, nxt)
-    # NB: pos includes the ws that has ben matched
+  def item_node(item, cr)
+    @cn = Node.new(item, @cn, cr)
+  end
+
+  def leaf_node(pos, type, value, ws)
+    # NB: pos includes the ws that has been matched
     # so subtract the length of ws from pos.
-    # TODO: fix this consistently: introduce
-    # two positions (incl and excl ws)
-    # currently this is undone in Leaf#ends
     cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
-    if nxt then
-      @cn = Node.new(nxt, @cn, cr)
-      continue(nxt)
-    end
+    return cr
   end
 end
 

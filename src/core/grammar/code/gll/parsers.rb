@@ -1,32 +1,54 @@
+require 'core/grammar/code/gll/scan'
 
+class GrammarEval
+  attr_reader :start_pos, :start
 
-module Parsers
+  def initialize(gll, grammar, source, top)
+    @gll = gll
+    @scan = Scan.new(grammar, source)
+    @ws, @start_pos = @scan.skip_ws
+    @fact = grammar._graph_id
+    @epsilon = @fact.Epsilon
+
+    @items = {}
+    @seps = {}
+    @iters = {}
+
+    # NB: depends on @items
+    @start = item(top.arg, [top.arg], 1)
+  end
+
+  def eval(this, *args)
+    send(this.schema_class.name, this, *args)
+  end
 
   def Item(this)
     if this.dot == this.elements.length then
-      pop
+      @gll.pop
     else
       nxt = item(this.expression, this.elements, this.dot + 1)
-      recurse(this.elements[this.dot], nxt)
+      eval(this.elements[this.dot], nxt)
     end
   end
 
   def Sequence(this, nxt = nil)
     item = item(this, this.elements, 0)
     if this.elements.empty? then
-      empty(item, nxt)
+      @gll.empty_node(item, @epsilon)
+      continue(nxt)
     else
-      @cu = create(nxt) if nxt
+      @gll.create(nxt) if nxt
       continue(item) 
     end
   end
   
   def Epsilon(this, nxt = nil)
-    empty(item(this, [], 0), nxt)
+    @gll.empty_node(item(this, [], 0), @epsilon)
+    continue(nxt)
   end
 
   def Call(this, nxt = nil)
-    recurse(this.rule, nxt)
+    eval(this.rule, nxt)
   end
 
   def Rule(this, nxt = nil)
@@ -42,59 +64,83 @@ module Parsers
   end
 
   def Alt(this, nxt = nil)
-    @cu = create(nxt) if nxt
+    @gll.create(nxt) if nxt
     this.alts.each do |alt|
-      add(alt)
+      @gll.add(alt)
     end
   end
 
   def Code(this, nxt = nil)
-    terminal(this, @ci, this.code, '', nxt)
+    terminal(this, @gll.ci, this.code, '', nxt)
   end
 
   def Lit(this, nxt = nil)
-    with_literal(this.value) do |pos, ws|
+    @scan.with_literal(this.value, @gll.ci) do |pos, ws|
       terminal(this, pos, this.value, ws, nxt)
     end
   end
 
   def Ref(this, nxt = nil)
-    with_token('atom') do |pos, tk, ws|
+    @scan.with_token('atom', @gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, nxt)
     end
   end
 
   def Value(this, nxt = nil)
-    with_token(this.kind) do |pos, tk, ws|
+    @scan.with_token(this.kind, @gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, nxt)
     end
   end
 
   def Regular(this, nxt = nil)
-    @cu = create(nxt) if nxt
+    @gll.create(nxt) if nxt
     if !this.many && this.optional then
-      add(@epsilon)
-      add(this.arg)
+      @gll.add(@epsilon)
+      @gll.add(this.arg)
     elsif this.many && !this.optional && !this.sep then
-      add(this.arg)
-      add(item(this, [this.arg, this], 0))
+      @gll.add(this.arg)
+      @gll.add(item(this, [this.arg, this], 0))
     elsif this.many && this.optional && !this.sep then
-      add(@epsilon)
-      add(item(this, [this.arg, this], 0))
+      @gll.add(@epsilon)
+      @gll.add(item(this, [this.arg, this], 0))
     elsif this.many && !this.optional && this.sep then
-      add(this.arg) 
-      @seps[this.sep] ||= @gf.Lit(this.sep)
-      add(item(this, [this.arg, @seps[this.sep], this], 0))
+      @gll.add(this.arg) 
+      @seps[this.sep] ||= @fact.Lit(this.sep)
+      @gll.add(item(this, [this.arg, @seps[this.sep], this], 0))
     elsif this.many && this.optional && this.sep then
-      # mimick iter-plus
-      @iters[this] ||= @gf.Regular(this.arg, false, true, this.sep)
-      add(@epsilon)
-      add(@iters[this])
+      @iters[this] ||= @fact.Regular(this.arg, false, true, this.sep)
+      @gll.add(@epsilon)
+      @gll.add(@iters[this])
     else
       raise "Invalid regular: #{this}"
     end
   end
 
 
+  private
+
+  def chain(this, nxt)
+    @gll.create(nxt) if nxt
+    @gll.add(item(this, [this.arg], 0))
+  end
+
+  def continue(nxt)
+    Item(nxt) if nxt
+  end
+
+
+  # TODO: this node stuff does not belong here
+  def terminal(type, pos, value, ws, nxt)
+    cr = @gll.leaf_node(pos, type, value, ws)
+    if nxt then
+      @gll.item_node(nxt, cr)
+      continue(nxt)
+    end
+  end
+
+  def item(exp, elts, dot)
+    key = [exp, elts, dot]
+    @items[key] ||= @fact.Item(exp, elts, dot)
+  end
 
 end

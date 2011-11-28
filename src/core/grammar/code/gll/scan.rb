@@ -2,7 +2,7 @@
 require 'strscan'
 require 'core/system/library/cyclicmap'
 
-module Scanner
+class Scan
   REF_SEP = '.'
 
   SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(" + 
@@ -17,14 +17,14 @@ module Scanner
   
   LAYOUT = /(\s*(\/\/[^\n]*\n)?)*/
 
-  def init_scanner(grammar, source)
+  def initialize(grammar, source)
     init_literals(grammar)
     @source = source
     @scanner = StringScanner.new(@source)
   end
 
-  def with_token(kind)
-    @scanner.pos = @ci
+  def with_token(kind, ci)
+    @scanner.pos = ci
     tk, kind = scan_token(kind)
     if tk then
       # keywords are reserved
@@ -39,14 +39,30 @@ module Scanner
     return ws, @scanner.pos
   end
 
-  def with_literal(lit)
+  def with_literal(lit, ci)
     # cache literal regexps as we go
     @lit_res[lit] ||= Regexp.new(Regexp.escape(lit))
-    @scanner.pos = @ci
+    @scanner.pos = ci
     val = @scanner.scan(@lit_res[lit])
     if val then
       ws, pos = skip_ws
       yield pos, ws
+    end
+  end
+
+  def self.collect_keywords(grammar)
+    CollectKeywords.new.run(grammar)
+  end
+
+  class CollectKeywords < CyclicCollectShy
+    def Lit(this, accu)
+      accu << this.value if this.value.match(SYMBOL)
+    end
+
+    def Regular(this, accu)
+      accu << this.sep if this.sep && this.sep.match(SYMBOL)
+      # since we visit regular explicitly, we have to recurse explicitly
+      recurse(this.arg, accu)
     end
   end
 
@@ -61,17 +77,6 @@ module Scanner
     end
   end
 
-  class CollectKeywords < CyclicCollectShy
-    def Lit(this, accu)
-      accu << this.value if this.value.match(SYMBOL)
-    end
-
-    def Regular(this, accu)
-      accu << this.sep if this.sep && this.sep.match(SYMBOL)
-      # since we visit regular explicitly, we have to recurse explicitly
-      recurse(this.arg, accu)
-    end
-  end
 
   def unescape(tk, kind)
     if kind == 'str' then
