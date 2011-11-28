@@ -23,7 +23,7 @@ class GLL
     Node.nodes.clear
     GSS.nodes.clear
 
-    eval = GrammarEval.new(self, grammar, source, top)
+    eval = GrammarEval.new(grammar, source, top)
     @start_pos = @ci = eval.start_pos
     @cu = @start = GSS.new(eval.start, 0)
     @cn = nil
@@ -31,7 +31,7 @@ class GLL
     add(top)
     while !@todo.empty? do
       parser, @cu, @cn, @ci = @todo.shift
-      eval.eval(parser)
+      eval.eval(parser, self)
     end
     result(source, top)
   end
