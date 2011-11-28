@@ -34,16 +34,16 @@ class GrammarEval
     item = item(this, this.elements, 0)
     if this.elements.empty? then
       gll.empty_node(item, @epsilon)
-      continue(nxt, gll)
+      Item(nxt, gll) if nxt
     else
       gll.create(nxt) if nxt
-      continue(item, gll) 
+      Item(item, gll)
     end
   end
   
   def Epsilon(this, gll, nxt = nil)
     gll.empty_node(item(this, [], 0), @epsilon)
-    continue(nxt, gll)
+    Item(nxt) if nxt
   end
 
   def Call(this, gll, nxt = nil)
@@ -123,17 +123,11 @@ class GrammarEval
     gll.add(item(this, [this.arg], 0))
   end
 
-  def continue(nxt, gll)
-    Item(nxt, gll) if nxt
-  end
-
-
-  # TODO: this node stuff does not belong here
   def terminal(type, pos, value, ws, gll, nxt)
     cr = gll.leaf_node(pos, type, value, ws)
     if nxt then
       gll.item_node(nxt, cr)
-      continue(nxt, gll)
+      Item(nxt, gll)
     end
   end
 
