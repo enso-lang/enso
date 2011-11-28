@@ -2,7 +2,7 @@
 require 'core/grammar/code/gll/gss'
 require 'core/grammar/code/gll/todot'
 require 'core/grammar/code/gll/sppf'
-require 'core/grammar/code/gll/parsers'
+require 'core/grammar/code/gll/eval'
 
 
 class GLL
