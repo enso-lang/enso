@@ -17,11 +17,11 @@ class GrammarEval
     @start = item(top.arg, [top.arg], 1)
   end
 
-  def eval(this, gll, nxt = nil)
+  def eval(this, gll, nxt)
     send(this.schema_class.name, this, gll, nxt)
   end
 
-  def Item(this, gll, _ = nil)
+  def Item(this, gll, _)
     if this.dot == this.elements.length then
       gll.pop
     else
@@ -30,68 +30,68 @@ class GrammarEval
     end
   end
 
-  def Sequence(this, gll, nxt = nil)
+  def Sequence(this, gll, nxt)
     item = item(this, this.elements, 0)
     if this.elements.empty? then
       gll.empty_node(item, @epsilon)
-      Item(nxt, gll) if nxt
+      Item(nxt, gll, nil) if nxt
     else
       gll.create(nxt) if nxt
-      Item(item, gll)
+      Item(item, gll, nil)
     end
   end
   
-  def Epsilon(this, gll, nxt = nil)
+  def Epsilon(this, gll, nxt)
     gll.empty_node(item(this, [], 0), @epsilon)
-    Item(nxt) if nxt
+    Item(nxt, gll, nil) if nxt
   end
 
-  def Call(this, gll, nxt = nil)
+  def Call(this, gll, nxt)
     eval(this.rule, gll, nxt)
   end
 
-  def Rule(this, gll, nxt = nil)
+  def Rule(this, gll, nxt)
     chain(this, gll, nxt)
   end
 
-  def Create(this, gll, nxt = nil)
+  def Create(this, gll, nxt)
     chain(this, gll, nxt)
   end
 
-  def Field(this, gll, nxt = nil)
+  def Field(this, gll, nxt)
     chain(this, gll, nxt)
   end
 
-  def Alt(this, gll, nxt = nil)
+  def Alt(this, gll, nxt)
     gll.create(nxt) if nxt
     this.alts.each do |alt|
       gll.add(alt)
     end
   end
 
-  def Code(this, gll, nxt = nil)
+  def Code(this, gll, nxt)
     terminal(this, gll.ci, this.code, '', gll, nxt)
   end
 
-  def Lit(this, gll, nxt = nil)
+  def Lit(this, gll, nxt)
     @scan.with_literal(this.value, gll.ci) do |pos, ws|
       terminal(this, pos, this.value, ws, gll, nxt)
     end
   end
 
-  def Ref(this, gll, nxt = nil)
+  def Ref(this, gll, nxt)
     @scan.with_token('atom', gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, gll, nxt)
     end
   end
 
-  def Value(this, gll, nxt = nil)
+  def Value(this, gll, nxt)
     @scan.with_token(this.kind, gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, gll, nxt)
     end
   end
 
-  def Regular(this, gll, nxt = nil)
+  def Regular(this, gll, nxt)
     gll.create(nxt) if nxt
     if !this.many && this.optional then
       gll.add(@epsilon)
@@ -127,7 +127,7 @@ class GrammarEval
     cr = gll.leaf_node(pos, type, value, ws)
     if nxt then
       gll.item_node(nxt, cr)
-      Item(nxt, gll)
+      Item(nxt, gll, nil)
     end
   end
 

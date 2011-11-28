@@ -31,7 +31,7 @@ class GLL
     add(top)
     while !@todo.empty? do
       parser, @cu, @cn, @ci = @todo.shift
-      eval.eval(parser, self)
+      eval.eval(parser, self, nil)
     end
     result(source, top)
   end
