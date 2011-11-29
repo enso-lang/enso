@@ -6,57 +6,64 @@ class TypeOf
     @memo = {}
   end
 
-  def typeof(this, klass)
+  def typeof(this)
     if respond_to?(this.schema_class.name) then
-      send(this.schema_class.name, this, klass)
+      send(this.schema_class.name, this)
     else
       []
     end
   end
 
-  def Sequence(this, klass)
-    [] 
+  def Sequence(this)
+    # sequences only have types if they are singletons
+    if this.elements.length == 1 then
+      typeof(this.elements.first)
+    else
+      []
+    end
   end
 
-  def Call(this, klass)
+  def Call(this)
     # NB: it essential we memoize on calls
     # *not* on rules, because we have to 
     # traverse rules multiple times for
     # different call sites
-    return [] if @memo[this]
-    @memo[this] = true
-    typeof(this.rule, klass)
-  end
-
-  def Rule(this, klass)
-    return [] unless this.arg
-    typeof(this.arg, klass)
-  end
-
-  def Create(this, klass)
-    [@schema.classes[this.name]]
-  end
-
-  def Field(this, klass)
-    [klass.fields[this.name].type]
-  end
-
-  def Alt(this, klass)
-    # return a set of types
-    this.alts.inject([]) do |cur, alt|
-      cur | typeof(alt, klass)
+    if @memo[this] then
+      @memo[this]
+    else
+      @memo[this] = typeof(this.rule)
     end
   end
 
-  def Lit(this, klass)
-    [@schema.primitives['str']]
+  def Rule(this)
+    return [] unless this.arg
+    typeof(this.arg)
   end
 
-  def Ref(this, klass)
+  def Create(this)
     [@schema.classes[this.name]]
   end
 
-  def Value(this, klass)
+  def Field(this)
+    typeof(this.arg)
+  end
+
+  def Alt(this)
+    # return a set of types
+    this.alts.inject([]) do |cur, alt|
+      cur | typeof(alt)
+    end
+  end
+
+  def Lit(this)
+    [@schema.primitives['str']]
+  end
+
+  def Ref(this)
+    [@schema.classes[this.name]]
+  end
+
+  def Value(this)
     # todo: what about atom???
     if this.kind == 'sym' then
       [@schema.primitives['str']]
@@ -65,9 +72,9 @@ class TypeOf
     end
   end
 
-  def Regular(this, klass)
+  def Regular(this)
     # just the type, not multiplicity
-    typeof(this.arg, klass)
+    typeof(this.arg)
   end
 
 end

@@ -12,18 +12,6 @@ class CheckGrammar
     self.new(schema).check(grammar.start)
   end
 
-  class Error
-    attr_reader :msg, :loc
-    def initialize(msg, loc)
-      @msg = msg
-      @loc = loc
-    end
-
-    def to_s
-      "#{msg}#{loc && (': ' + loc.to_s)}"
-    end
-  end
-
   def initialize(schema)
     @schema = schema
     @typeof = TypeOf.new(schema)
@@ -79,23 +67,27 @@ class CheckGrammar
       field = klass.fields[this.name]
       if field then
         # a set of types to deal with alternatives
-        ts = @typeof.typeof(this.arg, klass) 
-        t2 = field.type
-        ts.each do |t1|
-          if t1.nil? then
-            errors << field_error("untypable spine", field, this._origin)
-          elsif t1.Primitive? && t2.Primitive? && t1 != t2 then
-            errors << field_error("primitive mismatch #{t1.name} vs #{t2.name}", field, this._origin)
-          elsif t1.Primitive? != t2.Primitive? then
-            errors << field_error("type mismatch #{t1.name} vs #{t2.name}", field, this._origin)
-          elsif !Subclass?(t1, t2) then
-            # it now gives an error for each concrete class (mentioned in the grammar)
-            # could do a lub if all types in ts are classes and the lub exists.
-            errors << field_error("class mismatch #{t1.name} vs #{t2.name}", field, this._origin)
+        ts = @typeof.typeof(this.arg) 
+        if ts.empty? then
+          errors << field_error("no type available", field, this._origin)
+        else
+          t1 = field.type
+          ts.each do |t2|
+            if t2.nil? then
+              errors << field_error("untypable symbol", field, this._origin)
+            elsif t1.Primitive? && t2.Primitive? && t1 != t2 then
+              errors << field_error("primitive mismatch #{t2.name} vs #{t1.name}", field, this._origin)
+            elsif t1.Primitive? != t2.Primitive? then
+              errors << field_error("type mismatch #{t2.name} vs #{t1.name}", field, this._origin)
+            elsif !Subclass?(t2, t1) then
+              # it now gives an error for each concrete class (mentioned in the grammar)
+              # could do a lub if all types in ts are classes and the lub exists.
+              errors << field_error("class mismatch #{t2.name} vs #{t1.name}", field, this._origin)
+            end
           end
         end
       else
-        errors << Error.new("undefined field #{klass.name}.#{this.name}", this._origin)
+        errors << undef_field_error(this.name, klass, this._origin)
       end
     end
 
@@ -126,9 +118,27 @@ class CheckGrammar
     Error.new("undefined class #{name}", org)
   end
 
+  def undef_field_error(name, klass, org)
+    Error.new("undefined field #{klass.name}.#{name}", org)
+  end
+
   def field_error(msg, fld, org)
     Error.new("#{msg} for #{fld.owner.name}.#{fld.name}", org)
   end
+
+  class Error
+    attr_reader :msg, :loc
+    def initialize(msg, loc)
+      @msg = msg
+      @loc = loc
+    end
+
+    def to_s
+      "#{msg}#{loc && (': ' + loc.to_s)}"
+    end
+  end
+
+
 
 end
 
