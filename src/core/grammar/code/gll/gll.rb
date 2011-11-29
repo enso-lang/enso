@@ -94,7 +94,7 @@ class GLL
 
   def empty_node(item, eps)
     cr = Empty.new(@ci, eps)
-    @cn = item_node(item, cr)
+    item_node(item, cr)
     pop
   end
 
