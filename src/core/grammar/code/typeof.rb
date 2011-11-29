@@ -36,6 +36,8 @@ class TypeOf
   end
 
   def Rule(this)
+    # TODO return "bottom-type" if arg is nil
+    # which should unify with any expected type.
     return [] unless this.arg
     typeof(this.arg)
   end
@@ -64,7 +66,6 @@ class TypeOf
   end
 
   def Value(this)
-    # todo: what about atom???
     if this.kind == 'sym' then
       [@schema.primitives['str']]
     else

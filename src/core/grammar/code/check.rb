@@ -75,6 +75,8 @@ class CheckGrammar
           ts.each do |t2|
             if t2.nil? then
               errors << field_error("untypable symbol", field, this._origin)
+            elsif t1.Primitive? && t1.name == 'atom' && t2.Primitive? then
+              next
             elsif t1.Primitive? && t2.Primitive? && t1 != t2 then
               errors << field_error("primitive mismatch #{t2.name} vs #{t1.name}", field, this._origin)
             elsif t1.Primitive? != t2.Primitive? then
@@ -145,47 +147,49 @@ end
 
 
 if __FILE__ == $0 then
-  gg = Loader.load('grammar.grammar')
-  gs = Loader.load('grammar.schema')
-  check = CheckGrammar.new(gs)
-  errs = check.check(gg.start)
+  require 'colorize'
 
-  puts "Errors for grammar.grammar"
-  errs.each do |err|
-    puts err
+  grammars = ['diasuite.grammar',
+              'esync.grammar',
+#              'ooal.grammar',
+              'families.grammar',
+              'genealogy.grammar',
+              'graph.grammar',
+              'pointer.grammar',
+              'ledger.grammar',
+              'petrinet.grammar',
+              'petstore.grammar',
+              'fexp.grammar',
+              'repmin.grammar',
+#              'simpl.grammar',
+              'state_machine.grammar',
+              'todo.grammar',
+              'diagram.grammar',
+              'stencil.grammar',
+              'grammar.grammar',
+              'instance.grammar',
+              'schema.grammar',
+              'auth.grammar',
+              'content.grammar',
+              'element.grammar',
+              'web-base.grammar',
+              'web.grammar',
+              'xml.grammar',
+              'point.grammar']
+
+  errs = {}
+  grammars.each do |grammar|
+    g = Loader.load(grammar)
+    s = Loader.load(grammar.split('.')[0] + ".schema")
+    errs[grammar] = CheckGrammar.check(g, s)
   end
 
-  sg = Loader.load('schema.grammar')
-  ss = Loader.load('schema.schema')
-  check = CheckGrammar.new(ss)
-  errs = check.check(sg.start)
-
-  puts "Errors for schema.grammar"
-  errs.each do |err|
-    puts err
+  errs.each do |grammar, errs|
+    next if errs.empty?
+    puts "Errors for #{grammar}".red
+    errs.each do |err|
+      puts err
+    end
   end
-
-
-  wg = Loader.load('todo.grammar')
-  ws = Loader.load('todo.schema')
-  check = CheckGrammar.new(ws)
-  errs = check.check(wg.start)
-
-  puts "Errors for todo.grammar"
-  errs.each do |err|
-    puts err
-  end
-
-
-  wg = Loader.load('web.grammar')
-  ws = Loader.load('web.schema')
-  check = CheckGrammar.new(ws)
-  errs = check.check(wg.start)
-
-  puts "Errors for web.grammar"
-  errs.each do |err|
-    puts err
-  end
-
 end
 
