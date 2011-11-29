@@ -3,17 +3,17 @@ start Instances
 
 Instances ::= [Instances] instances:Instance*
 
-Instance ::=  [Instance] type:sym  "{" contents:{Content ";"}* "}"
+Instance ::=  [Instance] type:sym  "{" contents:{Content ";"}* "}" origin:Location?
 
-Content ::= [Field] name:sym ":" values:{Value ","}*
+Content ::= [Field] name:sym ":" values:{Value ","}* 
          |  [Code] "@" code:str
 
-Value ::= Instance origin:Location?
+Value ::= Instance //origin:Location?
        |  [Prim]  value:str? "(" kind:sym ")" origin:Location?
        |  [Ref] name:sym "(" type:sym ")" "^" origin:Location? 
-       |  [List] "[" elements:{Value ","}* "]" origin:Location?
+       |  "[" values:{Value ","}* "]" // origin:Location?
 
-Location ::= "<" path:str ","
+Location ::= [Location] "<" path:str ","
 	     offset:int "," length: int ","
 	     start_line:int "," start_column:int ","
 	     end_line:int "," end_column:int ">"
