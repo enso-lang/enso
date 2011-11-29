@@ -29,11 +29,15 @@ class GLL
     @cn = nil
 
     add(top)
+    dispatch(eval)
+    result(source, top)
+  end
+
+  def dispatch(eval)
     while !@todo.empty? do
       parser, @cu, @cn, @ci = @todo.shift
       eval.eval(parser, self, nil)
     end
-    result(source, top)
   end
 
   def result(source, top)
