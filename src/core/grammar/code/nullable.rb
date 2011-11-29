@@ -1,6 +1,5 @@
 
 class Nullable
-
   def initialize
     @memo = {}
   end
@@ -27,46 +26,27 @@ class Nullable
     end
   end
 
-  def Call(this)
-    nullable?(this.rule)
-  end
 
-  def Rule(this)
-    nullable?(this.arg)
-  end
+  # Create is essential because it will always
+  # produce an object instance, hence non-nullable
+  def Create(this) false; end
 
-  def Create(this)
-    # this is essential because it will always
-    # produce an object instance, hence non-nullable
-    false
-  end
+  def Call(this) nullable?(this.rule); end
 
-  def Field(this)
-    nullable?(this.arg)
-  end
+  def Rule(this) nullable?(this.arg); end
 
-  def Code(this)
-    true
-  end
+  def Field(this) nullable?(this.arg); end
 
-  def Epsilon(this)
-    true
-  end
+  def Code(this) true; end
 
-  def Lit(this)
-    this.value == ''
-  end
+  def Epsilon(this) true; end
 
-  def Value(this)
-    false
-  end
+  def Lit(this) this.value == ''; end
 
-  def Ref(this)
-    false
-  end
+  def Value(this) false; end
 
-  def Regular(this)
-    this.optional
-  end
+  def Ref(this) false; end
+
+  def Regular(this) this.optional; end
 
 end
