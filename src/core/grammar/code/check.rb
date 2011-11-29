@@ -149,33 +149,37 @@ end
 if __FILE__ == $0 then
   require 'colorize'
 
-  grammars = ['diasuite.grammar',
-              'esync.grammar',
-#              'ooal.grammar',
-              'families.grammar',
-              'genealogy.grammar',
-              'graph.grammar',
-              'pointer.grammar',
-              'ledger.grammar',
-              'petrinet.grammar',
-              'petstore.grammar',
-              'fexp.grammar',
-              'repmin.grammar',
-#              'simpl.grammar',
-              'state_machine.grammar',
-              'todo.grammar',
-              'diagram.grammar',
-              'stencil.grammar',
-              'grammar.grammar',
-              'instance.grammar',
-              'schema.grammar',
-              'auth.grammar',
-              'content.grammar',
-              'element.grammar',
-              'web-base.grammar',
-              'web.grammar',
-              'xml.grammar',
-              'point.grammar']
+  if ARGV[0] then
+    grammars = [ARGV[0]]
+  else
+    grammars = ['diasuite.grammar',
+                'esync.grammar',
+                #              'ooal.grammar',
+                'families.grammar',
+                'genealogy.grammar',
+                'graph.grammar',
+                'pointer.grammar',
+                'ledger.grammar',
+                'petrinet.grammar',
+                'petstore.grammar',
+                'fexp.grammar',
+                'repmin.grammar',
+                #              'simpl.grammar',
+                'state_machine.grammar',
+                'todo.grammar',
+                'diagram.grammar',
+                'stencil.grammar',
+                'grammar.grammar',
+                'instance.grammar',
+                'schema.grammar',
+                'auth.grammar',
+                'content.grammar',
+                'element.grammar',
+                'web-base.grammar',
+                'web.grammar',
+                'xml.grammar',
+                'point.grammar']
+  end
 
   errs = {}
   grammars.each do |grammar|
