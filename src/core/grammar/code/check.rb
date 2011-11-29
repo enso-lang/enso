@@ -1,7 +1,8 @@
 
-require 'core/system/library/schema'
 require 'core/system/load/load'
+require 'core/system/library/schema'
 require 'core/grammar/code/typeof'
+require 'core/grammar/code/nullable'
 
 
 ## TODO: check for (possible) multiplicity violations
@@ -15,6 +16,7 @@ class CheckGrammar
   def initialize(schema)
     @schema = schema
     @typeof = TypeOf.new(schema)
+    @nullable = Nullable.new
     @memo = {}
   end
 
@@ -71,12 +73,15 @@ class CheckGrammar
         if ts.empty? then
           errors << field_error("no type available", field, this._origin)
         else
+          if !field.optional && @nullable.nullable?(this)
+            errors << field_error("nullable symbol", field, this._origin)
+          end
           t1 = field.type
           ts.each do |t2|
             if t2.nil? then
               errors << field_error("untypable symbol", field, this._origin)
             elsif t1.Primitive? && t1.name == 'atom' && t2.Primitive? then
-              next
+              next # all primitives can be assigned to atoms
             elsif t1.Primitive? && t2.Primitive? && t1 != t2 then
               errors << field_error("primitive mismatch #{t2.name} vs #{t1.name}", field, this._origin)
             elsif t1.Primitive? != t2.Primitive? then
