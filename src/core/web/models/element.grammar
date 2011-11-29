@@ -1,0 +1,13 @@
+
+start Element
+
+abstract Value
+
+Element ::= [Element] "<" tag:sym attrs:Attr* "/>"
+          | [Element] "<" tag:sym attrs:Attr*  ">" contents:Content* "</" sym ">"
+
+Content ::= Element
+
+Attr ::=  [Attr] name:sym "=" value:Value
+
+

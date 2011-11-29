@@ -1,238 +1,167 @@
-
-require 'core/schema/code/factory'
-require 'core/diff/code/delta'
-require 'core/diff/code/delta_erb'
 require 'core/diff/code/match'
-require 'core/diff/code/equals'
-require 'core/system/library/schema'
+require 'core/schema/code/paths'
 
-class Diff
+module Diff
 
+  include Paths
+
+  #Values can be: classes, primitives, paths, or nil
+  def self.add; :add; end #add a new object
+  def self.del; :del; end #del an object
+  def self.mod; :mod; end #modify a primitive or reference value
+  class Op
+    attr_reader :path, :value, :type
+    def initialize(type, path, value)
+      @type = type
+      @path = path
+      @value = value
+    end
+    def to_s
+      case @type
+        when :add
+          "ADD #{path} : #{value}"
+        when :del
+          "DEL #{path}"
+        when :mod
+          "MOD #{path} : #{value}"
+      end
+    end
+  end
+
+
+  def self.map_paths(root, currpath = Path.new)
+    res = {root => currpath}
+    root.schema_class.fields.each do |f|
+      next unless !f.Primitive? and f.traversal
+      if !f.many
+        res.update map_paths(root[f.name], currpath.field(f.name))
+      else
+        i = 0
+        root[f.name].each do |v|
+          res.update map_paths(v, f.is_a?(ManyIndexedField) ? currpath.field(f.name).key(ObjectKey(v)) : currpath.field(f.name).index(i))
+          i+=1
+        end
+      end
+    end
+    res
+  end
+
+
+  #given two objects, return a list of operations that
   def self.diff(o1, o2)
-    Diff.new.diff(o1.schema_class.schema, o1, o2)
-  end
-
-  def diff (schema, o1, o2)
-    #result of a diff is a graph that conforms to specified schema
-    # nodes and edges in the graph are the union of the nodes in both instances
-    # furthermore, every node is marked with a delta type: A(dded), D(eleted), M(odified)
-    # every attribute (which includes edges) is marked with both old and new values
-
-    # do some initialization
-    @schema = schema
-    @factory = Factory.new(DeltaERB.delta(schema))
-    @rootobj = o2
-    
-    # generate name map based on o2
-    @namemap = generate_name_map(o2)
-
-    # do matching
+    @path_map = map_paths(o2)
     matches = Match.new.match(o1, o2)
-
-    # generate union based on matches. union forms a basis for the result set
-    return generate_diffs(o1, o2, matches)
-
+    diff_all(o1, o2, Path.new, matches)
   end
 
-  
-    
+
   #############################################################################
-  #start of private section  
+  #start of private section
   private
   #############################################################################
 
-  #generate a modified object that (might have been) changed between versions
-  #if o1 and o2 and all their descendants are perfect matches, then return nil
-  def generate_diffs(o1, o2, matches)
-    # given a set of matches between the sub objects of o1 and o2
-    #produce an annotated diff result conforming to dschma
-    #this function is primarily a recursive postfix traversal of the spanning tree
-
-    res = generate_matched_diff(o1, o2, matches)
-#    if res.nil?
-#      res = @factory[DeltaTransform.clear + o1.schema_class.name]
-#    end
-    return res
+  def self.diff_all(o1, o2, path, matches, ref=false)
+    return [] if o1==o2
+    type = o1 || o2
+    if type.is_a? CheckedObject
+      if !ref
+        diff_obj(o1, o2, path, matches, ref)
+      else
+        diff_ref(o1, o2, path, matches, ref)
+      end
+    elsif type.is_a? ManyField
+      diff_array(o1, o2, path, matches, ref)
+    elsif type.is_a? ManyIndexedField
+      diff_hash(o1, o2, path, matches, ref)
+    else #primitive value
+      diff_primitive(o1, o2, path, matches, ref)
+    end
   end
 
-  #create a completely new object with its complete subtree
-  def generate_added_diff(field, o1)
-    
-    #if non primitive then recurse downwards
-    if field.type.Primitive?
-      x = @factory[DeltaTransform.insert + field.type.name]
-      x.val = o1
-    elsif !field.traversal # this is a ref type
-      x = @factory[DeltaTransform.insert + DeltaTransform.ref]
-      x.path = @namemap[o1]
-      x.type = field.type.name
-    else
-      x = @factory[DeltaTransform.insert + o1.schema_class.name]
+  def self.diff_primitive(o1, o2, path, matches, ref)
+    o2.nil? ? [] : [Op.new(mod, path, o2)]
+  end
+
+  def self.diff_obj(o1, o2, path, matches, ref)
+    Print.print(o1)
+    Print.print(o2)
+    if o1.nil?
+      difflist = [Op.new(add, path, o2.schema_class)]
+      o2.schema_class.fields.each do |f|
+        fn = f.name
+        fpath = path.field(fn)
+        val2 = o2[fn]
+        difflist.concat diff_all(nil, val2, fpath, matches, !f.traversal)
+      end
+      difflist
+    elsif o2.nil?
+      difflist = [Op.new(del, path, nil)]
       o1.schema_class.fields.each do |f|
-        next if o1[f.name].nil?  # this optional field is not used
-
-        if not f.many
-          x[f.name] = generate_added_diff(f, o1[f.name])
-        else
-          reftype = f.traversal ? "" : ClassKey(f.type).type.name
-
-          if IsKeyed? f.type
-            o1[f.name].keys.each do |k|
-              x[f.name] << DeltaTransform.manyify(generate_added_diff(f, o1[f.name][k]), @factory, k, reftype)
-            end
-          else
-            o1[f.name].each do |l|
-              #all items added at index 0 because it was originally empty
-              x[f.name] << DeltaTransform.manyify(generate_added_diff(f, l), @factory, 0, reftype)
-            end
-          end
-        end
+        fn = f.name
+        fpath = path.field(fn)
+        val1 = o1[fn]
+        difflist.concat diff_all(val1, nil, fpath, matches, !f.traversal)
       end
-    end
-
-    return x
-  end
-
-  #create a deleted object (no subtree)
-  def generate_deleted_diff(field)
-    if field.traversal or field.type.Primitive
-      return @factory[DeltaTransform.delete + field.type.name]
-    else
-      return @factory[DeltaTransform.delete + DeltaTransform.ref]
-    end
-  end
-  
-  def generate_matched_orderedlist_diff(field, l1, l2, matches)
-
-    keyed = IsKeyed? field.type
-    
-    reftype = field.traversal ? "" : ClassKey(field.type).type.name
-
-    res = []
-    
-    # generate insert, modification and delete records for this list.
-    # the canonical form requires that records are in the order ins-mod-del
-    
-    #for each unmatched item from l2, add an added record
-    last_j = 0
-    for j in l2.keys do
-      if not matches.has_value?(l2[j])
-        res << DeltaTransform.manyify(generate_added_diff(field, l2[j]), @factory, keyed ? j : last_j, reftype)
-        modified = true
-      else
-        last_j = l1.find_index(matches.key(l2[j]))+1
+      difflist
+    else # assume matches[o1]==o2 and neither o1 nor o2 is nil
+      difflist = []
+      o1.schema_class.fields.each do |f|
+        fn = f.name
+        fpath = path.field(fn)
+        val1 = o1[fn]; val2 = o2[fn]
+        difflist.concat diff_all(val1, val2, fpath, matches, !f.traversal)
       end
-    end
-    #for each pair of matched items, traverse the tree to figure out if we need to make an object
-    l1.each do |o|
-      if matches.keys.include? o
-        keyname = keyed ? ClassKey(field.type).name : ""
-        if field.traversal #recurse down the tree
-          x = generate_matched_diff(o, matches[o], matches)
-          if not x.nil?
-            res << DeltaTransform.manyify(x, @factory, keyed ? o[keyname] : l1.find_index(o), reftype)
-          end
-        else #build a ref
-          if not ( matches[o[keyname]] = matches[o][keyname] ) # check if they point to matching objects
-            x = @factory[DeltaTransform.many + DeltaTransform.modify + DeltaTransform.ref + reftype]
-            x.path = @namemap[matches[o][keyname]]
-            x.type = field.type.name
-            x.pos = keyed ? o[keyname] : l1.find_index(o)
-          end
-        end
-      end
-    end
-    #for each unmatched item from l1, add a deleted record
-    for i in l1.keys do
-      if not matches.has_key?(l1[i])
-        res << DeltaTransform.manyify(generate_deleted_diff(field), @factory, i, reftype)
-        modified = true
-      end
-    end
-
-    return nil if res.empty?
-    return res
-  end
-
-  def generate_matched_single_diff(field, o1, o2, matches)
-
-    #handle optional fields that were added or deleted
-    if o1.nil? and o2.nil?  # does nothing if both are nil
-      return nil
-    elsif o1.nil?  #field is added
-      return generate_added_diff(field, o2)
-    elsif o2.nil?  #field is deleted
-      return generate_deleted_diff(field)
-    end
-    
-    #handle primitives
-    if field.type.Primitive? 
-      return o1==o2 ? nil : generate_added_diff(field, o2)
-    end
-    
-    #handle refs
-    if not field.traversal
-      matches[o1] == o2 ? nil : generate_added_diff(field, o2)
-    end
-
-    #handle normal objects    
-    if field.traversal 
-      return matches[o1] == o2 ? generate_matched_diff(o1, o2, matches) : generate_added_diff(field, o2)
+      difflist
     end
   end
 
-  def generate_matched_diff(o1, o2, matches)
-
-    # given a set of matches between the sub objects of o1 and o2
-    #produce an annotated diff result conforming to dschma
-    #the result will be a ModifyClass
-    # the assumption is that: o1, o2, and the returned object have the same type
-
-    #traverse descendants to discover changes
-
-    #find common, added, and deleted fields
-    schema_class = o1.schema_class
-    diff_fields = {}
-
-    #generate diffs for each field
-    schema_class.fields.each do |f|
-
-      f1 = o1[f.name]
-      f2 = o2[f.name]
-      type = f.type
-
-      if not f.many
-        d = generate_matched_single_diff(f, f1, f2, matches)
-      else
-        d = generate_matched_orderedlist_diff(f, f1, f2, matches)
-      end
-
-      if not d.nil?
-        diff_fields[f.name] = d
-      end
-    end
-
-    # create object using consolidated change records from descendants 
-    
-    #if no fields have been altered, return nil
-    return nil if diff_fields.empty?
-    new1 = @factory[DeltaTransform.modify + schema_class.name]
-    diff_fields.keys.each do |fn|
-      if schema_class.fields[fn].many
-        diff_fields[fn].each do |i|
-          new1[fn] << i
-        end
-      else
-        new1[fn]=diff_fields[fn]
-      end
-    end
-    return new1
+  def self.diff_ref(o1, o2, path, matches, ref)
+    [Op.new(mod, path, o2.nil? ? nil : get_path(o2))]
   end
 
+  def self.diff_hash(o1, o2, path, matches, ref)
+    difflist = []
+    found = []
+    o1.each do |i1|
+      fpath = path.key(ObjectKey(i1))
+      i2 = matches[i1]
+      if i2.nil? #match not found, i1 was deleted
+        difflist.concat diff_all(i1, nil, fpath, matches, ref)
+      else #match not found, i1 was deleted
+        found << i2
+        difflist.concat diff_all(i1, i2, fpath, matches, ref)
+      end
+    end
+    o2.each do |i2|
+      next if found.include? i2
+      fpath = path.key(ObjectKey(i2))
+      difflist.concat diff_all(nil, i2, fpath, matches, ref)
+    end
+    difflist
+  end
 
-end
+  def self.diff_array(o1, o2, path, matches, ref)
+    difflist = []
+    i=j=0
+    while i<o1.length and j<o2.length
+      if matches[o1[i]]==nil
+        difflist.concat diff_all(o1[i], nil, path.index(i), matches, ref)
+        i+=1
+      elsif matches[o1[i]]==o2[j]
+        difflist.concat diff_all(o1[i], o2[j], path.index(i), matches, ref)
+        i+=1; j+=1
+      elsif matches[o1[i]]!=o2[j]
+        difflist.concat diff_all(nil, o2[j], path.index(i), matches, ref)
+        j+=1
+      end
+    end
+    for n in j..o2.length-1
+      difflist.concat diff_all(nil, o2[n], path.index(i), matches, ref)
+    end
+    difflist
+  end
 
-
-def diff(x, y)
-  Diff.new.diff(x.schema_class.schema, x, y)
+  def self.get_path(obj)
+    @path_map[obj]
+  end
 end

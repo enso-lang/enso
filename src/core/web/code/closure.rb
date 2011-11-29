@@ -1,17 +1,7 @@
 
 require 'core/web/code/web'
-require 'ostruct'
 
 module Web::Eval
-  class RaisingStream
-    def initialize(block)
-      @block = block
-    end
-
-    def <<(s)
-      raise "Cannot render in constructor block: #{block._origin}"
-    end
-  end
 
   class BaseClosure
     def initialize(env, abs)
@@ -27,13 +17,14 @@ module Web::Eval
       @abs.tail
     end
 
-    def with_args(eval, args, block, call_env, errors)
+    def with_args(eval, args, block, call_env)
 
-      # Bind arguments in clean environment
-      env = {}.update(@env)
+      # Bind arguments in clean environment derived
+      # form this closures lexical environment.
+      env = @env.new
 
       # but conses in an env between call_env
-      inter_env = {}.update(call_env)
+      inter_env = call_env.new
 
       i = 0
       bind_tail = true
@@ -41,9 +32,8 @@ module Web::Eval
         if frm.cons then
           bind_tail = false
           target = []
-          env[frm.name] = Result.new(target)
+          env[frm.name] = List.new(target)
           
-          puts "Making a cons-closure for #{frm.name}"
           # Bind a closure that will update the current
           # formal parameter when the block (if any) is executed.
           inter_env[frm.cons.name] = Result.new(ConsClosure.new(env, 
@@ -51,8 +41,7 @@ module Web::Eval
                                                                 target))
         else
           # A normal expression is just evaluated and put in the env.
-          r = eval.eval_exp(args[i], call_env, errors)
-          puts "Setting normal formal param #{frm.name} to #{r}"
+          r = eval.expr.eval(args[i], call_env)
           env[frm.name] = r
           i += 1
         end
@@ -61,12 +50,10 @@ module Web::Eval
       if block then
         if bind_tail && tail
           # bind the block as a closure to name of tail
-          puts "Capturing tail block"
           env[tail.name] = Result.new(Closure.new(call_env, tail, block))
         elsif !bind_tail
-          puts "Running the block to fill in cons params."
           # run the constructor block to fill in the rest of env
-          eval.eval(block, inter_env, RaisingStream.new(block), errors)
+          eval.eval(block, inter_env, [])
         else
           raise "Error: block given but no tail or cons formals"
         end
@@ -84,10 +71,14 @@ module Web::Eval
       @body = body
     end
 
-    def apply(eval, args, block, call_env, out, errors)
-      with_args(eval, args, block, call_env, errors) do |env|
-        eval.eval(body, env, out, errors)
+    def apply(eval, args, block, call_env, out)
+      with_args(eval, args, block, call_env) do |env|
+        eval.eval(body, env, out)
       end
+    end
+
+    def inspect
+      to_s
     end
   end
 
@@ -101,12 +92,12 @@ module Web::Eval
       @abs.name
     end
 
-    def run(eval, env, out, errors)
-      eval.eval(body, env, out, errors)
-    end    
-
     def to_s
       "FUNCTION(#{name}/#{@abs.formals.length})"
+    end
+
+    def inspect
+      to_s
     end
   end
 
@@ -116,34 +107,30 @@ module Web::Eval
       @target = target
     end
 
-
-    def apply(eval, args, block, call_env, out, errors) 
+    def apply(eval, args, block, call_env, out) 
       # add a record to target with fields according to formals
-
-      puts "Evaluating cons closure"
-
       record = {}
-      with_args(eval, args, block, call_env, errors) do |env|
+      with_args(eval, args, block, call_env) do |env|
         bound_tail = true
         formals.each do |frm|
           if frm.cons then
             bound_tail = false
           end
-          #puts "SETTTING: #{frm.name} to #{env[frm.name].value}"
-          record[frm.name] = env[frm.name].value
+          record[frm.name] = env[frm.name]
         end
         if tail && block && bound_tail then
           # block is bound to the name of tail
           # set the closure as value 
           name = tail.name
-          record[name] = env[name].value
+          record[name] = env[name]
         end
       end
-      @target << Result.new(record)
-
-      #puts "Added #{record} to target"
+      @target << Record.new(record)
     end
 
+    def inspect
+      to_s
+    end
   end
 
 end

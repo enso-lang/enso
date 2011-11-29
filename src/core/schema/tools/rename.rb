@@ -1,6 +1,9 @@
 
 require 'core/system/library/schema'
 require 'core/schema/tools/copy'
+require 'core/schema/code/paths'
+
+# TODO: use the builtin paths here.
 
 def paths(obj, path = [],  &block)
   field = ClassKey(obj.schema_class)
@@ -51,11 +54,19 @@ def map_names!(obj, &block)
   end
 end
 
-def prime!(obj, suffix = '_')
+def prime!(obj, prefix = '_')
   map_names!(obj) do |name|
-    name + suffix
+    "#{prefix}.#{name}"
   end
 end
+
+def prime(obj, prefix = '_')
+  obj = Clone(obj)
+  prime!(obj, prefix)
+  return obj
+end
+
+
 
 def rename!(obj, map)
   field = ClassKey(obj.schema_class)
@@ -82,7 +93,11 @@ def rename!(obj, map)
     key = obj[field.name]
     obj[field.name] = map[key] if map[key]
   end
+  
+  rename_fields!(obj, map2)
+end
 
+def rename_fields!(obj, map)
   # then rename each non-primitive, non-nil, spine field using
   # the new map.
   obj.schema_class.defined_fields.each do |f|
@@ -90,18 +105,17 @@ def rename!(obj, map)
     next if !f.traversal
     if f.many then
       obj[f.name].each do |elt|
-        rename!(elt, map2) 
+        rename!(elt, map) 
       end
-    elsif f.optional then
-      rename!(obj[f.name], map2) unless obj[f.name].nil? || f.type.Primitive?
     else
-      rename!(obj[f.name], map2) unless f.type.Primitive?
+      rename!(obj[f.name], map) unless obj[f.name].nil? || f.type.Primitive?
     end
   end
 end
 
+
 def rename(obj, map)
-  obj = copy(obj)
+  obj = Clone(obj)
   rename!(obj, map)
   return obj
 end
@@ -119,6 +133,7 @@ if __FILE__ == $0 then
   gs = Loader.load('grammar.schema')
 
   ss_copy = copy(ss)
+
 
   map = {
     "Class" => "Class",
@@ -147,3 +162,7 @@ if __FILE__ == $0 then
   
   #DisplayFormat.print(sg_copy, ss_copy)
 end
+
+
+# .types[str]
+# .types[Schema].fields[types]

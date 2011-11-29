@@ -1,6 +1,7 @@
 
 
 module Paths
+
   class Path
     attr_reader :elts
 
@@ -10,7 +11,7 @@ module Paths
       elsif str =~ /^\.([a-zA-Z_0-9]+)(.*)$/ then
         Path.new([Field.new($1)] + parse($2).elts)
       elsif str =~ /^\[([0-9]+)\](.*)$/ then
-        Path.new([Index.new($1)] + parse($2).elts)
+        Path.new([Index.new($1.to_i)] + parse($2).elts)
       elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\](.*)$/  then
         rest = $4
         s = $1.gsub('\\[', '[]').gsub('\\]',  ']')
@@ -32,6 +33,10 @@ module Paths
       @elts = path.elts + @elts
     end
 
+    def extend(path)
+      Path.new(elts + path.elts)
+    end
+
     def deref(root)
       elts.inject(root) do |cur, elt|
         elt.deref(cur)
@@ -51,7 +56,50 @@ module Paths
     end
 
     def root?
-      elts == []
+      elts.empty?
+    end
+
+    def lvalue?
+      !root? && last.is_a?(Field)
+    end
+
+    def assign(root, obj)
+      raise "Can only assign to lvalues not to #{self}" if not lvalue?
+      owner.deref(root)[last.name] = obj
+    end
+
+    def assign_and_coerce(root, value)
+      raise "Can only assign to lvalues not to #{self}" if not lvalue?
+      obj = owner.deref(root)
+      fld = obj.schema_class.fields[last.name]
+      if fld.type.Primitive? then
+        value = 
+          case fld.type.name 
+          when 'str' then value.to_s
+          when 'int' then value.to_i
+          when 'bool' then (value.to_s == 'true') ? true : false
+          when 'real' then value.to_f
+          else
+            raise "Unknown primitive type: #{fld.type.name}"
+          end
+      end
+      owner.deref(root)[last.name] = value
+    end
+
+    def insert(root, obj)
+      deref(root) << obj
+    end
+
+    def insert_at(root, key, obj)
+      deref(root)[key] = obj
+    end
+
+    def owner
+      Path.new(elts[0..-2])
+    end    
+    
+    def last
+      elts.last
     end
 
     def to_s
@@ -65,22 +113,26 @@ module Paths
     end
   end
 
+  ROOT = Path.new
+
 
   class Elt
     # path element
   end
 
   class Field < Elt
-    def initialize(field)
-      @field = field
+    attr_reader :name
+
+    def initialize(name)
+      @name = name
     end
 
     def deref(obj)
-      obj[@field]
+      obj[@name]
     end
 
     def to_s
-      ".#{@field}"
+      ".#{@name}"
     end
   end
 
@@ -97,6 +149,7 @@ module Paths
       "[#{@index}]"
     end
   end
+
 
   class Key < Elt
     def initialize(key)
@@ -116,8 +169,9 @@ module Paths
     def escape(s)
       s.gsub(']', '\\]').gsub('[', '\\[')
     end
-
   end
+
+
 end
 
 if __FILE__ == $0 then

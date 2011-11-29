@@ -1,6 +1,7 @@
 
 require 'core/web/code/dispatch'
 require 'core/web/code/closure'
+require 'core/web/code/result'
 require 'core/system/load/load'
 
 module Web::Eval
@@ -27,7 +28,7 @@ module Web::Eval
       if @env[this.name] then
         @log.warn("Duplicate definition #{this.name}; overwriting.")
       end
-      @env[this.name] = Result.new(Function.new(@env, this))
+      @env[this.name] = Template.new(Function.new(@env, this))
     end
 
     def Import(this)

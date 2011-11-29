@@ -1,40 +1,28 @@
 
 require 'core/web/code/web'
-require 'core/web/code/renderable'
-
-module Web
-  class Redirect < Exception
-    attr_reader :link
-    
-    def initialize(link)
-      @link = link
-    end
-  end
-
-  module ActionUtils
-    def redirect(link)
-      raise Redirect.new(link)
-    end
-  end
-end
-
 
 class DefaultActions
-  include Web::ActionUtils
-  
+
+  # the return value of actions
+  # is used to indicate redirection
+
   def submit_action(link)
-    puts "REDIRECTING"
-    redirect(link)
+    link
   end
 
   def delete_action(obj, link)
-    puts "OBJ to be deleted: = #{obj.inspect}"
-    obj.delete!
-    redirect(link)
+    obj.value.delete!
+    link
+  end
+
+  def insert_action(obj, coll) 
+    coll.value << obj.value
+    nil
   end
 
   def check_delete_action(obj)
-    obj.delete!
+    obj.value.delete!
+    nil
   end
 
 

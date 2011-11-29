@@ -1,0 +1,85 @@
+
+
+
+primitive str
+primitive int
+primitive bool
+primitive real
+
+class Pipe
+  #name: str
+  from: Element
+  to: Element
+  diameter: int
+end
+
+class Element 
+  #name: str
+end
+
+class Joint < Element
+  pipes: Pipe*
+end
+
+class End < Element end
+
+class SourceEnd < End
+  output: Pipe
+end
+
+class ExhaustEnd < End
+  input: Pipe
+end
+
+class Vessel < Element
+  pipes: Pipe+ // todo: concrete vessel types
+end
+
+class Valve < Element
+  input: Pipe
+  output: Pipe
+end
+
+class OpenClose < Valve
+  open: bool
+end
+
+class Flow < Valve
+  flow: real
+  default: real
+  min: real
+  max: real
+end
+
+class Pump < Element
+end
+
+class RegularPump < Pump
+  input: Pipe
+  output: Pipe
+end
+
+class VacuumPump < Pump
+  suck: Pipe
+  blow: Pipe
+end
+
+class VenturiPump < Regular
+  suck: Pipe
+end
+
+class Measurement < Element
+end
+
+class PressureSensor < Measurement
+  input: Pipe
+end
+
+class TemperatureSensor < Measurement
+  input: Pipe
+end
+
+class FlowSensor < Measurement
+  input: pipe
+  output: pipe
+end

@@ -24,7 +24,7 @@ class InternalLocation
   end
 
   def inspect
-    "<#{path}: #{start_line}, #{start_column}, #{end_line}, #{end_column}, #{offset}, #{length}>"
+    "<#{path}: from line #{start_line} and col #{start_column}, to line #{end_line} and col #{end_column}, at #{offset}, length = #{length}>"
   end
 
 end
@@ -193,7 +193,7 @@ module CheckedObjectMixin
   def ==(other)
     return false if other.nil?
     return false unless other.is_a?(CheckedObject)
-    return _id == other._id
+    _id == other._id
   end
   
   def nil?
@@ -364,6 +364,10 @@ module CheckedObjectMixin
   def delete!
     _graph_id.delete_obj(self)
   end
+
+  def to_ary
+    nil
+  end
   
   def finalize
     UpdateInverses.new("INVERT").finalize(self)
@@ -457,7 +461,7 @@ class ManyIndexedField < BaseManyField
   end
 
   def include?(x)
-    !@hash[x.send(@key)].nil?
+    @hash.member? x
   end
   
   def [](x)

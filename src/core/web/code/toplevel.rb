@@ -2,28 +2,15 @@
 
 require 'core/system/load/load'
 require 'core/web/code/web'
-require 'core/web/code/handlers'
+require 'core/web/code/expr'
+require 'core/web/code/render'
 require 'core/web/code/module'
+require 'core/web/code/env'
+require 'core/web/code/actions'
+require 'core/web/code/form'
+require 'core/web/code/xhtml2txt'
 
 require 'rack'
-
-class Stream
-  attr_reader :length, :strings
-
-  def initialize
-    @strings = []
-    @length = 0;
-  end
-
-  def each(&block)
-    @strings.each(&block)
-  end
-
-  def <<(s)
-    @strings << s
-    @length += s.length
-  end
-end
 
 class Web::EnsoWeb
   include Web::Eval
@@ -32,12 +19,89 @@ class Web::EnsoWeb
     @web_name = web
     @log = log
     @root = Loader.load(root)
+    @toplevel = Env.root(@root, DefaultActions)
+    @eval = Render.new(Expr.new, log)
     load!
+  end
+
+  
+  ### The interface to Rack
+  def call(env)
+    reload_if_needed!
+    req = Rack::Request.new(env)
+    if req.get? then
+      get(req, @toplevel)
+    elsif req.post? then
+      post(req) 
+    end
+  end
+
+  private
+
+  def get(req, env, errors = {})
+    call = Template.parse(req.fullpath, @root, env)
+    if call then
+      # self/errors are dynamic variables
+      @toplevel['errors'] = Record.new(errors)
+      @toplevel['self'] = call
+      call.invoke(@eval, env.new, elts = [])
+      render(elts)
+    else
+      not_found(req.fullpath)
+    end
+  end
+
+  def post(req)
+    form = Form.new(req.POST, @toplevel, @root)
+    form.each_binding do |ref, value|
+      ref.assign(value)
+    end
+
+    errors = {}
+    # TODO: save/finalize to collect errors
+
+    link = nil
+    form.each_action do |action|
+      link ||= action.invoke(form.env)
+    end
+    
+    if errors.empty? then
+      redirect(link.render)
+    else
+      get(req, form.env, errors)
+    end
+  end
+
+  def render(elts)
+    str = ''
+    elts.each do |elt|
+      XHTML2Text.render(elt, str)
+    end
+    respond(str)
+  end
+
+  def not_found(msg)
+    response(404, msg)
+  end
+
+  def redirect(url)
+    response(301, '', 'Location' => url)
+  end
+
+  def respond(str)
+    response(200, str)
+  end
+
+  def response(status, str, opts = {})
+    [status, {      
+       'Content-Type' => 'text/html',
+       'Content-Length' => str.length.to_s,
+     }.update(opts), str]
   end
 
   def reload_if_needed!
     if last_change(@web_name) > @last_change then
-      puts "------------> RELOADING!!!"
+      @log.info("Reloading #{@web_name}")
       load!
     end
   end
@@ -51,52 +115,8 @@ class Web::EnsoWeb
   def load!
     @web = Loader.load!(@web_name)
     @last_change = last_change(@web_name)
-    @env = {'root' => Result.new(@root, Ref.new([]))}
-    mod_eval = Mod.new(@env, @log)
+    mod_eval = Mod.new(@toplevel, @log)
     mod_eval.eval(@web)
   end
-
-  def handle(req, out)
-    handler = 
-    handler.handle(out)
-  end
-
-
-  def call(env, stream = Stream.new)
-    reload_if_needed!
-    req = Rack::Request.new(env)
-    if req.get? then
-      Get.new(req.url, req.GET, @env, @root, @log).handle(self, stream)
-    elsif req.post? then
-      Post.new(req.url, req.GET, @env, @root, @log, req.POST).handle(self, stream)
-    end
-    # do nothing otherwise.
-  end
-
-  def not_found(msg)
-    [404, {
-     'Content-type' => 'text/html',
-     'Content-Length' => msg.length.to_s
-     }, msg]
-  end
-
-  def redirect(url)
-    [301, {
-       'Content-Type' => 'text/html',
-       'Location' => url,
-       'Content-Length' => '0'
-     }, []]
-  end
-
-
-  def respond(stream)
-    [200, {
-      'Content-Type' => 'text/html',
-       # ugh
-      'Content-Length' => stream.length.to_s,
-     }, stream]
-  end
-
-
 end
 
