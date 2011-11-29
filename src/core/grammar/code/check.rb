@@ -66,7 +66,7 @@ class CheckGrammar
       field = klass.fields[this.name]
       if field then
         # a set of types to deal with alternatives
-        ts = @typeof.typeof(this.arg) 
+        ts = @typeof.typeof(this) 
         if ts.empty? then
           errors << field_error("no type available", field, this._origin)
         else
