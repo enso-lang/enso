@@ -10,11 +10,7 @@ class Nullable
       @memo[this]
     else
       @memo[this] = true
-      if respond_to?(this.schema_class.name) then
-        @memo[this] = send(this.schema_class.name, this)
-      else
-        @memo[this] = nullable?(this.arg)
-      end
+      @memo[this] = send(this.schema_class.name, this)
     end
   end
 
@@ -35,10 +31,26 @@ class Nullable
     nullable?(this.rule)
   end
 
+  def Rule(this)
+    nullable?(this.arg)
+  end
+
   def Create(this)
-    # this is essential because it will also
-    # produce an object instance, hence non-nil
+    # this is essential because it will always
+    # produce an object instance, hence non-nullable
     false
+  end
+
+  def Field(this)
+    nullable?(this.arg)
+  end
+
+  def Code(this)
+    true
+  end
+
+  def Epsilon(this)
+    true
   end
 
   def Lit(this)
