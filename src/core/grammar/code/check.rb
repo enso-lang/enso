@@ -4,9 +4,6 @@ require 'core/system/library/schema'
 require 'core/grammar/code/typeof'
 require 'core/grammar/code/nullable'
 
-
-## TODO: check for (possible) multiplicity violations
-
 class CheckGrammar
 
   def self.check(grammar, schema)

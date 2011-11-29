@@ -1,4 +1,5 @@
 
+require 'core/schema/tools/copy'
 
 # apply a schema renaming to a grammar
 
@@ -63,6 +64,10 @@ end
 
 def rename_binding!(grammar, map)
   RenameBinding.new.rename(grammar, map)
+end
+
+def rename_binding(grammar, map)
+  rename_binding!(copy(grammar), map)
 end
 
 
