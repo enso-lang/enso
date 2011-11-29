@@ -1,38 +1,38 @@
 --- 
-State_Opened: !ruby/object:EnsoPoint 
-  x: 2
-  y: 74
-State_Closed: !ruby/object:EnsoPoint 
-  x: 107
-  y: 16
-State_Locked: !ruby/object:EnsoPoint 
-  x: 229
-  y: 78
-State_Opened.close: 
+Opened: !ruby/object:EnsoPoint 
+  x: 13
+  y: 94
+Closed: !ruby/object:EnsoPoint 
+  x: 118
+  y: 19
+Locked: !ruby/object:EnsoPoint 
+  x: 237
+  y: 82
+Opened.close: 
 - !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.4333530005528454
+  x: 0.46306337259854347
+  y: 0
 - !ruby/object:EnsoPoint 
-  x: 0.41832855995189977
+  x: 0
+  y: 0.6420618694350516
+Closed.open: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
   y: 1
-State_Closed.open: 
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.6796138732311526
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-State_Closed.lock: 
 - !ruby/object:EnsoPoint 
   x: 1
-  y: 0.43598156003355204
+  y: 0.5
+Closed.lock: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.6175776585368259
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 0
-State_Locked.unlock: 
+Locked.unlock: 
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5543811331527816
+  y: 0.5000000000000001
 - !ruby/object:EnsoPoint 
-  x: 0.6036992421917512
+  x: 0.7065933848538857
   y: 1

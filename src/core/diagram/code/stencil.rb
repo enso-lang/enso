@@ -230,9 +230,10 @@ class StencilFrame < DiagramFrame
 	    rescue
 	    end
 	    shape = container if !shape
-	    puts "#{action} #{this.label} #{address.obj} #{shape}"
-	    add_action shape, "#{action} #{this.label}" do 
-	      address.insert_new address.field.type
+	    puts "#{action} #{this.label} #{address.obj}.#{address.field} #{shape}"
+	    add_action shape, "#{action} #{this.label}" do
+	      semantics =  address.obj.factory
+	      address.insert semantics[address.field.type
 	    end
 	  end
 	end
