@@ -23,6 +23,9 @@ class MultEval
 
 
   def Call(this, in_field)
+    if @memo[this]
+      return @memo[this]
+    end
     @memo[this] = BOTTOM
     x = mult(this.rule, in_field)
     while x != @memo[this]
@@ -126,12 +129,15 @@ if __FILE__ == $0 then
 
   g = Loader.load(ARGV[0])
 
+  # Perform reachability analysis:
+  # obtain a table from Create's to
+  # a set of fields.
   r = Reach.new
   r.reach(g.start, [])
   tbl = r.tbl
 
-  merged = {}
   
+  # Convert the
   classes = tbl.keys.map do |cr|
     cr.name
   end.uniq
@@ -168,37 +174,13 @@ if __FILE__ == $0 then
     end
   end
 
-  tbl.each do |cr, fs|
-    fs.each do |f|
-      meval = FieldMultEval.new(f)
-      m = meval.mult(cr.arg, false)
-      puts "#{cr.name}.#{f}: #{m}"
-    end
-  end
-
- #  tbl.each do |cr, fs|
-#     merged[cr.name] ||= []
-#     merged[cr.name] |= fs
-#   end
-
-#   result = {}
-
-#   tbl.each_key do |cr|
-#     result[cr.name] ||= {}
-#     merged[cr.name].each do |fname|
-#       if !tbl[cr].include?(fname) then
-#         result[cr.name][fname] = Multiplicity::ZERO
-#       else
-#         meval = FieldMultEval.new(fname)
-#         m = meval.mult(cr.arg, false)
-#         if result[cr.name][fname] then
-#           result[cr.name][fname] += m
-#         else
-#           result[cr.name][fname] = m
-#         end
-#         puts "#{cr.name}.#{fname}: #{m}"
-#       end
+#   tbl.each do |cr, fs|
+#     fs.each do |f|
+#       meval = FieldMultEval.new(f)
+#       m = meval.mult(cr.arg, false)
+#       puts "#{cr.name}.#{f}: #{m}"
 #     end
 #   end
+
   pp result
 end
