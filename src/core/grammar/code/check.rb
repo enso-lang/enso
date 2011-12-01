@@ -4,6 +4,13 @@ require 'core/system/library/schema'
 require 'core/grammar/code/typeof'
 require 'core/grammar/code/nullable'
 
+
+# TODO: check for absent non-optional fields 
+# it might be sound now, but not complete.
+
+# problem: what if grammar allows 2 or more elements
+# but the schema does not.
+
 class CheckGrammar
 
   def self.check(grammar, schema)
@@ -76,6 +83,8 @@ class CheckGrammar
           t1 = field.type
           ts.each do |t2|
             if t2.nil? then
+              # this means a class/primitive could not be found in the schema
+              # maybe not give an error here as it is not really informative.
               errors << field_error("untypable symbol", field, this._origin)
             elsif t1.Primitive? && t1.name == 'atom' && t2.Primitive? then
               next # all primitives can be assigned to atoms

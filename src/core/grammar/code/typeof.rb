@@ -28,10 +28,6 @@ class TypeOf
   end
 
   def Call(this)
-    # NB: it essential we memoize on calls
-    # *not* on rules, because we have to 
-    # traverse rules multiple times for
-    # different call sites
     if @memo[this] then
       @memo[this]
     else

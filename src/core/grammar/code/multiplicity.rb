@@ -170,9 +170,28 @@ A is not a lattice, because
  - _*_ is not idempotent
  - _+_ has no unit
 
+It is, however, a semi-lattice for _+_:
+ - assoc, comm, idemp 
+
 To check:
  - is A a ring? It seems to have an additive sub-group.
- - is A a semi-lattice?
+
+
+----
+
+What is the combined multiplicity of all occurrences of field 
+assignments below a certain Create; this means the multiplicity
+of the target (the symbol that gives the field its type) from
+field:X (and including) downward; including, because then we cover
+repetitions of the field assignment itself.
+
+Definitions
+- reachable fields
+- target of a field assignment: str, lit, int, sym, or Create
+   (there may be different occurences all being targets)
+- a field assignment occurrence
+
+
 =end
 
   def test_alg_props
@@ -462,6 +481,10 @@ To check:
     def add_zero_or_one; zero_or_one end
     def mul_zero_or_one; zero_or_one end
 
+    def star; self end
+    def plus; self end
+    def opt; self end
+
     def to_s; '0' end
   end
 
@@ -483,6 +506,10 @@ To check:
 
     def add_zero_or_one; zero_or_one end
     def mul_zero_or_one; one_or_more end
+
+    def star; ZERO_OR_MORE end
+    def plus; ONE_OR_MORE end
+    def opt; ZERO_OR_ONE end
 
     def to_s; '1' end
   end
@@ -506,6 +533,10 @@ To check:
     def add_zero_or_one; zero_or_more end
     def mul_zero_or_one; one_or_more end
 
+    def star; ZERO_OR_MORE end
+    def plus; ONE_OR_MORE end
+    def opt; ZERO_OR_MORE end
+
     def to_s; '+' end
   end
 
@@ -527,6 +558,10 @@ To check:
 
     def add_zero_or_one; zero_or_more end
     def mul_zero_or_one; zero_or_more end
+
+    def star; self end
+    def plus; self end
+    def opt; self end
 
     def to_s; '*' end
   end
@@ -550,6 +585,10 @@ To check:
     def add_zero_or_one; zero_or_one end
     def mul_zero_or_one; zero_or_more end
 
+    def star; ZERO_OR_MORE end
+    def plus; ZERO_OR_MORE end
+    def opt; self end
+
     def to_s; '?' end
   end
 
@@ -558,6 +597,8 @@ To check:
   ONE_OR_MORE = OneOrMore.new
   ZERO_OR_MORE = ZeroOrMore.new
   ZERO_OR_ONE = ZeroOrOne.new
+
+  BOTTOM = ZERO_OR_MORE
 
   Alg = [ZERO, ONE, ONE_OR_MORE, ZERO_OR_MORE, ZERO_OR_ONE]
 
