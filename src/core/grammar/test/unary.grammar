@@ -1,0 +1,7 @@
+
+start Unary
+
+Unary ::= [Unary] op:"not" arg:Unary 
+       |  Primary
+
+Primary ::= "(" Unary ")"

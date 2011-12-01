@@ -1,0 +1,15 @@
+
+
+start Prog
+
+Prog ::= [Prog] Stats Exps
+
+Stats ::= 
+      | stats:Stat Stats
+
+Stat ::= "print"
+
+Exps ::= exps:Exp
+      | exps:Exp Exps
+
+Exp ::= "x"
