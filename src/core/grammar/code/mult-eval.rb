@@ -6,6 +6,11 @@ class MultEval
 
   def initialize
     @memo = {}
+    @computed = {}
+    @visited = {}
+    @in_circle = {}
+    @values = {}
+    @change = {}
   end
 
   def mult(this, in_field)
@@ -22,12 +27,17 @@ class MultEval
   end
 
 
+
   def Call(this, in_field)
+    #puts "#{self.class} THIS = #{this}"
     if @memo[this]
       #puts "Returning memoized: #{@memo[this]} for #{this.rule.name}"
       return @memo[this]
     end
-    @memo[this] = BOTTOM # bottom = 1 now...
+
+    # Assume there will be at least 1 terminal 
+    # (i.e. create, str, sym, int, or lit)
+    @memo[this] = ONE
     x = mult(this.rule, in_field)
     #puts "x = #{x}"
     while x != @memo[this]
@@ -93,6 +103,7 @@ class ContribMulEval < MultEval
   def Ref(this, _); ONE end
 
   def Create(this, _)
+    #puts "CREATE ---> #{this.name}"
     ONE
   end
 

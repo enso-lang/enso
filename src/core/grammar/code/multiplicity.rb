@@ -445,7 +445,7 @@ Definitions
         f.puts "n#{e1.object_id} [label=\"#{e1}\"]"
         Alg.each do |e2|
           if e1 <= e2 then
-            f.puts "n#{e2.object_id} -> n#{e1.object_id} [dir=back]"
+            f.puts "n#{e1.object_id} -> n#{e2.object_id}"
           end
         end
       end
@@ -460,6 +460,7 @@ Definitions
     def zero_or_more; ZERO_OR_MORE end
     def zero_or_one; ZERO_OR_ONE end
 
+    # 0 <= 1 <= ? <= * <= + ????
     def <=(b)
       self + b == self
     end
@@ -601,7 +602,7 @@ Definitions
   ZERO_OR_MORE = ZeroOrMore.new
   ZERO_OR_ONE = ZeroOrOne.new
 
-  BOTTOM = ONE
+  #BOTTOM = ONE # NOT SURE
 
   Alg = [ZERO, ONE, ONE_OR_MORE, ZERO_OR_MORE, ZERO_OR_ONE]
 
