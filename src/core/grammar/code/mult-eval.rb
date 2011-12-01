@@ -9,7 +9,7 @@ class MultEval
   end
 
   def mult(this, in_field)
-    #puts "Mult: #{this}"
+    #puts "Mult: #{this} (in_field = #{in_field})"
     if respond_to?(this.schema_class.name) then
       send(this.schema_class.name, this, in_field)
     else
@@ -36,8 +36,12 @@ class MultEval
   end
 
   def Sequence(this, in_field)
-    this.elements.inject(ZERO) do |cur, elt|
-      cur * mult(elt, false)
+    if this.elements.length == 1 then
+      mult(this.elements[0], in_field)
+    else
+      this.elements.inject(ZERO) do |cur, elt|
+        cur * mult(elt, false)
+      end
     end
   end
 
