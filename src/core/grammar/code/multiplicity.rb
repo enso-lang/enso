@@ -165,6 +165,9 @@ The order can be drawn as follows:
 So we seem to have a bottom: *; in other words
 * conveys the least information.
 
+!!!!!!!! We have to think about bottom. It seems
+!!!!! Mult. check requires 1 to be bottom.
+
 A is not a lattice, because
  - absorption laws do not hold (e.g. a + (a * b) = a)
  - _*_ is not idempotent
@@ -598,7 +601,7 @@ Definitions
   ZERO_OR_MORE = ZeroOrMore.new
   ZERO_OR_ONE = ZeroOrOne.new
 
-  BOTTOM = ZERO_OR_MORE
+  BOTTOM = ONE
 
   Alg = [ZERO, ONE, ONE_OR_MORE, ZERO_OR_MORE, ZERO_OR_ONE]
 

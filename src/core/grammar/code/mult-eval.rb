@@ -24,11 +24,14 @@ class MultEval
 
   def Call(this, in_field)
     if @memo[this]
+      #puts "Returning memoized: #{@memo[this]} for #{this.rule.name}"
       return @memo[this]
     end
-    @memo[this] = BOTTOM
+    @memo[this] = BOTTOM # bottom = 1 now...
     x = mult(this.rule, in_field)
+    #puts "x = #{x}"
     while x != @memo[this]
+      #puts "x != memo: #{x} != #{@memo[this]}"
       @memo[this] = x
       x = mult(this.rule, in_field)
     end
@@ -81,13 +84,17 @@ class FieldMultEval < MultEval
       ZERO
     end
   end
+
 end
 
 
 class ContribMulEval < MultEval
   def Value(this, _); ONE end
   def Ref(this, _); ONE end
-  def Create(this, _); ONE end
+
+  def Create(this, _)
+    ONE
+  end
 
   def Lit(this, in_field)
     in_field ? ONE : ZERO
@@ -127,6 +134,12 @@ creates. So absence there, means 0
 =end
 
 if __FILE__ == $0 then
+  if !ARGV[0] then
+    puts "use mult-eval.rb <name>.grammar"
+    exit!(1)
+  end
+
+
   require 'core/system/load/load'
   require 'core/grammar/code/reach'
   require 'pp'
@@ -141,11 +154,14 @@ if __FILE__ == $0 then
   tbl = r.tbl
 
   
-  # Convert the
+  # Obtain the set of classes represented
+  # by the set of Creates in the table.
   classes = tbl.keys.map do |cr|
     cr.name
   end.uniq
 
+  # Union all fields referenced in tbl for
+  # each class.
   fields = {}
   classes.each do |cl|
     fields[cl] ||= []
@@ -155,6 +171,13 @@ if __FILE__ == $0 then
       end
     end
   end
+
+  # If one of the fields for a class C does
+  # not occur in *all* Creates representing C
+  # then the multiplicity is seeded with ZERO.
+  # (In other words, absence in tbl means there
+  # is a path through the grammar where the field
+  # never occurs.)
 
   result = {}
   classes.each do |cl|
@@ -178,13 +201,13 @@ if __FILE__ == $0 then
     end
   end
 
-#   tbl.each do |cr, fs|
-#     fs.each do |f|
-#       meval = FieldMultEval.new(f)
-#       m = meval.mult(cr.arg, false)
-#       puts "#{cr.name}.#{f}: #{m}"
-#     end
-#   end
+  tbl.each do |cr, fs|
+    fs.each do |f|
+      meval = FieldMultEval.new(f)
+      m = meval.mult(cr.arg, false)
+      puts "#{cr.name}.#{f}: #{m}"
+    end
+  end
 
   pp result
 end
