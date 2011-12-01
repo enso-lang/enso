@@ -510,7 +510,8 @@ top  0
 
 =end
     def <=(b)
-      self * b == self
+      #self * b == self
+      b == self + b
     end
   end
 
