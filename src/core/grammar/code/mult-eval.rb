@@ -26,12 +26,8 @@ class MultEval
     mult(this.arg, in_field)
   end
 
-
-
   def Call(this, in_field)
-    #puts "#{self.class} THIS = #{this}"
     if @memo[this]
-      #puts "Returning memoized: #{@memo[this]} for #{this.rule.name}"
       return @memo[this]
     end
 
@@ -39,9 +35,7 @@ class MultEval
     # (i.e. create, str, sym, int, or lit)
     @memo[this] = ONE
     x = mult(this.rule, in_field)
-    #puts "x = #{x}"
     while x != @memo[this]
-      #puts "x != memo: #{x} != #{@memo[this]}"
       @memo[this] = x
       x = mult(this.rule, in_field)
     end
@@ -103,7 +97,6 @@ class ContribMulEval < MultEval
   def Ref(this, _); ONE end
 
   def Create(this, _)
-    #puts "CREATE ---> #{this.name}"
     ONE
   end
 

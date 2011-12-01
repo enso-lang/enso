@@ -453,6 +453,34 @@ Definitions
     end
   end
 
+  def show_bottom
+    puts "Finding bottom"
+    Alg.each do |e1|
+      yes = true
+      Alg.each do |e2|
+        yes &&= e1 <= e2
+      end
+      if yes
+        puts "bottom: #{e1}"
+      end
+    end
+  end
+
+  def show_top
+    puts "Finding top"
+    Alg.each do |e1|
+      yes = true
+      Alg.each do |e2|
+        yes &&= e2 <= e1
+      end
+      if yes
+        puts "top: #{e1}"
+      end
+    end
+    puts 
+  end
+
+
   class Mult
     def zero; ZERO end
     def one; ONE end
@@ -460,9 +488,29 @@ Definitions
     def zero_or_more; ZERO_OR_MORE end
     def zero_or_one; ZERO_OR_ONE end
 
-    # 0 <= 1 <= ? <= * <= + ????
+=begin
+if we define <= using * 
+poset requirements break:  not 1 <= 1, not ? <= ?
+(similar to idempotent laws not holding: 1 * 1 != 1, ? * ? != ?;
+this is the cause, of course)
+[it is, however, not a strict partial order, since irreflexivity
+does not hold for all elements.]
+but, unlike with +, we have both bottom (+) and top (0) instead
+of only * as bottom.
+the order defined with * can be drawn as follows (upside down):
+
+bottom +
+    /   \
+   /     *
+  /      |
+  1      ?
+   \    /
+    \  /
+top  0
+
+=end
     def <=(b)
-      self + b == self
+      self * b == self
     end
   end
 
@@ -602,8 +650,6 @@ Definitions
   ZERO_OR_MORE = ZeroOrMore.new
   ZERO_OR_ONE = ZeroOrOne.new
 
-  #BOTTOM = ONE # NOT SURE
-
   Alg = [ZERO, ONE, ONE_OR_MORE, ZERO_OR_MORE, ZERO_OR_ONE]
 
 end
@@ -613,5 +659,7 @@ if __FILE__ == $0 then
   include Multiplicity
   test_alg_props
   show_table
+  show_bottom
+  show_top
   todot('bla.dot')
 end

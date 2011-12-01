@@ -4,13 +4,6 @@ require 'core/system/library/schema'
 require 'core/grammar/code/typeof'
 require 'core/grammar/code/nullable'
 
-
-# TODO: check for absent non-optional fields 
-# it might be sound now, but not complete.
-
-# problem: what if grammar allows 2 or more elements
-# but the schema does not.
-
 class CheckGrammar
 
   def self.check(grammar, schema)
