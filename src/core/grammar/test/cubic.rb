@@ -19,7 +19,7 @@ end
 if __FILE__ == $0 then
   grammar = Gamma2.grammar
   org = Origins.new('', '-')
-  1.upto(100) do |i|
+  1.step(50, 5) do |i|
     source = ('b ' * i).rstrip
     t = Benchmark.realtime { GLL.parse(source, grammar, grammar.start, org) }
     puts "#{i} #{t}"

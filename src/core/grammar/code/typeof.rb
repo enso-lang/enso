@@ -15,23 +15,24 @@ class TypeOf
   end
 
   def Sequence(this)
-    # sequences only have types if they are singletons
-    if this.elements.length == 1 then
-      typeof(this.elements.first)
-    else
-      []
+    # the type of sequence is only well-defined if
+    # only a single of its elements is typable.
+    # So: "a" ([X] X) "b" is OK (because literals get nil as type)
+    # but: ([X] X) ([Y] Y) is not OK
+    # NB: we ignore any following types such as Y in the latter example.
+    this.elements.each do |elt|
+      ts = typeof(elt)
+      return ts unless ts.empty?
     end
+    return []
   end
 
   def Call(this)
-    # NB: it essential we memoize on calls
-    # *not* on rules, because we have to 
-    # traverse rules multiple times for
-    # different call sites
     if @memo[this] then
       @memo[this]
     else
-      @memo[this] = typeof(this.rule)
+      @memo[this] = []
+      @memo[this] |= typeof(this.rule)
     end
   end
 
@@ -47,18 +48,21 @@ class TypeOf
   end
 
   def Field(this)
-    typeof(this.arg)
+    if this.arg.Lit? then
+      [@schema.primitives['str']]
+    else
+      typeof(this.arg)
+    end
   end
 
   def Alt(this)
-    # return a set of types
     this.alts.inject([]) do |cur, alt|
       cur | typeof(alt)
     end
   end
 
   def Lit(this)
-    [@schema.primitives['str']]
+    []
   end
 
   def Ref(this)
@@ -74,7 +78,6 @@ class TypeOf
   end
 
   def Regular(this)
-    # just the type, not multiplicity
     typeof(this.arg)
   end
 
