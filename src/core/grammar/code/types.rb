@@ -10,10 +10,6 @@ module GrammarTypes
     def cat_with_class(t); UNDEF end
     def cat_with_primitive(t); UNDEF end
 
-#     def <=(t)
-#       self == self * t
-#     end
-
     def <=(t)
       t == self + t
     end

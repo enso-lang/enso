@@ -1,19 +1,6 @@
 
 require 'core/system/load/load'
 
-=begin
-
-Stats ::= [Stats]
-       |  [Stats] stats:Stat ";" Stats
-
-class Stats
-  stats: Stat*
-end
-  
-
-=end
-
-
 class Reach
   attr_reader :tbl
   
