@@ -2,6 +2,8 @@
 require 'core/grammar/code/gfold'
 require 'core/grammar/code/types'
 
+# TODO: produces error messages when things are not found in schema.
+
 class TypeEval < GrammarFold
   include GrammarTypes
   attr_reader :schema

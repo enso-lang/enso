@@ -1,14 +1,6 @@
 # -*- coding: iso-8859-1 -*-
 
 
-# Notes from conv. with Jan R.
-# Test monotonicity of +/*: bewaart ordering.
-# omdat eindig goed genoeg dat monotone
-# niet noodzakelijk lattice.
-# function f(NT \times NT -> \mathcal{A}): F
-# function \Phi(F) -> F
-# need fixpoint of \Phi
-
 
 =begin
 
@@ -17,15 +9,12 @@
   and the argument of a field can be multiple
   (and perhaps even both...).
 
-For many fields: Below a field there must be a single Create
-which can be repeated 
-
 ----------------------------------
 stats:Stats
 Stats ::= 
        | Stat Stats
 Stat ::= [Stat] ...
-### path Stats/Stat/[Stat]
+
 ----------------------------------
 stats:Stat*
 Stat ::= [Stat] ...
@@ -35,7 +24,7 @@ Stats
 Stats ::= 
        | stats:Stat Stats
 Stat ::= [Stat] ...
-### path Stat/????
+
 -----------------------------------
 Stats
 Stats ::= 
@@ -54,76 +43,6 @@ Stats ::=
        | stats:Stat stats:Stat stats:Stat
 Stat ::= [Stat] ...
 -----------------------------------
-
-Idea: unfold the recursion in the grammar at least twice.
-then count occurences; if a field (or field value) then occurs
-2 or more times. Also normalize regulars away. So that all
-repetition is recursion through repetition of fields (not field values). 
-(But that's not true unfortunately)
-
-############################################################
-NB: refs are ambiguous; need to indicate a field in a class
-that is used to traverse for resolving a.b paths. E.g. in schema.schema:
-class
- ^defined_fields: ...
-ebd
-
-^ implies !  (i.e. it must be a spine field) and there can only be one
-per class
-############################################################
-
-find out if some symbol X can occur more than once
-below a certain other symbol
-
-Example; Y below X
-X ::= Y*
-
-
-EXAMPLE 1
-Xs is seeded with bottom (+)
-Xs ::= 
-    | X Xs
-
-0 + (1 * Xs) = 0 + (1 * +) = 0 + + = * RIGHT!
-
-EXAMPLE 2
-Xs is seeded with bottom (+)
-Xs ::= 
-    | X 
-
-0 + 1 = ? RIGHT!
-
-EXAMPLE 3
-seed Xs with +
-Xs ::= 
-    | "a"
-    | "b"
-
-0 + 1 = ?
-
-
-
-
-So we encounter a field:
-x:X
-
-X ::= Y*
-Y ::= [A] "a"
-
-
-or
-
-X ::=   | Y X
-Y ::= [A] "a"
-
-then we ask: what is the mult of X (no!)
-we need the multiplicity of the value assigned to x
-which might be levels deeper in X.
-the first value is:
-  - a Create
-  - a Ref
-  - literal (directly after it)
-  - str/sym/int 
 
 =end
 
@@ -149,11 +68,11 @@ _*_ distributes over _+_: a * (b + c) = (a * b) + (a * c)
 
 A is a partially ordererd set (poset)
 
-a <= b =def (a + b == a)
+a <= b =def (b == a + b)
 
 +/* are both monotone wrt the order <=
 
-The order can be drawn as follows:
+The order can be drawn as follows (upside down):
 
  0  1
  | /|
@@ -162,11 +81,7 @@ The order can be drawn as follows:
   \/
   *
 
-So we seem to have a bottom: *; in other words
-* conveys the least information.
-
-!!!!!!!! We have to think about bottom. It seems
-!!!!! Mult. check requires 1 to be bottom.
+So we seem to have two bottoms: 1 and 0.
 
 A is not a lattice, because
  - absorption laws do not hold (e.g. a + (a * b) = a)
@@ -175,24 +90,6 @@ A is not a lattice, because
 
 It is, however, a semi-lattice for _+_:
  - assoc, comm, idemp 
-
-To check:
- - is A a ring? It seems to have an additive sub-group.
-
-
-----
-
-What is the combined multiplicity of all occurrences of field 
-assignments below a certain Create; this means the multiplicity
-of the target (the symbol that gives the field its type) from
-field:X (and including) downward; including, because then we cover
-repetitions of the field assignment itself.
-
-Definitions
-- reachable fields
-- target of a field assignment: str, lit, int, sym, or Create
-   (there may be different occurences all being targets)
-- a field assignment occurrence
 
 
 =end
@@ -445,7 +342,7 @@ Definitions
         f.puts "n#{e1.object_id} [label=\"#{e1}\"]"
         Alg.each do |e2|
           if e1 <= e2 then
-            f.puts "n#{e1.object_id} -> n#{e2.object_id}"
+            f.puts "n#{e2.object_id} -> n#{e1.object_id} [dir=back]"
           end
         end
       end
@@ -495,19 +392,6 @@ poset requirements break:  not 1 <= 1, not ? <= ?
 this is the cause, of course)
 [it is, however, not a strict partial order, since irreflexivity
 does not hold for all elements.]
-but, unlike with +, we have both bottom (+) and top (0) instead
-of only * as bottom.
-the order defined with * can be drawn as follows (upside down):
-
-bottom +
-    /   \
-   /     *
-  /      |
-  1      ?
-   \    /
-    \  /
-top  0
-
 =end
     def <=(b)
       #self * b == self
