@@ -1,9 +1,10 @@
 
 
+# NB: for schema inference, introduce a Variable type.
+
 module GrammarTypes
 
   class Type
-
     def lub_with_class(c); UNDEF end
     def lub_with_primitive(p); UNDEF end
 
@@ -13,7 +14,6 @@ module GrammarTypes
     def <=(t)
       t == self + t
     end
-
   end
 
   class Klass < Type

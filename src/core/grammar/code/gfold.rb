@@ -8,7 +8,6 @@ class GrammarFold
   end
 
   def eval(this, in_field)
-    #puts "Evaling: #{this} (infield = #{in_field})"
     if respond_to?(this.schema_class.name) then
       send(this.schema_class.name, this, in_field)
     else

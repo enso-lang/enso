@@ -10,26 +10,7 @@ class TypeEval < GrammarFold
     super(VOID, VOID)
     @schema = schema
   end
-end
 
-class FieldTypeEval < TypeEval
-  attr_reader :name
-
-  def initialize(schema, name)
-    super(schema)
-    @name = name
-  end
-
-  def Field(this, _)
-    if this.name == name then
-      ContribTypeEval.new(schema).eval(this.arg, true)
-    else
-      VOID
-    end
-  end
-end
-
-class ContribTypeEval < TypeEval
   def Value(this, _);
     # todo: atom
     key = this.kind == 'sym' ? 'str' : this.kind
@@ -45,13 +26,13 @@ class ContribTypeEval < TypeEval
   end
 
   def Lit(this, in_field)
-    in_field ? schema.primitives['str'] : VOID
+    in_field ? Primitive.new(schema.primitives['str']) : VOID
   end
 end
 
 
 if __FILE__ == $0 then
-  if !ARGV[0] then
+  if !ARGV[0] || !ARGV[1] then
     puts "use type-eval.rb <name>.grammar <name>.schema"
     exit!(1)
   end
@@ -59,24 +40,23 @@ if __FILE__ == $0 then
 
   require 'core/system/load/load'
   require 'core/grammar/code/reach'
+  require 'core/grammar/code/combine'
   require 'pp'
 
   g = Loader.load(ARGV[0])
   s = Loader.load(ARGV[1])
 
-  # Perform reachability analysis:
-  # obtain a table from Create's to
-  # a set of fields.
-  r = Reach.new
-  r.reach(g.start, [])
-  tbl = r.tbl
+  tbl = ReachEval.reachable_fields(g)
 
-  tbl.each do |cr, fs|
-    fs.each do |f|
-      te = FieldTypeEval.new(s, f)
-      t = te.eval(cr.arg, false)
-      puts "#{cr.name}.#{f}: #{t}"
-    end
+  te = TypeEval.new(s)
+
+  result = combine(tbl, GrammarTypes::VOID) do |_, f|
+    te.eval(f.arg, true)
   end
   
+  result.each do |c, fs|
+    fs.each do |f, m|
+      puts "#{c}.#{f}: #{m}"
+    end
+  end
 end
