@@ -14,14 +14,8 @@ class ReachEval < GrammarFold
   EMPTY = Set.new
 
   def initialize
-    super(EMPTY, EMPTY) 
+    super(:|, :|, EMPTY, EMPTY) 
     @tbl = {}
-  end
-
-  def Sequence(this, in_field)
-    this.elements.inject(EMPTY) do |cur, elt|
-      cur | eval(elt, false)
-    end
   end
 
   def Create(this, in_field)

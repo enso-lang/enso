@@ -6,7 +6,7 @@ class MultEval < GrammarFold
   include Multiplicity
 
   def initialize
-    super(ONE, ZERO)
+    super(:+, :*, ONE, ZERO)
   end
 
   def Regular(this, in_field)
@@ -61,7 +61,7 @@ if __FILE__ == $0 then
 
 
   require 'core/system/load/load'
-  require 'core/grammar/code/reach'
+  require 'core/grammar/code/reach-eval'
   require 'core/grammar/code/combine'
   require 'pp'
   require 'set'

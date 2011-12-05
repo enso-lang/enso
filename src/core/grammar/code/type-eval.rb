@@ -9,7 +9,7 @@ class TypeEval < GrammarFold
   attr_reader :schema
 
   def initialize(schema)
-    super(VOID, VOID)
+    super(:+, :*, VOID, VOID)
     @schema = schema
   end
 
@@ -41,7 +41,7 @@ if __FILE__ == $0 then
 
 
   require 'core/system/load/load'
-  require 'core/grammar/code/reach'
+  require 'core/grammar/code/reach-eval'
   require 'core/grammar/code/combine'
   require 'pp'
 
