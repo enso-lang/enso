@@ -282,6 +282,42 @@ It is, however, a semi-lattice for _+_:
     end
   end    
 
+  def show_matrix
+    puts "% table for meet (+)"
+    puts "\\begin{tabular}{|c||c|c|c|c|c|}\\hline"
+    print "$\\mid$ "
+    Alg.each do |e|
+      print "& $#{e}$ "
+    end
+    puts "\\\\\\hline\\hline"
+    Alg.each do |e1|
+      print "$#{e1}$ "
+      Alg.each do |e2|
+        print "& $#{e1 + e2}$ "
+      end
+      puts "\\\\\\hline"
+    end
+    puts "\\end{tabular}"
+    puts
+
+    puts "% table for join (*)"
+    puts "\\begin{tabular}{|c||c|c|c|c|c|}\\hline"
+    print "$\\cdot$ "
+    Alg.each do |e|
+      print "& $#{e}$ "
+    end
+    puts "\\\\\\hline\\hline"
+    Alg.each do |e1|
+      print "$#{e1}$ "
+      Alg.each do |e2|
+        print "& $#{e1 * e2}$ "
+      end
+      puts "\\\\\\hline"
+    end
+    puts "\\end{tabular}"
+
+  end
+    
 
   def show_table
     done = []
@@ -535,7 +571,7 @@ does not hold for all elements.]
   ZERO_OR_MORE = ZeroOrMore.new
   ZERO_OR_ONE = ZeroOrOne.new
 
-  Alg = [ZERO, ONE, ONE_OR_MORE, ZERO_OR_MORE, ZERO_OR_ONE]
+  Alg = [ZERO, ONE, ZERO_OR_ONE, ZERO_OR_MORE, ONE_OR_MORE]
 
 end
 
@@ -546,5 +582,6 @@ if __FILE__ == $0 then
   show_table
   show_bottom
   show_top
+  show_matrix
   todot('bla.dot')
 end
