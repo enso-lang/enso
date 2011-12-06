@@ -23,6 +23,12 @@ class Ref < Value
   type: str
 end
 
+class Path end
+
+class Ref2 < Value
+  !path: Path
+end
+
 class Content
 end
 

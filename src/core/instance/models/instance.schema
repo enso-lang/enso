@@ -1,5 +1,5 @@
 #ruby
 
-union(load('construct.schema'), load('origin.schema'))
+union(load('construct.schema'), union(load('origin.schema'), load('path.schema')))
 
 

@@ -1,33 +1,4 @@
-  start Grammar
+#ruby
 
-  Grammar ::= [Grammar] "start" \start:Rule^ rules:Rule*
+union(load('grammar-base.grammar'), load('path.grammar'))
 
-  Rule ::= [Rule] name:sym "::=" arg:Alt
-         | [Rule] "abstract" name:sym
-
-  Alt ::= [Alt] alts:{Create "|"}+
-
-  Create ::= [Create] "[" name:sym "]" arg:Sequence
-    | Sequence
-
-  Sequence ::= [Sequence] elements:Field*
-
-  Field ::= [Field] name:sym ":" arg:Pattern
-    | Pattern
-  
-  Pattern ::= 
-      [Value] kind:"int"
-    | [Value] kind:"str"
-    | [Value] kind:"real"
-    | [Value] kind:"sym"
-    | [Value] kind:"atom"
-    | [Code] "@" code:str
-    | [Ref] name:sym "^"
-    | [Lit] value:str
-    | [Call] rule:Rule^
-    | [Regular] arg:Pattern "*"       @"@optional = true; @many = true; @sep = nil"
-    | [Regular] arg:Pattern "?"			@"@optional = true; @sep = nil"
-    | [Regular] arg:Pattern "+"  			@"@many = true; @sep = nil"
-    | [Regular] "{" arg:Pattern sep:str "}" "*" 	@"@optional = true; @many = true"
-    | [Regular] "{" arg:Pattern sep:str "}" "+"   @"@many = true"
-    | "(" Alt ")"

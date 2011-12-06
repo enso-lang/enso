@@ -6,6 +6,7 @@ class GrammarSchema < SchemaGenerator
   primitive :str
   primitive :int
   primitive :bool
+  primitive :atom
 
   klass Grammar do
     field :start, :type => Rule
@@ -14,7 +15,7 @@ class GrammarSchema < SchemaGenerator
 
   klass Rule, :super => Expression do
     field :name, :type => :str, :key => true
-    field :grammar, :type => Grammar, :inverse => Grammar.rules , :key => true
+    field :grammar, :type => Grammar, :inverse => :rules , :key => true
     field :arg, :type => Expression, :traversal => true, :optional => true
   end
 
@@ -54,6 +55,10 @@ class GrammarSchema < SchemaGenerator
     field :name, :type => :str
   end
 
+  klass Ref2, :super => Expression do
+    field :path, :type => Path, :traversal => true
+  end
+
   klass Lit, :super => Expression do
     field :value, :type => :str
   end
@@ -74,7 +79,32 @@ class GrammarSchema < SchemaGenerator
     field :elements, :type => Expression, :optional => true, :many => true
     field :dot, :type => :int
   end
-  
+
+  klass Key do
+  end
+
+  klass Const, :super => Key do
+    field :value, :type => :atom
+  end
+
+  klass It, :super => Key do
+  end
+
+  klass Path, :super => Key do
+  end
+
+  klass Anchor, :super => Path do
+    field :type, :type => :str
+  end
+
+  klass Sub, :super => Path do
+    field :parent, :type => Path, :traversal => true, :optional => true
+    field :name, :type => :str
+    field :key, :type => Key, :traversal => true, :optional => true
+    field :is_root, :type => :bool, :computed => "@parent == nil"
+  end
+
+
   patch_schema_pointers(schema)
 end
 

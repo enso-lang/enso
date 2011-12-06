@@ -41,13 +41,11 @@ class GrammarGrammar < GrammarGenerator
 
     alt [:Code], "@", {code: :str}
 
-    #alt [:Key], "key"
-
     alt [:Ref], {name: :sym}, "^"
 
-    alt [:Lit], {value: :str} #, code("@case_sensitive = true")
+    alt [:Ref2], {path: Path}, "^"
 
-    #alt [:Lit], {value: :sqstr}, code("@case_sensitive = false")
+    alt [:Lit], {value: :str} 
 
     alt [:Call], {rule: ref(Rule)}
 
@@ -62,6 +60,22 @@ class GrammarGrammar < GrammarGenerator
     alt [:Regular], "{", {arg: Pattern}, {sep: :str}, "}", "+", code("@many = true") 
 
     alt "(", Alt, ")"
+  end
+
+  rule Path do
+    alt [:Anchor], {type: "."}
+    alt [:Anchor], {type: ".."}
+    alt [:Sub], {parent: opt(Path)}, "/", {name: :sym}, opt(Subscript)
+  end
+
+  rule Subscript do
+    alt "[", {key: Key}, "]"
+  end
+
+  rule Key do
+    alt [:It], "it"
+    alt [:Const], {value: :atom}
+    alt Path
   end
 end
 

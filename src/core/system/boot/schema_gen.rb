@@ -157,8 +157,8 @@ class SchemaGenerator
       yield
     end
     
-    def super_class(klass)
-      @@current.supers << klass.internal_wrapped_value
+    def super_class(sup)
+      @@current.supers << sup.internal_wrapped_value
       @@current.supers.each do |sup|
         sup.subclasses << @@current
         sup.all_fields.each do |f|
@@ -176,8 +176,13 @@ class SchemaGenerator
       f.optional = opts[:optional] || false
       f.many = opts[:many] || false
       f.key = opts[:key] || false
-      f.inverse = opts[:inverse]
-      f.inverse.inverse = f if f.inverse
+      
+      if opts[:inverse] then
+        f.inverse = get_field(f.type, opts[:inverse].to_s)
+        f.inverse.inverse = f
+      else
+        f.inverse = nil
+      end
       f.computed = opts[:computed]
       f.traversal = opts[:traversal] || false
     end

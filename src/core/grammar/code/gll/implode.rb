@@ -3,6 +3,7 @@ require 'core/system/boot/instance_schema'
 require 'core/schema/code/factory'
 
 require 'core/grammar/code/gll/unparse'
+require 'core/grammar/code/gll/subst-it'
 
 class Implode
 
@@ -79,7 +80,17 @@ class Implode
   end
 
   def Ref(this, sppf, accu, in_field)
+    # TODO: with new refs, unparse path anno to string here.
     accu << @if.Ref(origin(sppf), sppf.value, sppf.type.name)
+  end
+
+  def Ref2(this, sppf, accu, in_field)
+    # Instance.schema does not know about "it", so we replace it
+    # here with the value of this ref2 using the factory @if
+    #puts "Creating a ref2 for: #{sppf.value}"
+    #Print.print(this.path)
+    p = SubstIt.subst_it(this.path, sppf.value, @if)
+    accu << @if.Ref2(origin(sppf), p)
   end
 
   def Code(this, sppf, accu, in_field)

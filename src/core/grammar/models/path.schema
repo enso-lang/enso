@@ -1,0 +1,26 @@
+
+
+primitive str
+primitive atom
+primitive bool
+
+
+class Key end
+
+class Const < Key
+  value: atom
+end
+
+class Path < Key end
+
+class Anchor < Path
+  type: str
+end
+
+class Sub < Path
+  !parent: Path?
+  name: str
+  !key: Key?
+  is_root: bool = "@parent == nil"
+end
+

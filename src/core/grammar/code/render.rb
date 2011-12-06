@@ -20,11 +20,11 @@ class RenderClass < Dispatch
   def recurse(obj, *args)
     #puts "#{' '*@depth}RENDER #{obj} #{args}"
     @depth = @depth + 1
-		begin
-  	  val = send(obj.schema_class.name, obj, *args)
-		ensure
-	    @depth = @depth - 1
-		end
+    begin
+      val = send(obj.schema_class.name, obj, *args)
+    ensure
+      @depth = @depth - 1
+    end
     return val
   end
 
@@ -96,6 +96,11 @@ class RenderClass < Dispatch
     else
       return space(obj._id)
     end
+  end
+
+  def Ref2(this, obj)
+    raise "Not supported yet"
+    # solve for the value of "it"
   end
 
   def Lit(this, obj)
