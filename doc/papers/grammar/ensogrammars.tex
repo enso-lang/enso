@@ -43,7 +43,7 @@ Example: schema + grammar.
 \def\literal#1{\ensuremath{\text{\texttt{"}}#1\text{\texttt{"}}}}
 
 \begin{figure}
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}[t]{0.5\textwidth}
 \[
 \begin{array}{rcll}
 S & ::= & \varepsilon & \text{(Empty)} \\
@@ -58,12 +58,12 @@ S & ::= & \varepsilon & \text{(Empty)} \\
 \end{array}
 \]
 \end{minipage}
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}[t]{0.5\textwidth}
 \[
 \begin{array}{rcll}
 P & ::= & \varepsilon & \text{(Root)}\\
   & \mid & . & \text{(Current)}\\
-  & \mid & .. & \text{(Parent)}\\
+%  & \mid & .. & \text{(Parent)}\\
   & \mid & P / f & \text{(Field)}\\
   & \mid & P [c] & \text{(Constant subscript)}\\
   & \mid & P [P] & \text{(Path subscript)}\\
@@ -73,22 +73,17 @@ P & ::= & \varepsilon & \text{(Root)}\\
 \caption{Abstract syntax of \enso grammars\label{FIG:metasyntax}}
 \end{figure}
 
-Derivation trees
+\begin{figure}
+\begin{minipage}{0.5\textwidth}
 \[
 \begin{array}{rcll}
 T & ::=  &\varepsilon & \text{(Empty)}\\
   & \mid & t: s & \text{(Token)}\\
-  & \mid & \text{appl}(S, T_1, ..., T_n) & \text{(Application)}\\
+  & \mid & \text{appl}(S, \overline{T}) & \text{(Application)}\\
 \end{array}
 \]
-
-
-
-
-Instance trees
-
-
-
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
 \[
 \begin{array}{rcll}
 V & ::=  & \bot & \text{(Nil)}\\
@@ -98,34 +93,50 @@ V & ::=  & \bot & \text{(Nil)}\\
 B & ::= & f: \overline{V} & \text{(Binding)}\\
 \end{array}
 \]
+\end{minipage}
+\caption{Syntax of derivation trees $T$ and instance trees $V$\label{FIG:derivationInstancs}}
+\end{figure}
 
 
-Implode
+
+
+
+
+
+
+
 \def\implode{\ensuremath{\mathcal{I}}}
-\[
-\implode: T \times V \rightarrow V*
-\]
 
-\begin{align}
+\begin{figure}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{align*}
 \implode(\varepsilon, v) &= \bot\\
 \implode(t: s, v) &= s\\
 \implode(\text{appl}(P\Uparrow, t: s), v) &= P[\text{\texttt{it}}\mapsto s]\\
 \implode(\text{appl}([C] S, \overline{T}), v) &=
 \text{fold}(\implode, \overline{T}, \llbracket C\rrbracket())\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.6\textwidth}
+\begin{align*}
 \implode(\text{appl}(f:S, \overline{T}), 
 \llbracket C\rrbracket(\overline{B})) 
 &= \llbracket C\rrbracket(\overline{B} \cup f: \sum_{\tau\in\overline{T}}\implode(\tau))\\
 \implode(\text{appl}(S,\overline{T}), v) &= 
 \sum_{\tau\in \overline{T}}\implode(\tau)\text{ otherwise }
-\end{align}
+\end{align*}
+\end{minipage}
+\caption{Implode $\implode: T\times V\rightarrow V*$: Map derivation
+  trees to instance trees.\label{FIG:implode}}
+\end{figure}
 
 NB: the union in (5) is union on maps, which concatenates values for the
 same key, if any. Summation is flatmap.
 
 
-\algblockdefx[Case]{Case}{EndCase}[1]{\textbf{case}\  #1\ \textbf{of}}[0]{\textbf{esac}}
-\algcblockdefx[Case]{Case}{When}{EndCase}[1]{\textbf{when}\  #1:}[0]{\textbf{esac}}
-\algcblockdefx[Case]{Case}{Else}{EndCase}[0]{\textbf{else}}[0]{\textbf{esac}}
+\algblockdefx[Case]{Case}{EndCase}[1]{\textbf{case}\  #1\ \textbf{of}}[0]{\textbf{end case}}
+\algcblockdefx[Case]{Case}{When}{EndCase}[1]{\textbf{when}\  #1:}[0]{\textbf{end case}}
+\algcblockdefx[Case]{Case}{Else}{EndCase}[0]{\textbf{else}}[0]{\textbf{end case}}
 %\algcblock{Switch}{Case}{Esac}
 Build
 
@@ -134,19 +145,19 @@ Build
 %\begin{minipage}{0.7\textwidth}
 \begin{algorithmic}[1]
 \Function{instantiate}{$v: V$, $S: Schema$}
-  \Procedure{update}{$o: S$, $f_S: Schema.classes[Field]$, $x$}
+  \Procedure{update}{$o: S$, $f_S: Schema.classes[Field]$, $x: S$}
           \If{$f_S.many$}
-            \State $o'[f_S.name] \ll x$ 
+            $o'[f_S.name] \ll x$ 
                \Comment{Insert instead of assign if $f$ is many-valued}
           \Else
-             \State $o'[f_S.name] \gets x$
+           \ $o'[f_S.name] \gets x$
           \EndIf     
   \EndProcedure
   \State $fixups \gets \{\}$
   \Function{build}{$v: V$, $o: S$, $f_S: Schema.classes[Field]$}
     \Case{$v$}
     \When{$\llbracket C\rrbracket(\overline{B})$} 
-       \State $o'\gets \text{\textbf{new }}S.classes[C]$
+        $o'\gets \text{\textbf{new }}S.classes[C]$
           \Comment{Create a new object of class $C$}
        \ForAll{$f:\overline{V}\in \overline{B}$, $v\in \overline{V}$}
           \State $f_S \gets S.classes[C].fields[f]$
@@ -155,11 +166,11 @@ Build
        \EndFor
        \State \Return{$o'$}
     \When{$P$}
-       \State $fixups \gets fixups \cup \{\langle o, f_S, P\rangle\}$
+        $fixups \ll \langle o, f_S, P\rangle$
          \Comment{Record a fixup for later patching}
        \State \Return{$\bot$}
     \Else
-       \State \Return{}\Call{valueOf}{$v$, $f_S.type$}
+       \ \Return{}\Call{valueOf}{$v$, $f_S.type$}
          \Comment{Convert the value according to the field type}
     \EndCase
   \EndFunction
@@ -242,15 +253,26 @@ $+$ & * & * & + \\  \hline
 
 \def\fixpoint{\ensuremath{\text{lfp}}}
 \def\reachability{\ensuremath{\mathcal{R}}}
-\begin{align}
-\reachability_C(A \oplus B) &= \reachability_C(A) \cup \reachability_C(B)
- \text{ where } \oplus \in \{\mid, \cdot\}\\
+\begin{figure}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
+\reachability_C(A \circ B) &= \reachability_C(A) \cup \reachability_C(B)
+ \text{ where } \circ \in \{\mid, \cdot\}\\
 \reachability_C(A\;\oplus) &= \reachability(A) \text{ where } \oplus \in \{?, *, +\}\\
 \reachability_C(N) &= \fixpoint(\emptyset, \reachability_C, \alpha) \text{ where }N ::= \alpha\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
 \reachability_C(f: A) &= \{\langle C, f\rangle\} \cup \reachability_C(A)\\
 \reachability_C([C'] A) &= \reachability_{C'}(A)\\
 \reachability_C(x) &= \emptyset \text{ otherwise }
-\end{align}
+\end{align*}
+\end{minipage}
+\caption{The reachability function $\reachability_C$ computes the set
+  of fields that can be derived from a grammar symbol.\label{FIG:reachability}}
+\end{figure}
+
 
 \def\mymultjoin{\ensuremath{\myjoin}}
 \def\mymultmeet{\ensuremath{\mymeet}}
@@ -258,17 +280,27 @@ $+$ & * & * & + \\  \hline
 \def\multof{\ensuremath{\mathcal{M}}}
 \def\multoff{\ensuremath{\multof_f}}
 
-\begin{align}
+\begin{figure}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
 \multoff(A\mid B) &= \multoff(A) \mymultjoin  \multoff(B)\\
 \multoff(A\cdot B) &= \multoff(A) \mymultmeet  \multoff(B)\\
 \multoff(A\;\oplus) &= \multoff(A)^\oplus \text{ where } \oplus\in \{?, *, +\}\\
 \multoff(N) &= \fixpoint(\mymultbottom, \multoff, \alpha) \text{ where } N ::= \alpha\\
 \multoff(f: A) &= \multoff(A)\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
 \multoff([C'] A) &= 1\\
-\multoff(C\Uparrow) &= 1\\
+\multoff(P\Uparrow) &= 1\\
 \multoff(t) &= 1 \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{sym}}, \literal{s}, ...  \}\\
 \multoff(x) &= 0 \text{ otherwise}
-\end{align}
+\end{align*}
+\end{minipage}
+\caption{The multiplicity function \multoff\ computes the multiplicity
+  of field occurrences in a grammar symbol.\label{FIG:multiplicity}}
+\end{figure}
 
 
 \def\mytypejoin{\ensuremath{\sqcup}}
@@ -276,19 +308,31 @@ $+$ & * & * & + \\  \hline
 \def\mytypebottom{\ensuremath{\bot}}
 \def\mytypetop{\ensuremath{\top}}
 \def\typeof{\ensuremath{\mathcal{T}}}
-\def\typeoff{\ensuremath{\typeof^\sigma_f}}
-\begin{align}
+\def\typeoff{\ensuremath{\typeof^C_f}}
+\begin{figure}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{align*}
 \typeoff(A\mid B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
 \typeoff(A\cdot B) &= \typeoff(A) \mytypemeet  \typeoff(B)\\
 \typeoff(A\;\oplus) &= \typeoff(A) \text{ where } \oplus \in \{?, *, +\}\\
 \typeoff(N) &= \fixpoint(\mytypebottom, \typeoff, \alpha) \text{ where } N ::= \alpha\\
 \typeoff(f: A) &= \typeoff(A)\\
-\typeoff([C] A) &= \sigma[C]\\
-\multoff(C\Uparrow) &= \sigma[C]\\
-\typeoff(t) &= \sigma[\text{\texttt{str}}] \text{ where } t\in\{\text{\texttt{sym}}, \literal{s}, ...\}\\
-\typeoff(t) &= \sigma[t] \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{real}} \}\\
+\typeoff([C'] A) &= \sigma.classes[C']\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.6\textwidth}
+\begin{align*}
+\typeoff(\Uparrow) &= root\\
+\typeoff(/P\Uparrow) &= \text{deref}(root, P)\\
+\typeoff(./P\Uparrow) &= \text{deref}(C, P)\\
+\typeoff(t) &= \sigma.prims[\text{\texttt{str}}] \text{ where } t\in\{\text{\texttt{sym}}, \literal{s}, ...\}\\
+\typeoff(t) &= \sigma.prims[t] \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{real}} \}\\
 \typeoff(x) &= \mytypetop \text{ otherwise}
-\end{align}
+\end{align*}
+\end{minipage}
+\caption{Function \typeoff computes the schema type of the field named
+  $f$ in class $C$ as used in a grammar.\label{FIG:typeof}}
+\end{figure}
 
 
 % F, such that \bigsqcup_{i\in \mathbb{N}} F^i(S \mapsto \emptyset)
