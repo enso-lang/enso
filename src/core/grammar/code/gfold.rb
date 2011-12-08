@@ -1,17 +1,19 @@
 
 
 class GrammarFold
-  def initialize(bottom, unit)
+  def initialize(join, meet, bottom, unit_of_meet)
+    @join = join  # +
+    @meet = meet  # *
     @memo = {}
     @bottom = bottom
-    @unit = unit
+    @unit_of_meet = unit_of_meet
   end
 
   def eval(this, in_field)
     if respond_to?(this.schema_class.name) then
       send(this.schema_class.name, this, in_field)
     else
-      @unit
+      @unit_of_meet
     end
   end
 
@@ -37,8 +39,8 @@ class GrammarFold
     if this.elements.length == 1 then
       eval(this.elements[0], in_field)
     else
-      this.elements.inject(@unit) do |cur, elt|
-        cur * eval(elt, false)
+      this.elements.inject(@unit_of_meet) do |cur, elt|
+        cur.send(@meet, eval(elt, false))
       end
     end
   end
@@ -47,7 +49,7 @@ class GrammarFold
     # NB: alts is never empty
     x = eval(this.alts[0], in_field)
     this.alts[1..-1].inject(x) do |cur, alt|
-      cur + eval(alt, in_field)
+      cur.send(@join, eval(alt, in_field))
     end
   end
 

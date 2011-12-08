@@ -5,11 +5,21 @@
 module GrammarTypes
 
   class Type
+    def primitive?
+      false
+    end
+
+    def klass?
+      false
+    end
+
     def lub_with_class(c); UNDEF end
     def lub_with_primitive(p); UNDEF end
+    #def lub_with_atom(a); UNDEF end
 
     def cat_with_class(t); UNDEF end
     def cat_with_primitive(t); UNDEF end
+    #def cat_with_atom(t); UNDEF end
 
     def <=(t)
       t == self + t
@@ -18,9 +28,13 @@ module GrammarTypes
 
   class Klass < Type
     attr_reader :klass
-
+    
     def initialize(klass)
       @klass = klass
+    end
+
+    def klass?
+      true
     end
 
     def subclass_of?(x)
@@ -62,6 +76,10 @@ module GrammarTypes
       @primitive = primitive
     end
 
+    def primitive?
+      true
+    end
+
     def lub_with_primitive(p)
       if self == p then
         self
@@ -69,6 +87,10 @@ module GrammarTypes
         UNDEF
       end
     end
+
+    #def lub_with_atom(a)
+    #  a
+    #end
 
     def +(t); t.lub_with_primitive(self) end
     def *(t); t.cat_with_primitive(self) end
@@ -81,28 +103,46 @@ module GrammarTypes
     def to_s; primitive.name end
   end
 
+#   class Atom < Type
+#     def initialize
+#       super(nil)
+#     end
+
+#     def lub_with_primitive(p); self end
+#     def lub_with_atom(a); self end
+
+#     def cat_with_primitive(a); self end
+#     def cat_with_atom(a); self end
+
+#     def +(t); t.lub_with_atom(self) end
+#     def *(t); t.cat_with_atom(self) end
+#   end
+
   class Undef < Type
     def +(t); self end
     def *(t); self end
 
-    def to_s; '1' end
+    def to_s; 'undef' end
   end
 
   class Void < Type
     def lub_with_class(c); c end
     def lub_with_primitive(p); p end
+    #def lub_with_atom(a); a end
 
     def cat_with_class(c); c end
     def cat_with_primitive(p); p end
+    #def cat_with_atom(a); a end
 
     def +(t); t end
     def *(t); t end
 
-    def to_s; '0' end
+    def to_s; 'void' end
   end
   
   VOID = Void.new
   UNDEF = Undef.new
+#  ATOM = Atom.new
 
 
   def todot(alg, file)

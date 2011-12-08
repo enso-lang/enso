@@ -480,9 +480,9 @@ does not hold for all elements.]
     def add_zero_or_one; zero_or_one end
     def mul_zero_or_one; one_or_more end
 
+    def opt; ZERO_OR_ONE end
     def star; ZERO_OR_MORE end
     def plus; ONE_OR_MORE end
-    def opt; ZERO_OR_ONE end
 
     def to_s; '1' end
   end
@@ -506,9 +506,9 @@ does not hold for all elements.]
     def add_zero_or_one; zero_or_more end
     def mul_zero_or_one; one_or_more end
 
+    def opt; ZERO_OR_MORE end
     def star; ZERO_OR_MORE end
     def plus; ONE_OR_MORE end
-    def opt; ZERO_OR_MORE end
 
     def to_s; '+' end
   end
@@ -532,9 +532,9 @@ does not hold for all elements.]
     def add_zero_or_one; zero_or_more end
     def mul_zero_or_one; zero_or_more end
 
+    def opt; self end
     def star; self end
     def plus; self end
-    def opt; self end
 
     def to_s; '*' end
   end

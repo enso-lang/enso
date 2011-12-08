@@ -34,18 +34,21 @@ class FieldMultEval < MultEval
   class Contrib < MultEval
     def Value(this, _); ONE end
     def Ref(this, _); ONE end
+    def Ref2(this, _); ONE end
     def Create(this, _); ONE end
     def Lit(this, in_field); in_field ? ONE : ZERO end
   end
 
-  def initialize(name)
+  def initialize(field)
     super()
-    @name = name
+    @field = field
     @contrib = Contrib.new
   end
 
   def Field(this, _)
-    if this.name == @name then
+    # name-based eq. because we have take all field occurrences
+    # into account.
+    if this.name == @field.name then
       @contrib.eval(this.arg, true)
     else
       ZERO
@@ -75,7 +78,7 @@ if __FILE__ == $0 then
 
 
   result = combine(tbl, Multiplicity::ZERO) do |cr, f|
-    FieldMultEval.new(f.name).eval(cr.arg, false)
+    FieldMultEval.new(f).eval(cr.arg, false)
   end
 
   result.each do |c, fs|

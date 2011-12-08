@@ -5,21 +5,14 @@ require 'set'
 class ReachEval < GrammarFold
   attr_reader :tbl
 
-  def self.reachable_fields(grammar)
-    x = self.new
-    x.eval(grammar.start, false)
-    x.tbl
-  end
-
   EMPTY = Set.new
 
   def initialize
     super(:|, :|, EMPTY, EMPTY) 
-    @tbl = {}
   end
 
   def Create(this, in_field)
-    @tbl[this] = eval(this.arg, false)
+    eval(this.arg, false)
   end
 
   def Field(this, in_field)

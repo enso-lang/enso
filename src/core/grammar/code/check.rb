@@ -1,135 +1,179 @@
 
-require 'core/system/load/load'
 require 'core/system/library/schema'
-require 'core/grammar/code/typeof'
-require 'core/grammar/code/nullable'
+require 'core/grammar/code/type-eval'
+require 'core/grammar/code/mult-eval'
+require 'core/grammar/code/reach-eval'
+require 'core/grammar/code/types'
+require 'core/grammar/code/multiplicity'
+
+=begin
+
+Open problems
+
+- check general reachability of creates? (e.g. dead code)
+- check presence, and type correctness of path references
+- check that field bindings are always on the spine, if the bound value
+  is not a path reference.
+- check correct use of primitives (i.e. in the schema)
+- deal with atoms correctly.
+- maintain lub-tree as part of computed types so that we can
+  give better error messages.
+- how to ensure that referenced classes in paths are actually
+  instantiated as such on the spine? E.g. the ref could expect
+  a field in klass C, whereas on the spine a superclass of C
+  could be created that does not have that field (cf. field.inverse)
+- have to support abstract classes to check whether all classes 
+  are represented in the grammar.
+- schemas need to identify root classes.
+- optimization: this check traverses the grammar many, many times.
+- duplicate errors with same message: because multiple creates of 
+  the same class might trigger the same error.
+- what to do with code blocks: need first class expressions.
+=end
+
 
 class CheckGrammar
+  include Multiplicity
+  include GrammarTypes
 
-  def self.check(grammar, schema)
-    self.new(schema).check(grammar.start)
+  def self.check(schema, root_class, grammar)
+    check = self.new(schema, root_class, grammar)
+    errors = check.check(grammar.start)    
   end
 
-  def initialize(schema)
+  def initialize(schema, root_class, grammar)
     @schema = schema
-    @typeof = TypeOf.new(schema)
-    @nullable = Nullable.new
+    @root_class = root_class
+    @grammar = grammar
     @memo = {}
   end
 
-  def check(this, klass = nil, errors = [])
-    if respond_to?(this.schema_class.name)
-      send(this.schema_class.name, this, klass, errors)
-    end
-    errors
-  end
-
-
-  def Sequence(this, klass, errors)
-    this.elements.each do |elt|
-      check(elt, klass, errors)
+  def check(this)
+    if respond_to?(this.schema_class.name) then
+      send(this.schema_class.name, this)
+    else
+      []
     end
   end
-  
-  def Call(this, klass, errors)
-    # NB: it essential we memoize on calls
-    # *not* on rules, because we have to 
-    # traverse rules multiple times for
-    # different call sites
-    return if @memo[this]
+
+  def Rule(this)
+    return [] if @memo[this]
     @memo[this] = true
-    check(this.rule, klass, errors)
+    check(this.arg)
   end
 
-  def Rule(this, klass, errors)
-    return unless this.arg
-    check(this.arg, klass, errors)
-  end
-
-  def Create(this, _, errors)
-    klass = @schema.classes[this.name]
-    if !klass then
-      errors << undef_class_error(this.name, this._origin)
+  def Sequence(this)
+    this.elements.inject([]) do |errs, elt|
+      errs + check(elt)
     end
-    check(this.arg, klass, errors)
   end
 
-  def Field(this, klass, errors)
+  def Alt(this)
+    this.alts.inject([]) do |errs, alt|
+      errs + check(alt)
+    end
+  end
+
+  def Call(this)
+    check(this.rule)
+  end
+
+  # todo: what if this create has multiplicity 0 ?
+  def Create(this)
+    # todo: also somewhere check on classes not in grammar
+    klass = @schema.classes[this.name]
+    errors = []
     if klass then
-
-      # Memoize on field/klass combo
-      @memo[this] ||= []
-      return if @memo[this].include?(klass)
-      @memo[this] << klass
-
-
-      field = klass.fields[this.name]
-      if field then
-        # a set of types to deal with alternatives
-        ts = @typeof.typeof(this) 
-        if ts.empty? then
-          errors << field_error("no type available", field, this._origin)
-        else
-          if !field.optional && @nullable.nullable?(this)
-            errors << field_error("nullable symbol", field, this._origin)
-          end
-          t1 = field.type
-          ts.each do |t2|
-            if t2.nil? then
-              # this means a class/primitive could not be found in the schema
-              # maybe not give an error here as it is not really informative.
-              errors << field_error("untypable symbol", field, this._origin)
-            elsif t1.Primitive? && t1.name == 'atom' && t2.Primitive? then
-              next # all primitives can be assigned to atoms
-            elsif t1.Primitive? && t2.Primitive? && t1 != t2 then
-              errors << field_error("primitive mismatch #{t2.name} vs #{t1.name}", field, this._origin)
-            elsif t1.Primitive? != t2.Primitive? then
-              errors << field_error("type mismatch #{t2.name} vs #{t1.name}", field, this._origin)
-            elsif !Subclass?(t2, t1) then
-              # it now gives an error for each concrete class (mentioned in the grammar)
-              # could do a lub if all types in ts are classes and the lub exists.
-              errors << field_error("class mismatch #{t2.name} vs #{t1.name}", field, this._origin)
+      fs = ReachEval.new.eval(this, false)
+      te = TypeEval.new(@schema, @root_class, klass)
+      fs.each do |f|
+        sf = klass.fields[f.name]
+        if sf then
+          t = te.eval(f.arg, true)
+          if t == UNDEF || t == VOID then 
+            # what does VOID mean here???
+            errors << uncomputable_type_error(klass, f, t)
+          elsif sf.type.Primitive? && t.primitive? then
+            if sf.type != t.primitive then
+              errors << incompatible_types_error(klass, f, sf.type, t.primitive)
             end
+          elsif sf.type.Primitive? then
+            errors << primitive_class_mismatch(klass, f, sf.type, t.klass)
+          elsif t.primitive? then
+            errors << primitive_class_mismatch(klass, f, t.klass, sf.type)
+          elsif !Subclass?(t.klass, sf.type) # must be both klass now
+            errors << incompatible_types(klass, f, sf.type, t.klass)
           end
+
+          m = FieldMultEval.new(f).eval(this.arg, false)
+          if !sf.optional && [ZERO, ZERO_OR_ONE, ZERO_OR_MORE].include?(m) then
+            errors << optionality_mismatch(klass, f, sf, m)
+          elsif !sf.many && [ONE_OR_MORE, ZERO_OR_MORE].include?(m) then
+            errors << manyness_mismatch(klass, f, sf, m)
+          end          
+        else
+          errors << no_such_field_error(klass, f)
         end
-      else
-        errors << undef_field_error(this.name, klass, this._origin)
       end
-    end
 
-    # continue checking the argument
-    check(this.arg, klass, errors)
+      # this does not work well with inverses
+      # and code blocks
+#       klass.fields.each do |f|
+#         gf = fs.find { |x| x.name == f.name }
+#         if !gf then
+#           errors << missing_field_error(this, f)
+#         end
+#       end    
+    else
+      errors << undef_class_error(this)
+    end
+    errors + check(this.arg)
   end
 
-  def Alt(this, klass, errors)
-    this.alts.each do |alt|
-      check(alt, klass, errors)
-    end
+  def Field(this)
+    check(this.arg)
   end
 
-  def Ref(this, _, errors)
-    klass = @schema.classes[this.name]
-    unless klass then
-      errors << undef_class_error(this.name, this._origin)
-    end
-  end
-
-  def Regular(this, klass, errors)
-    check(this.arg, klass, errors)
+  def Regular(this)
+    check(this.arg)
   end
 
   private
 
-  def undef_class_error(name, org)
-    Error.new("undefined class #{name}", org)
+  def undef_class_error(create)
+    Error.new("undefined class #{create.name}", create.org)
   end
 
-  def undef_field_error(name, klass, org)
-    Error.new("undefined field #{klass.name}.#{name}", org)
+  def uncomputable_type_error(klass, field, type)
+    Error.new("uncomputable type for #{klass.name}.#{field.name} (#{type})", field._origin)
   end
 
-  def field_error(msg, fld, org)
-    Error.new("#{msg} for #{fld.owner.name}.#{fld.name}", org)
+
+  def incompatible_types_error(klass, field, stype, gtype)
+    Error.new("type of #{klass.name}.#{field.name} (#{gtype.name}) is incompatible with #{stype.name}", field._origin)
+  end 
+
+  def primitive_class_mismatch(gklass, field, prim, klass)
+    # todo: make better message, you now don't know which is which
+    Error.new("primitive/class mismatch #{gklass.name}.#{field}: #{prim.name} vs #{klass.name}", field._origin)
+  end
+
+  def optionality_mismatch(klass, field, sfield, mult)
+    Error.new("value with multiplicity #{mult} assigned to non-optional #{klass.name}.#{sfield.name}", field._origin)
+  end
+
+  def manyness_mismatch(klass, field, sfield, mult)
+    Error.new("value with multiplicity #{mult} assigned to non-many #{klass.name}.#{sfield.name}", field._origin)
+  end
+
+  def missing_field_error(create, sfield)
+    Error.new("no binding for non-optional field #{create.name}.#{sfield.name}",
+              create._origin)
+  end
+
+
+  def no_such_field_error(klass, field)
+    Error.new("undefined field #{klass.name}.#{field.name}", field._origin)
   end
 
   class Error
@@ -143,9 +187,6 @@ class CheckGrammar
       "#{msg}#{loc && (': ' + loc.to_s)}"
     end
   end
-
-
-
 end
 
 
@@ -153,51 +194,26 @@ end
 if __FILE__ == $0 then
   require 'colorize'
 
-  if ARGV[0] then
-    grammars = [ARGV[0]]
-  else
-    grammars = ['diasuite.grammar',
-                'esync.grammar',
-                #              'ooal.grammar',
-                'families.grammar',
-                'genealogy.grammar',
-                'graph.grammar',
-                'pointer.grammar',
-                'ledger.grammar',
-                'petrinet.grammar',
-                'petstore.grammar',
-                'fexp.grammar',
-                'repmin.grammar',
-                #              'simpl.grammar',
-                'state_machine.grammar',
-                'todo.grammar',
-                'diagram.grammar',
-                'stencil.grammar',
-                'grammar.grammar',
-                'instance.grammar',
-                'schema.grammar',
-                'auth.grammar',
-                'content.grammar',
-                'element.grammar',
-                'web-base.grammar',
-                'web.grammar',
-                'xml.grammar',
-                'point.grammar']
+  if !ARGV[0] || !ARGV[1] || !ARGV[2] then
+    puts "use check.rb <name>.grammar <name>.schema <rootclass>"
+    exit!(1)
   end
 
-  errs = {}
-  grammars.each do |grammar|
-    g = Loader.load(grammar)
-    s = Loader.load(grammar.split('.')[0] + ".schema")
-    errs[grammar] = CheckGrammar.check(g, s)
-  end
+  require 'core/system/load/load'
 
-  errs.each do |grammar, errs|
-    next if errs.empty?
-    puts "Errors for #{grammar}".red
-    errs.each do |err|
-      puts err
-    end
+  schema = Loader.load(ARGV[1])
+  start = ARGV[2]
+  root = schema.classes[start]
+  if !root then
+    $stderr << "No such root class in schema: #{start}\n"
+    exit!(1)
+  end
+  grammar = Loader.load(ARGV[0])
+
+  errs = CheckGrammar.check(schema, root, grammar)
+
+  errs.each do |err|
+    puts err
   end
 end
 

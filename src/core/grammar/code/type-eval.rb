@@ -1,41 +1,46 @@
 
 require 'core/grammar/code/gfold'
 require 'core/grammar/code/types'
+require 'core/grammar/code/deref-type'
 
 # TODO: produces error messages when things are not found in schema.
 
 class TypeEval < GrammarFold
   include GrammarTypes
-  attr_reader :schema
 
-  def initialize(schema)
+  def initialize(schema, root_class, ctx)
     super(:+, :*, VOID, VOID)
     @schema = schema
+    @root_class = root_class
+    @ctx = ctx # owner class of field we're computing the type for
   end
 
   def Value(this, _);
-    # todo: atom
     key = this.kind == 'sym' ? 'str' : this.kind
-    Primitive.new(schema.primitives[key])
+    Primitive.new(@schema.primitives[key])
   end
 
   def Ref(this, _)
-    Klass.new(schema.classes[this.name])
+    Klass.new(@schema.classes[this.name])
+  end
+
+  def Ref2(this, _)
+    Klass.new(DerefType.deref(@schema, @root_class, @ctx, this.path))
   end
 
   def Create(this, _)
-    Klass.new(schema.classes[this.name])
+    Klass.new(@schema.classes[this.name])
   end
 
   def Lit(this, in_field)
-    in_field ? Primitive.new(schema.primitives['str']) : VOID
+    in_field ? Primitive.new(@schema.primitives['str']) : VOID
   end
 end
 
 
 if __FILE__ == $0 then
-  if !ARGV[0] || !ARGV[1] then
-    puts "use type-eval.rb <name>.grammar <name>.schema"
+  if !ARGV[0] || !ARGV[1] || !ARGV[2] then
+    puts "use type-eval.rb <name>.grammar <name>.schema <rootclass>"
     exit!(1)
   end
 
@@ -47,12 +52,14 @@ if __FILE__ == $0 then
 
   g = Loader.load(ARGV[0])
   s = Loader.load(ARGV[1])
+  start = ARGV[2]
 
   tbl = ReachEval.reachable_fields(g)
 
-  te = TypeEval.new(s)
+  root_class = s.classes[start]
 
-  result = combine(tbl, GrammarTypes::VOID) do |_, f|
+  result = combine(tbl, GrammarTypes::VOID) do |cr, f|
+    te = TypeEval.new(s, root_class, s.classes[cr.name])
     te.eval(f.arg, true)
   end
   
