@@ -70,6 +70,7 @@ class Factory
         when "float" then obj[field.name] = 0.0
         when "bool" then obj[field.name] = false
         when "datetime" then obj[field.name] = DateTime.now
+        when "atom" then 
         else
           raise "Unknown type: #{field.type.name}"
         end
@@ -248,7 +249,7 @@ module CheckedObjectMixin
       when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
       when "float" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(Numeric)
       when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
-      when "atom" then 
+      when "atom" then  # nop
       else 
         raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
         raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)

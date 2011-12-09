@@ -22,7 +22,7 @@ class GrammarGenerator
   end
 
   VALUES = {}
-  %w(str int real sym). each do |t|
+  %w(str int real sym atom). each do |t|
     VALUES[t.to_sym] = make_value(t.to_s)
   end
 
@@ -92,7 +92,9 @@ class GrammarGenerator
     end
     
     def ref(r)
-      THE_FACTORY.Ref(r.name)
+      # BUILTIN!!!
+      path = THE_FACTORY.Sub(nil, 'rules', THE_FACTORY.It())
+      THE_FACTORY.Ref2(path)
     end
 
     def code(s)
@@ -123,7 +125,6 @@ class GrammarGenerator
       reg.optional = false
       reg.many = true
       reg.sep = sep
-      #reg.sep.case_sensitive = true
       return reg
     end
 
@@ -133,7 +134,6 @@ class GrammarGenerator
       reg.optional = true
       reg.many = true
       reg.sep = sep
-      #reg.sep.case_sensitive = true
       return reg
     end
     
@@ -156,6 +156,7 @@ class GrammarGenerator
         m = THE_FACTORY.Rule(name)
         m.arg = THE_FACTORY.Alt()
         grammar.rules << m
+        m.grammar = grammar
       end
       return m
     end

@@ -11,7 +11,7 @@ end
 
 class Type
 # name: str
-  schema: Schema / Schema.types
+  schema: Schema / types
 end
 
 class Primitive < Type
@@ -19,7 +19,7 @@ end
   
 class Class < Type
   supers: Class*
-  subclasses: Class* / Class.supers
+  subclasses: Class* / supers
 ! defined_fields: Field*
   fields: Field* = "@all_fields.select {|f| !f.computed}"
   all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
@@ -27,13 +27,13 @@ end
   
 class Field
 # name: str
-  owner: Class / Class.defined_fields
+  owner: Class / defined_fields
   type: Type
   optional: bool
   many: bool
   key: bool
   auto: bool
-  inverse: Field? / Field.inverse 
+  inverse: Field? / inverse 
   computed: str?
   traversal: bool
 end

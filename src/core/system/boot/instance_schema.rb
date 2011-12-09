@@ -5,6 +5,7 @@ class InstanceSchema < SchemaGenerator
 
   primitive :str
   primitive :int
+  primitive :atom
 
   klass Instances do
     field :instances, :type => Instance, :optional => true, :many => true, :traversal => true
@@ -39,6 +40,11 @@ class InstanceSchema < SchemaGenerator
     field :type, :type => :str
   end
 
+  klass Ref2, :super => Value do
+    field :path, :type => Path, :traversal => true
+  end
+
+
   klass Content do
   end
 
@@ -51,6 +57,27 @@ class InstanceSchema < SchemaGenerator
     field :code, :type => :str
   end
       
+  klass Key do
+  end
+
+  klass Const, :super => Key do
+    field :value, :type => :atom
+  end
+
+  klass Path, :super => Key do
+  end
+
+  klass Anchor, :super => Path do
+    field :type, :type => :str
+  end
+
+  klass Sub, :super => Path do
+    field :parent, :type => Path, :traversal => true, :optional => true
+    field :name, :type => :str
+    field :key, :type => Key, :traversal => true, :optional => true
+  end
+
+
 
   patch_schema_pointers(schema)
 

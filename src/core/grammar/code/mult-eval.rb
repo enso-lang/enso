@@ -1,141 +1,60 @@
 
 require 'core/grammar/code/multiplicity'
+require 'core/grammar/code/gfold'
 
-class MultEval
+class MultEval < GrammarFold
   include Multiplicity
 
   def initialize
-    @memo = {}
-    @computed = {}
-    @visited = {}
-    @in_circle = {}
-    @values = {}
-    @change = {}
-  end
-
-  def mult(this, in_field)
-    #puts "Mult: #{this} (in_field = #{in_field})"
-    if respond_to?(this.schema_class.name) then
-      send(this.schema_class.name, this, in_field)
-    else
-      ZERO
-    end
-  end
-
-  def Rule(this, in_field)
-    mult(this.arg, in_field)
-  end
-
-  def Call(this, in_field)
-    if @memo[this]
-      return @memo[this]
-    end
-
-    # Assume there will be at least 1 terminal 
-    # (i.e. create, str, sym, int, or lit)
-    @memo[this] = ONE
-    x = mult(this.rule, in_field)
-    while x != @memo[this]
-      @memo[this] = x
-      x = mult(this.rule, in_field)
-    end
-    return x
-  end
-
-  def Sequence(this, in_field)
-    if this.elements.length == 1 then
-      mult(this.elements[0], in_field)
-    else
-      this.elements.inject(ZERO) do |cur, elt|
-        cur * mult(elt, false)
-      end
-    end
-  end
-
-  def Alt(this, in_field)
-    # NB: alts is never empty
-    x = mult(this.alts[0], in_field)
-    this.alts[1..-1].inject(x) do |cur, alt|
-      cur + mult(alt, in_field)
-    end
+    super(:+, :*, ONE, ZERO)
   end
 
   def Regular(this, in_field)
-    m = mult(this.arg, in_field)
+    m = eval(this.arg, in_field)
     if this.optional then
       this.many ? m.star : m.opt
-    else
-      raise "Invalid regular: #{this}" if !this.many
+    elsif this.many
       m.plus
+    else
+      raise "Invalid regular: #{this}" 
     end
-  end
-
-  def Field(this, _)
-    mult(this.arg, true)
   end
 end
 
+# This is an essential in-between step, that is different from type-eval.
+# because the field in the grammar may itself be optional (it does not have
+# to be the *argument* of the field that might be optional, many etc.).
+# In contrast, the type of a field is always derived from symbols below the
+# argument of a field (including the argument symbol itself).
+# Example: supers in schema.schema; if we start at the field arguments, supers
+# gets multiplicity + but is optional because it derives through an optional.
 class FieldMultEval < MultEval
-  def initialize(name)
-    super() # why are the () needed here????
-    @name = name
+
+  # This is the reason for having the separate super class MultEval
+  class Contrib < MultEval
+    def Value(this, _); ONE end
+    def Ref(this, _); ONE end
+    def Ref2(this, _); ONE end
+    def Create(this, _); ONE end
+    def Lit(this, in_field); in_field ? ONE : ZERO end
+  end
+
+  def initialize(field)
+    super()
+    @field = field
+    @contrib = Contrib.new
   end
 
   def Field(this, _)
-    if this.name == @name then
-      ContribMulEval.new.mult(this.arg, true)
+    # name-based eq. because we have take all field occurrences
+    # into account.
+    if this.name == @field.name then
+      @contrib.eval(this.arg, true)
     else
       ZERO
     end
   end
-
 end
-
-
-class ContribMulEval < MultEval
-  def Value(this, _); ONE end
-  def Ref(this, _); ONE end
-
-  def Create(this, _)
-    ONE
-  end
-
-  def Lit(this, in_field)
-    in_field ? ONE : ZERO
-  end
-
-end
-
-=begin
-
- X ::= arg:Y
- Y ::= [C] ...
-    | "(" Y ")"
-
-gives + for arg because
-"(" and ")" count as contributors.
-
-so we pass in_field boolean
-across |, set to false in sequence.
-(this is also what implode does, btw)
-
-
-    # we now get results for each individual occurence
-    # of a create. Per class created, the multiplicities
-    # should be pairwise added e.g.
-    
-Regular.arg: 1
-Regular.arg: 1
-Regular.arg: 1
-Regular.arg: 1
-Regular.sep: 1
-Regular.arg: 1
-Regular.sep: 1
-
-sep should be optional because it does not occur for all
-creates. So absence there, means 0
-
-=end
 
 if __FILE__ == $0 then
   if !ARGV[0] then
@@ -145,73 +64,27 @@ if __FILE__ == $0 then
 
 
   require 'core/system/load/load'
-  require 'core/grammar/code/reach'
+  require 'core/grammar/code/reach-eval'
+  require 'core/grammar/code/combine'
   require 'pp'
+  require 'set'
 
   g = Loader.load(ARGV[0])
 
   # Perform reachability analysis:
   # obtain a table from Create's to
   # a set of fields.
-  r = Reach.new
-  r.reach(g.start, [])
-  tbl = r.tbl
+  tbl = ReachEval.reachable_fields(g)
 
-  
-  # Obtain the set of classes represented
-  # by the set of Creates in the table.
-  classes = tbl.keys.map do |cr|
-    cr.name
-  end.uniq
 
-  # Union all fields referenced in tbl for
-  # each class.
-  fields = {}
-  classes.each do |cl|
-    fields[cl] ||= []
-    tbl.each do |cr, fs|
-      if cr.name == cl then
-        fields[cl] |= fs
-      end
+  result = combine(tbl, Multiplicity::ZERO) do |cr, f|
+    FieldMultEval.new(f).eval(cr.arg, false)
+  end
+
+  result.each do |c, fs|
+    fs.each do |f, m|
+      puts "#{c}.#{f}: #{m}"
     end
   end
 
-  # If one of the fields for a class C does
-  # not occur in *all* Creates representing C
-  # then the multiplicity is seeded with ZERO.
-  # (In other words, absence in tbl means there
-  # is a path through the grammar where the field
-  # never occurs.)
-
-  result = {}
-  classes.each do |cl|
-    result[cl] ||= {}
-    fields[cl].each do |f|
-      tbl.each do |cr, fs|
-        if cr.name == cl then
-          if fs.include?(f)  then
-            meval = FieldMultEval.new(f)
-            m = meval.mult(cr.arg, false)
-            if result[cl][f] then
-              result[cl][f] += m
-            else
-              result[cl][f] = m
-            end
-          elsif !result[cl][f]
-            result[cl][f] = Multiplicity::ZERO
-          end
-        end
-      end
-    end
-  end
-
-  tbl.each do |cr, fs|
-    fs.each do |f|
-      meval = FieldMultEval.new(f)
-      m = meval.mult(cr.arg, false)
-      puts "#{cr.name}.#{f}: #{m}"
-    end
-  end
-
-  pp result
 end

@@ -1,12 +1,12 @@
 
-class Instantiate
+require 'core/instance/code/deref'
 
-  # TODO: detect optional literals and coerce to boolean
-  
+class Instantiate
   def initialize(factory)
     super()
     @factory = factory
     @fixes = []
+    @path_fixes = []
   end
 
   def self.instantiate(factory, inst)
@@ -17,6 +17,9 @@ class Instantiate
     # ugh: @root is set in recurse...
     recurse(inst, nil, nil, 0)
     @fixes.each do |fix|
+      fix.apply(@root)
+    end
+    @path_fixes.each do |fix|
       fix.apply(@root)
     end
     return @root
@@ -94,7 +97,6 @@ class Instantiate
   
   def Instance(this, owner, field, pos)
     #puts "Creating #{this.type}"
-    # TODO: @factory[this.type] does not assign default vals. [Actually it does now -william]
     current = @factory[this.type]
 
     @root = current unless owner
@@ -140,6 +142,42 @@ class Instantiate
     # update the *field* origin with the origin of the Ref;
     # the referenced object will have the origin of itself
     update_origin(owner, field, InternalLocation.new(this.origin))
+  end
+
+  def Ref2(this, owner, field, pos)
+    @path_fixes << PathFix.new(this.path, owner, field, pos)
+    if field.many && !ClassKey(field.type)
+      # only insert a stub if it is a many-valued collection with no key
+      update(owner, field, pos, nil)
+    end
+    # update the *field* origin with the origin of the Ref;
+    # the referenced object will have the origin of itself
+    update_origin(owner, field, InternalLocation.new(this.origin))
+  end
+
+
+  class PathFix
+    def initialize(path, this, field, pos)
+      @path = path
+      @this = this
+      @field = field
+      @pos = pos
+    end
+
+    def apply(root)
+      # nil for parent; unsupported yet
+      actual = DerefPath.deref(root, nil, @this, @path)
+      raise "Could not deref path: #{@path}" if actual.nil?
+      if @field.many
+        if ClassKey(@field.type)
+          @this[@field.name] << actual
+        else
+          @this[@field.name][@pos] = actual
+        end
+      else
+        @this[@field.name] = actual
+      end
+    end
   end
 
   class Fix

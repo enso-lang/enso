@@ -1,4 +1,6 @@
 
+// TODO: needs to be composed with Path.grammar + Ref2 alt.
+
 start Instances
 
 Instances ::= [Instances] instances:Instance*

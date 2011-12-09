@@ -1,0 +1,463 @@
+\documentclass[a4paper]{article}
+\usepackage{authblk,xspace, amsmath, amssymb, subfigure, a4wide}
+\usepackage{stmaryrd,algorithm}
+\usepackage[noend]{algpseudocode}
+\def\enso{Ens\={o}\xspace}
+\begin{document}
+
+\title{Information Grammars} % Schema Grammars
+\author[1]{William R. Cook} 
+\author[2]{Tijs van der Storm}
+\affil[1]{University of Texas at Austin} 
+\affil[2]{CWI}
+\maketitle
+
+\begin{abstract}
+  \enso is a programming environment based on interpretation of
+  domain-specific languages (DSLs). The abstract syntax of a DSL is
+  represented as an object-oriented information model. We present a
+  detailed description of \enso grammars, which are used to load such
+  models from textual representation, similar to how the Lisp
+  \texttt{read} function parses text into s-expressions.
+\end{abstract}
+
+\section{Introduction}
+
+
+\begin{itemize}
+\item Interpretive
+\item Models not ASTs
+\item General
+\item Self-describing
+\end{itemize}
+
+Interpretive: parsing is interpretive, (we could do interpreter
+composition to extend the interpreter for regular operators, for
+instance; this could also simplify the bootstrap grammar if we can
+rewrite it to not use iter\_star etc.)
+
+Example: schema + grammar.
+
+\section{Meta Syntax}
+
+\def\literal#1{\ensuremath{\text{\texttt{"}}#1\text{\texttt{"}}}}
+
+\begin{figure}
+\begin{minipage}[t]{0.5\textwidth}
+\[
+\begin{array}{rcll}
+S & ::= & \varepsilon & \text{(Empty)} \\
+  & \mid & t & \text{(Token; } t\in\{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{sym}}, \literal{s},... \}\text{)} \\
+  & \mid & N & \text{(Non-terminal)}\\
+  & \mid & P\Uparrow & \text{(Reference)}\\
+  & \mid & S\;\oplus & \text{(Regular; }\oplus\in\{?,*,+\}\text{)}\\ 
+  & \mid & f:S & \text{(Field)}\\
+  & \mid & S\cdot S & \text{(Sequence)}\\
+  & \mid & [C]\; S & \text{(Create)}\\
+  & \mid & S \mid S & \text{(Alternative)}\\
+\end{array}
+\]
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\[
+\begin{array}{rcll}
+P & ::= & \varepsilon & \text{(Root)}\\
+  & \mid & . & \text{(Current)}\\
+%  & \mid & .. & \text{(Parent)}\\
+  & \mid & P / f & \text{(Field)}\\
+  & \mid & P [c] & \text{(Constant subscript)}\\
+  & \mid & P [P] & \text{(Path subscript)}\\
+\end{array}
+\]
+\end{minipage}
+\caption{Abstract syntax of \enso grammars\label{FIG:metasyntax}}
+\end{figure}
+
+\begin{figure}
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{rcll}
+T & ::=  &\varepsilon & \text{(Empty)}\\
+  & \mid & t: s & \text{(Token)}\\
+  & \mid & \text{appl}(S, \overline{T}) & \text{(Application)}\\
+\end{array}
+\]
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\[
+\begin{array}{rcll}
+V & ::=  & \bot & \text{(Nil)}\\
+  & \mid & s  & \text{(String)}\\
+  & \mid & P  & \text{(Reference)}\\
+  & \mid & \llbracket C \rrbracket(\overline{B}) & \text{(Object)}\\
+B & ::= & f: \overline{V} & \text{(Binding)}\\
+\end{array}
+\]
+\end{minipage}
+\caption{Syntax of derivation trees $T$ and instance trees $V$\label{FIG:derivationInstancs}}
+\end{figure}
+
+
+
+
+
+
+
+
+
+\def\implode{\ensuremath{\mathcal{I}}}
+
+\begin{figure}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{align*}
+\implode(\varepsilon, v) &= \bot\\
+\implode(t: s, v) &= s\\
+\implode(\text{appl}(P\Uparrow, t: s), v) &= P[\text{\texttt{it}}\mapsto s]\\
+\implode(\text{appl}([C] S, \overline{T}), v) &=
+\text{fold}(\implode, \overline{T}, \llbracket C\rrbracket())\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.6\textwidth}
+\begin{align*}
+\implode(\text{appl}(f:S, \overline{T}), 
+\llbracket C\rrbracket(\overline{B})) 
+&= \llbracket C\rrbracket(\overline{B} \cup f: \sum_{\tau\in\overline{T}}\implode(\tau))\\
+\implode(\text{appl}(S,\overline{T}), v) &= 
+\sum_{\tau\in \overline{T}}\implode(\tau)\text{ otherwise }
+\end{align*}
+\end{minipage}
+\caption{Implode $\implode: T\times V\rightarrow V*$: Map derivation
+  trees to instance trees.\label{FIG:implode}}
+\end{figure}
+
+NB: the union in (5) is union on maps, which concatenates values for the
+same key, if any. Summation is flatmap.
+
+
+\algblockdefx[Case]{Case}{EndCase}[1]{\textbf{case}\  #1\ \textbf{of}}[0]{\textbf{end case}}
+\algcblockdefx[Case]{Case}{When}{EndCase}[1]{\textbf{when}\  #1:}[0]{\textbf{end case}}
+\algcblockdefx[Case]{Case}{Else}{EndCase}[0]{\textbf{else}}[0]{\textbf{end case}}
+%\algcblock{Switch}{Case}{Esac}
+Build
+
+\begin{algorithm}
+\begin{center}
+%\begin{minipage}{0.7\textwidth}
+\begin{algorithmic}[1]
+\Function{instantiate}{$v: V$, $S: Schema$}
+  \Procedure{update}{$o: S$, $f_S: Schema.classes[Field]$, $x: S$}
+          \If{$f_S.many$}
+            $o'[f_S.name] \ll x$ 
+               \Comment{Insert instead of assign if $f$ is many-valued}
+          \Else
+           \ $o'[f_S.name] \gets x$
+          \EndIf     
+  \EndProcedure
+  \State $fixups \gets \{\}$
+  \Function{build}{$v: V$, $o: S$, $f_S: Schema.classes[Field]$}
+    \Case{$v$}
+    \When{$\llbracket C\rrbracket(\overline{B})$} 
+        $o'\gets \text{\textbf{new }}S.classes[C]$
+          \Comment{Create a new object of class $C$}
+       \ForAll{$f:\overline{V}\in \overline{B}$, $v\in \overline{V}$}
+          \State $f_S \gets S.classes[C].fields[f]$
+             \Comment{Lookup $f$ in the schema $S$}
+          \State \Call{update}{$o'$, $f_S$, \textsc{build}($v$, $o'$, $f_S$)}
+       \EndFor
+       \State \Return{$o'$}
+    \When{$P$}
+        $fixups \ll \langle o, f_S, P\rangle$
+         \Comment{Record a fixup for later patching}
+       \State \Return{$\bot$}
+    \Else
+       \ \Return{}\Call{valueOf}{$v$, $f_S.type$}
+         \Comment{Convert the value according to the field type}
+    \EndCase
+  \EndFunction
+  \State $o \gets$ \Call{build}{$v$, $\bot$, $\bot$}
+  \ForAll{$\langle o', f_S, P\rangle\in \Call{tsort}{fixups}$}
+    \State \Call{update}{$o'$, $f_S$, \textsc{deref}($o$, $o'$, $P$)}
+  \EndFor
+  \State \Return{$o$}
+\EndFunction
+\end{algorithmic}
+%\end{minipage}
+\end{center}
+\caption{Instantiation algorithm\label{ALG:instantiate}}
+\end{algorithm}
+
+\section{Type checking}
+
+\[
+\mathcal{L}(G) = \{ \tau\in T \mid start(G) \Rightarrow^* \tau \}
+\]
+
+The goal of type checking is something like
+
+\[
+typecheck(G, S) \implies \forall \tau \in \mathcal{L}(G): 
+instantiate(\implode(\tau, \bot), S) \in S
+\]
+[Need to be expressed in terms of derivations, an non-ambiguity]
+
+
+\def\myjoin{\ensuremath{\mid}}
+\def\mymeet{\ensuremath{\cdot}}
+
+\begin{table}[ht]
+\footnotesize
+\centering
+\subfigure[Definition of \myjoin]{
+% table for join (+)
+\begin{tabular}{|c||c|c|c|c|c|}\hline
+$\mid$ & $0$ & $1$ & $?$ & $*$ & $+$ \\\hline\hline
+$0$ & $0$ & $?$ & $?$ & $*$ & $*$ \\\hline
+$1$ & $?$ & $1$ & $?$ & $*$ & $+$ \\\hline
+$?$ & $?$ & $?$ & $?$ & $*$ & $*$ \\\hline
+$*$ & $*$ & $*$ & $*$ & $*$ & $*$ \\\hline
+$+$ & $*$ & $+$ & $*$ & $*$ & $+$ \\\hline
+\end{tabular}
+\label{TBL:multJoin}
+}
+\subfigure[Definition of \mymeet]{
+% table for meet (*)
+\begin{tabular}{|c||c|c|c|c|c|}\hline
+$\cdot$ & $0$ & $1$ & $?$ & $*$ & $+$ \\\hline\hline
+$0$ & $0$ & $1$ & $?$ & $*$ & $+$ \\\hline
+$1$ & $1$ & $+$ & $+$ & $+$ & $+$ \\\hline
+$?$ & $?$ & $+$ & $*$ & $*$ & $+$ \\\hline
+$*$ & $*$ & $+$ & $*$ & $*$ & $+$ \\\hline
+$+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\\hline
+\end{tabular}
+\label{TBL:multMeet}
+}
+\subfigure[Regular operators]{
+\def\mystar{*}
+\begin{tabular}{|c||c|c|c|}\hline
+$x$ & $x^?$ & $x^*$ & $x^+$\\\hline\hline
+$0$ & 0 & 0 & 0 \\\hline  
+$1$ & ? & * & + \\  \hline
+$?$ & ? & * & * \\  \hline
+$*$ & * & * & * \\  \hline
+$+$ & * & * & + \\  \hline
+\end{tabular}
+\label{TBL:multRegular}
+}
+
+\caption{Algebra of multiplicities\label{TBL:multAlgebra}}
+\end{table}
+
+
+
+
+
+\def\fixpoint{\ensuremath{\text{lfp}}}
+\def\reachability{\ensuremath{\mathcal{R}}}
+\begin{figure}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
+\reachability_C(A \circ B) &= \reachability_C(A) \cup \reachability_C(B)
+ \text{ where } \circ \in \{\mid, \cdot\}\\
+\reachability_C(A\;\oplus) &= \reachability(A) \text{ where } \oplus \in \{?, *, +\}\\
+\reachability_C(N) &= \fixpoint(\emptyset, \reachability_C, \alpha) \text{ where }N ::= \alpha\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
+\reachability_C(f: A) &= \{\langle C, f\rangle\} \cup \reachability_C(A)\\
+\reachability_C([C'] A) &= \reachability_{C'}(A)\\
+\reachability_C(x) &= \emptyset \text{ otherwise }
+\end{align*}
+\end{minipage}
+\caption{The reachability function $\reachability_C$ computes the set
+  of fields that can be derived from a grammar symbol.\label{FIG:reachability}}
+\end{figure}
+
+
+\def\mymultjoin{\ensuremath{\myjoin}}
+\def\mymultmeet{\ensuremath{\mymeet}}
+\def\mymultbottom{\ensuremath{1}}
+\def\multof{\ensuremath{\mathcal{M}}}
+\def\multoff{\ensuremath{\multof_f}}
+
+\begin{figure}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
+\multoff(A\mid B) &= \multoff(A) \mymultjoin  \multoff(B)\\
+\multoff(A\cdot B) &= \multoff(A) \mymultmeet  \multoff(B)\\
+\multoff(A\;\oplus) &= \multoff(A)^\oplus \text{ where } \oplus\in \{?, *, +\}\\
+\multoff(N) &= \fixpoint(\mymultbottom, \multoff, \alpha) \text{ where } N ::= \alpha\\
+\multoff(f: A) &= \multoff(A)\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\begin{align*}
+\multoff([C'] A) &= 1\\
+\multoff(P\Uparrow) &= 1\\
+\multoff(t) &= 1 \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{sym}}, \literal{s}, ...  \}\\
+\multoff(x) &= 0 \text{ otherwise}
+\end{align*}
+\end{minipage}
+\caption{The multiplicity function \multoff\ computes the multiplicity
+  of field occurrences in a grammar symbol.\label{FIG:multiplicity}}
+\end{figure}
+
+
+\def\mytypejoin{\ensuremath{\sqcup}}
+\def\mytypemeet{\ensuremath{\sqcap}}
+\def\mytypebottom{\ensuremath{\bot}}
+\def\mytypetop{\ensuremath{\top}}
+\def\typeof{\ensuremath{\mathcal{T}}}
+\def\typeoff{\ensuremath{\typeof^C_f}}
+\begin{figure}
+\begin{minipage}[t]{0.4\textwidth}
+\begin{align*}
+\typeoff(A\mid B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
+\typeoff(A\cdot B) &= \typeoff(A) \mytypemeet  \typeoff(B)\\
+\typeoff(A\;\oplus) &= \typeoff(A) \text{ where } \oplus \in \{?, *, +\}\\
+\typeoff(N) &= \fixpoint(\mytypebottom, \typeoff, \alpha) \text{ where } N ::= \alpha\\
+\typeoff(f: A) &= \typeoff(A)\\
+\typeoff([C'] A) &= \sigma.classes[C']\\
+\end{align*}
+\end{minipage}
+\begin{minipage}[t]{0.6\textwidth}
+\begin{align*}
+\typeoff(\Uparrow) &= root\\
+\typeoff(/P\Uparrow) &= \text{deref}(root, P)\\
+\typeoff(./P\Uparrow) &= \text{deref}(C, P)\\
+\typeoff(t) &= \sigma.prims[\text{\texttt{str}}] \text{ where } t\in\{\text{\texttt{sym}}, \literal{s}, ...\}\\
+\typeoff(t) &= \sigma.prims[t] \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{real}} \}\\
+\typeoff(x) &= \mytypetop \text{ otherwise}
+\end{align*}
+\end{minipage}
+\caption{Function \typeoff computes the schema type of the field named
+  $f$ in class $C$ as used in a grammar.\label{FIG:typeof}}
+\end{figure}
+
+
+% F, such that \bigsqcup_{i\in \mathbb{N}} F^i(S \mapsto \emptyset)
+
+\section{Parsing}
+
+General: left-recursion etc., infinite lookahead. GLL. 
+
+Fixed tokenizer: builtin paths for references, identifiers, int, real,
+string, whitespace and comments. Escaping of identifiers to avoid
+clashes. Automatic reservation of (alpha-numeric) literals. Code
+symbols (@"code"). NB: naive implementation; could go scannerless, but
+need to implement lookahead restrictions on identifiers and whitespace
+to avoid ambiguities.
+
+\begin{verbatim}
+class EvalGrammar < Eval
+  def Item(this, gll, _)
+    return gll.pop if this.finished?
+    eval(this.nxt, gll, this.move)
+  end
+
+  def Alt(this, gll, nxt)
+    item = Item.new(this)
+    if this.empty? then
+      gll.empty_node(item)
+      eval(nxt, gll, nil) if nxt
+    else
+      gll.create(nxt) if nxt
+      eval(item, gll, nil)
+    end
+  end
+  
+  def Rule(this, gll, nxt)
+    gll.create(nxt) if nxt
+    this.alts.each do |alt|
+      gll.add(alt)
+    end
+  end
+
+  def Token(this, gll, nxt)
+    return unless this.match?(gll.token)
+    cr = gll.leaf_node(this)
+    if nxt then
+      gll.item_node(nxt, cr)
+      eval(nxt, gll, nil)
+    end
+  end
+end
+\end{verbatim}
+
+
+\section{Instantiating}
+
+References: xText calls this their unique feature, and it is almost
+completely the same as in Enso, even the fact that refs refer to
+schema classes, not non-terminals.... However, it might provide an
+interesting point for the bootstrapping, since grammar.grammar also
+uses it.
+
+No AST, but schema instance. Asynchronous transformation/binding. Case
+in point (?): all binary expressions map to BinExp class, op:"+" sets
+the operator literal. Other case in point: populating a collection
+field, using your own recursive rule (TODO: check that it works this
+way, i.e. a:X* does it append the Xs to a or set them? It should be
+monotone, never overwrite anything, for collections this should mean
+append). Way it works: intermediate, generic tree (also a model; the
+instance tree); one visit to construct objects and populate fields,
+final fixup phase for cross refs. NB: xText does it the same, but no
+details, and Node tree is not a model.
+
+\section{Modularity}
+
+Modular: merge on both schema and grammar. Should we fully discuss
+merge here? Can we modularly type check 2 grammars against 2 schemas
+each, and ensure that the merged composition will type check? Abstract
+rules. Modularity enabled by general parsing strategy + fixed
+tokenizer (however, more keywords will be reserved).
+
+Abstract rules. Merge. Escaping of keywords.
+
+
+\section{Bootstrapping}
+
+Bootstrapped/self-describing: initial grammar in
+ruby. Grammar.grammar, grammar.schema etc. This is a major
+(implementation) different with xText.
+
+\section{Origin Tracking}
+
+Model origin tracking: distinguish ref and reffed origin (Maybe too
+much engineering issue, but possibly interesting because of merging
+Location model into Instance model etc.
+
+\section{Evaluation}
+
+List languages used. Performance??? LOC of framework.
+
+
+\section{Conclusion}
+
+
+
+
+
+
+\end{document}
+% Lisp reader n. Trad. the procedure that parses character representations of objects from a stream, producing objects. (This procedure is implemented by the function read.)
+%http://www.lispworks.com/documentation/HyperSpec/Body/26_glo_l.htm#lisp_reader
+
+
+Typechecking: TODO. I think this would be an interesting extra
+interpreter.
+
+Debugging: could we do a simple grammar debugger by interpreter
+composition? Our interpreter approach really makes debugging output
+easy.
+
+Schema inference: TODO (Do we want this? If this is really easy to
+implement, we can use it to compare with xText.) Other way around:
+derive a grammar from a schema.
+
+
+
+Bi-directional: rendering/layouting. Key thing: constructor directives
+become predicates, and assignments become predicates (also in @"" code
+things; sequencing is conjunction). Interesting point: insertion of
+required parens, with expressions.
