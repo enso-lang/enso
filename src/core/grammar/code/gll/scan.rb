@@ -51,7 +51,7 @@ class Scan
   end
 
   def self.collect_keywords(grammar)
-    CollectKeywords.new.run(grammar)
+    CollectKeywords.run(grammar)
   end
 
   class CollectKeywords < CyclicCollectShy

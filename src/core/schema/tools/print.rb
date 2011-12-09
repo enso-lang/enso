@@ -26,7 +26,7 @@ class Print
       @output << "nil\n"
     else
       klass = obj.schema_class   # TODO: pass as an argument for partial evaluation
-      @output << "#{klass.name}\n"
+      @output << "#{klass.name} #{obj._id}\n"
       indent += 2
       klass.fields.each do |field|
         next if field == back_link

@@ -3,6 +3,7 @@ include Wx
 
 require 'core/diagram/code/base_window'
 require 'core/diagram/code/constraints'
+#require 'core/schema/tools/print'
 
   # a path is specified by a constraint system
   #   the end is connected to a position on the part (h,w) 
@@ -109,6 +110,7 @@ class DiagramFrame < BaseWindow
   def set_root(root)
     #puts "ROOT #{root.class}"
     root.finalize
+    #Print.print(root)
     @root = root
     clear_refresh
   end
@@ -120,39 +122,28 @@ class DiagramFrame < BaseWindow
   end      
   
   # ------- event handling -------  
-  def on_double_click(e)
-    clear_selection
-    select, edit = find(@root, e)
-    if edit && edit.Text?
-			@selection = TextEditSelection.new(self, edit)
-	  else
-      set_selection(select, e)
-    end
-  end
-
-  def on_right_down(e)
-    select, edit, actions = find(@root, e)
-    if actions
-      pop = Wx::Menu.new
-      actions.each do |name, action|
-    		add_menu(pop, name, name, action) 
-      end
-      popup_menu(pop, Wx::Point.new(e.x, e.y))
-    end
-  end
 
   def on_mouse_down(e)
     #puts "DOWN #{e.x} #{e.y}"
     @mouse_down = true
     if @selection
       subselect = @selection.on_mouse_down(e)
+      if subselect == :cancel
+        @selection = nil
+        return
+      end
       if subselect
         @selection = subselect
         return
       end
     end
-    select, edit = find(@root, e)
-    #puts "FIND #{select}, #{edit}"
+    select = find e, do |x|
+      #find something contained in a graph, which is dragable
+      val = @find_container && @find_container.Container? && @find_container.direction == 3 
+      puts "#{x} => #{val}"
+      val
+    end
+    puts "FIND #{select}"
     set_selection(select, e)
   end
   
@@ -161,10 +152,15 @@ class DiagramFrame < BaseWindow
   end
 
   def on_move(e)
-    @selection.on_move(e) if @mouse_down && @selection
+    @selection.on_move(e, @mouse_down) if @selection
     refresh
   end
-    
+
+  def on_key(e)
+  
+  end
+
+  # ------- selections -------      
   def clear_selection
    if @selection
 	    @selection = @selection.clear
@@ -177,58 +173,52 @@ class DiagramFrame < BaseWindow
       if select.Connector?
         @selection = ConnectorSelection.new(self, select)
       else
-        @selection = ShapeSelection.new(self, select, EnsoPoint.new(e.x, e.y))
+        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(e.x, e.y))
       end
     end
     refresh
   end
   
   # ---- finding ------
-  def find(part, pnt)
+  def find(pnt, &filter)
+    find1(@root, pnt, &filter)
+  end
+  
+  def find1(part, pnt, &filter)
     if part.Connector?
-      select, edit, actions = findConnector(part, pnt)
+      return findConnector(part, pnt, &filter)
     else
       b = boundary(part)
       return if b.nil?
       #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-      select, edit, actions = nil, nil, nil
       if rect_contains(b, pnt)
+        old_container = @find_container
+        @find_container = part
+        out = nil
         if part.Container?
           part.items.each do |sub|
-            select, edit, actions = find(sub, pnt)
-            select = sub if edit && part.direction == 3
-				    break if edit || select
+            out = find1(sub, pnt, &filter)
+            break if out
           end
-          return select, edit, actions if select && part.direction == 3
+          out = part if !out && filter.call(part)
         elsif part.Shape?
-          select, edit, actions = find(part.content, pnt) if part.content
-          select = edit = part if !edit
-        elsif part.Text?
-          select = edit = part
+          out = find1(part.content, pnt, &filter) if part.content
         end
-        actions = collect_part_actions part, actions
+        @find_container = old_container
+        return out if out
+        return part if filter.call(part)
       end
     end
-    return select, edit, actions
+    return nil
   end
-  
-  def collect_part_actions part, actions = nil
-    if @actions[part]
-      actions = {} if !actions
-      if @actions[part]
-	      actions.update @actions[part] 
-	    end
-    end
-    return actions
-	end
-	
-  def findConnector(part, pnt)
+  	
+  def findConnector(part, pnt, &filter)
     part.ends.each do |e|
       if e.label
-        select, edit, actions = find(e.label, pnt)
-        return select, edit, actions if select
-        select, edit, actions = find(e.other_label, pnt)
-        return select, edit, actions if select
+        obj = find1(e.label, pnt, &filter)
+        return obj if obj
+        obj = find1(e.other_label, pnt, &filter)
+        return obj if obj
       end
     end
     from = nil
@@ -237,12 +227,12 @@ class DiagramFrame < BaseWindow
       if !from.nil?
 	      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
 	      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
-	        return part, nil, (collect_part_actions part)
+	        return part
 	      end
 	    end
 			from = to
     end
-    return nil, nil, nil
+    return nil
   end
 
   # ----- constrain -----
@@ -608,8 +598,9 @@ class DiagramFrame < BaseWindow
   end  
 end
 
+############# selection #####
 
-class ShapeSelection
+class MoveShapeSelection
 	def initialize(diagram, part, down)
 	  @diagram = diagram
 	  @part = part
@@ -617,8 +608,10 @@ class ShapeSelection
     @move_base = @diagram.boundary(part)
   end
   
-  def on_move(e)
-    @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
+  def on_move(e, down)
+    if down
+      @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
+    end
   end
   
   def is_selected(check)
@@ -673,8 +666,7 @@ class ConnectorSelection
     end
   end
 
-  def on_move(e)
-    
+  def on_move(e, down)    
   end
   
   def clear
@@ -703,7 +695,8 @@ class PointSelection
   def on_mouse_down(e)
   end
 
-  def on_move(e)
+  def on_move(e, down)
+    return if !down
     pos = @diagram.boundary(@ce.to)
     x = (e.x - (pos.x + pos.w / 2)) / Float(pos.w / 2)
     y = (e.y - (pos.y + pos.h / 2)) / Float(pos.h / 2)
@@ -730,6 +723,9 @@ class PointSelection
   end
 end
 
+	
+############# low level geometry #####
+
 class EnsoPoint
   def initialize(x, y)
     @x = x
@@ -748,45 +744,4 @@ class EnsoRect
   attr_accessor :x, :y, :w, :h  
 end
 
-class TextEditSelection
-  def initialize(diagram, edit)
-    @diagram = diagram  
-    @edit_selection = edit
-    r = diagram.boundary(@edit_selection)
-    n = 3
-    #puts r.x, r.y, r.w, r.h
-    extraWidth = 10
-    @edit_control = Wx::TextCtrl.new(diagram, 0, "", 
-      Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n),
-      0)  # Wx::TE_MULTILINE
-    
-    style = Wx::TextAttr.new()
-    style.set_text_colour(diagram.makeColor(diagram.foreground))
-    style.set_font(diagram.makeFont(diagram.font))      
-    @edit_control.set_default_style(style)
-    
-    @edit_control.append_text(@edit_selection.string)
-    @edit_control.show
-    @edit_control.set_focus
-  end
-
-  def clear
-    new_text = @edit_control.get_value()
-    @edit_selection.string = new_text
-    @edit_control.destroy
-    return nil
-  end
-
-  def on_mouse_down(e)
-  end
-
-  def on_move(e)
-  end
-
-  def on_paint(dc)
-  end
-  
-  def is_selected(part)
-  end
-end
 	

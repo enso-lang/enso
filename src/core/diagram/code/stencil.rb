@@ -5,6 +5,8 @@
 # Process mouse clicks as actions
 
 require 'core/diagram/code/diagram'
+require 'core/schema/tools/print'
+require 'core/system/library/schema'
 require 'yaml' 
 
 # render(Stencil, data) = diagram
@@ -48,7 +50,9 @@ class StencilFrame < DiagramFrame
       :brush => @factory.Brush(white)
     }
     
-    @nodeTable = {}
+    @shapeToAddress = {}
+    @shapeToModel = {}
+    @labelToShape = {}
     @connectors = []
     construct @stencil.body, env, nil do |x| 
       set_root(x) 
@@ -62,6 +66,10 @@ class StencilFrame < DiagramFrame
     #puts "DONE"
     #Print.print(@root)
   end
+	
+	def lookup_shape(shape)
+	  return @shapeToModel[shape]
+	end
 
   def do_constraints
     super
@@ -72,7 +80,7 @@ class StencilFrame < DiagramFrame
         key = $1
         field = $2
       end
-      obj = @nodeTable[key]
+      obj = @labelToShape[key]
       next if !obj
       #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
       begin
@@ -124,7 +132,7 @@ class StencilFrame < DiagramFrame
     # save the positions
     positions = {}
     inverse = {}
-    @nodeTable.each do |key, obj|
+    @labelToShape.each do |key, obj|
       positions[key] = position(obj)
       inverse[obj] = key
     end
@@ -141,6 +149,50 @@ class StencilFrame < DiagramFrame
     end
   end
   
+    # ------- event handling -------  
+  def on_double_click(e)
+    clear_selection
+    text = find e, &:Text?
+    if text
+      address = @shapeToAddress[text]
+      edit_address(address, text) if address
+    end
+  end
+	
+  def edit_address(address, shape)
+    if address.field.type.Primitive?
+			@selection = TextEditSelection.new(self, shape)
+	  else
+      pop = Wx::Menu.new
+      find_all_objects @data, address.field.type, do |obj|
+        name = ObjectKey(obj)
+    		add_menu2(pop, name, name) do |e| 
+    			address.value = obj
+    			shape.string = name
+    	  end
+      end
+	    r = boundary(shape)
+      popup_menu(pop, Wx::Point.new(r.x, r.y))
+	  end
+  end
+  
+
+  def on_right_down(e)
+    clear_selection
+    actions = {}
+    find e, do |part|
+      actions.update @actions[part] if @actions[part]
+		  false
+    end      
+    if actions != {}
+      pop = Wx::Menu.new
+      actions.each do |name, action|
+    		add_menu(pop, name, name, action) 
+      end
+      popup_menu(pop, Wx::Point.new(e.x, e.y))
+    end
+  end
+
   def connection_other_end(ce)
     conn = ce.connection
     return conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
@@ -153,6 +205,11 @@ class StencilFrame < DiagramFrame
     end
   end
 
+	def add_action shape, name, &block
+	  @actions[shape] = {} if !@actions[shape]
+	  @actions[shape][name] = block
+	end
+	    
   def construct(stencil, env, container, &block)
     send("construct#{stencil.schema_class.name}", stencil, env, container, &block)
   end
@@ -211,7 +268,7 @@ class StencilFrame < DiagramFrame
       construct this.body, nenv, container do |shape|
         if this.label
           action = address.is_traversal ? "Delete" : "Remove"
-	        add_action shape, "#{action} #{this.label}" do    # TODO: delete versus remove???
+	        add_action shape, "#{action} #{this.label}" do
 	          if address.is_traversal
   	          v.delete!
   	        else
@@ -220,29 +277,84 @@ class StencilFrame < DiagramFrame
   	        generate_diagram
 	        end
 	      end
+	      @shapeToModel[shape] = v
      		block.call shape
       end
     end
     if this.label
       action = address.is_traversal ? "Create" : "Add"
       begin
-	      shape = @nodeTable[address.obj.name]
+	      shape = @labelToShape[address.object.name]
 	    rescue
 	    end
 	    shape = container if !shape
-	    puts "#{action} #{this.label} #{address.obj}.#{address.field} #{shape}"
+	    puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
 	    add_action shape, "#{action} #{this.label}" do
-	      semantics =  address.obj.factory
-	      address.insert semantics[address.field.type
+	      if !address.is_traversal
+	      	# just add a reference!
+	      	puts "ADD #{action}: #{address.field}"
+	      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+			      address.insert x
+						generate_diagram
+			    end
+	      else
+		      factory = address.object.factory
+			    obj = factory[address.field.type.name]
+#			    relateField = nil
+			    obj.schema_class.fields.each do |field|
+			      #puts "FIELD: #{field}"
+			      if field.key && field.type.Primitive? && field.type.name == "str"
+			        obj[field.name] = "<#{field.name}>"
+			      elsif !field.optional && !field.type.Primitive? && !(field.inverse && field.inverse.traversal)
+			        obj[field.name] = find_default_object(@data, field.type)
+#			        raise "Can't have two related field" if relateField
+#			        relateField = field
+			      end
+			    end
+	      	puts "CREATE #{address.field} << #{obj}"
+#	      	if relateField
+#  	      	puts "ADD #{action}: #{address.field}"
+#		      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+#		      	  obj[relateField.name] = x
+#				      address.insert obj
+#							generate_diagram
+#				    end
+#	      	else
+			      address.insert obj
+			      #Print.print(@data)
+	  				generate_diagram
+#	  		  end
+	      end
 	    end
 	  end
 	end
-	
-	def add_action shape, name, &block
-	  @actions[shape] = {} if !@actions[shape]
-	  @actions[shape][name] = block
+
+	def find_default_object(scan, type)
+	  catch :FoundObject do 
+		  find_all_objects scan, type, do |x|  
+		    throw :FoundObject, x
+		  end
+		end
 	end
-	    
+	
+	def find_all_objects(scan, type, &block)
+	  return nil if !scan
+	  puts "looking for #{type.name} as #{scan}"
+		block.call(scan) if scan._subtypeOf(scan.schema_class, type)
+    scan.schema_class.fields.each do |field|
+      if field.traversal
+        if field.many
+          scan[field.name].each do |x|
+            find_all_objects(x, type, &block)
+          end
+        else
+          find_all_objects(scan[field.name], type, &block)
+        end
+      end
+    end
+    return nil
+	end
+
   def constructTest(this, env, container, &block)
     test, _ = eval(this.condition, env)
     construct(this.body, env, container, &block) if test
@@ -252,7 +364,7 @@ class StencilFrame < DiagramFrame
     key = evallabel(this.label, env)
     construct this.body, env, container do |result|
       #puts "LABEL #{key} => #{result}"
-      @nodeTable[key] = result
+      @labelToShape[key] = result
       block.call(result)
     end
   end
@@ -285,11 +397,15 @@ class StencilFrame < DiagramFrame
   
   def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
+    puts "TEXT #{val} #{address}"
+    if !val.is_a?(String)
+      val = ObjectKey(val)
+    end
     text = @factory.Text(nil, nil, val)
     make_styles(this, text, env)
-    text.add_listener "string" do |val|
-      address.value = val
-    end
+    if address
+	    @shapeToAddress[text] = address
+	  end
     block.call text
   end
   
@@ -316,7 +432,7 @@ class StencilFrame < DiagramFrame
       other_label = labelStr && @factory.Text(nil, nil, labelStr)
       de = @factory.ConnectorEnd(e.arrow, label, other_label)
       key = evallabel(e.part, env)
-      de.to = @nodeTable[key]
+      de.to = @labelToShape[key]
       de.attach = ptemp[i]
       i = i + 1
       
@@ -388,7 +504,7 @@ class StencilFrame < DiagramFrame
     
   def evalInstanceOf(this, env)
     a, _ = eval(this.base, env)
-    return Subclass?(a.schema_class, this.class_name), nil
+    return a && Subclass?(a.schema_class, this.class_name), nil
   end
     
   def evalVar(this, env)
@@ -399,35 +515,117 @@ class StencilFrame < DiagramFrame
 
 end
 
-class Address
-  def initialize(obj, field)
-    @obj = obj
-    @field = field
-  end
-  
-  attr_reader :obj
-  
-  def value=(val)
-    @obj[@field] = val
+class TextEditSelection
+  def initialize(diagram, edit)
+    @diagram = diagram  
+    @edit_selection = edit
+    r = diagram.boundary(@edit_selection)
+    n = 3
+    #puts r.x, r.y, r.w, r.h
+    extraWidth = 10
+    @edit_control = Wx::TextCtrl.new(diagram, 0, "", 
+      Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n),
+      0)  # Wx::TE_MULTILINE
+    
+    style = Wx::TextAttr.new()
+    style.set_text_colour(diagram.makeColor(diagram.foreground))
+    style.set_font(diagram.makeFont(diagram.font))      
+    @edit_control.set_default_style(style)
+    
+    @edit_control.append_text(@edit_selection.string)
+    @edit_control.show
+    @edit_control.set_focus
   end
 
-  def field
-    #puts "GET TYPE #{@obj}.#{@field}"
-    @obj.schema_class.all_fields[@field]
+  def clear
+    new_text = @edit_control.get_value()
+    @edit_selection.string = new_text
+    @edit_control.destroy
+    return nil
+  end
+
+  def on_mouse_down(e)
+  end
+
+  def on_move(e, down)
+  end
+
+  def on_paint(dc)
   end
   
-  def is_traversal
-    real = field
-    if field.computed
+  def is_selected(part)
+  end
+end
+
+class FindByTypeSelection
+	def initialize(diagram, kind, &action)
+	  @diagram = diagram
+	  @part = nil
+    @kind = kind
+    @action = action
+  end
+  
+  def on_move(e, down)
+    puts "CHECKING"
+    @part = @diagram.find e, do |shape| 
+      obj = @diagram.lookup_shape(shape)
+      if obj
+	      puts "TESTING #{obj}"    
+	    	obj._subtypeOf(obj.schema_class, @kind)
+	    end
+    end
+  end
+  
+  def is_selected(check)
+    return @part == check
+  end
+  
+  def on_paint(dc)
+  end
+
+  def on_mouse_down(e)
+    @action.call(@diagram.lookup_shape(@part)) if @part
+    return :cancel
+	end
+	 
+  def clear
+  end
+end
+
+class Address
+  def initialize(obj, field_name)
+    @object = obj
+    @field = obj.schema_class.all_fields[field_name]
+  end
+  
+  attr_reader :object
+  attr_reader :field
+  
+  def value=(val)
+    @object[real_field.name] = val
+  end
+
+  def insert(val)
+    col = @object[real_field.name]
+    puts "Inserting #{@object}.#{@field.name}[#{col.length}] << #{val}"
+    col.INSERT(val)
+    puts "Size is now #{col.length}"
+  end
+
+  def real_field
+    #puts "GET TYPE #{@object}.#{@field}"
+    if @field.computed
       # this determines if a computed field is a selection of a traversal field
       # the semantics it implements is correct, but it does it using a quick hack
       # as a syntactic check, rather than a semantic analysis
-      if field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
-				real = @obj.schema_class.all_fields[$1]    
-		  else
-		    return false
+      if @field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
+				return @object.schema_class.all_fields[$1]    
       end
     end
-    return real.traversal
+    return @field
+  end
+  
+  def is_traversal
+    return real_field.traversal
   end
 end

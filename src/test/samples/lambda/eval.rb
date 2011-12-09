@@ -1,10 +1,6 @@
 require "core/system/load/load"
 require "core/schema/tools/print"
 require "core/grammar/code/layout"
-require "core/diff/code/delta"
-require "core/diff/code/diff"
-require "core/diff/code/patch"
-require "core/system/library/schema"
 
 def eval(t)
   if t.schema_class.name == "App" then

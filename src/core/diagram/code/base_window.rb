@@ -20,6 +20,13 @@ class BaseWindow < Wx::Frame
     menu.append( id, name, desc )
     evt_menu( id, action )
   end
+
+  def add_menu2(menu, name, desc, &action)
+    pos = menu.get_menu_item_count
+    id = next_menu_id()
+    menu.append( id, name, desc )
+    evt_menu( id, &action )
+  end
     
   def setup_menus()
     menu = Wx::MenuBar.new
