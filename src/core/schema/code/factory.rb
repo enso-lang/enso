@@ -509,6 +509,21 @@ class ManyIndexedField < BaseManyField
     return v
   end
 
+  def INSERT(v)
+    k = v.send(@key)
+    raise "Key cannot be nil for field #{v}" if !k   
+    if @hash[k] != v
+      raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
+      @realself.notify_update(@field, @hash[k], v) if @realself
+      @hash[k] = v
+      if @field && @field.traversal && !@field.type.Primitive? then
+        v._path = @realself._path.field(@field.name).key(k)
+        #puts "Keyed path: #{v._path}"
+      end
+    end
+    return v
+  end
+
   def []=(k, v)
     @realself.notify_update(@field, @hash[k], v) if @realself
     @hash[k] = v
