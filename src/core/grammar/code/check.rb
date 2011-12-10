@@ -108,7 +108,8 @@ class CheckGrammar
           m = FieldMultEval.new(f).eval(this.arg, false)
           if !sf.optional && [ZERO, ZERO_OR_ONE, ZERO_OR_MORE].include?(m) then
             errors << optionality_mismatch(klass, f, sf, m)
-          elsif !sf.many && [ONE_OR_MORE, ZERO_OR_MORE].include?(m) then
+          end
+          if !sf.many && [ONE_OR_MORE, ZERO_OR_MORE].include?(m) then
             errors << manyness_mismatch(klass, f, sf, m)
           end          
         else

@@ -41,12 +41,12 @@ class ConnectorEnd
   arrow: str?
 ! label: Text?
 ! other_label: Text?
-  to: Shape / Shape.connectors
+  to: Shape / connectors
   attach: EdgePos
   minOut: int
   minLeft: int
   minRight: int
-  owner: Connector / Connector.ends
+  owner: Connector / ends
 end
 
 class EdgePos

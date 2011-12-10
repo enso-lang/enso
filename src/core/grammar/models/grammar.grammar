@@ -1,4 +1,5 @@
 #ruby
 
-union(load('grammar-base.grammar'), load('path.grammar'))
+# NB: order is important we want start to be Grammar not Path
+union(load('path.grammar'),load('grammar-base.grammar'))
 
