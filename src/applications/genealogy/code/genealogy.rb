@@ -1,6 +1,6 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 
 genealogy_schema = Loader.load('genealogy.schema')
 genealogy_grammar = Loader.load('genealogy.grammar')

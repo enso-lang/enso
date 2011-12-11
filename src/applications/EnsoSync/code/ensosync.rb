@@ -6,7 +6,7 @@ This is essentially the front end that manipulates all other functions
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
 

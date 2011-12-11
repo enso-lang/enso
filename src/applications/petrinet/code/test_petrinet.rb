@@ -1,7 +1,7 @@
 
 
 require 'core/system/load/load'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 
 require 'applications/petrinet/code/petrinet2matrix'
 require 'applications/petrinet/code/petrinet2dot'

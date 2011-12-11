@@ -1,7 +1,7 @@
 
 
 require 'core/system/load/load'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'core/schema/code/factory'
 require 'core/schema/tools/print'
 
