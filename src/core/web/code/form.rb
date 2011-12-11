@@ -46,9 +46,9 @@ module Web::Eval
       hash.each do |k, v|
         if v.is_a?(Hash) then
           flatten(v).each do |k2, v2|
-            if k2 !~ /^\./ then
-              ks = k2.split(/\./)
-              tbl[k + "[" + ks.first + "]." + ks[1..-1].join('.')] = v2
+            if k2 !~ /^\// then
+              ks = k2.split(/\//)
+              tbl[k + "[" + ks.first + "]/" + ks[1..-1].join('/')] = v2
             else
               tbl[k + k2] = v2
             end
@@ -60,6 +60,7 @@ module Web::Eval
           tbl[k] = v
         end
       end
+      #p tbl
       return tbl
     end
 
@@ -67,7 +68,7 @@ module Web::Eval
       hash.each do |k, v|
         if k =~ /^!/ then 
           @actions << Action.parse(k, v, root, env)
-        elsif k =~ /^[@.]/ then
+        elsif k =~ /^\^/ then
           @bindings[Ref.parse(k, root, env)] = Result.parse(v, root, env)
         else
           @env[k] = Result.parse(v, root, env)

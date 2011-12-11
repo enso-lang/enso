@@ -10,7 +10,8 @@ module Web::Eval
     attr_reader :value
 
     def self.parse(v, root, env)
-      if v =~ /^[.@]/ then
+      # TODO: now templates are amb with paths...
+      if v =~ /^\^/ then
         Ref.parse(v, root, env)
       elsif v =~ /^\// then
         Template.parse(v, root, env)
@@ -88,7 +89,7 @@ module Web::Eval
         @obj = obj
       end
 
-      def deref(root)
+      def deref(obj, root)
         # ignore the root, but look in store
         store[id]
       end
@@ -116,6 +117,7 @@ module Web::Eval
     end
 
     def self.parse(str, root, env)
+      str = str[1..-1] # skip initial ^
       if str =~ /^@([a-zA-Z_][a-zA-Z0-9_]*):([0-9]+)(.*)$/ then
         create($1, root, $2).extend(Paths::Path.parse($3))
       else
@@ -176,9 +178,9 @@ module Web::Eval
       # TODO: maintain the type of this reference 
       # to avoid this "heuristic"
       if value.respond_to?(:schema_class) then
-        path.to_s
+        "^#{path}"
       elsif value.respond_to?(:each)
-        path.to_s
+        "^#{path}"
       else
         super
       end
@@ -189,6 +191,10 @@ module Web::Eval
   class Address < Result
     def to_s
       "address(#{render})"
+    end
+
+    def render
+      "^#{super}"
     end
   end
 
