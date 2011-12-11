@@ -1,6 +1,7 @@
 require 'core/system/load/load'
 require 'core/schema/code/factory'
-require 'core/grammar/code/layout'
+
+require 'core/grammar/render/layout'
 
 =begin
 

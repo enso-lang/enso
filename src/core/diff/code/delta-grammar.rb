@@ -91,7 +91,7 @@ class DeltaGrammar
       r = @factory.Rule(regular_name(this))
       @rule_cache[n] = r
       darg = delta(this.arg, rules)
-      alts = [delete_key, modify(darg)]
+      alts = [delete_key(regular_arg_name(this)), modify(darg)]
       arg = @factory.Alt(alts)
       r.arg = arg
       rules << r
@@ -150,10 +150,10 @@ class DeltaGrammar
     @factory.Sequence([@factory.Lit("(-)")])
   end
 
-  def delete_key
+  def delete_key(name)
     v = @factory.Field('pos', @factory.Value('atom'))
     elts = [@factory.Lit("(-"), v , @factory.Lit(")")]
-    @factory.Sequence(elts)
+    @factory.Create("Delete_#{name}", @factory.Sequence(elts))
   end
 
   def modify(x)
@@ -161,7 +161,7 @@ class DeltaGrammar
   end
 
   def noop
-    @factory.Sequence([@factory.Lit("...")])
+    @factory.Sequence([@factory.Lit("_")])
   end
 
   def set_value(x)
@@ -171,9 +171,9 @@ class DeltaGrammar
 end
 
 if __FILE__ == $0 then
-  require 'core/grammar/code/layout'
+  require 'core/grammar/render/layout'
 
-  g = Loader.load('schema.grammar')
+  g = Loader.load('diff-point.grammar')
   gg = Loader.load('grammar.grammar')
 
   g2 = DeltaGrammar.delta(g)

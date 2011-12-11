@@ -1,6 +1,4 @@
 
-
-
 class ToDot
 
   def self.to_dot(sppf, out = $stdout)

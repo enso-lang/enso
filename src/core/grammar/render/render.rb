@@ -1,7 +1,7 @@
 
 require 'core/system/load/load'
-require 'core/grammar/code/parse'
-require 'core/grammar/code/gll/scan' # for keywords...
+require 'core/grammar/parse/parse'
+require 'core/grammar/parse/scan' # for keywords...
 require 'core/schema/tools/print'
 
 # render an object into a grammar, to create a parse tree

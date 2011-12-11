@@ -1,10 +1,9 @@
 
 require 'core/schema/code/factory'
 
-require 'core/grammar/code/gll/unparse'
-require 'core/grammar/code/gll/ast'
-require 'core/grammar/code/gll/to-path'
-require 'core/system/load/load'
+require 'core/grammar/parse/unparse'
+require 'core/grammar/parse/ast'
+require 'core/grammar/parse/to-path'
 require 'core/system/utils/location'
 
 class Implode

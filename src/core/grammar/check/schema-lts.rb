@@ -1,5 +1,5 @@
 
-require 'core/grammar/code/lts'
+require 'core/grammar/check/lts'
 
 class SchemaLTS
 

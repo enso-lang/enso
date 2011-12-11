@@ -1,8 +1,8 @@
 
-require 'core/grammar/code/origins'
-require 'core/grammar/code/gll/gll'
-require 'core/grammar/code/gll/implode'
-require 'core/grammar/code/gll/ast'
+require 'core/grammar/parse/origins'
+require 'core/grammar/parse/gll'
+require 'core/grammar/parse/implode'
+require 'core/grammar/parse/ast'
 require 'core/schema/tools/print'
 
 class Parse

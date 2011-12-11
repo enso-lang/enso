@@ -1,5 +1,5 @@
 
-require 'core/grammar/code/gfold'
+require 'core/grammar/check/gfold'
 require 'set'
 
 class ReachEval < GrammarFold

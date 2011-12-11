@@ -1,6 +1,6 @@
 
-require 'core/grammar/code/lts'
-require 'core/grammar/code/deref-type'
+require 'core/grammar/check/lts'
+require 'core/grammar/check/deref-type'
 
 class GrammarLTS
 

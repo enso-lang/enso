@@ -1,10 +1,10 @@
 
 require 'core/system/library/schema'
-require 'core/grammar/code/type-eval'
-require 'core/grammar/code/mult-eval'
-require 'core/grammar/code/reach-eval'
-require 'core/grammar/code/types'
-require 'core/grammar/code/multiplicity'
+require 'core/grammar/check/type-eval'
+require 'core/grammar/check/mult-eval'
+require 'core/grammar/check/reach-eval'
+require 'core/grammar/check/types'
+require 'core/grammar/check/multiplicity'
 
 =begin
 

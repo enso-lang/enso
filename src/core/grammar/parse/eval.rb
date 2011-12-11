@@ -1,4 +1,4 @@
-require 'core/grammar/code/gll/scan'
+require 'core/grammar/parse/scan'
 
 class GrammarEval
   attr_reader :start_pos, :start

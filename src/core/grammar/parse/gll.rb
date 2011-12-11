@@ -1,9 +1,8 @@
 
-require 'core/grammar/code/gll/gss'
-require 'core/grammar/code/gll/todot'
-require 'core/grammar/code/gll/sppf'
-require 'core/grammar/code/gll/eval'
-
+require 'core/grammar/parse/gss'
+require 'core/grammar/parse/todot'
+require 'core/grammar/parse/sppf'
+require 'core/grammar/parse/eval'
 
 class GLL
   attr_reader :ci

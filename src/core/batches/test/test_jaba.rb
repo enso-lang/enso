@@ -6,7 +6,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'core/diff/code/delta'
 require 'core/diff/code/diff'
 require 'core/schema/code/factory'

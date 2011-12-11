@@ -1,11 +1,10 @@
 
-require 'core/grammar/code/gll/glldebug'
-require 'core/grammar/code/origins'
+require 'core/grammar/parse/gll'
+require 'core/grammar/parse/origins'
 require 'core/schema/tools/print'
 require 'benchmark'
 
-require 'core/system/boot/grammar_gen'
-
+#TODO: convert to XML
 class Gamma2 < GrammarGenerator
   start S
 

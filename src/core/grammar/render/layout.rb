@@ -1,6 +1,6 @@
 
 require 'core/system/library/cyclicmap'
-require 'core/grammar/code/render'
+require 'core/grammar/render/render'
 
 class FormatWidth < MemoBase
   def Sequence(obj)

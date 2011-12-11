@@ -3,7 +3,7 @@ require 'core/system/library/schema'
 
 require 'core/system/boot/meta_schema'
 
-require 'core/grammar/code/parse'
+require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/schema/tools/loadxml'

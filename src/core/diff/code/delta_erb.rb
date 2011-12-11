@@ -6,7 +6,7 @@ Re-implementation of delta tranformation using Ruby's ERB
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'core/system/library/schema'
 require 'erb'
 

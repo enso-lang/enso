@@ -123,7 +123,7 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/grammar/code/layout'
+  require 'core/grammar/render/layout'
   require 'core/schema/code/factory'
   require 'core/schema/tools/print'
   require 'core/schema/tools/copy'

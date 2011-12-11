@@ -1,6 +1,6 @@
 
-require 'core/grammar/code/multiplicity'
-require 'core/grammar/code/gfold'
+require 'core/grammar/check/multiplicity'
+require 'core/grammar/check/gfold'
 
 class MultEval < GrammarFold
   include Multiplicity

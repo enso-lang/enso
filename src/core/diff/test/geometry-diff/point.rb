@@ -1,6 +1,6 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 
 point_schema = Loader.load('diff-point.schema')
 point_grammar = Loader.load('diff-point.grammar')

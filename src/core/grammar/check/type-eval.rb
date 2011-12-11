@@ -1,7 +1,7 @@
 
-require 'core/grammar/code/gfold'
-require 'core/grammar/code/types'
-require 'core/grammar/code/deref-type'
+require 'core/grammar/check/gfold'
+require 'core/grammar/check/types'
+require 'core/grammar/check/deref-type'
 
 # TODO: produces error messages when things are not found in schema.
 

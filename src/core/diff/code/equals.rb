@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 
 =begin
 

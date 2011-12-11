@@ -1,0 +1,25 @@
+
+Type checking amounts to
+- well-formedness checking: e.g., disallow field: field: x etc.
+- checking of types of fields in grammar against schema
+   (primitives defined in schema)
+- validity of paths used in the grammar
+   (existence in schema, producing right type, correctly typed keys)
+- valid multiplicities *, +, ?, 1, 0 etc. 
+   (NB: ? can go into *, + can go into *, etc. for soundness,
+    but not completeness)
+- paths non-circular (is this possible? --> AG circularity)
+- soundness: any derivation of the grammar produces valid bindings
+   according to schema (but maybe never all of them, 
+   for instance optionals)
+   [soundness still requires non-optional fields to be produced]
+- completeness: every model can be rendered using the grammar
+   (e.g. all elements in the schema are accomodated in the grammar
+    in the right way, qua type and multiplicity).
+
+- how to produces meaningful error messages; and where?
+  during mult-eval etc. or later?
+  --> e.g. if a class does not exist in the schema it is and
+   immediate error during type-eval.
+
+- how much can be done in one traversal of the grammar?

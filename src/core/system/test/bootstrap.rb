@@ -4,7 +4,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 
-require 'core/grammar/code/parse'
+require 'core/grammar/parse/parse'
 require 'core/system/boot/grammar_grammar'
 require 'core/instance/code/instantiate'
 

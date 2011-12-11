@@ -2,11 +2,10 @@
 
 require 'test/unit'
 
-require 'core/grammar/code/parse'
-require 'core/grammar/code/layout'
+require 'core/grammar/parse/parse'
+require 'core/grammar/render/layout'
 
 require 'core/system/boot/grammar_grammar'
-require 'core/instance/code/instantiate'
 require 'core/diff/code/diff'
 require 'core/schema/code/factory'
 
