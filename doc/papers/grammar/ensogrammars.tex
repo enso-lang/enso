@@ -304,7 +304,7 @@ $+$ & * & * & + \\  \hline
 
 
 \def\mytypejoin{\ensuremath{\sqcup}}
-\def\mytypemeet{\ensuremath{\sqcap}}
+%\def\mytypemeet{\ensuremath{\sqcap}}
 \def\mytypebottom{\ensuremath{\bot}}
 \def\mytypetop{\ensuremath{\top}}
 \def\typeof{\ensuremath{\mathcal{T}}}
@@ -313,7 +313,7 @@ $+$ & * & * & + \\  \hline
 \begin{minipage}[t]{0.4\textwidth}
 \begin{align*}
 \typeoff(A\mid B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
-\typeoff(A\cdot B) &= \typeoff(A) \mytypemeet  \typeoff(B)\\
+\typeoff(A\cdot B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
 \typeoff(A\;\oplus) &= \typeoff(A) \text{ where } \oplus \in \{?, *, +\}\\
 \typeoff(N) &= \fixpoint(\mytypebottom, \typeoff, \alpha) \text{ where } N ::= \alpha\\
 \typeoff(f: A) &= \typeoff(A)\\
