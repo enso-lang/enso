@@ -57,10 +57,8 @@ class Print
       @output << "nil\n"
     elsif traversal  
       print(obj, indent, back_link)
-    elsif key = ClassKey(obj.schema_class)
-      @output << "#{obj[key.name]}\n"
     else
-      @output << "<UNKNOWN VALUE>\n"
+      @output << "#{obj._path}\n"
     end
   end
 end
