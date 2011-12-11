@@ -1,4 +1,5 @@
-require 'core/schema/code/paths'
+
+require 'core/system/utils/paths'
 require 'core/schema/code/factory'
 
 class FromXML

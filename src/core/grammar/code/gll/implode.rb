@@ -2,10 +2,13 @@
 require 'core/schema/code/factory'
 
 require 'core/grammar/code/gll/unparse'
-require 'core/grammar/code/gll/subst-it'
+require 'core/grammar/code/gll/ast'
+require 'core/grammar/code/gll/to-path'
 require 'core/system/load/load'
+require 'core/system/utils/location'
 
 class Implode
+  include AST
 
   def self.implode(sppf, origins)
     Implode.new(origins).implode(sppf)
@@ -13,25 +16,13 @@ class Implode
   
   def initialize(origins)
     @origins = origins
-    @if = Factory.new(Loader.load('instance.schema'))
   end
 
-  def origin(sppf)
-    loc = @if.Location
-    loc.path = @origins.path
-    loc.offset = @origins.offset(sppf.starts)
-    loc.length = sppf.ends - sppf.starts
-    loc.start_line = @origins.line(sppf.starts)
-    loc.start_column = @origins.column(sppf.starts)
-    loc.end_line = @origins.line(sppf.ends)
-    loc.end_column = @origins.column(sppf.ends)
-    return loc
-  end
 
   def implode(sppf)
-    insts = @if.Instances
-    recurse(sppf, insts.instances, false)
-    return insts
+    insts = []
+    recurse(sppf, insts, false)
+    return insts.first
   end
   
   def recurse(sppf, accu, in_field)
@@ -46,8 +37,7 @@ class Implode
 
   def kids(sppf, accu, in_field)
     if sppf.kids.length > 1 then
-      s = ''
-      Unparse.unparse(sppf, s)
+      Unparse.unparse(sppf, s = '')
       puts "\t #{s}"
       raise "Ambiguity!" 
     end
@@ -59,42 +49,46 @@ class Implode
   end
 
   def Create(this, sppf, accu, in_field)
-    inst = @if.Instance(origin(sppf), this.name)
+    inst = Instance.new(this.name, origin(sppf))
     kids(sppf, inst.contents, false)
     accu << inst
   end
 
   def Field(this, sppf, accu, in_field)
-    fld = @if.Field(this.name)
+    fld = Field.new(this.name)
     kids(sppf, fld.values, true)
     accu << fld
   end
 
   def Lit(this, sppf, accu, in_field)
     return unless in_field
-    accu << @if.Prim(origin(sppf), 'str', this.value)
+    accu << Prim.new('str', this.value, origin(sppf))
   end
 
   def Value(this, sppf, accu, in_field)
-    accu << @if.Prim(origin(sppf), this.kind, sppf.value)
-  end
-
-  def Ref(this, sppf, accu, in_field)
-    # TODO: with new refs, unparse path anno to string here.
-    accu << @if.Ref(origin(sppf), sppf.value, sppf.type.name)
+    accu << Prim.new(this.kind, sppf.value, origin(sppf))
   end
 
   def Ref2(this, sppf, accu, in_field)
-    # Instance.schema does not know about "it", so we replace it
-    # here with the value of this ref2 using the factory @if
-    #puts "Creating a ref2 for: #{sppf.value}"
-    #Print.print(this.path)
-    p = SubstIt.subst_it(this.path, sppf.value, @if)
-    accu << @if.Ref2(origin(sppf), p)
+    accu << Ref.new(ToPath.to_path(this.path, sppf.value), origin(sppf))
   end
 
   def Code(this, sppf, accu, in_field)
-    accu << @if.Code(sppf.value)
+    accu << Code.new(sppf.value)
+  end
+
+  private
+  
+  def origin(sppf)
+    path = @origins.path
+    offset = @origins.offset(sppf.starts)
+    length = sppf.ends - sppf.starts
+    start_line = @origins.line(sppf.starts)
+    start_column = @origins.column(sppf.starts)
+    end_line = @origins.line(sppf.ends)
+    end_column = @origins.column(sppf.ends)
+    Location.new(path, offset, length, start_line, 
+                 start_column, end_line, end_column)
   end
 
 end

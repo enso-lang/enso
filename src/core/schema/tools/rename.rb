@@ -1,7 +1,7 @@
 
 require 'core/system/library/schema'
+require 'core/system/utils/paths'
 require 'core/schema/tools/copy'
-require 'core/schema/code/paths'
 
 # TODO: use the builtin paths here.
 

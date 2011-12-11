@@ -20,7 +20,6 @@ module Loading
     SCHEMA_SCHEMA = 'schema.schema'
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
-    INSTANCE_SCHEMA = 'instance.schema'
 
     def load!(name, type = nil)
       # ignore possibly cached model
@@ -72,11 +71,9 @@ module Loading
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, ss)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
-      @cache[INSTANCE_SCHEMA] = is = load_with_models('instance_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
-      @cache[INSTANCE_SCHEMA] = is = load_with_models('instance.schema', sg, ss)
     end
         
     def load_with_models(name, grammar, schema, encoding = nil)

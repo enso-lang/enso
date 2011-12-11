@@ -8,7 +8,9 @@ module Paths
     def self.parse(str)
       if str.empty?
         Path.new
-      elsif str =~ /^\.([a-zA-Z_0-9]+)(.*)$/ then
+      elsif str =~ /^\.(.*)$/ then
+        Path.new([Current.new] + parse($1).elts)
+      elsif str =~ /^\/([a-zA-Z_0-9]+)(.*)$/ then
         Path.new([Field.new($1)] + parse($2).elts)
       elsif str =~ /^\[([0-9]+)\](.*)$/ then
         Path.new([Index.new($1.to_i)] + parse($2).elts)
@@ -37,9 +39,9 @@ module Paths
       Path.new(elts + path.elts)
     end
 
-    def deref(root)
+    def deref(root, this = root)
       elts.inject(root) do |cur, elt|
-        elt.deref(cur)
+        elt.deref(cur, this)
       end
     end
 
@@ -120,6 +122,16 @@ module Paths
     # path element
   end
 
+  class Current < Elt
+    def deref(obj, this)
+      this
+    end
+
+    def to_s
+      '.'
+    end
+  end
+
   class Field < Elt
     attr_reader :name
 
@@ -127,12 +139,12 @@ module Paths
       @name = name
     end
 
-    def deref(obj)
+    def deref(obj, root)
       obj[@name]
     end
 
     def to_s
-      ".#{@name}"
+      "/#{@name}"
     end
   end
 
@@ -141,7 +153,7 @@ module Paths
       @index = index
     end
 
-    def deref(obj)
+    def deref(obj, root)
       obj[@index]
     end
 
@@ -156,7 +168,7 @@ module Paths
       @key = key
     end
 
-    def deref(obj)
+    def deref(obj, root)
       obj[@key]
     end
 

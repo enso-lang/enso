@@ -1,5 +1,5 @@
 
-require 'core/schema/code/paths'
+require 'core/system/utils/paths'
 
 =begin
 Idea (getting rid of the fake checked objects)

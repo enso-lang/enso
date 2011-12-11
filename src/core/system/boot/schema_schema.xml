@@ -8,86 +8,86 @@
       <defined_fields>
         <Field name='types' optional='true' many='true' traversal='true'>
           <type>
-            .types[Type]
+            /types[Type]
           </type>
           <inverse>
-            .types[Type].defined_fields[schema]
+            /types[Type]/defined_fields[schema]
           </inverse>
         </Field>
         <Field name='classes' optional='true' many='true' computed='@types.select(&amp;:Class?)'>
           <type>
-            .types[Class]
+            /types[Class]
           </type>
         </Field>
         <Field name='primitives' optional='true' many='true' computed='@types.select(&amp;:Primitive?)'>
           <type>
-            .types[Primitive]
+            /types[Primitive]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Type'>
       <subclasses>
-        .types[Class] .types[Primitive]
+        /types[Class] /types[Primitive]
       </subclasses>
       <defined_fields>
         <Field name='name' key='true'>
           <type>
-            .types[str]
+            /types[str]
           </type>
         </Field>
         <Field name='schema'>
           <type>
-            .types[Schema]
+            /types[Schema]
           </type>
           <inverse>
-            .types[Schema].defined_fields[types]
+            /types[Schema]/defined_fields[types]
           </inverse>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Primitive'>
       <supers>
-        .types[Type]
+        /types[Type]
       </supers>
     </Class>
     <Class name='Class'>
       <supers>
-        .types[Type]
+        /types[Type]
       </supers>
       <defined_fields>
         <Field name='supers' optional='true' many='true'>
           <type>
-            .types[Class]
+            /types[Class]
           </type>
           <inverse>
-            .types[Class].defined_fields[subclasses]
+            /types[Class]/defined_fields[subclasses]
           </inverse>
         </Field>
         <Field name='subclasses' optional='true' many='true'>
           <type>
-            .types[Class]
+            /types[Class]
           </type>
           <inverse>
-            .types[Class].defined_fields[supers]
+            /types[Class]/defined_fields[supers]
           </inverse>
         </Field>
         <Field name='defined_fields' optional='true' many='true' traversal='true'>
           <type>
-            .types[Field]
+            /types[Field]
           </type>
           <inverse>
-            .types[Field].defined_fields[owner]
+            /types[Field]/defined_fields[owner]
           </inverse>
         </Field>
         <Field name='fields' optional='true' many='true' computed='@all_fields.select {|f| !f.computed}'>
           <type>
-            .types[Field]
+            /types[Field]
           </type>
         </Field>
         <Field name='all_fields' optional='true' many='true' computed='@supers.flat_map(&amp;:all_fields) + @defined_fields'>
           <type>
-            .types[Field]
+            /types[Field]
           </type>
         </Field>
       </defined_fields>
@@ -96,58 +96,58 @@
       <defined_fields>
         <Field name='name' key='true'>
           <type>
-            .types[str]
+            /types[str]
           </type>
         </Field>
         <Field name='owner'>
           <type>
-            .types[Class]
+            /types[Class]
           </type>
           <inverse>
-            .types[Class].defined_fields[defined_fields]
+            /types[Class]/defined_fields[defined_fields]
           </inverse>
         </Field>
         <Field name='type'>
           <type>
-            .types[Type]
+            /types[Type]
           </type>
         </Field>
         <Field name='optional'>
           <type>
-            .types[bool]
+            /types[bool]
           </type>
         </Field>
         <Field name='many'>
           <type>
-            .types[bool]
+            /types[bool]
           </type>
         </Field>
         <Field name='key'>
           <type>
-            .types[bool]
+            /types[bool]
           </type>
         </Field>
         <Field name='auto'>
           <type>
-            .types[bool]
+            /types[bool]
           </type>
         </Field>
         <Field name='inverse' optional='true'>
           <type>
-            .types[Field]
+            /types[Field]
           </type>
           <inverse>
-            .types[Field].defined_fields[inverse]
+            /types[Field]/defined_fields[inverse]
           </inverse>
         </Field>
         <Field name='computed' optional='true'>
           <type>
-            .types[str]
+            /types[str]
           </type>
         </Field>
         <Field name='traversal'>
           <type>
-            .types[bool]
+            /types[bool]
           </type>
         </Field>
       </defined_fields>

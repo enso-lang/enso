@@ -1,33 +1,8 @@
 
 require 'core/system/library/schema'
 require 'core/schema/code/finalize'
-require 'core/schema/code/paths'
-
+require 'core/system/utils/paths'
 require 'ostruct'
-
-class InternalLocation
-  attr_reader :path, :offset, :length, :start_line, :start_column, :end_line, :end_column
-
-  # (path, offset, length, start_line, start_column, end_line, end_column)
-  def initialize(org)
-    @path = org.path
-    @offset = org.offset
-    @length = org.length
-    @start_line = org.start_line
-    @start_column = org.start_column
-    @end_line = org.end_line
-    @end_column = org.end_column
-  end
-
-  def to_s
-    "line #{start_line} column #{start_column} [#{length}] (#{File.basename(path)})"
-  end
-
-  def inspect
-    "<#{path}: from line #{start_line} and col #{start_column}, to line #{end_line} and col #{end_column}, at #{offset}, length = #{length}>"
-  end
-
-end
 
 class Factory
   attr_reader :schema

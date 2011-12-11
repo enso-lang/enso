@@ -1,6 +1,6 @@
 <Grammar>
   <start>
-    .rules[Grammar]
+    /rules[Grammar]
   </start>
   <rules>
     <Rule name='Path'>
@@ -43,7 +43,7 @@
                           <arg>
                             <Call>
                               <rule>
-                                .rules[Path]
+                                /rules[Path]
                               </rule>
                             </Call>
                           </arg>
@@ -60,7 +60,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Subscript]
+                            /rules[Subscript]
                           </rule>
                         </Call>
                       </arg>
@@ -84,7 +84,7 @@
                   <arg>
                     <Call>
                       <rule>
-                        .rules[Key]
+                        /rules[Key]
                       </rule>
                     </Call>
                   </arg>
@@ -117,7 +117,7 @@
               <elements>
                 <Call>
                   <rule>
-                    .rules[Path]
+                    /rules[Path]
                   </rule>
                 </Call>
               </elements>
@@ -163,7 +163,7 @@
                           <arg>
                             <Call>
                               <rule>
-                                .rules[Rule]
+                                /rules[Rule]
                               </rule>
                             </Call>
                           </arg>
@@ -196,7 +196,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Alt]
+                            /rules[Alt]
                           </rule>
                         </Call>
                       </arg>
@@ -237,7 +237,7 @@
                           <arg>
                             <Call>
                               <rule>
-                                .rules[Create]
+                                /rules[Create]
                               </rule>
                             </Call>
                           </arg>
@@ -271,7 +271,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Sequence]
+                            /rules[Sequence]
                           </rule>
                         </Call>
                       </arg>
@@ -284,7 +284,7 @@
               <elements>
                 <Call>
                   <rule>
-                    .rules[Sequence]
+                    /rules[Sequence]
                   </rule>
                 </Call>
               </elements>
@@ -307,7 +307,7 @@
                           <arg>
                             <Call>
                               <rule>
-                                .rules[Field]
+                                /rules[Field]
                               </rule>
                             </Call>
                           </arg>
@@ -340,7 +340,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -353,7 +353,7 @@
               <elements>
                 <Call>
                   <rule>
-                    .rules[Pattern]
+                    /rules[Pattern]
                   </rule>
                 </Call>
               </elements>
@@ -467,7 +467,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Path]
+                            /rules[Path]
                           </rule>
                         </Call>
                       </arg>
@@ -519,7 +519,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -538,7 +538,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -557,7 +557,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -577,7 +577,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -603,7 +603,7 @@
                       <arg>
                         <Call>
                           <rule>
-                            .rules[Pattern]
+                            /rules[Pattern]
                           </rule>
                         </Call>
                       </arg>
@@ -625,7 +625,7 @@
                 <Lit value='('/>
                 <Call>
                   <rule>
-                    .rules[Alt]
+                    /rules[Alt]
                   </rule>
                 </Call>
                 <Lit value=')'/>
