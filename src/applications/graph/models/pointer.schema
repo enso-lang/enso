@@ -10,7 +10,7 @@ end
 class Node
 # name: str
   value: int
-  in: Node* / Node.out
-  out: Node* / Node.in
+  in: Node* / out
+  out: Node* / in
 end
 

@@ -6,7 +6,7 @@ class Tree
 end
 
 class Fork < Tree
-! kids: Tree+ / Tree.parent
+! kids: Tree+ / parent
 end
 
 class Leaf < Tree

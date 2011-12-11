@@ -18,15 +18,15 @@ class Category
   description: str
   imageURL: str
   coords: str
-  products: Product / Product.category
+  products: Product / category
 end
 
 class Product
   name: str
   description: str
   imageURL: str
-  category: Category / Category.products
-  !items: Item* / Item.product
+  category: Category / products
+  !items: Item* / product
 end
 
 
@@ -41,9 +41,9 @@ class Item
   totalScore: int
   numberOfVotes: int
   disabled: int
-  tags: Tag* / Tag.items
-  product: Product / Product.items
-  !ratings: Rating* / Rating.item
+  tags: Tag* / items
+  product: Product / items
+  !ratings: Rating* / item
 end
 
 
@@ -54,7 +54,7 @@ class SellerContactInfo
 end
 
 class Rating
-  item: Item / Item.ratings
+  item: Item / ratings
   grade: int
 end
 
@@ -70,7 +70,7 @@ end
 
 
 class Tag
-  items: Item* / Item.tags
+  items: Item* / tags
   tag: str
   refCount: int
   style: str = 

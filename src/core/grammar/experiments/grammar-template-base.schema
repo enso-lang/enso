@@ -116,7 +116,7 @@ end
 
 class Rule < Expression, _Rule_Elt
 # name: str 
-  grammar: Grammar / Grammar.rules 
+  grammar: Grammar / rules 
 ! arg: Expression 
 end 
 

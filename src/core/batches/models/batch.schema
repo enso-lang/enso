@@ -11,7 +11,7 @@ end
 class Field
 # name: str
 ! query: Query?
-  owner: Query / Query.fields
+  owner: Query / fields
 end
 
 class ComputedField < Field

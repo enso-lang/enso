@@ -5,7 +5,7 @@ class Machine
 end
 
 class State
-  machine: Machine / Machine.states
+  machine: Machine / states
 # name: str
 ! out: Transition*
   in: Transition*
@@ -13,8 +13,8 @@ end
 
 class Transition
   event: str
-  from: State / State.out
-  to: State / State.in
+  from: State / out
+  to: State / in
   action: str
 end
 

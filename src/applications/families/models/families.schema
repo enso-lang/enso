@@ -6,18 +6,18 @@ primitive str
 
 class Family
 # last_name: str
-! father: Member / Member.family_father
-! mother: Member / Member.family_mother
-! sons: Member* / Member.family_son
-! daughters: Member* / Member.family_daughter
+! father: Member / family_father
+! mother: Member / family_mother
+! sons: Member* / family_son
+! daughters: Member* / family_daughter
 end
 
 class Member
   first_name: str
-  family_father: Family? / Family.father
-  family_mother: Family? / Family.mother
-  family_son: Family? / Family.sons
-  family_daughter: Family? / Family.daughters
+  family_father: Family? / father
+  family_mother: Family? / mother
+  family_son: Family? / sons
+  family_daughter: Family? / daughters
 end
 
   

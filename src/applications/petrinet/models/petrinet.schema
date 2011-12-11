@@ -12,12 +12,12 @@ class Node
 end
 
 class Place < Node
-  arcs: Arc* / Arc.place
+  arcs: Arc* / place
 end
 
 
 class Transition < Node
-  arcs: Arc* / Arc.transition
+  arcs: Arc* / transition
 end
 
 // need this, because there can be multiple

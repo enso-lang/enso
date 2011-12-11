@@ -7,7 +7,7 @@ class Todos
 end
 
 class Todo
-  owner: Todos / Todos.todos
+  owner: Todos / todos
   todo: str
   done: bool
   related: Todo*
