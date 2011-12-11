@@ -7,12 +7,12 @@ def index {
         column("Delete") { delete_checkbox(row); }
       }
       submit("Submit", index());
-      navigate("New", todo.new());
+      navigate("New", todo_new());
     }  
   }
 }
 
-def todo.new() {
+def todo_new() {
   let 
    todo = new(Todo)
   in {
@@ -20,7 +20,7 @@ def todo.new() {
       form {
         "Todo: " textedit(todo->todo);
         insert(todo, root->todos);
-        submit("Submit", todo.show(todo));
+        submit("Submit", todo_show(todo));
       }
     }
   }
@@ -37,7 +37,7 @@ def insert(x, coll) {
 // submit, it should rerender, but this time again with
 // the @Todo:23 path.
 
-def todo.show(todo) {
+def todo_show(todo) {
   html("Created a todo") {
    <ul>
     <li>"Todo: " $todo->todo</li>
