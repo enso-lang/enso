@@ -23,7 +23,7 @@
     <Class name='Expression'>
       <subclasses>
         /types[Rule] /types[Alt] /types[Sequence] /types[Create] /types[Field]
-        /types[Code] /types[Value] /types[Ref] /types[Ref2] /types[Lit]
+        /types[Code] /types[Value] /types[Ref] /types[Lit]
         /types[Call] /types[Regular] /types[Epsilon]
       </subclasses>
     </Class>
@@ -135,18 +135,6 @@
       </defined_fields>
     </Class>
     <Class name='Ref'>
-      <supers>
-        /types[Expression]
-      </supers>
-      <defined_fields>
-        <Field name='name'>
-          <type>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Ref2'>
       <supers>
         /types[Expression]
       </supers>

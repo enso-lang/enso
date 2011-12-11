@@ -85,12 +85,6 @@ class GrammarEval
     end
   end
 
-  def Ref2(this, gll, nxt)
-    @scan.with_token('atom', gll.ci) do |pos, tk, ws|
-      terminal(this, pos, tk, ws, gll, nxt)
-    end
-  end
-
   def Value(this, gll, nxt)
     @scan.with_token(this.kind, gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, gll, nxt)

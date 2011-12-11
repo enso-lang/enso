@@ -117,10 +117,6 @@ class GrammarLTS
   end
 
   def Ref(this, state, label)
-    LTS.new(Transition.new(state, label, this.name))
-  end
-
-  def Ref2(this, state, label)
     t = DerefType.deref(@schema, @root, @schema.classes[state], this.path)
     LTS.new(Transition.new(state, label, t.name))
   end

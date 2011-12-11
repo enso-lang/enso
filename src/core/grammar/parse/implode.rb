@@ -68,7 +68,7 @@ class Implode
     accu << Prim.new(this.kind, sppf.value, origin(sppf))
   end
 
-  def Ref2(this, sppf, accu, in_field)
+  def Ref(this, sppf, accu, in_field)
     accu << Ref.new(ToPath.to_path(this.path, sppf.value), origin(sppf))
   end
 

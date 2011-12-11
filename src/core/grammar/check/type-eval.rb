@@ -21,10 +21,6 @@ class TypeEval < GrammarFold
   end
 
   def Ref(this, _)
-    Klass.new(@schema.classes[this.name])
-  end
-
-  def Ref2(this, _)
     Klass.new(DerefType.deref(@schema, @root_class, @ctx, this.path))
   end
 

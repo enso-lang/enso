@@ -34,7 +34,6 @@ class FieldMultEval < MultEval
   class Contrib < MultEval
     def Value(this, _); ONE end
     def Ref(this, _); ONE end
-    def Ref2(this, _); ONE end
     def Create(this, _); ONE end
     def Lit(this, in_field); in_field ? ONE : ZERO end
   end

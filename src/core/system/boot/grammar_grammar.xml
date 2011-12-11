@@ -146,7 +146,7 @@
                     <Lit value='start'/>
                     <Field name='start'>
                       <arg>
-                        <Ref2>
+                        <Ref>
                           <path>
                             <Sub name='rules'>
                               <key>
@@ -154,7 +154,7 @@
                               </key>
                             </Sub>
                           </path>
-                        </Ref2>
+                        </Ref>
                       </arg>
                     </Field>
                     <Field name='rules'>
@@ -449,20 +449,6 @@
               <arg>
                 <Sequence>
                   <elements>
-                    <Field name='name'>
-                      <arg>
-                        <Value kind='sym'/>
-                      </arg>
-                    </Field>
-                    <Lit value='^'/>
-                  </elements>
-                </Sequence>
-              </arg>
-            </Create>
-            <Create name='Ref2'>
-              <arg>
-                <Sequence>
-                  <elements>
                     <Field name='path'>
                       <arg>
                         <Call>
@@ -496,7 +482,7 @@
                   <elements>
                     <Field name='rule'>
                       <arg>
-                        <Ref2>
+                        <Ref>
                           <path>
                             <Sub name='rules'>
                               <key>
@@ -504,7 +490,7 @@
                               </key>
                             </Sub>
                           </path>
-                        </Ref2>
+                        </Ref>
                       </arg>
                     </Field>
                   </elements>
