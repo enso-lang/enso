@@ -86,21 +86,16 @@ class RenderClass < Dispatch
     s
   end
 
-#   def Ref(this, obj)
-#     throw :fail if obj.nil?
-#     key = ClassKey(obj.schema_class)
-#     if key
-#       v = obj[key.name]
-#       #puts "RENDER REF #{obj}=#{v}"
-#       return space(v)  # TODO: need "." keys
-#     else
-#       return space(obj._id)
-#     end
-#   end
-
   def Ref(this, obj)
-    raise "Not supported yet"
-    # solve for the value of "it"
+    throw :fail if obj.nil?
+    key = ClassKey(obj.schema_class)
+    if key
+      v = obj[key.name]
+      #puts "RENDER REF #{obj}=#{v}"
+      return space(v)  # TODO: need "." keys
+    else
+      return space(obj._id)
+    end
   end
 
   def Lit(this, obj)
