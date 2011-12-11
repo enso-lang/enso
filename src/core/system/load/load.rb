@@ -1,21 +1,18 @@
 # library stuff
 require 'core/system/library/schema'
 
-require 'core/system/boot/grammar_grammar'
-require 'core/system/boot/grammar_schema'
-require 'core/system/boot/schema_schema'
+require 'core/system/boot/meta_schema'
 
-# these are here in case any of the "eval" code needs it
 require 'core/grammar/code/parse'
-
-require 'core/system/boot/instance_schema'
-
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
+require 'core/schema/tools/loadxml'
 
+require 'rexml/document'
 
 module Loading
   class Loader
+    include REXML
 
     # TODO: get rid of bootstrap models in memory
 
@@ -25,21 +22,12 @@ module Loading
     GRAMMAR_SCHEMA = 'grammar.schema'
     INSTANCE_SCHEMA = 'instance.schema'
 
-    def load_encoded(name, encoding, type = nil)
-      setup() if @cache.nil?
-      
-      return @cache[name] if @cache[name]
-      @cache[name] = _load_encoded(name, encoding, type)
-    end
-      
-    
     def load!(name, type = nil)
       # ignore possibly cached model
       @cache[name] = _load(name, type)
     end
 
     def load(name, type = nil)
-      # todo: delegate to load_encoded
       setup() if @cache.nil?
       
       return @cache[name] if @cache[name]
@@ -63,38 +51,32 @@ module Loading
       return load_with_models(name, g, s)
     end
 
-    def _load_encoded(name, encoding, type)
-      # this is very cool!
-      model, type = name.split(/\./) if type.nil?
-      g = load("#{type}.grammar")
-      s = load("#{type}.schema")
-      return load_with_models(name, g, s, encoding)
+    def load_schema_xml(file, schema = nil)
+      doc = Document.new(File.read("core/system/boot/#{file}"))
+      if schema.nil? then
+        schema = Boot::Schema.new(doc.root)
+      end
+      FromXML.load(schema, doc)
     end
-        
+
     def setup
       @cache = {}
-      $stderr << "Initializing..\n"
+      $stderr << "Initializing...\n"
 
-      @cache[INSTANCE_SCHEMA] = InstanceSchema.schema
-      
+      # TODO: this is not (yet) correct bootstrapping
+      # it works (probably) because our bootstrap 
+      # models are correct. However, if there are
+      # discrepancies strange things are bound to happen.
 
-      bss = @cache[SCHEMA_SCHEMA] = SchemaSchema.schema
-      bgs = @cache[GRAMMAR_SCHEMA] = GrammarSchema.schema
-      bgg = @cache[GRAMMAR_GRAMMAR] = GrammarGrammar.grammar
-      bsg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, bgg, bgs)
-      # load the real things
-      ss = @cache[SCHEMA_SCHEMA] = load_with_models(SCHEMA_SCHEMA, bsg, bss)
-      # now we have the schema schema, so we can fix up the pointers  
-      
-      # now eliminate all references to boot schema
-      SchemaSchema.patch_schema_pointers(ss, ss)
-      gs = @cache[GRAMMAR_SCHEMA] = load_with_models(GRAMMAR_SCHEMA, bsg, ss)
- 
-      # now that we have a good schema schema, load the other three, including the first two
-      sg = @cache[SCHEMA_GRAMMAR] = load_with_models(SCHEMA_GRAMMAR, bgg, gs)
-      gg = @cache[GRAMMAR_GRAMMAR] = load_with_models(GRAMMAR_GRAMMAR, bgg, gs)
-
-      is = @cache[INSTANCE_SCHEMA] = load_with_models(INSTANCE_SCHEMA, sg, ss)
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, nil)
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, ss)
+      @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
+      @cache[INSTANCE_SCHEMA] = is = load_with_models('instance_schema.xml', nil, ss)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
+      @cache[INSTANCE_SCHEMA] = is = load_with_models('instance.schema', sg, ss)
     end
         
     def load_with_models(name, grammar, schema, encoding = nil)
@@ -104,13 +86,27 @@ module Loading
     end
 
     def load_path(path, grammar, schema, encoding = nil)
-      header = File.open(path, &:readline)
-      if header =~ /#ruby/
-        $stderr << "## building #{path}...\n"
-        instance_eval(File.read(path))
+      if path =~ /\.xml$/ then
+        $stderr << "## booting #{path}...\n"
+        doc = Document.new(File.read(path))
+        if schema.nil? then
+          # this means we are loading schema_schema.xml for the first time.
+          schema = Boot::Schema.new(doc.root)
+          x = FromXML.load(schema, doc)
+          Boot::patch_schema_pointers(x)
+          return x
+        else
+          FromXML.load(schema, doc)
+        end
       else
-        $stderr << "## loading #{path}...\n"
-        Parse.load_file(path, grammar, schema, encoding)
+        header = File.open(path, &:readline)
+        if header =~ /#ruby/
+          $stderr << "## building #{path}...\n"
+          instance_eval(File.read(path))
+        else
+          $stderr << "## loading #{path}...\n"
+          Parse.load_file(path, grammar, schema, encoding)
+        end
       end
     end
     

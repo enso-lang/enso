@@ -42,7 +42,7 @@ class FromXML
           obj[field.name] << make(elt)
         end
       else
-        obj[field.name] = make(field_elt.elements[0])
+        obj[field.name] = make(field_elt.elements[1])
       end
     else
       refs = field_elt.get_text.value.strip.split.map do |ref|

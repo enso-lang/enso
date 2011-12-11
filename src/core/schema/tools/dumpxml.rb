@@ -1,8 +1,6 @@
 
 require 'rexml/document'
 
-# todo: move to schema/tools
-
 module ToXML
   include REXML
 
@@ -50,32 +48,12 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
 
-  exit! if ARGV[0] != 'boot'
+  if !ARGV[0] then
+    $stderr << "Usage: #{$0} <model>\n"
+    exit!
+  end
 
+  mod = Loader.load(ARGV[0])
   pp = REXML::Formatters::Pretty.new
-
-  ss = Loader.load('schema.schema')
-  File.open('core/system/boot/schema_schema.xml', 'w') do |f|
-    x = ToXML::to_doc(ss)
-    pp.write(x, f)
-  end
-
-  gs = Loader.load('grammar.schema')
-  File.open('core/system/boot/grammar_schema.xml', 'w') do |f|
-    x = ToXML::to_doc(gs)
-    pp.write(x, f)
-  end
-
-  is = Loader.load('instance.schema')
-  File.open('core/system/boot/instance_schema.xml', 'w') do |f|
-    x = ToXML::to_doc(is)
-    pp.write(x, f)
-  end
-
-
-  gg = Loader.load('grammar.grammar')
-  File.open('core/system/boot/grammar_grammar.xml', 'w') do |f|
-    x = ToXML::to_doc(gg)
-    pp.write(x, f)
-  end
+  pp.write(ToXML::to_doc(mod), $stdout)
 end

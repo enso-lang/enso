@@ -1,9 +1,9 @@
 
-require 'core/system/boot/instance_schema'
 require 'core/schema/code/factory'
 
 require 'core/grammar/code/gll/unparse'
 require 'core/grammar/code/gll/subst-it'
+require 'core/system/load/load'
 
 class Implode
 
@@ -13,7 +13,7 @@ class Implode
   
   def initialize(origins)
     @origins = origins
-    @if = Factory.new(InstanceSchema.schema)
+    @if = Factory.new(Loader.load('instance.schema'))
   end
 
   def origin(sppf)

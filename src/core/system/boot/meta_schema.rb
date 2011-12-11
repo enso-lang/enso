@@ -171,7 +171,7 @@ end
 if __FILE__ == $0 then
   require 'rexml/document'
   require 'core/schema/tools/print'
-  require 'core/system/boot/loadxml'
+  require 'core/schema/tools/loadxml'
 
   include REXML
   doc = Document.new(File.read('core/system/boot/schema_schema.xml'))
@@ -195,5 +195,5 @@ if __FILE__ == $0 then
   puts ss3.schema_class.to_s
   puts ss3.schema_class.schema_class.to_s
 
-  #Print.print(ss3)
+  Print.print(ss3)
 end

@@ -27,7 +27,7 @@ class Parse
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
     inst = Implode.implode(tree, org)
-    Print.print(inst)  if show
+    Print.print(inst) if show
     Instantiate.instantiate(factory, inst)
   end
 
