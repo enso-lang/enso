@@ -1,0 +1,13 @@
+#ruby
+
+union(load('instance.schema'), load('debug-state.schema'))
+
+#  Too many collisions to go this way.
+# union(load('instance.schema'), 
+#       union(load('web.schema'),
+#             union(load('debug-state.schema'),
+#                   prime(load('xml.schema'), 'xml'))))
+# #                  rename(load('xml.schema'), {'Element' => 'XElement'}))))
+# #, load('debug-state.schema')
+
+

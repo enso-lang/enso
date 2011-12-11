@@ -2,7 +2,7 @@
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'core/query/code/eval'
 
 if __FILE__ == $0 then

@@ -2,7 +2,7 @@
 
 
 require 'core/system/load/load'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 require 'core/attributes/code/eval-attr'
 
 include AttributeSchema
@@ -55,10 +55,10 @@ def graph_basics
   result = EvalAttr.eval(attr_schema, src, 'mul2')
   DisplayFormat.print(pointer_grammar, result)
 
-  src2 = Loader.load('example2.pointer')
-  src2 = Copy.new(src._graph_id).copy(src2)
-  result = EvalAttr.eval(attr_schema, src, 'merge', [src2])
-  DisplayFormat.print(pointer_grammar, result)
+#   src2 = Loader.load('example2.pointer')
+#   src2 = Copy.new(src._graph_id).copy(src2)
+#   result = EvalAttr.eval(attr_schema, src, 'merge', [src2])
+#   DisplayFormat.print(pointer_grammar, result)
 
 end
 

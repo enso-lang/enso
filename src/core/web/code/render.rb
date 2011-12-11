@@ -73,6 +73,18 @@ module Web::Eval
       # the argument expressions are evaluated lazily.
       func = expr.eval(this.exp, env).value
       func.apply(self, this.args, this.block, env, out)
+
+=begin
+      tp = expr.eval(this.exp, env)
+      args = this.args.each do |exp|
+        expr.eval(exp, env)
+      end
+      tp = tp.bind(args)
+      stack.push(tp)
+      tp.invoke(self, env, out)
+      stack.pop
+=end
+
     end
 
     def Do(this, env, out)

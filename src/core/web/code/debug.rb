@@ -22,7 +22,7 @@ module Web::Eval
 
   class DebugExpr < Expr
     def eval(obj, env)
-      x = send(obj.schema_class.name, obj, env)
+      x = super(obj, env)
       Fiber.yield(obj, env, x)
       return x
     end    
@@ -31,7 +31,7 @@ module Web::Eval
   class DebugRender < Render
     def eval(obj, env, out)
       Fiber.yield(obj, env, nil)
-      send(obj.schema_class.name, obj, env, out)
+      super(obj, env, out)
     end
 
     # TODO: override call to maintain a call stack

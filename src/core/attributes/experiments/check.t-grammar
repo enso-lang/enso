@@ -1,0 +1,5 @@
+
+Report ::= [Instances] Report {errors: Error* }
+
+Error ::= [Instance] Error {message: "Undefined type", origin: org}
+                    @"@insta

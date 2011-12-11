@@ -15,7 +15,7 @@ Stat ::= [For] "for" "(" var:sym ":" iter:Exp Index? ")" body:Stat
        | [Let] "let" decls:Assign* "in" body:Stat
        | [Output] "$" exp:Exp
        | [Text] value:str
-       | [Switch] "switch" "(" exp:Exp ")" "{" Case*
+       | [Switch] "switch" "(" exp:Exp ")" "{" cases:Case*
        	 	  	   ("default" default:Stat)? "}"
        | [Do] "do" call:Exp ";"
        | [Do] "doif" cond:Exp call:Exp ";"
@@ -59,6 +59,10 @@ Formals ::= formals:{Formal ","}+ "," tail:Tail
 
 Tail ::= [Tail] name:sym "[" Formals "]"
 
+// TODO: only allow Cons in tail positions
+// we cannot have tail args and cons args at 
+// the same time
+//    |  [Cons] name:sym ":" cons:sym Sig
 Formal ::= [Formal] name:sym (":" cons:Cons)?
 
 Cons ::= [Cons] name:sym Sig

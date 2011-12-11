@@ -19,6 +19,9 @@ module Web::Eval
 
     def with_args(eval, args, block, call_env)
 
+      # TODO: this can be much simpler as soon as the syntax
+      # is fixed.
+
       # Bind arguments in clean environment derived
       # form this closures lexical environment.
       env = @env.new
