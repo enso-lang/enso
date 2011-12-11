@@ -13,7 +13,7 @@ class Catalog
 end
 
 class Category
-# id: str
+##id: str
   name: str
   description: str
   imageurl: str
@@ -22,7 +22,7 @@ class Category
 end
 
 class Product
-# id: str
+##id: str
   name: str
   description: str
   imageURL: str
@@ -32,7 +32,7 @@ end
 
 
 class Item
-# id: str
+##id: str
   product: Product / Product.items
   name: str
   description: str
@@ -48,7 +48,7 @@ class Item
 end
 
 class Address 
-# id: str
+##id: str
   street1: str
   street2: str
   city: str
@@ -59,14 +59,14 @@ class Address
 end
 
 class SellerContactInfo
-# id: str
+##id: str
   lastName: str
   firstName: str
   email: str
 end
 
 class Tag
-# id: int
+##id: int
   tag: str
   refCount: int
   items: Item* / Item.tags

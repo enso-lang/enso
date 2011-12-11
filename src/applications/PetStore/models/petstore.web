@@ -41,9 +41,10 @@ def fileupload(data) {
   }
 }
 
-def sell(item) {
+def edit_item(item) {
   layout {
     form {
+      add_to(item, root->items);
       group {
         line("Category") {
           select1(item->product, root->products);
@@ -73,7 +74,15 @@ def sell(item) {
 }
 
 def contact_info(item) {
-
+  layout {
+      navigate(item->name, show_item(item));
+      $item->description
+      img("/static/" + item->imageThumbURL, item->name);
+      $item->price
+      for (t: item->tags) {
+        navigate(t->tag, search_by_tag(t)); " "
+      }
+  }
 }
 
 def catalog(cat) {
@@ -210,7 +219,7 @@ def pet_map() {
 
 def banner() {
   navigate_img("/static/images/banner_logo.gif", "PetStore", index());
-  navigate("Sell", sell(new(Item))); menuSep();
+  navigate("Sell", edit_item(new(Item))); menuSep();
   navigate("Search", index()); menuSep();
   navigate("Catalog", index()); menuSep();
   navigate("Map", index()); menuSep();
