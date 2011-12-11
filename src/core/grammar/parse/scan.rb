@@ -3,10 +3,7 @@ require 'strscan'
 require 'core/system/library/cyclicmap'
 
 class Scan
-  REF_SEP = '.'
-
-  SYMBOL = "[\\\\]?([a-zA-Z_][a-zA-Z_0-9]*)(" + 
-    Regexp.escape(REF_SEP) + "[a-zA-Z_][a-zA-Z_0-9]*)*"
+  SYMBOL = "[\\\\]?[a-zA-Z_][a-zA-Z_0-9]*"
 
   TOKENS =  {
     sym: Regexp.new(SYMBOL),
