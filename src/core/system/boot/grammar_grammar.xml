@@ -1,0 +1,639 @@
+<Grammar>
+  <start>
+    .rules[Grammar]
+  </start>
+  <rules>
+    <Rule name='Path'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Anchor'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='type'>
+                      <arg>
+                        <Lit value='.'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Anchor'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='type'>
+                      <arg>
+                        <Lit value='..'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Sub'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='parent'>
+                      <arg>
+                        <Regular optional='true'>
+                          <arg>
+                            <Call>
+                              <rule>
+                                .rules[Path]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value='/'/>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Regular optional='true'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Subscript]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Regular>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Subscript'>
+      <arg>
+        <Alt>
+          <alts>
+            <Sequence>
+              <elements>
+                <Lit value='['/>
+                <Field name='key'>
+                  <arg>
+                    <Call>
+                      <rule>
+                        .rules[Key]
+                      </rule>
+                    </Call>
+                  </arg>
+                </Field>
+                <Lit value=']'/>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Key'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Const'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='value'>
+                      <arg>
+                        <Value kind='atom'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    .rules[Path]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Create name='It'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='it'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Grammar'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Grammar'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='start'/>
+                    <Field name='start'>
+                      <arg>
+                        <Ref2>
+                          <path>
+                            <Sub name='rules'>
+                              <key>
+                                <It/>
+                              </key>
+                            </Sub>
+                          </path>
+                        </Ref2>
+                      </arg>
+                    </Field>
+                    <Field name='rules'>
+                      <arg>
+                        <Regular optional='true' many='true'>
+                          <arg>
+                            <Call>
+                              <rule>
+                                .rules[Rule]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Rule'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Rule'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value='::='/>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Alt]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Rule'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='abstract'/>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Alt'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Alt'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='alts'>
+                      <arg>
+                        <Regular many='true' sep='|'>
+                          <arg>
+                            <Call>
+                              <rule>
+                                .rules[Create]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Create'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Create'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='['/>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value=']'/>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Sequence]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    .rules[Sequence]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Sequence'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Sequence'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='elements'>
+                      <arg>
+                        <Regular optional='true' many='true'>
+                          <arg>
+                            <Call>
+                              <rule>
+                                .rules[Field]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Field'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Field'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value=':'/>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    .rules[Pattern]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Pattern'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Value'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='kind'>
+                      <arg>
+                        <Lit value='int'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Value'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='kind'>
+                      <arg>
+                        <Lit value='str'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Value'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='kind'>
+                      <arg>
+                        <Lit value='real'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Value'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='kind'>
+                      <arg>
+                        <Lit value='sym'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Value'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='kind'>
+                      <arg>
+                        <Lit value='atom'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Code'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='@'/>
+                    <Field name='code'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Ref'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value='^'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Ref2'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='path'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Path]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='^'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Lit'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='value'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Call'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='rule'>
+                      <arg>
+                        <Ref2>
+                          <path>
+                            <Sub name='rules'>
+                              <key>
+                                <It/>
+                              </key>
+                            </Sub>
+                          </path>
+                        </Ref2>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Regular'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='*'/>
+                    <Code code='@optional = true; @many = true; @sep = nil'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Regular'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='?'/>
+                    <Code code='@optional = true; @sep = nil'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Regular'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='+'/>
+                    <Code code='@many = true; @sep = nil'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Regular'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='{'/>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='sep'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                    <Lit value='}'/>
+                    <Lit value='*'/>
+                    <Code code='@optional = true; @many = true'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='Regular'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='{'/>
+                    <Field name='arg'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            .rules[Pattern]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='sep'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                    <Lit value='}'/>
+                    <Lit value='+'/>
+                    <Code code='@many = true'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Lit value='('/>
+                <Call>
+                  <rule>
+                    .rules[Alt]
+                  </rule>
+                </Call>
+                <Lit value=')'/>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+  </rules>
+</Grammar>
