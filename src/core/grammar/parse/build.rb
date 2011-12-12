@@ -5,111 +5,84 @@ require 'core/grammar/parse/unparse'
 require 'core/grammar/parse/to-path'
 require 'core/system/utils/location'
 
-# TODO: pos is never used....
-# We never have non-keyed collections of cross links
-
 class Build
   def self.build(sppf, factory, origins)
-    build = Build.new(factory, origins)
-    build.recurse(sppf, nil, accu = [], nil, 0, fixes = [], paths = [])
-    obj = accu.first
-    #puts obj
-    fixes.each do |fix|
-      fix.apply(obj)
-    end
-    return obj
+    Build.new(factory, origins).build(sppf)
   end
-  
-  attr_reader :root
+
   def initialize(factory, origins)
     @factory = factory
     @origins = origins
   end
 
-  def recurse(sppf, owner, accu, field, pos, fixes, paths)
+  def build(sppf)
+    recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
+    obj = accu.values.first
+    fixup(obj, fixes)
+    return obj
+  end
+
+  def recurse(sppf, owner, accu, field, fixes, paths)
     type = sppf.type 
     sym = type.schema_class.name
     if respond_to?(sym)
-      send(sym, type, sppf, owner, accu, field, pos, fixes, paths)
+      send(sym, type, sppf, owner, accu, field, fixes, paths)
     else
-      kids(sppf, owner, accu, nil, pos, fixes, paths)
+      kids(sppf, owner, accu, nil, fixes, paths)
     end
   end
 
-  def kids(sppf, owner, accu, field, pos, fixes, paths)
-    if sppf.kids.length > 1 then
-      Unparse.unparse(sppf, s = '')
-      #puts "\t #{s}"
-      raise "Ambiguity!" 
-    end
-    
+  def kids(sppf, owner, accu, field, fixes, paths)
+    amb_error(sppf) if sppf.kids.length > 1
     return if sppf.kids.empty?
     pack = sppf.kids.first
-    recurse(pack.left, owner, accu, field, pos, fixes, paths) if pack.left
-    recurse(pack.right, owner, accu, field, pos, fixes, paths)
+    recurse(pack.left, owner, accu, field, fixes, paths) if pack.left
+    recurse(pack.right, owner, accu, field, fixes, paths)
   end
 
 
-
-  def Create(this, sppf, owner, accu, field, pos, fixes, paths)
+  def Create(this, sppf, owner, accu, field, fixes, paths)
     current = @factory[this.name]
-    kids(sppf, current, [], nil, 0, fixes, paths)
-    current._origin = origin(sppf)
-    if field && owner then
-      update(owner, field, pos, current)
-      update_origin(owner, field, current._origin)
-    else
-      accu << current
-    end
+    kids(sppf, current, {}, nil, fixes, {})
+    current._origin = org = origin(sppf)
+    accu[org] = current
   end
 
-  def Field(this, sppf, owner, accu, _, pos, fixes, paths)
+  def Field(this, sppf, owner, accu, _, fixes, paths)
     field = owner.schema_class.fields[this.name]
-    #puts "FIELD: #{this.name} --> #{field}"
-    kids(sppf, owner, accu = [], field, 0, fixes, paths = [])
-    accu.each do |v|
-      #puts "Updating: #{owner}.#{field.name}: #{v}"
-      update(owner, field, pos, v)
+    kids(sppf, owner, accu = {}, field, fixes, paths = {})
+    accu.each do |org, value|
+      update(owner, field, convert(value, field.type))
+      update_origin(owner, field, org)
     end
-    paths.each do |path|
-      fixes << Fix.new(path, owner, field, pos)
+    paths.each do |org, path|
+      fixes << Fix.new(path, owner, field, org)
     end
   end
 
-  def Lit(this, sppf, owner, accu, field, pos, fixes, paths)
+  def Lit(this, sppf, owner, accu, field, fixes, paths)
     return unless field
-    accu << sppf.value
-    #update(owner, field, pos, sppf.value)
-    #update_origin(owner, field, origin(sppf))
-    #return owner
+    accu[origin(sppf)] = sppf.value
   end
 
-  def Value(this, sppf, owner, accu, field, pos, fixes, paths)
-    return unless field
-    accu << convert_typed(sppf.value, this.kind, field.type)
-    #update(owner, field, pos, convert_typed(sppf.value, this.kind, field.type))
-    #update_origin(owner, field, origin(sppf))
-    #return owner
+  def Value(this, sppf, owner, accu, field, fixes, paths)
+    accu[origin(sppf)] = sppf.value
   end
 
-  def Ref(this, sppf, owner, accu, field, pos, fixes, paths)
-    #puts "REF: #{sppf.value}: #{ToPath.to_path(this.path, sppf.value)}"
-    paths << ToPath.to_path(this.path, sppf.value)
-    # TODO: do something with pos.
-
-    #if field.many && !ClassKey(field.type) then
-    #  accu << nil
-    #  #update(owner, field, pos, nil)
-    #end
-    #update_origin(owner, field, origin(sppf))
-    #return owner
+  def Ref(this, sppf, owner, accu, field, fixes, paths)
+    paths[origin(sppf)] = ToPath.to_path(this.path, sppf.value)
   end
 
-  def Code(this, sppf, owner, accu, field, pos, fixes, paths)
+  def Code(this, sppf, owner, accu, field, fixes, paths)
     owner.instance_eval(this.code.gsub(/@/, 'self.'))
   end
 
   private
+
+  def amb_error(sppf)
+    Unparse.unparse(sppf, s = '')
+    raise "Ambiguity: >>>#{s}<<<" 
+  end
   
   def origin(sppf)
     path = @origins.path
@@ -123,25 +96,40 @@ class Build
                  start_column, end_line, end_column)
   end
 
-  def update(owner, field, pos, x)
-    return pos if field.nil?
+  def convert(value, type)
+    return value unless type.Primitive?
+    case type.name
+    when "str" then value
+    when "bool" then value == "true"
+    when "int" then value.to_i
+    when "real" then value.to_f
+    when "sym" then value
+    when "atom" then value # ???
+    else
+      raise "Don't know kind #{type}"
+    end
+  end
+
+
+  def fixup(obj, fixes)
+    fixes.each do |fix|
+      actual = fix.path.deref(obj, fix.obj)
+      raise "Could not deref path: #{fix.path}" if actual.nil?
+      update(fix.obj, fix.field, actual)
+      update_origin(fix.obj, fix.field, fix.origin)
+    end
+  end
+
+  def update(owner, field, x)
     if field.many then
       owner[field.name] << x
-      return pos + 1
     else
       owner[field.name] = x
     end
-    return pos
   end
   
   def update_origin(owner, field, org)
-    return if field.nil?
-    
-    # currently, no support for many fields:
-    # since we allow lists of refs, the origin table
-    # then would have to mimick the fixup process
-    # (primitives are not allowed in many fields anyhow)
-    return if field.many
+    return if field.many # no origins for collections
     
     # _origin_of is a OpenStruct (it does not have [])
     # so we use send here. This seems ok, since this
@@ -150,42 +138,13 @@ class Build
     owner._origin_of.send("#{field.name}=", org)
   end
 
-  def convert_typed(value, type, ftype = nil)
-    case type
-    when "str" then value
-    when "bool" then value == "true"
-    when "int" then value.to_i
-    when "real" then value.to_f
-    when "sym" then value
-    when "atom" then ftype.nil? ? value : convert_typed(value, ftype.name)
-    else
-      raise "Don't know kind #{type}"
-    end
-  end
-
   class Fix
-    def initialize(path, this, field, pos)
+    attr_reader :path, :obj, :field, :origin
+    def initialize(path, obj, field, origin)
       @path = path
-      @this = this
+      @obj = obj
       @field = field
-      @pos = pos
-    end
-    
-    def apply(root)
-      # nil for parent; unsupported yet
-      # (and static checking of parent paths is problematic)
-      #puts "Dereffing: #{@path}"
-      actual = @path.deref(root, @this)
-      raise "Could not deref path: #{@path}" if actual.nil?
-      if @field.many
-        if ClassKey(@field.type)
-          @this[@field.name] << actual
-        else
-          @this[@field.name][@pos] = actual
-        end
-      else
-        @this[@field.name] = actual
-      end
-    end
+      @origin = origin
+    end    
   end
 end
