@@ -39,7 +39,7 @@ Exp4 ::= Loc
       | [Prim] op:"!" args:Exp4
       | "(" Exp ")"
 
-Loc ::= [Field] base:Loc "@" field:sym
+Loc ::= [Field] base:Loc "." field:sym
       | [Prim] args:Loc "[" args:Loc "]" @"@op='[]'"
       | [Color] "(" r:int "," g:int "," b:int ")"
       | [Literal] "nil" @"@value=nil"

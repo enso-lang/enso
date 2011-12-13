@@ -221,9 +221,9 @@ class StencilFrame < DiagramFrame
     brush = nil
     stencil.props.each do |prop|
       val, _ = eval(prop.exp, env)
-      #puts "SET #{prop.loc.name} = #{val}"
+      puts "SET #{prop.loc} = #{val}"
       newEnv = {}.update(env) if !newEnv
-      case prop.loc.name
+      case "#{prop.loc.base.name}.#{prop.loc.field}"
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -569,10 +569,7 @@ class FindByTypeSelection
     puts "CHECKING"
     @part = @diagram.find e, do |shape| 
       obj = @diagram.lookup_shape(shape)
-      if obj
-	      puts "TESTING #{obj}"    
-	    	obj._subtypeOf(obj.schema_class, @kind)
-	    end
+      obj && obj._subtypeOf(obj.schema_class, @kind)
     end
   end
   

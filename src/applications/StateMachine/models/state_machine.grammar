@@ -1,7 +1,7 @@
 start Machine
 
-Machine ::= [Machine] "start" \start:State^ states:State*
+Machine ::= [Machine] "start" \start:/states[it]^ states:State*
 
 State ::= [State] "state" name:sym out:Transition*
 
-Transition ::= [Transition] "on" event:sym "go" to:State^
+Transition ::= [Transition] "on" event:sym "go" to:/states[it]^
