@@ -1,8 +1,8 @@
 
 require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
-require 'core/grammar/parse/implode'
-require 'core/grammar/parse/ast'
+require 'core/grammar/parse/build'
+#require 'core/grammar/parse/ast'
 require 'core/schema/tools/print'
 
 class Parse
@@ -26,9 +26,11 @@ class Parse
   def self.load_raw(source, grammar, schema, factory, show = false, filename = '-')
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
-    ast = Implode.implode(tree, org)
+    #ast = Implode.implode(tree, org)
+    
     Print.print(inst) if show
-    AST.build(ast, factory)
+    #AST.build(ast, factory)
+    Build.build(tree, factory, org)
   end
 
   def self.parse(source, grammar, org)
