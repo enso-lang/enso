@@ -52,7 +52,9 @@ class Build
     field = owner.schema_class.fields[this.name]
     kids(sppf, owner, accu = {}, field, fixes, paths = {})
     accu.each do |org, value|
-      update(owner, field, convert(value, field.type))
+      # convert the value again, this time based on the field type
+      # (if atom was used in the grammar this is needed)
+      update(owner, field, convert_value(value, field.type))
       update_origin(owner, field, org)
     end
     paths.each do |org, path|
@@ -66,7 +68,7 @@ class Build
   end
 
   def Value(this, sppf, owner, accu, field, fixes, paths)
-    accu[origin(sppf)] = sppf.value
+    accu[origin(sppf)] = convert_token(sppf.value, this.kind)
   end
 
   def Ref(this, sppf, owner, accu, field, fixes, paths)
@@ -96,17 +98,29 @@ class Build
                  start_column, end_line, end_column)
   end
 
-  def convert(value, type)
+  def convert_token(value, kind)
+    case kind 
+    when "str" then value
+    when "int" then value.to_i
+    when "real" then value.to_f
+    when "sym" then value
+    when "atom" then value # ???
+    else
+      raise "Don't know kind #{kind}"
+    end
+  end
+
+
+  def convert_value(value, type)
     return value unless type.Primitive?
     case type.name
     when "str" then value
     when "bool" then value == "true"
     when "int" then value.to_i
     when "real" then value.to_f
-    when "sym" then value
-    when "atom" then value # ???
+    when "atom" then value # possibly already converted based on token kind
     else
-      raise "Don't know kind #{type}"
+      raise "Don't know primitive type #{type.name}"
     end
   end
 
