@@ -1,0 +1,89 @@
+
+
+
+class System
+  pipes: Pipe*
+  elements: Element*
+  sensors: Sensor*
+end
+
+class Pipe
+  #name: str
+  connections: Element*
+  diameter: real
+  length: real
+  // dynamic state
+  pressure: real
+end
+
+class Element 
+  #name: str
+end
+
+class Joint < Element
+  pipes: Pipe*
+end
+
+class End < Element end
+
+class Source < End
+  output: Pipe
+end
+
+class Exhaust < End
+  input: Pipe
+end
+
+class Burner < Element
+  input: Pipe
+  output: Pipe
+  capacity: real 
+  // dynamic state
+  current: real
+end
+
+class Vessel < Element
+  input: Pipe
+  output: Pipe
+  capacity: real
+  // dynamic state
+  contents: real
+end
+
+class Valve < Element
+  input: Pipe
+  output: Pipe
+  // dynamic state
+  flow: real // between 0 and 1
+//  default: real
+//  min: real
+//  max: real
+end
+
+class Splitter < Element
+  input: Pipe
+  left: Pipe
+  right: Pipe
+  // dynamic state
+  flow: real // between 0 and 1
+//  default: real
+//  min: real
+//  max: real
+end
+
+class Pump < Element
+  input: Pipe
+  output: Pipe
+  // dynamic state
+  power: real
+end
+
+class Sensor
+  kind: str // temperature, pressure, flow
+  attach: Pipe
+end
+
+primitive str
+primitive int
+primitive bool
+primitive real

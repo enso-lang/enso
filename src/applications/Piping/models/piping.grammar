@@ -1,0 +1,28 @@
+start System
+
+System ::= [System] elements:Element*
+
+Element ::= [Source]  name:sym ":" "source" kind:sym
+        |   [Exhaust] name:sym ":" "exhaust" name:sym
+        |   [Vessel]  name:sym ":" "vessel"  in // capacity:real
+        |   [Valve]   name:sym ":" "valve" in
+        |   [Splitter] name:sym ":" "splitter" in
+        |   [Joint]   name:sym "=" pipes:{Connection "+"}+
+        |   [Pump]    name:sym ":" "pump" in
+        |   [Thermostat] name:sym ":" "thermostat"
+        |   [Radiator] name:sym ":" "radiator" in
+        |   [Burner] name:sym ":" "burner" in gas
+        |   [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
+
+in ::= "in" "=" input:Connection
+gas ::= "gas" "=" gas:Connection
+
+Connection ::=
+       [Pipe] elements:/elements[it]/input^ "." "input" 
+     | [Pipe] elements:/elements[it]/left^ "." "left" 
+     | [Pipe] elements:/elements[it]/right^ "." "right" 
+     | [Pipe] elements:/elements[it]/output^
+
+
+
+  

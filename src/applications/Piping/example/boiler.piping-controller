@@ -1,0 +1,39 @@
+state Furnace
+  percent rampDownT = (T.current - T.desired - residualT) / RADIATOR_RAMP_DOWN_INTERVAL
+  percent rampDownB = (boiler_temp - DESIRED_WATER_TEMP - residualB) / BOILER_RAMP_DOWN_INTERVAL
+  residualT = (F.temp - T.current) * RADIATOR_HEATING_EFFICIENCY
+  residualB = (F.temp - boiler_temp) * BOILER_HEATING_EFFICIENCY
+  F.light = false
+  F.gas = 0
+  P.run = false
+  V.position = LEFT
+
+state OFF:
+  if T.current < T.desired - THERMOSTAT_MARGIN goto IGNITE
+  if boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto IGNITE
+
+state IGNITE:
+  F.light = true
+  F.gas = MIN_GAS
+  P.run = true
+  if F.ignited goto RUNNING
+  if IGNITE.time > IGNITION_TIME goto ERROR
+
+state RUNNING:
+  percent rampUp = (currentTime - RUNNING.time) / rampUpTime
+  V.split = (TBD... compute if left and right need to be on)
+  F.gas = max(MIN_GAS, rampUp)
+  P.run = true
+  if rampDownT < 1 && rampDownB < 1 goto COOLDOWN
+
+state COOLDOWN:
+  F.gas = max(MIN_GAS, rampDownT, rampDownB)
+  V.split = (TBD... compute if left and right need to be on)
+  P.run = true
+  if rampDown = 0 goto OFF
+  if  COOLDOWN.time > COOLDOWN_TIME goto ERROR
+
+state ERROR:
+  if  ERROR.time > ERROR_TIME goto OFF
+end
+
