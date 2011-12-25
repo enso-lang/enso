@@ -2,18 +2,15 @@
 
 
 class System
-  pipes: Pipe*
   elements: Element*
-  sensors: Sensor*
 end
 
 class Pipe
-  #name: str
   connections: Element*
-  diameter: real
-  length: real
+  diameter: float
+  length: float
   // dynamic state
-  pressure: real
+  pressure: float
 end
 
 class Element 
@@ -21,12 +18,14 @@ class Element
 end
 
 class Joint < Element
+  output: Pipe
   pipes: Pipe*
 end
 
 class End < Element end
 
 class Source < End
+  kind: str
   output: Pipe
 end
 
@@ -36,28 +35,40 @@ end
 
 class Burner < Element
   input: Pipe
+  gas: Pipe
   output: Pipe
-  capacity: real 
+  capacity: float 
   // dynamic state
-  current: real
+  current: float
+end
+
+class Radiator < Element
+  input: Pipe
+  output: Pipe
+  capacity: float 
+  // dynamic state
+  current: float
 end
 
 class Vessel < Element
   input: Pipe
   output: Pipe
-  capacity: real
+  capacity: float
   // dynamic state
-  contents: real
+  contents: float
 end
 
 class Valve < Element
   input: Pipe
   output: Pipe
   // dynamic state
-  flow: real // between 0 and 1
-//  default: real
-//  min: real
-//  max: real
+  flow: float // between 0 and 1
+//  default: float
+//  min: float
+//  max: float
+end
+
+class Thermostat < Element
 end
 
 class Splitter < Element
@@ -65,20 +76,20 @@ class Splitter < Element
   left: Pipe
   right: Pipe
   // dynamic state
-  flow: real // between 0 and 1
-//  default: real
-//  min: real
-//  max: real
+  flow: float // between 0 and 1
+//  default: float
+//  min: float
+//  max: float
 end
 
 class Pump < Element
   input: Pipe
   output: Pipe
   // dynamic state
-  power: real
+  power: float
 end
 
-class Sensor
+class Sensor < Element
   kind: str // temperature, pressure, flow
   attach: Pipe
 end
@@ -86,4 +97,4 @@ end
 primitive str
 primitive int
 primitive bool
-primitive real
+primitive float

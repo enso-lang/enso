@@ -2,26 +2,27 @@ start System
 
 System ::= [System] elements:Element*
 
-Element ::= [Source]  name:sym ":" "source" kind:sym
-        |   [Exhaust] name:sym ":" "exhaust" name:sym
-        |   [Vessel]  name:sym ":" "vessel"  in // capacity:real
-        |   [Valve]   name:sym ":" "valve" in
-        |   [Splitter] name:sym ":" "splitter" in
-        |   [Joint]   name:sym "=" pipes:{Connection "+"}+
-        |   [Pump]    name:sym ":" "pump" in
+Element ::= [Source]  output:pipe name:sym ":" "source" kind:sym 
+        |   [Exhaust] input:pipe  name:sym ":" "exhaust" name:sym
+        |   [Vessel]  output:pipe name:sym ":" "vessel"  in    // capacity:real
+        |   [Valve]   output:pipe name:sym ":" "valve" in
+        |   [Splitter] left:pipe right:pipe name:sym ":" "splitter" in 
+        |   [Pump]    output:pipe name:sym ":" "pump" in  
+        |   [Radiator] output:pipe name:sym ":" "radiator" in  
+        |   [Joint]   output:pipe name:sym "=" pipes:{Connection "+"}+ 
         |   [Thermostat] name:sym ":" "thermostat"
-        |   [Radiator] name:sym ":" "radiator" in
-        |   [Burner] name:sym ":" "burner" in gas
+        |   [Burner] name:sym ":" "burner" in gas  output:pipe
         |   [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
 
+pipe ::= [Pipe]
 in ::= "in" "=" input:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=
-       [Pipe] elements:/elements[it]/input^ "." "input" 
-     | [Pipe] elements:/elements[it]/left^ "." "left" 
-     | [Pipe] elements:/elements[it]/right^ "." "right" 
-     | [Pipe] elements:/elements[it]/output^
+       [Pipe] connections:/elements[it]/input^ "." "input" 
+     | [Pipe] connections:/elements[it]/left^ "." "left" 
+     | [Pipe] connections:/elements[it]/right^ "." "right" 
+     | [Pipe] connections:/elements[it]/output^
 
 
 
