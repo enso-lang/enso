@@ -1,0 +1,16 @@
+start Expr
+
+Expr ::= EBinOp
+
+EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<="|op:"+") e2:EBinOp
+         | EUnOp
+EUnOp ::= [EUnOp] op:"not" e:Expr
+        | EListComp
+        | EConst
+        | "(" Expr ")"
+
+EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:Expr
+EConst ::= EStrConst | EIntConst | EBoolConst
+EStrConst ::= [EStrConst] val:str
+EIntConst ::= [EIntConst] val:int
+EBoolConst ::= [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"

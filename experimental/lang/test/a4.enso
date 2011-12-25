@@ -1,0 +1,10 @@
+load-schema "expr.schema"
+load-schema "listcomp.schema"
+load-schema "array.schema"
+
+a := "5":int
+l := load "list.listcomp"
+obj := "l[a-5]"
+all_the_same := "all? x in l : x == a"
+
+#inheritance as a form of composition

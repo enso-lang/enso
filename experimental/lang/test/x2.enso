@@ -1,0 +1,7 @@
+load-schema "expr.schema"
+
+
+
+int a := 5
+Expr expr1 := 1 + 1
+Expr expr2 := load "my-expr.expr"

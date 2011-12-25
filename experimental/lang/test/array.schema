@@ -1,0 +1,8 @@
+primitive int
+
+class Expr end
+
+class EArray < Expr
+  !arr:Expr
+  index:int
+end

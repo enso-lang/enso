@@ -1,0 +1,23 @@
+schema load "point.schema"
+schema load "expr.schema"
+
+schema Schema {
+ class Point
+  x : Expression
+  y : Expression
+ end
+}
+
+a := 42
+p1 := Point (1,1)
+p2 := Point (1+5, a*2)
+l3 := new Line ([p1,p2])
+
+function load "point-eval.interp"
+function load "expr-eval.interp"
+
+eval ( p1 )
+eval ( p2 )
+eval ( l3 )
+
+#composing interpreters -- fun-name x args -> list of visitor cases

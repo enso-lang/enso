@@ -1,0 +1,50 @@
+primitive str
+
+class Enso
+  !body : Command*
+end
+
+class RValue end
+
+class LoadRV < RValue
+  filename : str
+end
+
+class ParseRV < RValue
+  parse : str
+  type : str
+end
+
+class LValue < RValue
+  id : str
+end
+
+class Command end
+
+class LoadSchema < Command
+  filename : str
+end
+
+class LoadFile < Command
+  filename : str
+end
+
+class Assignment < Command
+  !lhs : LValue
+  !rhs : RValue
+end
+
+class App < Command, RValue
+  !fun : str
+  !args : RValue
+end
+
+class While < Command
+  !expr : RValue
+  !body : Command*
+end
+
+class If < Command
+  !cond : RValue
+  !body : Command*
+end
