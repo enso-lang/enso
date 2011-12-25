@@ -1,0 +1,6 @@
+interpret Expression
+
+do enp (expr)
+
+EBinOp (e1:Expr, op:str, e2:Expr):
+  "{'eval' => Kernel::eval('#{e1['eval']} + #{e2['eval']}'), 'render' => '#{e1['eval']} #{op['eval']} #{e2['eval']}'}"

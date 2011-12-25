@@ -1,0 +1,4 @@
+class Course
+  duration : Expression
+  cost : Expression
+end

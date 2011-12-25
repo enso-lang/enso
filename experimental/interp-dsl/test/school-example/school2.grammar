@@ -1,0 +1,10 @@
+start School
+
+abstract School
+abstract Student
+
+Course ::= [Course] "course" cname:sym
+                    "(" "$" cost:Expr "for" duration:int "weeks" ")"
+                    students:Student*
+                    "stats"
+                    "end"

@@ -1,0 +1,26 @@
+module Render
+
+  def Render(obj, *args)
+    send("Render_"+obj.schema_class.name, obj, *args)
+  end
+
+  #@Rule=School
+  def Render_School(obj)
+    puts "Earnings reports for Podunk High School"
+    puts "---------------------------------------"
+    obj.courses.each {|c|Render(c)}
+  end
+
+  #@Rule=Course
+  def Render_Course(obj)
+    puts "\nCourse: #{obj.cname}"
+    obj.students.each {|s|Render(s)}
+    puts "Cost to run = $#{obj.duration*obj.cost}"
+  end
+
+  #@Rule=Student
+  def Render_Student(obj)
+    puts "  #{obj.sname} ($#{obj.fees})"
+  end
+
+end

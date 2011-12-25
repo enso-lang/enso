@@ -1,0 +1,12 @@
+start Interp
+
+Interp ::= [Interp] "interpret" domain:sym "do" action:sym ("(" args:{Var ","}* ")")? ("init" init:str)? rules:Rule*
+
+Rule ::= [Rule] type:sym ("(" vars:{Var ","}* ")")? ":" body:str
+
+Var ::= [Var] name:sym (":" type:sym Multiplicity?)?
+
+Multiplicity ::= "*" @"@many = true; @optional = true"
+	       | "?" @"@optional = true"
+	       | "+" @"@many = true"
+	       | @"true"

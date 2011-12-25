@@ -1,0 +1,12 @@
+primitive \int
+
+class Node end
+
+class Leaf < Node
+  value : int
+end
+
+class Fork < Node
+  !left : Node
+  !right : Node
+end

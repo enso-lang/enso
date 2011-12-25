@@ -1,0 +1,19 @@
+primitive str
+primitive int
+
+class School
+  name : str
+  !courses : Course*
+end
+
+class Course
+  !cname : str
+  duration : int
+  cost : int
+  !students : Student*
+end
+
+class Student
+  !sname : str
+  fees : int
+end
