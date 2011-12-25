@@ -40,9 +40,12 @@ module Paths
     end
 
     def deref(root, this = root)
-      elts.inject(root) do |cur, elt|
-        elt.deref(cur, this)
+      elts.each do |elt|
+        n = elt.deref(root, this)
+        raise "\n#{root} does not have component #{elt}" if !n
+        root = n
       end
+      root
     end
 
     def field(name)

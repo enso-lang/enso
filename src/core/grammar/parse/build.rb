@@ -50,6 +50,7 @@ class Build
 
   def Field(this, sppf, owner, accu, _, fixes, paths)
     field = owner.schema_class.fields[this.name]
+    raise "Object #{owner} has no field #{this.name} as required by grammar fixups" if !field
     kids(sppf, owner, accu = {}, field, fixes, paths = {})
     accu.each do |org, value|
       # convert the value again, this time based on the field type
