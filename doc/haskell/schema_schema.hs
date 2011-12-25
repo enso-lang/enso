@@ -83,7 +83,6 @@ schema_schema = schema [
   primitive "str",
   primitive "int",
   primitive "bool",
-  primitive "real",
 
   def_class "Schema" Nil [
     def_field "types" "Type" [MANY] 
