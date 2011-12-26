@@ -11,6 +11,9 @@ class Pipe
   length: float
   // dynamic state
   pressure: float
+  temperature: float
+  // computed
+  volume: float = "@diameter^2*3.14/4*length"
 end
 
 class Element 
@@ -27,6 +30,8 @@ class End < Element end
 class Source < End
   kind: str
   output: Pipe
+  // dynamic state
+  pressure: float
 end
 
 class Exhaust < End
