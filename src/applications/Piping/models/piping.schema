@@ -2,7 +2,7 @@
 
 
 class System
-  elements: Element*
+! elements: Element*
 end
 
 class Pipe
@@ -10,10 +10,12 @@ class Pipe
   diameter: float
   length: float
   // dynamic state
+  flow: float
   pressure: float
   temperature: float
   // computed
-  volume: float = "@diameter^2*3.14/4*length"
+  area: float = "@diameter**2 * 3.14/4"
+  volume: float = "@area * @length"
 end
 
 class Element 
@@ -21,7 +23,7 @@ class Element
 end
 
 class Joint < Element
-  output: Pipe
+! output: Pipe
   pipes: Pipe*
 end
 
@@ -29,35 +31,34 @@ class End < Element end
 
 class Source < End
   kind: str
-  output: Pipe
+! output: Pipe
   // dynamic state
   pressure: float
 end
 
 class Exhaust < End
   input: Pipe
+  pressure: float = "101.352"
 end
 
 class Burner < Element
   input: Pipe
   gas: Pipe
-  output: Pipe
-  capacity: float 
+! output: Pipe
   // dynamic state
-  current: float
+  temperature: float
 end
 
 class Radiator < Element
   input: Pipe
-  output: Pipe
-  capacity: float 
+! output: Pipe
   // dynamic state
-  current: float
+  temperature: float
 end
 
 class Vessel < Element
   input: Pipe
-  output: Pipe
+! output: Pipe
   capacity: float
   // dynamic state
   contents: float
@@ -65,7 +66,7 @@ end
 
 class Valve < Element
   input: Pipe
-  output: Pipe
+! output: Pipe
   // dynamic state
   flow: float // between 0 and 1
 //  default: float
@@ -78,8 +79,8 @@ end
 
 class Splitter < Element
   input: Pipe
-  left: Pipe
-  right: Pipe
+ !left: Pipe
+ !right: Pipe
   // dynamic state
   flow: float // between 0 and 1
 //  default: float
@@ -89,9 +90,10 @@ end
 
 class Pump < Element
   input: Pipe
-  output: Pipe
+! output: Pipe
   // dynamic state
   power: float
+  flow: float
 end
 
 class Sensor < Element

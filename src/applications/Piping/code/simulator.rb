@@ -7,11 +7,12 @@ require 'core/grammar/render/layout'
 =begin
 NOTES:
 - How to send commands from controller?
-- How to display output? Log+sensor? Can the controller any state or only sensors?
+- How to display output? Log+sensor?
 - Separate 'dynamic state' schema?
   - sometimes we need an 'old' and a 'new' state, and the static piping layout is unchanged
   - the piping editor is only concerned with the static layout
 - Pipes vs Joints vs Splitters: Joints and splitters are 1-way?
+- Sensors only attached to pipes? Not so in the example
 - Proposed change: Pipes to have exactly two elements, and Sensor moved to a non element (special widget attached to pipes)
 
 TODO:
@@ -26,63 +27,68 @@ Useful Physics laws
   = Pressure and volume are inversely proportionate
 - Bernoulli's law: v^2 + p/p0 = constant, where v=velocity of flow, p=pressure, p0=density of fluid
   = velocity is inversely dependent on pressure difference
-  = I am going to bastardize this into: xfer rate (mass/tick) = area * velocity
-                                                              = (min(s1.diameter, s2.diameter)*3.14/4)
-                                                                * sqrt(s1.pressure/s2.pressure - 1) * constant
-  = this can never cause the pressure to move more than the final pressure, which is given by:
-          (s1.volume*s1.pressure + s2.volume*s2.pressure) / s1.volume+s2.volume
-  = atmospheric pressure is ~100kPa
+- atmospheric pressure is 101.352 kPa
+- Poiseuille's Equation Calculator: V = (pi * P * r^4) / (8 * n * L)
+    V = Volume per Second
+    P = Pressure Difference Between The Two Ends
+    R = Internal Radius of the Tube
+    n = Absolute Viscosity
+    L = Total Length of the Tube
+
 =end
 
-module Step
-  def step(elem, *args)
-    send("step_#{elem.schema_class.name}", *args)
+module Run
+  def run(elem, *args)
+    send("run_#{elem.schema_class.name}", elem, *args)
   end
 
-  def step_Joint(elem, new_elem)
-    #transport fluids from pipes to other pipes
-    #velocity is dependent on pressure difference
-    #will never cause source pipes to have a lower pressure than output
-    elem.pipes.each do |p|
-      next unless p.pressure > elem.output.pressure
-      transfer = ([p.diameter, elem.output.diameter].min *3.14/4) * sqrt(p.pressure/elem.output.pressure - 1) * 10
-      next unless transfer > 1.0
-      puts "#{transfer} amount of material flowed from #{p} to #{elem.output}"
-      p1 = (p.pressure*p.volume - transfer) / p.volume
-      p2 = (elem.output.pressure*elem.output.volume + transfer) / elem.output.volume
-      if p1.pressure < p2.pressure
-        p1=p2= (p.volume*p.pressure + s2.volume*s2.pressure) / s1.volume+s2.volume
-      end
-      p.pressure = p1
-      elem.output.pressure = p2
-      dirty_pipe(p)
-      dirty_pipe(elem.output)
+  def run_Pipe(elem, new_elem)
+  end
+
+  def run_Joint(elem, new_elem)
+    #funnel fluids from pipes into one pipe
+    #total flow is conserved
+    elem.output.flow = elem.pipes.inject(0) {|memo,p| memo+p.flow}
+    if elem.output.flow > 0
+      elem.output.temperature = elem.pipes.inject(0) {|memo,p|memo + p.temperature * p.flow} / elem.output.flow
     end
   end
 
-  def step_Source(elem, new_elem)
+  def run_Splitter(elem, new_elem)
+    #shares fluids from one pipe to others
+    #total flow is conserved
+    #final velocity is equal for all output pipes
+    total_area = [elem.left, elem.right].inject(0) {|memo,p| memo+p.area }
+    velocity = elem.input.flow / total_area
+    [elem.left, elem.right].each do |p|
+      p.flow = p.area * velocity
+      p.temperature = elem.input.temperature
+    end
+  end
+
+  def run_Source(elem, new_elem)
     #allows material to enter the system
     #pressure is assumed to be maintained by environment
-    if elem.output.pressure != elem.pressure
-      elem.output.pressure = elem.pressure
-      dirty_pipe(elem.output)
-    end
   end
 
-  def step_Exhaust(elem, new_elem)
+  def run_Exhaust(elem, new_elem)
     #allows material to exit the system
-    transfer = (input *3.14/4) * sqrt(input.pressure/100 - 1) * 10
-    input.pressure = (input.pressure*input.volume - transfer) / input.volume
-    dirty_pipe(elem.input)
+    #pressure is maintained at atmospheric pressure (~101 kPa)
   end
 
-  def step_Burner(elem, new_elem)
+  def run_Burner(elem, new_elem)
+    #burner heats up water that passes through it
+    elem.output.temperature = elem.temperature
+    transfer_water(elem.input, elem.output)
   end
 
-  def step_Radiator(elem, new_elem)
+  def run_Radiator(elem, new_elem)
+    #radiator uses the heat from the passing water to heat the environment
+    elem.temperature = elem.input.temperature
+    transfer_water(elem.input, elem.output)
   end
 
-  def step_Vessel(elem, new_elem)
+  def run_Vessel(elem, new_elem)
     #Allows material to fill up the vessel. Once filled it acts like a joint
     if elem.contents < elem.capacity
       transfer = (input *3.14/4) * sqrt(input.pressure/100 - 1) * 10
@@ -90,66 +96,38 @@ module Step
       elem.contents += transfer
       dirty_pipe(input)
     else #behave like a joint
-      s1 = elem.input
-      s2 = elem.output
-      transfer = ([s1.diameter, s2.diameter].min *3.14/4) * sqrt(s1.pressure/s2.pressure - 1) * 10
-      if transfer > 1.0
-        puts "#{transfer} amount of material flowed from #{s1} to #{s2}"
-        p1 = (s1.pressure*s1.volume - transfer) / s1.volume
-        p1 = (s2.pressure*s2.volume + transfer) / s2.volume
-        if p1.pressure < p2.pressure
-          p1=p2= (p.volume*p.pressure + s2.volume*s2.pressure) / s1.volume+s2.volume
-        end
-        s1.pressure = p1
-        s2.pressure = p2
-        dirty_pipe(s1)
-        dirty_pipe(s2)
-      end
+      transfer_water(elem.input, elem.output)
     end
   end
 
-  def step_Valve(elem, new_elem)
+  def run_Valve(elem, new_elem)
+    #throttles the flow of water through a pipe
   end
 
-  def step_Thermostat(elem, new_elem)
+  def run_Pump(elem, new_elem)
+    #raises the flow of the output pipe
+    transfer_water(elem.input, elem.output)
+    elem.output.flow = elem.flow
   end
 
-  def step_Splitter(elem, new_elem)
-    #transport fluids from pipes to other pipes
-    #velocity is dependent on pressure difference
-    #will never cause source pipes to have a lower pressure than output
-    elem.pipes.each do |p|
-      next unless p.pressure < elem.output.pressure
-      transfer = ([p.diameter, elem.output.diameter].min *3.14/4) * sqrt(p.pressure/elem.output.pressure - 1) * 10
-      next unless transfer < 1.0
-      puts "#{transfer} amount of material flowed from #{elem.input} to #{p}"
-      p1 = (p.pressure*p.volume + transfer) / p.volume
-      p2 = (elem.output.pressure*elem.output.volume - transfer) / elem.output.volume
-      if p1.pressure > p2.pressure
-        p1=p2= (p.volume*p.pressure + s2.volume*s2.pressure) / s1.volume+s2.volume
-      end
-      p.pressure = p1
-      elem.output.pressure = p2
-      dirty_pipe(p)
-      dirty_pipe(elem.output)
-    end
-  end
-
-  def step_Pump(elem, new_elem)
-
+  #transfer some amount of water from s1 to s2 based on connecting area and flow (based on pressure)
+  def transfer_water(p1, p2)
+    p2.flow = p1.flow
+    p2.temperature = p1.temperature
   end
 end
 
 class Simulator
 
-  include Step
+  include Run
 
-  def initialize(piping_file)
-    @piping = Loader.load(piping_file)
+  def initialize(piping)
+    @piping = piping
+    #do initialization here by setting the default states of the pipes, etc
   end
 
   #will run continuously
-  def run
+  def execute
     while true
       tick
     end
@@ -158,16 +136,7 @@ class Simulator
   #main step function. each step takes the current state and produces the next state
   #maintains a dirty bit on elements to know which elements are connected to pipes whose state have changed
   def tick
-    dirty = @dirty_elems.clone
-    @dirty_elems = []
-    dirty.each do |e|
-      step(e)
-    end
+    @piping.elements.each {|e| run(e,0)}
   end
 
-  def dirty_pipe(p)
-    p.connections.each do |e|
-      @dirty_elems << e
-    end
-  end
 end
