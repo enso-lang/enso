@@ -74,6 +74,7 @@ module Loading
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
+      @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
     end
         
     def load_with_models(name, grammar, schema, encoding = nil)
