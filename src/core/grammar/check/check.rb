@@ -102,7 +102,7 @@ class CheckGrammar
           elsif t.primitive? then
             errors << primitive_class_mismatch(klass, f, t.klass, sf.type)
           elsif !Subclass?(t.klass, sf.type) # must be both klass now
-            errors << incompatible_types(klass, f, sf.type, t.klass)
+            errors << incompatible_types_error(klass, f, sf.type, t.klass)
           end
 
           m = FieldMultEval.new(f).eval(this.arg, false)
