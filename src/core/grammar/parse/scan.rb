@@ -36,6 +36,11 @@ class Scan
     return ws, @scanner.pos
   end
 
+  def lookahead(pat, ci)
+    @scanner.pos = ci
+    @scanner.scan(pat)
+  end
+
   def with_literal(lit, ci)
     # cache literal regexps as we go
     @lit_res[lit] ||= Regexp.new(Regexp.escape(lit))

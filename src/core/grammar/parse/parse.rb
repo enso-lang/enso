@@ -41,23 +41,36 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/grammar/code/layout'
-  ig = Loader.load('instance.grammar')
-  grammar = Loader.load('schema.grammar')
-  
-  path = 'applications/ToDo/models/todo.schema'
+  require 'core/schema/code/factory'
+  require 'benchmark'
+  require 'ruby-prof'
+  grammar = Loader.load('web.grammar')
+  ss = Loader.load('web.schema')
+  factory = Factory.new(ss)
+  path = 'core/web/models/prelude.web'
   source = File.read(path)
   org = Origins.new(source, path)
-  tree = Parse.parse(source, grammar, org)
-  inst = Implode.implode(tree, org)
-
-  puts "Referenced in start: #{ig.start._origin}"
-  puts "Reference 'start': #{ig._origin_of.start}"
-
-  is = Loader.load('web.schema')
   
-  puts "Instances: #{is.classes['Web']._origin}"
-#  puts "Reference 'start': #{ig._origin_of.start}"
+  puts "PARSING"
+  tree = nil
 
-  #DisplayFormat.print(ig, inst)
+  10.times do |x|
+    puts Benchmark.measure { tree = Parse.parse(source, grammar, org) }
+  end
+
+  result = RubyProf.profile do 
+    Build.build(tree, factory, org)
+  end
+
+  printer = RubyProf::FlatPrinter.new(result)
+  printer.print(STDOUT, {})
+
+
+
+#   puts "BUILDING"
+#   10.times do |x|
+#     puts Benchmark.measure { Build.build(tree, factory, org) }
+#   end
+  
+
 end

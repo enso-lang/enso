@@ -15,7 +15,7 @@ class GSS
   end
   
   def initialize(item, pos)
-    raise if item.schema_class.name != 'Item'
+    # raise if item.schema_class.name != 'Item'
     @item = item
     @pos = pos
     @edges = {}

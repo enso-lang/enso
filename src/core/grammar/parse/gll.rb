@@ -3,6 +3,7 @@ require 'core/grammar/parse/gss'
 require 'core/grammar/parse/todot'
 require 'core/grammar/parse/sppf'
 require 'core/grammar/parse/eval'
+require 'core/schema/tools/print'
 
 class GLL
   attr_reader :ci
@@ -40,16 +41,13 @@ class GLL
   end
 
   def result(source, top)
-    last = 0;
-    pt = Node.nodes.values.find do |node|
-      last = node.ends > last ? node.ends : last
-      top_node?(node, source, top)
+    r = Node.nodes.values.find do |n|
+      top_node?(n, source, top)
     end
-    unless pt
-      loc = @origins.str(last)
-      raise "Parse error at #{loc}:\n'#{source[last,50]}...'" 
-    end
-    return pt
+    return r if r
+    loc = @origins.str(@ci)
+    #Print.print(@cu.item)
+    raise "Parse error at #{loc}:\n'#{source[@ci,50]}...'" 
   end
   
   def top_node?(node, source, top)
