@@ -34,6 +34,8 @@ class Build
 
   def kids(sppf, owner, accu, field, fixes, paths)
     amb_error(sppf) if sppf.kids.length > 1
+    #puts "---> kids was empty (owner = #{owner})" if sppf.kids.empty?
+    #puts "---> type #{sppf.type}" if sppf.kids.empty?
     return if sppf.kids.empty?
     pack = sppf.kids.first
     recurse(pack.left, owner, accu, field, fixes, paths) if pack.left
@@ -43,6 +45,7 @@ class Build
 
   def Create(this, sppf, owner, accu, field, fixes, paths)
     current = @factory[this.name]
+    #puts "Creating: #{this.name}"
     kids(sppf, current, {}, nil, fixes, {})
     current._origin = org = origin(sppf)
     accu[org] = current
@@ -50,6 +53,7 @@ class Build
 
   def Field(this, sppf, owner, accu, _, fixes, paths)
     field = owner.schema_class.fields[this.name]
+    #puts "FIELD: #{this.name}"
     raise "Object #{owner} has no field #{this.name} as required by grammar fixups" if !field
     kids(sppf, owner, accu = {}, field, fixes, paths = {})
     accu.each do |org, value|
@@ -129,13 +133,15 @@ class Build
   def fixup(obj, fixes)
     fixes.each do |fix|
       actual = fix.path.deref(obj, fix.obj)
-      raise "Could not deref path: #{fix.path}" if actual.nil?
+      # TODO: is this really an error?
+      raise "Could not deref path: #{fix.path}"  if actual.nil?
       update(fix.obj, fix.field, actual)
       update_origin(fix.obj, fix.field, fix.origin)
     end
   end
 
   def update(owner, field, x)
+    #puts "Updating: #{owner}.#{field.name} := #{x}"
     if field.many then
       owner[field.name] << x
     else

@@ -56,7 +56,15 @@ class ToDot
     if n.is_a?(Leaf) then
       n.value.gsub(/"/, '\\"').gsub(/\n/, "\\n")
     elsif n.is_a?(Node) then
-      n.type.to_s
+      if n.type.schema_class.name == 'Rule' 
+        n.type.name
+      elsif n.type.schema_class.name == 'Create'
+        "[#{n.type.name}]"
+      elsif n.type.schema_class.name == 'Field'
+        "#{n.type.name}:"
+      else
+        n.type.to_s
+      end
     elsif n.is_a?(Pack) then
       ''
     end

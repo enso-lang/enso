@@ -36,6 +36,10 @@ class GrammarEval
   def Sequence(this, gll, nxt)
     item = item(this, this.elements, 0)
     if this.elements.empty? then
+      gll.create(nxt) if nxt # this is needed to make sure chaining
+      # works correctly in case the leaf is empty; otherwise
+      # we lose empty Creates which are needed to make "empty" objects.
+
       gll.empty_node(item, @epsilon)
       Item(nxt, gll, nil) if nxt
     else
