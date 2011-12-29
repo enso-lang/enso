@@ -3,6 +3,7 @@
 
 class System
 ! elements: Element*
+! sensors: Sensor*
 end
 
 class Pipe
@@ -56,9 +57,6 @@ class Valve < Element
 ! output: Pipe
 end
 
-class Thermostat < Element
-end
-
 class Splitter < Element
   input: Pipe
  !left: Pipe
@@ -71,7 +69,8 @@ class Pump < Element
 ! output: Pipe
 end
 
-class Sensor < Element
+class Sensor
+  #name: str
   kind: str // temperature, pressure, flow
   attach: Pipe
 end

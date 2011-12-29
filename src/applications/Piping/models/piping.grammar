@@ -1,6 +1,6 @@
 start System
 
-System ::= [System] elements:Element*
+System ::= [System] elements:Element* sensors:Sensor*
 
 Element ::= [Source]  output:pipe name:sym ":" "source" kind:sym 
         |   [Exhaust] input:pipe  name:sym ":" "exhaust" name:sym
@@ -12,7 +12,8 @@ Element ::= [Source]  output:pipe name:sym ":" "source" kind:sym
         |   [Joint]   output:pipe name:sym "=" pipes:{Connection "+"}+ 
         |   [Thermostat] name:sym ":" "thermostat"
         |   [Burner] name:sym ":" "burner" in gas  output:pipe
-        |   [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
+
+Sensor ::= [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
 
 pipe ::= [Pipe]
 in ::= "in" "=" input:Connection
