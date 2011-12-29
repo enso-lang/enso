@@ -1,0 +1,17 @@
+diagram(system)
+
+graph [font.size=12,fill.color=(255,255,255)] {
+  // create the nodes (one for each class)
+  for ("Element" elem : system.elements)
+   label elem
+     oval [line.width=1] { // this is the class rectangle
+       text [font.size=16,font.weight=700] elem.name
+     }
+  // create the links
+  for ("Element" elem : system.elements)
+    let out = elem.output in
+        for ("Element" target : out.connections)
+          if target != elem
+            connector ("pipe", "action" : elem --> target)
+
+}

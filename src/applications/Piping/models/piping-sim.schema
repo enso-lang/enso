@@ -1,0 +1,2 @@
+#ruby
+union(load('piping.schema'), load('piping-state.schema'))

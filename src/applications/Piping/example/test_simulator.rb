@@ -7,8 +7,10 @@ require 'core/system/load/load'
 
 #  def test_run1
 
-    #piping = Loader.load('boiler.piping')
-    fact = Factory.new(Loader.load('piping.schema'))
+    fact = Factory.new(Loader.load('piping-sim.schema'))
+    piping = Copy(fact, Loader.load('boiler.piping'))
+
+=begin
     piping = fact.System
 
     source = fact.Source("Source")
@@ -64,7 +66,7 @@ require 'core/system/load/load'
     piping.elements << boiler
     piping.elements << radiator
     piping.elements << retur
-
+=end
 =begin
 // inputs
    I: source water
@@ -87,8 +89,8 @@ require 'core/system/load/load'
     Print.print(piping)
 
     #now we start the pump
-    pump.flow = 10
-    burner.temperature = 80
+    piping.elements['Pump'].flow = 10
+    piping.elements['Burner'].temperature = 80
     (1..10).each do |i|
       #puts "\n\n\n************************************************\n"
       #puts "After #{i} tick"

@@ -9,10 +9,6 @@ class Pipe
   connections: Element*
   diameter: float
   length: float
-  // dynamic state
-  flow: float
-  pressure: float
-  temperature: float
   // computed
   area: float = "@diameter**2 * 3.14/4"
   volume: float = "@area * @length"
@@ -32,46 +28,32 @@ class End < Element end
 class Source < End
   kind: str
 ! output: Pipe
-  // dynamic state
-  pressure: float
 end
 
 class Exhaust < End
   input: Pipe
-  pressure: float = "101.352"
 end
 
 class Burner < Element
   input: Pipe
   gas: Pipe
 ! output: Pipe
-  // dynamic state
-  temperature: float
 end
 
 class Radiator < Element
   input: Pipe
 ! output: Pipe
-  // dynamic state
-  temperature: float
 end
 
 class Vessel < Element
   input: Pipe
 ! output: Pipe
   capacity: float
-  // dynamic state
-  contents: float
 end
 
 class Valve < Element
   input: Pipe
 ! output: Pipe
-  // dynamic state
-  flow: float // between 0 and 1
-//  default: float
-//  min: float
-//  max: float
 end
 
 class Thermostat < Element
@@ -81,19 +63,12 @@ class Splitter < Element
   input: Pipe
  !left: Pipe
  !right: Pipe
-  // dynamic state
-  flow: float // between 0 and 1
-//  default: float
-//  min: float
-//  max: float
+  output: Pipe = "@left"
 end
 
 class Pump < Element
   input: Pipe
 ! output: Pipe
-  // dynamic state
-  power: float
-  flow: float
 end
 
 class Sensor < Element

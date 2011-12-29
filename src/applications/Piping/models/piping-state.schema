@@ -1,0 +1,40 @@
+// Dynamic state information used by the simulator
+primitive float
+
+class Pipe
+  flow: float
+  pressure: float
+  temperature: float
+end
+
+class Element end
+
+class End < Element end
+class Source < End
+  pressure: float
+end
+
+class Burner < Element
+  temperature: float
+end
+
+class Radiator < Element
+  temperature: float
+end
+
+class Vessel < Element
+  contents: float
+end
+
+class Valve < Element
+  flow: float // between 0 and 1
+end
+
+class Splitter < Element
+  flow: float // between 0 and 1
+end
+
+class Pump < Element
+  pressure: float
+  flow: float
+end

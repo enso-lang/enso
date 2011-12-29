@@ -1,0 +1,17 @@
+Description of various models
+-----------------------------
+
+piping.schema
+piping.grammar
+piping.stencil
+Piping and instrumentation DSL. Stencil is the graphical editor and grammar is the textual editor.
+
+piping-sim.schema
+piping-sim.grammar
+piping-data.schema
+Data model and stencil code for containing and rendering simulator. Piping-sim.schema is a composition of the piping diagram (piping.schema) and its dynamic state (piping-state.schema)
+
+controller.schema
+controller.grammar
+controller.stencil
+Controller DSL. Has both graphical and textual editors
