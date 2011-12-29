@@ -19,10 +19,10 @@ in ::= "in" "=" input:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=
-       [Pipe] connections:/elements[it]/input^ "." "input" 
-     | [Pipe] connections:/elements[it]/left^ "." "left" 
-     | [Pipe] connections:/elements[it]/right^ "." "right" 
-     | [Pipe] connections:/elements[it]/output^
+       /elements[it]/input^ "." "input"
+     | /elements[it]/left^ "." "left"
+     | /elements[it]/right^ "." "right"
+     | /elements[it]/output^
 
 
 
