@@ -258,7 +258,21 @@ class StencilFrame < DiagramFrame
     throw :fail
   end
 
-  def constructFor(this, env, container, &block) 
+  def constructLet(this, env, container, &block)
+    nenv = {}.update(env)
+    this.decls.each do |assign|
+      #presumably only Fields and Vars can serve as l-values
+      #FIXME: handle Fields as well, by using the address field from eval
+      if assign.loc.Var?
+        nenv[assign.loc.name], _ = eval assign.exp, env
+      else
+        raise "Trying to use #{assign} as an l-value in a let expression"
+      end
+    end
+    construct this.body, nenv, container
+  end
+
+  def constructFor(this, env, container, &block)
     source, address = eval(this.iter, env)
     nenv = {}.update(env)
     kind = address.field.type.name
