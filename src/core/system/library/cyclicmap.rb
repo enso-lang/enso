@@ -50,11 +50,11 @@ class CyclicCollectShy < MemoBase
   def _(this, accu)
     this.schema_class.fields.each do |f|
       v = this[f.name]
-      if v && v.is_a?(CheckedObject) then
+      if v && v.respond_to?(:schema_class) then
         recurse(this[f.name], accu)
       elsif v && f.many then
         v.each do |elt|
-          recurse(elt, accu) if elt && elt.is_a?(CheckedObject)
+          recurse(elt, accu) if elt && elt.respond_to?(:schema_class)
         end
       end
     end

@@ -1,6 +1,6 @@
 
 require 'core/system/utils/paths'
-require 'core/schema/code/factory'
+require 'core/schema/code/factory2'
 
 class FromXML
   include Paths
@@ -11,7 +11,7 @@ class FromXML
 
   def initialize(schema)
     @schema = schema
-    @fact = Factory.new(schema)
+    @fact = ManagedData::Factory.new(schema)
   end
 
   def load(doc)

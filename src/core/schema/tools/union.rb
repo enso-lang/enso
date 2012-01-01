@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'core/schema/code/factory'
+require 'core/schema/code/factory2'
 
 require 'core/grammar/render/layout'
 
@@ -85,7 +85,8 @@ class CopyInto
   def do_join(field, a, b)
     key = ClassKey(field.type)
     if key
-      empty = ManyIndexedField.new(key.name)
+      empty = ManagedData::Set.new(nil, nil, key)
+      #ManyIndexedField.new(key.name)
       (a || empty).outer_join(b || empty) do |sa, sb|
         if sa && sb && sa[key.name] == sb[key.name] 
           yield sa, sb
@@ -126,6 +127,6 @@ end
 
 
 def union(a, b)
-  f = Factory.new(a._graph_id.schema)
+  f = ManagedData::Factory.new(a._graph_id.schema)
   Union(f, a, b)
 end
