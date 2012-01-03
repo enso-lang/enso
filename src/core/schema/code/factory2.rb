@@ -493,7 +493,6 @@ module ManagedData
       @value.values
     end
 
-
     ### These are readonly "queries", so we return
     ### disconnected Sets (no owner)
 
@@ -530,6 +529,19 @@ module ManagedData
       new || Set.new(nil, @field, __key)
     end
       
+    def join(other)
+      empty = Set.new(nil, @field, __key)
+      self.outer_join(other || empty) do |sa, sb|
+        if sa && sb && sa[__key.name] == sb[__key.name] 
+          yield sa, sb
+        elsif sa
+          yield sa, nil
+        elsif sb
+          yield nil, sb
+        end
+      end
+    end
+
     def outer_join(other)
       keys = __keys | other.__keys
       keys.each do |key|
@@ -603,6 +615,14 @@ module ManagedData
       @value
     end
 
+    def join(other)
+      if !empty? then
+        each do |item|
+          yield item, nil
+        end
+      end
+    end
+    
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj
       check(mobj)
