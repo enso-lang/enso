@@ -1,18 +1,40 @@
 primitive str
 primitive int
 primitive bool
+primitive float
 
 class Expr end
 
 class EBinOp < Expr
   op:str
-  !e1:Expr
-  !e2:Expr
+! e1:Expr
+! e2:Expr
 end
 
 class EUnOp < Expr
   op:str
-  !e:Expr
+! e:Expr
+end
+
+class EFunCall < Expr
+  fun:str
+! args:Expr*
+end
+
+class EField < Expr
+! e:Expr
+  fname:str
+end
+
+class EVar < Expr
+  name:str
+end
+
+class EListComp < Expr
+  op:str
+  var:str
+! list:Expr
+! e:Expr
 end
 
 class EConst < Expr end
@@ -24,4 +46,7 @@ class EIntConst < EConst
 end
 class EBoolConst < EConst
   val:bool
+end
+class EFloatConst < EConst
+  val:float
 end

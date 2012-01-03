@@ -1,0 +1,27 @@
+primitive \str
+
+class Controller
+  initial:State
+! globals:Assign*
+! states:State*
+end
+
+class State
+ #name:str
+! commands:Command*
+! transitions:Transition*
+end
+
+class Command end
+
+class Transition
+! guard:Expr
+! target:State
+end
+
+class Assign < Command
+! var:Expr
+! val:Expr
+end
+
+class Expr end
