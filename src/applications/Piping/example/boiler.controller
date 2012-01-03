@@ -1,0 +1,47 @@
+start OFF
+
+DESIRED_WATER_TEMP = 125
+WATER_MARGIN = 10
+DESIRED_RADIATOR_TEMP = 75
+RADIATOR_MARGIN = 3
+
+PUMP_SPEED = 10
+MIN_GAS = 50
+
+BURNER_RAMPUP = 10
+VALVE_SWITCH = 0.1
+
+state OFF:
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto IGNITE
+ if boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto IGNITE
+
+state IGNITE:
+ Burner.ignite = true
+ gas = MIN_GAS
+ Burner.gas = gas
+ Pump.run = true
+ if Burner.ignite goto RAMPUP
+
+state RAMPUP:
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN and boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto BOILER
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN and boiler_temp > DESIRED_WATER_TEMP + WATER_MARGIN goto RADIATOR
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN and boiler_temp > DESIRED_WATER_TEMP + WATER_MARGIN goto COOLDOWN
+ Burner.ignite = true
+ gas = gas + BURNER_RAMPUP
+ Burner.gas = gas
+ Pump.run = true
+
+state BOILER:
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto RAMPUP
+ if boiler_temp > DESIRED_WATER_TEMP + WATER_MARGIN goto COOLDOWN
+ Valve.position = Valve.position + VALVE_SWITCH
+
+state RADIATOR:
+ if boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN goto COOLDOWN
+ Valve.position = Valve.position + VALVE_SWITCH
+
+state COOLDOWN:
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN or boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
+ F.gas = MIN_GAS
+ F.ignite = false

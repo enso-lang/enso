@@ -5,7 +5,7 @@ require 'core/system/load/load'
 
 #class SimulatorTest < Test::Unit::TestCase
 
-#  def test_run1
+  def test_run1
 
     fact = Factory.new(Loader.load('piping-sim.schema'))
     piping = Copy(fact, pipes = Loader.load('boiler.piping'))
@@ -45,6 +45,12 @@ require 'core/system/load/load'
       sim.tick
     end
     Print.print(piping)
+  end
+
+#  def test_controller
+
+    controller = Loader.load('boiler.controller')
 
 #  end
+
 #end
