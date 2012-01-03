@@ -16,64 +16,55 @@ end
 
 class Element 
   #name: str
+  // pipes: Pipe* / connections
 end
 
-class Joint < Element
+class OutputElement < Element
 ! output: Pipe
+end
+class InputElement < Element
+  input: Pipe
+end
+
+class Joint < OutputElement
   pipes: Pipe*
 end
 
-class End < Element end
-
-class Source < End
+class Source < OutputElement
   kind: str
-! output: Pipe
 end
 
-class Exhaust < End
-  input: Pipe
+class Exhaust < Element, InputElement
 end
 
-class Burner < Element
-  input: Pipe
+class Burner < OutputElement, InputElement
   gas: Pipe
-! output: Pipe
 end
 
-class Radiator < Element
-  input: Pipe
-! output: Pipe
+class Radiator < OutputElement, InputElement
 end
 
-class Vessel < Element
-  input: Pipe
-! output: Pipe
+class Vessel < OutputElement, InputElement
   capacity: float
 end
 
-class Valve < Element
-  input: Pipe
-! output: Pipe
+class Valve < OutputElement, InputElement
 end
 
 class Thermostat < Element
 end
 
-class Splitter < Element
-  input: Pipe
+class Splitter < Element, InputElement
  !left: Pipe
  !right: Pipe
-  output: Pipe = "@left"
+ // output: Pipe = "@left"
 end
 
-class Pump < Element
-  input: Pipe
-! output: Pipe
+class Pump < OutputElement, InputElement
 end
 
-class Sensor < Element
+class Sensor < Element, InputElement
   kind: str // temperature, pressure, flow
-  attach: Pipe
 end
 
 primitive str

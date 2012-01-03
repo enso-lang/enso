@@ -7,8 +7,8 @@
    Valve: splitter in=Pump
    Boiler: vessel in=Valve.left
    Radiator: radiator in=Valve.right
-   RoomTemp: thermostat
+   //RoomTemp: thermostat
    Return = Boiler + Radiator + I
 // outputs
-   furnace_output_temp: Temperature(Burner)
-   boiler_temp: Temperature(Valve.left)
+   //furnace_output_temp: Temperature(Burner)
+   //boiler_temp: Temperature(Valve.left)

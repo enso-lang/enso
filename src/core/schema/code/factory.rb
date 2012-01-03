@@ -583,7 +583,7 @@ class ManyField < BaseManyField
   end
 
   def [](x)
-    @list[x]
+    @list[x.to_i]
   end
   
   def length

@@ -12,6 +12,7 @@ require 'yaml'
 # render(Stencil, data) = diagram
 
 def RunStencilApp(path = nil)
+  path = ARGV[0] if !path
   Wx::App.run do
     win = StencilFrame.new(path)
     win.show 
@@ -389,10 +390,10 @@ class StencilFrame < DiagramFrame
       raise "foo" if !tag.Var?
       tag = tag.name
       index, _ = eval(label.args[1], env)
-      return "#{tag}_#{index.name}"  #TODO: hack!!! should use the real path
+      return "#{tag}_#{index._id}"  #TODO: hack!!! should use the real path
     else
       val, _ = eval(label, env)
-      val = val.name  #TODO: hack!!!
+      val = val._id  #TODO: hack!!!
       return val
     end
   end
@@ -406,7 +407,7 @@ class StencilFrame < DiagramFrame
       end
     end
     make_styles(this, group, env)
-    block.call group
+    block.call group if block
   end
   
   def constructText(this, env, container, &block)
@@ -640,3 +641,5 @@ class Address
     return real_field.traversal
   end
 end
+
+RunStencilApp()
