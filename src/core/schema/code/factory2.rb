@@ -1,11 +1,18 @@
-
 require 'core/system/library/schema'
-require 'core/schema/code/finalize'
 require 'core/system/utils/paths'
 require 'ostruct'
 
 
-## TODO: paths
+=begin
+
+Coding convention
+
+- private methods: private to the class (ordinary Ruby semantics)
+- __method: to be only used by classes in ManagedData
+- _method: to be used outside, but internal meta data (e.g. origin/path)
+
+=end
+
 
 module ManagedData
 
@@ -72,17 +79,23 @@ module ManagedData
       @_graph_id = factory
       @hash = {}
       @listeners = {}
+      @_path = Paths::Path.new
       __setup(klass.all_fields)
       __init(klass.fields, args)
       __install(klass.all_fields)
     end
 
+    # TODO: get rid of this
     def method_missing(sym, *args, &block)
       if sym =~ /^([A-Z].*)\?$/
         schema_class.name == $1
       else
         super(sym, *args, &block)
       end
+    end
+    
+    def instance_of?(sym)
+      schema_class.name == sym.to_s
     end
 
     def [](name)
@@ -117,9 +130,30 @@ module ManagedData
 
     def _origin_of(name); __get(name)._origin end
 
+    def _set_origin_of(name, org)
+      __get(name)._origin = org
+    end
+
+    def _path_of(name); __get(name)._path end
+
+    def _path=(path)
+      puts "PATH = #{path}"
+      __adjust(path)
+      @_path = path
+    end
+
     def __get(name); @hash[name] end
 
     def __set(name, fld); @hash[name] = fld end
+
+    def __adjust(path)
+      schema_class.fields.each do |fld|
+        #puts "MObj adjusting: #{fld.name}: #{path}"
+        if fld.traversal then
+          __get(fld.name).__adjust(path)
+        end
+      end
+    end
 
     def eql?(o); self == o end
 
@@ -217,25 +251,32 @@ module ManagedData
         self[name]
       end
     end
-
   end
 
   class Field 
+    # fields have origins for primitives, spine refs 
+    # and cross refs. For spine refs
+    # this origin is the same as the _origin
+    # of the mobject pointed to.
+    # Similar for paths
+    attr_accessor :_origin
+    attr_accessor :_path
+
     def initialize(owner, field)
       @owner = owner
       @field = field
+      @_path = Paths::Path.new.field(field.name)
+    end
+
+    def __adjust(path)
+      #puts "Field #{@field.name}: setting path to #{path.field(@field.name)}"
+      _path = path.field(@field.name)
     end
 
     def to_s; ".#{@field.name} = #{@value}" end
   end
 
   class Single < Field
-    # fields have origins for primitives
-    # and cross refs. For spine refs
-    # this origin is the same as the origin
-    # of the mobject pointed to
-    attr_accessor :_origin
-
     def initialize(owner, field)
       super(owner, field)
       @value = default
@@ -254,7 +295,6 @@ module ManagedData
   end
 
   class Prim < Single
-
     def check(value)
       return if value.nil? && @field.optional
       case @field.type.name 
@@ -324,12 +364,23 @@ module ManagedData
     def set(value)
       check(value)
       notify(get, value)
+      if @field.traversal then
+        value._path = _path if value
+        get._path.reset! if get && !value
+      end
       __set(value)
     end
 
     def __set(value)
       @value = value
     end
+
+    def __adjust(path)
+      super(path)
+      #puts "In REF: adjusting #{get} to #{path}"
+      get.__adjust(path)  if get
+    end
+
   end
 
 
@@ -374,8 +425,9 @@ module ManagedData
     end
 
     def connected?
-      @field && @owner
+      @owner
     end
+
   end
 
   class Set < Many
@@ -391,16 +443,17 @@ module ManagedData
 
 
     ### These are readonly "queries", so we return
-    ### disconnected Sets (no field, no owner)
+    ### disconnected Sets (no owner)
 
     def +(other)
-      check_key_field(__key, other.__key)
-      r = self.inject(Set.new(nil, nil, __key || other.__key), &:<<)
+      # left-biased: field is from self
+      #check_key_field(__key, other.__key)
+      r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
       other.inject(r, &:<<)
     end
 
     def select(&block)
-      result = Set.new(nil, nil, __key)
+      result = Set.new(nil, @field, __key)
       each do |elt|
         result << elt if yield elt
       end
@@ -413,7 +466,7 @@ module ManagedData
         set = yield x
         if new.nil? then
           key = set.__key
-          new = Set.new(nil, nil, key)
+          new = Set.new(nil, @field, key)
         else
           check_key_field(key, set.__key)
         end
@@ -421,7 +474,7 @@ module ManagedData
           new << y
         end
       end
-      new || Set.new(nil, nil, nil)
+      new || Set.new(nil, @field, __key)
     end
       
     def outer_join(other)
@@ -436,10 +489,13 @@ module ManagedData
     def <<(mobj)
       check(mobj)
       key = mobj[@key.name]
-      raise "Nil key when adding #{mobj} to #{@field.name}" unless key
+      raise "Nil key when adding #{mobj} to #{self}" unless key
       return self if @value[key] == mobj
       raise "Duplicate key #{key}" if @value[key]
       notify(@value[key], mobj)
+      if connected? && @field.traversal then
+        mobj._path = _path.key(key)
+      end
       __insert(mobj)
       return self
     end
@@ -448,6 +504,9 @@ module ManagedData
       key = mobj[@key.name]
       return unless @value.include_key?(key)
       notify(@value[key], nil)
+      if connected? && @field.traversal then
+        @value[key]._path.reset!
+      end
       __delete(mobj)
     end
 
@@ -486,15 +545,29 @@ module ManagedData
     end
 
     def <<(mobj)
+      raise "Cannot insert nil into list" if !mobj
       check(mobj)
       notify(nil, mobj)
+      if @field.traversal then
+        mobj._path = _path.index(length)
+      end
       __insert(mobj)
       return self
     end
 
     def delete(mobj)
+      ind = @value.index(mobj)
       deleted = __delete(mobj)
-      notify(deleted, nil) if deleted
+      if deleted then
+        notify(deleted, nil) 
+        if connected? && @field.traversal then
+          deleted._path.reset!
+          # shift paths
+          ind.upto(length - 2) do |i|
+            @value[i]._path = _path.index(i)
+          end
+        end
+      end
       return deleted
     end
 
@@ -503,6 +576,7 @@ module ManagedData
     def __delete(mobj); @value.delete(mobj) end
   end  
 end
+
 
 
 if __FILE__ == $0 then
@@ -529,4 +603,15 @@ if __FILE__ == $0 then
     puts "TYPE: #{fld.type}"
   end
   Print.print(s)
+
+  ss.classes.each do |cls|
+    puts cls._origin
+    puts "PATH = #{cls._path}"
+    cls.fields.each do |fld|
+      ss.classes['Field'].fields.each do |f|
+        org = fld._origin_of(f.name)
+        puts "\t#{f.name}: #{org}" if org
+      end
+    end
+  end
 end

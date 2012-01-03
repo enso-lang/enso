@@ -85,7 +85,7 @@ class CopyInto
   def do_join(field, a, b)
     key = ClassKey(field.type)
     if key
-      empty = ManagedData::Set.new(nil, nil, key)
+      empty = ManagedData::Set.new(nil, field, key)
       #ManyIndexedField.new(key.name)
       (a || empty).outer_join(b || empty) do |sa, sb|
         if sa && sb && sa[key.name] == sb[key.name] 
