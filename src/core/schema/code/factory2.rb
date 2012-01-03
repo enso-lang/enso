@@ -531,7 +531,7 @@ module ManagedData
       
     def join(other)
       empty = Set.new(nil, @field, __key)
-      self.outer_join(other || empty) do |sa, sb|
+      outer_join(other || empty) do |sa, sb|
         if sa && sb && sa[__key.name] == sb[__key.name] 
           yield sa, sb
         elsif sa
@@ -539,13 +539,6 @@ module ManagedData
         elsif sb
           yield nil, sb
         end
-      end
-    end
-
-    def outer_join(other)
-      keys = __keys | other.__keys
-      keys.each do |key|
-        yield self[key], other[key], key
       end
     end
 
@@ -598,6 +591,14 @@ module ManagedData
         raise "Incompatible key fields: #{key1} vs #{key2}" 
       end
     end
+
+    def outer_join(other)
+      keys = __keys | other.__keys
+      keys.each do |key|
+        yield self[key], other[key], key
+      end
+    end
+
 
   end
 
