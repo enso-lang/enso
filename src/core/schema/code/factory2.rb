@@ -21,6 +21,7 @@ module ManagedData
 
     def initialize(schema)
       @schema = schema
+      @roots = []
       schema.classes.each do |cls|
         __constructor(cls)
       end
@@ -28,6 +29,16 @@ module ManagedData
 
     def [](name)
       send(name)
+    end
+
+    def register(root)
+      @roots << root
+    end
+
+    def delete!(obj)
+      @roots.each do |root|
+        root.__delete_obj(obj)
+      end
     end
 
     private
@@ -68,7 +79,7 @@ module ManagedData
     attr_accessor :_origin
     attr_accessor :_path
     attr_reader :_id
-    attr_reader :_graph_id
+    attr_reader :factory
     attr_reader :schema_class
 
     @@_id = 0
@@ -76,7 +87,7 @@ module ManagedData
     def initialize(klass, factory, *args)
       @_id = @@_id += 1
       @schema_class = klass
-      @_graph_id = factory
+      @factory = factory
       @hash = {}
       @listeners = {}
       @_path = Paths::Path.new
@@ -92,6 +103,10 @@ module ManagedData
       else
         super(sym, *args, &block)
       end
+    end
+
+    def _graph_id
+      @factory
     end
     
     def instance_of?(sym)
@@ -110,6 +125,20 @@ module ManagedData
     def []=(name, x)
       check_field(name, false)
       __get(name).set(x)
+    end
+
+    def delete!
+      factory.delete!(self)
+    end
+
+    def __delete_obj(mobj)
+      # traverse down spine until found, then delete!
+      # (to be called on a root)
+      schema_class.fields.each do |fld|
+        if fld.traversal then
+          __get(fld.name).__delete_obj(mobj)
+        end
+      end
     end
 
     def dynamic_update
@@ -137,7 +166,6 @@ module ManagedData
     def _path_of(name); __get(name)._path end
 
     def _path=(path)
-      puts "PATH = #{path}"
       __adjust(path)
       @_path = path
     end
@@ -149,7 +177,7 @@ module ManagedData
     def __adjust(path)
       schema_class.fields.each do |fld|
         #puts "MObj adjusting: #{fld.name}: #{path}"
-        if fld.traversal then
+        if fld.traversal then # this is still needed
           __get(fld.name).__adjust(path)
         end
       end
@@ -175,7 +203,8 @@ module ManagedData
     end
 
     def finalize
-      # nothing for now
+      # TODO: check required fields etc.
+      factory.register(self)
       self
     end
 
@@ -273,6 +302,10 @@ module ManagedData
       _path = path.field(@field.name)
     end
 
+    def __delete_obj(mobj)
+      # default: do nothing
+    end
+
     def to_s; ".#{@field.name} = #{@value}" end
   end
 
@@ -292,6 +325,7 @@ module ManagedData
     def init(value); set(value) end
 
     def default; nil end
+
   end
 
   class Prim < Single
@@ -381,6 +415,13 @@ module ManagedData
       get.__adjust(path)  if get
     end
 
+    def __delete_obj(mobj)
+      if get == mobj then
+        # set takes case of inverses
+        set(nil)
+      end
+    end
+
   end
 
 
@@ -410,6 +451,8 @@ module ManagedData
 
     def to_s; @value.to_s end
 
+    def clear; @value.clear end
+
     # override check and notify
     # so that they are not called
     # on disconnected collections
@@ -427,7 +470,12 @@ module ManagedData
     def connected?
       @owner
     end
-
+    
+    def delete_obj(mobj)
+      if values.include?(mobj) then
+        delete(mobj)
+      end
+    end
   end
 
   class Set < Many
@@ -441,6 +489,10 @@ module ManagedData
       @value.each_value(&block)
     end
 
+    def values
+      @value.values
+    end
+
 
     ### These are readonly "queries", so we return
     ### disconnected Sets (no owner)
@@ -451,6 +503,7 @@ module ManagedData
       r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
       other.inject(r, &:<<)
     end
+
 
     def select(&block)
       result = Set.new(nil, @field, __key)
@@ -510,6 +563,8 @@ module ManagedData
       __delete(mobj)
     end
 
+
+
     def __key; @key end
 
     def __keys; @value.keys end
@@ -542,6 +597,10 @@ module ManagedData
 
     def each(&block)
       @value.each(&block)
+    end
+
+    def values
+      @value
     end
 
     def <<(mobj)
