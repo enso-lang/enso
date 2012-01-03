@@ -15,7 +15,6 @@ Coding convention
 
 
 module ManagedData
-
   class Factory
     attr_reader :schema
 
@@ -32,6 +31,7 @@ module ManagedData
     end
 
     def register(root)
+      # perhaps raise exception if more than one?
       @roots << root
     end
 
@@ -49,35 +49,10 @@ module ManagedData
       end
     end
   end    
-
-  
-  class DynamicUpdateProxy
-    def initialize(obj)
-      @obj = obj
-      @fields = {}
-    end
-    
-    def method_missing(m, *args)
-      if m =~ /(.*)=/
-        @obj[$1] = args[0]
-      else
-        name = m.to_s
-        var = @fields[name]
-        return var if var
-        val = @obj[name]
-        @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
-        @obj.add_listener name do |val|
-          var.value = val
-        end
-        return var
-      end
-    end
-  end
-  
   
   class MObject 
     attr_accessor :_origin
-    attr_accessor :_path
+    attr_reader :_path
     attr_reader :_id
     attr_reader :factory
     attr_reader :schema_class
@@ -133,7 +108,7 @@ module ManagedData
 
     def __delete_obj(mobj)
       # traverse down spine until found, then delete!
-      # (to be called on a root)
+      # (called from factory)
       schema_class.fields.each do |fld|
         if fld.traversal then
           __get(fld.name).__delete_obj(mobj)
@@ -176,10 +151,7 @@ module ManagedData
 
     def __adjust(path)
       schema_class.fields.each do |fld|
-        #puts "MObj adjusting: #{fld.name}: #{path}"
-        if fld.traversal then # this is still needed
-          __get(fld.name).__adjust(path)
-        end
+        __get(fld.name).__adjust(path)
       end
     end
 
@@ -298,8 +270,7 @@ module ManagedData
     end
 
     def __adjust(path)
-      #puts "Field #{@field.name}: setting path to #{path.field(@field.name)}"
-      _path = path.field(@field.name)
+      @_path = path.extend(_path)
     end
 
     def __delete_obj(mobj)
@@ -398,21 +369,22 @@ module ManagedData
     def set(value)
       check(value)
       notify(get, value)
-      if @field.traversal then
-        value._path = _path if value
-        get._path.reset! if get && !value
-      end
       __set(value)
     end
 
     def __set(value)
+      if @field.traversal then
+        value._path = _path if value
+        get._path.reset! if get && !value
+      end
       @value = value
     end
 
     def __adjust(path)
       super(path)
-      #puts "In REF: adjusting #{get} to #{path}"
-      get.__adjust(path)  if get
+      if @field.traversal then
+        get.__adjust(path)  if get
+      end
     end
 
     def __delete_obj(mobj)
@@ -471,9 +443,18 @@ module ManagedData
       @owner
     end
     
-    def delete_obj(mobj)
+    def __delete_obj(mobj)
       if values.include?(mobj) then
         delete(mobj)
+      end
+    end
+
+    def __adjust(path)
+      super(path)
+      if @field.traversal then
+        each do |mobj|
+          mobj.__adjust(path) 
+        end
       end
     end
   end
@@ -551,9 +532,6 @@ module ManagedData
       return self if @value[key] == mobj
       raise "Duplicate key #{key}" if @value[key]
       notify(@value[key], mobj)
-      if connected? && @field.traversal then
-        mobj._path = _path.key(key)
-      end
       __insert(mobj)
       return self
     end
@@ -562,23 +540,26 @@ module ManagedData
       key = mobj[@key.name]
       return unless @value.include_key?(key)
       notify(@value[key], nil)
-      if connected? && @field.traversal then
-        @value[key]._path.reset!
-      end
       __delete(mobj)
     end
-
-
 
     def __key; @key end
 
     def __keys; @value.keys end
 
     def __insert(mobj)
+      if connected? && @field.traversal then
+        #puts "#{@field.name}-----> #{_path.key(mobj[@key.name])}"
+        #puts "  ===> #{_path}"
+        mobj._path = _path.key(mobj[@key.name])
+      end
       @value[mobj[@key.name]] = mobj
     end
 
     def __delete(mobj)
+      if connected? && @field.traversal then
+        @value[mobj[@key.name]]._path.reset!
+      end
       @value.delete(mobj[@key.name])
     end
 
@@ -628,33 +609,62 @@ module ManagedData
       raise "Cannot insert nil into list" if !mobj
       check(mobj)
       notify(nil, mobj)
-      if @field.traversal then
-        mobj._path = _path.index(length)
-      end
       __insert(mobj)
       return self
     end
 
     def delete(mobj)
-      ind = @value.index(mobj)
       deleted = __delete(mobj)
-      if deleted then
-        notify(deleted, nil) 
-        if connected? && @field.traversal then
-          deleted._path.reset!
-          # shift paths
-          ind.upto(length - 2) do |i|
-            @value[i]._path = _path.index(i)
-          end
+      notify(deleted, nil)  if deleted
+      return deleted
+    end
+
+    def __insert(mobj)
+      if @field.traversal then
+        mobj._path = _path.index(length)
+      end
+      @value << mobj 
+    end
+
+    def __delete(mobj)
+      ind = @value.index(mobj)
+      deleted = @value.delete_at(ind)
+      if ind && connected? && @field.traversal then
+        deleted._path.reset!
+        # shift paths
+        ind.upto(length - 2) do |i|
+          @value[i]._path = _path.index(i)
         end
       end
       return deleted
     end
-
-    def __insert(mobj); @value << mobj end
-
-    def __delete(mobj); @value.delete(mobj) end
   end  
+
+  class DynamicUpdateProxy
+    def initialize(obj)
+      @obj = obj
+      @fields = {}
+    end
+    
+    def method_missing(m, *args)
+      if m =~ /(.*)=/
+        @obj[$1] = args[0]
+      else
+        name = m.to_s
+        var = @fields[name]
+        return var if var
+        val = @obj[name]
+        @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
+        @obj.add_listener name do |val|
+          var.value = val
+        end
+        return var
+      end
+    end
+  end
+  
+
+
 end
 
 
@@ -665,16 +675,28 @@ if __FILE__ == $0 then
   M = ManagedData
   ss = Loader.load('schema.schema')
   fact = M::Factory.new(ss)
+  puts "Schema"
   s = fact.Schema
+  puts "CLass FOO"
   c = fact.Class('Foo')
+  puts "c.schema = s"
   c.schema = s
+  
+  puts "Primitiv str"
   p = fact.Primitive('str')
+
+  puts "p.schema = s"
   p.schema = s
+
+  puts "field 'bla' c = owner, p is type"
   f = fact.Field('bla', c, p, true, false, false)
+
+  puts "f.type = p"
+
   f.type = p
   puts f.name
   # c.defined_fields << f
-
+  s = s.finalize
   puts c
   puts c.name
   c.fields.each do |fld|
@@ -684,14 +706,17 @@ if __FILE__ == $0 then
   end
   Print.print(s)
 
-  ss.classes.each do |cls|
+  s.classes.each do |cls|
     puts cls._origin
     puts "PATH = #{cls._path}"
     cls.fields.each do |fld|
+      puts "\tFIELD PATH = #{fld._path}"
       ss.classes['Field'].fields.each do |f|
         org = fld._origin_of(f.name)
+        path = fld._path_of(f.name)
         puts "\t#{f.name}: #{org}" if org
+        puts "\t#{f.name}: #{path}"
       end
     end
-  end
+ end
 end
