@@ -26,7 +26,7 @@ module ManagedData
           new = Set.new(nil, @field, key)
         else
           if set.__key != key then
-            raise "Incompatible key fields: #{key1} vs #{key2}"   
+            raise "Incompatible key fields: #{set.__key} vs #{key}"   
           end
         end
         set.each do |y|
