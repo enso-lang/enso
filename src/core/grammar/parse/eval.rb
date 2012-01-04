@@ -87,7 +87,7 @@ class GrammarEval
   end
 
   def Ref(this, gll, nxt)
-    @scan.with_token('atom', gll.ci) do |pos, tk, ws|
+    @scan.with_token('sym', gll.ci) do |pos, tk, ws|
       terminal(this, pos, tk, ws, gll, nxt)
     end
   end

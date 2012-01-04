@@ -4,6 +4,7 @@ require 'core/grammar/parse/gll'
 require 'core/grammar/parse/build'
 #require 'core/grammar/parse/ast'
 require 'core/schema/tools/print'
+require 'core/schema/code/factory2'
 
 class Parse
 
@@ -19,17 +20,14 @@ class Parse
   end
   
   def self.load(source, grammar, schema, filename = '-')
-    data = load_raw(source, grammar, schema, Factory.new(schema), false, filename)
+    data = load_raw(source, grammar, schema, ManagedData::Factory.new(schema), false, filename)
     return data.finalize
   end
   
   def self.load_raw(source, grammar, schema, factory, show = false, filename = '-')
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
-    #ast = Implode.implode(tree, org)
-    
     Print.print(inst) if show
-    #AST.build(ast, factory)
     Build.build(tree, factory, org)
   end
 

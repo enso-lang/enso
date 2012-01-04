@@ -10,9 +10,9 @@ EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<="|op:"
 EUnOp ::= [EUnOp] op:"not" e:Expr
         | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
         | EListComp
-        | EConst
         | Primary
         | "(" Expr ")"
+
 Primary ::= EConst
           | [EField] e:Primary "->" fname:sym
           | [EVar] name:sym
@@ -20,4 +20,4 @@ EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:E
 EConst ::= [EStrConst] val:str
          | [EIntConst] val:int
          | [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"
-         | [EFloatConst] val:float
+         | [EFloatConst] val:real

@@ -1,4 +1,5 @@
 
+# TODO: error handling
 
 module Paths
 
@@ -41,9 +42,9 @@ module Paths
 
     def deref(scan, root = scan)
       elts.each do |elt|
-        n = elt.deref(scan, root)
-        raise "\n#{scan} does not have component #{elt}" if !n
-        scan = n
+        #puts "Deref element: #{elt}, scan = #{scan} "
+        raise "cannot dereference #{elt} on #{scan}" if !scan
+        scan = elt.deref(scan, root)
       end
       return scan
     end
@@ -146,6 +147,7 @@ module Paths
 
   class Current < Elt
     def deref(obj, root)
+      #puts "Derreffing 'this': obj = #{obj}; root = #{root}"
       root
     end
 
