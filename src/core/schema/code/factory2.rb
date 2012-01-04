@@ -1,7 +1,8 @@
-require 'core/system/library/schema'
-require 'core/system/utils/paths'
-require 'ostruct'
 
+require 'core/schema/code/many'
+require 'core/schema/code/dynamic'
+require 'core/system/utils/paths'
+require 'core/system/library/schema'
 
 =begin
 
@@ -52,7 +53,7 @@ module ManagedData
   
   class MObject 
     attr_accessor :_origin
-    attr_accessor :_shell
+    attr_accessor :__shell
     attr_reader :_id
     attr_reader :factory
     attr_reader :schema_class
@@ -72,6 +73,7 @@ module ManagedData
 
     # TODO: get rid of this
     def method_missing(sym, *args, &block)
+      # $stderr << "WARNING: method_missing #{sym}\n"
       if sym =~ /^([A-Z].*)\?$/
         schema_class.name == $1
       else
@@ -142,7 +144,7 @@ module ManagedData
     end
 
     def _path
-      _shell ? _shell._path(self) : Paths::Path.new
+      __shell ? __shell._path(self) : Paths::Path.new
     end
 
     def __get(name); @hash[name] end
@@ -176,7 +178,6 @@ module ManagedData
 
     private
 
-
     def check_field(name, can_be_computed)
       #if !schema_class.all_fields[name] then
       # ^^^^ does not terminate
@@ -209,9 +210,6 @@ module ManagedData
     end
 
     def __init(fields, args)
-      # NB: this works because ruby 1.9 hashes maintain
-      # insertion order, so the order of iteration will
-      # be the order of occurence in the model
       fields.each_with_index do |fld, i|
         break if i >= args.length
         __get(fld.name).init(args[i])
@@ -253,7 +251,6 @@ module ManagedData
     # and cross refs. For spine refs
     # this origin is the same as the _origin
     # of the mobject pointed to.
-    # Similar for paths
     attr_accessor :_origin
 
     def initialize(owner, field)
@@ -284,7 +281,6 @@ module ManagedData
     def init(value); set(value) end
 
     def default; nil end
-
   end
 
   class Prim < Single
@@ -362,8 +358,8 @@ module ManagedData
 
     def __set(value)
       if @field.traversal then
-        value._shell = self if value
-        value._shell = nil if get && !value
+        value.__shell = self if value
+        value.__shell = nil if get && !value
       end
       @value = value
     end
@@ -374,11 +370,9 @@ module ManagedData
 
     def __delete_obj(mobj)
       if get == mobj then
-        # set takes case of inverses
-        set(nil)
+        set(nil) # set takes case of inverses
       end
     end
-
   end
 
 
@@ -434,79 +428,25 @@ module ManagedData
       end
     end
 
-
     def connect(mobj, shell)
       if connected? && @field.traversal then
-        mobj._shell = shell
+        mobj.__shell = shell
       end
     end
   end
 
   class Set < Many
+    include SetUtils
+
     def initialize(owner, field, key)
       super(owner, field)
       @value = {}
       @key = key
     end
 
-    def each(&block)
-      @value.each_value(&block)
-    end
+    def each(&block); @value.each_value(&block) end
 
-    def values
-      @value.values
-    end
-
-    ### These are readonly "queries", so we return
-    ### disconnected Sets (no owner)
-
-    def +(other)
-      # left-biased: field is from self
-      #check_key_field(__key, other.__key)
-      r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
-      other.inject(r, &:<<)
-    end
-
-
-    def select(&block)
-      result = Set.new(nil, @field, __key)
-      each do |elt|
-        result << elt if yield elt
-      end
-      return result
-    end
-
-    def flat_map(&block)
-      new = nil
-      each do |x|
-        set = yield x
-        if new.nil? then
-          key = set.__key
-          new = Set.new(nil, @field, key)
-        else
-          check_key_field(key, set.__key)
-        end
-        set.each do |y|
-          new << y
-        end
-      end
-      new || Set.new(nil, @field, __key)
-    end
-      
-    def join(other)
-      empty = Set.new(nil, @field, __key)
-      outer_join(other || empty) do |sa, sb|
-        if sa && sb && sa[__key.name] == sb[__key.name] 
-          yield sa, sb
-        elsif sa
-          yield sa, nil
-        elsif sb
-          yield nil, sb
-        end
-      end
-    end
-
-    def to_ary; @value.values end
+    def values; @value.values end
 
     def <<(mobj)
       check(mobj)
@@ -530,10 +470,6 @@ module ManagedData
       @owner._path.field(@field.name).key(mobj[@key.name])
     end
 
-    def __key; @key end
-
-    def __keys; @value.keys end
-
     def __insert(mobj)
       connect(mobj, self)
       @value[mobj[@key.name]] = mobj
@@ -545,48 +481,20 @@ module ManagedData
       return deleted
     end
 
-    private
-
-    def check_key_field(key1, key2)
-      # key can be nil for empty sets
-      return if key1.nil? || key2.nil?
-      if key1 != key2 then
-        raise "Incompatible key fields: #{key1} vs #{key2}" 
-      end
-    end
-
-    def outer_join(other)
-      keys = __keys | other.__keys
-      keys.each do |key|
-        yield self[key], other[key], key
-      end
-    end
-
-
   end
 
   class List < Many
+    include ListUtils
+
     def initialize(owner, field)
       super(owner, field)
       @value = []
     end
 
-    def each(&block)
-      @value.each(&block)
-    end
+    def each(&block); @value.each(&block) end
 
-    def values
-      @value
-    end
+    def values; @value end
 
-    def join(other)
-      if !empty? then
-        each do |item|
-          yield item, nil
-        end
-      end
-    end
-    
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj
       check(mobj)
@@ -617,28 +525,6 @@ module ManagedData
     end
   end  
 
-  class DynamicUpdateProxy
-    def initialize(obj)
-      @obj = obj
-      @fields = {}
-    end
-    
-    def method_missing(m, *args)
-      if m =~ /(.*)=/
-        @obj[$1] = args[0]
-      else
-        name = m.to_s
-        var = @fields[name]
-        return var if var
-        val = @obj[name]
-        @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
-        @obj.add_listener name do |val|
-          var.value = val
-        end
-        return var
-      end
-    end
-  end
 end
 
 
