@@ -52,7 +52,7 @@ module ManagedData
   
   class MObject 
     attr_accessor :_origin
-    attr_reader :_path
+    attr_accessor :_shell
     attr_reader :_id
     attr_reader :factory
     attr_reader :schema_class
@@ -65,7 +65,6 @@ module ManagedData
       @factory = factory
       @hash = {}
       @listeners = {}
-      @_path = Paths::Path.new
       __setup(klass.all_fields)
       __init(klass.fields, args)
       __install(klass.all_fields)
@@ -138,22 +137,17 @@ module ManagedData
       __get(name)._origin = org
     end
 
-    def _path_of(name); __get(name)._path end
+    def _path_of(name)
+      _path.field(name)
+    end
 
-    def _path=(path)
-      __adjust(path)
-      @_path = path
+    def _path
+      _shell ? _shell._path(self) : Paths::Path.new
     end
 
     def __get(name); @hash[name] end
 
     def __set(name, fld); @hash[name] = fld end
-
-    def __adjust(path)
-      schema_class.fields.each do |fld|
-        __get(fld.name).__adjust(path)
-      end
-    end
 
     def eql?(o); self == o end
 
@@ -261,16 +255,10 @@ module ManagedData
     # of the mobject pointed to.
     # Similar for paths
     attr_accessor :_origin
-    attr_accessor :_path
 
     def initialize(owner, field)
       @owner = owner
       @field = field
-      @_path = Paths::Path.new.field(field.name)
-    end
-
-    def __adjust(path)
-      @_path = path.extend(_path)
     end
 
     def __delete_obj(mobj)
@@ -374,17 +362,14 @@ module ManagedData
 
     def __set(value)
       if @field.traversal then
-        value._path = _path if value
-        get._path.reset! if get && !value
+        value._shell = self if value
+        value._shell = nil if get && !value
       end
       @value = value
     end
 
-    def __adjust(path)
-      super(path)
-      if @field.traversal then
-        get.__adjust(path)  if get
-      end
+    def _path(_)
+      @owner._path.field(@field.name)
     end
 
     def __delete_obj(mobj)
@@ -449,12 +434,10 @@ module ManagedData
       end
     end
 
-    def __adjust(path)
-      super(path)
-      if @field.traversal then
-        each do |mobj|
-          mobj.__adjust(path) 
-        end
+
+    def connect(mobj, shell)
+      if connected? && @field.traversal then
+        mobj._shell = shell
       end
     end
   end
@@ -543,24 +526,23 @@ module ManagedData
       __delete(mobj)
     end
 
+    def _path(mobj)
+      @owner._path.field(@field.name).key(mobj[@key.name])
+    end
+
     def __key; @key end
 
     def __keys; @value.keys end
 
     def __insert(mobj)
-      if connected? && @field.traversal then
-        #puts "#{@field.name}-----> #{_path.key(mobj[@key.name])}"
-        #puts "  ===> #{_path}"
-        mobj._path = _path.key(mobj[@key.name])
-      end
+      connect(mobj, self)
       @value[mobj[@key.name]] = mobj
     end
 
     def __delete(mobj)
-      if connected? && @field.traversal then
-        @value[mobj[@key.name]]._path.reset!
-      end
-      @value.delete(mobj[@key.name])
+      deleted = @value.delete(mobj[@key.name])
+      connect(deleted, nil)
+      return deleted
     end
 
     private
@@ -619,23 +601,18 @@ module ManagedData
       return deleted
     end
 
+    def _path(mobj)
+      @owner._path.field(@field.name).index(@value.index(mobj))
+    end
+
     def __insert(mobj)
-      if @field.traversal then
-        mobj._path = _path.index(length)
-      end
+      connect(mobj, self)
       @value << mobj 
     end
 
     def __delete(mobj)
-      ind = @value.index(mobj)
-      deleted = @value.delete_at(ind)
-      if ind && connected? && @field.traversal then
-        deleted._path.reset!
-        # shift paths
-        ind.upto(length - 2) do |i|
-          @value[i]._path = _path.index(i)
-        end
-      end
+      deleted = @value.delete(mobj)
+      connect(deleted, nil)
       return deleted
     end
   end  
@@ -662,9 +639,6 @@ module ManagedData
       end
     end
   end
-  
-
-
 end
 
 
@@ -706,7 +680,7 @@ if __FILE__ == $0 then
   end
   Print.print(s)
 
-  s.classes.each do |cls|
+  ss.classes.each do |cls|
     puts cls._origin
     puts "PATH = #{cls._path}"
     cls.fields.each do |fld|
