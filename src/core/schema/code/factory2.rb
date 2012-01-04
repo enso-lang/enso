@@ -359,7 +359,7 @@ module ManagedData
     def __set(value)
       if @field.traversal then
         value.__shell = self if value
-        value.__shell = nil if get && !value
+        get.__shell = nil if get && !value
       end
       @value = value
     end
@@ -380,9 +380,7 @@ module ManagedData
     include RefHelpers
     include Enumerable
 
-    def get
-      self # collection wrappers are exposed to outside
-    end
+    def get; self end
 
     def set
       raise "Cannot assign to many-valued field #{@field.name}"
@@ -404,9 +402,7 @@ module ManagedData
 
     def clear; @value.clear end
 
-    # override check and notify
-    # so that they are not called
-    # on disconnected collections
+    def connected?; @owner end
 
     def check(mobj)
       return if !connected?
@@ -418,10 +414,6 @@ module ManagedData
       super(old, new)
     end
 
-    def connected?
-      @owner
-    end
-    
     def __delete_obj(mobj)
       if values.include?(mobj) then
         delete(mobj)
