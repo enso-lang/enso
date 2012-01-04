@@ -3,10 +3,11 @@
 
 class System
 ! elements: Element*
+! sensors: Sensor*
 end
 
 class Pipe
-  connections: Element*
+  owner: OutputElement
   diameter: float
   length: float
   // computed
@@ -16,25 +17,24 @@ end
 
 class Element 
   #name: str
-  // pipes: Pipe* / connections
 end
 
 class OutputElement < Element
-! output: Pipe
+! outputs: Pipe* / owner
 end
 class InputElement < Element
   input: Pipe
 end
 
 class Joint < OutputElement
-  pipes: Pipe*
+  pipes: Pipe*  // inputs
 end
 
 class Source < OutputElement
   kind: str
 end
 
-class Exhaust < Element, InputElement
+class Exhaust < InputElement
 end
 
 class Burner < OutputElement, InputElement
@@ -54,10 +54,7 @@ end
 class Thermostat < Element
 end
 
-class Splitter < Element, InputElement
- !left: Pipe
- !right: Pipe
- // output: Pipe = "@left"
+class Splitter < InputElement, OutputElement
 end
 
 class Pump < OutputElement, InputElement

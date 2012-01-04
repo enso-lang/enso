@@ -400,14 +400,20 @@ class StencilFrame < DiagramFrame
   
   # shapes
   def constructContainer(this, env, container, &block)
-    group = @factory.Container(nil, nil, this.direction)
-    this.items.each do |item|
-      construct item, env, group do |x|
-        group.items << x
+    if this.direction == 4
+      this.items.each do |item|
+        construct item, env, container, &block
       end
+    else
+      group = @factory.Container(nil, nil, this.direction)
+      this.items.each do |item|
+        construct item, env, group do |x|
+          group.items << x
+        end
+      end
+      make_styles(this, group, env)
+      block.call group if block
     end
-    make_styles(this, group, env)
-    block.call group if block
   end
   
   def constructText(this, env, container, &block)

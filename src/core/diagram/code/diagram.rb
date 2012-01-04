@@ -297,9 +297,6 @@ class DiagramFrame < BaseWindow
         y = basey + otherpos
         width >= x + w
         height >= y + h
-      when 4 then # do
-        width >= w
-        height >= h
       end
     end
     case part.direction

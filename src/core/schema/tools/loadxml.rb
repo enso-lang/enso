@@ -86,6 +86,7 @@ class FromXML
           @obj[@field.name] << ref.deref(root)
         end
       else
+        raise "Too many refs" if @refs.length != 1
         @obj[@field.name] = @refs.first.deref(root)
       end
     end

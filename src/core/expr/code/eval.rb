@@ -1,23 +1,68 @@
+require 'core/expr/code/eval'
 
-module EvalExpr
-  def eval1_EBinOp(op, e1, e2, *args)
-    Kernel::eval("#{e1.inspect} #{op} #{e2.inspect}")
+module EvalExprIntern
+  include Dispatch
+
+  def eval_EBinOp(op, e1, e2, args=nil)
+    Kernel::eval("#{e1.eval.inspect} #{op} #{e2.eval.inspect}")
   end
 
-  def eval1_EUnOp(op, e, *args)
-    Kernel::eval("#{op} #{e.inspect}")
+  def eval_EUnOp(op, e, args=nil)
+    Kernel::eval("#{op} #{e.eval.inspect}")
   end
 
-  def eval1_EStrConst(val, *args)
+  def eval_EField(e, fname, args=nil)
+    var = e.eval
+    var.nil? ? nil : var.send(fname)
+  end
+
+  def eval_EVar(name, args=nil)
+    args[:env][name]
+  end
+
+  def eval_EStrConst(val, args=nil)
     val
   end
 
-  def eval1_EIntConst(val, *args)
+  def eval_EIntConst(val, args=nil)
     val
   end
 
-  def eval1_EBoolConst(val, *args)
+  def eval_EBoolConst(val, args=nil)
     val
   end
 end
 
+module EvalExpr
+  include Dispatch
+
+  def eval_EBinOp(op, e1, e2, args=nil)
+    Kernel::eval("#{self.eval(e1)} #{op} #{self.eval(e2)}")
+  end
+
+  def eval_EUnOp(op, e, args=nil)
+    Kernel::eval("#{op} #{eval(e).inspect}")
+  end
+
+  def eval_EField(e, fname, args=nil)
+    var = eval(e)
+    var.nil? ? nil : var.send(fname)
+  end
+
+  def eval_EVar(name, args=nil)
+    args[:env][name]
+  end
+
+  def eval_EStrConst(val, args=nil)
+    val
+  end
+
+  def eval_EIntConst(val, args=nil)
+    puts "val = #{val}"
+    val
+  end
+
+  def eval_EBoolConst(val, args=nil)
+    val
+  end
+end

@@ -39,13 +39,32 @@ module Paths
       Path.new(elts + path.elts)
     end
 
-    def deref(root, this = root)
+    def deref(scan, root = scan)
       elts.each do |elt|
-        n = elt.deref(root, this)
-        raise "\n#{root} does not have component #{elt}" if !n
-        root = n
+        n = elt.deref(scan, root)
+        raise "\n#{scan} does not have component #{elt}" if !n
+        scan = n
       end
-      root
+      return scan
+    end
+
+    def search(root, obj)
+      searchElts(elts, root, root, {}) do |item, bindings|
+        #puts "SEARCH #{elts} ==> #{item} for #{obj} with #{bindings}"
+        return bindings if obj == item
+      end
+      return nil
+    end
+
+    def searchElts(todo, scan, root, bindings, &action)
+      #puts "SEARCH #{todo} on #{scan} with #{bindings}"
+      if todo.nil? || todo.first.nil?
+        action.call(scan, bindings)
+      else
+        todo.first.search(scan, root, bindings) do |item, newBinds|
+          searchElts(todo[1..-1], item, root, newBinds, &action)
+        end
+      end
     end
 
     def field(name)
@@ -126,8 +145,12 @@ module Paths
   end
 
   class Current < Elt
-    def deref(obj, this)
-      this
+    def deref(obj, root)
+      root
+    end
+
+    def search(obj, root, bindings, &action)
+      action.call(root, bindings)
     end
 
     def to_s
@@ -146,6 +169,10 @@ module Paths
       obj[@name]
     end
 
+    def search(obj, root, bindings, &action)
+      action.call(obj[@name], bindings) if !obj.nil? && obj.schema_class.all_fields.has_key?(@name)
+    end
+
     def to_s
       "/#{@name}"
     end
@@ -158,6 +185,16 @@ module Paths
 
     def deref(obj, root)
       obj[@index]
+    end
+
+    def search(obj, root, bindings, &action)
+      if @index.is_a?(PathVar)
+        obj.each_with_index do |item, i|
+          action.call(item, { @index => i}.update(bindings))
+        end
+      else
+        action.call(obj[@index], bindings)
+      end
     end
 
     def to_s
@@ -175,6 +212,16 @@ module Paths
       obj[@key]
     end
 
+    def search(obj, root, bindings, &action)
+      if @key.is_a?(PathVar)
+        obj.each_pair do |k, item|
+          action.call(item, { @key => k}.update(bindings))
+        end
+      else
+        action.call(obj[@key], bindings)
+      end
+    end
+
     def to_s
       "[#{escape(@key.to_s)}]"
     end
@@ -185,8 +232,13 @@ module Paths
       s.gsub(']', '\\]').gsub('[', '\\[')
     end
   end
-
-
+  
+  class PathVar
+    def initialize(name)
+      @name = name
+    end
+    attr_reader :name
+  end
 end
 
 if __FILE__ == $0 then

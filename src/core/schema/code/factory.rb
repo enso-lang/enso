@@ -440,6 +440,10 @@ class ManyIndexedField < BaseManyField
     @hash.member? x
   end
   
+  def has_key?(k)
+    @hash.has_key? k
+  end
+  
   def [](x)
     @hash[x]
   end
@@ -525,6 +529,10 @@ class ManyIndexedField < BaseManyField
   
   def each(&block) 
     @hash.each_value &block
+  end
+
+  def each_pair(&block) 
+    @hash.each_pair &block
   end
 
   def +(other)
@@ -655,6 +663,12 @@ class ManyField < BaseManyField
   
   def each(&block) 
     @list.each &block
+  end
+
+  def each_pair(&block) 
+    @list.each_with_index do |item, i|
+      block.call(i, item)
+    end
   end
 
   def +(other)

@@ -110,6 +110,12 @@ module Run
     elem.output.flow = elem.flow
   end
 
+  def run_Thermostat(elem, new_elem)
+  end
+
+  def run_Sensor(elem, new_elem)
+  end
+
   #transfer some amount of water from s1 to s2 based on connecting area and flow (based on pressure)
   def transfer_water(p1, p2)
     p2.flow = p1.flow
