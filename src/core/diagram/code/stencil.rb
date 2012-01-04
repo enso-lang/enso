@@ -354,19 +354,20 @@ class StencilFrame < DiagramFrame
 	def find_all_objects(scan, type, &block)
 	  return nil if !scan
 	  puts "looking for #{type.name} as #{scan}"
-		block.call(scan) if scan._subtypeOf(scan.schema_class, type)
-    scan.schema_class.fields.each do |field|
-      if field.traversal
-        if field.many
-          scan[field.name].each do |x|
-            find_all_objects(x, type, &block)
+          #block.call(scan) if scan._subtypeOf(scan.schema_class, type)
+          block.call(scan) if Subclass?(scan.schema_class, type)
+          scan.schema_class.fields.each do |field|
+            if field.traversal
+              if field.many
+                scan[field.name].each do |x|
+                  find_all_objects(x, type, &block)
+                end
+              else
+                find_all_objects(scan[field.name], type, &block)
+              end
+            end
           end
-        else
-          find_all_objects(scan[field.name], type, &block)
-        end
-      end
-    end
-    return nil
+          return nil
 	end
 
   def constructTest(this, env, container, &block)
@@ -583,7 +584,8 @@ class FindByTypeSelection
     puts "CHECKING"
     @part = @diagram.find e, do |shape| 
       obj = @diagram.lookup_shape(shape)
-      obj && obj._subtypeOf(obj.schema_class, @kind)
+      #obj && obj._subtypeOf(obj.schema_class, @kind)
+      obj && Subclass?(obj.schema_class, @kind)
     end
   end
   
@@ -619,7 +621,7 @@ class Address
   def insert(val)
     col = @object[real_field.name]
     puts "Inserting #{@object}.#{@field.name}[#{col.length}] << #{val}"
-    col.INSERT(val)
+    col << val
     puts "Size is now #{col.length}"
   end
 

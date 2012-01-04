@@ -44,6 +44,31 @@ class LTS
     LTS.new(transitions | lts.transitions)
   end
 
+  def states
+    transitions.inject(Set.new) do |s, t|
+      s << t.from
+      s << t.to
+    end
+  end
+
+  def labels
+    transitions.inject(Set.new) do |s, t|
+      s << t.label
+    end
+  end
+
+  def firing_on(label)
+    transitions.inject(Set.new) do |s, t|
+      if t.label == label
+        s << t.from 
+      else
+        s
+      end
+    end
+  end
+
+  
+
   def compose(lts)
     tr = Set.new
     transitions.each do |t1|
@@ -100,8 +125,7 @@ class LTS
     return out
   end
     
-    
-        
+
   private
 
   def closure(f)

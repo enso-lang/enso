@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'core/schema/code/factory'
+require 'core/schema/code/factory2'
 
 require 'core/grammar/render/layout'
 
@@ -49,7 +49,7 @@ class CopyInto
         if !field.many
           build(a_val, b_val)
         else
-          do_join(field, a_val, b_val) do |a_item, b_item|
+          a_val.join(b_val) do |a_item, b_item|
             build(a_item, b_item)
           end
         end
@@ -73,7 +73,7 @@ class CopyInto
         val = link(field.traversal, a_val, b_val)
         new[field.name] = val
       else
-        do_join(field, a_val, b_val) do |a_item, b_item|
+        a_val.join(b_val) do |a_item, b_item|
           new[field.name] << link(field.traversal, a_item, b_item)
         end
       end
@@ -81,26 +81,6 @@ class CopyInto
     return new
   end
 
-  # matches keyed fields, but concatenates ordered fields
-  def do_join(field, a, b)
-    key = ClassKey(field.type)
-    if key
-      empty = ManyIndexedField.new(key.name)
-      (a || empty).outer_join(b || empty) do |sa, sb|
-        if sa && sb && sa[key.name] == sb[key.name] 
-          yield sa, sb
-        elsif sa
-          yield sa, nil
-        elsif sb
-          yield nil, sb
-        end
-      end
-    elsif !a.empty?
-      a.each do |item|
-        yield item, nil
-      end
-    end        
-  end
 end        
 
 def CopyInto(factory, a, b)
@@ -126,6 +106,6 @@ end
 
 
 def union(a, b)
-  f = Factory.new(a._graph_id.schema)
+  f = ManagedData::Factory.new(a._graph_id.schema)
   Union(f, a, b)
 end

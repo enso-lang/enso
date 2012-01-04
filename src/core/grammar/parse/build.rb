@@ -132,6 +132,7 @@ class Build
 
   def fixup(obj, fixes)
     fixes.each do |fix|
+      #puts "FXING: #{fix.path} on #{obj}"
       actual = fix.path.deref(obj, fix.obj)
       # TODO: is this really an error?
       raise "Could not deref path: #{fix.path}"  if actual.nil?
@@ -150,13 +151,15 @@ class Build
   end
   
   def update_origin(owner, field, org)
-    return if field.many # no origins for collections
+    #return if field.many # no origins for collections
     
     # _origin_of is a OpenStruct (it does not have [])
     # so we use send here. This seems ok, since this
     # is the only place where we will (?) need generic
     # access.
-    owner._origin_of.send("#{field.name}=", org)
+    #owner._origin_of.send("#{field.name}=", org)
+    #owner.__get(field.name)._origin = org
+    owner._set_origin_of(field.name, org)
   end
 
   class Fix

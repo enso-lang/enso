@@ -165,6 +165,10 @@ module CheckedObjectMixin
   def hash
     @_id
   end
+
+  def eql?(other)
+    self == other
+  end
   
   def ==(other)
     return false if other.nil?
