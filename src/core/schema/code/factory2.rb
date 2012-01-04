@@ -27,12 +27,11 @@ module ManagedData
       end
     end
 
-    def [](name)
-      send(name)
-    end
+    def [](name); send(name) end
 
     def register(root)
       # perhaps raise exception if more than one?
+      # (NB any object will always be in the spine of 1 root anyway)
       @roots << root
     end
 
@@ -52,8 +51,8 @@ module ManagedData
   end    
   
   class MObject 
-    attr_accessor :_origin
-    attr_accessor :__shell
+    attr_accessor :_origin # source location
+    attr_accessor :__shell # spine parent (e.g. Ref, Set or List)
     attr_reader :_id
     attr_reader :factory
     attr_reader :schema_class
@@ -81,9 +80,7 @@ module ManagedData
       end
     end
 
-    def _graph_id
-      @factory
-    end
+    def _graph_id; @factory end
     
     def instance_of?(sym)
       schema_class.name == sym.to_s
@@ -91,11 +88,7 @@ module ManagedData
 
     def [](name)
       check_field(name, true)
-      if computed?(name)
-        send(name)
-      else
-        __get(name).get 
-      end
+      computed?(name) ? send(name) : __get(name).get 
     end
 
     def []=(name, x)
@@ -103,9 +96,7 @@ module ManagedData
       __get(name).set(x)
     end
 
-    def delete!
-      factory.delete!(self)
-    end
+    def delete!; factory.delete!(self) end
 
     def __delete_obj(mobj)
       # traverse down spine until found, then delete!
@@ -139,9 +130,7 @@ module ManagedData
       __get(name)._origin = org
     end
 
-    def _path_of(name)
-      _path.field(name)
-    end
+    def _path_of(name); _path.field(name) end
 
     def _path
       __shell ? __shell._path(self) : Paths::Path.new
@@ -179,8 +168,6 @@ module ManagedData
     private
 
     def check_field(name, can_be_computed)
-      #if !schema_class.all_fields[name] then
-      # ^^^^ does not terminate
       if !@hash.include?(name) then
         raise "Non-existing field '#{name}' for #{self}"
       end
@@ -189,9 +176,7 @@ module ManagedData
       end
     end
 
-    def computed?(name)
-      __get(name) == :computed
-    end
+    def computed?(name); __get(name) == :computed end
 
     def __setup(fields)
       fields.each do |fld|
@@ -516,7 +501,6 @@ module ManagedData
       return deleted
     end
   end  
-
 end
 
 
