@@ -16,7 +16,7 @@ class Command end
 
 class Transition
 ! guard:Expr
-! target:State
+  target:State
 end
 
 class Assign < Command

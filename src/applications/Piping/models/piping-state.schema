@@ -1,5 +1,6 @@
 // Dynamic state information used by the simulator
 primitive float
+primitive bool
 
 class Pipe
   flow: float
@@ -16,6 +17,8 @@ end
 
 class Burner < Element
   temperature: float
+  ignite: bool
+  gas_level: float
 end
 
 class Radiator < Element
@@ -37,4 +40,5 @@ end
 class Pump < Element
   pressure: float
   flow: float
+  run: bool
 end

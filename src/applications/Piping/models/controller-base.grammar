@@ -1,7 +1,7 @@
 start Controller
 
 Controller ::= [Controller] "start" initial:/states[it]^ globals:Assign* states:State*
-State ::= [State] "state" name:str ":" commands:Command* transitions:Transition*
+State ::= [State] "state" name:sym ":" transitions:Transition* commands:Command*
 
 Command ::= Assign
 Assign ::= [Assign] var:Expr "=" val:Expr
