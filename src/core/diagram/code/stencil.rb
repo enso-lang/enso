@@ -132,7 +132,7 @@ class StencilFrame < DiagramFrame
       pos = @positions[shape]  # using Diagram private member
       pnt = @old_map[tag]
       puts "   Has POS #{obj} #{pos} #{pnt}"
-      if pos
+      if pos && pnt
         pos.x.value = pnt.x
         pos.y.value = pnt.y
       end
@@ -406,7 +406,8 @@ class StencilFrame < DiagramFrame
         construct item, env, container, &block
       end
     else
-      group = @factory.Container(nil, nil, this.direction)
+      group = @factory.Container
+      group.direction = this.direction
       this.items.each do |item|
         construct item, env, group do |x|
           group.items << x
@@ -423,7 +424,8 @@ class StencilFrame < DiagramFrame
     if !val.is_a?(String)
       val = ObjectKey(val)
     end
-    text = @factory.Text(nil, nil, val)
+    text = @factory.Text
+    text.string = val
     make_styles(this, text, env)
     if address
 	    @shapeToAddress[text] = address
@@ -432,7 +434,7 @@ class StencilFrame < DiagramFrame
   end
   
   def constructShape(this, env, container, &block)
-    shape = @factory.Shape(nil, nil) # not many!!!
+    shape = @factory.Shape # not many!!!
     shape.kind = this.kind
     construct this.content, env, shape do |x|
       error "Shape can only have one element" if shape.content
@@ -442,16 +444,24 @@ class StencilFrame < DiagramFrame
     block.call shape
   end
 
+  def makeLabel(exp, env)
+    labelStr, _ = eval(exp, env)
+    if labelStr
+      label = @factory.Text
+      label.string = labelStr
+      return label
+    end
+    return nil
+  end
+  
   def constructConnector(this, env, container, &block)
-    conn = @factory.Connector(nil, nil, nil)
+    conn = @factory.Connector
     @connectors << conn
     ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
     i = 0
     this.ends.each do |e|
-      labelStr, _ = eval(e.label, env)
-      label = labelStr && @factory.Text(nil, nil, labelStr)
-      labelStr, _ = eval(e.other_label, env)
-      other_label = labelStr && @factory.Text(nil, nil, labelStr)
+      label = makeLabel(e.label, env)
+      other_label = makeLabel(e.other_label, env)
       de = @factory.ConnectorEnd(e.arrow, label, other_label)
       tag, obj = evallabel(e.part, env)
       de.to = @tagModelToShape[[tag, obj]]

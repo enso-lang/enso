@@ -51,8 +51,8 @@ end
 
 class EdgePos
   // x==1 or x==0 or y==1 or y==0
-  x: float
-  y: float
+  x: real
+  y: real
 end
 
 // styles
@@ -104,7 +104,7 @@ class Constraint
   var: str?
 end
 
-primitive float
+primitive real
 primitive int
 primitive str
 primitive bool

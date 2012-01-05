@@ -44,7 +44,7 @@ if __FILE__ == $0 then
   require 'ruby-prof'
   grammar = Loader.load('web.grammar')
   ss = Loader.load('web.schema')
-  factory = Factory.new(ss)
+  factory = ManagedData::Factory.new(ss)
   path = 'core/web/models/prelude.web'
   source = File.read(path)
   org = Origins.new(source, path)

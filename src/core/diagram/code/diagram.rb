@@ -89,7 +89,7 @@ class DiagramFrame < BaseWindow
     @mouse_down = false
     @select_color = Wx::Colour.new(0, 255, 0)
     @DIST = 4
-    @factory = Factory.new(Load('diagram.schema'))
+    @factory = ManagedData::Factory.new(Load('diagram.schema'))
   end
   
   attr_accessor :listener

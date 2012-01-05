@@ -114,7 +114,7 @@ module ManagedData
 
     def add_listener(name, &block)
       @listeners[name] ||= []
-      @listeners.push(block)
+      @listeners[name].push(block)
     end
 
     def notify(name, obj)
@@ -135,7 +135,21 @@ module ManagedData
     def _path
       __shell ? __shell._path(self) : Paths::Path.new
     end
-
+  
+    def _clone
+      r = MObject.new(@schema_class, @factory)
+      schema_class.fields.each do |field|
+        if field.many
+          self[field.name].each do |o|
+            r[field.name] << o
+          end
+        else
+          #puts "CLONE #{field.name} #{self[field.name]}"
+          r[field.name] = self[field.name]
+        end
+      end
+      return r
+    end
     def __get(name); @hash[name] end
 
     def __set(name, fld); @hash[name] = fld end
