@@ -278,7 +278,7 @@ module ManagedData
         return if value.is_a?(Integer)
       when 'bool' 
         return if value.is_a?(TrueClass) || value.is_a?(FalseClass)
-      when 'float' 
+      when 'real' 
         return if value.is_a?(Numeric)
       when 'datetime' 
         return if value.is_a?(DateTime)
@@ -294,7 +294,7 @@ module ManagedData
       when 'str' then ''
       when 'int' then 0
       when 'bool' then false
-      when 'float' then 0.0
+      when 'real' then 0.0
       when 'datetime' then DateTime.now
       when 'atom' then nil
       else

@@ -107,7 +107,7 @@ class Build
     case kind 
     when "str" then value
     when "int" then value.to_i
-    when "float" then value.to_f
+    when "real" then value.to_f
     when "sym" then value
     when "atom" then value # ???
     else
@@ -122,7 +122,7 @@ class Build
     when "str" then value
     when "bool" then value == "true"
     when "int" then value.to_i
-    when "float" then value.to_f
+    when "real" then value.to_f
     when "atom" then value # possibly already converted based on token kind
     else
       raise "Don't know primitive type #{type.name}"
