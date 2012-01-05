@@ -1,46 +1,46 @@
 // Dynamic state information used by the simulator
-primitive float
+primitive real
 primitive bool
 
 class Pipe
-  flow: float
-  pressure: float
-  temperature: float
-  velocity: float = "@flow / @area"
+  flow: real
+  pressure: real
+  temperature: real
+  velocity: real = "@flow / @area"
 end
 
 class Element end
 
 class End < Element end
 class Source < End
-  pressure: float
+  pressure: real
 end
 
 class Burner < Element
-  temperature: float
+  temperature: real
   ignite: bool
-  gas_level: float
+  gas_level: real
 end
 
 class Radiator < Element
-  temperature: float
+  temperature: real
 end
 
 class Vessel < Element
-  contents: float
-  temperature: float
+  contents: real
+  temperature: real
 end
 
 class Valve < Element
-  flow: float // between 0 and 1
+  flow: real // between 0 and 1
 end
 
 class Splitter < Element
-  position: float // between 0 and 1
+  position: real // between 0 and 1
 end
 
 class Pump < Element
-  pressure: float
-  flow: float
+  pressure: real
+  flow: real
   run: bool
 end

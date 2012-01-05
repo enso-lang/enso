@@ -8,11 +8,11 @@ end
 
 class Pipe
   owner: OutputElement
-  diameter: float
-  length: float
+  diameter: real
+  length: real
   // computed
-  area: float = "@diameter**2 * 3.14/4"
-  volume: float = "@area * @length"
+  area: real = "@diameter**2 * 3.14/4"
+  volume: real = "@area * @length"
 end
 
 class Element 
@@ -46,7 +46,7 @@ class Radiator < OutputElement, InputElement
 end
 
 class Vessel < OutputElement, InputElement
-  capacity: float
+  capacity: real
 end
 
 class Valve < OutputElement, InputElement
@@ -70,4 +70,4 @@ end
 primitive str
 primitive int
 primitive bool
-primitive float
+primitive real

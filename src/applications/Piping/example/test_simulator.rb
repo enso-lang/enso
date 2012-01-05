@@ -2,6 +2,7 @@ require 'applications/Piping/code/simulator'
 require 'applications/Piping/code/controller'
 require 'applications/Piping/code/piping'
 require 'core/system/load/load'
+require 'core/schema/code/factory2'
 
 class SimulatorTest
 
@@ -32,7 +33,7 @@ class SimulatorTest
       end
     end
 
-    @piping = Copy(Factory.new(Loader.load('piping-sim.schema')), @pipes)
+    @piping = Copy(ManagedData::Factory.new(Loader.load('piping-sim.schema')), @pipes)
     @piping.elements['Pump'].flow = 0.05
     @piping.elements['Valve'].position = 0.5
     @piping.elements.each do |elem|
