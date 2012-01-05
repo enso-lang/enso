@@ -113,14 +113,13 @@ module ManagedData
     end
 
     def add_listener(name, &block)
-      @listeners[name] ||= []
-      @listeners[name].push(block)
+      (@listeners[name] ||= []).push(block)
     end
 
-    def notify(name, obj)
+    def notify(name, val)
       return unless @listeners[name]
       @listeners[name].each do |blk|
-        blk.call(new)
+        blk.call(val)
       end
     end
 
@@ -273,6 +272,7 @@ module ManagedData
     def set(value)
       check(value)
       @value = value
+      @owner.notify(@field.name, value)
     end
 
     def get; @value end
