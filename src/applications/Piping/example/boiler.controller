@@ -13,8 +13,8 @@ BURNER_RAMPUP = 5
 VALVE_SWITCH = 5
 
 state OFF:
- if Radiator_temp < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto IGNITE
- if boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto IGNITE
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto IGNITE
+ if Boiler.temperature < DESIRED_WATER_TEMP - WATER_MARGIN goto IGNITE
 
 state IGNITE:
  if Burner.ignite goto RAMPUP
@@ -24,31 +24,31 @@ state IGNITE:
  Pump.run = true
 
 state RAMPUP:
- if Radiator_temp > DESIRED_RADIATOR_TEMP and boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto BOILER
- if Radiator_temp < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN and boiler_temp > DESIRED_WATER_TEMP goto RADIATOR
- if Radiator_temp > DESIRED_RADIATOR_TEMP and boiler_temp > DESIRED_WATER_TEMP goto RUNNING
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP and Boiler.temperature < DESIRED_WATER_TEMP - WATER_MARGIN goto BOILER
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN and Boiler.temperature > DESIRED_WATER_TEMP goto RADIATOR
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP and Boiler.temperature > DESIRED_WATER_TEMP goto RUNNING
  Burner.ignite = true
  gas = gas + BURNER_RAMPUP
  Burner.gas_level = gas
  Pump.run = true
 
 state BOILER:
- if Radiator_temp < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto RAMPUP
- if boiler_temp > DESIRED_WATER_TEMP + WATER_MARGIN goto COOLDOWN
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto RAMPUP
+ if Boiler.temperature > DESIRED_WATER_TEMP + WATER_MARGIN goto COOLDOWN
  turn splitter Valve left by 10
 
 state RADIATOR:
- if boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
- if Radiator_temp > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN goto COOLDOWN
+ if Boiler.temperature < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN goto COOLDOWN
  turn splitter Valve left by -10
 
 state COOLDOWN:
- if Radiator_temp > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN and boiler_temp < DESIRED_WATER_TEMP goto BOILER
- if Radiator_temp < DESIRED_RADIATOR_TEMP and boiler_temp > DESIRED_WATER_TEMP + WATER_MARGIN goto RADIATOR
- if Radiator_temp < DESIRED_RADIATOR_TEMP and boiler_temp < DESIRED_WATER_TEMP goto RUNNING
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP + RADIATOR_MARGIN and Boiler.temperature < DESIRED_WATER_TEMP goto BOILER
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP and Boiler.temperature > DESIRED_WATER_TEMP + WATER_MARGIN goto RADIATOR
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP and Boiler.temperature < DESIRED_WATER_TEMP goto RUNNING
  gas = gas - BURNER_RAMPUP
  Burner.gas_level = gas
 
 state RUNNING:
- if Radiator_temp < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN or boiler_temp < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
- if Radiator_temp > DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN or boiler_temp > DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
+ if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN or Boiler.temperature < DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP
+ if Radiator.temperature > DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN or Boiler.temperature > DESIRED_WATER_TEMP - WATER_MARGIN goto RAMPUP

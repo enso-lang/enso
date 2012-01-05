@@ -9,6 +9,3 @@
    Radiator: radiator in=Valve.right
    //RoomTemp: thermostat
    Return = Boiler + Radiator + I
-// outputs
-   //furnace_output_temp: Temperature(Burner)
-   //boiler_temp: Temperature(Valve.left)

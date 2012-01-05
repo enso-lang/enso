@@ -21,6 +21,7 @@ end
 
 class OutputElement < Element
 ! outputs: Pipe* / owner
+  output:Pipe = "@outputs[0]"
 end
 class InputElement < Element
   input: Pipe
@@ -55,6 +56,8 @@ class Thermostat < Element
 end
 
 class Splitter < InputElement, OutputElement
+  left:Pipe = "@outputs[0]"
+  right:Pipe = "@outputs[1]"
 end
 
 class Pump < OutputElement, InputElement
