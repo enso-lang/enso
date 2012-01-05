@@ -20,8 +20,8 @@ in ::= "in" "=" input:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=
-       /elements[it]/input^ "." "input"
-     | /elements[it]/outputs[0]^
+       /elements[it]/outputs[0]^
      | /elements[it]/outputs[0]^ "." "left"
      | /elements[it]/outputs[1]^ "." "right"
+     | /elements[it]/input^ "." "input"
   

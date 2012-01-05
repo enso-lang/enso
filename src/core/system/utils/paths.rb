@@ -172,7 +172,7 @@ module Paths
     end
 
     def search(obj, root, bindings, &action)
-      action.call(obj[@name], bindings) if !obj.nil? && obj.schema_class.all_fields.has_key?(@name)
+      action.call(obj[@name], bindings) if !obj.nil? && obj.schema_class.all_fields[@name]
     end
 
     def to_s

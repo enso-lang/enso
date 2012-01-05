@@ -183,7 +183,7 @@ end
 
 class ManyStream
   def initialize(collection, index = 0)
-    @collection = collection.is_a?(ManyIndexedField) ? collection.values : collection 
+    @collection = collection.is_a?(Array) ? collection : collection.values 
     @index = index
   end
   def length
