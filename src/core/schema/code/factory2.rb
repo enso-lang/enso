@@ -114,7 +114,7 @@ module ManagedData
 
     def add_listener(name, &block)
       @listeners[name] ||= []
-      @listeners.push(block)
+      @listeners[name].push(block)
     end
 
     def notify(name, obj)
