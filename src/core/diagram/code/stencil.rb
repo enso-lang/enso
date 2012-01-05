@@ -101,28 +101,47 @@ class StencilFrame < DiagramFrame
     connector_handler = lambda do |tag, at1, at2|
       positions[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
     end
-    generate_saved_positions obj_handler, connector_handler
+    generate_saved_positions obj_handler, connector_handler, 9999 # no version on saving
     
     #puts positions
     File.open("#{@path}-positions", "w") do |output|
+      positions["*VERSION*"] = 2
       YAML.dump(positions, output)
     end
   end
  
-  def generate_saved_positions(obj_handler, connector_handler) 
+  def generate_saved_positions(obj_handler, connector_handler, version) 
     @tagModelToShape.each do |tagObj, shape|
       label = tagObj[0]
       obj = tagObj[1]
-      obj_handler.call "#{label}:#{obj._path.to_s}", obj, shape
+      begin
+        if version == 1
+          tag = obj.name
+        else
+          tag = "#{label}:#{obj._path.to_s}"
+        end
+        obj_handler.call tag, obj, shape
+      rescue
+      end
     end
     @connectors.each do |conn|
       ce1 = conn.ends[0]
       ce2 = conn.ends[1]
-      label = @shapeToTag[ce1.to]
       obj1 = @shapeToModel[ce1.to]
       obj2 = @shapeToModel[ce2.to]
-      l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
-      connector_handler.call "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}", ce1.attach, ce2.attach
+      begin
+        if version == 1
+          k = obj1.name
+          l = ce1.label.string if ce1.label
+          tag = "#{k}.#{l}"
+        else
+          label = @shapeToTag[ce1.to]
+          l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
+          tag = "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}"
+        end
+        connector_handler.call tag, ce1.attach, ce2.attach
+      rescue
+      end
     end
   end
     
@@ -131,7 +150,7 @@ class StencilFrame < DiagramFrame
     obj_handler = lambda do |tag, obj, shape|
       pos = @positions[shape]  # using Diagram private member
       pnt = @old_map[tag]
-      puts "   Has POS #{obj} #{pos} #{pnt}"
+      #puts "   Has POS #{obj} #{pos} #{pnt}"
       if pos && pnt
         pos.x.value = pnt.x
         pos.y.value = pnt.y
@@ -146,7 +165,7 @@ class StencilFrame < DiagramFrame
         at2.y = pnt[1].y
       end
     end
-    generate_saved_positions obj_handler, connector_handler
+    generate_saved_positions obj_handler, connector_handler, @old_map["*VERSION*"] || 1
   end
  
  
@@ -223,7 +242,7 @@ class StencilFrame < DiagramFrame
     brush = nil
     stencil.props.each do |prop|
       val, _ = eval(prop.exp, env)
-      puts "SET #{prop.loc} = #{val}"
+      #puts "SET #{prop.loc} = #{val}"
       newEnv = {}.update(env) if !newEnv
       case "#{prop.loc.base.name}.#{prop.loc.field}"
       when "font.size" then

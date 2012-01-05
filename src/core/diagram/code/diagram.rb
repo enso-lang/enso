@@ -141,10 +141,10 @@ class DiagramFrame < BaseWindow
     select = find e, do |x|
       #find something contained in a graph, which is dragable
       val = @find_container && @find_container.Container? && @find_container.direction == 3 
-      puts "#{x} => #{val}"
+      #puts "#{x} => #{val}"
       val
     end
-    puts "FIND #{select}"
+    #puts "FIND #{select}"
     set_selection(select, e)
   end
   
@@ -154,7 +154,6 @@ class DiagramFrame < BaseWindow
 
   def on_move(e)
     @selection.on_move(e, @mouse_down) if @selection
-    refresh
   end
 
   def on_key(e)
@@ -415,11 +414,13 @@ class DiagramFrame < BaseWindow
   end
   
   def drawConnector(part)
-    pFrom = position(part.ends[0])
-    pTo = position(part.ends[1])
+    e0 = part.ends[0]
+    e1 = part.ends[1]
+    pFrom = position(e0)
+    pTo = position(e1)
 
-    sideFrom = getSide(part.ends[0].attach)
-    sideTo = getSide(part.ends[1].attach)
+    sideFrom = getSide(e0.attach)
+    sideTo = getSide(e1.attach)
     if sideFrom == sideTo   # this it the "same" case
       ps = simpleSameSide(pFrom, pTo, sideFrom)
     elsif (sideFrom - sideTo).abs % 2 == 0  # this is the "opposite" case
@@ -617,6 +618,7 @@ class MoveShapeSelection
   def on_move(e, down)
     if down
       @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
+      @diagram.refresh
     end
   end
   
@@ -714,6 +716,8 @@ class PointSelection
     #puts("   EDGE #{nx} #{ny}")
 		@ce.attach.x = nx
 		@ce.attach.y = ny
+    @diagram.refresh
+    #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
   end
   
   def normalize(n)
