@@ -5,7 +5,7 @@ require 'core/grammar/render/layout'
 genealogy_schema = Loader.load('genealogy.schema')
 genealogy_grammar = Loader.load('genealogy.grammar')
 
-f = Factory.new(genealogy_schema)
+f = ManagedData::Factory.new(genealogy_schema)
 
 #tore = f.Person("id40", "Tore")
 #martin = f.Person("id68", "Martin", tore)

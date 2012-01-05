@@ -1,38 +1,39 @@
 --- 
-Opened: !ruby/object:EnsoPoint 
+default:/states[Opened]: !ruby/object:EnsoPoint 
   x: 13
   y: 94
-Closed: !ruby/object:EnsoPoint 
+default:/states[Closed]: !ruby/object:EnsoPoint 
   x: 118
   y: 19
-Locked: !ruby/object:EnsoPoint 
+default:/states[Locked]: !ruby/object:EnsoPoint 
   x: 237
   y: 82
-Opened.close: 
+default:/states[Opened]:/states[Closed]$close*: 
 - !ruby/object:EnsoPoint 
   x: 0.46306337259854347
   y: 0
 - !ruby/object:EnsoPoint 
   x: 0
   y: 0.6420618694350516
-Closed.open: 
+default:/states[Closed]:/states[Opened]$open*: 
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 1
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
-Closed.lock: 
+default:/states[Closed]:/states[Locked]$lock*: 
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.6175776585368259
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 0
-Locked.unlock: 
+default:/states[Locked]:/states[Closed]$unlock*: 
 - !ruby/object:EnsoPoint 
   x: 0
   y: 0.5000000000000001
 - !ruby/object:EnsoPoint 
   x: 0.7065933848538857
   y: 1
+"*VERSION*": 2

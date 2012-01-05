@@ -29,7 +29,7 @@ class Union
   end
 
   def self.union(a, b, merge = lambda{|x,y,field|x[field]})
-    f = Factory.new(a._graph_id.schema)
+    f = ManagedData::Factory.new(a._graph_id.schema)
     Union.new(f, merge).copy(a, b)
   end
 

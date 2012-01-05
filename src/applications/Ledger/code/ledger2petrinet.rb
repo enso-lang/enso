@@ -10,7 +10,7 @@ class Ledger2PetriNet
   end
 
   def initialize
-    @pnf = Factory.new(PN_SCHEMA)
+    @pnf = ManagedData::Factory.new(PN_SCHEMA)
   end
   
 

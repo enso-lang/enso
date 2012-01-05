@@ -7,7 +7,7 @@ require 'core/schema/tools/print'
 
 diagram_schema = Loader.load('diagram.schema')
 
-f = Factory.new(diagram_schema)
+f = ManagedData::Factory.new(diagram_schema)
 
 red = f.Color(255, 0, 0)
 blue = f.Color(0, 0, 255)

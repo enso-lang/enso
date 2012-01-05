@@ -10,7 +10,7 @@ plusone = Loader.load('plusone.interp')
 
 interp = Interpreter.new(plusone)
 interp.instance_eval {
-  @fact = Factory.new(Loader.load("intree.schema"))
+  @fact = ManagedData::Factory.new(Loader.load("intree.schema"))
   def f
     puts "ooo #{@fact}"
   end

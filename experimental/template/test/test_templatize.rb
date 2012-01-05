@@ -21,7 +21,7 @@ sspg = TemplatizeGrammar.new.templatize(sg, ss.classes["Schema"])
 DisplayFormat.print(Loader.load("grammar.grammar"), sspg)
 puts "-"*50
 
-result = Parse.load_raw <<-SCHEMA, sspg, ssps, Factory.new(ssps), true
+result = Parse.load_raw <<-SCHEMA, sspg, ssps, ManagedData::Factory.new(ssps), true
   class Test
     foo: int
   end

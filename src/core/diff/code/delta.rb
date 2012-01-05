@@ -137,7 +137,7 @@ class DeltaTransform
   def initialize()
     #change operation names
 
-    @factory = Factory.new(Loader.load('schema.schema'))
+    @factory = ManagedData::Factory.new(Loader.load('schema.schema'))
     @schema = @factory.Schema()
     
     #init memo for base classes and primitive types

@@ -29,7 +29,7 @@ class ExprTest < Test::Unit::TestCase
     ex0 = Loader.load("my-expr.expr")
 
     #add actions to the expression
-    f = Factory.new(Loader.load("expr.schema"))
+    f = ManagedData::Factory.new(Loader.load("expr.schema"))
     f.add_interp(EvalExpr)
     assert_equal(Copy(f,ex0).eval1, 6)
 
@@ -42,7 +42,7 @@ class ExprTest < Test::Unit::TestCase
     g = union(Loader.load('expr-vars.grammar'), Loader.load('expr.grammar'))
     ex1 = Loader.load_with_models("my-expr-vars.expr", g, s)
 
-    fv = Factory.new(s)
+    fv = ManagedData::Factory.new(s)
     fv.add_interp(EvalExpr)
     fv.add_interp(RenderExpr)
     fv.add_interp(Vars)
@@ -55,7 +55,7 @@ class ExprTest < Test::Unit::TestCase
     #load an expression and display it
     ex0 = Loader.load("my-expr.expr")
 
-    f = Factory.new(Loader.load("expr.schema"))
+    f = ManagedData::Factory.new(Loader.load("expr.schema"))
     f.add_interp(RenderExpr)
     f.add_interp(Wrap)
     assert_equal("((1) + ((2) + (3)))", Copy(f,ex0).wrap[:render])

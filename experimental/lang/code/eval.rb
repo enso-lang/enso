@@ -14,7 +14,7 @@ class LangEval
     @interp_map = {}
 
     #create a new schema by dynamically loading schemas in prog header
-    @schemafact = Factory.new(Loader.load('schema.schema'))
+    @schemafact = ManagedData::Factory.new(Loader.load('schema.schema'))
     @schema = Copy(schemafact, prog.schema_class.schema)
     prog.header.each do |lf|
       sch = Loader.load(lf.filename)
@@ -27,7 +27,7 @@ class LangEval
     end
 
     #replace all LoadRVs and ParseRVs with actual schema objects
-    @fact = Factory.new(schema)
+    @fact = ManagedData::Factory.new(schema)
     prog1 = Copy(@fact, prog)
     prog1.header.clear
     prog1 = replaceRV!(prog1)

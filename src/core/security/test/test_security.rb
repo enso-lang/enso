@@ -61,7 +61,7 @@ class SecurityTest < Test::Unit::TestCase
   end
 
   def test_constraints
-    fact = Factory.new(Loader.load("auth.schema"))
+    fact = ManagedData::Factory.new(Loader.load("auth.schema"))
 
     alice_const = fact.EBoolConst(true)
     @todo.factory.set_user('Alice')

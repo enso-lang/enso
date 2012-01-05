@@ -7,7 +7,7 @@ require 'core/schema/tools/print'
 
 class TemplatizeGrammar < Copy
   def initialize()
-    @factory = Factory.new(Loader.load("grammar.schema"))
+    @factory = ManagedData::Factory.new(Loader.load("grammar.schema"))
     @rule_number = 0
     @memo = {}
   end
@@ -96,7 +96,7 @@ class TemplatizeGrammar < Copy
   end
   
   def makeTemplate(nonterminal_name, klass_name, sep)
-    sub_factory = Factory.new(Loader.load("grammar.schema"))
+    sub_factory = ManagedData::Factory.new(Loader.load("grammar.schema"))
     extension = Loader.load_text 'grammar', sub_factory, <<-GRAMMAR
       start #{nonterminal_name}
       #{nonterminal_name}Alt ::= [#{klass_name}Alt] alts:{#{nonterminal_name}Cond "|"}+

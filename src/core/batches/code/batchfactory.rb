@@ -50,7 +50,7 @@ class BatchFactory
     end
     @all_queries = BatchEval.batch(web, schema.root_class)
     @schema = schema
-    @factory = Factory.new(schema)
+    @factory = ManagedData::Factory.new(schema)
     #init db here
     @database = db
     @dbuser = dbuser

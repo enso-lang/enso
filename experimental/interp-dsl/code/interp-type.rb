@@ -26,7 +26,7 @@ class InterpType
 
   def type(interp)
     #create new schema
-    @factory = Factory.new(Loader.load("schema.schema"))
+    @factory = ManagedData::Factory.new(Loader.load("schema.schema"))
     @schema = @factory.Schema()
 
     #create primitives

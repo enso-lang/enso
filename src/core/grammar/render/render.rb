@@ -9,7 +9,7 @@ class RenderClass < Dispatch
   include Paths
 
   def initialize()
-    @factory = Factory.new(Loader.load('layout.schema'))
+    @factory = ManagedData::Factory.new(Loader.load('layout.schema'))
     @depth = 0
   end
 

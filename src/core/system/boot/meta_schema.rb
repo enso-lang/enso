@@ -5,7 +5,7 @@ require 'core/system/utils/paths'
 Idea (getting rid of the fake checked objects)
  
 - instantiate Boot::Schema initialized with schema_schema.xml: ssboot
-- ss = loadxml(schema_schema.xml, Factory.new(ssboot))
+- ss = loadxml(schema_schema.xml, ManagedData::Factory.new(ssboot))
 - patch schema_pointers
 
 Grammar_schema.xml and instance_schema.xml can be loaded using ss.  No

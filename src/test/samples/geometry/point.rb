@@ -7,7 +7,7 @@ point_grammar = Loader.load('point.grammar')
 
 puts "-"*50
 
-f = Factory.new(point_schema)
+f = ManagedData::Factory.new(point_schema)
 p = f.Point(3,4)
 Print.print(p)
 

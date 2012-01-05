@@ -25,7 +25,7 @@ def schema2graph
   trg_schema = Loader.load('graph.schema')
   src = Loader.load('schema.schema')
   schema_graph = EvalAttr.eval(attr_schema, src, 'graph', 
-                               Factory.new(trg_schema))
+                               ManagedData::Factory.new(trg_schema))
 
   graph_grammar = Loader.load('graph.grammar')
   DisplayFormat.print(graph_grammar, schema_graph)
@@ -82,7 +82,7 @@ def family2persons
   attr_schema = Loader.load('family2persons.attr-schema')
   src_schema = Loader.load('families.schema')
   trg_schema = Loader.load('persons.schema')
-  factory = Factory.new(union(src_schema, trg_schema))
+  factory = ManagedData::Factory.new(union(src_schema, trg_schema))
   src = Loader.load('example.families')
   src = Copy.new(factory).copy(src)
   result = EvalAttr.eval(attr_schema, src, 'persons')
