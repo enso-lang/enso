@@ -1,6 +1,4 @@
 
-require 'core/schema/code/factory'
-
 require 'core/grammar/parse/unparse'
 require 'core/grammar/parse/to-path'
 require 'core/system/utils/location'

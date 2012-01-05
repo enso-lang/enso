@@ -3,7 +3,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 
-require 'core/schema/code/factory'
+require 'core/schema/code/factory2'
 
 require 'core/schema/tools/copy'
 require 'core/schema/tools/print'
@@ -41,8 +41,8 @@ class EqualityTest < Test::Unit::TestCase
 
   def test_transitive
     s1 = SS
-    s2 = Copy.new(Factory.new(SS)).copy(s1)
-    s3 = Copy.new(Factory.new(SS)).copy(s2)
+    s2 = Copy.new(ManagedData::Factory.new(SS)).copy(s1)
+    s3 = Copy.new(ManagedData::Factory.new(SS)).copy(s2)
     assert(Equals.equals(s1, s3))
   end
 

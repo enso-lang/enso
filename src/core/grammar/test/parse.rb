@@ -7,7 +7,7 @@ require 'core/grammar/render/layout'
 
 require 'core/system/boot/grammar_grammar'
 require 'core/diff/code/diff'
-require 'core/schema/code/factory'
+require 'core/schema/code/factory2'
 
 class ParseTest < Test::Unit::TestCase
 

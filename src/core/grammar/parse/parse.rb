@@ -39,7 +39,7 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/schema/code/factory'
+  require 'core/schema/code/factory2'
   require 'benchmark'
   require 'ruby-prof'
   grammar = Loader.load('web.grammar')
