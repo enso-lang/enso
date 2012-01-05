@@ -36,7 +36,7 @@ class CopyInto
     raise "Union of incompatible objects #{a} and #{b}" if a && b && a.schema_class.name != b.schema_class.name
     @memo[a] = new = b || @factory[a.schema_class.name]
     #puts "BUILD #{a} + #{b} ==> #{new}"
-    new.schema_class.fields.each do |field|
+    a.schema_class.fields.each do |field|
       a_val = a[field.name]
       b_val = b && b[field.name]
       #puts "#{field.name} #{field.traversal}: #{a_val} / #{b_val}"
@@ -65,7 +65,7 @@ class CopyInto
     #puts "LINK #{a} + #{b} ==> #{new}"
     raise "Traversal did not visit every object #{a} #{b}" unless new
     return new if !traversal
-    new.schema_class.fields.each do |field|
+    a.schema_class.fields.each do |field|
       a_val = a[field.name]
       b_val = b && b[field.name]
       next if field.type.Primitive?

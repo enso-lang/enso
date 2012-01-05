@@ -1,7 +1,6 @@
-require 'core/expr/code/eval'
+require 'core/expr/code/dispatch'
 
 module EvalExprIntern
-  include Dispatch
 
   def eval_EBinOp(op, e1, e2, args=nil)
     Kernel::eval("#{e1.eval.inspect} #{op} #{e2.eval.inspect}")
@@ -34,18 +33,19 @@ module EvalExprIntern
 end
 
 module EvalExpr
-  include Dispatch
+
+  include Dispatch1
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    Kernel::eval("#{self.eval(e1)} #{op} #{self.eval(e2)}")
+    Kernel::eval("#{self.eval(e1, args)} #{op} #{self.eval(e2, args)}")
   end
 
   def eval_EUnOp(op, e, args=nil)
-    Kernel::eval("#{op} #{eval(e).inspect}")
+    Kernel::eval("#{op} #{self.eval(e, args).inspect}")
   end
 
   def eval_EField(e, fname, args=nil)
-    var = eval(e)
+    var = self.eval(e, args)
     var.nil? ? nil : var.send(fname)
   end
 
@@ -58,7 +58,6 @@ module EvalExpr
   end
 
   def eval_EIntConst(val, args=nil)
-    puts "val = #{val}"
     val
   end
 

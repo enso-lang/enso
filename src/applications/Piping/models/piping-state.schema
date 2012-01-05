@@ -6,6 +6,7 @@ class Pipe
   flow: float
   pressure: float
   temperature: float
+  velocity: float = "@flow / @area"
 end
 
 class Element end
@@ -27,6 +28,7 @@ end
 
 class Vessel < Element
   contents: float
+  temperature: float
 end
 
 class Valve < Element
@@ -34,7 +36,7 @@ class Valve < Element
 end
 
 class Splitter < Element
-  flow: float // between 0 and 1
+  position: float // between 0 and 1
 end
 
 class Pump < Element

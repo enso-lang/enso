@@ -37,12 +37,12 @@ Useful Physics laws
 
 =end
 
+ROOM_TEMP = 50
+
 module Run
+
   def run(elem, *args)
     send("run_#{elem.schema_class.name}", elem, *args)
-  end
-
-  def run_Pipe(elem, new_elem)
   end
 
   def run_Joint(elem, new_elem)
@@ -50,19 +50,19 @@ module Run
     #total flow is conserved
     elem.output.flow = elem.pipes.inject(0) {|memo,p| memo+p.flow}
     if elem.output.flow > 0
-      elem.output.temperature = elem.pipes.inject(0) {|memo,p|memo + p.temperature * p.flow} / elem.output.flow
+      temp = (elem.pipes.inject(0) {|memo,p|memo + p.temperature * p.flow} / elem.output.flow).sigfig(3)
+      transfer_heat(elem.output, elem.output.flow, temp)
     end
   end
 
   def run_Splitter(elem, new_elem)
     #shares fluids from one pipe to others
     #total flow is conserved
-    #final velocity is equal for all output pipes
-    total_area = [elem.left, elem.right].inject(0) {|memo,p| memo+p.area }
-    velocity = elem.input.flow / total_area
+    #distribution is based on position of the splitting head
+    elem.left.flow = elem.input.flow * elem.position
+    elem.right.flow = elem.input.flow * (1-elem.position)
     [elem.left, elem.right].each do |p|
-      p.flow = p.area * velocity
-      p.temperature = elem.input.temperature
+      transfer_heat(p, p.flow, elem.input.temperature)
     end
   end
 
@@ -78,25 +78,33 @@ module Run
 
   def run_Burner(elem, new_elem)
     #burner heats up water that passes through it
-    elem.output.temperature = elem.temperature
-    transfer_water(elem.input, elem.output)
+    if elem.ignite
+      elem.temperature = elem.gas_level
+      elem.output.temperature = elem.temperature
+    end
+    flow = transfer_water(elem.input, elem.output)
+    transfer_heat(elem.output, flow, elem.temperature)
   end
 
   def run_Radiator(elem, new_elem)
     #radiator uses the heat from the passing water to heat the environment
-    elem.temperature = elem.input.temperature
-    transfer_water(elem.input, elem.output)
+    #assume the efficiency is 15%, ie 15% of the heat difference is transferred from the water to the environment
+    #if the water passing through is cold, then this doubles up as a cooling system (?)
+    flow = transfer_water(elem.input, elem.output)
+    temp = (elem.input.temperature - elem.temperature) * 0.15
+    elem.temperature = (elem.temperature + temp).sigfig(3)
+    new_temp = elem.input.temperature - temp
+    transfer_heat(elem.output, flow, new_temp)
   end
 
   def run_Vessel(elem, new_elem)
     #Allows material to fill up the vessel. Once filled it acts like a joint
-    if elem.contents < elem.capacity
-      transfer = (input *3.14/4) * sqrt(input.pressure/100 - 1) * 10
-      input.pressure = (input.pressure*input.volume - transfer) / input.volume
-      elem.contents += transfer
-      dirty_pipe(input)
+    if false #elem.contents < elem.capacity
+
     else #behave like a joint
-      transfer_water(elem.input, elem.output)
+      elem.temperature = elem.input.temperature
+      flow = transfer_water(elem.input, elem.output)
+      transfer_heat(elem.output, flow, elem.input.temperature)
     end
   end
 
@@ -106,20 +114,31 @@ module Run
 
   def run_Pump(elem, new_elem)
     #raises the flow of the output pipe
-    transfer_water(elem.input, elem.output)
-    elem.output.flow = elem.flow
-  end
-
-  def run_Thermostat(elem, new_elem)
-  end
-
-  def run_Sensor(elem, new_elem)
+    if elem.run = true
+      elem.output.flow = elem.flow
+    end
+    flow = elem.input.flow = elem.output.flow = elem.flow
+    transfer_heat(elem.output, flow, elem.input.temperature)
   end
 
   #transfer some amount of water from s1 to s2 based on connecting area and flow (based on pressure)
   def transfer_water(p1, p2)
-    p2.flow = p1.flow
-    p2.temperature = p1.temperature
+    p2.flow = p1.flow # = ((p2.flow + p1.flow) / 2).sigfig(3)
+  end
+
+  def transfer_heat(pipe, flow, temperature)
+    #simulate heat loss from water travelling in pipe
+    temperature = flow > pipe.volume ? temperature : ((temperature * flow + pipe.temperature * (pipe.volume - flow)) / pipe.volume).sigfig(3)
+    temp_diff = (temperature - ROOM_TEMP) * (0.98)
+    temperature = ROOM_TEMP + temp_diff
+    pipe.temperature = temperature
+  end
+end
+
+class Float
+  #utility function that rounds to significant figures
+  def sigfig(digits)
+    sprintf("%.#{digits - 1}e", self).to_f
   end
 end
 
@@ -132,7 +151,7 @@ class Simulator
     #do initialization here by setting the default states of the pipes, etc
   end
 
-  #will run continuously
+    #will run continuously
   def execute
     while true
       tick

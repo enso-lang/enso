@@ -5,7 +5,7 @@ EOr ::= [EBinOp] e1:EAnd "or" e2:EOr @"@op = 'or'"
        | EAnd
 EAnd ::= [EBinOp] e1:EBinOp "and" e2:EAnd @"@op = 'and'"
         | EBinOp
-EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<="|op:"+"|op:"-") e2:EBinOp
+EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<="|op:"+"|op:"-"|op:"*"|op:"/") e2:EBinOp
          | EUnOp
 EUnOp ::= [EUnOp] op:"not" e:Expr
         | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
@@ -20,4 +20,3 @@ EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:E
 EConst ::= [EStrConst] val:str
          | [EIntConst] val:int
          | [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"
-         | [EFloatConst] val:real

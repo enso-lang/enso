@@ -1,33 +1,33 @@
-=begin
-=end
-
+require 'core/expr/code/lvalue'
 
 module ExecuteController
   include LValueExpr
 
-  def init_Controller(globals, states, args=nil)
-    globals.each do |g| execute(g)
+  def init_Controller(globals, initial, args=nil)
+    globals.each {|g| execute(g, args)}
+    args[:env]['CURRENT_STATE'] = initial
   end
 
-  def execute_Controller(globals, states, args=nil)
-    execute(states[args[:env]['CURRENT_STATE']], args)
+  def execute_Controller(args=nil)
+    execute(args[:env]['CURRENT_STATE'], args)
   end
-s
+
   def execute_State(commands, transitions, args=nil)
     #test conditions BEFORE executing current state!!!
     moved = transitions.detect do |trans|
-
+      execute(trans, args)
     end
     if !moved
       commands.each do |c|
-        execute(commands, args)
+        execute(c, args)
       end
     end
   end
 
   def execute_Transition(guard, target, args=nil)
-    if eval(guard)
+    if self.eval(guard, args)
       args[:env]['CURRENT_STATE'] = target
+      puts "Moving to state #{args[:env]['CURRENT_STATE']}"
       true
     else
       false
@@ -35,7 +35,11 @@ s
   end
 
   def execute_Assign(var, val, args=nil)
-    lvalue(var, args).value = eval(val, args)
+    lvalue(var, args).value = self.eval(val, args)
+  end
+
+  def execute_TurnSplitter(splitter, percent, args=nil)
+    @piping.turn_splitter(splitter, self.eval(percent, args))
   end
 end
 
@@ -49,44 +53,43 @@ class Controller
     @piping = piping
     @state = {}
     @control = Loader.load(control)
+    @env = ControlEnv.new(@piping, @state)
+    init(@control, :env=>@env)
   end
 
   #environment to execute the controller in
   # similar to a normal environment except for the lookup
   # lookup order: local > piping > globals
-  class ControlEnv
+  class ControlEnv < Hash
     def initialize(piping, globals)
-      @hash = {}
       @piping = piping
       @globals = globals
     end
 
     def [](k)
-      if @hash.has_key? k
-        @hash[k]
-      elsif @piping.sensor_names.include? k
+      if @piping.sensor_names.include? k
         @piping.get_reading(k)
-      elsif @globals.has_key? k
-        @globals[k]
+      elsif @piping.control_names.include? k
+        @piping.get_control(k)
       else
-        raise "No such variable #{k} in current environment"
+        super
       end
     end
 
     def []=(k,v)
-      if @hash.has_key? k
-        @hash[k] = v
-      elsif @piping.control_names.include? k
-        @piping.set_control(k, v)
-      elsif @globals.has_key? k
-        @globals[k]
+      if @piping.control_names.include? k
+        @piping.set_control_value(k, v)
       else
-        raise "No such variable #{k} in current environment"
+        super
       end
     end
   end
 
   def run
-    execute(@control, :env=>ControlEnv.new(@piping, @state))
+    execute(@control, {:env=>@env})
+  end
+
+  def current_state
+    @env['CURRENT_STATE']
   end
 end

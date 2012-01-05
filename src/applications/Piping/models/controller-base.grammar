@@ -3,8 +3,9 @@ start Controller
 Controller ::= [Controller] "start" initial:/states[it]^ globals:Assign* states:State*
 State ::= [State] "state" name:sym ":" transitions:Transition* commands:Command*
 
-Command ::= Assign
+Command ::= Assign | TurnSplitter
 Assign ::= [Assign] var:Expr "=" val:Expr
+TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym "left by" percent:Expr
 
 Transition ::= [Transition] "if" guard:Expr "goto" target:/states[it]^
 

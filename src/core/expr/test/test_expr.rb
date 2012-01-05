@@ -11,7 +11,8 @@ require 'core/expr/code/wrap'
 class ExprTest < Test::Unit::TestCase
 
   def test_base
-    interp = Visitor.new(InternalVisitor(EvalExpr))
+    #interp = Visitor.new(InternalVisitor(EvalExpr))
+    interp = Visitor.new(EvalExpr)
     ex0 = Loader.load("my-expr.expr")
     assert_equal(6, interp.eval(ex0))
   end

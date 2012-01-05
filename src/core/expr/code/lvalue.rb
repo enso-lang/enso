@@ -29,7 +29,7 @@ module LValueExpr
   end
 
   def lvalue_EField(e, fname, args=nil)
-    Address.new(eval(e), fname)
+    Address.new(self.eval(e, args), fname)
   end
 
   def lvalue_EVar(name, args=nil)

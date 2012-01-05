@@ -24,4 +24,9 @@ class Assign < Command
 ! val:Expr
 end
 
+class TurnSplitter < Command
+  splitter:str
+! percent:Expr
+end
+
 class Expr end
