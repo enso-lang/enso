@@ -67,7 +67,10 @@ class Variable
       path << self
       vals = @vars.collect do |var|
         val = var.is_a?(Variable) ? var.internal_evaluate(path) : var
-        raise "undefined variable '#{var}'" if val.nil?
+        if val.nil?
+          puts "WARNING: undefined variable '#{var}'"
+          val = 10
+        end
         val
       end
       path.pop

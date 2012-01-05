@@ -12,6 +12,7 @@ require 'yaml'
 # render(Stencil, data) = diagram
 
 def RunStencilApp(path = nil)
+  path = ARGV[0] if !path
   Wx::App.run do
     win = StencilFrame.new(path)
     win.show 
@@ -19,9 +20,10 @@ def RunStencilApp(path = nil)
 end
 
 class StencilFrame < DiagramFrame
+  include Paths
 
   def initialize(path = nil)
-    super("Diagram Editor")
+    super("Model Editor")
     @actions = {}
     self.path = path if path
   end
@@ -50,9 +52,10 @@ class StencilFrame < DiagramFrame
       :brush => @factory.Brush(white)
     }
     
-    @shapeToAddress = {}
-    @shapeToModel = {}
-    @labelToShape = {}
+    @shapeToAddress = {}  # used for text editing
+    @shapeToModel = {}    # list of all created objects
+    @shapeToTag = {}    # list of all created objects
+    @tagModelToShape = {}
     @connectors = []
     construct @stencil.body, env, nil do |x| 
       set_root(x) 
@@ -70,45 +73,6 @@ class StencilFrame < DiagramFrame
 	def lookup_shape(shape)
 	  return @shapeToModel[shape]
 	end
-
-  def do_constraints
-    super
-    @old_map.each do |key, pnt|
-      #puts "CHECK #{key} #{pnt}"
-      field = nil
-      if key =~ /(.*)\.(.*)/
-        key = $1
-        field = $2
-      end
-      obj = @labelToShape[key]
-      next if !obj
-      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
-      begin
-	      if field.nil?
-		      pos = @positions[obj]
-		      next if !pos
-		      #puts "   Has POS #{key} #{pnt}"
-		      pos.x.value = pnt.x
-		      pos.y.value = pnt.y
-		    else
-		      obj.connectors.each do |ce|
-	          l = ce.label ? ce.label.string : ""
-		        #puts "   CHECKING #{l}"
-	          if field == l
-	            conn = ce.owner
-	            #puts "   Has ATTACH #{field}"
-	            conn.ends[0].attach.x = pnt[0].x
-	            conn.ends[0].attach.y = pnt[0].y
-	            conn.ends[1].attach.x = pnt[1].x
-	            conn.ends[1].attach.y = pnt[1].y
-	            break
-		        end
-		      end
-		    end
-	    rescue
-	    end
-    end
-  end
   
   def setup_menus()
     super()
@@ -131,23 +95,61 @@ class StencilFrame < DiagramFrame
 
     # save the positions
     positions = {}
-    inverse = {}
-    @labelToShape.each do |key, obj|
-      positions[key] = position(obj)
-      inverse[obj] = key
+    obj_handler = lambda do |tag, obj, shape|
+      positions[tag] = position(shape)
     end
-    @connectors.each do |conn|
-      ce = conn.ends[0]
-      ce2 = conn.ends[1]
-      k = inverse[ce.to]
-      l = ce.label.string if ce.label
-      positions["#{k}.#{l}"] = [ EnsoPoint.new(ce.attach.x, ce.attach.y), EnsoPoint.new(ce2.attach.x, ce2.attach.y) ]
+    connector_handler = lambda do |tag, at1, at2|
+      positions[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
     end
+    generate_saved_positions obj_handler, connector_handler
+    
     #puts positions
     File.open("#{@path}-positions", "w") do |output|
       YAML.dump(positions, output)
     end
   end
+ 
+  def generate_saved_positions(obj_handler, connector_handler) 
+    @tagModelToShape.each do |tagObj, shape|
+      label = tagObj[0]
+      obj = tagObj[1]
+      obj_handler.call "#{label}:#{obj._path.to_s}", obj, shape
+    end
+    @connectors.each do |conn|
+      ce1 = conn.ends[0]
+      ce2 = conn.ends[1]
+      label = @shapeToTag[ce1.to]
+      obj1 = @shapeToModel[ce1.to]
+      obj2 = @shapeToModel[ce2.to]
+      l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
+      connector_handler.call "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}", ce1.attach, ce2.attach
+    end
+  end
+    
+  def do_constraints
+    super
+    obj_handler = lambda do |tag, obj, shape|
+      pos = @positions[shape]  # using Diagram private member
+      pnt = @old_map[tag]
+      puts "   Has POS #{obj} #{pos} #{pnt}"
+      if pos
+        pos.x.value = pnt.x
+        pos.y.value = pnt.y
+      end
+    end
+    connector_handler = lambda do |tag, at1, at2|
+      pnt = @old_map[tag]
+      if pnt
+        at1.x = pnt[0].x
+        at1.y = pnt[0].y
+        at2.x = pnt[1].x
+        at2.y = pnt[1].y
+      end
+    end
+    generate_saved_positions obj_handler, connector_handler
+  end
+ 
+ 
   
     # ------- event handling -------  
   def on_double_click(e)
@@ -291,14 +293,13 @@ class StencilFrame < DiagramFrame
   	        generate_diagram
 	        end
 	      end
-	      @shapeToModel[shape] = v
      		block.call shape
       end
     end
     if this.label
       action = address.is_traversal ? "Create" : "Add"
       begin
-	      shape = @labelToShape[address.object.name]
+	      shape = @tagModelToShape[address.object.name]
 	    rescue
 	    end
 	    shape = container if !shape
@@ -376,38 +377,44 @@ class StencilFrame < DiagramFrame
   end
 
   def constructLabel(this, env, container, &block)
-    key = evallabel(this.label, env)
-    construct this.body, env, container do |result|
-      #puts "LABEL #{key} => #{result}"
-      @labelToShape[key] = result
-      block.call(result)
+    construct this.body, env, container do |shape|
+      tag, obj = evallabel(this.label, env)
+      puts "LABEL #{obj} => #{shape}"
+      @tagModelToShape[[tag, obj]] = shape
+      @shapeToModel[shape] = obj
+      @shapeToTag[shape] = tag
+      block.call(shape)
     end
   end
 
   def evallabel(label, env)
+    tag = "default"
     if label.Prim? && label.op == "[]"   # it has the form Loc[foo]
       tag = label.args[0]
+      label = label.args[1]
       raise "foo" if !tag.Var?
       tag = tag.name
-      index, _ = eval(label.args[1], env)
-      return "#{tag}_#{index.name}"  #TODO: hack!!! should use the real path
-    else
-      val, _ = eval(label, env)
-      val = val.name  #TODO: hack!!!
-      return val
     end
+    obj, _ = eval(label, env)
+    return tag, obj
   end
   
   # shapes
   def constructContainer(this, env, container, &block)
-    group = @factory.Container(nil, nil, this.direction)
-    this.items.each do |item|
-      construct item, env, group do |x|
-        group.items << x
+    if this.direction == 4
+      this.items.each do |item|
+        construct item, env, container, &block
       end
+    else
+      group = @factory.Container(nil, nil, this.direction)
+      this.items.each do |item|
+        construct item, env, group do |x|
+          group.items << x
+        end
+      end
+      make_styles(this, group, env)
+      block.call group if block
     end
-    make_styles(this, group, env)
-    block.call group
   end
   
   def constructText(this, env, container, &block)
@@ -446,8 +453,8 @@ class StencilFrame < DiagramFrame
       labelStr, _ = eval(e.other_label, env)
       other_label = labelStr && @factory.Text(nil, nil, labelStr)
       de = @factory.ConnectorEnd(e.arrow, label, other_label)
-      key = evallabel(e.part, env)
-      de.to = @labelToShape[key]
+      tag, obj = evallabel(e.part, env)
+      de.to = @tagModelToShape[[tag, obj]]
       de.attach = ptemp[i]
       i = i + 1
       
@@ -463,7 +470,7 @@ class StencilFrame < DiagramFrame
   #### expressions
   
   def eval(exp, env)
-    return nil if exp.nil?
+    return nil, nil if exp.nil?
     send("eval#{exp.schema_class.name}", exp, env)
   end
      
@@ -642,3 +649,5 @@ class Address
     return real_field.traversal
   end
 end
+
+RunStencilApp()

@@ -444,6 +444,10 @@ class ManyIndexedField < BaseManyField
     @hash.member? x
   end
   
+  def has_key?(k)
+    @hash.has_key? k
+  end
+  
   def [](x)
     @hash[x]
   end
@@ -531,6 +535,10 @@ class ManyIndexedField < BaseManyField
     @hash.each_value &block
   end
 
+  def each_pair(&block) 
+    @hash.each_pair &block
+  end
+
   def +(other)
     r = ManyIndexedField.new(@key)
     self.each do |x| r << x end
@@ -587,7 +595,7 @@ class ManyField < BaseManyField
   end
 
   def [](x)
-    @list[x]
+    @list[x.to_i]
   end
   
   def length
@@ -659,6 +667,12 @@ class ManyField < BaseManyField
   
   def each(&block) 
     @list.each &block
+  end
+
+  def each_pair(&block) 
+    @list.each_with_index do |item, i|
+      block.call(i, item)
+    end
   end
 
   def +(other)

@@ -423,6 +423,8 @@ module ManagedData
 
     def each(&block); @value.each_value(&block) end
 
+    def each_pair(&block); @value.each_pair &block end
+
     def values; @value.values end
 
     def <<(mobj)
@@ -468,7 +470,15 @@ module ManagedData
       @value = []
     end
 
+    def [](key); @value[key.to_i] end
+
     def each(&block); @value.each(&block) end
+
+    def each_pair(&block) 
+      @value.each_with_index do |item, i|
+        block.call(i, item)
+      end
+    end
 
     def values; @value end
 

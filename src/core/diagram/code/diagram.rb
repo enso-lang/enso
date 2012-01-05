@@ -1,6 +1,7 @@
 require 'wx'
 include Wx
 
+require 'core/system/load/load'
 require 'core/diagram/code/base_window'
 require 'core/diagram/code/constraints'
 #require 'core/schema/tools/print'
@@ -191,22 +192,26 @@ class DiagramFrame < BaseWindow
       b = boundary(part)
       return if b.nil?
       #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-      if rect_contains(b, pnt)
-        old_container = @find_container
-        @find_container = part
-        out = nil
-        if part.Container?
-          part.items.each do |sub|
-            out = find1(sub, pnt, &filter)
-            break if out
+      begin
+        if rect_contains(b, pnt)
+          old_container = @find_container
+          @find_container = part
+          out = nil
+          if part.Container?
+            part.items.each do |sub|
+              out = find1(sub, pnt, &filter)
+              break if out
+            end
+            out = part if !out && filter.call(part)
+          elsif part.Shape?
+            out = find1(part.content, pnt, &filter) if part.content
           end
-          out = part if !out && filter.call(part)
-        elsif part.Shape?
-          out = find1(part.content, pnt, &filter) if part.content
+          @find_container = old_container
+          return out if out
+          return part if filter.call(part)
         end
-        @find_container = old_container
-        return out if out
-        return part if filter.call(part)
+      rescue Exception => e  
+        puts e.message
       end
     end
     return nil
@@ -321,6 +326,7 @@ class DiagramFrame < BaseWindow
       sq2 = 2 * Math.sqrt(2.0)
       a >= (ow / sq2).round
       b >= (oh / sq2).round
+      a >= b
     end
     width >= ow + (a * 2)
     height >= oh + (b * 2)

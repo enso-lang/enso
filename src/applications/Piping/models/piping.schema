@@ -7,7 +7,7 @@ class System
 end
 
 class Pipe
-  connections: Element*
+  owner: OutputElement
   diameter: float
   length: float
   // computed
@@ -19,60 +19,49 @@ class Element
   #name: str
 end
 
-class Joint < Element
-! output: Pipe
-  pipes: Pipe*
+class OutputElement < Element
+! outputs: Pipe* / owner
+end
+class InputElement < Element
+  input: Pipe
 end
 
-class End < Element end
+class Joint < OutputElement
+  pipes: Pipe*  // inputs
+end
 
-class Source < End
+class Source < OutputElement
   kind: str
-! output: Pipe
 end
 
-class Exhaust < End
-  input: Pipe
+class Exhaust < InputElement
 end
 
-class Burner < Element
-  input: Pipe
+class Burner < OutputElement, InputElement
   gas: Pipe
-! output: Pipe
 end
 
-class Radiator < Element
-  input: Pipe
-! output: Pipe
+class Radiator < OutputElement, InputElement
 end
 
-class Vessel < Element
-  input: Pipe
-! output: Pipe
+class Vessel < OutputElement, InputElement
   capacity: float
 end
 
-class Valve < Element
-  input: Pipe
-! output: Pipe
+class Valve < OutputElement, InputElement
 end
 
-class Splitter < Element
-  input: Pipe
- !left: Pipe
- !right: Pipe
-  output: Pipe = "@left"
+class Thermostat < Element
 end
 
-class Pump < Element
-  input: Pipe
-! output: Pipe
+class Splitter < InputElement, OutputElement
 end
 
-class Sensor
-  #name: str
+class Pump < OutputElement, InputElement
+end
+
+class Sensor < Element, InputElement
   kind: str // temperature, pressure, flow
-  attach: Pipe
 end
 
 primitive str
