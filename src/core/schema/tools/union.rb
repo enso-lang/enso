@@ -74,7 +74,8 @@ class CopyInto
         new[field.name] = val
       else
         a_val.join(b_val) do |a_item, b_item|
-          new[field.name] << link(field.traversal, a_item, b_item)
+          item = link(field.traversal, a_item, b_item)
+          new[field.name] << item unless new[field.name].include? item
         end
       end
     end
