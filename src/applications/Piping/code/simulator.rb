@@ -55,7 +55,7 @@ module CalcHeatFlow
     transfer_heat(elem.output, flow, temp)
   end
 
-  def CalcHeatFlow_Splitter(elem, old, args)
+  def CalcHeatFlow_Splitter(elem, old, args=nil)
     #shares fluids from one pipe to others
     #total flow is conserved
     #distribution is based on position of the splitting head
@@ -93,7 +93,7 @@ module CalcHeatFlow
     transfer_heat(elem.output, flow, new_temp)
   end
 
-  def CalcHeatFlow_Vessel(elem, old, args)
+  def CalcHeatFlow_Vessel(elem, old, args=nil)
     #Allows material to fill up the vessel. Once filled it acts like a joint
     if false #elem.contents < elem.capacity
 
@@ -104,7 +104,7 @@ module CalcHeatFlow
     end
   end
 
-  def CalcHeatFlow_Pump(elem, old, args)
+  def CalcHeatFlow_Pump(elem, old, args=nil)
     #raises the flow of the output pipe
     if elem.run = true
       flow = elem.output.flow = elem.flow
@@ -206,14 +206,39 @@ class CalcPressure
     end
   end
 
-  def CalcPressure_Pump(input, output, args=nil)
-    if output.in_pressure != 100
-      output.in_pressure = 100
+  def CalcPressure_Pump(input, output, pressure, args=nil)
+    if output.in_pressure != pressure
+      output.in_pressure = pressure
       input.out_pressure = 0
       CalcPressure(output.output)
     end
   end
+end
 
+class Init
+  include Map
+
+  def Init_Pipe(args=nil)
+    p = args[:obj]
+    p.diameter = 0.1
+    p.length = 10
+    p.temperature = ROOM_TEMP
+    p.in_pressure = 0
+    p.out_pressure = 0
+    p
+  end
+
+  def Init_Radiator(args=nil)
+    args[:obj].temperature = ROOM_TEMP
+  end
+
+  def Init_Boiler(args=nil)
+    args[:obj].temperature = ROOM_TEMP
+  end
+
+  def Init_?(fields, type, args=nil)
+    args[:obj]
+  end
 end
 
 class Float
@@ -230,6 +255,7 @@ class Simulator
   def initialize(piping)
     @piping = piping
     #do initialization here by setting the default states of the pipes, etc
+    Init.new.Init(@piping)
   end
 
     #will run continuously

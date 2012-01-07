@@ -10,54 +10,12 @@ class SimulatorTest
     @pipes = Loader.load('boiler.piping')
 
     @piping = Copy(ManagedData::Factory.new(Loader.load('piping-sim.schema')), @pipes)
-    @piping.elements['Pump'].flow = 0.05
-    @piping.elements['Valve'].position = 0.5
-    @piping.elements['Radiator'].temperature = 50
     @piping.elements['Return'].inputs.each {|p| p.output = @piping.elements['Return']}
-    @piping.elements.each do |elem|
-      begin
-        elem.input.diameter = 0.1
-        elem.input.length = 10
-        elem.input.temperature = 50
-        elem.input.pressure = 0
-      rescue
-      end
-      begin
-        elem.output.diameter = 0.1
-        elem.output.length = 10
-        elem.output.temperature = 50
-        elem.output.pressure = 0
-      rescue
-      end
-      begin
-        elem.left.diameter = 0.1
-        elem.left.length = 10
-        elem.left.temperature = 50
-        elem.left.pressure = 0
-      rescue
-      end
-      begin
-        elem.right.diameter = 0.1
-        elem.right.length = 10
-        elem.right.temperature = 50
-        elem.right.pressure = 0
-      rescue
-      end
-      begin
-        elem.pipes.each do |p|
-          p.diameter = 0.1
-          p.length = 10
-          p.temperature = 50
-          p.pressure = 0
-        end
-      rescue
-      end
-    end
   end
 
   def test_system
     sim_interval = 1
-    sim_display_interval = 3
+    sim_display_interval = 5
     controller_interval = 1
 
     @sim = Simulator.new(@piping)
@@ -66,7 +24,7 @@ class SimulatorTest
     #some kind of virtual clock
     curr = [controller_interval, sim_interval, sim_display_interval]
     count = 1
-    while count<=13
+    while count<=20
       time = curr.min
       if curr[0] == time
         curr[0] = controller_interval
