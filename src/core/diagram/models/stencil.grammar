@@ -32,16 +32,19 @@ Exp2 ::= [Prim] args:Exp3 op:"|" args:Exp2
       | Exp3
 
 Exp3 ::= [Prim] args:Exp4 (op:"==" | op:"!=" | op:"<" | op:">" | op:"<=" | op:">=") args:Exp4
-      | [InstanceOf] base:Exp4 "is" class_name:sym
       | Exp4
 
-Exp4 ::= Loc
-      | [Prim] op:"!" args:Exp4
+Exp4 ::= [Prim] args:Exp5 (op:"+" | op:"-" | op:"/" | op:"*" | op:"%") args:Exp4
+      | Exp5
+
+Exp5 ::= Loc
+      | [Prim] op:"!" args:Exp5
+      | [InstanceOf] base:Loc "is" class_name:sym
       | "(" Exp ")"
 
 Loc ::= [Field] base:Loc "." field:sym
       | [Prim] args:Loc "[" args:Loc "]" @"@op='[]'"
-      | [Color] "(" r:int "," g:int "," b:int ")"
+      | [Color] "(" r:Exp "," g:Exp "," b:Exp ")"
       | [Literal] "nil" @"@value=nil"
       | [Var] name:sym
       | [Literal] value:(str | int)

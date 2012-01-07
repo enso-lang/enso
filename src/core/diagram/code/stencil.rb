@@ -11,8 +11,7 @@ require 'yaml'
 
 # render(Stencil, data) = diagram
 
-def RunStencilApp(path = nil)
-  path = ARGV[0] if !path
+def RunStencilApp(path = ARGV[0])
   Wx::App.run do
     win = StencilFrame.new(path)
     win.show 
@@ -33,15 +32,33 @@ class StencilFrame < DiagramFrame
   def path=(path)
     ext = File.extname(path)
     raise "File has no extension" if ext.length < 2
-    @extension = ext[1..-1]
-    @stencil = Load("#{@extension}.stencil")
     @path = path
     set_title path
-    @data = Load(@path)
-    generate_diagram
+    setup ext[1..-1], Load(@path)
   end
-    
-  def generate_diagram
+  
+  def setup extension, data
+    @extension = extension
+    @stencil = Load("#{@extension}.stencil")
+    @data = data
+    if data.factory.file_path
+      pos = "#{data.factory.file_path}-positions"
+      #puts "FINDING #{pos}"
+      @position_map = {}
+      if File.exists?(pos)
+        @position_map = YAML::load_file(pos)
+      end
+    end
+    build_diagram
+  end
+
+  def rebuild_diagram
+    capture_positions
+    build_diagram
+  end
+  
+  def build_diagram
+    puts "REBUILDING"
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
         
@@ -59,11 +76,6 @@ class StencilFrame < DiagramFrame
     @connectors = []
     construct @stencil.body, env, nil do |x| 
       set_root(x) 
-    end
-    #puts "FINDING #{@path}-positions"
-    @old_map = {}
-    if File.exists?("#{@path}-positions")
-      @old_map = YAML::load_file("#{@path}-positions")
     end
     refresh()
     #puts "DONE"
@@ -93,21 +105,24 @@ class StencilFrame < DiagramFrame
       DisplayFormat.print(grammar, @data, 80, output)
     end
 
-    # save the positions
-    positions = {}
+    capture_positions    
+    #puts @position_map
+    File.open("#{@path}-positions", "w") do |output|
+      YAML.dump(@position_map, output)
+    end
+  end
+  
+  def capture_positions
+    # save the position_map
+    @position_map = {}
+    @position_map["*VERSION*"] = 2
     obj_handler = lambda do |tag, obj, shape|
-      positions[tag] = position(shape)
+      @position_map[tag] = position(shape)
     end
     connector_handler = lambda do |tag, at1, at2|
-      positions[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
+      @position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
     end
     generate_saved_positions obj_handler, connector_handler, 9999 # no version on saving
-    
-    #puts positions
-    File.open("#{@path}-positions", "w") do |output|
-      positions["*VERSION*"] = 2
-      YAML.dump(positions, output)
-    end
   end
  
   def generate_saved_positions(obj_handler, connector_handler, version) 
@@ -147,9 +162,10 @@ class StencilFrame < DiagramFrame
     
   def do_constraints
     super
+    return if !@position_map
     obj_handler = lambda do |tag, obj, shape|
       pos = @positions[shape]  # using Diagram private member
-      pnt = @old_map[tag]
+      pnt = @position_map[tag]
       #puts "   Has POS #{obj} #{pos} #{pnt}"
       if pos && pnt
         pos.x.value = pnt.x
@@ -157,7 +173,7 @@ class StencilFrame < DiagramFrame
       end
     end
     connector_handler = lambda do |tag, at1, at2|
-      pnt = @old_map[tag]
+      pnt = @position_map[tag]
       if pnt
         at1.x = pnt[0].x
         at1.y = pnt[0].y
@@ -165,7 +181,7 @@ class StencilFrame < DiagramFrame
         at2.y = pnt[1].y
       end
     end
-    generate_saved_positions obj_handler, connector_handler, @old_map["*VERSION*"] || 1
+    generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 1
   end
  
  
@@ -309,7 +325,7 @@ class StencilFrame < DiagramFrame
   	        else
   	          address.value = nil
   	        end
-  	        generate_diagram
+  	        rebuild_diagram
 	        end
 	      end
      		block.call shape
@@ -329,7 +345,7 @@ class StencilFrame < DiagramFrame
 	      	puts "ADD #{action}: #{address.field}"
 	      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
 			      address.insert x
-						generate_diagram
+						rebuild_diagram
 			    end
 	      else
 		      factory = address.object.factory
@@ -351,12 +367,12 @@ class StencilFrame < DiagramFrame
 #		      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
 #		      	  obj[relateField.name] = x
 #				      address.insert obj
-#							generate_diagram
+#							rebuild_diagram
 #				    end
 #	      	else
 			      address.insert obj
 			      #Print.print(@data)
-	  				generate_diagram
+	  				rebuild_diagram
 #	  		  end
 	      end
 	    end
@@ -398,7 +414,7 @@ class StencilFrame < DiagramFrame
   def constructLabel(this, env, container, &block)
     construct this.body, env, container do |shape|
       tag, obj = evallabel(this.label, env)
-      puts "LABEL #{obj} => #{shape}"
+      #puts "LABEL #{obj} => #{shape}"
       @tagModelToShape[[tag, obj]] = shape
       @shapeToModel[shape] = obj
       @shapeToTag[shape] = tag
@@ -439,7 +455,7 @@ class StencilFrame < DiagramFrame
   
   def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
-    puts "TEXT #{val} #{address}"
+    #puts "TEXT #{val} #{address}"
     if !val.is_a?(String)
       val = ObjectKey(val)
     end
@@ -508,7 +524,10 @@ class StencilFrame < DiagramFrame
   end
 
   def evalColor(this, env)
-    return @factory.Color(this.r, this.g, this.b), nil
+    r, _ = eval(this.r, env)
+    g, _ = eval(this.g, env)
+    b, _ = eval(this.b, env)
+    return @factory.Color(r.round, g.round, b.round), nil
   end
   
   def evalPrim(this, env)
@@ -550,7 +569,9 @@ class StencilFrame < DiagramFrame
     a, _ = eval(this.base, env)
     return nil, nil if a.nil?  # NOTE THIS IS A HACK!!!
     return a._id, Address.new(a, this.field) if this.field == "_id"
-    return a[this.field], Address.new(a, this.field)
+    addr = Address.new(a, this.field)
+    a = a.dynamic_update if this.field=="temperature" && a.schema_class.all_fields[this.field].type.Primitive?
+    return a[this.field], addr
   end
     
   def evalInstanceOf(this, env)
@@ -617,7 +638,7 @@ class FindByTypeSelection
   end
   
   def on_move(e, down)
-    puts "CHECKING"
+    #puts "CHECKING"
     @part = @diagram.find e, do |shape| 
       obj = @diagram.lookup_shape(shape)
       #obj && obj._subtypeOf(obj.schema_class, @kind)
@@ -679,4 +700,6 @@ class Address
   end
 end
 
-RunStencilApp()
+if __FILE__ == $0 then
+  RunStencilApp()
+end

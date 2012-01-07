@@ -68,9 +68,9 @@ class Var < Expression
 end
 
 class Color < Expression
-  r: int
-  g: int
-  b: int
+  r: Expression
+  g: Expression
+  b: Expression
 end
 
 // DIAGRAMS

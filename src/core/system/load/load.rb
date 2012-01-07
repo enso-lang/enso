@@ -21,11 +21,6 @@ module Loading
     SCHEMA_GRAMMAR = 'schema.grammar'
     GRAMMAR_SCHEMA = 'grammar.schema'
 
-    def load!(name, type = nil)
-      # ignore possibly cached model
-      @cache[name] = _load(name, type)
-    end
-
     def load(name, type = nil)
       setup() if @cache.nil?
       
@@ -33,6 +28,11 @@ module Loading
       load!(name, type)
     end
     
+    def load!(name, type = nil)
+      # ignore possibly cached model
+      @cache[name] = _load(name, type)
+    end
+
     def load_text(type, factory, source, show = false)
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
@@ -91,22 +91,23 @@ module Loading
         if schema.nil? then
           # this means we are loading schema_schema.xml for the first time.
           schema = Boot::Schema.new(doc.root)
-          x = FromXML.load(schema, doc)
-          Boot::patch_schema_pointers(x)
-          return x
+          result = FromXML.load(schema, doc)
+          Boot::patch_schema_pointers(result)
         else
-          FromXML.load(schema, doc)
+          result = FromXML.load(schema, doc)
         end
       else
         header = File.open(path, &:readline)
         if header =~ /#ruby/
           $stderr << "## building #{path}...\n"
-          instance_eval(File.read(path))
+          result = instance_eval(File.read(path))
         else
           $stderr << "## loading #{path}...\n"
-          Parse.load_file(path, grammar, schema, encoding)
+          result = Parse.load_file(path, grammar, schema, encoding)
         end
       end
+      result.factory.file_path = path
+      return result
     end
     
     def find_model(name) 

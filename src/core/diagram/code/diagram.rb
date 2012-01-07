@@ -570,7 +570,7 @@ class DiagramFrame < BaseWindow
   end
 
   def makeColor(c)
-    return Wx::Colour.new(c.r, c.g, c.b)
+    return Wx::Colour.new(c.r.to_i, c.g.to_i, c.b.to_i)
   end
 
   def makePen(pen)

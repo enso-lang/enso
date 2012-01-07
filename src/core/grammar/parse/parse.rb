@@ -2,7 +2,6 @@
 require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
 require 'core/grammar/parse/build'
-#require 'core/grammar/parse/ast'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory2'
 

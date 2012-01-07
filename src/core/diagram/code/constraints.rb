@@ -30,8 +30,21 @@ class Variable
     @bounds = []
   end
 
+  def to_i
+    return value.to_i
+  end
+  
   def to_s
-    return @name 
+    return value.to_s
+  end
+  
+  def to_str
+    return value.to_str
+  end
+  
+  def is_a?(kind)
+    return true if kind == Variable
+    return value.is_a?(kind)
   end
  
   # special case for >= to implement MAX behavior
@@ -42,7 +55,7 @@ class Variable
   end
 
   def method_missing(m, *args)
-    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round, :to_int].include? m 
+    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round].include? m 
     var = Variable.new("p#{self.to_s}#{args.to_s}")
     #puts "#{var}=#{self.to_s}+#{args}"
     var.internal_define(self, *args) do |a, *other|

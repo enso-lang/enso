@@ -1,0 +1,82 @@
+--- 
+default:/elements[I]: !ruby/object:EnsoPoint 
+  x: 15
+  y: 124
+default:/elements[G]: !ruby/object:EnsoPoint 
+  x: 10
+  y: 242
+default:/elements[Burner]: !ruby/object:EnsoPoint 
+  x: 182
+  y: 253
+default:/elements[Pump]: !ruby/object:EnsoPoint 
+  x: 296
+  y: 183
+default:/elements[Valve]: !ruby/object:EnsoPoint 
+  x: 298
+  y: 106
+default:/elements[Boiler]: !ruby/object:EnsoPoint 
+  x: 168
+  y: 65
+default:/elements[Radiator]: !ruby/object:EnsoPoint 
+  x: 81
+  y: 18
+default:/elements[Return]: !ruby/object:EnsoPoint 
+  x: 68
+  y: 184
+default:/elements[Burner]:/elements[Return]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.44754014044534796
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+default:/elements[Pump]:/elements[Burner]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.45645926247612884
+default:/elements[Valve]:/elements[Pump]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+default:/elements[Boiler]:/elements[Valve]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.45847726007313
+- !ruby/object:EnsoPoint 
+  x: 0.43351355592866553
+  y: 0
+default:/elements[Radiator]:/elements[Valve]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.3598552123951357
+- !ruby/object:EnsoPoint 
+  x: 0.5972755282051203
+  y: 0
+default:/elements[Return]:/elements[Boiler]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.6282932559659486
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+default:/elements[Return]:/elements[Radiator]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.48835350324076554
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.4810016194114497
+  y: 1
+default:/elements[Return]:/elements[I]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.3022334718292742
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5
+"*VERSION*": 2

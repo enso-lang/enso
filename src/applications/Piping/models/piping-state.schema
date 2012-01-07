@@ -11,24 +11,25 @@ end
 
 class Element end
 
+class Temperatured
+  temperature: real
+end
+
 class End < Element end
 class Source < End
   pressure: real
 end
 
-class Burner < Element
-  temperature: real
+class Burner < Element, Temperatured
   ignite: bool
   gas_level: real
 end
 
-class Radiator < Element
-  temperature: real
+class Radiator < Element, Temperatured
 end
 
-class Vessel < Element
+class Vessel < Element, Temperatured
   contents: real
-  temperature: real
 end
 
 class Valve < Element

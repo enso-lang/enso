@@ -41,6 +41,8 @@ module ManagedData
       end
     end
 
+    attr_accessor :file_path
+
     private
 
     def __constructor(klass)
