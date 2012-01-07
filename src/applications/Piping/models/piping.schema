@@ -1,3 +1,6 @@
+
+
+
 class System
 ! elements: Element*
 ! sensors: Sensor*
@@ -22,11 +25,11 @@ class OutputElement < Element
   output:Pipe = "@outputs[0]"
 end
 class InputElement < Element
-  input: Pipe? / output
+  input: Pipe
 end
 
-class Joint < OutputElement, InputElement
-  inputs: Pipe*
+class Joint < OutputElement
+  inputs: Pipe*  // inputs
 end
 
 class Source < OutputElement

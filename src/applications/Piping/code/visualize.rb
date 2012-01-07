@@ -10,6 +10,7 @@ Wx::App.run do
   Thread.new do
     sleep 1
     st.test_system do |time|
+      puts "TICK"
       win.refresh
     end
   end

@@ -570,7 +570,7 @@ class StencilFrame < DiagramFrame
     return nil, nil if a.nil?  # NOTE THIS IS A HACK!!!
     return a._id, Address.new(a, this.field) if this.field == "_id"
     addr = Address.new(a, this.field)
-    a = a.dynamic_update if this.field=="temperature" && a.schema_class.all_fields[this.field].type.Primitive?
+    a = a.dynamic_update if a.schema_class.all_fields[this.field].type.Primitive?
     return a[this.field], addr
   end
     
