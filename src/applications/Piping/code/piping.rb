@@ -50,10 +50,6 @@ class SimulatorPiping < PipingInterface
   def turn_splitter(splitter_name, value)
     splitter = @piping.elements[splitter_name]
     raise "Trying to turn a control #{valve_name} that is not a valve" if splitter.nil? or !splitter.Splitter?
-    if value > 0
-      splitter.position = [splitter.position + value / 100.0, 1.0].min
-    else
-      splitter.position = [splitter.position + value / 100.0, 0.0].max
-    end
+    splitter.position = [[value, 1.0].min, 0.0].max
   end
 end

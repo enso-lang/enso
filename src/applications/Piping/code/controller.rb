@@ -39,7 +39,7 @@ module ExecuteController
   end
 
   def execute_TurnSplitter(splitter, percent, args=nil)
-    @piping.turn_splitter(splitter, self.eval(percent, args))
+    @piping.turn_splitter(splitter, percent)
   end
 end
 

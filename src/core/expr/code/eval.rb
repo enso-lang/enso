@@ -30,6 +30,10 @@ module EvalExprIntern
   def eval_EBoolConst(val, args=nil)
     val
   end
+
+  def eval_ERealConst(val, args=nil)
+    val
+  end
 end
 
 module EvalExpr
@@ -62,6 +66,10 @@ module EvalExpr
   end
 
   def eval_EBoolConst(val, args=nil)
+    val
+  end
+
+  def eval_ERealConst(val, args=nil)
     val
   end
 end

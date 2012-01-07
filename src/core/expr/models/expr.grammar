@@ -20,3 +20,4 @@ EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:E
 EConst ::= [EStrConst] val:str
          | [EIntConst] val:int
          | [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"
+         | [ERealConst] val:real

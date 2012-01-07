@@ -1,6 +1,7 @@
 primitive str
 primitive int
 primitive bool
+primitive real
 
 class Expr end
 
@@ -45,4 +46,7 @@ class EIntConst < EConst
 end
 class EBoolConst < EConst
   val:bool
+end
+class ERealConst < EConst
+  val:real
 end
