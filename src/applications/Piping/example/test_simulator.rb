@@ -9,33 +9,11 @@ class SimulatorTest
   def setup
     @pipes = Loader.load('boiler.piping')
 
-    #grammar unable to do these linkages
-    @pipes.elements.each do |elem|
-      begin
-        elem.input.connections << elem
-      rescue
-      end
-      begin
-        elem.output.connections << elem
-      rescue
-      end
-      begin
-        elem.left.connections << elem
-      rescue
-      end
-      begin
-        elem.right.connections << elem
-      rescue
-      end
-      begin
-        elem.pipes.each {|p| p.connections << elem}
-      rescue
-      end
-    end
-
     @piping = Copy(ManagedData::Factory.new(Loader.load('piping-sim.schema')), @pipes)
     @piping.elements['Pump'].flow = 0.05
     @piping.elements['Valve'].position = 0.5
+    @piping.elements['Radiator'].temperature = 50
+    @piping.elements['Return'].inputs.each {|p| p.output = @piping.elements['Return']}
     @piping.elements.each do |elem|
       begin
         elem.input.diameter = 0.1

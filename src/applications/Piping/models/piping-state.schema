@@ -4,7 +4,8 @@ primitive bool
 
 class Pipe
   flow: real
-  pressure: real
+  in_pressure: real
+  out_pressure: real
   temperature: real
   velocity: real = "@flow / @area"
 end

@@ -5,7 +5,10 @@ State ::= [State] "state" name:sym ":" transitions:Transition* commands:Command*
 
 Command ::= Assign | TurnSplitter
 Assign ::= [Assign] var:Expr "=" val:Expr
-TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym "left by" percent:Expr
+TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym (
+                    "left"   @"@percent = 0" |
+                    "center" @"@percent = 0.5" |
+                    "right"  @"@percent = 1" )
 
 Transition ::= [Transition] "if" guard:Expr "goto" target:/states[it]^
 

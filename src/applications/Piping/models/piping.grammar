@@ -9,7 +9,7 @@ Element ::= [Source]  outputs:pipe name:sym ":" "source" kind:sym
         |   [Splitter] outputs:(pipe pipe) name:sym ":" "splitter" in 
         |   [Pump]    outputs:pipe name:sym ":" "pump" in  
         |   [Radiator] outputs:pipe name:sym ":" "radiator" in  
-        |   [Joint]   outputs:pipe name:sym "=" pipes:{Connection "+"}+ 
+        |   [Joint]   outputs:pipe name:sym "=" inputs:{Connection "+"}+
         |   [Thermostat] name:sym ":" "thermostat"
         |   [Burner] name:sym ":" "burner" in gas  outputs:pipe
 

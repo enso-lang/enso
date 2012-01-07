@@ -1,4 +1,5 @@
-primitive \str
+primitive str
+primitive real
 
 class Controller
   initial:State
@@ -26,7 +27,7 @@ end
 
 class TurnSplitter < Command
   splitter:str
-! percent:Expr
+! percent:real
 end
 
 class Expr end
