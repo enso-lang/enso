@@ -38,8 +38,6 @@ end
 
 module EvalExpr
 
-  include Dispatch1
-
   def eval_EBinOp(op, e1, e2, args=nil)
     Kernel::eval("#{self.eval(e1, args)} #{op} #{self.eval(e2, args)}")
   end
@@ -57,19 +55,7 @@ module EvalExpr
     args[:env][name]
   end
 
-  def eval_EStrConst(val, args=nil)
-    val
-  end
-
-  def eval_EIntConst(val, args=nil)
-    val
-  end
-
-  def eval_EBoolConst(val, args=nil)
-    val
-  end
-
-  def eval_ERealConst(val, args=nil)
+  def eval_EConst(val, args=nil)
     val
   end
 end

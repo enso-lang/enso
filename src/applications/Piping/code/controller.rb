@@ -27,7 +27,6 @@ module ExecuteController
   def execute_Transition(guard, target, args=nil)
     if self.eval(guard, args)
       args[:env]['CURRENT_STATE'] = target
-      puts "Moving to state #{args[:env]['CURRENT_STATE']}"
       true
     else
       false
@@ -46,6 +45,7 @@ end
 class Controller
 
   include ExecuteController
+  include Dispatch1
 
   def initialize(piping, control)
     #piping is the interface to the state of the pipes. connects either to a simulator or hardware

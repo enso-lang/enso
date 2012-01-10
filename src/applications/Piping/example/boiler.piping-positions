@@ -1,4 +1,5 @@
 --- 
+"*VERSION*": 2
 default:/elements[I]: !ruby/object:EnsoPoint 
   x: 15
   y: 124
@@ -79,4 +80,3 @@ default:/elements[Return]:/elements[I]$*:
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
-"*VERSION*": 2

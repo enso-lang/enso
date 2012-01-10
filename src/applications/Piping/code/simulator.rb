@@ -236,9 +236,14 @@ class Init
     args[:obj].temperature = ROOM_TEMP
   end
 
+  def Init_Joint(inputs, args=nil)
+    inputs.each {|p| p.output = args[:obj]}
+  end
+
   def Init_?(fields, type, args=nil)
     args[:obj]
   end
+
 end
 
 class Float

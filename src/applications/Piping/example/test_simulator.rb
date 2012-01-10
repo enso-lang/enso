@@ -9,6 +9,8 @@ class SimulatorTest
   def setup
     @pipes = Loader.load('boiler.piping')
 
+    Print.print(@pipes)
+
     @piping = Copy(ManagedData::Factory.new(Loader.load('piping-sim.schema')), @pipes)
     @piping.elements['Return'].inputs.each {|p| p.output = @piping.elements['Return']}
   end
@@ -42,6 +44,9 @@ class SimulatorTest
 
       if curr[2] == time
         curr[2] = sim_display_interval
+        #write out to file
+
+
         pump = @piping.elements['Pump']
         burner = @piping.elements['Burner']
         boiler = @piping.elements['Boiler']

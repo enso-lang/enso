@@ -1,0 +1,9 @@
+
+    I : source water 
+    G : source \gas 
+    Burner : burner in = Return gas = G 
+    Pump : pump in = Burner 
+    Valve : splitter in = Pump 
+    Boiler : vessel in = Valve 
+    Radiator : radiator in = Valve . right 
+    Return = Boiler +Radiator +I 

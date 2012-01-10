@@ -21,9 +21,12 @@ end
 class StencilFrame < DiagramFrame
   include Paths
 
+  class FunDefs; end
+
   def initialize(path = nil)
     super("Model Editor")
     @actions = {}
+    @fundefs = FunDefs.new
     self.path = path if path
   end
   
@@ -306,7 +309,12 @@ class StencilFrame < DiagramFrame
         raise "Trying to use #{assign} as an l-value in a let expression"
       end
     end
-    construct this.body, nenv, container
+    construct this.body, nenv, container, &block
+  end
+
+  def constructRequire(this, env, container, &block)
+    @fundefs.instance_exec { require this.path }
+    construct this.content, env, container, &block
   end
 
   def constructFor(this, env, container, &block)
@@ -528,6 +536,12 @@ class StencilFrame < DiagramFrame
     g, _ = eval(this.g, env)
     b, _ = eval(this.b, env)
     return @factory.Color(r.round, g.round, b.round), nil
+  end
+
+  def evalFunApp(this, env)
+    name = this.fun.to_sym
+    args = this.args.map{|arg| eval(arg, env)[0]}
+    @fundefs.instance_exec{ send(name, *args) }
   end
   
   def evalPrim(this, env)

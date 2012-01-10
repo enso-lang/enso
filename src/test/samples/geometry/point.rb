@@ -1,6 +1,6 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/code/layout'
+require 'core/grammar/render/layout'
 
 point_schema = Loader.load('point.schema')
 point_grammar = Loader.load('point.grammar')
@@ -14,5 +14,7 @@ Print.print(p)
 puts "-"*50
 
 p2 = Loader.load('point1.point')
-DisplayFormat.print(point_grammar, p2)
+str = ""
+DisplayFormat.print(point_grammar, p2, 80, str)
+puts str
 

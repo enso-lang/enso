@@ -12,31 +12,8 @@ class PipingSystem
     grammar = Loader.load('piping.grammar')
     schema = Loader.load('piping-sim.schema')
     @piping = Loader.load_with_models("#{name}.piping", grammar, schema)    
-    
-    #initialize things
-    @piping.elements['Pump'].flow = 0.05
-    @piping.elements['Valve'].position = 0.5
-    @piping.elements.each do |elem|
-      begin; setPipe elem.input; rescue; end
-      begin; setPipe elem.output; rescue; end
-      begin; setPipe elem.left; rescue; end
-      begin; setPipe elem.right; rescue; end
-      begin
-        elem.pipes.each do |p|
-          setPipe p
-        end
-      rescue
-      end
-    end
     @controller = Controller.new(SimulatorPiping.new(@piping), "#{name}.controller")
     @sim = Simulator.new(@piping)
-  end
-
-  def setPipe(p)
-    p.diameter = 0.1
-    p.length = 10
-    p.temperature = 50
-    p.pressure = 0
   end
 
   def test_system
