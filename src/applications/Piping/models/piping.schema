@@ -25,11 +25,11 @@ class OutputElement < Element
   output:Pipe = "@outputs[0]"
 end
 class InputElement < Element
-  input: Pipe? / output
+  inputs: Pipe* / output
+  input: Pipe = "@inputs[0]"
 end
 
 class Joint < OutputElement, InputElement
-  inputs: Pipe*  // inputs
 end
 
 class Source < OutputElement

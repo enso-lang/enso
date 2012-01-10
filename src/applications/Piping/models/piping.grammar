@@ -16,7 +16,7 @@ Element ::= [Source]  outputs:pipe name:sym ":" "source" kind:sym
 Sensor ::= [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
 
 pipe ::= [Pipe]
-in ::= "in" "=" input:Connection
+in ::= "in" "=" inputs:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=
