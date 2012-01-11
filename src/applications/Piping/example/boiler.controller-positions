@@ -1,0 +1,83 @@
+--- 
+"*VERSION*": 2
+default:/states[IGNITE]: !ruby/object:EnsoPoint 
+  x: 228
+  y: 10
+default:/states[RAMPUP]: !ruby/object:EnsoPoint 
+  x: 212
+  y: 147
+default:/states[BOILER]: !ruby/object:EnsoPoint 
+  x: 68
+  y: 263
+default:/states[RADIATOR]: !ruby/object:EnsoPoint 
+  x: 413
+  y: 262
+default:/states[COOLDOWN]: !ruby/object:EnsoPoint 
+  x: 210
+  y: 342
+default:/states[RUNNING]: !ruby/object:EnsoPoint 
+  x: 261
+  y: 270
+default:/states[IGNITE]:/states[RAMPUP]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5358249171728837
+- !ruby/object:EnsoPoint 
+  x: 0.46871358587346795
+  y: 0
+default:/states[BOILER]:/states[RUNNING]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5000000000000001
+default:/states[RADIATOR]:/states[RUNNING]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5780868809443029
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5528844795662504
+default:/states[COOLDOWN]:/states[BOILER]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5750026654758116
+- !ruby/object:EnsoPoint 
+  x: 0.48717154509645155
+  y: 1
+default:/states[COOLDOWN]:/states[RADIATOR]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5225656427296248
+- !ruby/object:EnsoPoint 
+  x: 0.5091824306172424
+  y: 1
+default:/states[RAMPUP]:/states[RUNNING]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.47965232543285946
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+default:/states[BOILER]:/states[RAMPUP]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.48717154509645155
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5000000000000001
+default:/states[RADIATOR]:/states[RAMPUP]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.4822921009876464
+default:/states[COOLDOWN]:/states[RUNNING]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1

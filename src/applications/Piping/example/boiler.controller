@@ -1,4 +1,4 @@
-start OFF
+start IGNITE
 
 DESIRED_WATER_TEMP = 125
 WATER_MARGIN = 15
@@ -10,10 +10,6 @@ MIN_GAS = 50
 MAX_GAS = 150
 
 BURNER_RAMPUP = 5
-
-state OFF:
- if Radiator.temperature < DESIRED_RADIATOR_TEMP - RADIATOR_MARGIN goto IGNITE
- if Boiler.temperature < DESIRED_WATER_TEMP - WATER_MARGIN goto IGNITE
 
 state IGNITE:
  if Burner.ignite goto RAMPUP

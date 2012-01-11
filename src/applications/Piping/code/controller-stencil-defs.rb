@@ -22,3 +22,16 @@ end
 def Layout_Expr(obj)
   Render.new.render(obj)
 end
+
+def CheckConnect(src, trans)
+  tgt = trans.target
+  if tgt.transitions.detect {|trans| trans.target == src}
+    if tgt.name < src.name
+      0
+    else
+      2
+    end
+  else
+    1
+  end
+end
