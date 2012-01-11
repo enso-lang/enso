@@ -4,16 +4,22 @@ require 'core/diagram/code/stencil'
 Wx::App.run do
   st = PipingSystem.new 'boiler'
 
-  win = StencilFrame.new
-  win.setup 'piping-sim', st.piping
+  win_piping = StencilFrame.new
+  win_piping.setup 'piping-sim', st.piping
+
+  win_control = StencilFrame.new
+  win_control.setup 'controller', st.control
 
   Thread.new do
     sleep 1
-    st.test_system do |time|
-      puts "TICK"
-      win.refresh
+    st.run do |time|
+      puts "TICK after #{time} seconds: at state #{st.control.current.name}"
+      win_control.refresh
+      win_piping.refresh
     end
   end
-  win.show 
+
+  win_piping.show
+  win_control.show
 end
 

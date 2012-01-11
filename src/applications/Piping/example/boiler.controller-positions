@@ -1,5 +1,8 @@
 --- 
 "*VERSION*": 2
+"default:": !ruby/object:EnsoPoint 
+  x: 0
+  y: 0
 default:/states[IGNITE]: !ruby/object:EnsoPoint 
   x: 228
   y: 10
@@ -81,3 +84,10 @@ default:/states[COOLDOWN]:/states[RUNNING]$*:
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 1
+default::/states[IGNITE]$*: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.5
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.4735537009450803

@@ -52,7 +52,7 @@ class Controller
     #state is the current state of the controller, used to store global runtime variables
     @piping = piping
     @state = {}
-    @control = Loader.load(control)
+    @control = control
     @env = ControlEnv.new(@piping, @state)
     init(@control, :env=>@env)
   end
@@ -87,6 +87,7 @@ class Controller
 
   def run
     execute(@control, {:env=>@env})
+    @control.current = current_state
   end
 
   def current_state

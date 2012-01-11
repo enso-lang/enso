@@ -6,46 +6,25 @@ require 'core/schema/code/factory2'
 
 class PipingSystem
 
-  attr_reader :piping, :controller, :sim
+  attr_reader :piping, :control, :controller, :sim
   
   def initialize(name)
     grammar = Loader.load('piping.grammar')
     schema = Loader.load('piping-sim.schema')
-    @piping = Loader.load_with_models("#{name}.piping", grammar, schema)    
-    @controller = Controller.new(SimulatorPiping.new(@piping), "#{name}.controller")
+    @piping = Loader.load_with_models("#{name}.piping", grammar, schema)
+    @control = Loader.load("#{name}.controller")
+    @controller = Controller.new(SimulatorPiping.new(@piping), control)
     @sim = Simulator.new(@piping)
   end
 
-  def test_system
+  def run
     #some kind of virtual clock
+    time = 0
     loop do
+      sleep(1); time+=1
       @controller.run
       @sim.tick
-      yield
+      yield time
     end
   end
-  
-  def test_simulator 
-    @sim = Simulator.new(@piping)
-    @sim.tick
-    Print.print(@piping)
-
-    #now we start the pump
-    @piping.elements['Pump'].flow = 0.1
-    @piping.elements['Pump'].run = true
-    @piping.elements['Burner'].gas_level = 80
-    @piping.elements['Burner'].ignite = true
-    (1..6).each do |i|
-      puts "\n\n\n************************************************\n"
-      puts "After #{i} tick"
-      Print.print(@piping)
-      @sim.tick
-    end
-  end
-
-  def test_controller
-    @controller = Controller.new(SimulatorPiping.new(@piping), 'boiler.controller')
-    @controller.run
-  end
-
 end

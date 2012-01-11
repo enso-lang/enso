@@ -5,6 +5,7 @@ class Controller
   initial:State
 ! globals:Assign*
 ! states:State*
+  current:State //dynamic
 end
 
 class State
