@@ -206,9 +206,9 @@ class CalcPressure
     end
   end
 
-  def CalcPressure_Pump(input, output, pressure, args=nil)
-    if output.in_pressure != pressure
-      output.in_pressure = pressure
+  def CalcPressure_Pump(input, output, args=nil)
+    if output.in_pressure != 100
+      output.in_pressure = 100
       input.out_pressure = 0
       CalcPressure(output.output)
     end
@@ -229,11 +229,11 @@ class Init
   end
 
   def Init_Radiator(args=nil)
-    args[:obj].temperature = ROOM_TEMP
+    args[:obj].temperature = args[:obj].user_temp = ROOM_TEMP
   end
 
-  def Init_Boiler(args=nil)
-    args[:obj].temperature = ROOM_TEMP
+  def Init_Vessel(args=nil)
+    args[:obj].temperature = args[:obj].user_temp = ROOM_TEMP
   end
 
   def Init_Joint(inputs, args=nil)

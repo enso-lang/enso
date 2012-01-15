@@ -27,10 +27,12 @@ class Burner < Element, Temperatured
 end
 
 class Radiator < Element, Temperatured
+  user_temp: real
 end
 
 class Vessel < Element, Temperatured
   contents: real
+  user_temp: real
 end
 
 class Valve < Element
