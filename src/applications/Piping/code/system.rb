@@ -25,12 +25,14 @@ class PipingSystem
       boiler = @piping.elements['Boiler']
       rad = @piping.elements['Radiator']
       valve = @piping.elements['Valve']
+      bsensor = @piping.sensors['Boiler_Temp']
+      rsensor = @piping.sensors['Radiator_Temp']
       puts "************************"
       puts "After #{time} sec:"
       puts "In #{@controller.current_state}"
       puts "  Burner at #{burner.temperature}"
-      puts "  Boiler at #{boiler.temperature}"#" (desired: #{boiler.user_temp})"
-      puts "  Radiator at #{rad.temperature}"#" (desired: #{rad.user_temp})"
+      puts "  Boiler at #{boiler.temperature} (desired: #{bsensor.user})"
+      puts "  Radiator at #{rad.temperature} (desired: #{rsensor.user})"
       puts "  Valve position #{valve.position}"
       puts "************************"
       yield time
