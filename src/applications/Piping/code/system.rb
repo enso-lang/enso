@@ -17,14 +17,22 @@ class PipingSystem
     @sim = Simulator.new(@piping)
   end
 
-  def run
-    #some kind of virtual clock
-    time = 0
-    loop do
-      sleep(1); time+=1
+  def run(time)
       @controller.run
       @sim.tick
+      pump = @piping.elements['Pump']
+      burner = @piping.elements['Burner']
+      boiler = @piping.elements['Boiler']
+      rad = @piping.elements['Radiator']
+      valve = @piping.elements['Valve']
+      puts "************************"
+      puts "After #{time} sec:"
+      puts "In #{@controller.current_state}"
+      puts "  Burner at #{burner.temperature}"
+      puts "  Boiler at #{boiler.temperature} (desired: #{boiler.user_temp})"
+      puts "  Radiator at #{rad.temperature} (desired: #{rad.user_temp})"
+      puts "  Valve position #{valve.position}"
+      puts "************************"
       yield time
-    end
   end
 end

@@ -1,0 +1,23 @@
+Motivating example: Web development framework
+
+EnsoWeb is a web development framework created using Enso. It follows the standard Model-View-Controller architecture.
+
+<
+EnsoWeb is good example because:
+- multiple DSL environment
+  - heavy reuse, eg expressions
+    - avoid code duplication and replicated maintainence
+    - integration concerns, ie my expression is the same as yours
+  - modular feature composition (this is a *very* dangerous buzzword combination!)
+    - eg secure, db, secure+db, etc
+  - crosscutting features, eg security
+  - tooling (we don't really have this yet)
+- 'real' application --- (how many klocs? <-- is this even a good gauge?)
+
+Our solution can:
+- 
+/>
+
+EnsoWeb comprises a number of DSLs for defining data models, web interfaces, security policies, and database prefetching strategies. These DSLs share common language components, such as expressions, which should ideally be reusable. Some of these DSLs have semantic operations that interact with each other. For instance, the database prefetching strategy relies on the structure of the 
+
+

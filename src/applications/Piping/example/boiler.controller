@@ -18,19 +18,18 @@ state IGNITE:
  turn splitter Valve center
 
 state RAMPUP:
- if Radiator.temperature > Radiator.user_temp and Boiler.temperature < Boiler.user_temp - WATER_MARGIN goto BOILER
- if Radiator.temperature < Radiator.user_temp - RADIATOR_MARGIN and Boiler.temperature > Boiler.user_temp goto RADIATOR
+ if Radiator.temperature > Radiator.user_temp + RADIATOR_MARGIN and Boiler.temperature < Boiler.user_temp - WATER_MARGIN goto BOILER
+ if Radiator.temperature < Radiator.user_temp - RADIATOR_MARGIN and Boiler.temperature > Boiler.user_temp + WATER_MARGIN goto RADIATOR
  if Radiator.temperature > Radiator.user_temp and Boiler.temperature > Boiler.user_temp goto RUNNING
  raise Burner.gas_level by BURNER_RAMPUP
- turn splitter Valve center
 
 state BOILER:
- if Radiator.temperature < Radiator.user_temp goto RAMPUP
+ if Radiator.temperature < Radiator.user_temp + RADIATOR_MARGIN goto RAMPUP
  if Boiler.temperature > Boiler.user_temp goto RUNNING
  turn splitter Valve left
 
 state RADIATOR:
- if Boiler.temperature < Boiler.user_temp goto RAMPUP
+ if Boiler.temperature < Boiler.user_temp + WATER_MARGIN goto RAMPUP
  if Radiator.temperature > Radiator.user_temp goto RUNNING
  turn splitter Valve right
 

@@ -6,7 +6,11 @@ graph [font.size=12,fill.color=(255,255,255)] {
    label elem do {
      if (elem is Temperatured)
        oval [line.width=1,fill.color=(elem.temperature*2,0,0)] {
-         text [font.size=16,font.weight=700] elem.name
+         vertical {
+           text [font.size=16,font.weight=700] elem.name
+           if (elem is UserTemperature)
+             text [font.size=10,font.weight=400] elem.user_temp
+         }
        }
      if (!elem is Temperatured)
        oval [line.width=1,fill.color=(200,200,200)] {

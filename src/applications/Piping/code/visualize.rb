@@ -10,16 +10,16 @@ Wx::App.run do
   win_control = StencilFrame.new
   win_control.setup 'controller', st.control
 
-  Thread.new do
-    sleep 1
-    st.run do |time|
+  win_piping.show
+  win_control.show
+
+  time = 0
+  Wx::Timer.every(1000) do
+    time+=1
+    st.run time do |time|
       puts "TICK after #{time} seconds: at state #{st.control.current.name}"
       win_control.refresh
       win_piping.refresh
     end
   end
-
-  win_piping.show
-  win_control.show
 end
-

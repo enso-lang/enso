@@ -21,18 +21,22 @@ class Source < End
   pressure: real
 end
 
+class UserControlled end
+
+class UserTemperature
+  user_temp: real
+end
+
 class Burner < Element, Temperatured
   ignite: bool
   gas_level: real
 end
 
-class Radiator < Element, Temperatured
-  user_temp: real
+class Radiator < Element, Temperatured, UserTemperature
 end
 
-class Vessel < Element, Temperatured
+class Vessel < Element, Temperatured, UserTemperature
   contents: real
-  user_temp: real
 end
 
 class Valve < Element

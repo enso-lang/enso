@@ -1,0 +1,42 @@
+primitive int
+primitive str
+primitive bool
+
+class Authentication
+! rules:Rule*
+  allowrules:Rule* = "@rules.select(&:AllowRule?)"
+  denyrules:Rule* = "@rules.select(&:DenyRule?)"
+end
+
+class Rule
+  strength:int
+! action:Action
+! cond:Expr?
+end
+
+class AllowRule < Rule
+end
+
+class DenyRule < Rule
+  msg:str?
+end
+
+class Action
+! op:Operation+
+  obj:str
+  type:str
+! fields:Field*
+  allfields:bool
+end
+
+class Field
+  name:str
+end
+
+class Operation end
+class OpCreate < Operation end
+class OpRead   < Operation end
+class OpUpdate < Operation end
+class OpDelete < Operation end
+
+class Expr end
