@@ -201,7 +201,7 @@ class StencilFrame < DiagramFrame
 	
   def edit_address(address, shape)
     if address.field.type.Primitive?
-			@selection = TextEditSelection.new(self, shape)
+			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
       find_all_objects @data, address.field.type, do |obj|
@@ -463,12 +463,8 @@ class StencilFrame < DiagramFrame
   
   def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
-    #puts "TEXT #{val} #{address}"
-    if !val.is_a?(String)
-      val = ObjectKey(val)
-    end
     text = @factory.Text
-    text.string = val
+    text.string = val.to_s
     make_styles(this, text, env)
     if address
 	    @shapeToAddress[text] = address
@@ -602,7 +598,8 @@ class StencilFrame < DiagramFrame
 end
 
 class TextEditSelection
-  def initialize(diagram, edit)
+  def initialize(diagram, edit, address)
+    @address = address
     @diagram = diagram  
     @edit_selection = edit
     r = diagram.boundary(@edit_selection)
@@ -625,6 +622,7 @@ class TextEditSelection
 
   def clear
     new_text = @edit_control.get_value()
+    @address.value = new_text
     @edit_selection.string = new_text
     @edit_control.destroy
     return nil
@@ -686,6 +684,12 @@ class Address
   attr_reader :field
   
   def value=(val)
+    case @field.type.name
+      when 'int'
+        val = val.to_i
+      when 'real'
+        val = val.to_f
+    end
     @object[real_field.name] = val
   end
 

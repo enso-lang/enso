@@ -21,21 +21,15 @@ class Source < End
   pressure: real
 end
 
-class UserControlled end
-
-class UserTemperature
-  user_temp: real
-end
-
 class Burner < Element, Temperatured
   ignite: bool
   gas_level: real
 end
 
-class Radiator < Element, Temperatured, UserTemperature
+class Radiator < Element, Temperatured
 end
 
-class Vessel < Element, Temperatured, UserTemperature
+class Vessel < Element, Temperatured
   contents: real
 end
 
@@ -51,4 +45,9 @@ class Pump < Element
   pressure: real
   flow: real
   run: bool
+end
+
+class Sensor
+  user: real?
+  value: real = "@attach[kind]"
 end

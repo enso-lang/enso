@@ -29,8 +29,8 @@ class PipingSystem
       puts "After #{time} sec:"
       puts "In #{@controller.current_state}"
       puts "  Burner at #{burner.temperature}"
-      puts "  Boiler at #{boiler.temperature} (desired: #{boiler.user_temp})"
-      puts "  Radiator at #{rad.temperature} (desired: #{rad.user_temp})"
+      puts "  Boiler at #{boiler.temperature}"#" (desired: #{boiler.user_temp})"
+      puts "  Radiator at #{rad.temperature}"#" (desired: #{rad.user_temp})"
       puts "  Valve position #{valve.position}"
       puts "************************"
       yield time

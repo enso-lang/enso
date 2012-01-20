@@ -229,15 +229,19 @@ class Init
   end
 
   def Init_Radiator(args=nil)
-    args[:obj].temperature = args[:obj].user_temp = ROOM_TEMP
+    args[:obj].temperature = ROOM_TEMP
   end
 
   def Init_Vessel(args=nil)
-    args[:obj].temperature = args[:obj].user_temp = ROOM_TEMP
+    args[:obj].temperature = ROOM_TEMP
   end
 
   def Init_Joint(inputs, args=nil)
     inputs.each {|p| p.output = args[:obj]}
+  end
+
+  def Init_Sensor(args=nil)
+    args[:obj].user = ROOM_TEMP
   end
 
   def Init_?(fields, type, args=nil)

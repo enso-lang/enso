@@ -18,8 +18,15 @@ class PipingInterface
     @piping.sensors.map{|s|s.name}
   end
 
-  def get_reading_type(sensor_name)
-    @piping.sensors[sensor_name].value
+  def get_reading(sensor_name)
+    sensor = @piping.sensors[sensor_name]
+    begin
+      res = sensor.attach.send sensor.kind
+    rescue
+      raise "No #{sensor.kind} attribute for #{sensor.attach}"
+    end
+    puts "Value of #{sensor_name} is #{res}"
+    res
   end
 
   def control_names
@@ -35,6 +42,10 @@ class SimulatorPiping < PipingInterface
   def get_reading(sensor_name)
     sensor = @piping.sensors[sensor_name]
     sensor.attach[sensor.kind]
+  end
+
+  def get_sensor(sensor_name)
+    @piping.sensors[sensor_name]
   end
 
   #FIXME: should not allow user to access control directly

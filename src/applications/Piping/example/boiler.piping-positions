@@ -7,23 +7,29 @@ default:/elements[G]: !ruby/object:EnsoPoint
   x: 10
   y: 242
 default:/elements[Burner]: !ruby/object:EnsoPoint 
-  x: 182
-  y: 253
+  x: 271
+  y: 270
 default:/elements[Pump]: !ruby/object:EnsoPoint 
-  x: 296
-  y: 183
+  x: 283
+  y: 136
 default:/elements[Valve]: !ruby/object:EnsoPoint 
-  x: 298
-  y: 106
+  x: 286
+  y: 59
 default:/elements[Boiler]: !ruby/object:EnsoPoint 
-  x: 168
-  y: 65
+  x: 108
+  y: 98
 default:/elements[Radiator]: !ruby/object:EnsoPoint 
-  x: 81
-  y: 18
+  x: 434
+  y: 100
 default:/elements[Return]: !ruby/object:EnsoPoint 
-  x: 68
-  y: 184
+  x: 178
+  y: 217
+default:/sensors[Radiator_Temp]: !ruby/object:EnsoPoint 
+  x: 590
+  y: 21
+default:/sensors[Boiler_Temp]: !ruby/object:EnsoPoint 
+  x: 54
+  y: 23
 default:/elements[Burner]:/elements[Return]$*: 
 - !ruby/object:EnsoPoint 
   x: 0
@@ -80,3 +86,17 @@ default:/elements[Return]:/elements[I]$*:
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
+default:/sensors[Radiator_Temp]:/elements[Radiator]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
+default:/sensors[Boiler_Temp]:/elements[Boiler]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 0
