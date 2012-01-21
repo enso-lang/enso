@@ -13,7 +13,8 @@ Element ::= [Source]  outputs:pipe name:sym ":" "source" kind:sym
         |   [Thermostat] name:sym ":" "thermostat"
         |   [Burner] name:sym ":" "burner" in gas  outputs:pipe
 
-Sensor ::= [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
+Sensor ::= [ElementSensor] "sensor" name:sym ":" kind:sym "(" attach:/elements[it]^ ")"
+         | [PipeSensor] "sensor" name:sym ":" kind:sym "(" attach:Connection ")"
 
 pipe ::= [Pipe]
 in ::= "in" "=" inputs:Connection

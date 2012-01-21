@@ -1,0 +1,80 @@
+Composable interpreters for language-oriented programming
+
+* abstract
+
+* introduction
+- background
+  - language oriented programming is ...
+    - briefly (but deeply) embrace related tools
+      - model-driven engineering
+      - grammarware (? needs better definition)
+  - practical use of LOP -- s/w engr issues?
+    <This is the problem statement>
+    - reuse
+    - analysis / tooling
+      - tool generation from DSL definiton
+      - new paradigms required?
+    - integrating multiple DSLs
+      - integrity validation
+      - cross-cutting integration
+  (cite Rumpe's paper here, claiming analog with MDE)
+- syntactic and semantic composition
+  - briefly lay out how others fall short semantically
+
+* related work
+- standalone interpreters (code)
+- embedded dsls
+- translators
+
+* ??
+- what are we trying to achieve
+  <the solution statement>
+  - integrate multiple DSLs at both semantic and 
+    syntactic levels
+- features
+  - types of composition
+  - what guarantees can we give
+- features
+  - library of instantiatable language design patterns
+- motivating example: ensoweb
+  - multiple languages:
+    - model driven design
+    - web ui language
+    - database language
+    - security policy language
+  - interactions:
+    - reuse: eg expressions
+    - refinement: eg secure vs non-secure
+
+* why interpreters
+- the argument for interpreters
+  - less indirection: better runtime analysis, etc
+  - reuse library code from implementation language
+  - more 'natural' (subjective)
+  - partial evaluation (is this an advantage or the
+    mitigation of a disadvantage?)
+- disadvantages of interpreters (compared to?)
+  - blackbox -- hard to analyze, generate tools, etc
+  - reusability
+  - difficult to design language from scratch (cf ??)
+
+* our solution
+- Based on interpreter pattern
+  - Gives extensibility both when adding new nodes 
+    and adding new operations
+
+- Combinators
+  - fmap, internal
+
+- Implementation
+  - Open classes
+  - Mixin inheritance
+
+* other things
+- Generics
+  - Interpreter can be used for multiple similar models
+  - Type checking interpreters against models
+
+* conclusions
+
+

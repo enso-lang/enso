@@ -46,3 +46,8 @@ class Pump < Element
   flow: real
   run: bool
 end
+
+class Sensor
+  user: real?
+  value: real = "@attach[kind]"
+end

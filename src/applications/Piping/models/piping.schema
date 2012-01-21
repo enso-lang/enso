@@ -64,8 +64,18 @@ end
 class Pump < OutputElement, InputElement
 end
 
-class Sensor < Element, InputElement
+class Sensor
+# name: str
   kind: str // temperature, pressure, flow
+  controllable: bool
+end
+
+class PipeSensor < Sensor
+  attach:Pipe
+end
+
+class ElementSensor < Sensor
+  attach:Element
 end
 
 primitive str

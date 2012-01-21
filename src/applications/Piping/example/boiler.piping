@@ -9,3 +9,6 @@
    Radiator: radiator in=Valve.right
    //RoomTemp: thermostat
    Return = Boiler + Radiator + I
+// sensors
+   sensor Radiator_Temp : temperature ( Radiator )
+   sensor Boiler_Temp : temperature ( Boiler )

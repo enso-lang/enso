@@ -68,7 +68,7 @@ class Controller
 
     def [](k)
       if @piping.sensor_names.include? k
-        @piping.get_reading(k)
+        @piping.get_sensor(k)
       elsif @piping.control_names.include? k
         @piping.get_control(k)
       else

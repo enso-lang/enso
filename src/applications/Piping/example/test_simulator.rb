@@ -8,9 +8,6 @@ class SimulatorTest
 
   def setup
     @pipes = Loader.load('boiler.piping')
-
-    Print.print(@pipes)
-
     @piping = Copy(ManagedData::Factory.new(Loader.load('piping-sim.schema')), @pipes)
     @piping.elements['Return'].inputs.each {|p| p.output = @piping.elements['Return']}
   end
@@ -21,7 +18,9 @@ class SimulatorTest
     controller_interval = 1
 
     @sim = Simulator.new(@piping)
-    @controller = Controller.new(SimulatorPiping.new(@piping), 'boiler.controller')
+    @control = Loader.load('boiler.controller')
+    Print.print(@control)
+    @controller = Controller.new(SimulatorPiping.new(@piping), @control)
 
     #some kind of virtual clock
     curr = [controller_interval, sim_interval, sim_display_interval]
@@ -61,7 +60,7 @@ class SimulatorTest
         puts "  Radiator at #{rad.temperature}"
         puts "  Valve position #{valve.position}"
         puts "************************"
-        #Print.print(@piping)
+        Print.print(@piping)
         count += 1
       else
         curr[2] -= time
