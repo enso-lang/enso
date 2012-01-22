@@ -2,7 +2,7 @@ require 'applications/Piping/code/system'
 
 st = PipingSystem.new 'boiler'
 count = 0
-st.run do
+st.run (count) do
   #return if count > 20
   if count % 3 == 0
     pump = st.piping.elements['Pump']
