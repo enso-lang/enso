@@ -138,7 +138,7 @@ class DiagramFrame < BaseWindow
         return
       end
     end
-    select = find e, do |x|
+    select = find e do |x|
       #find something contained in a graph, which is dragable
       val = @find_container && @find_container.Container? && @find_container.direction == 3 
       #puts "#{x} => #{val}"

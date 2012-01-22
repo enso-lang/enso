@@ -204,9 +204,9 @@ class StencilFrame < DiagramFrame
 			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
-      find_all_objects @data, address.field.type, do |obj|
+      find_all_objects @data, address.field.type do |obj|
         name = ObjectKey(obj)
-    		add_menu2(pop, name, name) do |e| 
+    		add_menu2 pop, name, name do |e| 
     			address.value = obj
     			shape.string = name
     	  end
@@ -220,7 +220,7 @@ class StencilFrame < DiagramFrame
   def on_right_down(e)
     clear_selection
     actions = {}
-    find e, do |part|
+    find e do |part|
       actions.update @actions[part] if @actions[part]
 		  false
     end      
@@ -351,7 +351,7 @@ class StencilFrame < DiagramFrame
 	      if !address.is_traversal
 	      	# just add a reference!
 	      	puts "ADD #{action}: #{address.field}"
-	      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+	      	@selection = FindByTypeSelection.new self, address.field.type do |x|
 			      address.insert x
 						rebuild_diagram
 			    end
@@ -372,7 +372,7 @@ class StencilFrame < DiagramFrame
 	      	puts "CREATE #{address.field} << #{obj}"
 #	      	if relateField
 #  	      	puts "ADD #{action}: #{address.field}"
-#		      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+#		      	@selection = FindByTypeSelection.new self, address.field.type do |x|
 #		      	  obj[relateField.name] = x
 #				      address.insert obj
 #							rebuild_diagram
@@ -389,7 +389,7 @@ class StencilFrame < DiagramFrame
 
 	def find_default_object(scan, type)
 	  catch :FoundObject do 
-		  find_all_objects scan, type, do |x|  
+		  find_all_objects scan, type do |x|  
 		    throw :FoundObject, x
 		  end
 		end
@@ -651,7 +651,7 @@ class FindByTypeSelection
   
   def on_move(e, down)
     #puts "CHECKING"
-    @part = @diagram.find e, do |shape| 
+    @part = @diagram.find e do |shape| 
       obj = @diagram.lookup_shape(shape)
       #obj && obj._subtypeOf(obj.schema_class, @kind)
       obj && Subclass?(obj.schema_class, @kind)
