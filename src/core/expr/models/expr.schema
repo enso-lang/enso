@@ -17,8 +17,8 @@ class EUnOp < Expr
 end
 
 class EFunCall < Expr
-  fun:str
-! args:Expr*
+  fun:Expr
+! params:Expr*
 end
 
 class EField < Expr
@@ -28,13 +28,6 @@ end
 
 class EVar < Expr
   name:str
-end
-
-class EListComp < Expr
-  op:str
-  var:str
-! list:Expr
-! e:Expr
 end
 
 class EConst < Expr end

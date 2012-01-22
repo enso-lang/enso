@@ -1,0 +1,54 @@
+primitive str
+
+class Expr end
+class Command < Expr end
+
+class EWhile < Command
+! cond:Expr
+! body:Command
+end
+
+class EFor < Command
+  var:str
+! list:Expr
+! body:Command
+end
+
+class EIf < Command
+! cond:Expr
+! body:Command
+! else:Command
+end
+
+class ESwitch < Command
+! e: Exp
+! cases: Case*
+! default: Stat?
+end
+
+class EBlock < Command
+! body:Command*
+end
+
+class EFunCall < Expr, Command
+  // this is defined in expression
+end
+
+class EFunDef < Command
+  name:str
+  params:Param*
+! body:Command
+end
+
+class Param
+  name:str
+end
+
+class EAssign < Command
+  var:Expr
+  val:Expr
+end
+
+class EImport < Command
+  path:str
+end
