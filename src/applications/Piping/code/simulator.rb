@@ -220,8 +220,8 @@ class Init
 
   def Init_Pipe(args=nil)
     p = args[:obj]
-    p.diameter = 0.1
-    p.length = 10
+    p.diameter = 0.1 if p.diameter == 0
+    p.length = 10 if p.length == 0
     p.temperature = ROOM_TEMP
     p.in_pressure = 0
     p.out_pressure = 0
