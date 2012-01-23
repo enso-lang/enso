@@ -1,0 +1,44 @@
+Composable interpreters for domain specific languages
+
+Domain specific languages (DSLs) are languages specialized for a particular problem domain. A set of specialists, known as /toolsmiths/, first construct DSLs encapsulating the relevant domain knowledge, which application programmers can then use to build specific applications. Examples of DSLs include SQL for database management, Yacc for text parsing, XUL and HTML for user interfaces, Promela and Alloy for program verification, and Verilog for hardware description, among many others. DSLs allow application programmers to work with a vocabulary and language structure similar to that of the domain expert, thus reducing the syntactic misalignment between problem definition and solution specification, and in turn reduce development time and ease maintenance [?]. Language-oriented programming [Ward94] is a software engieering paradigm which systematically deploys DSLs as the primary artefact of program organization, allowing domain knowledge to be remain encapsulated across traditional modules of classes and functions. Model driven engineering [OMG01] is a variation on the same concept that substitutes concrete textual DSLs with /models/ of their abstract represention.
+
+<%
+Problem: Engineering DSLs is hard
+- requires a different degree of reuse than normal code
+- challenges include:
+  - unanticipated change [van Deursen98] -> spin this as 
+    "we want to support dsl evolution" rather than the 
+    whole co-evolution businness
+  - many-dsl interaction, etc etc [France01]
+  - reuse not good from empirical study [hermans09], 
+    but it's model reuse, not language/metamodel reuse
+- default solns (ie writing code) not good, because:
+  - ?
+to be effective, we want:
+- reusability: languages as libraries of sub-components
+- extensibility: composing compound interpreters
+- shared tooling (tied to reusing language libraries)
+  - appropriate debugging models, eg rule-based, 
+    event-driven, etc
+- integrity validation
+  - interpreters
+so far:
+- relatively successful at integrating models
+  - emf, model weaving
+  - extensible parsing techniques
+- semantics, not so successful
+  - ways of defining operational semantics for 
+  - code generators
+  - 
+%>
+
+This division of development labor now present a unique set of problems for software reuse and maintenance.
+<some examples of difficulties>
+ Ironically, even though one of the objectives of DSLs is to ( ...provide an alternative dimension of modularization, ???? ) DSL development is often ad hoc ( ... and basically not very good)
+
+In order to fully reap the benefits of DSLs, we need a cost-efficient way to develop and maintain DSLs (.. such that ... ). 
+
+
+
+
+

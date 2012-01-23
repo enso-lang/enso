@@ -42,7 +42,9 @@ Semantics of EMF models is defined by writing code. No real way to ensure code w
 
 - EMF/ATL
 
+Use M2M transformation rules to reduce models to simpler models. Comparable to big-step semantics.
 
+Surprisingly composable even though compsability is not one of the original goals. Possible to modularly add new nodes and operations that do not interfere with each other by taking the union of a set of rules. Possible to mechanically detect conflicts (no such feature).
 
 - EMF/xText (OAW)
 
