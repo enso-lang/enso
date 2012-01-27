@@ -56,7 +56,7 @@ module ManagedData
     def __outer_join(other)
       keys = __keys | other.__keys
       keys.each do |key|
-        yield self[key], other[key], key
+        yield self.get_maybe(key), other.get_maybe(key), key
       end
     end
   end

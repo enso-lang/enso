@@ -120,6 +120,7 @@ module ManagedData
 
     def notify(name, val)
       return unless @listeners[name]
+      puts "SETTING field #{name}=#{val} with #{@listeners[name]}"
       @listeners[name].each do |blk|
         blk.call(val)
       end
@@ -168,9 +169,9 @@ module ManagedData
     def to_s
       k = ClassKey(schema_class)
       if k then
-        "<<#{schema_class.name} #{_id} '#{self[k.name]}'>>"
+        "<#{schema_class.name} #{_id} '#{self[k.name]}'>"
       else
-        "<<#{schema_class.name} #{_id}>>"
+        "<#{schema_class.name} #{_id}>"
       end
     end
 
@@ -301,7 +302,7 @@ module ManagedData
       when 'atom' 
         return
       end
-      raise "Invalid value for #{@field.type.name}: #{value}"
+      raise "Invalid value (#{value}) for field #{@field._path} of type #{@field.type.name}"
     end
 
     def default
@@ -393,8 +394,14 @@ module ManagedData
       end
     end
 
-    def [](key); @value[key] end
-
+    def get_maybe(key); @value[key] end
+    
+    def [](key)
+      v = get_maybe(key) 
+      raise "Key (#{key}) does not exist in #{self}" if v.nil?
+      return v
+    end
+    
     def empty?; @value.empty? end
 
     def length; @value.length end
@@ -486,8 +493,8 @@ module ManagedData
       @value = []
     end
 
-    def [](key); @value[key.to_i] end
-
+    def get_maybe(key); @value[key.to_i]; end
+    
     def each(&block); @value.each(&block) end
 
     def each_pair(&block) 
