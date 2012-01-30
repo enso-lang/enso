@@ -9,11 +9,19 @@ require 'core/expr/code/render'
 class ExprTest < Test::Unit::TestCase
 
   def test_base
-    interp = Interpreter.compose(EvalExpr).new()
+    interp = Interpreter(EvalExpr)
 
     ex0 = Loader.load("my-expr.expr")
     assert_equal(6, interp.eval(ex0))
   end
+
+  def test_internal
+    interp = Interpreter(InternalVisitor("eval", EvalExprIntern))
+
+    ex0 = Loader.load("my-expr.expr")
+    assert_equal(6, interp.visit(ex0))
+  end
+
 =begin
   def test_add_types
     s = union(Loader.load('expr-vars.schema'), Loader.load('expr.schema'))

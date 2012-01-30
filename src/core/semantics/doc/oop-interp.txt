@@ -21,3 +21,6 @@ If the operations are stored as part of the object, they can be execute at any t
 
 * Partial Evaluation
 An OO style is known to complicate partial evaluation because of dynamic dispatch. However, since the object in this case (ie the input DSL structure) is known statically, I am not sure if this is still true.
+
+* Easier to do dispatch (?)
+An OO style allows the direct creation of methods, eg "eval", without the name mangling, eg "eval_X".

@@ -1,76 +1,80 @@
 
 module InternalVisitorMod
-  def self.init(action)
-    @_action = action
+  def self.init(action, mod)
+    r = InternalVisitorMod.clone
+    r.class_exec do
+      @@action = action
+      include mod
+    end
+    r.send(:define_method, :initialize) do |*args|
+      @action = action
+      super(*args)
+    end
+    r
   end
-=begin
-    res = self.clone
-    mod.instance_methods(false).each do |m_name|
-      next unless m_name.to_s.index("_")
-      puts "Augmenting #{m_name}"
-      action, type = m_name.to_s.split("_")
-      puts "action = #{action}, type=#{type}"
-      if type=="?"
-        #this would be a good time to panic :(
-      else
-        m = mod.instance_method(m_name.to_sym)
-        fields = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-        res.module_eval %{
-          define_method(m_name) do |*arguments|
-            if arguments.length > fields.length
-              args = arguments[-1]
-              arguments = arguments[0..-2]
-            end
 
-            params = []
-            arguments.each do |f|
-              #FIXME: this is absolutely 100% NOT the way to do things
-              if f.is_a? BaseManyField
-                l = obj[f.name].class.new
-                self[f.name].each do |v|
-                  l << send("#{action}", args)
-                    send(method_sym, f, args)
-                end
-                params << l
-              elsif f.is_a? CheckedObject
-                params << send("#{action}", f, args)
-              else
-                params << f
-              end
-            end
-            puts "Calling #{m_name}.super with params #{params}"
-            super(*params, args)
-          end
-        }
-      end
+  class InternObj
+    def initialize(name=nil, val=nil)
+      @hash = {}
+      @hash[name] = val if !name.nil?
     end
-    res.module_eval { include(mod) }
-  end
-=end
-  def visit_?(fields, args=nil)
-    type = args[:type]
-    h = Hash[*type.fields.keys.zip(fields)]
-    m = method("#{@_action}_#{type.name}")
-    params = []
-    m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |param|
-      f = type.fields[param.to_s]
-      val = h[param.to_s]
-      if f.type.Primitive?
-        params << val
-      elsif !f.many
-        params << visit(val, args)
+
+    def method_missing(method_sym, *args)
+      if not method_sym.to_s.end_with? "="
+        @hash[method_sym.to_s]
       else
-        l = val.class.new
-        val.each do |v|
-          l << visit(v, args)
-        end
-        params << l
+        @hash[method_sym[0..-2].to_s] = args[0]
       end
     end
-    send(@_action, params, args)
+
+    def [](s)
+      @hash[s]
+    end
+
+    def []=(s,v)
+      @hash[s] = v
+    end
   end
-  def visit(obj, args={})
-    super(obj, args.merge(:type=>obj.schema_class))  #effectively a call to method_missing
+
+  def visit_?(fields, type, args=nil)
+    method_sym = @action
+    m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
+    if !m.nil?
+      params = []
+      m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
+        val = fields[f]
+        if type.fields[f].type.Primitive?
+          params << val
+        elsif !type.fields[f].many
+          params << InternObj.new(@action, visit(val, args))
+        else
+          l = val.class.new
+          val.each do |v|
+            l << visit(v, args)
+          end
+          params << InternObj.new(@action, l)
+        end
+      end
+      m.call(*params, args)
+    elsif respond_to?("#{method_sym}_?")
+      m = method("#{method_sym}_?".to_sym)
+      params = {}
+      fields.keys.each do |f|
+        val = fields[f]
+        if f.type.Primitive?
+          params[f.name] = val
+        elsif !f.many
+          params[f.name] = InternObj.new(@action, visit(val, args))
+        else
+          l = val.class.new
+          val.each do |v|
+            l << visit(v, args)
+          end
+          params[f.name] = InternObj.new(@action, l)
+        end
+      end
+      m.call(params, type, args)
+    end
   end
 end
 

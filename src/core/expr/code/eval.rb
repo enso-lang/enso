@@ -50,21 +50,10 @@ module EvalExprIntern
     args[:env][name]
   end
 
-  def eval_EStrConst(val, args=nil)
+  def eval_EConst(val, args=nil)
     val
   end
 
-  def eval_EIntConst(val, args=nil)
-    val
-  end
-
-  def eval_EBoolConst(val, args=nil)
-    val
-  end
-
-  def eval_ERealConst(val, args=nil)
-    val
-  end
 end
 
 
