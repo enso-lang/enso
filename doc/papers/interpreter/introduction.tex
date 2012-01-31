@@ -1,0 +1,46 @@
+\comments{
+Problem: Engineering DSLs is hard
+- requires a different degree of reuse than normal code
+- challenges include:
+  - unanticipated change [van Deursen98] -> spin this as 
+    "we want to support dsl evolution" rather than the 
+    whole co-evolution businness
+  - many-dsl interaction, etc etc [France01]
+  - reuse not good from empirical study [hermans09], 
+    but it's model reuse, not language/metamodel reuse
+- default solns (ie writing code) not good, because:
+  - ?
+
+problems:
+- initial cost of developing dsls
+  - time and manpower
+  - shift in required skill set [vanDeursen98]
+- sustained cost of maintenance
+  - system requirements changes
+  - role of dsl expand into new products, new features
+- dsl interaction
+  - enforce referential integrity between related concepts
+
+
+so far:
+- relatively successful at integrating models
+  - emf, model weaving
+  - extensible parsing techniques
+- semantics, not so successful
+  - ways of defining operational semantics for 
+  - code generators
+  - 
+}
+
+\section{Introduction}
+
+Domain specific languages (DSLs) are languages specialized for a particular problem domain. A set of specialists, known as /toolsmiths/, first construct DSLs encapsulating the relevant domain knowledge, which application programmers can then use to build specific applications. Examples of DSLs include SQL for database management, Yacc for text parsing, XUL and HTML for user interfaces, Promela and Alloy for program verification, and Verilog for hardware description, among many others. DSLs allow application programmers to work with a vocabulary and language structure similar to that of the domain expert, thus reducing the syntactic misalignment between problem definition and solution specification. Language-oriented programming [Ward94] is a software engieering paradigm which systematically deploys DSLs as the primary artefact of program organization, allowing domain knowledge to be remain encapsulated across traditional module boundaries of of classes and functions. Model driven engineering [OMG01] is a variation on the same concept that substitutes concrete textual DSLs with /models/ of their abstract represention.
+
+Unfortunately these advantages do not come for free. The initial development of the DSL incur an additional one-time cost over directly implementing the application. Apart from time and manpower, DSL development also necessitate a shift in programmer skill sets [vanDeursen98], not just in learning the relevant DSL development tools but also in mastering the patterns and prinicples of good language design. Moreover, even though one of the goal of DSLs as an "enabler of reuse" [Mernik05], the added range of artefacts from grammars to interpreters to tools, and their often monolithic nature, <this point needs to be substantiated> ironically hinders reuse in the development of the DSLs themselves. < .. somewhere here mention how code generators exacerbate the problem by introducing another level of indirection, hard-to-detect interference, etc>
+
+The other major cost comes from maintaining these DSLs. Like other software systems, DSLs are seldom static and evolve according to requirement changes. Even if the domain logic remains constant, the DSL's responsibility might increase over time as it becomes used more widely [?]. The robustness challenge for DSL developers here is to tolerate slight variations across versions, including building checkers to determine if the particular variation is allowed. In the ideal case, a DSL may also refined modularly, such that any combination of variations can be selected without an exponential increase in code.
+
+Maintainence is particularly difficult in environments involving multiple DSLs which, under the language-oriented paradigm, is now the norm. Changes in one language can 
+
+
+

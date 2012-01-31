@@ -1,4 +1,5 @@
 Composable interpreters for language-oriented programming
+A "library-of-languages" approach for DSL workbenches
 
 * abstract
 
@@ -52,10 +53,65 @@ Composable interpreters for language-oriented programming
 
 * our soln (overview)
 - contributions of this work are:
-  - BLAH
-  - BLAG
-  - BLEU
-  - Helps me graduate if you accept my paper
+  - Extensible interpreters
+    - Horizontal, ie modularly adding new operations or AST node types
+      - eg expression sub-language
+      - extension can be cyclically dependent, eg command language and web
+      - robust to small variations (?), eg expressions for web
+    - Vertical, ie refinement or specialization of existing interpreters
+      - eg data model to database schema model
+  - Modular feature selection
+    - Base, Secure, Secure+DB, DB
+  - Crosscutting interactions
+    - eg secure data model
+  - Higher-order interpreter composition
+    - patterns, eg rule language
+    - tooling (???)
+  - Self-describing
+    - DSLs are also written using a DSL (ie Enso)
+  - Combinators
+
+
+* Combinator
+- Motivation
+  - Code is good
+    - General purpose code is hard to analyze, so
+    - Toolmakers like to create their own interpreter language
+      - Guarded command language
+      - Rule-based (ATL)
+      - Template-based 
+      - Event-based
+    - They sometimes end up re-inventing the wheel
+      - eg ATL
+        - highest level is rules-based, but actions and expressions
+        - ocl equivalents of primitives, expressions, control flow
+        - break out into code
+        - most of the examples in the ATL zoo contain code
+        - end result: "almost Java but not quite"
+      - yet despite all this, ATL still lacks several some features
+        - generics
+          - FamilyTree2Persons => OrgChart2Persons, copy-paste and 
+            change 2 lines! both are tree to list transforms
+        - importing API domain libraries
+          - especially in DSLs, lots of domain libraries to import!
+    - Since interpreters are general computations, why not use a general
+      language
+      - mature
+  - Code is bad
+    - analysis of general purpose code
+    - hard to generate tools in interpreter-independent way
+    - burden of good lang design now shifted to toolsmith from 
+      workbench maker --- that's even worse!
+- Proposed soln: Language building blocks
+  - a stack of 
+
+
+
+
+
+Our solution is based on code
+  - Reuse
+
 - Based on interpreter pattern
   - Interpreters as mixins
   - Extensibility both when adding new nodes 
@@ -63,18 +119,15 @@ Composable interpreters for language-oriented programming
 - Dispatch
   - generic / subtype polymorphic lookup
   - parameters passed as dictionaries
-  - multi-dispatch?
-- Composable
+  - multi-dispatch? (AGAINST) CALL IT DIAMOND PROBLEM
+- Extensibility
   - Horizontal: adding operations and types modularly
   - Vertical: mixin inheritance
   - Integrity is enforced by external (type-) checker
     - structural subtyping
     - subtype relation between interpreter and schema
-- Reuse
-  - sub-language consistent across different DSLs
-  - slight variations tolerated (eg web expressions)
-  - cyclic dependencies
-
+- Combinators
+  - 
 
 
 * why interpreters
@@ -128,5 +181,23 @@ Composable interpreters for language-oriented programming
   - Type checking interpreters against models
 
 * conclusions
+
+
+
+
+
+WHATS NEW!!!
+------------
+- Higher-order thingies
+- Using refinement to make combinators
+- Using refinement to do tooling (?)
+- Meta-level refinements (ie schema-schema)
+- Generation of checkers to work on the design pattern
+- Interpreter written with code (Ruby)
+- Semantics tied to syntax **
+
+But all of these seem rather dubious right now....
+s
+
 
 

@@ -1,0 +1,9 @@
+A combinator approach to 
+-------------------------------
+
+Code is good.
+
+When people first built language workbenches and wanted to define behavioral semantics for them, they thought that code was bad. This seemed obvious as the use of full-blown GPLs like C++ and Java often introduced unsolvable problems involving analyzability (alias analysis, etc) and recovery of high-level semantic constructs. Specialized DSLs were created to allow DSL semantics to be defined at a high level, often using the same language workbench it is meant to be a part of (eg ATL, xPand, Stratego/Spoofax, etc).
+
+However, in many of these cases we see unnecessary duplication of functionality from GPLs such as types to control flow, ultimately producing a language that is very close to GPL but slightly different. The slight differences in syntax inhibits reuse of existing domain libraries. Yet despite the bloat we still see essential language features omitted from these DSLs. For instance, ATL does not have generics, so a map
+
