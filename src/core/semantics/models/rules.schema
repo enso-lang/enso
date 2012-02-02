@@ -1,0 +1,18 @@
+primitive int
+primitive str
+primitive bool
+
+class Rules
+! rules:Rule*
+end
+
+class Rule
+# name:str
+! obj:Object
+! action:Action
+! cond:Expr?
+end
+
+class Object end
+class Action end
+class Expr end

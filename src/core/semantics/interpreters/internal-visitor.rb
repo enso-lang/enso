@@ -1,14 +1,9 @@
 
 module InternalVisitorMod
-  def self.init(action, mod)
+  def self.init(mod)
     r = InternalVisitorMod.clone
     r.class_exec do
-      @@action = action
       include mod
-    end
-    r.send(:define_method, :initialize) do |*args|
-      @action = action
-      super(*args)
     end
     r
   end
@@ -37,7 +32,7 @@ module InternalVisitorMod
   end
 
   def visit_?(fields, type, args=nil)
-    method_sym = @action
+    method_sym = args[:visit]
     m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
     if !m.nil?
       params = []
@@ -46,13 +41,13 @@ module InternalVisitorMod
         if type.fields[f].type.Primitive?
           params << val
         elsif !type.fields[f].many
-          params << InternObj.new(@action, visit(val, args))
+          params << InternObj.new(args[:visit], visit(val, args))
         else
           l = val.class.new
           val.each do |v|
             l << visit(v, args)
           end
-          params << InternObj.new(@action, l)
+          params << InternObj.new(args[:visit], l)
         end
       end
       m.call(*params, args)

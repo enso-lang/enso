@@ -7,6 +7,7 @@ require 'core/system/library/schema'
 class Interpreter
   module Dispatch
     def method_missing(method_sym, *arguments, &block)
+      puts "MM #{method_sym} #{arguments}"
       obj = arguments[0]
       raise "Interpreter: obj is nil for method #{method_sym}" if obj.nil?
       raise "Interpreter: invalid obj for method #{method_sym}" if !obj.is_a? ManagedData::MObject
@@ -15,28 +16,30 @@ class Interpreter
 
       args ||= {}
       args[:self] = obj
-      m = Lookup(obj.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
+
+      fields = Hash[obj.schema_class.all_fields.map{|f|[f.name,obj[f.name]]}]
+      __call(method_sym, fields, obj.schema_class, args)
+
+    end
+
+    private
+
+    def __call(method_sym, fields, type, args)
+      puts "Callin #{type}.#{method_sym} #{fields} #{args}"
+      m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
       if !m.nil?
-        fields = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-
         params = []
-        fields.each do |f|
-          params << obj[f]
+        m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
+          params << fields[f]
         end
-
         m.call(*params, args)
+
       elsif respond_to?("#{method_sym}_?")
         m = method("#{method_sym}_?".to_sym)
-        fields = obj.schema_class.all_fields
+        m.call(fields, type, args)
 
-        params = {}
-        fields.each do |f|
-          params[f.name] = obj[f.name]
-        end
-
-        m.call(params, obj.schema_class, args)
       else
-        nil
+        raise "Interpreter: Unable to resolve method #{method_sym} for #{obj}"
       end
     end
   end
