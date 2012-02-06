@@ -197,7 +197,7 @@ WHATS NEW!!!
 - Semantics tied to syntax **
 
 But all of these seem rather dubious right now....
-s
+
 
 
 

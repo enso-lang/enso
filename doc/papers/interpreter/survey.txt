@@ -14,6 +14,20 @@ Output: model, another language
 Input: text
 Semantics definitions: code, translation
 
+
+HIGH LEVEL BASKETS:
+
+Compiler extension (denotational semantics)
+
+Transformations (of some kind?)
+  - source-to-source
+  - model-to-something
+
+Code!
+
+
+
+
 - Spoofax
 
 Spoofax mainly refers to the syntax definition mechanism. The semantics by defined via the Stratego source-to-source transform DSL. Stratego is based on rule matching.
@@ -31,11 +45,11 @@ Semantics of EMF models is defined by writing code. No real way to ensure code w
 
 - SugarJ
 
-
+Embedded grammar extension.
 
 - Silver
 
-
+Grammar extension.
 
 - Modeltalk
 
@@ -84,9 +98,9 @@ But then again, we are not translaters.
 
 - Lisa
 
+Semantics defined using attribute grammars. Extensibility based on attribute grammar composition. Novelty is their aspect-oriented attribute grammar inheritance.
 
-
-- Meta-environment
+- Meta-environment (ASF+SDF)
 
 
 
