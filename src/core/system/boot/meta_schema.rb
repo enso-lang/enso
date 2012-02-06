@@ -19,6 +19,7 @@ module Boot
   # from schema_schema.xml.
 
   class Mock
+    attr_accessor :schema_class
     # needed for path resolving
     def [](name)
       send(name)
@@ -49,6 +50,14 @@ module Boot
         @primitives[p.name] = p
       end
       @types = @classes.merge(@primitives)
+
+      @classes.each do |v|
+        v.schema_class = @classes['Class']
+        v.defined_fields.each do |f|
+          f.schema_class = @classes['Field']
+        end
+      end
+      @schema_class = @classes['Schema']
     end
   end
 
@@ -70,7 +79,7 @@ module Boot
   end
 
   class Class < Type
-    attr_reader :supers, :defined_fields
+    attr_reader :supers, :subclasses, :defined_fields
 
     def initialize(this, schema)
       super(this, schema)

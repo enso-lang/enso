@@ -23,4 +23,6 @@ Multiplicity ::= "*" @"@many = true; @optional = true"
 	       | @"true"
 
 Annot ::= "/" inverse:./type/fields[it]^
-        | "=" computed:str
+        | "=" computed:Expr
+
+abstract Expr

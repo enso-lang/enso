@@ -34,6 +34,8 @@ class Field
   key: bool
   auto: bool
   inverse: Field? / inverse 
-  computed: str?
+! computed: Expr?
   traversal: bool
 end
+
+class Expr end

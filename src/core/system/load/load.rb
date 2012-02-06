@@ -39,6 +39,17 @@ module Loading
       result = Parse.load_raw(source, g, s, factory, show)
       return result.finalize
     end
+
+    #load a schema and grammar pair into the cache
+    def load_union(name, *types)
+      load_cache("#{name}.schema",  Union(load("schema.schema"), *(types.map{|type|load("#{type}.schema")})))
+      load_cache("#{name}.grammar", Union(load("grammar.grammar"), *(types.map{|type|load("#{type}.grammar")}.reverse)))
+    end
+
+    def load_cache(name, load)
+      $stderr << "## caching #{name}...\n"
+      @cache[name] = load
+    end
         
     #private
 
@@ -73,8 +84,9 @@ module Loading
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
 
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
-      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('bootstrap.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
     end
         
