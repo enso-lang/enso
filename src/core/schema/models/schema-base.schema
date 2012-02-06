@@ -1,0 +1,39 @@
+primitive str
+primitive int
+primitive bool
+primitive real
+
+class Schema
+! types: Type*
+  classes: Class* = "@types.select(&:Class?)"
+  primitives: Primitive* = "@types.select(&:Primitive?)"
+end
+
+class Type
+# name: str
+  schema: Schema / types
+end
+
+class Primitive < Type
+end
+  
+class Class < Type
+  supers: Class*
+  subclasses: Class* / supers
+! defined_fields: Field*
+  fields: Field* = "@all_fields.select {|f| !f.computed}"
+  all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
+end
+  
+class Field
+# name: str
+  owner: Class / defined_fields
+  type: Type
+  optional: bool
+  many: bool
+  key: bool
+  auto: bool
+  inverse: Field? / inverse 
+  computed: str?
+  traversal: bool
+end

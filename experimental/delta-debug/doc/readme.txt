@@ -20,3 +20,12 @@ An example is given in test_dd.rb.
 
 [Zeller99] Zeller, Yesterday, my program worked. Today, it does not. Why?, ESEC/FSE '99
 [Dhoolia10] Pankaj Dhoolia, Senthil Mani, V Sinha, Saurabh Sinha, Debugging Model-Transformation Failures Using Dynamic Tainting, ECOOP '10
+
+
+NOTES:
+Challenges:
+- Abstraction level gap between DSL specification and output
+- Declarative DSLs without control-flow-based operational semantics
+Possible solns:
+1. fully blackbox style, ie "test-driven", ala delta debugging, slicing, etc
+2. event signalling? eg by weaving into the interpreter. the app programmer can do this!
