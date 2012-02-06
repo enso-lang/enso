@@ -1,0 +1,4 @@
+@types.select(&:Class?)
+@types.select(&:Primitive?)
+@all_fields.select {|f| !f.computed}
+@supers.flat_map(&:all_fields) + @defined_fields

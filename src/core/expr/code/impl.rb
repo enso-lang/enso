@@ -1,7 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 
-module Command
+module Impl
 
   include EvalExpr, LValueExpr
 
@@ -51,27 +51,40 @@ module Command
     end
   end
 
-  def eval_ESwitch(name, args={})
-
-  end
-
   def eval_EBlock(body, args={})
     body.each do |c|
       eval(c, args)
     end
   end
 
-  def eval_EFunDef(name, formals, body, args={})
-    Closure.new(body, formals, args[:env], self, args)
+  def eval_EFunDef(formals, body, args={})
+    Proc.new do |*params|
+      nenv = args[:env].clone
+      formals.map{|f|f.name}.zip(params).each do |k,v|
+        nenv[k] = eval()
+      end
+    end
+
+    instance_eval("lambda do |#{formals.map{|f|f.name}.join ','}|
+      nenv = args[:env]
+      formals.each { nenv[
+      eval(body, args)
+	  end")
   end
 
   def eval_EAssign(var, val, args={})
     lvalue(var, args).value = eval(val, args)
   end
 
-  def eval_EImport(val, args={})
-
+  def eval_EImport(path, args={})
   end
+
+  def eval_EVar(name, args={})
+    args[:env][name]
+  end
+
+
+
 =begin
   EWhile ::= [EWhile] "while" cond:Expr body:Command
   EFor ::= [EFor] "for" var:str "=" list:Expr body:Command

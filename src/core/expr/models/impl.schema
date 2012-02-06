@@ -35,11 +35,12 @@ class EFunCall < Expr, Command
 end
 
 class EFunDef < Command
-  formals:Formal*
+  name:str
+  params:Param*
 ! body:Command
 end
 
-class Formal
+class Param
   name:str
 end
 

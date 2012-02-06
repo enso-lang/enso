@@ -21,12 +21,19 @@ module EvalExpr
     val
   end
 
-  def eval_EFunCall(fun, params, args=nil)
-    self.eval(fun, args).call(*(params.map{|p|self.eval(p, args)}))
+  def eval_EFunCall(fun, params, args={})
+    nargs = args.clone
+    nargs[:in_fc]=true
+    self.eval(fun, nargs).call(*(params.map{|p|self.eval(p, args)}))
   end
 
   def eval_EField(e, fname, args=nil)
-    self.eval(e, args).send(fname)
+    if args[:in_fc]
+      args[:in_fc] = false
+      self.eval(e, args).method(fname.to_sym)
+    else
+      self.eval(e, args).send(fname)
+    end
   end
 end
 
