@@ -3,7 +3,6 @@ allow read(root:Todos)
 allow read(root:Todos{todos})
 allow read(t:Todo)
 allow read(t:Todo{*})
-allow create,read,update,delete(root:Todos)
 
 allow update(t:Todos{todos}) if user == "Alice"
 allow update(t:Todo{*}) if user == "Alice"

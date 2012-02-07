@@ -5,6 +5,7 @@ require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/eval'
+require 'core/expr/code/environment'
 
 =begin
 
@@ -230,7 +231,7 @@ module ManagedData
         elsif exp.EStrConst?
           instance_eval(exp.val.gsub(/@/, 'self.'))
         else
-          @interp.eval(exp, :env=>{'self'=>self})
+          @interp.eval(exp, :env=>Env.new({}, Env.new(self)))
         end
       end
     end
@@ -395,15 +396,17 @@ module ManagedData
       end
     end
 
-    def [](key); @value[key] end
+    def __value; @value end
 
-    def empty?; @value.empty? end
+    def [](key); __value[key] end
 
-    def length; @value.length end
+    def empty?; __value.empty? end
 
-    def to_s; @value.to_s end
+    def length; __value.length end
 
-    def clear; @value.clear end
+    def to_s; __value.to_s end
+
+    def clear; __value.clear end
 
     def connected?; @owner end
 
@@ -439,11 +442,11 @@ module ManagedData
       @key = key
     end
 
-    def each(&block); @value.each_value(&block) end
+    def each(&block); __value.each_value(&block) end
 
-    def each_pair(&block); @value.each_pair &block end
+    def each_pair(&block); __value.each_pair &block end
 
-    def values; @value.values end
+    def values; __value.values end
 
     def <<(mobj)
       check(mobj)
@@ -488,17 +491,17 @@ module ManagedData
       @value = []
     end
 
-    def [](key); @value[key.to_i] end
+    def [](key); __value[key.to_i] end
 
-    def each(&block); @value.each(&block) end
+    def each(&block); __value.each(&block) end
 
     def each_pair(&block)
-      @value.each_with_index do |item, i|
+      __value.each_with_index do |item, i|
         block.call(i, item)
       end
     end
 
-    def values; @value end
+    def values; __value end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj
@@ -540,8 +543,6 @@ module FactorySchema
   end
 
   def Make_Class(args=nil)
-    if args[:self].is_a? ManagedData::MObject
-    end
     MObject.new(args[:self], args[:factory], *args[:args])
   end
 

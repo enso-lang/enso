@@ -37,7 +37,7 @@ class Interpreter
         m.call(fields, type, args)
 
       else
-        raise "Interpreter: Unable to resolve method #{method_sym} for #{fields}"
+        raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
       end
     end
   end
