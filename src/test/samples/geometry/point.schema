@@ -16,7 +16,7 @@ end
 
 class Line < Shape
 ! pts : Point *
-  is_straight : bool = self.pts.length <= 2
+  is_straight : bool = pts.length <= 2
 end
 
 class Point < Shape

@@ -4,5 +4,5 @@ drawing Drawing1
 end
 
 drawing Drawing2
-  line (1,3) (10,5)
+  line (1,3) (10,5) end
 end

@@ -25,6 +25,7 @@ class RenameBinding
           obj[f.name].each do |elt|
             rename(elt, map)
           end
+          obj[f.name]._recompute_hash! if IsKeyed?(f.type)
         else
           rename(obj[f.name], map)
         end
@@ -37,7 +38,7 @@ class RenameBinding
     if map[this.name] then
       this.name = map[this.name]
     end
-    rename(this.arg, descend(map, old))
+    rename(this.arg, old)
   end
 
   def Field(this, map)
@@ -67,7 +68,9 @@ def rename_binding!(grammar, map)
 end
 
 def rename_binding(grammar, map)
-  rename_binding!(copy(grammar), map)
+  obj = Clone(grammar)
+  rename_binding!(obj, map)
+  obj
 end
 
 

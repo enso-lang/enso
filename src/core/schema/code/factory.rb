@@ -448,6 +448,19 @@ module ManagedData
 
     def values; __value.values end
 
+    def keys; __value.keys end
+
+    #FIXME: poor programming practise but necessary
+    # to support key changes in object
+    def _recompute_hash!
+      nval = {}
+      @value.each do |k,v|
+        nval[v[@key.name]] = v
+      end
+      @value = nval
+      self
+    end
+
     def <<(mobj)
       check(mobj)
       key = mobj[@key.name]
@@ -502,6 +515,8 @@ module ManagedData
     end
 
     def values; __value end
+
+    def keys; Array.new(length){|i|i} end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj

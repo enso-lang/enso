@@ -64,4 +64,7 @@ class Hash
     res.set!(key, block)
     res
   end
+  def +(hash)
+    merge(hash)
+  end
 end
