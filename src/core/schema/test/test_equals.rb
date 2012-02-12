@@ -3,8 +3,6 @@ require 'test/unit'
 
 require 'core/system/load/load'
 
-require 'core/schema/code/factory2'
-
 require 'core/schema/tools/copy'
 require 'core/schema/tools/print'
 require 'core/diff/code/equals'

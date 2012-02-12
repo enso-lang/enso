@@ -10,9 +10,9 @@ allow update(t:Todo{*}) if user == "Alice"
 allow create(t:Todo) if user == "Alice"
 allow delete(t:Todo) if user == "Alice"
 
-deny read(t:Todo) if user == "Bob" and not t->done
+deny read(t:Todo) if user == "Bob" and not t.done
 allow update(t:Todos{todos}) if user == "Bob"
-allow update(t:Todo{*}) if user == "Bob" and t->done
+allow update(t:Todo{*}) if user == "Bob" and t.done
 
 allow update(t:Todos{todos}) if user == "Dave"
 allow update(t:Todo{done}) if user == "Dave"
@@ -22,5 +22,5 @@ allow update(t:Todos{todos}) if user == "Cathy"
 allow update(t:Todo{done}) if user == "Cathy"
 allow delete(t:Todo) if user == "Cathy"
 
-allow read(t:Todo) if user == "Emily" and not t->done
-deny read(t:Todo) if user == "Emily" and t->done
+allow read(t:Todo) if user == "Emily" and not t.done
+deny read(t:Todo) if user == "Emily" and t.done

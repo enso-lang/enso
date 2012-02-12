@@ -21,9 +21,12 @@ end
 class StencilFrame < DiagramFrame
   include Paths
 
+  class FunDefs; end
+
   def initialize(path = nil)
     super("Model Editor")
     @actions = {}
+    @fundefs = FunDefs.new
     self.path = path if path
   end
   
@@ -198,12 +201,12 @@ class StencilFrame < DiagramFrame
 	
   def edit_address(address, shape)
     if address.field.type.Primitive?
-			@selection = TextEditSelection.new(self, shape)
+			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
-      find_all_objects @data, address.field.type, do |obj|
+      find_all_objects @data, address.field.type do |obj|
         name = ObjectKey(obj)
-    		add_menu2(pop, name, name) do |e| 
+    		add_menu2 pop, name, name do |e| 
     			address.value = obj
     			shape.string = name
     	  end
@@ -217,7 +220,7 @@ class StencilFrame < DiagramFrame
   def on_right_down(e)
     clear_selection
     actions = {}
-    find e, do |part|
+    find e do |part|
       actions.update @actions[part] if @actions[part]
 		  false
     end      
@@ -306,7 +309,12 @@ class StencilFrame < DiagramFrame
         raise "Trying to use #{assign} as an l-value in a let expression"
       end
     end
-    construct this.body, nenv, container
+    construct this.body, nenv, container, &block
+  end
+
+  def constructRequire(this, env, container, &block)
+    @fundefs.instance_exec { require this.path }
+    construct this.content, env, container, &block
   end
 
   def constructFor(this, env, container, &block)
@@ -343,7 +351,7 @@ class StencilFrame < DiagramFrame
 	      if !address.is_traversal
 	      	# just add a reference!
 	      	puts "ADD #{action}: #{address.field}"
-	      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+	      	@selection = FindByTypeSelection.new self, address.field.type do |x|
 			      address.insert x
 						rebuild_diagram
 			    end
@@ -364,7 +372,7 @@ class StencilFrame < DiagramFrame
 	      	puts "CREATE #{address.field} << #{obj}"
 #	      	if relateField
 #  	      	puts "ADD #{action}: #{address.field}"
-#		      	@selection = FindByTypeSelection.new self, address.field.type, do |x|
+#		      	@selection = FindByTypeSelection.new self, address.field.type do |x|
 #		      	  obj[relateField.name] = x
 #				      address.insert obj
 #							rebuild_diagram
@@ -381,7 +389,7 @@ class StencilFrame < DiagramFrame
 
 	def find_default_object(scan, type)
 	  catch :FoundObject do 
-		  find_all_objects scan, type, do |x|  
+		  find_all_objects scan, type do |x|  
 		    throw :FoundObject, x
 		  end
 		end
@@ -455,12 +463,8 @@ class StencilFrame < DiagramFrame
   
   def constructText(this, env, container, &block)
     val, address = eval(this.string, env)
-    #puts "TEXT #{val} #{address}"
-    if !val.is_a?(String)
-      val = ObjectKey(val)
-    end
     text = @factory.Text
-    text.string = val
+    text.string = val.to_s
     make_styles(this, text, env)
     if address
 	    @shapeToAddress[text] = address
@@ -529,6 +533,12 @@ class StencilFrame < DiagramFrame
     b, _ = eval(this.b, env)
     return @factory.Color(r.round, g.round, b.round), nil
   end
+
+  def evalFunApp(this, env)
+    name = this.fun.to_sym
+    args = this.args.map{|arg| eval(arg, env)[0]}
+    @fundefs.instance_exec{ send(name, *args) }
+  end
   
   def evalPrim(this, env)
     op = this.op.to_sym
@@ -588,7 +598,8 @@ class StencilFrame < DiagramFrame
 end
 
 class TextEditSelection
-  def initialize(diagram, edit)
+  def initialize(diagram, edit, address)
+    @address = address
     @diagram = diagram  
     @edit_selection = edit
     r = diagram.boundary(@edit_selection)
@@ -611,6 +622,7 @@ class TextEditSelection
 
   def clear
     new_text = @edit_control.get_value()
+    @address.value = new_text
     @edit_selection.string = new_text
     @edit_control.destroy
     return nil
@@ -639,7 +651,7 @@ class FindByTypeSelection
   
   def on_move(e, down)
     #puts "CHECKING"
-    @part = @diagram.find e, do |shape| 
+    @part = @diagram.find e do |shape| 
       obj = @diagram.lookup_shape(shape)
       #obj && obj._subtypeOf(obj.schema_class, @kind)
       obj && Subclass?(obj.schema_class, @kind)
@@ -672,6 +684,12 @@ class Address
   attr_reader :field
   
   def value=(val)
+    case @field.type.name
+      when 'int'
+        val = val.to_i
+      when 'real'
+        val = val.to_f
+    end
     @object[real_field.name] = val
   end
 

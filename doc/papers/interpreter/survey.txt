@@ -1,0 +1,150 @@
+A Survey of Composition Techniques and Challenges in Language Workbenches
+
+Modularity is one of the cornerstones of software engineering. By decomposing a large problem into several smaller ones, we … and … reuse ; by observing the congruence between similar problems at different scales, we . . Composition techniques enable modularity by … Language workbenches is a promising new paradigm in software development, … In a bla bla (say what lang workbenches do) Yet ironically (engineering languages is hard) One of the key challenges with language workbenches is how to help users create DSLs in a cost-efficient way. Re-use and scalability ...
+
+In this survey we study how different language workbenches approach language composition. Each of the tools surveyed makes some claim with regard to composability but we shall see that most them suffer from …. These include:
+
+Dictionary:
+Refinement – extension via inheritance. Refined model may or may not have access to parent concepts (eg via super).
+Composition – extension via embedding, like a library call
+
+(types: extensible grammars, mde, language workbenches)
+
+Output: model, another language
+Input: text
+Semantics definitions: code, translation
+
+
+HIGH LEVEL BASKETS:
+
+Compiler extension (denotational semantics)
+
+Transformations (of some kind?)
+  - source-to-source
+  - model-to-something
+
+Code!
+
+
+
+
+- Spoofax
+
+Spoofax mainly refers to the syntax definition mechanism. The semantics by defined via the Stratego source-to-source transform DSL. Stratego is based on rule matching.
+
+Stratego rules can be extended with libraries and rules. Spoofax syntax can be extended with abstract references. However, it does not appear to support any kind of rule refinement, especially not the pervasive refinement we have that supports crosscutting concerns.
+
+Also, stratego is strictly an external DSL, which does not allow it to draw upon features of an underlying host language by default
+
+
+- Monticore
+
+Use grammar rules to define EMF models. Very similar to xText, except that grammar definitions can contain constraints like cardinality and interface implementation. Grammars can be extended via both refinement and composition.
+
+Semantics of EMF models is defined by writing code. No real way to ensure code written for various composed models do not interfere with each other.
+
+- SugarJ
+
+Embedded grammar extension.
+
+- Silver
+
+Grammar extension.
+
+- Modeltalk
+
+
+
+- MPS
+
+
+
+- EMF/ATL
+
+Use M2M transformation rules to reduce models to simpler models. Comparable to big-step semantics.
+
+Surprisingly composable even though compsability is not one of the original goals. Possible to modularly add new nodes and operations that do not interfere with each other by taking the union of a set of rules. Possible to mechanically detect conflicts (no such feature).
+
+- EMF/xText/xPand (OAW)
+
+Use grammar rules to define EMF models. <Can xtext grammars be extended?>
+(Does not have capability for composing xText definitions, but seems to be an implementation issue)
+
+Traditionally, semantics of EMF models is defined by writing code. No real way to ensure code written for various composed models do not interfere with each other. On the model level, however, EMF has a 'model weaver' that allows the definition and enforcement of constraints across metamodels.
+
+xPand is a M2T transformer DSL that maps 
+
+- MetaEdit+
+
+
+
+- Metaborg
+
+
+
+- JastAddJ
+
+Compiler extension for Java, bytecode level manipulation using the Soot framework.
+
+JastAddJ paper claims composability simply by including 'abstract grammar, context-free grammar and behavior'. 
+
+- Polyglot
+
+Extensible compiler that translates to Java source code based on grammar. Semantics appear to be defined using code written in the visitor pattern.
+
+Paper explains the use of composing language semantics via 'simulated' mixin inheritance. Has some kind of genericity (one definition of CofferExt works for any Node). This is fairly similar to us except that they are also type-safe (?). Briefly mentions that having open classes and multi-inheritance (via mixins) will ease the implementation, both of which Ruby has (and we are using)
+
+But then again, we are not translaters.
+
+- Lisa
+
+Semantics defined using attribute grammars. Extensibility based on attribute grammar composition. Novelty is their aspect-oriented attribute grammar inheritance.
+
+- Meta-environment (ASF+SDF)
+
+
+
+- Atom Weaver
+
+
+
+Syntactic challenges
+
+Syntax here refer to textual representation ubiquitously used in programming languages. Projectional and structural editors, such as MPS and IDW are excluded.
+
+The two biggest hurdles to textual source code written in different languages are parsing and ambiguity [cite???]. Parsing is hard because … (cfgs dont compose? some parsing stuff like packrat etc) ... Ambiguity arises when … Worst part is that it is notoriously hard to detect and fix. (give example of how they can be hidden)
+
+Another more accidental complexity arises from the common usage of parse rules to encode precedence. In some languages, precedence is enforced by dividing one non-terminal (eg Expression), into different tiers so that some sub-types (eg Multiply) will bind more tightly than others (eg Additions). This means potential bedfellows will either have to replicate the same, possibly intricate, hierarchy or lump all its rules into the topmost non-terminal, both suboptimal solutions.
+
+
+
+
+Semantic challenges
+
+- interference – eg secure schema, db schema, secure + db schema, etc
+This is never completely sound. It is only possible to provide certain types of checks but detecting full semantic compatibility is clearly undecideable.
+
+- redundancy – do not reimplement
+
+
+Syntax and semantic – all at once!
+- ensuring they match
+
+
+
+The missing pieces
+
+- Generics
+
+Both semantic interpretations and grammar rules must be 'generic' enough to be reusable in contexts similar to what it was designed for. 
+
+- 
+
+
+
+
+Conclusion
+
+- Upon doing this survey I realized just how many practical examples there are where good syntax is all it takes to improve the standard of s/w engineering
+
+

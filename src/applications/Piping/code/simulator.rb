@@ -206,9 +206,9 @@ class CalcPressure
     end
   end
 
-  def CalcPressure_Pump(input, output, pressure, args=nil)
-    if output.in_pressure != pressure
-      output.in_pressure = pressure
+  def CalcPressure_Pump(input, output, args=nil)
+    if output.in_pressure != 100
+      output.in_pressure = 100
       input.out_pressure = 0
       CalcPressure(output.output)
     end
@@ -220,8 +220,8 @@ class Init
 
   def Init_Pipe(args=nil)
     p = args[:obj]
-    p.diameter = 0.1
-    p.length = 10
+    p.diameter = 0.1 if p.diameter == 0
+    p.length = 10 if p.length == 0
     p.temperature = ROOM_TEMP
     p.in_pressure = 0
     p.out_pressure = 0
@@ -232,13 +232,22 @@ class Init
     args[:obj].temperature = ROOM_TEMP
   end
 
-  def Init_Boiler(args=nil)
+  def Init_Vessel(args=nil)
     args[:obj].temperature = ROOM_TEMP
+  end
+
+  def Init_Joint(inputs, args=nil)
+    inputs.each {|p| p.output = args[:obj]}
+  end
+
+  def Init_Sensor(args=nil)
+    args[:obj].user = ROOM_TEMP
   end
 
   def Init_?(fields, type, args=nil)
     args[:obj]
   end
+
 end
 
 class Float

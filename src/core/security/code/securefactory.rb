@@ -24,322 +24,207 @@ List of all security checks:
 =end
 
 require 'core/security/code/security'
-require 'core/schema/code/factory'
+require 'core/semantics/code/factory'
 
-class SecureFactory < Factory
+module SecureFactory
 
-  def initialize(schema, rulefile, fail_silent=false)
-    @schema = schema
-    @security = rulefile
-    @user = nil
-    @root = nil
-    @fail_silent = fail_silent
-  end
+  module SecureFactoryMixin
+    attr_accessor :security, :fail_silent, :user, :trusted
 
-  def self.make_secure(obj, rulefile)
-    sfact = SecureFactory.new(obj.schema_class.schema, rulefile)
-    sfact.clone(obj)
-  end
-
-  def trusted_mode
-    @security.trusted_mode {
-      yield
-    }
-  end
-
-  def clone(obj)
-    @security.trusted_mode {
-      Copy(self, obj)
-    }
-  end
-
-  def check_privileges(op, obj, *field)
-    @security.check_privileges(op, obj, *field)
-  end
-
-  def get_allow_constraints(op, obj, *field)
-    @security.get_allow_constraints(op, obj, *field)
-  end
-
-  def set_root(root)
-    @root = root
-  end
-
-  def set_user(user)
-    @user = user
-    @security.user = user
-  end
-
-  # factory.Foo(args) creates an instance of Foo initialized with arguments
-  def method_missing(class_name, *args)
-    obj = nil
-    @security.trusted_mode {
-      schema_class = @schema.classes[class_name.to_s]
-      raise "Unknown class '#{class_name}'" unless schema_class
-      obj = SecureCheckedObject.new(schema_class, self)
-      if @root.nil?
-        set_root(obj) #set the first created object as the root
+    def __constructor(klass)
+      obj = super
+      #check permissions
+      auth, msg = check_privileges("OpCreate", obj)
+      if (!auth)
+        raise "NOT AUTH"
       end
-      n = 0
-      obj.schema_class.fields.each do |field|
-        if n < args.length
-          if field.many
-            col = obj[field.name]
-            args[n].each do |x|
-              col << x
-            end
-          else
-            obj[field.name] = args[n]
-          end
-        elsif !field.key && !field.optional && field.type.Primitive?
-          case field.type.name
-          when "str" then obj[field.name] = ""
-          when "int" then obj[field.name] = 0
-          when "float" then obj[field.name] = 0.0
-          when "bool" then obj[field.name] = false
-          when "datetime" then obj[field.name] = DateTime.now
-          else
-            raise "Unknown type: #{field.type.name}"
-          end
-        elsif field.key && field.auto && field.type.Primitive? then
-          case field.type.name
-          when "str" then obj[field.name] = "id_#{object_id}_#{@key_gen += 1}"
-          when "int" then obj[field.name] = @key_gen += 1
-          else
-            raise "Cannot autogen key for #{field.type.name}"
-          end
-        end
-        n += 1
+      (@fail_silent ? (return nil) : (raise SecurityError, msg)) if !auth
+      obj
+    end
+
+    def make_secure(obj)
+      trusted_mode {
+        Copy(self, obj)
+      }
+    end
+
+    def check_privileges(op, obj, field=nil)
+      @trusted = 0 unless @trusted
+      if @trusted > 0
+        true
+      else
+        Interpreter.compose(CheckPrivileges).new().check(@security, :op=>op, :obj=>obj, :field=>field, :user=>@user)
       end
-      raise "too many constructor arguments supplied for '#{class_name}" if n < args.length
-    }
-    auth, msg = check_privileges("OpCreate", obj)
-    (@fail_silent ? (return nil) : (raise SecurityError, msg)) if !auth
-    return obj
+    end
+
+    def trusted_mode
+      @trusted = 0 unless @trusted
+      @trusted = @trusted + 1
+      res = yield
+      @trusted = @trusted - 1
+      res
+    end
+  end
+
+  module SecureMObjectMixin
+    def [](name)
+      #check security: can I read this entire field?
+      auth1, msg1 = check_privileges("OpRead", self, name)
+      if !auth1
+        raise "Trying to access #{name} in #{self}"
+      end
+      nil if !auth1
+      super if auth1
+    end
+
+    def []=(name, x)
+      auth1, msg = check_privileges("OpUpdate", @self, name)
+      raise SecurityError, msg if !auth1 and !@fail_silent
+      field = schema_class.fields[name]
+      auth2 = true
+      if !field.type.Primitive? and field.traversal
+        old = self[name]
+        auth2, msg = check_privileges("OpDelete", old)
+        raise SecurityError, msg if !auth2 and !@fail_silent
+      end
+      super if auth1 and auth2
+    end
+
+    def delete!
+      auth, msg = check_privileges("OpDelete", self)
+      raise SecurityError, msg if !auth and !@fail_silent
+      super if auth
+    end
+
+    def check_privileges(op, obj, field=nil)
+      @factory.check_privileges(op, obj, field)
+    end
+  end
+
+  module SecureSingleMixin
+    def get
+      res = super
+      auth2, msg2 = @owner.check_privileges("OpRead", res)
+      !auth2 ? nil : res
+    end
+  end
+
+  module SecureManyMixin
+
+    def [](key); __value[key] end
+
+    def empty?; __value.empty? end
+
+    def length; __value.length end
+
+    def to_s; __value.to_s end
+
+    def clear; __value.clear end
+
+    def <<(mobj)
+      auth, msg = @owner.check_privileges("OpUpdate", @owner, @field.name)
+      raise SecurityError, msg if !auth and !@fail_silent
+      super if auth
+    end
+
+    def delete(mobj)
+      auth2, msg = @owner.check_privileges("OpUpdate", @owner, @field.name)
+      raise SecurityError, msg if !auth2 and !@fail_silent
+      auth3, msg = @owner.check_privileges("OpDelete", mobj)
+      raise SecurityError, msg if !auth3 and !@fail_silent
+      super if auth2 and auth3
+    end
+
+    def __insert(mobj)
+      auth, msg = @owner.check_privileges("OpUpdate", @owner, @field.name)
+      raise SecurityError, msg if !auth and !@fail_silent
+      super if auth
+    end
+
+    def __delete(mobj)
+      auth2, msg = @owner.check_privileges("OpUpdate", @owner, @field.name)
+      raise SecurityError, msg if !auth2 and !@fail_silent
+      auth3, msg = @owner.check_privileges("OpDelete", mobj)
+      raise SecurityError, msg if !auth3 and !@fail_silent
+      super if auth2 and auth3
+    end
+
+    def values
+      super.select do |v|
+        auth2, msg2 = @owner.check_privileges("OpRead", v)
+        auth2
+      end
+    end
+
+  end
+
+  module SecureSetMixin
+    include SecureManyMixin
+
+    def __value
+      @value.select do |k,v|
+        auth2, msg2 = @owner.check_privileges("OpRead", v)
+        auth2
+      end
+    end
+
+    def each(&block)
+      __value.each_value(&block)
+    end
+
+    def each_pair(&block)
+      #TODO: Direct access of @super breaks inheritance!
+      __value.each_pair &block
+    end
+
+  end
+
+  module SecureListMixin
+    include SecureManyMixin
+
+    def __value
+      @value.select do |v|
+        auth2, msg2 = @owner.check_privileges("OpRead", v)
+        auth2
+      end
+    end
+
+    def each(&block); __value.each(&block) end
+
+    def each_pair(&block)
+      __value.each_with_index do |item, i|
+        block.call(i, item)
+      end
+    end
+
+  end
+
+  def Make_Schema(args=nil)
+    res = super
+    res.extend SecureFactoryMixin
+    res.security = args[:rules]
+    res.fail_silent = args[:fail_silent]
+    res
+  end
+
+  def Make_Class(args=nil)
+    res = super
+    res.extend SecureMObjectMixin
+    res
+  end
+
+  def Make_Field(computed, many, type, args=nil)
+    res = super
+    if !many
+      res.extend SecureSingleMixin
+    elsif res.is_a? ManagedData::Set
+      res.extend SecureSetMixin
+    elsif res.is_a? ManagedData::List
+      res.extend SecureListMixin
+    end
+    res
   end
 
 end
 
-class SecureCheckedObject < CheckedObject
 
-  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
-    @_id = @@_id += 1
-    @hash = {}
-    @_origin_of = OpenStruct.new
-    @_path = Paths::Path.new
-    @schema_class = schema_class
-    @factory = factory
-    schema_class.fields.each do |field|
-      if field.many
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = SecureManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = SecureManyField.new(self, field)
-        end
-      end
-    end
-  end
-
-  def ask_privileges(op, *field)
-    auth, msg = @factory.check_privileges(op, self, *field)
-    return auth
-  end
-
-  def [](field_name)
-    if field_name[-1] == "?"
-      name = field_name[0..-2]
-      return @schema_class.name == name || Subclass?(@schema_class, @schema_class.schema.types[name])
-    end
-    field = @schema_class.all_fields[field_name];
-    raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
-
-    sym = field.name.to_sym
-    if field.computed
-      exp = field.computed.gsub(/@/, "self.")
-      define_singleton_method(sym) do
-        instance_eval(exp)
-      end
-    else
-      define_singleton_method(sym) do
-        #check security: can I read this entire field?
-        auth1, msg1 = @factory.check_privileges("OpRead", self, field_name)
-        return nil if !auth1
-        res = @hash[field_name]
-        #check security: can I read the target object?
-        auth2, msg2 = @factory.check_privileges("OpRead", res)
-        return nil if !auth2
-        res
-      end
-    end
-    return send(sym)
-  end
-
-  def []=(field_name, new)
-    #check security for write permissions
-    auth, msg = @factory.check_privileges("OpUpdate", self, field_name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    field = self.schema_class.fields[field_name]
-    if !field.type.Primitive? and field.traversal
-      #check for delete permissions on old object
-      old = @hash[field_name]
-      auth, msg = @factory.check_privileges("OpDelete", old)
-      @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    end
-    super
-  end
-
-end
-
-
-class SecureManyIndexedField < ManyIndexedField
-
-  def filtered
-    @hash.select do |key,obj|
-      auth, msg = @realself.factory.check_privileges("OpRead", obj)
-      auth
-    end
-  end
-  private :filtered
-
-  def [](x)
-    filtered()[x]
-  end
-
-  def length
-    filtered().length
-  end
-
-  def keys
-    filtered().keys
-  end
-
-  def values
-    filtered().values
-  end
-
-  def <<(v)
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    super
-  end
-
-  def []=(k, v)
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    if !@field.type.Primitive? and @field.traversal
-      old = @hash[k]
-      auth, msg = @realself.factory.check_privileges("OpDelete", old)
-      raise SecurityError, msg if !auth
-    end
-    super
-  end
-
-  def delete(v)
-    #check: can I remove things from the field?
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    if !@field.type.Primitive? and @field.traversal
-      #check: can I delete the removed object?
-      auth, msg = @realself.factory.check_privileges("OpDelete", v)
-      @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    end
-    super
-  end
-
-  def clear()
-    #check: can I remove things from the field?
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    #check: reject from hash objects I have permission to delete
-    if !@field.type.Primitive? and @field.traversal
-      super.each do |v| #ManyField each-es do NOT return a key
-        auth, msg = @realself.factory.check_privileges("OpDelete", obj)
-        @hash.delete(v) if auth
-      end
-    end
-  end
-
-  def each(&block)
-    filtered().each_value &block
-  end
-end
-
-# eg. "classes" field on Schema
-class SecureManyField < ManyField
-
-  def filtered
-    @list.select do |obj|
-      auth, msg = @realself.factory.check_privileges("OpRead", obj)
-      auth
-    end
-  end
-  private :filtered
-
-  def [](x)
-    filtered()[x]
-  end
-
-  def length
-    filtered().length
-  end
-
-  def last
-    filtered().last
-  end
-
-  def <<(v)
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    if !@field.type.Primitive? and @field.traversal
-      auth, msg = @realself.factory.check_privileges("OpCreate", v)
-      @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    end
-    super
-  end
-
-  def []=(i, v)
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    if !@field.type.Primitive? and @field.traversal
-      old = @list[i]
-      auth, msg = @realself.factory.check_privileges("OpDelete", old)
-      @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    end
-    super
-  end
-
-  def delete(v)
-    #check: can I remove things from the field?
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    if !@field.type.Primitive? and @field.traversal
-      #check: can I delete the removed object?
-      auth, msg = @realself.factory.check_privileges("OpDelete", v)
-      @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    end
-    super
-  end
-
-  def clear()
-    #check: can I remove things from the field?
-    auth, msg = @realself.factory.check_privileges("OpUpdate", @realself, @field.name)
-    @fail_silent ? (return nil) : (raise SecurityError, msg) if !auth
-    #check: reject from hash objects I have permission to delete
-    if !@field.type.Primitive? and @field.traversal
-      super.each do |v| #ManyField each-es do NOT return a key
-        auth, msg = @realself.factory.check_privileges("OpDelete", obj)
-        @list.delete(v) if auth
-      end
-    end
-  end
-
-  def each(&block)
-    filtered().each &block
-  end
-
-  def values
-    filtered()
-  end
-
-end

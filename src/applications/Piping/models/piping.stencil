@@ -9,10 +9,23 @@ graph [font.size=12,fill.color=(255,255,255)] {
      }
   // create the links
   for ("Input" elem : system.elements)
-    if elem is InputElement
+    if elem is InputElement & ! elem is Joint
         connector (elem <-- elem.input.input)
   for (elem : system.elements)
     if elem is Joint
         for ("Connection" pipe : elem.inputs)
            connector (elem <-- pipe.input)
+
+  // create the sensors
+  for ("Sensor" sensor : system.sensors)
+    label sensor
+    box {  // this is the class rectangle
+      vertical {
+       text [font.size=8,font.weight=600] sensor.name
+       text [font.size=8,font.weight=400] sensor.kind
+      }
+    }
+
+  for ("Sensor" sensor : system.sensors)
+    connector (sensor -- sensor.attach)
 }

@@ -1,5 +1,5 @@
 require 'core/diff/code/match'
-require 'core/schema/code/paths'
+require 'core/system/utils/paths'
 
 module Diff
 

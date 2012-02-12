@@ -72,7 +72,7 @@ class RenderClass < Dispatch
       end
     end
     # handle special case of [[ field:"text" ]] in a grammar 
-    throw :fail if this.arg.Lit? && this.arg.value != data
+    throw :fail if this.arg.Lit? && this.arg.value != obj[this.name]
     recurse(this.arg, data)
   end
   

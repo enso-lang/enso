@@ -25,11 +25,11 @@ class OutputElement < Element
   output:Pipe = "@outputs[0]"
 end
 class InputElement < Element
-  input: Pipe
+  inputs: Pipe* / output
+  input: Pipe = "@inputs[0]"
 end
 
-class Joint < OutputElement
-  inputs: Pipe*  // inputs
+class Joint < OutputElement, InputElement
 end
 
 class Source < OutputElement
@@ -53,9 +53,6 @@ end
 class Valve < OutputElement, InputElement
 end
 
-class Thermostat < Element
-end
-
 class Splitter < InputElement, OutputElement
   left:Pipe = "@outputs[0]"
   right:Pipe = "@outputs[1]"
@@ -64,8 +61,18 @@ end
 class Pump < OutputElement, InputElement
 end
 
-class Sensor < Element, InputElement
+class Sensor
+# name: str
   kind: str // temperature, pressure, flow
+  controllable: bool
+end
+
+class PipeSensor < Sensor
+  attach:Pipe
+end
+
+class ElementSensor < Sensor
+  attach:Element
 end
 
 primitive str

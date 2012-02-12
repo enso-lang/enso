@@ -1,28 +1,45 @@
 require 'test/unit'
 
 require 'core/system/load/load'
-require 'core/semantics/code/visitor'
-require 'core/semantics/code/internal-visitor'
 require 'core/expr/code/eval'
-require 'core/expr/code/render'
-require 'core/expr/code/vars'
-require 'core/expr/code/wrap'
 
 class ExprTest < Test::Unit::TestCase
 
   def test_base
-    #interp = Visitor.new(InternalVisitor(EvalExpr))
-    interp = Visitor.new(EvalExpr)
-    ex0 = Loader.load("my-expr.expr")
+    interp = Interpreter(EvalExpr)
+
+    ex0 = Loader.load("expr1.expr")
     assert_equal(6, interp.eval(ex0))
   end
 
+  def test_internal
+    interp = Interpreter(InternalVisitor("eval", EvalExprIntern))
+
+    ex0 = Loader.load("expr1.expr")
+    assert_equal(6, interp.visit(ex0))
+  end
+
+  class A
+    attr_reader :f1
+    def initialize(f1); @f1=f1; end
+  end
+
+  def test_funct
+    interp = Interpreter(EvalExpr)
+
+    ex0 = Loader.load("expr2.expr")
+    a = A.new(2)
+    x = 12
+    assert_equal(12, interp.eval(ex0, :env=>{'a'=>a, 'x'=>x}))
+  end
+
+=begin
   def test_add_types
     s = union(Loader.load('expr-vars.schema'), Loader.load('expr.schema'))
     g = union(Loader.load('expr-vars.grammar'), Loader.load('expr.grammar'))
     ex1 = Loader.load_with_models("my-expr-vars.expr", g, s)
   end
-
+=end
 =begin
   def test_add_actions
     #load an expression and display it

@@ -2,21 +2,22 @@ start System
 
 System ::= [System] elements:Element* sensors:Sensor*
 
-Element ::= [Source]  outputs:pipe name:sym ":" "source" kind:sym 
-        |   [Exhaust] input:pipe  name:sym ":" "exhaust" name:sym
-        |   [Vessel]  outputs:pipe name:sym ":" "vessel"  in    // capacity:real
-        |   [Valve]   outputs:pipe name:sym ":" "valve" in
-        |   [Splitter] outputs:(pipe pipe) name:sym ":" "splitter" in 
-        |   [Pump]    outputs:pipe name:sym ":" "pump" in  
-        |   [Radiator] outputs:pipe name:sym ":" "radiator" in  
-        |   [Joint]   outputs:pipe name:sym "=" inputs:{Connection "+"}+
-        |   [Thermostat] name:sym ":" "thermostat"
-        |   [Burner] name:sym ":" "burner" in gas  outputs:pipe
+Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
+        |   [Exhaust] name:sym ":" "exhaust" input:pipe  name:sym
+        |   [Vessel]  name:sym ":" "vessel"  outputs:pipe in    // capacity:real
+        |   [Valve]   name:sym ":" "valve" outputs:pipe in
+        |   [Splitter] name:sym ":" "splitter" outputs:(pipe pipe) in
+        |   [Pump]    name:sym ":" "pump" outputs:pipe in
+        |   [Radiator] name:sym ":" "radiator" outputs:pipe in
+        |   [Joint]   name:sym outputs:pipe "=" inputs:{Connection "+"}+
+        |   [Burner] name:sym ":" "burner" in gas outputs:pipe
 
-Sensor ::= [Sensor]  name:sym ":" kind:sym "(" attach:Connection ")"
+Sensor ::= [ElementSensor] "sensor" name:sym ":" kind:sym "(" attach:/elements[it]^ ")"
+         | [PipeSensor] "sensor" name:sym ":" kind:sym "(" attach:Connection ")"
 
 pipe ::= [Pipe]
-in ::= "in" "=" input:Connection
+       | [Pipe] "[" ("l" ":" length:real)? ("d" ":" diameter:real)? "]"
+in ::= "in" "=" inputs:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=

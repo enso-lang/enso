@@ -27,7 +27,6 @@ module ExecuteController
   def execute_Transition(guard, target, args=nil)
     if self.eval(guard, args)
       args[:env]['CURRENT_STATE'] = target
-      puts "Moving to state #{args[:env]['CURRENT_STATE']}"
       true
     else
       false
@@ -46,13 +45,14 @@ end
 class Controller
 
   include ExecuteController
+  include Dispatch1
 
   def initialize(piping, control)
     #piping is the interface to the state of the pipes. connects either to a simulator or hardware
     #state is the current state of the controller, used to store global runtime variables
     @piping = piping
     @state = {}
-    @control = Loader.load(control)
+    @control = control
     @env = ControlEnv.new(@piping, @state)
     init(@control, :env=>@env)
   end
@@ -68,7 +68,7 @@ class Controller
 
     def [](k)
       if @piping.sensor_names.include? k
-        @piping.get_reading(k)
+        @piping.get_sensor(k)
       elsif @piping.control_names.include? k
         @piping.get_control(k)
       else
@@ -87,6 +87,7 @@ class Controller
 
   def run
     execute(@control, {:env=>@env})
+    @control.current = current_state
   end
 
   def current_state

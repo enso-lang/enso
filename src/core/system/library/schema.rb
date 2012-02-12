@@ -12,21 +12,24 @@ def IsKeyed?(klass)
   not klass.Primitive? and not ClassKey(klass).nil?
 end
 
-# lookup a dotted name relative to a base object
-def Lookup(obj, path)
-  begin
-    result = Lookup1(obj, path.split("."))
-  rescue
-    result = nil
+#run DFS on obj's parent hierarchy and return first non-nil result
+#similar to find() from Ruby's Enumerable API
+def Lookup(obj, &block)
+  res = yield(obj)
+  if res
+    res
+  else
+    if obj.supers.empty?
+      nil
+    else
+      r = nil
+      obj.supers.each do |o|
+        r = Lookup(o, &block)
+        break if r
+      end
+      r
+    end
   end
-  raise "Could not find path '#{path}'" if !result
-  return result
-end
-
-def Lookup1(obj, path)
-  return obj if path.length == 0
-  field = obj.schema_class.fields.find(&:traversal)
-  return Lookup1(obj[field.name][path[0]], path[1..-1])
 end
 
 def generate_name_map(obj)

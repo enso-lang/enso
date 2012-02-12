@@ -138,7 +138,7 @@ class DiagramFrame < BaseWindow
         return
       end
     end
-    select = find e, do |x|
+    select = find e do |x|
       #find something contained in a graph, which is dragable
       val = @find_container && @find_container.Container? && @find_container.direction == 3 
       #puts "#{x} => #{val}"
@@ -570,7 +570,11 @@ class DiagramFrame < BaseWindow
   end
 
   def makeColor(c)
-    return Wx::Colour.new(c.r.to_i, c.g.to_i, c.b.to_i)
+    return Wx::Colour.new(to_byte(c.r), to_byte(c.g), to_byte(c.b))
+  end
+  
+  def to_byte(v)
+    return [0, [255, v.to_i].min].max
   end
 
   def makePen(pen)

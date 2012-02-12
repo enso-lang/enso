@@ -16,5 +16,11 @@ Under the visitor approach, when adding new types of objects their corresponding
 * Polysemantic
 Under the OO style, objects of the same type can have different behavior for the same action by loading a different interpreter. An example is mixing secure and non-secure objects in the same list. On the other hand, it is more difficult to use different interpreter on the same object as it has to be reloaded each time.
 
+* Delayed Execution
+If the operations are stored as part of the object, they can be execute at any time. However, if an external interpreter is evaluating an object, delay executions are much more difficult because either the interpreter must be kept within the object or the result of evaluation must be a closure.
+
 * Partial Evaluation
 An OO style is known to complicate partial evaluation because of dynamic dispatch. However, since the object in this case (ie the input DSL structure) is known statically, I am not sure if this is still true.
+
+* Easier to do dispatch (?)
+An OO style allows the direct creation of methods, eg "eval", without the name mangling, eg "eval_X".

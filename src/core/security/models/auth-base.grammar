@@ -1,0 +1,22 @@
+start Auth
+
+Auth ::= [Authentication] rules:Rule*
+
+Rule ::= AllowRule | DenyRule
+AllowRule ::= [AllowRule] Strength? "allow" action:Action ("if" cond:Expr)?
+DenyRule  ::= [DenyRule]  Strength? "deny" Msg? action:Action ("if" cond:Expr)?
+Msg ::= msg:str
+
+Strength ::= "weak"     @"@strength=1"
+           | "medium"   @"@strength=2"
+           | "strong"   @"@strength=3"
+
+Action ::= [Action] op:{Operation ","}+ "(" obj:sym ":" type:sym ("{" ("*" @"@allfields=true" | fields:{Field ","}+) "}")? ")"
+Operation ::= OpCreate | OpRead | OpUpdate | OpDelete
+OpCreate ::= [OpCreate] "create"
+OpRead   ::= [OpRead]   "read"
+OpUpdate ::= [OpUpdate] "update"
+OpDelete ::= [OpDelete] "delete"
+Field ::= [Field] name:sym
+
+abstract Expr

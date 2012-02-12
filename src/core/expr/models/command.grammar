@@ -1,0 +1,22 @@
+start Expr
+
+Command ::= EWhile
+          | EFor
+          | EIf
+          | ESwitch
+          | EBlock
+          | EFunCall
+          | EFunDef
+          | EAssign
+          | EImport
+
+EWhile ::= [EWhile] "while" cond:Expr body:Command
+EFor ::= [EFor] "for" var:str "=" list:Expr body:Command
+EIf ::= [EIf] "if" cond:Expr body:Command "else" else:Command
+ESwitch ::= [ESwitch] "switch" e:Expr
+EBlock ::= [EBlock] "{" body:Command* "}"
+EFunDef ::= [EAssign] "def" var:EFunDefName val:EFunDefBody
+EFunDefName ::= [EVar] name:sym
+EFunDefBody ::= [EFunDef] "(" formals:{Formal,","}* ")" body:Command
+EAssign ::= [EAssign] var:Expr "=" val:Expr
+EImport ::= [EImport] "require" path:str
