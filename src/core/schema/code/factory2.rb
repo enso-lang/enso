@@ -359,6 +359,7 @@ module ManagedData
 
     def __set(value)
       if @field.traversal then
+        # TODO: raise if value.__shell != nil
         value.__shell = self if value
         get.__shell = nil if get && !value
       end
