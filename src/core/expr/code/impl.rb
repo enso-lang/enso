@@ -1,7 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 
-module Impl
+module EvalCommand
 
   include EvalExpr, LValueExpr
 
@@ -11,88 +11,74 @@ module Impl
   #depending on where it is evaluated because the
   #interpreter may be different
   class Closure
+    attr_accessor :env #this is a hack to allow self-recursion
+
     def initialize(body, formals, env, interp, args)
       @body = body
       @formals = formals
       @env = env.clone
       @interp = interp
-      @args = args
+      @args = args.clone
     end
 
     #params are the values used to call this function
     #args are used by the interpreter
     def call(*params)
-      nenv = @env
-      formals.zip(params).each do |f,v|
-        nenv[f] = v
+      nenv = @env.clone
+      @formals.zip(params).each do |f,v|
+        nenv[f.name] = v
       end
-      @interp.eval(@body, @args.merge({:env=>nenv}))
+      res = @interp.eval(@body, @args.merge({:env=>nenv}))
+      res
+    end
+
+    def to_s()
+      "#<Closure @body=#{@body} @formals=#{@formals.map{|f|f.name}} @env=#{@env}>"
     end
   end
 
   def eval_EWhile(cond, body, args={})
-    while eval(cond, args)
-      eval(body, args)
+    res = nil
+    while self.eval(cond, args)
+      res = self.eval(body, args)
     end
+    res
   end
 
   def eval_EFor(var, list, body, args={})
     list.each do |val|
       nenv = args[:env].merge({var=>val})
-      eval(body, args.merge({:env=>nenv}))
+      self.eval(body, args.merge({:env=>nenv}))
     end
   end
 
   def eval_EIf(cond, body, body2, args={})
-    if eval(cond, args)
-      eval(body, args)
+    if self.eval(cond, args)
+      self.eval(body, args)
     elsif !body2.nil?
-      eval(body2, args)
+      self.eval(body2, args)
     end
+  end
+
+  def eval_ESwitch(name, args={})
   end
 
   def eval_EBlock(body, args={})
+    res = nil
     body.each do |c|
-      eval(c, args)
+      res = self.eval(c, args)
     end
+    res
   end
 
-  def eval_EFunDef(formals, body, args={})
-    Proc.new do |*params|
-      nenv = args[:env].clone
-      formals.map{|f|f.name}.zip(params).each do |k,v|
-        nenv[k] = eval()
-      end
-    end
-
-    instance_eval("lambda do |#{formals.map{|f|f.name}.join ','}|
-      nenv = args[:env]
-      formals.each { nenv[
-      eval(body, args)
-	  end")
+  def eval_EFunDef(name, formals, body, args={})
+    res = Closure.new(body, formals, args[:env], self, args)
+    res.env[name] = res #hack to enable self-recursion
+    args[:env][name] = res
+    res
   end
 
   def eval_EAssign(var, val, args={})
-    lvalue(var, args).value = eval(val, args)
+    lvalue(var, args).value = self.eval(val, args)
   end
-
-  def eval_EImport(path, args={})
-  end
-
-  def eval_EVar(name, args={})
-    args[:env][name]
-  end
-
-
-
-=begin
-  EWhile ::= [EWhile] "while" cond:Expr body:Command
-  EFor ::= [EFor] "for" var:str "=" list:Expr body:Command
-  EIf ::= [EIf] "if" cond:Expr body:Command "else" else:Command
-  ESwitch ::= [ESwitch] "switch" e:Expr
-  EBlock ::= [EBlock] "{" body:Command* "}"
-  EFunDef ::= [EFunDef] "def" name:str "(" params:{Param,","}* ")" body:Command
-  EAssign ::= [EAssign] var:Expr "=" val:Expr
-  EImport ::= [EImport] "require" path:str
-=end
 end

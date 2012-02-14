@@ -4,8 +4,6 @@ require 'core/schema/code/dynamic'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
-require 'core/expr/code/eval'
-require 'core/expr/code/environment'
 
 =begin
 

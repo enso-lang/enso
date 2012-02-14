@@ -17,7 +17,7 @@ class EUnOp < Expr
 end
 
 class EFunCall < Expr
-  fun:Expr
+! fun:Expr
 ! params:Expr*
 end
 
@@ -29,6 +29,27 @@ end
 class EVar < Expr
   name:str
 end
+
+class ESubscript < Expr
+! e:Expr
+! sub:Expr
+end
+
+// data constructors
+
+class EList < Expr
+  elems:Expr*
+end
+
+class EAddress < Expr
+! e:Expr
+end
+
+class ENew < Expr
+  \class:str
+end
+
+// constants
 
 class EConst < Expr end
 class EStrConst < EConst

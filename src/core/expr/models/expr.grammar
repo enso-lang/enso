@@ -12,10 +12,11 @@ EBinOp2 ::= [EBinOp] e1:EBinOp2 (op:"+"|op:"-") e2:EBinOp3
 EBinOp3 ::= [EBinOp] e1:EBinOp3 (op:"*"|op:"/") e2:EUnOp
          | EUnOp
 EUnOp ::= [EUnOp] op:"not" e:Expr
-        | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
+        | EFunCall
         | EListComp
         | Primary
         | "(" Expr ")"
+EFunCall ::= [EFunCall] fun:EUnOp "(" params:{Expr ","}* ")"
 
 Primary ::= EConst
           | [EField] e:Primary "." fname:sym

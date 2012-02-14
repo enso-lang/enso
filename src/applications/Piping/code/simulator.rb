@@ -3,7 +3,7 @@ require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
 
-require 'core/expr/code/dispatch'
+require 'core/semantics/code/dispatch'
 
 =begin
 NOTES:

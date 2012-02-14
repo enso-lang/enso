@@ -1,20 +1,3 @@
-start Block
+#ruby
 
-Command ::= EWhile
-          | EFor
-          | EIf
-          | ESwitch
-          | EFunCall
-          | EFunDef
-          | EAssign
-          | EImport
-
-EWhile ::= [EWhile] "while" cond:Expr body:Command
-EFor ::= [EFor] "for" var:str "=" list:Expr body:Command
-EIf ::= [EIf] "if" cond:Expr body:Command "else" else:Command
-ESwitch ::= [ESwitch] "switch" e:Expr
-EFunDef ::= [EFunDef] "def" name:str "(" params:{Param,","}* ")" body:Command
-EAssign ::= [EAssign] var:Expr "=" val:Expr
-EImport ::= [EImport] "require" path:str
-
-Block ::= [EBlock] body:{Command,";"}*
+union(load('expr.grammar'), load('impl-base.grammar'))

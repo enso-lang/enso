@@ -1,11 +1,5 @@
-#require 'core/grammar/render/layout'
 require 'core/expr/code/render'
-require 'core/expr/code/dispatch'
-
-class Render
-  include Dispatch1
-  include RenderExpr
-end
+require 'core/semantics/code/interpreter'
 
 def Layout(obj)
   send("Layout_#{obj.schema_class.name}", obj)
@@ -20,7 +14,7 @@ def Layout_TurnSplitter(obj)
 end
 
 def Layout_Expr(obj)
-  Render.new.render(obj)
+  Interpreter(RenderExpr).render(obj)
 end
 
 def CheckConnect(src, trans)

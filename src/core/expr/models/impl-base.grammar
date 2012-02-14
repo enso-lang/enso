@@ -1,22 +1,28 @@
-start Expr
+start Block
 
 Command ::= EWhile
           | EFor
           | EIf
           | ESwitch
-          | EBlock
           | EFunCall
           | EFunDef
           | EAssign
           | EImport
+          | Block
+          | EReturn
 
 EWhile ::= [EWhile] "while" cond:Expr body:Command
 EFor ::= [EFor] "for" var:str "=" list:Expr body:Command
-EIf ::= [EIf] "if" cond:Expr body:Command "else" else:Command
+EIf ::= [EIf] "if" cond:Expr body:Command ("else" body2:Command)?
 ESwitch ::= [ESwitch] "switch" e:Expr
-EBlock ::= [EBlock] "{" body:Command* "}"
-EFunDef ::= [EAssign] "def" var:EFunDefName val:EFunDefBody
-EFunDefName ::= [EVar] name:sym
-EFunDefBody ::= [EFunDef] "(" formals:{Formal,","}* ")" body:Command
+EFunDef ::= [EFunDef] "def" name:sym "(" formals:{Formal ","}* ")" body:Command
 EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
+EReturn ::= "return" Expr
+
+Formal ::= [Formal] name:sym
+
+Block ::= [EBlock] "{" body:Command* "}"
+
+abstract EFunCall
+abstract Expr
