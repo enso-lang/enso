@@ -17,14 +17,14 @@ module ManagedData
       field = @obj.schema_class.all_fields[name]
       if field.many
         return @obj[name]
-      elsif field.computed
-        foo = @obj
-        exp = field.computed.gsub(/@/, "foo.")
-        if exp.start_with?("foo.")
-          exp[0..3] = "self."
-        end
-        puts "Dynamic #{@obj}: #{exp}"
-        return instance_eval(exp)
+#      elsif field.computed
+#        foo = @obj
+#        exp = field.computed.gsub(/@/, "foo.")
+#        if exp.start_with?("foo.")
+#          exp[0..3] = "self."
+#        end
+#        puts "Dynamic #{@obj}: #{exp}"
+#        return instance_eval(exp)
       else
         val = @obj[name]
       end
