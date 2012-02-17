@@ -4,7 +4,6 @@ include Wx
 class BaseWindow < Wx::Frame
   def initialize(title)
     super(nil, :title => title)
-    puts "BASE!"
     @menu_id = 100
     setup_menus()
   end

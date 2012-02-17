@@ -340,7 +340,7 @@ class StencilFrame < DiagramFrame
 	          if is_traversal
   	          v.delete!
   	        else
-  	          address.value = nil
+  	          addr.value = nil
   	        end
   	        rebuild_diagram
 	        end
@@ -351,7 +351,7 @@ class StencilFrame < DiagramFrame
     if this.label
       action = is_traversal ? "Create" : "Add"
       begin
-	      shape = @tagModelToShape[address.object.name]
+	      shape = @tagModelToShape[addr.object.name]
 	    rescue
 	    end
 	    shape = container if !shape
@@ -380,10 +380,10 @@ class StencilFrame < DiagramFrame
 			    end
 	      	#puts "CREATE #{address.field} << #{obj}"
 #	      	if relateField
-#  	      	puts "ADD #{action}: #{address.field}"
-#		      	@selection = FindByTypeSelection.new self, address.field.type do |x|
+#  	      	puts "ADD #{action}: #{addr.field}"
+#		      	@selection = FindByTypeSelection.new self, addr.field.type do |x|
 #		      	  obj[relateField.name] = x
-#				      address.insert obj
+#				      addr.insert obj
 #							rebuild_diagram
 #				    end
 #	      	else
@@ -457,7 +457,7 @@ class StencilFrame < DiagramFrame
       raise "foo" if !tag.Var?
       tag = tag.name
     end
-    obj, _ = eval(label, env)
+    obj = eval(label, env)
     return tag, obj
   end
   
@@ -481,12 +481,13 @@ class StencilFrame < DiagramFrame
   end
   
   def constructText(this, env, container, &block)
-    val, address = eval(this.string, env)
+    val = eval(this.string, env, true)
+    addr = address(this.string, env)
     text = @factory.Text
     text.string = val.to_s
     make_styles(this, text, env)
-    if address
-	    @shapeToAddress[text] = address
+    if addr
+	    @shapeToAddress[text] = addr
 	  end
     block.call text
   end
@@ -522,7 +523,9 @@ class StencilFrame < DiagramFrame
       other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
       de = @factory.ConnectorEnd(e.arrow, label, other_label)
       tag, obj = evallabel(e.part, env)
-      de.to = @tagModelToShape[[tag, obj]]
+      x = @tagModelToShape[[tag, obj]]
+      fail("Shape #{obj} does not exist in #{@tagModelToShape}") if x.nil?
+      de.to = x
       de.attach = ptemp[i]
       i = i + 1
       
@@ -628,7 +631,7 @@ end
 
 class Address
   def initialize(obj, field_name)
-    @object = obj
+    @object = obj    
     @field = obj.schema_class.all_fields[field_name]
   end
   

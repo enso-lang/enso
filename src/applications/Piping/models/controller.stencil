@@ -16,8 +16,7 @@ graph [font.size=12,fill.color=(255,255,255)] {
   // create one state for each State
   for "State" state : controller.states
    label state {
-//     box [line.width=(state.name==controller.current.name ? 3 : 1), fill.color=(255,228,181)] {  // this is the class rectangle
-     box [line.width=3, fill.color=(255,228,181)] {  // this is the class rectangle
+     box [fill.color=(controller.current==state ? (255,100,100): (255,228,181))] {  // this is the class rectangle
        vertical {
         text [font.size=13,font.weight=600] state.name
         for "Command" command : state.commands

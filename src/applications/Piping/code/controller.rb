@@ -3,13 +3,12 @@ require 'core/expr/code/lvalue'
 module ExecuteController
   include LValueExpr
 
-  def init_Controller(globals, initial, args=nil)
+  def init_Controller(globals, args=nil)
     globals.each {|g| execute(g, args)}
-    args[:env]['CURRENT_STATE'] = initial
   end
 
   def execute_Controller(args=nil)
-    execute(args[:env]['CURRENT_STATE'], args)
+    execute(@control.current, args)
   end
 
   def execute_State(commands, transitions, args=nil)
@@ -26,7 +25,7 @@ module ExecuteController
 
   def execute_Transition(guard, target, args=nil)
     if self.eval(guard, args)
-      args[:env]['CURRENT_STATE'] = target
+      @control.current = target
       true
     else
       false
@@ -87,10 +86,5 @@ class Controller
 
   def run
     execute(@control, {:env=>@env})
-    @control.current = current_state
-  end
-
-  def current_state
-    @env['CURRENT_STATE']
   end
 end
