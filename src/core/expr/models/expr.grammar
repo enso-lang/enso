@@ -3,15 +3,20 @@ start Expr
 Expr ::= EOr
 EOr ::= [EBinOp] e1:EAnd "or" e2:EOr @"@op = 'or'"
        | EAnd
-EAnd ::= [EBinOp] e1:EBinOp "and" e2:EAnd @"@op = 'and'"
-        | EBinOp
-EBinOp ::= [EBinOp] e1:EUnOp (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<="|op:"+"|op:"-"|op:"*"|op:"/") e2:EBinOp
+EAnd ::= [EBinOp] e1:EBinOp1 "and" e2:EAnd @"@op = 'and'"
+        | EBinOp1
+EBinOp1 ::= [EBinOp] e1:EBinOp1 (op:"=="|op:"!="|op:">"|op:"<"|op:">="|op:"<=") e2:EBinOp2
+         | EBinOp2
+EBinOp2 ::= [EBinOp] e1:EBinOp2 (op:"+"|op:"-") e2:EBinOp3
+         | EBinOp3
+EBinOp3 ::= [EBinOp] e1:EBinOp3 (op:"*"|op:"/") e2:EUnOp
          | EUnOp
 EUnOp ::= [EUnOp] op:"not" e:Expr
-        | [EFunCall] fun:sym "(" args:{Expr ","}* ")"
+        | EFunCall
         | EListComp
         | Primary
         | "(" Expr ")"
+EFunCall ::= [EFunCall] fun:EUnOp "(" params:{Expr ","}* ")"
 
 Primary ::= EConst
           | [EField] e:Primary "." fname:sym

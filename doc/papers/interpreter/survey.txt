@@ -1,6 +1,6 @@
 A Survey of Composition Techniques and Challenges in Language Workbenches
 
-Modularity is one of the cornerstones of software engineering. By decomposing a large problem into several smaller ones, we … and … reuse ; by observing the congruence between similar problems at different scales, we …. . Composition techniques enable modularity by … Language workbenches is a promising new paradigm in software development, … In a bla bla (say what lang workbenches do) Yet ironically (engineering languages is hard) One of the key challenges with language workbenches is how to help users create DSLs in a cost-efficient way. Re-use and scalability ...
+Modularity is one of the cornerstones of software engineering. By decomposing a large problem into several smaller ones, we … and … reuse ; by observing the congruence between similar problems at different scales, we . . Composition techniques enable modularity by … Language workbenches is a promising new paradigm in software development, … In a bla bla (say what lang workbenches do) Yet ironically (engineering languages is hard) One of the key challenges with language workbenches is how to help users create DSLs in a cost-efficient way. Re-use and scalability ...
 
 In this survey we study how different language workbenches approach language composition. Each of the tools surveyed makes some claim with regard to composability but we shall see that most them suffer from …. These include:
 
@@ -14,8 +14,27 @@ Output: model, another language
 Input: text
 Semantics definitions: code, translation
 
+
+HIGH LEVEL BASKETS:
+
+Compiler extension (denotational semantics)
+
+Transformations (of some kind?)
+  - source-to-source
+  - model-to-something
+
+Code!
+
+
+
+
 - Spoofax
 
+Spoofax mainly refers to the syntax definition mechanism. The semantics by defined via the Stratego source-to-source transform DSL. Stratego is based on rule matching.
+
+Stratego rules can be extended with libraries and rules. Spoofax syntax can be extended with abstract references. However, it does not appear to support any kind of rule refinement, especially not the pervasive refinement we have that supports crosscutting concerns.
+
+Also, stratego is strictly an external DSL, which does not allow it to draw upon features of an underlying host language by default
 
 
 - Monticore
@@ -26,11 +45,11 @@ Semantics of EMF models is defined by writing code. No real way to ensure code w
 
 - SugarJ
 
-
+Embedded grammar extension.
 
 - Silver
 
-
+Grammar extension.
 
 - Modeltalk
 
@@ -42,14 +61,18 @@ Semantics of EMF models is defined by writing code. No real way to ensure code w
 
 - EMF/ATL
 
+Use M2M transformation rules to reduce models to simpler models. Comparable to big-step semantics.
 
+Surprisingly composable even though compsability is not one of the original goals. Possible to modularly add new nodes and operations that do not interfere with each other by taking the union of a set of rules. Possible to mechanically detect conflicts (no such feature).
 
-- EMF/xText (OAW)
+- EMF/xText/xPand (OAW)
 
 Use grammar rules to define EMF models. <Can xtext grammars be extended?>
 (Does not have capability for composing xText definitions, but seems to be an implementation issue)
 
-Semantics of EMF models is defined by writing code. No real way to ensure code written for various composed models do not interfere with each other. On the model level, however, EMF has a 'model weaver' that allows the definition and enforcement of constraints across metamodels.
+Traditionally, semantics of EMF models is defined by writing code. No real way to ensure code written for various composed models do not interfere with each other. On the model level, however, EMF has a 'model weaver' that allows the definition and enforcement of constraints across metamodels.
+
+xPand is a M2T transformer DSL that maps 
 
 - MetaEdit+
 
@@ -73,7 +96,15 @@ Paper explains the use of composing language semantics via 'simulated' mixin inh
 
 But then again, we are not translaters.
 
+- Lisa
 
+Semantics defined using attribute grammars. Extensibility based on attribute grammar composition. Novelty is their aspect-oriented attribute grammar inheritance.
+
+- Meta-environment (ASF+SDF)
+
+
+
+- Atom Weaver
 
 
 

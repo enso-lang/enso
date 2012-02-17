@@ -53,9 +53,6 @@ end
 class Valve < OutputElement, InputElement
 end
 
-class Thermostat < Element
-end
-
 class Splitter < InputElement, OutputElement
   left:Pipe = "@outputs[0]"
   right:Pipe = "@outputs[1]"

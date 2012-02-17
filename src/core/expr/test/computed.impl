@@ -1,0 +1,5 @@
+@types.select(&:Class?)
+@types.select(&:Primitive?)
+@all_fields.select {|f| !f.computed}
+f = []; for f in all_fields do if !f.computed f.push(f)
+@supers.flat_map(&:all_fields) + @defined_fields

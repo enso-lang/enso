@@ -1,0 +1,34 @@
+primitive str
+primitive bool
+
+class Feature
+! rules:Rule*
+end
+
+class Rule
+# lhs:str
+! rhs:FeatureExpr
+  save:bool
+end
+
+class FeatureExpr end
+
+class Var < FeatureExpr
+  name:str
+end
+
+class File < FeatureExpr
+  path:str
+  as:str?
+end
+
+class Dot < FeatureExpr
+! e1:FeatureExpr
+! e2:FeatureExpr
+end
+
+class Rename < FeatureExpr
+! e:FeatureExpr
+  from:str
+  to:str
+end

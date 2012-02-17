@@ -1,26 +1,4 @@
-start Schema
+#ruby
 
-Schema ::= [Schema] types:TypeDef* 
+union(load('expr.grammar'),load('schema-base.grammar'))
 
-TypeDef ::= Primitive | Class
-
-Primitive ::= [Primitive] "primitive" name:sym
-
-Class ::= [Class] "class" name:sym ClassAnnot defined_fields:Field* "end"
-ClassAnnot ::= Parent?
-Parent ::= "<" supers:{Super ","}+
-Super ::= /classes[it]^
-
-Field ::= [Field] Key? Traversal? name:sym ":" type:/types[it]^ Multiplicity Annot?
-Key ::= "#" @"@key = true"
-     |  "##" @"@key = true; @auto = true"
-
-Traversal ::= "!" @"@traversal = true"
-
-Multiplicity ::= "*" @"@many = true; @optional = true"
-	       | "?" @"@optional = true" 
-	       | "+" @"@many = true"
-	       | @"true"
-
-Annot ::= "/" inverse:./type/fields[it]^
-        | "=" computed:str

@@ -3,7 +3,7 @@ require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
-require 'core/schema/code/factory2'
+require 'core/schema/code/factory'
 
 class Parse
 
@@ -38,7 +38,7 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/schema/code/factory2'
+  require 'core/schema/code/factory'
   require 'benchmark'
   require 'ruby-prof'
   grammar = Loader.load('web.grammar')

@@ -1,0 +1,2 @@
+#ruby
+union(load('auth-base.schema'), load('expr.schema'))

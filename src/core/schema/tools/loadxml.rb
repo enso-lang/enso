@@ -1,6 +1,6 @@
 
 require 'core/system/utils/paths'
-require 'core/schema/code/factory2'
+require 'core/schema/code/factory'
 
 class FromXML
   include Paths

@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'core/schema/code/factory2'
+require 'core/schema/code/factory'
 
 require 'core/grammar/render/layout'
 
@@ -63,7 +63,7 @@ class CopyInto
     return b if a.nil?
     new = @memo[a]
     #puts "LINK #{a} + #{b} ==> #{new}"
-    raise "Traversal did not visit every object #{a} #{b}" unless new
+    raise "Traversal did not visit every object a=#{a} b=#{b}" unless new
     return new if !traversal
     a.schema_class.fields.each do |field|
       a_val = a[field.name]

@@ -10,6 +10,9 @@ module LValueExpr
     def initialize(array, index)
       @array = array
       @index = index
+      if @array[@index].nil?
+        @array[@index] = 0
+      end
     end
 
     attr_reader :array

@@ -39,7 +39,12 @@ module Loading
       result = Parse.load_raw(source, g, s, factory, show)
       return result.finalize
     end
-        
+
+    def load_cache(name, obj)
+      $stderr << "## caching #{name}...\n"
+      @cache[name] = obj
+    end
+
     #private
 
     def _load(name, type)
@@ -72,9 +77,11 @@ module Loading
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
 
-      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('bootstrap.grammar', gg, gs)
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
     end
         

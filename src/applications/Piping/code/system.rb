@@ -2,7 +2,7 @@ require 'applications/Piping/code/simulator'
 require 'applications/Piping/code/controller'
 require 'applications/Piping/code/piping'
 require 'core/system/load/load'
-require 'core/schema/code/factory2'
+require 'core/schema/code/factory'
 
 class PipingSystem
 

@@ -1,713 +1,632 @@
 
-require 'core/system/library/schema'
-require 'core/schema/code/finalize'
+require 'core/schema/code/many'
+require 'core/schema/code/dynamic'
 require 'core/system/utils/paths'
-require 'ostruct'
+require 'core/system/library/schema'
+require 'core/semantics/code/interpreter'
 
-class Factory
-  attr_reader :schema
+=begin
 
-  def initialize(schema)
-    @schema = schema
-    @key_gen = 0
+Coding convention
+
+- private methods: private to the class (ordinary Ruby semantics)
+- __method: to be only used by classes in ManagedData
+- _method: to be used outside, but internal meta data (e.g. origin/path)
+
+=end
+
+
+module ManagedData
+  class Factory
+    attr_reader :schema, :interp
+
+    def initialize(schema, interp=nil)
+      @schema = schema
+      @interp = interp || Interpreter(FactorySchema)
+      @interp.compose!(EvalExpr)
+      @roots = []
+      __constructor(schema.types)
+    end
+
+    def [](name); send(name) end
+
+    def register(root)
+      # perhaps raise exception if more than one?
+      # (NB any object will always be in the spine of 1 root anyway)
+      @roots << root
+    end
+
+    def delete!(obj)
+      @roots.each do |root|
+        root.__delete_obj(obj)
+      end
+    end
+
+    attr_accessor :file_path
+
+    private
+
+    def __constructor(klasses)
+      klasses.each do |klass|
+        define_singleton_method(klass.name) do |*args|
+          @interp.Make(klass, :args=>args, :factory=>self)
+        end
+      end
+    end
+
   end
 
-  # this is the core object constructor call
-  # create a "virtual" object that conforms to schema class
-  def [](class_name)
-    method_missing(class_name)
-  end
+  class MObject
+    attr_accessor :_origin # source location
+    attr_accessor :__shell # spine parent (e.g. Ref, Set or List)
+    attr_reader :_id
+    attr_reader :factory
+    attr_reader :schema_class
 
-  # factory.Foo(args) creates an instance of Foo initialized with arguments  
-  def method_missing(class_name, *args)
-    schema_class = @schema.classes[class_name.to_s]
-    raise "Unknown class '#{class_name}'" unless schema_class
-    obj = CheckedObject.new(schema_class, self)
-    n = 0
-    #puts "#{obj.schema_class.fields.keys}"
-    obj.schema_class.fields.each do |field|
-      #puts "FIELD: #{field}"
-      if n < args.length
-        if !args[n].nil?
-          if field.many
-            col = obj[field.name]
-            args[n].each do |x|
-              col << x
-            end
-          else
-            obj[field.name] = args[n]
+    @@_id = 0
+
+    def initialize(klass, factory, *args)
+      @_id = @@_id += 1
+      @schema_class = klass
+      @factory = factory
+      @interp = factory.interp
+      @hash = {}
+      @listeners = {}
+      __setup(klass.all_fields)
+      __init(klass.fields, args)
+      __install(klass.all_fields)
+    end
+
+    # TODO: get rid of this
+    def method_missing(sym, *args, &block)
+      # $stderr << "WARNING: method_missing #{sym}\n"
+      if sym =~ /^([A-Z].*)\?$/
+        schema_class.name == $1
+      else
+        super(sym, *args, &block)
+      end
+    end
+
+    def _graph_id; @factory end
+
+    def instance_of?(sym)
+      schema_class.name == sym.to_s
+    end
+
+    def [](name)
+      check_field(name, true)
+      computed?(name) ? send(name) : __get(name).get
+    end
+
+    def []=(name, x)
+      check_field(name, false)
+      __get(name).set(x)
+    end
+
+    def delete!; factory.delete!(self) end
+
+    def __delete_obj(mobj)
+      # traverse down spine until found, then delete!
+      # (called from factory)
+      schema_class.fields.each do |fld|
+        if fld.traversal then
+          __get(fld.name).__delete_obj(mobj)
+        end
+      end
+    end
+
+    def dynamic_update
+      @dyn ||= DynamicUpdateProxy.new(self)
+    end
+
+    def add_listener(name, &block)
+      (@listeners[name] ||= []).push(block)
+    end
+
+    def notify(name, val)
+      return unless @listeners[name]
+      @listeners[name].each do |blk|
+        blk.call(val)
+      end
+    end
+
+    def _origin_of(name); __get(name)._origin end
+
+    def _set_origin_of(name, org)
+      __get(name)._origin = org
+    end
+
+    def _path_of(name); _path.field(name) end
+
+    def _path
+      __shell ? __shell._path(self) : Paths::Path.new
+    end
+
+    def _clone
+      r = MObject.new(@schema_class, @factory)
+      schema_class.fields.each do |field|
+        if field.many
+          self[field.name].each do |o|
+            r[field.name] << o
           end
-        end
-      elsif !field.key && !field.optional && field.type.Primitive?
-        case field.type.name
-        when "str" then obj[field.name] = ""
-        when "int" then obj[field.name] = 0
-        when "float" then obj[field.name] = 0.0
-        when "bool" then obj[field.name] = false
-        when "datetime" then obj[field.name] = DateTime.now
-        when "atom" then 
         else
-          raise "Unknown type: #{field.type.name}"
+          #puts "CLONE #{field.name} #{self[field.name]}"
+          r[field.name] = self[field.name]
         end
-      elsif field.key && field.auto && field.type.Primitive? then
-        case field.type.name
-        when "str" then obj[field.name] = "id_#{object_id}_#{@key_gen += 1}"
-        when "int" then obj[field.name] = @key_gen += 1
+      end
+      return r
+    end
+    def __get(name); @hash[name] end
+
+    def __set(name, fld); @hash[name] = fld end
+
+    def eql?(o); self == o end
+
+    def ==(o)
+      return false if o.nil?
+      return false unless o.is_a?(MObject)
+      _id == o._id
+    end
+
+    def hash; _id end
+
+    def to_s
+      k = ClassKey(schema_class)
+      if k then
+        "<<#{schema_class.name} #{_id} '#{self[k.name]}'>>"
+      else
+        "<<#{schema_class.name} #{_id}>>"
+      end
+    end
+
+    def finalize
+      # TODO: check required fields etc.
+      factory.register(self)
+      self
+    end
+
+    private
+
+    def check_field(name, can_be_computed)
+      if !@hash.include?(name) then
+        raise "Non-existing field '#{name}' for #{self}"
+      end
+      if !can_be_computed && computed?(name) then
+        raise "Cannot assign to computed field '#{name}'"
+      end
+    end
+
+    def computed?(name); __get(name) == :computed end
+
+    def __setup(fields)
+      fields.each do |fld|
+        __set(fld.name, @interp.Make(fld, :class=>self))
+      end
+    end
+
+    def __init(fields, args)
+      fields.each_with_index do |fld, i|
+        break if i >= args.length
+        __get(fld.name).init(args[i])
+      end
+    end
+
+    def __install(fields)
+      fields.each do |fld|
+        if fld.computed then
+          __computed(fld.name, fld.computed)
         else
-          raise "Cannot autogen key for #{field.type.name}"
+          __setter(fld.name)
+          __getter(fld.name)
         end
       end
-      n += 1
     end
-    raise "too many constructor arguments supplied for '#{class_name} (#{n} fields, #{args.length} args)" if n < args.length
-    return obj
-  end
 
-
-  def delete_obj(obj)
-    puts "Deleting #{obj}"
-    sc = obj.schema_class
-    sc.fields.each do |fld|
-      next if fld.type.Primitive?
-      other = obj[fld.name]
-      next if !other
-      if fld.traversal then
-        puts "  deleting #{fld.name}"
-        if fld.many then
-          other.each do |v|
-            delete_obj(v)
-          end
-          other.clear
+    def __computed(name, exp)
+      define_singleton_method(name) do
+        if exp.is_a? String # FIXME: this case is needed to parse bootstrap schema
+          instance_eval(exp.gsub(/@/, 'self.'))
+        elsif exp.EStrConst?
+          instance_eval(exp.val.gsub(/@/, 'self.'))
         else
-          delete_obj(other)
+          @interp.eval(exp, :env=>Env.new({}, Env.new(self)))
         end
+      end
+    end
+
+    def __setter(name)
+      define_singleton_method("#{name}=") do |arg|
+        self[name] = arg
+      end
+    end
+
+    def __getter(name)
+      define_singleton_method(name) do
+        self[name]
+      end
+    end
+  end
+
+  class Field
+    # fields have origins for primitives, spine refs
+    # and cross refs. For spine refs
+    # this origin is the same as the _origin
+    # of the mobject pointed to.
+    attr_accessor :_origin
+
+    def initialize(owner, field)
+      @owner = owner
+      @field = field
+    end
+
+    def __delete_obj(mobj)
+      # default: do nothing
+    end
+
+    def to_s; ".#{@field.name} = #{@value}" end
+  end
+
+  class Single < Field
+    def initialize(owner, field)
+      super(owner, field)
+      @value = default
+    end
+
+    def set(value)
+      check(value)
+      @value = value
+      @owner.notify(@field.name, value)
+    end
+
+    def get; @value end
+
+    def init(value); set(value) end
+
+    def default; nil end
+  end
+
+  class Prim < Single
+    def check(value)
+      return if value.nil? && @field.optional
+      case @field.type.name
+      when 'str' then
+        return if value.is_a?(String)
+      when 'int'
+        return if value.is_a?(Integer)
+      when 'bool'
+        return if value.is_a?(TrueClass) || value.is_a?(FalseClass)
+      when 'real'
+        return if value.is_a?(Numeric)
+      when 'datetime'
+        return if value.is_a?(DateTime)
+      when 'atom'
+        return
+      end
+      raise "Invalid value for #{@field.type.name}: #{value}"
+    end
+
+    def default
+      return nil if @field.optional
+      case @field.type.name
+      when 'str' then ''
+      when 'int' then 0
+      when 'bool' then false
+      when 'real' then 0.0
+      when 'datetime' then DateTime.now
+      when 'atom' then nil
       else
-        if fld.inverse then
-          if fld.inverse.many then
-            puts "  deleting from inverse '#{fld.name}': #{other[fld.inverse.name]}"
-            other[fld.inverse.name].delete(obj) if other[fld.inverse.name]  # HACK: why do we need this test?
-          else
-            puts "  clearing inverse #{fld.name} #{other[fld.inverse.name]}"
-            other[fld.inverse.name] = nil
-          end
-        end
-      end
-    end
-  end
-end
-
-module CheckedObjectMixin
-  attr_reader :schema_class
-  attr_reader :factory
-  attr_reader :_id
-  attr_accessor :_origin
-  attr_reader :_origin_of
-  attr_reader :_path
-  
-  def become!(obj)
-    @factory = obj._graph_id
-    @hash = obj._hash
-    @_origin_of = obj._origin_of
-    @_origin = obj._origin
-    @_path = obj._path
-    @schema_class = obj.schema_class
-    @_id = obj._id
-    @listeners = nil
-  end
-
-  def _path=(new_path)
-    _adjust(new_path)
-    @_path = new_path
-  end
-
-  def _adjust(new_path)
-    schema_class.fields.each do |fld|
-      if !fld.many && fld.traversal && !fld.type.Primitive? && @hash[fld.name] then
-        @hash[fld.name]._path.prepend!(new_path)
-        @hash[fld.name]._adjust(new_path) 
-      end
-      if fld.many && fld.traversal && !fld.type.Primitive? then
-        @hash[fld.name].each do |x|
-          x._path.prepend!(new_path)
-          x._adjust(new_path) 
-        end
+        raise "Unknown primitive type: #{@field.type.name}"
       end
     end
   end
 
-
-  # NB: JRuby --1.9 requires this: in it Object#type still exists
-  # (although deprecated) so our method_missing does not fire.
-  def type
-    @hash['type']
-  end
-
-  def clone
-    obj = @factory[schema_class.name]
-    obj.become!(self)
-    return obj
-  end
-
-  def semantic_equal?(obj)
-    # NB: this depends on ManyFields performing
-    # equality of their elements.
-    obj._hash == @hash
-  end
-
-  def _graph_id
-    @factory
-  end
-
-  def _hash
-    @hash
-  end    
-  
-  def hash
-    @_id
-  end
-
-  def eql?(other)
-    self == other
-  end
-  
-  def ==(other)
-    return false if other.nil?
-    return false unless other.is_a?(CheckedObject)
-    _id == other._id
-  end
-  
-  def nil?
-    false
-  end
-  
-  def [](field_name)
-    if field_name[-1] == "?"
-      name = field_name[0..-2]
-      return @schema_class.name == name || Subclass?(@schema_class, @schema_class.schema.types[name])
-    end
-    field = @schema_class.all_fields[field_name]; 
-    raise "Accessing non-existant field '#{field_name}' of #{self} of class #{self.schema_class}" unless field
-
-    sym = field.name.to_sym
-    if field.computed
-      exp = field.computed.gsub(/@/, "self.")
-      define_singleton_method(sym) do
-        instance_eval(exp)
-      end
-    else
-      define_singleton_method(sym) do
-        @hash[field_name]
-      end
-    end
-    return send(sym)
-  end
-
-  def printStackTrace
-   begin
-      raise "nothing"
-    rescue Exception => e
-      puts e.backtrace
-    end
-  end
-  
-  def []=(field_name, new)
-    if false # field_name=="name" && schema_class.name=="Rule" && new=="Schema"
-      puts "Setting #{self}.#{field_name} to #{new}"
-      printStackTrace 
-    end
-    #puts "Setting #{self}.#{field_name} to #{new}"
-    field = @schema_class.fields[field_name]
-    raise "Assign to invalid field '#{field_name}' of #{self}" unless field
-    raise "Can't set computed field '#{field_name}' of #{self}" if field.computed
-    raise "Can't assign a many-valued field #{self}.#{field_name} to #{new}" if field.many
-    if new.nil?
-      raise "Can't assign nil to required field '#{field_name}' of #{self}" if !field.optional
-    else
-      case field.type.name
-      when "str" then raise "Attempting to assign #{new.class} #{new} to string field '#{field.name}'" unless new.is_a?(String)
-      when "int" then raise "Attempting to assign #{new.class} #{new} to int field '#{field.name}'" unless new.is_a?(Integer)
-      when "float" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(Numeric)
-      when "bool" then raise "Attempting to assign #{new.class} #{new} to bool field '#{field.name}'" unless new.is_a?(TrueClass) || new.is_a?(FalseClass)
-      when "atom" then  # nop
-      else 
-        raise "Assignment to #{self}.#{field_name} with incorrect type #{new.class} #{new}" unless new.is_a?(CheckedObject) 
-        raise "Inserting into the wrong model" unless  _graph_id.equal?(new._graph_id)
-        unless _subtypeOf(new.schema_class, field.type)
-          puts "a: #{new.schema_class.supers}"
-          puts "b: #{field.type}"
-          raise "Error setting #{self}.#{field.name} to #{new.schema_class.name}" 
-        end
-      end
-    end
-
-    old = @hash[field_name]
-    return new if old == new
-    @hash[field_name] = new
-
-    # Update the path of the added object if the field assigned to
-    # is a non-primitive traversal field.
-    if field.traversal && !field.type.Primitive? && new then
-      new._path = _path.field(field.name)
-      #puts "Field path: #{new._path}"
-    end
-
-    if field.traversal && !field.type.Primitive? && !new && old then
-      # setting to nil means disconnecting old
-      old._path.reset!
-    end
-
-
-    notify_update(field, old, new)
-    return new
-  end
-  
-  def _subtypeOf(a, b)
-    return true if a.name == b.name
-    a.supers.detect do |sup|
-      _subtypeOf(sup, b)
-    end
-  end
-  
-  def method_missing(m, *args)
-    if m =~ /(.*)=/
-      self[$1] = args[0]
-    else
-      return self[m.to_s]
-    end
-  end
-
-  def _clone
-    r = CheckedObject.new(@schema_class, @factory)
-    schema_class.fields.each do |field|
-      if field.many
-        self[field.name].each do |o|
-          r[field.name] << o
-        end
+  module RefHelpers
+    def notify(old, new)
+      @owner.notify(@field.name, new)
+      return unless @field.inverse
+      if @field.inverse.many then
+        # old and new are both collections
+        old.__get(@field.inverse.name).__delete(@owner) if old
+        new.__get(@field.inverse.name).__insert(@owner) if new
       else
-        #puts "CLONE #{field.name} #{self[field.name]}"
-        r[field.name] = self[field.name]
+        # old and new are both mobjs
+        old.__get(@field.inverse.name).__set(nil) if old
+        new.__get(@field.inverse.name).__set(@owner) if new
       end
     end
-    return r
-  end
-  
-  def to_s
-    k = ClassKey(schema_class)
-    "<#{schema_class.name} #{k && self[k.name]? self[k.name].inspect + " " : ""}#{@_id}>"
-  end
 
-  def inspect
-    to_s
-  end
-  
-  def add_listener(fieldname, &block)
-    @listeners = {} if !@listeners
-    ls = @listeners[fieldname]
-    @listeners[fieldname] = ls = [] if !ls
-	  ls.push(block)
-  end
-  
-  def dynamic_update
-    @dyn = DynamicUpdateProxy.new(self) if !@dyn
-    return @dyn
-  end
-  
-  def notify_update(field, old, new)
-    inverse = field.inverse
-    #puts "NOTIFY #{self}.#{field}/#{inverse} FROM '#{old}' to '#{new}'" if field.name=="types"
-    if @listeners
-      @listeners[field.name].each do |listener|
-      	listener.call new
-     end
-    end
-      
-    return if inverse.nil?
-    # remove the old one
-    if old
-      if !inverse.many
-        old[inverse.name] = nil
-      else
-        old[inverse.name].delete(self)
+    def check(mobj)
+      return if mobj.nil? && @field.optional
+      if mobj.nil? then
+        raise "Cannot assign nil to non-optional field #{@field.name}"
       end
-    end
-    # add the new one
-    if new
-      if !inverse.many
-        #puts "ASSIGN INVERSE #{new}[#{inverse.name}] = #{self}" if field.name=="types"
-        new[inverse.name] = self
-      else
-        # don't do this now... it will get done during finalize
+      if !Subclass?(mobj.schema_class, @field.type) then
+        raise "Invalid type for #{@field.name}: #{mobj.schema_class.name}"
+      end
+      if mobj._graph_id != @owner._graph_id then
+        raise "Inserting object #{mobj} into the wrong model"
       end
     end
   end
 
-  def delete!
-    _graph_id.delete_obj(self)
+  class Ref < Single
+    include RefHelpers
+
+    def set(value)
+      check(value)
+      notify(get, value)
+      __set(value)
+    end
+
+    def __set(value)
+      if @field.traversal then
+        value.__shell = self if value
+        get.__shell = nil if get && !value
+      end
+      @value = value
+    end
+
+    def _path(_)
+      @owner._path.field(@field.name)
+    end
+
+    def __delete_obj(mobj)
+      if get == mobj then
+        set(nil) # set takes case of inverses
+      end
+    end
   end
 
-  def to_ary
-    nil
+
+  class Many < Field
+    include RefHelpers
+    include Enumerable
+
+    def get; self end
+
+    def set
+      raise "Cannot assign to many-valued field #{@field.name}"
+    end
+
+    def init(values)
+      values.each do |value|
+        self << value
+      end
+    end
+
+    def __value; @value end
+
+    def [](key); __value[key] end
+
+    def empty?; __value.empty? end
+
+    def length; __value.length end
+
+    def to_s; __value.to_s end
+
+    def clear; __value.clear end
+
+    def connected?; @owner end
+
+    def check(mobj)
+      return if !connected?
+      super(mobj)
+    end
+
+    def notify(old, new)
+      return if !connected?
+      super(old, new)
+    end
+
+    def __delete_obj(mobj)
+      if values.include?(mobj) then
+        delete(mobj)
+      end
+    end
+
+    def connect(mobj, shell)
+      if connected? && @field.traversal then
+        mobj.__shell = shell
+      end
+    end
   end
-  
-  def finalize
-    UpdateInverses.new("INVERT").finalize(self)
-    CheckRequired.new("REQUIRED").finalize(self)
-    return self
-  end  
+
+  class Set < Many
+    include SetUtils
+
+    def initialize(owner, field, key)
+      super(owner, field)
+      @value = {}
+      @key = key
+    end
+
+    def each(&block); __value.each_value(&block) end
+
+    def each_pair(&block); __value.each_pair &block end
+
+    def values; __value.values end
+
+    def keys; __value.keys end
+
+    #FIXME: poor programming practise but necessary
+    # to support key changes in object
+    def _recompute_hash!
+      nval = {}
+      @value.each do |k,v|
+        nval[v[@key.name]] = v
+      end
+      @value = nval
+      self
+    end
+
+    def <<(mobj)
+      check(mobj)
+      key = mobj[@key.name]
+      raise "Nil key when adding #{mobj} to #{self}" unless key
+      return self if @value[key] == mobj
+      raise "Duplicate key #{key}" if @value[key]
+      notify(@value[key], mobj)
+      __insert(mobj)
+      return self
+    end
+
+    def delete(mobj)
+      key = mobj[@key.name]
+      return unless @value.include_key?(key)
+      notify(@value[key], nil)
+      __delete(mobj)
+    end
+
+    def _path(mobj)
+      @owner._path.field(@field.name).key(mobj[@key.name])
+    end
+
+    def __insert(mobj)
+      connect(mobj, self)
+      @value[mobj[@key.name]] = mobj
+    end
+
+    def __delete(mobj)
+      deleted = @value.delete(mobj[@key.name])
+      connect(deleted, nil)
+      return deleted
+    end
+
+  end
+
+  class List < Many
+    include ListUtils
+
+    def initialize(owner, field)
+      super(owner, field)
+      @value = []
+    end
+
+    def [](key); __value[key.to_i] end
+
+    def each(&block); __value.each(&block) end
+
+    def each_pair(&block)
+      __value.each_with_index do |item, i|
+        block.call(i, item)
+      end
+    end
+
+    def values; __value end
+
+    def keys; Array.new(length){|i|i} end
+
+    def <<(mobj)
+      raise "Cannot insert nil into list" if !mobj
+      check(mobj)
+      notify(nil, mobj)
+      __insert(mobj)
+      return self
+    end
+
+    def delete(mobj)
+      deleted = __delete(mobj)
+      notify(deleted, nil)  if deleted
+      return deleted
+    end
+
+    def _path(mobj)
+      @owner._path.field(@field.name).index(@value.index(mobj))
+    end
+
+    def __insert(mobj)
+      connect(mobj, self)
+      @value << mobj
+    end
+
+    def __delete(mobj)
+      deleted = @value.delete(mobj)
+      connect(deleted, nil)
+      return deleted
+    end
+  end
 end
 
-class CheckedObject 
-  include CheckedObjectMixin
 
-  @@_id = 0
+module FactorySchema
+  include ManagedData
 
-  def initialize(schema_class, factory) #, many_index, many, int, str, b1, b2)
-    @_id = @@_id += 1
-    @hash = {}
-    @_origin_of = OpenStruct.new
-    @_path = Paths::Path.new
-    @schema_class = schema_class
-    @factory = factory
-    schema_class.fields.each do |field|
-      if field.many
-        # TODO: check for primitive many-valued???
-        key = ClassKey(field.type)
-        if key
-          @hash[field.name] = ManyIndexedField.new(key.name, self, field)
-        else
-          @hash[field.name] = ManyField.new(self, field)
-        end
-      end
-    end
+  def Make_Schema(args=nil)
+    Factory.new(args[:self], self)
   end
-end
 
-class DynamicUpdateProxy
-  def initialize(obj)
-    @obj = obj
-    @fields = {}
+  def Make_Class(args=nil)
+    MObject.new(args[:self], args[:factory], *args[:args])
   end
-  
-  def method_missing(m, *args)
-    if m =~ /(.*)=/
-      @obj[$1] = args[0]
+
+  def Make_Field(computed, many, type, args=nil)
+    fld = args[:self]
+    klass = args[:class]
+    if computed then
+      :computed
+    elsif type.Primitive? then
+      ManagedData::Prim.new(klass, fld)
+    elsif !many then
+      ManagedData::Ref.new(klass, fld)
+    elsif key = ClassKey(type) then
+      ManagedData::Set.new(klass, fld, key)
     else
-      name = m.to_s
-      var = @fields[name]
-      return var if var
-      val = @obj[name]
-      @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
-      @obj.add_listener name do |val|
-        var.value = val
-      end
-      return var
+      ManagedData::List.new(klass, fld)
     end
   end
 end
 
 
-class BaseManyField 
-  include Enumerable
-  
-  def initialize(realself = nil, field = nil)
-    @realself = realself
-    @field = field
-  end
 
-  def nil?
-    false
-  end
-  
-  def empty?
-    self.length == 0
-  end
 
-  def to_s
-    "[" + map(&:to_s).join(", ") + "]"
-  end
+if __FILE__ == $0 then
+  require 'core/system/load/load'
+  require 'core/schema/tools/print'
+  M = ManagedData
+  ss = Loader.load('schema.schema')
+  fact = M::Factory.new(ss)
+  puts "Schema"
+  s = fact.Schema
+  puts "CLass FOO"
+  c = fact.Class('Foo')
+  puts "c.schema = s"
+  c.schema = s
 
-  def find_all(&block)
-    return select(&block)
+  puts "Primitiv str"
+  p = fact.Primitive('str')
+
+  puts "p.schema = s"
+  p.schema = s
+
+  puts "field 'bla' c = owner, p is type"
+  f = fact.Field('bla', c, p, true, false, false)
+
+  puts "f.type = p"
+
+  f.type = p
+  puts f.name
+  # c.defined_fields << f
+  s = s.finalize
+  puts c
+  puts c.name
+  c.fields.each do |fld|
+    puts "FLD: #{fld}"
+    puts "OWNER: #{fld.owner}"
+    puts "TYPE: #{fld.type}"
   end
+  Print.print(s)
+
+  ss.classes.each do |cls|
+    puts cls._origin
+    puts "PATH = #{cls._path}"
+    cls.fields.each do |fld|
+      puts "\tFIELD PATH = #{fld._path}"
+      ss.classes['Field'].fields.each do |f|
+        org = fld._origin_of(f.name)
+        path = fld._path_of(f.name)
+        puts "\t#{f.name}: #{org}" if org
+        puts "\t#{f.name}: #{path}"
+      end
+    end
+ end
 end
-
-# eg. "classes" field on Schema
-class ManyIndexedField < BaseManyField
-  
-  def initialize(key, realself = nil, field = nil)
-    super(realself, field)
-    @hash = {}
-    @key = key
-  end
-
-  def include?(x)
-    @hash.member? x
-  end
-  
-  def has_key?(k)
-    @hash.has_key? k
-  end
-  
-  def [](x)
-    @hash[x]
-  end
-
-  def ==(o)
-    return false unless o.length == length
-    each do |x|
-      return false unless o.include?(x)
-    end
-    o.each do |x|
-      return false unless include?(x)
-    end
-    return true
-  end
-  
-  def length
-    @hash.length
-  end
-  
-  def keys
-    @hash.keys
-  end
-  
-  def values
-    @hash.values
-  end
-  
-  def <<(v)
-    k = v.send(@key)
-    raise "Key cannot be nil for field #{v}" if !k   
-    if @hash[k] != v
-      raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
-      @realself.notify_update(@field, @hash[k], v) if @realself
-      @hash[k] = v
-
-      if @field && @field.traversal && !@field.type.Primitive? then
-        v._path = @realself._path.field(@field.name).key(k)
-        #puts "Keyed path: #{v._path}"
-      end
-
-    end
-    return v
-  end
-
-  def INSERT(v)
-    k = v.send(@key)
-    raise "Key cannot be nil for field #{v}" if !k   
-    if @hash[k] != v
-      raise "Item named '#{k}' already exists in #{@realself}.#{@field.name}" if @hash[k]
-      @realself.notify_update(@field, @hash[k], v) if @realself
-      @hash[k] = v
-      if @field && @field.traversal && !@field.type.Primitive? then
-        v._path = @realself._path.field(@field.name).key(k)
-        #puts "Keyed path: #{v._path}"
-      end
-    end
-    return v
-  end
-
-  def []=(k, v)
-    @realself.notify_update(@field, @hash[k], v) if @realself
-    @hash[k] = v
-  end
-
-  def delete(v)
-    k = v[@key]
-    @hash.delete(k) do |e|
-      # not found
-      return
-    end
-
-    # collections have never primitives
-    if @field && @field.traversal then
-      v._path.reset!
-    end
-
-    # TODO: notify update???
-  end
-  
-  def clear()
-    @hash.clear
-  end
-  
-  def each(&block) 
-    @hash.each_value &block
-  end
-
-  def each_pair(&block) 
-    @hash.each_pair &block
-  end
-
-  def +(other)
-    r = ManyIndexedField.new(@key)
-    self.each do |x| r << x end
-    other.each do |x| r << x end
-    #r._lock()
-    return r
-  end
-
-  def reject
-    r = ManyIndexedField.new(@key)
-    each do |x| 
-      r << x if not yield x 
-    end
-    #r._lock()
-    return r
-  end
-  
-  def select
-    r = ManyIndexedField.new(@key)
-    each do |x|
-      r << x if yield x
-    end
-    #r._lock()
-    return r
-  end
-  
-  def flat_map
-    r = ManyIndexedField.new(@key)
-    each do |x|
-      lst = yield x
-      lst.each do |y|
-        r << y
-      end
-    end
-    return r
-  end
-
-  # sligthly nonstandard zip, includes all elements of this and other
-  def outer_join(other)
-    keys = self.keys | other.keys
-    #puts "JOIN: #{self} | #{other}"
-    keys.each do |key_val|
-      yield self[key_val], other[key_val], key_val
-    end
-  end
-end  
-
-# eg. "classes" field on Schema
-class ManyField < BaseManyField
-  
-  def initialize(realself = nil, field = nil)
-    super(realself, field)
-    @list = []
-  end
-
-  def [](x)
-    @list[x.to_i]
-  end
-  
-  def length
-    @list.length
-  end
-
-  def include?(x)
-    @list.include?(x)
-  end
-  
-  def nil?
-    false
-  end
-  
-  def last
-    @list.last
-  end
-
-  def ==(o)
-    return false if o.length != length
-    @list.each_with_index do |x, i|
-      return false if x != o[i]
-    end
-    return true
-  end
-  
-  def <<(v)
-    @realself.notify_update(@field, nil, v) if @realself
-    
-    if @field && @field.traversal && !@field.type.Primitive? then
-      # length, because it is not added yet.
-      v._path = @realself._path.field(@field.name).index(length)
-      #puts "Index path after append: #{v._path}"
-    end
-    
-    @list << v
-    
-  end
-
-  def []=(i, v)
-    @realself.notify_update(@field, @list[i], v) if @realself
-
-    if @field.traversal && !@field.type.Primitive? then
-      v._path = @realself._path.field(@field.name).index(i)
-      #puts "Index path: #{v._path}"
-    end
-
-    @list[i] = v
-  end
-
-  def delete(v)
-    deleted = @list.delete(v)
-
-    # collections only allow non-primitives
-    if @field && @field.traversal && deleted then
-      deleted._path.reset!
-    end
-    return deleted
-  end
-
-  def clear()
-    if @field && @field.traversal then
-      @list.each do |x|
-        x._path.reset!
-      end
-    end
-    @list.clear
-  end
-  
-  def each(&block) 
-    @list.each &block
-  end
-
-  def each_pair(&block) 
-    @list.each_with_index do |item, i|
-      block.call(i, item)
-    end
-  end
-
-  def +(other)
-    r = []
-    self.each do |x| r << x end
-    other.each do |x| r << x end
-    return r
-  end
-
-
-  def flat_map(&block)
-    r = ManyField.new
-    each do |x|
-      lst = yield x
-      lst.each do |y|
-        r << y
-      end
-    end
-    return r
-  end
-  
-  def keys
-    Range.new(0, length, true)
-  end
-  
-  def values
-    @list
-  end
-  
-  # sligthly nonstandard zip, includes all elements of this and other
-  def outer_join(other)
-    n = [length, other.length].max
-    0.upto(n-1).each do |i|
-      yield self[i], other[i], i
-    end
-  end
-end  
-

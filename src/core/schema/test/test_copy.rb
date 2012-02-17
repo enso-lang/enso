@@ -7,7 +7,7 @@ require 'core/schema/code/factory'
 
 require 'core/schema/tools/copy'
 require 'core/schema/tools/print'
-require 'core/diff/code/diff'
+require 'core/diff/code/equals'
 
 class CopyTest < Test::Unit::TestCase
   SS = Loader.load('schema.schema')
@@ -16,20 +16,20 @@ class CopyTest < Test::Unit::TestCase
   
   def test_SS
     s1 = SS
-    s2 = Copy.new(Factory.new(SS)).copy(s1)
-    assert_equal(nil, diff(s1, s2))
+    s2 = Copy.new(ManagedData::Factory.new(SS)).copy(s1)
+    assert(Equals.equals(s1, s2))
   end
 
   def test_GS
     s1 = GS
-    s2 = Copy.new(Factory.new(SS)).copy(s1)
-    assert_equal(nil, diff(s1, s2))
+    s2 = Copy.new(ManagedData::Factory.new(SS)).copy(s1)
+    assert(Equals.equals(s1, s2))
   end
 
   def test_grammar_grammar
     s1 = GG
-    s2 = Copy.new(Factory.new(GS)).copy(s1)
-    assert_equal(nil, diff(s1, s2))
+    s2 = Copy.new(ManagedData::Factory.new(GS)).copy(s1)
+    assert(Equals.equals(s1, s2))
   end
 
 end

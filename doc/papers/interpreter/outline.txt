@@ -1,11 +1,18 @@
 Composable interpreters for language-oriented programming
+A "library-of-languages" approach for DSL workbenches
 
 * abstract
 
 * introduction
 - background
+  - DSLs are ...
+    - definition
+    - advantages
+    - examples
   - language oriented programming is ...
-    - briefly (but deeply) embrace related tools
+    - paradigm of using DSLs as primary artefact of 
+      program organization
+    - briefly embrace related tools
       - model-driven engineering
       - grammarware (? needs better definition)
   - practical use of LOP -- s/w engr issues?
@@ -17,26 +24,14 @@ Composable interpreters for language-oriented programming
     - integrating multiple DSLs
       - integrity validation
       - cross-cutting integration
-  (cite Rumpe's paper here, claiming analog with MDE)
+  (cite France/Rumpe's paper here, claiming analog with MDE)
+- evolution scenario
+  - language change always have big reprecussions
+    how do you minimize this?
 - syntactic and semantic composition
-  - briefly lay out how others fall short semantically
+  - briefly lay out how others fall short in semantic compo
 
-* related work
-- standalone interpreters (code)
-- embedded dsls
-- translators
-
-* ??
-- what are we trying to achieve
-  <the solution statement>
-  - integrate multiple DSLs at both semantic and 
-    syntactic levels
-- features
-  - types of composition
-  - what guarantees can we give
-- features
-  - library of instantiatable language design patterns
-- motivating example: ensoweb
+* motivating example: ensoweb
   - multiple languages:
     - model driven design
     - web ui language
@@ -44,7 +39,96 @@ Composable interpreters for language-oriented programming
     - security policy language
   - interactions:
     - reuse: eg expressions
+    - crosscutting interactions
     - refinement: eg secure vs non-secure
+- what are we trying to achieve
+  <the solution statement>
+  - integrate multiple DSLs at both semantic and 
+    syntactic levels
+
+* related work (and where they fall short)
+- standalone interpreters (code)
+- embedded dsls
+- translators
+
+* our soln (overview)
+- contributions of this work are:
+  - Extensible interpreters
+    - Horizontal, ie modularly adding new operations or AST node types
+      - eg expression sub-language
+      - extension can be cyclically dependent, eg command language and web
+      - robust to small variations (?), eg expressions for web
+    - Vertical, ie refinement or specialization of existing interpreters
+      - eg data model to database schema model
+  - Modular feature selection
+    - Base, Secure, Secure+DB, DB
+  - Crosscutting interactions
+    - eg secure data model
+  - Higher-order interpreter composition
+    - patterns, eg rule language
+    - tooling (???)
+  - Self-describing
+    - DSLs are also written using a DSL (ie Enso)
+  - Combinators
+
+
+* Combinator
+- Motivation
+  - Code is good
+    - General purpose code is hard to analyze, so
+    - Toolmakers like to create their own interpreter language
+      - Guarded command language
+      - Rule-based (ATL)
+      - Template-based 
+      - Event-based
+    - They sometimes end up re-inventing the wheel
+      - eg ATL
+        - highest level is rules-based, but actions and expressions
+        - ocl equivalents of primitives, expressions, control flow
+        - break out into code
+        - most of the examples in the ATL zoo contain code
+        - end result: "almost Java but not quite"
+      - yet despite all this, ATL still lacks several some features
+        - generics
+          - FamilyTree2Persons => OrgChart2Persons, copy-paste and 
+            change 2 lines! both are tree to list transforms
+        - importing API domain libraries
+          - especially in DSLs, lots of domain libraries to import!
+    - Since interpreters are general computations, why not use a general
+      language
+      - mature
+  - Code is bad
+    - analysis of general purpose code
+    - hard to generate tools in interpreter-independent way
+    - burden of good lang design now shifted to toolsmith from 
+      workbench maker --- that's even worse!
+- Proposed soln: Language building blocks
+  - a stack of 
+
+
+
+
+
+Our solution is based on code
+  - Reuse
+
+- Based on interpreter pattern
+  - Interpreters as mixins
+  - Extensibility both when adding new nodes 
+    and adding new operations
+- Dispatch
+  - generic / subtype polymorphic lookup
+  - parameters passed as dictionaries
+  - multi-dispatch? (AGAINST) CALL IT DIAMOND PROBLEM
+- Extensibility
+  - Horizontal: adding operations and types modularly
+  - Vertical: mixin inheritance
+  - Integrity is enforced by external (type-) checker
+    - structural subtyping
+    - subtype relation between interpreter and schema
+- Combinators
+  - 
+
 
 * why interpreters
 - the argument for interpreters
@@ -60,11 +144,32 @@ Composable interpreters for language-oriented programming
 
 * our solution
 - Based on interpreter pattern
-  - Gives extensibility both when adding new nodes 
+  - Interpreters as mixins
+  - Extensibility both when adding new nodes 
     and adding new operations
+- Reuse
+  - slight variations tolerated (eg web expressions)
+  - cyclic dependencies
+  - sub-language consistent across different DSLs
+- Dispatch
+  - generic / subtype polymorphic lookup
+  - parameters passed as dictionaries
+  - multi-dispatch?
+- Composable
+  - Horizontal: adding operations and types modularly
+  - Vertical: mixin inheritance
+  - Integrity is enforced by external (type-) checker
+    - structural subtyping
+    - subtype relation between interpreter and schema
+
 
 - Combinators
+  - interpreters as code
+  - combinators
   - fmap, internal
+
+- Cyclic dependencies
+  - eg main language elements used in expressions
 
 - Implementation
   - Open classes
@@ -76,5 +181,23 @@ Composable interpreters for language-oriented programming
   - Type checking interpreters against models
 
 * conclusions
+
+
+
+
+
+WHATS NEW!!!
+------------
+- Higher-order thingies
+- Using refinement to make combinators
+- Using refinement to do tooling (?)
+- Meta-level refinements (ie schema-schema)
+- Generation of checkers to work on the design pattern
+- Interpreter written with code (Ruby)
+- Semantics tied to syntax **
+
+But all of these seem rather dubious right now....
+
+
 
 

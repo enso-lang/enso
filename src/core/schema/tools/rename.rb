@@ -107,10 +107,12 @@ def rename_fields!(obj, map)
       obj[f.name].each do |elt|
         rename!(elt, map) 
       end
+      obj[f.name]._recompute_hash! if IsKeyed?(f.type)
     else
       rename!(obj[f.name], map) unless obj[f.name].nil? || f.type.Primitive?
     end
   end
+  obj
 end
 
 
@@ -124,7 +126,7 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/grammar/render/layout'
-  require 'core/schema/code/factory2'
+  require 'core/schema/code/factory'
   require 'core/schema/tools/print'
   require 'core/schema/tools/copy'
   ss = Loader.load('schema.schema')
@@ -141,7 +143,7 @@ if __FILE__ == $0 then
   }
   rename!(ss_copy, map)
 
-  require 'core/grammar/code/rename_binding'
+  require 'core/grammar/tools/rename_binding'
   
   sg_copy = copy(sg)
   rename_binding!(sg_copy, map)
