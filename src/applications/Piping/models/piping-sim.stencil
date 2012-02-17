@@ -2,8 +2,8 @@ diagram(system)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
-  for ("Element" elem : system.elements)
-   label elem do {
+  for "Element" elem : system.elements
+   label elem {
      if (elem is Temperatured)
        oval [line.width=1,fill.color=(elem.temperature*2,0,0)] {
          vertical {
@@ -12,38 +12,39 @@ graph [font.size=12,fill.color=(255,255,255)] {
              text [font.size=10,font.weight=400] elem.user_temp
          }
        }
-     if (!elem is Temperatured)
+     if not (elem is Temperatured)
        oval [line.width=1,fill.color=(200,200,200)] {
          text [font.size=16,font.weight=700] elem.name
        }
     }
   // create the links
-  for ("Input" elem : system.elements)
-    if (elem is InputElement & ! elem is Joint)
+  for "Input" elem : system.elements
+    if (elem is InputElement and not (elem is Joint))
         connector [line.width=3,line.color=(elem.input.temperature*2,0,0)] (elem <-- elem.input.input)
-  for (elem : system.elements)
+  for elem : system.elements
     if (elem is Joint)
-        for ("Connection" pipe : elem.inputs)
+        for "Connection" pipe : elem.inputs
            connector [line.width=3,line.color=(pipe.temperature*2,0,0)]  (elem <-- pipe.input)
 
   // create the sensors
-  for ("Sensor" sensor : system.sensors)
-    label sensor
-    box {  // this is the class rectangle
-      vertical {
-       text [font.size=8,font.weight=600] sensor.name
-       text [font.size=8,font.weight=400] sensor.kind
-       horizontal {
-        text [font.size=8,font.weight=400] "current:"
-        text [font.size=8,font.weight=400] sensor.value
-       }
-       horizontal {
-        text [font.size=8,font.weight=400] "desired:"
-        text [font.size=8,font.weight=400] sensor.user
-       }
-      }
+  for "Sensor" sensor : system.sensors
+    label sensor {
+        box {  // this is the class rectangle
+          vertical {
+           text [font.size=8,font.weight=600] sensor.name
+           text [font.size=8,font.weight=400] sensor.kind
+           horizontal {
+            text [font.size=8,font.weight=400] "current:"
+            text [font.size=8,font.weight=400] sensor.value
+           }
+           horizontal {
+            text [font.size=8,font.weight=400] "desired:"
+            text [font.size=8,font.weight=400] sensor.user
+           }
+          }
+        }
     }
 
-  for ("Sensor" sensor : system.sensors)
+  for "Sensor" sensor : system.sensors
     connector (sensor -- sensor.attach)
 }

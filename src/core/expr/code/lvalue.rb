@@ -19,6 +19,16 @@ module LValueExpr
     attr_reader :index
 
     def value=(val)
+      if type
+        case type.name
+          when 'int'
+            val = val.to_i
+          when 'str'
+            val = val.to_s
+          when 'real'
+            val = val.to_f
+        end
+      end
       @array[@index] = val
     end
 
@@ -28,6 +38,14 @@ module LValueExpr
 
     def to_str
       "#{@array}[#{@index}]"
+    end
+
+    def type
+      @array.is_a?(ManagedData::MObject) ? @array.schema_class.fields[@index].type : nil
+    end
+
+    def object
+      @array.is_a?(ManagedData::MObject) ? @array : nil
     end
   end
 

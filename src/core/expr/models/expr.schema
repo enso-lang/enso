@@ -5,6 +5,14 @@ primitive real
 
 class Expr end
 
+class ETernOp < Expr
+  op1:str
+  op2:str
+! e1:Expr
+! e2:Expr
+! e3:Expr
+end
+
 class EBinOp < Expr
   op:str
 ! e1:Expr

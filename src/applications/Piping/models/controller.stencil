@@ -1,39 +1,37 @@
 diagram(controller)
 
-require "applications/Piping/code/controller-stencil-defs"
+require "applications/Piping/code/controller-stencil-defs.rb"
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create an "init" state
-  label controller
+  label controller {
      box [line.width=1, fill.color=(255,228,181)] {  // this is the class rectangle
        vertical {
         text [font.size=13,font.weight=600] "START"
-        for (global : controller.globals)
+        for global : controller.globals
           text [font.size=8,font.weight=400] Layout(global)
        }
      }
-
+  }
   // create one state for each State
-  for ("State" state : controller.states)
-   label state
-     box [line.width=(state.name==controller.current.name ? 3 : 1), fill.color=(255,228,181)] {  // this is the class rectangle
+  for "State" state : controller.states
+   label state {
+//     box [line.width=(state.name==controller.current.name ? 3 : 1), fill.color=(255,228,181)] {  // this is the class rectangle
+     box [line.width=3, fill.color=(255,228,181)] {  // this is the class rectangle
        vertical {
         text [font.size=13,font.weight=600] state.name
-        for ("Command" command : state.commands)
+        for "Command" command : state.commands
           text [font.size=8,font.weight=400] Layout(command)
        }
      }
+   }
   // create the links
-  for (state : controller.states)
-    for ("Transition" trans : state.transitions)
+  for state : controller.states
+    for "Transition" trans : state.transitions
       let type = CheckConnect(state, trans) in
         if (type == 1)
             connector (state --> trans.target)
-
-  for (state : controller.states)
-    for ("Transition" trans : state.transitions)
-      let type = CheckConnect(state, trans) in
-        if (type == 2)
+        else if (type == 2)
             connector (state <--> trans.target)
 
   connector (controller --> controller.initial)
