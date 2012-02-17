@@ -1,3 +1,16 @@
+class TrueClass
+  def test(a, b)
+    puts "TRUE TEST VARIABLE!!! #{a} else #{b}"
+    return a
+  end
+end
+class FalseClass
+  def test(a, b)
+    puts "FALSE TEST VARIABLE!!! #{a} else #{b}"
+    return b
+  end
+end
+
 class ConstraintSystem
   def initialize
     @vars = {}
@@ -41,7 +54,11 @@ class Variable
   def to_str
     return value.to_str
   end
-  
+
+  def to_ary
+    return [self]
+  end
+    
   def is_a?(kind)
     return true if kind == Variable
     return value.is_a?(kind)
@@ -54,8 +71,24 @@ class Variable
     @bounds << other
   end
 
+  def test(a, b)
+    var = Variable.new("test#{self.to_s}")
+    var.internal_define(self, a, b) do |v, ra, rb|
+      puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
+      v.test(ra, rb)
+    end
+    return var
+  end
+  
   def method_missing(m, *args)
-    raise "undefiend method #{m}" unless [:+, :-, :*, :/, :round].include? m 
+    if value && (value.is_a?(ManagedData::MObject) || value.is_a?(ManagedData::DynamicUpdateProxy))
+      if m.to_s.end_with?("=")
+        return value.send(m, *args)
+      elsif args==[]
+        return value.dynamic_update.send(m, *args)
+      end
+    end
+    raise "undefined method #{m} on VARIABLE #{value}" unless [:equal?, :+, :-, :*, :/, :round, :schema_class].include? m 
     var = Variable.new("p#{self.to_s}#{args.to_s}")
     #puts "#{var}=#{self.to_s}+#{args}"
     var.internal_define(self, *args) do |a, *other|
@@ -64,6 +97,11 @@ class Variable
     return var
   end
 
+  def equal?(x)
+    puts "TESTING EQUALITY on var"
+    method_missing(:equal?, x)
+  end
+  
   def internal_define(*vars, &block)
     raise "nil definition" if vars.any?(&:nil?)
     @vars = vars
@@ -106,7 +144,7 @@ class Variable
     @dependencies.each do |var|
       var.internal_notify_change
     end
-    #puts "CLEAR #{self.to_s}"
+    #puts "CLEAR #{@name}"
     @value = nil
   end
     

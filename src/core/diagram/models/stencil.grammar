@@ -32,7 +32,7 @@ Exp1 ::= [Prim] args:Exp2 op:"&" args:Exp1
 Exp2 ::= [Prim] args:Exp3 op:"|" args:Exp2
       | Exp3
 
-Exp3 ::= [Prim] args:Exp4 (op:"==" | op:"!=" | op:"<" | op:">" | op:"<=" | op:">=") args:Exp4
+Exp3 ::= [Prim] args:Exp4 ("==" @"@op='equal?'" | op:"!=" | op:"<" | op:">" | op:"<=" | op:">=") args:Exp4
       | Exp4
 
 Exp4 ::= [Prim] args:Exp5 (op:"+" | op:"-" | op:"/" | op:"*" | op:"%") args:Exp4
