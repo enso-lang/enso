@@ -29,7 +29,7 @@ module LValueExpr
             val = val.to_f
         end
       end
-      @array[@index] = val
+      begin; @array[@index] = val; rescue; end
     end
 
     def value
@@ -41,7 +41,7 @@ module LValueExpr
     end
 
     def type
-      @array.is_a?(ManagedData::MObject) ? @array.schema_class.fields[@index].type : nil
+      @array.is_a?(ManagedData::MObject) ? @array.schema_class.all_fields[@index].type : nil
     end
 
     def object
@@ -55,5 +55,9 @@ module LValueExpr
 
   def lvalue_EVar(name, args=nil)
     Address.new(args[:env], name)
+  end
+
+  def lvalue_?(fields, type, args={})
+    nil
   end
 end

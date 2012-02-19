@@ -205,7 +205,7 @@ class StencilFrame < DiagramFrame
   end
 	
   def edit_address(address, shape)
-    if address.field.type.Primitive?
+    if address.type.Primitive?
 			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
@@ -451,9 +451,9 @@ class StencilFrame < DiagramFrame
 
   def evallabel(label, env)
     tag = "default"
-    if label.Prim? && label.op == "[]"   # it has the form Loc[foo]
-      tag = label.args[0]
-      label = label.args[1]
+    if label.ESubscript? # it has the form Loc[foo]
+      tag = label.e
+      label = label.sub
       raise "foo" if !tag.Var?
       tag = tag.name
     end
@@ -481,8 +481,8 @@ class StencilFrame < DiagramFrame
   end
   
   def constructText(this, env, container, &block)
-    val = eval(this.string, env, true)
-    addr = address(this.string, env)
+    val = eval(this.string, env)
+    addr = lvalue(this.string, env)
     text = @factory.Text
     text.string = val.to_s
     make_styles(this, text, env)
@@ -629,49 +629,9 @@ class FindByTypeSelection
   end
 end
 
-class Address
-  def initialize(obj, field_name)
-    @object = obj    
-    @field = obj.schema_class.all_fields[field_name]
-  end
-  
-  attr_reader :object
-  attr_reader :field
-  
-  def value=(val)
-    case @field.type.name
-      when 'int'
-        val = val.to_i
-      when 'real'
-        val = val.to_f
-    end
-    @object[real_field.name] = val
-  end
 
-  def insert(val)
-    col = @object[real_field.name]
-    puts "Inserting #{@object}.#{@field.name}[#{col.length}] << #{val}"
-    col << val
-    puts "Size is now #{col.length}"
-  end
 
-  def real_field
-    #puts "GET TYPE #{@object}.#{@field}"
-    if @field.computed
-      # this determines if a computed field is a selection of a traversal field
-      # the semantics it implements is correct, but it does it using a quick hack
-      # as a syntactic check, rather than a semantic analysis
-      if @field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
-				return @object.schema_class.all_fields[$1]    
-      end
-    end
-    return @field
-  end
-  
-  def is_traversal
-    return real_field.traversal
-  end
-end
+
 
 if __FILE__ == $0 then
   RunStencilApp()

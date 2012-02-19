@@ -1,15 +1,17 @@
 module EvalExpr
 
   def eval_ETernOp(op1, op2, e1, e2, e3, args=nil)
-    Kernel::eval("#{self.eval(e1, args).inspect} #{op1} #{self.eval(e2, args).inspect} #{op2} #{self.eval(e3, args).inspect}")
+    self.eval(e1, args) ? self.eval(e2, args) : self.eval(e3, args)
   end
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    Kernel::eval("#{self.eval(e1, args).inspect} #{op} #{self.eval(e2, args).inspect}")
+    r1 = self.eval(e1, args)
+    r2 = self.eval(e2, args)
+    r1.send(op, r2)
   end
 
   def eval_EUnOp(op, e, args=nil)
-    Kernel::eval("#{op} #{self.eval(e, args).inspect}")
+    self.eval(e, args).send(op)
   end
 
   def eval_EVar(name, args=nil)
