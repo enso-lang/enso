@@ -1,0 +1,79 @@
+
+class Command end
+class Expr end
+
+class Stencil
+  root: str
+! body: Command*
+end
+
+class Part < Command
+! props: Assign*
+end
+
+// TEMPLATE STUFF
+
+class Label < Part
+! label: Expr
+! body: Command
+end
+
+class Assign
+! loc: Expr
+! exp: Expr
+end
+
+class InstanceOf < Expr
+! base: Expr
+  class_name: str
+end
+
+class Color < Expr
+! r: Expr
+! g: Expr
+! b: Expr
+end
+
+// DIAGRAMS
+
+class Container < Part
+  direction: int // 1=vert, 2=hoiz, 3=graph
+! items: Command*
+end
+
+class Text < Part
+! string: Expr
+end
+
+class Shape < Part
+  kind: str
+! content: Command?
+end
+
+class Connector < Part
+! label: Expr?
+! ends: ConnectorEnd*
+end
+
+class ConnectorEnd
+  arrow: str?
+! label: Expr?
+! other_label: Expr?
+! part: Expr
+end
+
+class EAssign
+! var:Expr
+! val:Expr
+! body:Command
+end
+
+class EFor
+  index: str?
+  label: str?
+end
+
+primitive int
+primitive str
+primitive bool
+primitive atom

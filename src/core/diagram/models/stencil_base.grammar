@@ -1,0 +1,34 @@
+start Stencil
+
+abstract Block
+abstract Expr
+
+// diagrams
+Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Command*
+
+Command ::= Part
+          | Command
+
+Part ::= [Label] "label" Props? label:Expr body:Block
+       | [Container] Dir Props? items:Block
+       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
+       | [Text] "text" Props? string:Expr
+       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Block
+       | [Require] "require" path:str
+
+Dir ::= "vertical" @"@direction=1" | "horizontal"  @"@direction=2" | "graph"  @"@direction=3" | "do"  @"@direction=4"
+ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?
+ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
+Index ::= "," index:sym
+
+Props ::= "[" props:{ Assign ","}* "]"
+Assign ::= [Assign] loc:Expr "=" exp:Expr
+EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
+
+EBinOp1 ::= [InstanceOf] base:Expr "is" class_name:sym
+          | EBinOp1
+
+EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
+         | EUnOp
+
+EAssign ::= [EAssign] "let" var:Expr "=" val:Expr "in" body:Command

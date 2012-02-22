@@ -7,6 +7,9 @@
 require 'core/diagram/code/diagram'
 require 'core/schema/tools/print'
 require 'core/system/library/schema'
+require 'core/diagram/code/construct'
+require 'core/expr/code/eval'
+require 'core/expr/code/lvalue'
 require 'yaml' 
 
 # render(Stencil, data) = diagram
@@ -77,8 +80,10 @@ class StencilFrame < DiagramFrame
     @shapeToTag = {}    # list of all created objects
     @tagModelToShape = {}
     @connectors = []
-    construct @stencil.body, env, nil do |x| 
-      set_root(x) 
+    @stencil.body.each do |c|
+      construct c, env, nil do |x|
+        set_root(x)
+      end
     end
     refresh()
     #puts "DONE"
@@ -259,11 +264,12 @@ class StencilFrame < DiagramFrame
     font = nil
     pen = nil
     brush = nil
+    #Print.print(stencil)
     stencil.props.each do |prop|
-      val, _ = eval(prop.exp, env)
+      val = eval(prop.exp, env)
       #puts "SET #{prop.loc} = #{val}"
       newEnv = {}.update(env) if !newEnv
-      case "#{prop.loc.base.name}.#{prop.loc.field}"
+      case "#{prop.loc.e.name}.#{prop.loc.fname}"
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -288,7 +294,7 @@ class StencilFrame < DiagramFrame
     shape.styles << (pen || env[:pen])
     shape.styles << (brush || env[:brush])
   end
-  
+
   def constructAlt(this, env, container, &block)
     this.alts.each do |alt|
       catch :fail do
@@ -298,40 +304,43 @@ class StencilFrame < DiagramFrame
     throw :fail
   end
 
-  def constructLet(this, env, container, &block)
+  def constructEAssign(this, env, container, &block)
     nenv = {}.update(env)
-    this.decls.each do |assign|
       #presumably only Fields and Vars can serve as l-values
       #FIXME: handle Fields as well, by using the address field from eval
-      if assign.loc.Var?
-        nenv[assign.loc.name], _ = eval assign.exp, env
-      else
-        raise "Trying to use #{assign} as an l-value in a let expression"
-      end
-    end
+    lvalue(this.var, nenv).value = eval this.val, nenv
     construct this.body, nenv, container, &block
   end
 
-  def constructRequire(this, env, container, &block)
-    @fundefs.instance_exec { require this.path }
-    construct this.content, env, container, &block
+  def constructEImport(this, env, container, &block)
+    @fundefs.instance_eval(File.open(this.path, "r").read)
+    @fundefs.singleton_methods.each do |m|
+     env["#{m}"] = @fundefs.method(m)
+    end
   end
 
-  def constructFor(this, env, container, &block)
-    source, address = eval(this.iter, env)
+  def constructEFor(this, env, container, &block)
+    source = eval(this.list, env)
+    address = lvalue(this.list, env)
+
+    is_traversal = false
+    if this.list.EField?
+      lhs = eval(this.list.e, env)
+      is_traversal = lhs.schema_class.fields[this.list.fname].traversal
+    end
+
     nenv = {}.update(env)
-    kind = address.field.type.name
     source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
       construct this.body, nenv, container do |shape|
         if this.label
-          action = address.is_traversal ? "Delete" : "Remove"
+          action = is_traversal ? "Delete" : "Remove"
 	        add_action shape, "#{action} #{this.label}" do
-	          if address.is_traversal
+	          if is_traversal
   	          v.delete!
   	        else
-  	          address.value = nil
+  	          addr.value = nil
   	        end
   	        rebuild_diagram
 	        end
@@ -340,24 +349,24 @@ class StencilFrame < DiagramFrame
       end
     end
     if this.label
-      action = address.is_traversal ? "Create" : "Add"
+      action = is_traversal ? "Create" : "Add"
       begin
-	      shape = @tagModelToShape[address.object.name]
+	      shape = @tagModelToShape[addr.object.name]
 	    rescue
 	    end
 	    shape = container if !shape
-	    puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
+	    #puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
 	    add_action shape, "#{action} #{this.label}" do
-	      if !address.is_traversal
+	      if !is_traversal
 	      	# just add a reference!
-	      	puts "ADD #{action}: #{address.field}"
-	      	@selection = FindByTypeSelection.new self, address.field.type do |x|
-			      address.insert x
+	      	#puts "ADD #{action}: #{address.field}"
+	      	@selection = FindByTypeSelection.new self, address.type do |x|
+			      address.value << x
 						rebuild_diagram
 			    end
 	      else
 		      factory = address.object.factory
-			    obj = factory[address.field.type.name]
+			    obj = factory[address.type.name]
 #			    relateField = nil
 			    obj.schema_class.fields.each do |field|
 			      #puts "FIELD: #{field}"
@@ -369,16 +378,16 @@ class StencilFrame < DiagramFrame
 #			        relateField = field
 			      end
 			    end
-	      	puts "CREATE #{address.field} << #{obj}"
+	      	#puts "CREATE #{address.field} << #{obj}"
 #	      	if relateField
-#  	      	puts "ADD #{action}: #{address.field}"
-#		      	@selection = FindByTypeSelection.new self, address.field.type do |x|
+#  	      	puts "ADD #{action}: #{addr.field}"
+#		      	@selection = FindByTypeSelection.new self, addr.field.type do |x|
 #		      	  obj[relateField.name] = x
-#				      address.insert obj
+#				      addr.insert obj
 #							rebuild_diagram
 #				    end
 #	      	else
-			      address.insert obj
+			      address.value << obj
 			      #Print.print(@data)
 	  				rebuild_diagram
 #	  		  end
@@ -414,9 +423,19 @@ class StencilFrame < DiagramFrame
           return nil
 	end
 
-  def constructTest(this, env, container, &block)
-    test, _ = eval(this.condition, env)
-    construct(this.body, env, container, &block) if test
+  def constructEIf(this, env, container, &block)
+    test = eval(this.cond, env)
+    if test
+      construct(this.body, env, container, &block)
+    elsif !this.body2.nil?
+      construct(this.body2, env, container, &block)
+    end
+  end
+
+  def constructEBlock(this, env, container, &block)
+    this.body.each do |command|
+      construct(command, env, container, &block)
+    end
   end
 
   def constructLabel(this, env, container, &block)
@@ -438,7 +457,7 @@ class StencilFrame < DiagramFrame
       raise "foo" if !tag.Var?
       tag = tag.name
     end
-    obj, _ = eval(label, env)
+    obj = eval(label, env)
     return tag, obj
   end
   
@@ -462,12 +481,13 @@ class StencilFrame < DiagramFrame
   end
   
   def constructText(this, env, container, &block)
-    val, address = eval(this.string, env)
+    val = eval(this.string, env, true)
+    addr = address(this.string, env)
     text = @factory.Text
     text.string = val.to_s
     make_styles(this, text, env)
-    if address
-	    @shapeToAddress[text] = address
+    if addr
+	    @shapeToAddress[text] = addr
 	  end
     block.call text
   end
@@ -484,7 +504,7 @@ class StencilFrame < DiagramFrame
   end
 
   def makeLabel(exp, env)
-    labelStr, _ = eval(exp, env)
+    labelStr = eval(exp, env)
     if labelStr
       label = @factory.Text
       label.string = labelStr
@@ -499,11 +519,13 @@ class StencilFrame < DiagramFrame
     ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
     i = 0
     this.ends.each do |e|
-      label = makeLabel(e.label, env)
-      other_label = makeLabel(e.other_label, env)
+      label = e.label.nil? ? nil : makeLabel(e.label, env)
+      other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
       de = @factory.ConnectorEnd(e.arrow, label, other_label)
       tag, obj = evallabel(e.part, env)
-      de.to = @tagModelToShape[[tag, obj]]
+      x = @tagModelToShape[[tag, obj]]
+      fail("Shape #{obj} does not exist in #{@tagModelToShape}") if x.nil?
+      de.to = x
       de.attach = ptemp[i]
       i = i + 1
       
@@ -517,82 +539,15 @@ class StencilFrame < DiagramFrame
   end
 
   #### expressions
-  
+
   def eval(exp, env)
-    return nil, nil if exp.nil?
-    send("eval#{exp.schema_class.name}", exp, env)
-  end
-     
-  def evalLiteral(this, env)
-    return this.value, nil
+    @eval = Interpreter(EvalExpr, EvalStencil) if @eval.nil?
+    @eval.eval(exp, :env=>env, :factory=>@factory)
   end
 
-  def evalColor(this, env)
-    r, _ = eval(this.r, env)
-    g, _ = eval(this.g, env)
-    b, _ = eval(this.b, env)
-    return @factory.Color(r.round, g.round, b.round), nil
-  end
-
-  def evalFunApp(this, env)
-    name = this.fun.to_sym
-    args = this.args.map{|arg| eval(arg, env)[0]}
-    @fundefs.instance_exec{ send(name, *args) }
-  end
-  
-  def evalPrim(this, env)
-    op = this.op.to_sym
-    case op
-    when :| then 
-      val = this.args.any? do |a|
-        v, _ = eval(a, env)
-        v
-      end
-      #puts "BINARY #{this.op.to_sym} = #{val}"
-    when :& then 
-      val = this.args.all? do |a|
-        v, _ = eval(a, env)
-        v
-      end
-      #puts "BINARY #{this.op.to_sym} = #{val}"
-    when :"?" then
-      v, _ = eval(this.args[0], env)
-      #puts "IF #{this.args[0]} ==> #{v}"
-      if v
-        return eval(this.args[1], env)
-      else
-        return eval(this.args[2], env)
-      end
-    else
-      args = this.args.collect do |a|
-        v, _ = eval(a, env)
-        v
-      end
-      a = args.shift
-      val = a.send(this.op.to_sym, *args)
-      #puts "BINARY #{a}.#{this.op.to_sym}(#{args}) = #{val}"
-    end
-    return val, nil
-  end
-  
-  def evalField(this, env)
-    a, _ = eval(this.base, env)
-    return nil, nil if a.nil?  # NOTE THIS IS A HACK!!!
-    return a._id, Address.new(a, this.field) if this.field == "_id"
-    addr = Address.new(a, this.field)
-    a = a.dynamic_update if a.schema_class.all_fields[this.field].type.Primitive?
-    return a[this.field], addr
-  end
-    
-  def evalInstanceOf(this, env)
-    a, _ = eval(this.base, env)
-    return a && Subclass?(a.schema_class, this.class_name), nil
-  end
-    
-  def evalVar(this, env)
-    #puts "VAR #{this.name} #{env}"
-    throw "undefined variable '#{this.name}'" if !env.has_key?(this.name)
-    return env[this.name], nil
+  def lvalue(exp, env)
+    @lval = Interpreter(LValueExpr) if @lval.nil?
+    @lval.lvalue(exp, :env=>env, :factory=>@factory)
   end
 
 end
@@ -676,7 +631,7 @@ end
 
 class Address
   def initialize(obj, field_name)
-    @object = obj
+    @object = obj    
     @field = obj.schema_class.all_fields[field_name]
   end
   

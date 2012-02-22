@@ -28,7 +28,6 @@ module Diff
     end
   end
 
-
   def self.map_paths(root, currpath = Path.new)
     res = {root => currpath}
     root.schema_class.fields.each do |f|
@@ -46,7 +45,6 @@ module Diff
     res
   end
 
-
   #given two objects, return a list of operations that
   def self.diff(o1, o2)
     @path_map = map_paths(o2)
@@ -54,6 +52,35 @@ module Diff
     diff_all(o1, o2, Path.new, matches)
   end
 
+=begin
+Topological sort of the diff list
+*Dependencies
+- New must precede any op whose path contains it or its desc
+- any op on a path unless broken by another op on the closer path
+*Interferences
+-
+=end
+
+  #return 1 or 2 depending on which is the subpath. 0 if neither
+  def subpath(p1, p2)
+    if p1.elts.empty? and p2.elts.empty?
+      0
+    elsif p1.elts.empty?
+      1
+    elsif p2.elts.empty?
+      2
+    else
+      p1.elts != p2.elts ? false : subpath(Path.new(p1.elts[1..-1]), Path.new(p2.elts[1..-1]))
+    end
+  end
+
+  def calc_dep_map(deltas)
+    heads = []
+    tails = []
+    deltas.each do |d|
+
+    end
+  end
 
   #############################################################################
   #start of private section

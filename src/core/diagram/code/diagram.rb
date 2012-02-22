@@ -560,7 +560,7 @@ class DiagramFrame < BaseWindow
     end
     if @selection && @selection.is_selected(part)
 	    oldPen = @pen
-  	  @dc.set_pen(Wx::Pen.new(@select_color, @pen.width))
+  	  @dc.set_pen(Wx::Pen.new(@select_color, @pen.width.to_i))
   	end
     yield
     @dc.set_pen(makePen(@pen = oldPen)) if oldPen
@@ -578,7 +578,7 @@ class DiagramFrame < BaseWindow
   end
 
   def makePen(pen)
-    return Wx::Pen.new(makeColor(pen.color), pen.width) # style!!!
+    return Wx::Pen.new(makeColor(pen.color), pen.width.to_i) # style!!!
   end
     
   def makeBrush(brush)

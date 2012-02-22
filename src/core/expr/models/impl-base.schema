@@ -1,7 +1,7 @@
 primitive str
 
-class Expr end
-class Command < Expr end
+class Expr < Command end
+class Command end
 
 class EWhile < Command
 ! cond:Expr
@@ -17,25 +17,27 @@ end
 class EIf < Command
 ! cond:Expr
 ! body:Command
-! else:Command
+! body2:Command?
 end
 
-class ESwitch < Command
-! e: Exp
-! cases: Case*
-! default: Stat?
-end
+//class ESwitch < Command
+//! e: Expr
+//! cases: Case*
+//! default: Stat?
+//end
 
 class EBlock < Command
 ! body:Command*
 end
 
 class EFunCall < Expr, Command
-  // this is defined in expression
+! fun:Expr
+! params:Expr*
 end
 
 class EFunDef < Command
-  formals:Formal*
+  name:str
+! formals:Formal*
 ! body:Command
 end
 
@@ -44,8 +46,8 @@ class Formal
 end
 
 class EAssign < Command
-  var:Expr
-  val:Expr
+! var:Expr
+! val:Expr
 end
 
 class EImport < Command

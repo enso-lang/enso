@@ -1,0 +1,6 @@
+{
+def foo ( x ) {
+  return x - 2
+}
+foo ( x * 2 )
+}

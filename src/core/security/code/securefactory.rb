@@ -24,23 +24,11 @@ List of all security checks:
 =end
 
 require 'core/security/code/security'
-require 'core/semantics/code/factory'
 
 module SecureFactory
 
   module SecureFactoryMixin
     attr_accessor :security, :fail_silent, :user, :trusted
-
-    def __constructor(klass)
-      obj = super
-      #check permissions
-      auth, msg = check_privileges("OpCreate", obj)
-      if (!auth)
-        raise "NOT AUTH"
-      end
-      (@fail_silent ? (return nil) : (raise SecurityError, msg)) if !auth
-      obj
-    end
 
     def make_secure(obj)
       trusted_mode {
@@ -53,7 +41,7 @@ module SecureFactory
       if @trusted > 0
         true
       else
-        Interpreter.compose(CheckPrivileges).new().check(@security, :op=>op, :obj=>obj, :field=>field, :user=>@user)
+        @interp.check(@security, :op=>op, :obj=>obj, :field=>field, :user=>@user)
       end
     end
 
@@ -111,16 +99,6 @@ module SecureFactory
 
   module SecureManyMixin
 
-    def [](key); __value[key] end
-
-    def empty?; __value.empty? end
-
-    def length; __value.length end
-
-    def to_s; __value.to_s end
-
-    def clear; __value.clear end
-
     def <<(mobj)
       auth, msg = @owner.check_privileges("OpUpdate", @owner, @field.name)
       raise SecurityError, msg if !auth and !@fail_silent
@@ -162,19 +140,10 @@ module SecureFactory
     include SecureManyMixin
 
     def __value
-      @value.select do |k,v|
+      super.select do |k,v|
         auth2, msg2 = @owner.check_privileges("OpRead", v)
         auth2
       end
-    end
-
-    def each(&block)
-      __value.each_value(&block)
-    end
-
-    def each_pair(&block)
-      #TODO: Direct access of @super breaks inheritance!
-      __value.each_pair &block
     end
 
   end
@@ -183,17 +152,9 @@ module SecureFactory
     include SecureManyMixin
 
     def __value
-      @value.select do |v|
+      super.select do |v|
         auth2, msg2 = @owner.check_privileges("OpRead", v)
         auth2
-      end
-    end
-
-    def each(&block); __value.each(&block) end
-
-    def each_pair(&block)
-      __value.each_with_index do |item, i|
-        block.call(i, item)
       end
     end
 
@@ -204,13 +165,20 @@ module SecureFactory
     res.extend SecureFactoryMixin
     res.security = args[:rules]
     res.fail_silent = args[:fail_silent]
+    res.interp.compose!(CheckPrivileges)
     res
   end
 
   def Make_Class(args=nil)
     res = super
-    res.extend SecureMObjectMixin
-    res
+    auth, msg = args[:factory].check_privileges("OpCreate", res)
+    if !auth
+      raise SecurityError, msg unless args[:factory].fail_silent
+      nil
+    else
+      res.extend SecureMObjectMixin
+      res
+    end
   end
 
   def Make_Field(computed, many, type, args=nil)

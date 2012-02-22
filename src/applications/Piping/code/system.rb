@@ -13,6 +13,7 @@ class PipingSystem
     schema = Loader.load('piping-sim.schema')
     @piping = Loader.load_with_models("#{name}.piping", grammar, schema)
     @control = Loader.load("#{name}.controller")
+    @control.current = @control.initial
     @controller = Controller.new(SimulatorPiping.new(@piping), control)
     @sim = Simulator.new(@piping)
   end
@@ -29,7 +30,7 @@ class PipingSystem
       rsensor = @piping.sensors['Radiator_Temp']
       puts "************************"
       puts "After #{time} sec:"
-      puts "In #{@controller.current_state}"
+      puts "In #{@control.current}"
       puts "  Burner at #{burner.temperature}"
       puts "  Boiler at #{boiler.temperature} (desired: #{bsensor.user})"
       puts "  Radiator at #{rad.temperature} (desired: #{rsensor.user})"
