@@ -481,8 +481,8 @@ class StencilFrame < DiagramFrame
   end
   
   def constructText(this, env, container, &block)
-    val = eval(this.string, env, true)
-    addr = address(this.string, env)
+    val = eval(this.string, env)
+    addr = nil # TODO:   address(this.string, env)
     text = @factory.Text
     text.string = val.to_s
     make_styles(this, text, env)
