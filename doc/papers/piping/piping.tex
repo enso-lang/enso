@@ -1,0 +1,138 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage[pdftex]{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{xspace}
+\usepackage{amsthm}
+
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.8]{beramono}
+
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage{listings} 
+
+\lstset{%
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={schema,type},
+  keywordstyle=\bfseries,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+\lstdefinelanguage{Schema}{%
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={class,end},
+  keywordstyle=\bfseries,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+
+\lstdefinelanguage{Grammar}{%
+  numbers=none,
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  emphstyle={\bf},
+  commentstyle=\it,
+  stringstyle=\mdseries\ttfamily,
+  showspaces=false,
+  basicstyle=\ttfamily,
+  morekeywords={start},
+  keywordstyle=\bfseries,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}
+
+
+\newtheorem*{ex}{TEST}
+
+\newcommand{\C}{\lstinline}
+
+\lstset{language=Ruby}
+
+\def\Enso{Ens\={o}\xspace}
+
+\title{\includegraphics[scale=0.25]{enso.jpg}\\ Piping \& Instrumentation in \Enso \\
+   Language Workbench Challenge 2012}
+\author{Alex Loh, William R. Cook, Tijs van der Storm}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+
+Talk about Enso and the problem.
+
+
+\section{Boiler/Radiator Example}
+
+\section{Model Languages}
+\subsection{Piping Language}
+
+\begin{figure}
+\lstinputlisting[linerange=2-28,language=Schema]{../../../src/applications/Piping/models/piping.schema} % APPLY:linerange=PIPING_SCHEMA_ONE
+\caption{Schema of the Piping language (Part One)}
+\label{piping-grammar}
+\end{figure}
+\begin{figure}
+\lstinputlisting[linerange=32-75,language=Schema]{../../../src/applications/Piping/models/piping.schema} % APPLY:linerange=PIPING_SCHEMA_TWO
+\caption{Schema of the Piping language (Part Two)}
+\label{piping-grammar}
+\end{figure}
+
+\begin{figure}
+\lstinputlisting[language=Grammar]{../../../src/applications/Piping/models/piping.grammar} % APPLY:linerange=PROG
+\caption{Grammar of the Piping language}
+\label{piping-grammar}
+\end{figure}
+
+\subsection{Controller Language}
+
+\section{Execution}
+
+\subsection{Piping Interpreter}
+
+\subsection{Controller Interpreter}
+
+\section{Graphical Rendering with Stencils}
+
+\subsection{Animation}
+
+\subsection{Editing}
+
+
+
+\end{document}  
+
