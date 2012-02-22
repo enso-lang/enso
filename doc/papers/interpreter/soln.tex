@@ -1,10 +1,80 @@
-<%
+\comments{
 Contributions of this work:
-- 
+- Composition
+  - adding new data types and operations
+- Cross-cutting modifications
+  - operation inheritance
+    - compound operation composition (of which inheritance is special case)
+- Meta-level
+  - Schema and grammar as well 
+- Feature-oriented 'packaging' -> gotta give this a better name
 
 How we do it:
 - s
 
-%>
+}
+
+\section{Proposed solution}
+
+Our approach enforce the rigor of a formal specification on hand-written code. By designing a 
+
+\begin{enumerate}
+\item x
+\item y
+\end{enumerate}
+
+\subsection{\Enso: Self-describing language specification}
+
+\comments{
+- What is Enso
+  - Enso is an external DSL workbench (toolkit for creating ext DSLs...)
+  - Each DSL is defined by a metamodel (i dun like this word, use abstract syntax), aka schema written by the programmer
+    - metamodel is amanaged data --> zzz...
+      - provide services such as inverses, etc (do i care? this is a program, not a data model, not even program state!)
+  - optionally can be edited textually or graphically depending on whether a grammar or a \emph{stencil}, a graphical blahblah specification language
+- internally
+  - each component, schema, grammar, stencil, diff, etc, is a DSL.
+  - bootstrapped from a minimal schema and grammar model
+  - advantages?
+    - the same tools for building DSLs as using DSLs
+}
+
+At its core, each language created in \Enso is defined by a model of its abstract syntax, known as its \emph{schema}. This schema can be created and edited either graphically or textually.
+
+\comments{
+\subsection{Adding new data types and operations}
+(i'm not going to let this guy get his own subsection
+- interpreters defined as visitor mixins
+  - simple dispatch system based on data type
+    - has subtype polymorphism and a 'root' type <-- i dont know what to call this
+- well-known concept that allows extension of ...
+
+- internal visitor enforce composability
+  - internal visitors are produced via composition
+}
+
+\subsection{Cross-cutting extensions}
+
+\comments{
+  
+}
+
+\subsubsection{Higher-order interpreter composition}
+
+\subsection{Meta-level language extensions}
+
+\subsection{Cross-model language features}
+
+\comments{
+- features
+  - define "features"
+- package different types of artefacts together
+- because of meta-level this can be used both for dsl dev as well as dsl
+}
+
+\subsection{Tooling for extensible DSLs}
+
+
+
 
 

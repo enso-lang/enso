@@ -12,7 +12,7 @@ Command ::= EWhile
           | EReturn
 
 EWhile ::= [EWhile] "while" cond:Expr body:Command
-EFor ::= [EFor] "for" var:str "=" list:Expr body:Command
+EFor ::= [EFor] "for" var:sym ":" list:Expr body:Command
 EIf ::= [EIf] "if" cond:Expr body:Command ("else" body2:Command)?
 ESwitch ::= [ESwitch] "switch" e:Expr
 EFunDef ::= [EFunDef] "def" name:sym "(" formals:{Formal ","}* ")" body:Command

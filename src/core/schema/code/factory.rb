@@ -4,6 +4,7 @@ require 'core/schema/code/dynamic'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
+require 'core/expr/code/eval'
 
 =begin
 
@@ -472,7 +473,7 @@ module ManagedData
 
     def delete(mobj)
       key = mobj[@key.name]
-      return unless @value.include_key?(key)
+      return unless @value.has_key?(key)
       notify(@value[key], nil)
       __delete(mobj)
     end

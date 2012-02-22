@@ -81,4 +81,5 @@ module EvalCommand
   def eval_EAssign(var, val, args={})
     lvalue(var, args).value = self.eval(val, args)
   end
+
 end
