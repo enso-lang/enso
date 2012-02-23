@@ -5,13 +5,11 @@ module EvalExpr
   end
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    r1 = self.eval(e1, args)
-    r2 = self.eval(e2, args)
-    r1.send(op, r2)
+    self.eval(e1, args).send(op.to_s, self.eval(e2, args))
   end
 
   def eval_EUnOp(op, e, args=nil)
-    self.eval(e, args).send(op)
+    self.eval(e, args).send(op.to_s)
   end
 
   def eval_EVar(name, args=nil)
@@ -40,13 +38,16 @@ end
 
 
 module EvalExprIntern
+  def eval_ETernOp(op1, op2, e1, e2, e3, args=nil)
+    e1.eval ? e2.eval : e3.eval
+  end
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    Kernel::eval("#{e1.eval.inspect} #{op} #{e2.eval.inspect}")
+    e1.eval.send(op.to_s, e2.eval)
   end
 
   def eval_EUnOp(op, e, args=nil)
-    Kernel::eval("#{op} #{e.eval.inspect}")
+    e.eval.send(op.to_s)
   end
 
   def eval_EField(e, fname, args=nil)
@@ -63,5 +64,3 @@ module EvalExprIntern
   end
 
 end
-
-

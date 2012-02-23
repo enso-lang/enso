@@ -1,7 +1,7 @@
 start Expr
 
 Expr ::= ETernOp
-ETernOp ::= [ETernOp] e1:ETernOp "?" e2:EOr ":" e3:EOr @"@op1 = '?'; @op2 = ':'"
+ETernOp ::= [ETernOp] e1:ETernOp op1:"?" e2:EOr op2:":" e3:EOr
        | EOr
 EOr ::= [EBinOp] e1:EOr "or" e2:EAnd @"@op = '|'"
        | EAnd
