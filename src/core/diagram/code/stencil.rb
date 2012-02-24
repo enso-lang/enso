@@ -88,6 +88,12 @@ class StencilFrame < DiagramFrame
         set_root(x)
       end
     end
+
+    if !@position_map['*WINDOW*'].nil?
+      size = @position_map['*WINDOW*']
+      set_size(Wx::Size.new(size['x'], size['y']))
+    end
+
     refresh()
     #puts "DONE"
     #Print.print(@root)
@@ -127,6 +133,10 @@ class StencilFrame < DiagramFrame
     # save the position_map
     @position_map = {}
     @position_map["*VERSION*"] = 2
+
+    size = get_size
+    @position_map['*WINDOW*'] = {'x'=>size.get_width, 'y'=>size.get_height}
+
     obj_handler = lambda do |tag, obj, shape|
       @position_map[tag] = position(shape)
     end

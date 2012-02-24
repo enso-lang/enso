@@ -2,30 +2,32 @@ diagram(system)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
-  for ("Element" elem : system.elements)
-   label elem
+  for "Element" elem : system.elements
+   label elem {
      oval [line.width=1] { // this is the class rectangle
        text [font.size=16,font.weight=700] elem.name
      }
+   }
   // create the links
-  for ("Input" elem : system.elements)
-    if elem is InputElement & ! elem is Joint
+  for "Input" elem : system.elements
+    if elem is InputElement and not (elem is Joint)
         connector (elem <-- elem.input.input)
-  for (elem : system.elements)
+  for elem : system.elements
     if elem is Joint
-        for ("Connection" pipe : elem.inputs)
+        for "Connection" pipe : elem.inputs
            connector (elem <-- pipe.input)
 
   // create the sensors
-  for ("Sensor" sensor : system.sensors)
-    label sensor
-    box {  // this is the class rectangle
-      vertical {
-       text [font.size=8,font.weight=600] sensor.name
-       text [font.size=8,font.weight=400] sensor.kind
-      }
+  for "Sensor" sensor : system.sensors
+    label sensor {
+        box {  // this is the class rectangle
+          vertical {
+           text [font.size=8,font.weight=600] sensor.name
+           text [font.size=8,font.weight=400] sensor.kind
+          }
+        }
     }
 
-  for ("Sensor" sensor : system.sensors)
+  for "Sensor" sensor : system.sensors
     connector (sensor -- sensor.attach)
 }
