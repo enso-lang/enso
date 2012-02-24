@@ -1,4 +1,4 @@
-diagram(controller)
+diagram "Piping & Instrumentation Controller" (controller)
 
 require "applications/Piping/code/controller-stencil-defs.rb"
 

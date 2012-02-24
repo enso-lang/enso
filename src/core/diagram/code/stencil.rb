@@ -46,6 +46,9 @@ class StencilFrame < DiagramFrame
   def setup extension, data
     @extension = extension
     @stencil = Load("#{@extension}.stencil")
+    if !@stencil.title.nil?
+      self.set_title(@stencil.title)
+    end
     @data = data
     if data.factory.file_path
       pos = "#{data.factory.file_path}-positions"

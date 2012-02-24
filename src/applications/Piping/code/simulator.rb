@@ -98,7 +98,7 @@ module CalcHeatFlow
     if false #elem.contents < elem.capacity
 
     else #behave like a joint
-      elem.temperature = elem.input.temperature
+      elem.temperature = elem.input.temperature.round(2)
       flow = set_pipe_flow(elem.output, args[:flowconst])
       transfer_heat(elem.output, flow, elem.temperature)
     end
@@ -122,7 +122,7 @@ module CalcHeatFlow
   def transfer_heat(pipe, flow, temperature)
     #simulate heat loss from water travelling in pipe
     temperature = flow > pipe.volume ? temperature : ((temperature * flow + pipe.temperature * (pipe.volume - flow)) / pipe.volume).sigfig(3)
-    temp_diff = (temperature - ROOM_TEMP) * (0.98)
+    temp_diff = (temperature - ROOM_TEMP) * (0.96)
     temperature = ROOM_TEMP + temp_diff
     pipe.temperature = temperature
   end

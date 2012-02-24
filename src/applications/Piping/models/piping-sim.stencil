@@ -1,4 +1,4 @@
-diagram(system)
+diagram "Piping Simulation" (system)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)

@@ -4,7 +4,7 @@ abstract Block
 abstract Expr
 
 // diagrams
-Stencil ::= [Stencil] "diagram" "(" root:sym ")" body:Command*
+Stencil ::= [Stencil] "diagram" title:str "(" root:sym ")" body:Command*
 
 Command ::= Part
           | Command
