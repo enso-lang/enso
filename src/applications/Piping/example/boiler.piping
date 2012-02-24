@@ -10,5 +10,5 @@
    //RoomTemp: thermostat
    Return = Boiler + Radiator + I
 // sensors
-   sensor Radiator_Temp : temperature ( Radiator )
-   sensor Boiler_Temp : temperature ( Boiler )
+   control Radiator_Temp : temperature ( Radiator )
+   control Boiler_Temp : temperature ( Boiler )

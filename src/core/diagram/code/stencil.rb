@@ -266,7 +266,7 @@ class StencilFrame < DiagramFrame
     brush = nil
     #Print.print(stencil)
     stencil.props.each do |prop|
-      val = eval(prop.exp, env)
+      val = eval(prop.exp, env, true)
       #puts "SET #{prop.loc} = #{val}"
       newEnv = {}.update(env) if !newEnv
       case "#{prop.loc.e.name}.#{prop.loc.fname}"
@@ -481,10 +481,16 @@ class StencilFrame < DiagramFrame
   end
   
   def constructText(this, env, container, &block)
-    val = eval(this.string, env)
+    val = eval(this.string, env, true)
     addr = lvalue(this.string, env)
     text = @factory.Text
-    text.string = val.to_s
+    if val.is_a? Variable
+      text.string = val.new_var_method do |a, *other|
+        x = "#{a}"
+      end
+    else
+      text.string = val.to_s
+    end
     make_styles(this, text, env)
     if addr
 	    @shapeToAddress[text] = addr
@@ -504,7 +510,7 @@ class StencilFrame < DiagramFrame
   end
 
   def makeLabel(exp, env)
-    labelStr = eval(exp, env)
+    labelStr = eval(exp, env, true)
     if labelStr
       label = @factory.Text
       label.string = labelStr
@@ -540,9 +546,9 @@ class StencilFrame < DiagramFrame
 
   #### expressions
 
-  def eval(exp, env)
+  def eval(exp, env, dynamic = false)
     @eval = Interpreter(EvalExpr, EvalStencil) if @eval.nil?
-    @eval.eval(exp, :env=>env, :factory=>@factory)
+    @eval.eval(exp, :env=>env, :dynamic=>dynamic, :factory=>@factory)
   end
 
   def lvalue(exp, env)

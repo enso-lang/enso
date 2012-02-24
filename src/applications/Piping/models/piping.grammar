@@ -12,8 +12,7 @@ Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
         |   [Joint]   name:sym outputs:pipe "=" inputs:{Connection "+"}+
         |   [Burner] name:sym ":" "burner" in gas outputs:pipe
 
-Sensor ::= [ElementSensor] "sensor" name:sym ":" kind:sym "(" attach:/elements[it]^ ")"
-         | [PipeSensor] "sensor" name:sym ":" kind:sym "(" attach:Connection ")"
+Sensor ::= [Sensor] ("sensor" @"@controllable=false" | "control" @"@controllable=true") name:sym ":" kind:sym "(" (attach:/elements[it]^ | attach:Connection) ")"
 
 pipe ::= [Pipe]
        | [Pipe] "[" ("l" ":" length:real)? ("d" ":" diameter:real)? "]"
@@ -25,4 +24,3 @@ Connection ::=
      | /elements[it]/outputs[0]^ "." "left"
      | /elements[it]/outputs[1]^ "." "right"
      | /elements[it]/input^ "." "input"
-  

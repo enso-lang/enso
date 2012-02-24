@@ -8,33 +8,39 @@ module EvalStencil
     a = self.eval(base, args)
     a && Subclass?(a.schema_class, class_name)
   end
-end
-
-module Eval_Expr_Dynamic
-  class Variable
-
-  end
 
   def eval_ETernOp(op1, op2, e1, e2, e3, args=nil)
-    self.eval(e1, args) ? self.eval(e2, args) : self.eval(e3, args)
+    if !args[:dynamic]
+      super
+    else
+      v = self.eval(e1, args)
+      fail "NON_DYNAMIC #{v}" if !v.is_a?(Variable)
+      a = self.eval(e2, args)
+      b = self.eval(e3, args)
+      v.test(a, b)
+    end
   end
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    r1 = self.eval(e1, args)
-    r2 = self.eval(e2, args)
-    r1.send(op, r2)
+    if !args[:dynamic]
+      super
+    else
+      r1 = self.eval(e1, args)
+      r1 = Variable.new("gen", r1) if r1 && !r1.is_a?(Variable)
+      r2 = self.eval(e2, args)
+      r2 = Variable.new("gen", r2) if r2 && !r2.is_a?(Variable)
+      r1.send(op.to_s, r2)
+    end
   end
 
   def eval_EUnOp(op, e, args=nil)
-    self.eval(e, args).send(op)
-  end
-
-  def eval_EVar(name, args=nil)
-    args[:env][name]
-  end
-
-  def eval_EConst(val, args=nil)
-    val
+    if !args[:dynamic]
+      super
+    else
+      r1 = self.eval(e1, args)
+      r1 = Variable.new("gen", r1) if r1 && !r1.is_a?(Variable)
+      r1.send(op.to_s)
+    end
   end
 
   def eval_EFunCall(fun, params, args={})
@@ -50,7 +56,11 @@ module Eval_Expr_Dynamic
     else
       r = self.eval(e, args)
       if args[:dynamic]
-        r = r.dynamic_update
+        if r.is_a? Variable
+          r = r.value.dynamic_update
+        else
+          r = r.dynamic_update
+        end
       end
       r[fname]
     end

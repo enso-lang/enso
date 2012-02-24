@@ -49,5 +49,5 @@ end
 
 class Sensor
   user: real?
-  value: real = "@attach.dynamic_update[@kind]"
+  value: real = "@attach[@kind]"
 end

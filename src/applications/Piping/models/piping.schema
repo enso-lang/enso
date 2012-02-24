@@ -4,7 +4,9 @@ class System
 ! sensors: Sensor*
 end
 
-class Pipe
+class Attachable end
+
+class Pipe < Attachable
   input: OutputElement
   output: InputElement?
   diameter: real
@@ -14,7 +16,7 @@ class Pipe
   volume: real = "@area * @length"
 end
 
-class Element 
+class Element < Attachable
   #name: str
 end
 
@@ -64,15 +66,9 @@ class Sensor
 # name: str
   kind: str // temperature, pressure, flow
   controllable: bool
+  attach:Attachable
 end
 
-class PipeSensor < Sensor
-  attach:Pipe
-end
-
-class ElementSensor < Sensor
-  attach:Element
-end
 // END_PIPING_SCHEMA_TWO
 
 primitive str
