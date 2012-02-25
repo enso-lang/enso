@@ -51,6 +51,6 @@ graph [font.size=12,fill.color=(255,255,255)] {
         }
     }
 
-  for "Sensor" sensor : system.sensors
+  for sensor : system.sensors
     connector (sensor -- sensor.attach)
 }

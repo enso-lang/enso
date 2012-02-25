@@ -10,6 +10,7 @@ require 'core/system/library/schema'
 require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
+require 'core/expr/code/env'
 require 'yaml' 
 
 # render(Stencil, data) = diagram
@@ -22,6 +23,8 @@ def RunStencilApp(path = ARGV[0])
 end
 
 class StencilFrame < DiagramFrame
+  attr_reader :selection
+
   include Paths
 
   class FunDefs; end
@@ -70,14 +73,14 @@ class StencilFrame < DiagramFrame
     puts "REBUILDING"
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
-        
-    env = { 
+
+    env = {
       @stencil.root => @data,
       :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
       :brush => @factory.Brush(white)
     }
-    
+
     @shapeToAddress = {}  # used for text editing
     @shapeToModel = {}    # list of all created objects
     @shapeToTag = {}    # list of all created objects
@@ -278,10 +281,10 @@ class StencilFrame < DiagramFrame
     pen = nil
     brush = nil
     #Print.print(stencil)
+    newEnv = env.clone
     stencil.props.each do |prop|
-      val = eval(prop.exp, env, true)
+      val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      newEnv = {}.update(env) if !newEnv
       case "#{prop.loc.e.name}.#{prop.loc.fname}"
       when "font.size" then
         #puts "FONT SIZE #{val}"
@@ -318,7 +321,7 @@ class StencilFrame < DiagramFrame
   end
 
   def constructEAssign(this, env, container, &block)
-    nenv = {}.update(env)
+    nenv = env.clone
       #presumably only Fields and Vars can serve as l-values
       #FIXME: handle Fields as well, by using the address field from eval
     lvalue(this.var, nenv).value = eval this.val, nenv
@@ -342,7 +345,7 @@ class StencilFrame < DiagramFrame
       is_traversal = lhs.schema_class.fields[this.list.fname].traversal
     end
 
-    nenv = {}.update(env)
+    nenv = env.clone
     source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
@@ -514,6 +517,7 @@ class StencilFrame < DiagramFrame
   def constructShape(this, env, container, &block)
     shape = @factory.Shape # not many!!!
     shape.kind = this.kind
+    puts "shape.kind = #{shape.kind}" if shape.kind==='box'
     construct this.content, env, shape do |x|
       error "Shape can only have one element" if shape.content
       shape.content = x
