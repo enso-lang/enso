@@ -10,8 +10,8 @@ default:/states[IGNITE]: !ruby/object:EnsoPoint
   x: 229
   y: 12
 default:/states[RAMPUP]: !ruby/object:EnsoPoint 
-  x: 150
-  y: 134
+  x: 199
+  y: 132
 default:/states[BOILER]: !ruby/object:EnsoPoint 
   x: 85
   y: 216
@@ -19,8 +19,8 @@ default:/states[RADIATOR]: !ruby/object:EnsoPoint
   x: 439
   y: 216
 default:/states[COOLDOWN]: !ruby/object:EnsoPoint 
-  x: 153
-  y: 308
+  x: 198
+  y: 304
 default:/states[RUNNING]: !ruby/object:EnsoPoint 
   x: 252
   y: 216
