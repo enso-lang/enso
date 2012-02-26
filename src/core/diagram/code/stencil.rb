@@ -11,7 +11,8 @@ require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/expr/code/env'
-require 'yaml' 
+require 'core/expr/code/render'
+require 'yaml'
 
 # render(Stencil, data) = diagram
 
@@ -214,7 +215,7 @@ class StencilFrame < DiagramFrame
   def on_double_click(e)
     clear_selection
     text = find e, &:Text?
-    if text
+    if text and text.editable
       address = @shapeToAddress[text]
       edit_address(address, text) if address
     end
@@ -285,7 +286,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case "#{prop.loc.e.name}.#{prop.loc.fname}"
+      case Interpreter(RenderExpr).render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -507,6 +508,7 @@ class StencilFrame < DiagramFrame
     else
       text.string = val.to_s
     end
+    text.editable = this.editable
     make_styles(this, text, env)
     if addr
 	    @shapeToAddress[text] = addr
@@ -530,6 +532,7 @@ class StencilFrame < DiagramFrame
     if labelStr
       label = @factory.Text
       label.string = labelStr
+      label.editable = false
       return label
     end
     return nil

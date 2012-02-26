@@ -22,6 +22,7 @@ end
 
 class Text < Part
   string: str
+  editable: bool
 end
 
 class Shape < Part
