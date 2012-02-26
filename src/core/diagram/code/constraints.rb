@@ -38,7 +38,7 @@ class Variable
   def initialize(name, val = nil)
     @name = name
     @dependencies = []
-    @vars
+    @vars = []
     @value = val
     @bounds = []
   end
@@ -52,7 +52,7 @@ class Variable
   end
   
   def to_str
-    return value.to_str
+    return value.to_s
   end
 
   def to_ary
@@ -77,7 +77,7 @@ class Variable
       #puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
       v.test(ra, rb)
     end
-    return var
+    var
   end
   
   def method_missing(m, *args)
@@ -94,7 +94,7 @@ class Variable
     var.internal_define(self, *args) do |a, *other|
       a.send(m, *other)
     end
-    return var
+    var
   end
 
   def new_var_method(&block)
@@ -149,8 +149,8 @@ class Variable
     @dependencies.each do |var|
       var.internal_notify_change
     end
-    #puts "CLEAR #{@name}"
-    @value = nil
+    #@block.nil means this is a hardcoded var, probably because someone assigned to it
+    @value = nil unless @block.nil?
   end
     
   def value

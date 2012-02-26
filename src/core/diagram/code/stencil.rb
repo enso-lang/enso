@@ -517,7 +517,6 @@ class StencilFrame < DiagramFrame
   def constructShape(this, env, container, &block)
     shape = @factory.Shape # not many!!!
     shape.kind = this.kind
-    puts "shape.kind = #{shape.kind}" if shape.kind==='box'
     construct this.content, env, shape do |x|
       error "Shape can only have one element" if shape.content
       shape.content = x
