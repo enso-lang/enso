@@ -5,6 +5,7 @@ require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/eval'
+require 'core/expr/code/env'
 
 =begin
 
@@ -230,7 +231,7 @@ module ManagedData
         elsif exp.EStrConst?
           instance_eval(exp.val.gsub(/@/, 'self.'))
         else
-          @interp.eval(exp, :env=>Env.new({}, Env.new(self)))
+          @interp.eval(exp, :env=>ObjEnv.new(self))
         end
       end
     end

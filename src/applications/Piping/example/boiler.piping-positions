@@ -1,5 +1,11 @@
 --- 
 "*VERSION*": 2
+"*WINDOW*": 
+  x: 552
+  y: 392
+"default:": !ruby/object:EnsoPoint
+  x: 19
+  y: 11
 default:/elements[I]: !ruby/object:EnsoPoint 
   x: 26
   y: 177

@@ -1,12 +1,12 @@
-
-
-
+//BEGIN_PIPING_SCHEMA_ONE
 class System
 ! elements: Element*
 ! sensors: Sensor*
 end
 
-class Pipe
+class Attachable end
+
+class Pipe < Attachable
   input: OutputElement
   output: InputElement?
   diameter: real
@@ -16,7 +16,7 @@ class Pipe
   volume: real = "@area * @length"
 end
 
-class Element 
+class Element < Attachable
   #name: str
 end
 
@@ -29,15 +29,16 @@ class InputElement < Element
   input: Pipe = "@inputs[0]"
 end
 
-class Joint < OutputElement, InputElement
-end
+// END_PIPING_SCHEMA_ONE
+// BEGIN_PIPING_SCHEMA_TWO
+
+class Joint < OutputElement, InputElement end
 
 class Source < OutputElement
   kind: str
 end
 
-class Exhaust < InputElement
-end
+class Exhaust < InputElement end
 
 class Burner < OutputElement, InputElement
   gas: Pipe
@@ -65,15 +66,10 @@ class Sensor
 # name: str
   kind: str // temperature, pressure, flow
   controllable: bool
+  attach:Attachable
 end
 
-class PipeSensor < Sensor
-  attach:Pipe
-end
-
-class ElementSensor < Sensor
-  attach:Element
-end
+// END_PIPING_SCHEMA_TWO
 
 primitive str
 primitive int

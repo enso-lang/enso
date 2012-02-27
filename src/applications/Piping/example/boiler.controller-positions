@@ -1,81 +1,84 @@
 --- 
 "*VERSION*": 2
+"*WINDOW*": 
+  x: 610
+  y: 418
 "default:": !ruby/object:EnsoPoint 
-  x: 0
-  y: 0
+  x: 19
+  y: 11
 default:/states[IGNITE]: !ruby/object:EnsoPoint 
-  x: 228
-  y: 10
+  x: 229
+  y: 12
 default:/states[RAMPUP]: !ruby/object:EnsoPoint 
-  x: 212
-  y: 147
+  x: 150
+  y: 134
 default:/states[BOILER]: !ruby/object:EnsoPoint 
-  x: 68
-  y: 263
+  x: 85
+  y: 216
 default:/states[RADIATOR]: !ruby/object:EnsoPoint 
-  x: 413
-  y: 262
+  x: 439
+  y: 216
 default:/states[COOLDOWN]: !ruby/object:EnsoPoint 
-  x: 210
-  y: 342
+  x: 153
+  y: 308
 default:/states[RUNNING]: !ruby/object:EnsoPoint 
-  x: 261
-  y: 270
+  x: 252
+  y: 216
 default:/states[IGNITE]:/states[RAMPUP]$*: 
 - !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5358249171728837
+  x: 0.5
+  y: 1
 - !ruby/object:EnsoPoint 
-  x: 0.46871358587346795
+  x: 0.5
   y: 0
 default:/states[RAMPUP]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
-  x: 0.47965232543285946
+  x: 0.5
   y: 1
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 0
 default:/states[BOILER]:/states[RAMPUP]$*: 
 - !ruby/object:EnsoPoint 
-  x: 0.48717154509645155
+  x: 0.21352977714372456
   y: 0
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5000000000000001
+  y: 0.5
 default:/states[BOILER]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5000000000000001
+  y: 0.5
 default:/states[RADIATOR]:/states[RAMPUP]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0.7318708612829563
+  y: 0
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.4822921009876464
 default:/states[RADIATOR]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5780868809443029
+  y: 0.5
 - !ruby/object:EnsoPoint 
   x: 1
-  y: 0.5528844795662504
+  y: 0.5
 default:/states[COOLDOWN]:/states[BOILER]$*: 
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5750026654758116
+  y: 0.5
 - !ruby/object:EnsoPoint 
-  x: 0.48717154509645155
+  x: 0.21767576135391098
   y: 1
 default:/states[COOLDOWN]:/states[RADIATOR]$*: 
 - !ruby/object:EnsoPoint 
   x: 1
-  y: 0.5225656427296248
+  y: 0.5
 - !ruby/object:EnsoPoint 
-  x: 0.5091824306172424
+  x: 0.7281649224510913
   y: 1
 default:/states[COOLDOWN]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
@@ -90,4 +93,4 @@ default::/states[IGNITE]$*:
   y: 0.5
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.4735537009450803
+  y: 0.5

@@ -1,4 +1,4 @@
-diagram(system)
+diagram "Piping Simulation" (system)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
@@ -35,16 +35,22 @@ graph [font.size=12,fill.color=(255,255,255)] {
            text [font.size=8,font.weight=400] sensor.kind
            horizontal {
             text [font.size=8,font.weight=400] "current:"
-            text [font.size=8,font.weight=400] sensor.value
+            if sensor.kind == "temperature"
+              text [font.size=8,font.weight=400] sensor.attach.temperature
+            else if sensor.kind == "pressure"
+              text [font.size=8,font.weight=400] sensor.attach.pressure
+            else if sensor.kind == "flow"
+              text [font.size=8,font.weight=400] sensor.attach.flow
            }
-           horizontal {
-            text [font.size=8,font.weight=400] "desired:"
-            text [font.size=8,font.weight=400] sensor.user
-           }
+           if sensor.controllable
+             horizontal {
+              text [font.size=8,font.weight=400] "desired:"
+              text [font.size=8,font.weight=400] sensor.user
+             }
           }
         }
     }
 
-  for "Sensor" sensor : system.sensors
+  for sensor : system.sensors
     connector (sensor -- sensor.attach)
 }

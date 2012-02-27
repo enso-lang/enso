@@ -6,6 +6,9 @@
 *.xcodeproj/xcuserdata/*
 *.xcworkspace/xcuserdata/*
 
+# Rubymine noise
+.idea
+
 # Emacs noise
 *~
 \#*\#

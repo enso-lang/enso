@@ -8,7 +8,7 @@ module ManagedData
     end
     
     def [](name)
-      puts "DYNAMIC #{@obj}.#{name}"
+      #puts "DYNAMIC #{@obj}.#{name}"
       var = @fields[name]
       return var if var
       if !name.is_a?(Variable) && name.start_with?("_")

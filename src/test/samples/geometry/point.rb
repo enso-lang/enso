@@ -34,6 +34,7 @@ p2 = Loader.load('point2.point')
 str = ""
 DisplayFormat.print(point_grammar, p2, 80, str)
 puts str
+puts p2.drawings['Drawing2'].shapes[0].is_straight
 
 p12 = union(p1, p2)
 str = ""

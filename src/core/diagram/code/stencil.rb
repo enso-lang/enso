@@ -10,6 +10,7 @@ require 'core/system/library/schema'
 require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
+require 'core/expr/code/env'
 require 'yaml' 
 
 # render(Stencil, data) = diagram
@@ -22,6 +23,8 @@ def RunStencilApp(path = ARGV[0])
 end
 
 class StencilFrame < DiagramFrame
+  attr_reader :selection
+
   include Paths
 
   class FunDefs; end
@@ -46,6 +49,9 @@ class StencilFrame < DiagramFrame
   def setup extension, data
     @extension = extension
     @stencil = Load("#{@extension}.stencil")
+    if !@stencil.title.nil?
+      self.set_title(@stencil.title)
+    end
     @data = data
     if data.factory.file_path
       pos = "#{data.factory.file_path}-positions"
@@ -67,14 +73,14 @@ class StencilFrame < DiagramFrame
     puts "REBUILDING"
     white = @factory.Color(255, 255, 255)
     black = @factory.Color(0, 0, 0)
-        
-    env = { 
+
+    env = {
       @stencil.root => @data,
       :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
       :brush => @factory.Brush(white)
     }
-    
+
     @shapeToAddress = {}  # used for text editing
     @shapeToModel = {}    # list of all created objects
     @shapeToTag = {}    # list of all created objects
@@ -85,6 +91,12 @@ class StencilFrame < DiagramFrame
         set_root(x)
       end
     end
+
+    if !@position_map['*WINDOW*'].nil?
+      size = @position_map['*WINDOW*']
+      set_size(Wx::Size.new(size['x'], size['y']))
+    end
+
     refresh()
     #puts "DONE"
     #Print.print(@root)
@@ -124,6 +136,10 @@ class StencilFrame < DiagramFrame
     # save the position_map
     @position_map = {}
     @position_map["*VERSION*"] = 2
+
+    size = get_size
+    @position_map['*WINDOW*'] = {'x'=>size.get_width, 'y'=>size.get_height}
+
     obj_handler = lambda do |tag, obj, shape|
       @position_map[tag] = position(shape)
     end
@@ -205,7 +221,7 @@ class StencilFrame < DiagramFrame
   end
 	
   def edit_address(address, shape)
-    if address.field.type.Primitive?
+    if address.type.Primitive?
 			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
@@ -265,10 +281,10 @@ class StencilFrame < DiagramFrame
     pen = nil
     brush = nil
     #Print.print(stencil)
+    newEnv = env.clone
     stencil.props.each do |prop|
-      val = eval(prop.exp, env)
+      val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      newEnv = {}.update(env) if !newEnv
       case "#{prop.loc.e.name}.#{prop.loc.fname}"
       when "font.size" then
         #puts "FONT SIZE #{val}"
@@ -305,7 +321,7 @@ class StencilFrame < DiagramFrame
   end
 
   def constructEAssign(this, env, container, &block)
-    nenv = {}.update(env)
+    nenv = env.clone
       #presumably only Fields and Vars can serve as l-values
       #FIXME: handle Fields as well, by using the address field from eval
     lvalue(this.var, nenv).value = eval this.val, nenv
@@ -329,7 +345,7 @@ class StencilFrame < DiagramFrame
       is_traversal = lhs.schema_class.fields[this.list.fname].traversal
     end
 
-    nenv = {}.update(env)
+    nenv = env.clone
     source.each_with_index do |v, i|
       nenv[this.var] = v
       nenv[this.index] = i if this.index
@@ -451,9 +467,9 @@ class StencilFrame < DiagramFrame
 
   def evallabel(label, env)
     tag = "default"
-    if label.Prim? && label.op == "[]"   # it has the form Loc[foo]
-      tag = label.args[0]
-      label = label.args[1]
+    if label.ESubscript? # it has the form Loc[foo]
+      tag = label.e
+      label = label.sub
       raise "foo" if !tag.Var?
       tag = tag.name
     end
@@ -482,9 +498,15 @@ class StencilFrame < DiagramFrame
   
   def constructText(this, env, container, &block)
     val = eval(this.string, env, true)
-    addr = address(this.string, env)
+    addr = lvalue(this.string, env)
     text = @factory.Text
-    text.string = val.to_s
+    if val.is_a? Variable
+      text.string = val.new_var_method do |a, *other|
+        x = "#{a}"
+      end
+    else
+      text.string = val.to_s
+    end
     make_styles(this, text, env)
     if addr
 	    @shapeToAddress[text] = addr
@@ -504,7 +526,7 @@ class StencilFrame < DiagramFrame
   end
 
   def makeLabel(exp, env)
-    labelStr = eval(exp, env)
+    labelStr = eval(exp, env, true)
     if labelStr
       label = @factory.Text
       label.string = labelStr
@@ -540,9 +562,9 @@ class StencilFrame < DiagramFrame
 
   #### expressions
 
-  def eval(exp, env)
+  def eval(exp, env, dynamic = false)
     @eval = Interpreter(EvalExpr, EvalStencil) if @eval.nil?
-    @eval.eval(exp, :env=>env, :factory=>@factory)
+    @eval.eval(exp, :env=>env, :dynamic=>dynamic, :factory=>@factory)
   end
 
   def lvalue(exp, env)
@@ -629,49 +651,9 @@ class FindByTypeSelection
   end
 end
 
-class Address
-  def initialize(obj, field_name)
-    @object = obj    
-    @field = obj.schema_class.all_fields[field_name]
-  end
-  
-  attr_reader :object
-  attr_reader :field
-  
-  def value=(val)
-    case @field.type.name
-      when 'int'
-        val = val.to_i
-      when 'real'
-        val = val.to_f
-    end
-    @object[real_field.name] = val
-  end
 
-  def insert(val)
-    col = @object[real_field.name]
-    puts "Inserting #{@object}.#{@field.name}[#{col.length}] << #{val}"
-    col << val
-    puts "Size is now #{col.length}"
-  end
 
-  def real_field
-    #puts "GET TYPE #{@object}.#{@field}"
-    if @field.computed
-      # this determines if a computed field is a selection of a traversal field
-      # the semantics it implements is correct, but it does it using a quick hack
-      # as a syntactic check, rather than a semantic analysis
-      if @field.computed =~ /@([^.]*)\.select.*/  # MAJOR HACK!!!
-				return @object.schema_class.all_fields[$1]    
-      end
-    end
-    return @field
-  end
-  
-  def is_traversal
-    return real_field.traversal
-  end
-end
+
 
 if __FILE__ == $0 then
   RunStencilApp()

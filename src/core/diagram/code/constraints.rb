@@ -1,12 +1,12 @@
 class TrueClass
   def test(a, b)
-    puts "TRUE TEST VARIABLE!!! #{a} else #{b}"
+    #puts "TRUE TEST VARIABLE!!! #{a} else #{b}"
     return a
   end
 end
 class FalseClass
   def test(a, b)
-    puts "FALSE TEST VARIABLE!!! #{a} else #{b}"
+    #puts "FALSE TEST VARIABLE!!! #{a} else #{b}"
     return b
   end
 end
@@ -38,7 +38,7 @@ class Variable
   def initialize(name, val = nil)
     @name = name
     @dependencies = []
-    @vars
+    @vars = []
     @value = val
     @bounds = []
   end
@@ -52,7 +52,7 @@ class Variable
   end
   
   def to_str
-    return value.to_str
+    return value.to_s
   end
 
   def to_ary
@@ -74,32 +74,37 @@ class Variable
   def test(a, b)
     var = Variable.new("test#{self.to_s}")
     var.internal_define(self, a, b) do |v, ra, rb|
-      puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
+      #puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
       v.test(ra, rb)
     end
-    return var
+    var
   end
   
   def method_missing(m, *args)
     if value && (value.is_a?(ManagedData::MObject) || value.is_a?(ManagedData::DynamicUpdateProxy))
-      if m.to_s.end_with?("=")
+      if m.to_s =~  /^[^=]*=$/
         return value.send(m, *args)
       elsif args==[]
         return value.dynamic_update.send(m, *args)
       end
     end
-    raise "undefined method #{m} on VARIABLE #{value}" unless [:equal?, :+, :-, :*, :/, :round, :schema_class].include? m 
+    raise "undefined method #{m} on VARIABLE #{value}" unless [:eql?, :+, :-, :*, :/, :round, :schema_class].include? m
     var = Variable.new("p#{self.to_s}#{args.to_s}")
     #puts "#{var}=#{self.to_s}+#{args}"
     var.internal_define(self, *args) do |a, *other|
       a.send(m, *other)
     end
-    return var
+    var
   end
 
-  def equal?(x)
-    puts "TESTING EQUALITY on var"
-    method_missing(:equal?, x)
+  def new_var_method(&block)
+    var = Variable.new("p#{self.to_s}")
+    var.internal_define(self, &block)
+    var
+  end
+
+  def eql?(x)
+    method_missing(:eql?, x)
   end
   
   def internal_define(*vars, &block)
@@ -144,8 +149,8 @@ class Variable
     @dependencies.each do |var|
       var.internal_notify_change
     end
-    #puts "CLEAR #{@name}"
-    @value = nil
+    #@block.nil means this is a hardcoded var, probably because someone assigned to it
+    @value = nil unless @block.nil?
   end
     
   def value
