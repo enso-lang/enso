@@ -8,13 +8,13 @@ class State
   machine: Machine / states
 # name: str
 ! out: Transition*
-  in: Transition*
+  \in: Transition*
 end
 
 class Transition
   event: str
   from: State / out
-  to: State / in
+  to: State / \in
   action: str
 end
 

@@ -5,7 +5,13 @@ module EvalExpr
   end
 
   def eval_EBinOp(op, e1, e2, args=nil)
-    self.eval(e1, args).send(op.to_s, self.eval(e2, args))
+    if op == "&"
+      self.eval(e1, args) && self.eval(e2, args)
+    elsif op == "|"
+      self.eval(e1, args) || self.eval(e2, args)
+    else
+      self.eval(e1, args).send(op.to_s, self.eval(e2, args))
+    end
   end
 
   def eval_EUnOp(op, e, args=nil)
@@ -13,7 +19,9 @@ module EvalExpr
   end
 
   def eval_EVar(name, args=nil)
-    args[:env][name]
+    env = args[:env]
+    puts "ERROR: undefined variable #{name}" if !env.has_key?(name)
+    env[name]
   end
 
   def eval_EConst(val, args=nil)
@@ -56,7 +64,9 @@ module EvalExprIntern
   end
 
   def eval_EVar(name, args=nil)
-    args[:env][name]
+    env = args[:env]
+    puts "ERROR: undefined variable #{name}" if !env.has_key?(name)
+    env[name]
   end
 
   def eval_EConst(val, args=nil)

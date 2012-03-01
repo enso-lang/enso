@@ -1,3 +1,7 @@
+# this program computes the start/end line of latex includes for 
+# references to any files
+# usgae: 
+
 #require 'tempfile'
 require 'FileUtils'
 

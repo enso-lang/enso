@@ -2,31 +2,33 @@ diagram(schema)
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
-  for ("Class" class : schema.classes)
-   label class   // declare the "identifier" of this node is a class
+  for "Class" class : schema.classes 
+   label class {  // declare the "identifier" of this node is a class
      box [line.width=3, fill.color=(255,228,181)] {  // this is the class rectangle
        vertical {
           text [font.size=16,font.weight=700] class.name
-          for ("Field" field : class.defined_fields)
+          for "Field" field : class.defined_fields
             if (field.computed == nil)
              if (field.type is Primitive)  // TODO: NEED ?
                horizontal {
                  text field.name  // editable field name
                  text ": "
-                 text field.type  // TODO: drop-down for primitive types
+                 text field.type.name  // TODO: drop-down for primitive types
                }
        }
     }
+  }
   // create the subclass links
-  for (class : schema.classes)
-    for ("Parent" super : class.supers)
+  for class : schema.classes
+    for "Parent" super : class.supers
       connector [line.width=3,line.color=(255,0,0)] (class --> super)
   
   // create the relationship edges that go between nodes
-  for (class : schema.classes)
-    for ("Relationship" field : class.defined_fields)
+  for class : schema.classes
+    for "Relationship" field : class.defined_fields
      if (field.computed == nil)
-      if (!(field.type is Primitive) & (field.inverse == nil | field._id <= field.inverse._id))
-        connector (field.name, (field.inverse==nil ? "" : field.inverse.many ? "*" : field.inverse.optional ? "?" : "1") : field.owner
-                  -- field.type : field.inverse.name, (field.many ? "*" : field.optional ? "?" : "1") )
+      if (not (field.type is Primitive) and (field.inverse == nil or field._id <= field.inverse._id))
+        connector (field.name  : field.owner  
+                  -- field.type : "" ) // field.inverse.name
  }
+ 

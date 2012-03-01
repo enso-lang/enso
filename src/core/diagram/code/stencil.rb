@@ -79,7 +79,8 @@ class StencilFrame < DiagramFrame
       @stencil.root => @data,
       :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
-      :brush => @factory.Brush(white)
+      :brush => @factory.Brush(white),
+      "nil" => nil
     }
 
     @shapeToAddress = {}  # used for text editing
@@ -343,7 +344,9 @@ class StencilFrame < DiagramFrame
     is_traversal = false
     if this.list.EField?
       lhs = eval(this.list.e, env)
-      is_traversal = lhs.schema_class.fields[this.list.fname].traversal
+      f = lhs.schema_class.all_fields[this.list.fname]
+      raise "MISSING #{this.list.fname} on #{lhs.schema_class}" if !f
+      is_traversal = f.traversal
     end
 
     nenv = env.clone

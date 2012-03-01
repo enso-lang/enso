@@ -73,7 +73,7 @@ class Variable
 
   def test(a, b)
     var = Variable.new("test#{self.to_s}")
-    var.internal_define(self, a, b) do |v, ra, rb|
+    var.internal_define("test", self, a, b) do |v, ra, rb|
       #puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
       v.test(ra, rb)
     end
@@ -91,7 +91,7 @@ class Variable
     raise "undefined method #{m} on VARIABLE #{value}" unless [:eql?, :+, :-, :*, :/, :round, :schema_class].include? m
     var = Variable.new("p#{self.to_s}#{args.to_s}")
     #puts "#{var}=#{self.to_s}+#{args}"
-    var.internal_define(self, *args) do |a, *other|
+    var.internal_define(m, self, *args) do |a, *other|
       a.send(m, *other)
     end
     var
@@ -99,7 +99,7 @@ class Variable
 
   def new_var_method(&block)
     var = Variable.new("p#{self.to_s}")
-    var.internal_define(self, &block)
+    var.internal_define("new_var", self, &block)
     var
   end
 
@@ -107,8 +107,8 @@ class Variable
     method_missing(:eql?, x)
   end
   
-  def internal_define(*vars, &block)
-    raise "nil definition" if vars.any?(&:nil?)
+  def internal_define(op, *vars, &block)
+    raise "nil definition for '#{op}' on #{vars}" if vars.any?(&:nil?)
     @vars = vars
     @vars.each do |v|
       v.add_listener(self) if v.is_a?(Variable)
