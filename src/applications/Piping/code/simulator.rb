@@ -87,7 +87,7 @@ module CalcHeatFlow
     #assume the efficiency is 15%, ie 15% of the heat difference is transferred from the water to the environment
     #if the water passing through is cold, then this doubles up as a cooling system (?)
     flow = set_pipe_flow(elem.output, args[:flowconst])
-    temp = (old.input.temperature - old.temperature) * 0.15
+    temp = (old.input.temperature - old.temperature) * 0.10
     elem.temperature = (old.temperature + temp).sigfig(3)
     new_temp = old.input.temperature - temp
     transfer_heat(elem.output, flow, new_temp)
@@ -96,10 +96,10 @@ module CalcHeatFlow
   def CalcHeatFlow_Vessel(elem, old, args=nil)
     #Allows material to fill up the vessel. Once filled it acts like a joint
     if false #elem.contents < elem.capacity
-
     else #behave like a joint
-      elem.temperature = elem.input.temperature.round(2)
       flow = set_pipe_flow(elem.output, args[:flowconst])
+      temp = (old.input.temperature - old.temperature) * 0.15
+      elem.temperature = (old.temperature + temp).sigfig(3)
       transfer_heat(elem.output, flow, elem.temperature)
     end
   end
