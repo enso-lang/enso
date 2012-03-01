@@ -3,6 +3,8 @@ start Stencil
 abstract Block
 abstract Expr
 
+// To make text fields editable, add a "+" behind the name
+
 // diagrams
 Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Command*
 
