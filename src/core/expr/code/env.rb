@@ -33,6 +33,12 @@ module Env
     set_parent(env)
     self
   end
+  def to_s
+    "{ #{each{|k,v| "#{k}=>#{v}"}.join(", ")} }"
+  end
+  def clone
+    self
+  end
 end
 
 class HashEnv

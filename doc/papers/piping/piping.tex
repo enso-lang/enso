@@ -82,7 +82,6 @@
 \title{\includegraphics[scale=0.25]{enso.jpg}\\ Piping \& Instrumentation in \Enso \\
    Language Workbench Challenge 2012}
 \author{Alex Loh, William R. Cook, Tijs van der Storm}
-%\date{}                                           % Activate to display a given date or no date
 
 \begin{document}
 \maketitle
@@ -93,13 +92,66 @@
 
 \section{Introduction}
 
-Talk about Enso and the problem.
+The 2\ts{nd} Language Workbench Challenge (LWC2012) takes place on the 27\ts{th} of March 2012 in Cambridge, UK. The purpose of this challenge was to faciliate the exchange of ideas between various groups building Domain-Specific Language (DSL) development tools. Our language workbench, \Enso, will be showcased together with nine other tools from both academic and commercial organizations.
+
+\subsection{The Challenge}
+
+The challenge component of LWC2012 is to design and implement a language for controlling a central water heating system. There are two main parts to the assignment: 1) a controller language that sends out low-level instructions to the heating and piping system, and 2) a piping simulator that can mimic a real heating system for offline testing.
+
+\section{\Enso: A self-describing DSL workbench}
+
+\Enso is an external language workbench with both graphical and textual editing capabilities. Each language is defined by a \emph{schema}, or the model of its internal representation, which can be rendered either textually via its grammar, or graphically via a diagramming DSL called \emph{stencil}. Behavioral semantics in \Enso are defined using model interpreters written in the Ruby programming language. \Enso executes on top of itself: internally, the various components of the workbench, including the schema, grammar and stencil languages, are implemented as a stack of self-describing \Enso DSLs. This conceptually elegant congruence property also has the practical advantage of allowing application developers, toolsmiths, and even developers of \Enso extensions to share the same toolchain. The other key strength of \Enso is strong support for language interaction across domains. DSLs can be composed, extended or wrapped via inheritance, either directly or in a cross-cutting manner, enabling powerful reuse of its language library. Generic template languages, such as a control-flow based command language
 
 
-\section{Boiler/Radiator Example}
+
+
+\Enso is an external language workbench with both textual and graphical editing capabilities. Each language is defined by a \emph{schema}, or the model of its abstract representation, which can be edited either textually via its grammar or graphically as a diagram via a \emph{stencil}.
+
+Operational semantics of \Enso are specified using the Ruby programming language. The choice to use a general-purpose programming language such as Ruby, compared to more formal approaches like transformation rules and state machines
+
+blabla interpreters vs code gen
+
+\comments{
+
+}
+
+
+
+Internally, \Enso is itself implemented as a collection of DSLs, adhering to the spirit of language-oriented programming. The 
+
+\comments{
+- Key characteristics
+  - Self-describing
+    - 'everything is a language' (don't say this; say "language-oriented programming")
+    - dsl tools can be used at both levels
+    - auto-bootstrapped from meta-metamodel
+      - metametamodel can be changed (even dynamically)
+  - Interpreter vs code generation
+    - avoid one level of indirection to: 
+      - sidestep round-tripping issues
+      - easier to build tools (correctness,  that depend on the run-time
+  - Decouple editing from internal representation
+    - representation freedom
+- Key weakness
+  - no IDE
+    - leverage Ruby's debugging capabilities
+}
+
+\subsection{Our solution}
+
+The piping language is used to describe a Piping and Instrumentation Diagram (P&ID). A P&ID is a network of \emph{elements}, such as burners, pumps, and radiators, connected by pipes of varying length and diameter. Additionally, sensors may be attached to elements and pipes to measure temperature, flow rate or pressure. In our system, pipe connects such as joints and environment exhausts, as well as controllable valves, are also considered elements.
+
+The languages interact through an API 
+
+----With \Enso, we need to define a \emph{schema} model for each of these DSLs and both textual and graphical for them.
+
+A DSL in \Enso is primarily defined by its schema. In addition, we defined two 
 
 \section{Model Languages}
+
 \subsection{Piping Language}
+
+The piping language describes the configuration of pipes and heating elements in the system. 
 
 \begin{figure}
 \lstinputlisting[linerange=2-28,language=Schema]{../../../src/applications/Piping/models/piping.schema} % APPLY:linerange=PIPING_SCHEMA_ONE
@@ -120,11 +172,37 @@ Talk about Enso and the problem.
 
 \subsection{Controller Language}
 
+The controller language is structured as a finite state machine 
+
 \section{Execution}
 
-\subsection{Piping Interpreter}
-
 \subsection{Controller Interpreter}
+
+
+
+\subsection{Piping Simulation}
+
+Flow simulation is based on simplified laminar fluid flow and pressure laws:
+
+\[
+Flow \propto \frac{\Delta Pressure}{\Delta Distance}
+\]
+
+Assuming that pressure difference is linear within a pipe, and that the total flow in and out of a point is constant, we can derive that for any element E, the sum of ratio between the pressure difference at the two ends of a pipe and its length for all pipes leading away from P is zero. 
+
+\[
+\sum_{i=pipe 0}^{pipe n}{ (Pressure_{i}-Pressure_{E}) / Length_{i} } = 0
+
+where Pressure_{i} is the pressure at the end of pipe_{i} not connected to E
+\]
+
+These laws hold for all elements and joints except those that disrupt flow in some way, for instance, open ends assigns a fixed value to pressure (based on environmental values) and a closed valve forces the pressure at both ends of a pipe to be the same. Likewise, pumps set the pressure at its output end to a fixed value. The pressure simulator applies these laws iteratively at every element and joint until a fixpoint is reached. This produces a pressure map of the system, with absolute values at each element and pressure assumed to decrease linearly within each pipe. Using this pressure map we can then calculate the flow in each individual pipe.
+
+\[
+Flow_{p}, the flow through pipe p = Flow_{Pump} * \frac{\Delta Pressure_{p}}{\Delta Distance_{p}} / \frac{\Delta Pressure_{Pump}}{\Delta Distance_{Pump}}
+\]
+
+Heat transfer can take place between a suitable element, such as a vessel, and the pipe it is attached to. The rate is based on the difference between their temperatures. Likewise, heat transfer can occur between water in a pipe and the environment, resulting in heat dissipation. Again, the rate of this dissapation is based on the temperature difference between the water and the environment. Room temperature is hardcoded in the simulator to 10$^\circ$ Celsius, or 50$^\circ$ Fahrenheit.
 
 \section{Graphical Rendering with Stencils}
 
@@ -132,7 +210,6 @@ Talk about Enso and the problem.
 
 \subsection{Editing}
 
-
-
 \end{document}  
+
 

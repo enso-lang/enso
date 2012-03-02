@@ -28,7 +28,7 @@ end
 
 class TurnSplitter < Command
   splitter:str
-! percent:real
+  percent:real
 end
 
 class Expr end
