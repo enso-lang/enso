@@ -51,6 +51,7 @@ class Interpreter
 
   def compose!(*mods)
     mods.each {|mod| instance_eval {extend(mod)}}
+    initialize
     self
   end
 end
