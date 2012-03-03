@@ -61,27 +61,27 @@ class Controller
       @piping = piping
     end
     def [](key)
-      if @piping.sensor_names.include? key
-        @piping.get_sensor(key)
-      elsif @piping.control_names.include? key
-        @piping.get_control(key)
+      if @piping.sensors.has_key? key
+        @piping.sensors[key]
+      elsif @piping.elements.has_key? key
+        @piping.elements[key]
       else
         @parent.nil? ? nil : @parent[key]
       end
     end
     def []=(key, value)
-      if @piping.control_names.include? key
-        @piping.set_control_value(key, value)
+      if @piping.elements.has_key? key
+        @piping.elements[key] = value
       else
         @parent[key] = value
       end
     end
     def each(&block)
-      @piping.sensor_names.each do |sn|
-        yield sn, @piping.get_sensor(sn)
+      @piping.sensors.each do |s|
+        yield s.name, s
       end
-      @piping.control_names.each do |cn|
-        yield cn, @piping.get_control(cn)
+      @piping.elements.each do |e|
+        yield e.name, e
       end
       @parent.each &block unless @parent.nil?
     end
