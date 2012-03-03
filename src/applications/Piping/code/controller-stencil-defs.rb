@@ -3,7 +3,11 @@ require 'core/semantics/code/interpreter'
 require 'core/diff/code/equals'
 
 def Layout(obj)
-  send("Layout_#{obj.schema_class.name}", obj)
+  if respond_to? "Layout_#{obj.schema_class.name}"
+    send("Layout_#{obj.schema_class.name}", obj)
+  else
+    send("Layout_Expr", obj)
+  end
 end
 
 def Layout_Assign(obj)
@@ -13,10 +17,14 @@ def Layout_Assign(obj)
         "Raise"
       when '-'
         "Lower"
-    end} #{Layout_Expr(obj.var)} by #{Layout_Expr(obj.val.e2)}"
+    end} #{Layout(obj.var)} by #{Layout(obj.val.e2)}"
   else
-    "Set #{Layout_Expr(obj.var)} to #{Layout_Expr(obj.val)}"
+    "Set #{Layout(obj.var)} to #{Layout(obj.val)}"
   end
+end
+
+def Layout_Global(obj)
+  Layout(obj.var)
 end
 
 def Layout_TurnSplitter(obj)
