@@ -1,4 +1,6 @@
+require 'core/semantics/code/interpreter'
 require 'core/expr/code/lvalue'
+require 'core/expr/code/env'
 
 module ExecuteController
   include LValueExpr
@@ -7,8 +9,8 @@ module ExecuteController
     globals.each {|g| execute(g, args)}
   end
 
-  def execute_Controller(args=nil)
-    execute(@control.current, args)
+  def execute_Controller(current, args=nil)
+    execute(current, args)
   end
 
   def execute_State(commands, transitions, args=nil)
@@ -25,7 +27,7 @@ module ExecuteController
 
   def execute_Transition(guard, target, args=nil)
     if self.eval(guard, args)
-      @control.current = target
+      args[:control].current = target
       true
     else
       false
@@ -37,54 +39,55 @@ module ExecuteController
   end
 
   def execute_TurnSplitter(splitter, percent, args=nil)
-    @piping.turn_splitter(splitter, percent)
+    args[:env][splitter].position = [[percent, 1.0].min, 0.0].max
   end
 end
 
 class Controller
 
-  include ExecuteController
-  include Dispatch1
-
   def initialize(piping, control)
     #piping is the interface to the state of the pipes. connects either to a simulator or hardware
     #state is the current state of the controller, used to store global runtime variables
     @piping = piping
-    @state = {}
     @control = control
-    @env = ControlEnv.new(@piping, @state)
-    init(@control, :env=>@env)
+    @env = ControlEnv.new(@piping).set_parent({})
+    @interp = Interpreter(ExecuteController)
+    @interp.init(@control, :env=>@env)
   end
 
-  #environment to execute the controller in
-  # similar to a normal environment except for the lookup
-  # lookup order: local > piping > globals
-  class ControlEnv < Hash
-    def initialize(piping, globals)
+  class ControlEnv
+    include Env
+    def initialize(piping)
       @piping = piping
-      @globals = globals
     end
-
-    def [](k)
-      if @piping.sensor_names.include? k
-        @piping.get_sensor(k)
-      elsif @piping.control_names.include? k
-        @piping.get_control(k)
+    def [](key)
+      if @piping.sensors.has_key? key
+        @piping.sensors[key]
+      elsif @piping.elements.has_key? key
+        @piping.elements[key]
       else
-        super
+        @parent.nil? ? nil : @parent[key]
       end
     end
-
-    def []=(k,v)
-      if @piping.control_names.include? k
-        @piping.set_control_value(k, v)
+    def []=(key, value)
+      if @piping.elements.has_key? key
+        @piping.elements[key] = value
       else
-        super
+        @parent[key] = value
       end
+    end
+    def each(&block)
+      @piping.sensors.each do |s|
+        yield s.name, s
+      end
+      @piping.elements.each do |e|
+        yield e.name, e
+      end
+      @parent.each &block unless @parent.nil?
     end
   end
 
   def run
-    execute(@control, {:env=>@env})
+    @interp.execute(@control, :env=>@env, :piping=>@piping, :control=>@control)
   end
 end

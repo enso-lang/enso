@@ -24,20 +24,25 @@ class Interpreter
     private
 
     def __call(method_sym, fields, type, args)
-      m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
-      if !m.nil?
-        params = []
-        m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
-          params << fields[f]
+      begin
+        m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
+        if !m.nil?
+          params = []
+          m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
+            params << fields[f]
+          end
+          m.call(*params, args)
+  
+        elsif respond_to?("#{method_sym}_?")
+          m = method("#{method_sym}_?".to_sym)
+          m.call(fields, type, args)
+  
+        else
+          raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
         end
-        m.call(*params, args)
-
-      elsif respond_to?("#{method_sym}_?")
-        m = method("#{method_sym}_?".to_sym)
-        m.call(fields, type, args)
-
-      else
-        raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
+      rescue Exception => e 
+        puts "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type}"
+        raise e
       end
     end
   end
@@ -46,6 +51,7 @@ class Interpreter
 
   def compose!(*mods)
     mods.each {|mod| instance_eval {extend(mod)}}
+    initialize
     self
   end
 end

@@ -1,0 +1,35 @@
+
+\section{\Enso: Self-describing language specification}
+
+\comments{
+- What is Enso
+  - Enso is an external DSL workbench (toolkit for creating ext DSLs...)
+  - Each DSL is defined by a metamodel (i dun like this word, use abstract syntax), aka schema written by the programmer
+    - metamodel is amanaged data --> zzz...
+      - provide services such as inverses, etc (do i care? this is a program, not a data model, not even program state!)
+  - optionally can be edited textually or graphically depending on whether a grammar or a \emph{stencil}, a graphical blahblah specification language
+    - decoupling gives:
+      - representation freedom
+      - 
+- internally
+  - 'everything is a language'
+  - each component, schema, grammar, stencil, diff, etc, is a DSL.
+  - bootstrapped from a minimal schema and grammar model
+  - metametamodels are explicitly represented and editable
+  - advantages?
+    - the same tools for building DSLs as using DSLs
+    - "multi-level metamodeling" ?? able to ????
+  - 
+}
+
+\Enso is an external DSL workbench with both textual and graphical editing capabilities. Each DSL is defined by its \emph{schema}, a model of its abstract syntax which conforms to a meta-metamodel loosely similar to MOF. The choice of textual and graphical representation allows
+
+Additionally, the meta-metamodel in \Enso is editable and loaded at run-time. This allows the workbench to be extensible.
+
+\subsection{'Everything is a language'}
+
+
+At its core, each language created in \Enso is defined by a model of its abstract syntax, known as its \emph{schema}. This schema can be created and edited either graphically or textually.
+
+
+

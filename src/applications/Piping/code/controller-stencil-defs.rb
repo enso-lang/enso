@@ -1,12 +1,30 @@
 require 'core/expr/code/render'
 require 'core/semantics/code/interpreter'
+require 'core/diff/code/equals'
 
 def Layout(obj)
-  send("Layout_#{obj.schema_class.name}", obj)
+  if respond_to? "Layout_#{obj.schema_class.name}"
+    send("Layout_#{obj.schema_class.name}", obj)
+  else
+    send("Layout_Expr", obj)
+  end
 end
 
 def Layout_Assign(obj)
-  "Set #{Layout_Expr(obj.var)} to #{Layout_Expr(obj.val)}"
+  if obj.val.EBinOp? and ['+','-'].include?(obj.val.op) and Equals.equals(obj.var,obj.val.e1)
+    "#{case obj.val.op
+      when '+'
+        "Raise"
+      when '-'
+        "Lower"
+    end} #{Layout(obj.var)} by #{Layout(obj.val.e2)}"
+  else
+    "Set #{Layout(obj.var)} to #{Layout(obj.val)}"
+  end
+end
+
+def Layout_Global(obj)
+  Layout(obj.var)
 end
 
 def Layout_TurnSplitter(obj)

@@ -1,12 +1,11 @@
 require 'applications/Piping/code/simulator'
 require 'applications/Piping/code/controller'
-require 'applications/Piping/code/piping'
 require 'core/system/load/load'
 require 'core/schema/code/factory'
 
 class PipingSystem
 
-  attr_reader :piping, :control, :controller, :sim
+  attr_reader :piping, :control, :sim, :controller
   
   def initialize(name)
     grammar = Loader.load('piping.grammar')
@@ -14,7 +13,7 @@ class PipingSystem
     @piping = Loader.load_with_models("#{name}.piping", grammar, schema)
     @control = Loader.load("#{name}.controller")
     @control.current = @control.initial
-    @controller = Controller.new(SimulatorPiping.new(@piping), control)
+    @controller = Controller.new(@piping, @control)
     @sim = Simulator.new(@piping)
   end
 
@@ -37,5 +36,18 @@ class PipingSystem
       puts "  Valve position #{valve.position}"
       puts "************************"
       yield time
+  end
+end
+
+if __FILE__ == $0 then
+  time=0
+  st = PipingSystem.new 'boiler'
+  st.piping.sensors['Boiler_Temp'].user = 100
+  while true
+    sleep(1)
+    time+=1
+    st.run time do |time|
+      puts "TICK after #{time} seconds: at state #{st.control.current.name}"
+    end
   end
 end

@@ -1,44 +1,51 @@
 start IGNITE
 
-WATER_MARGIN = 5
-RADIATOR_MARGIN = 5
+START_GAS = 50
 
-PUMP_SPEED = 10
-MIN_GAS = 50
+Pump.flow = 0.35
+
+WATER_MARGIN = 3
+RADIATOR_MARGIN = 3
 
 BURNER_RAMPUP = 2
+BURNER_RAMPDOWN = 2
 
 state IGNITE:
  if Burner.ignite goto RAMPUP
  Burner.ignite = true
- Burner.gas_level = MIN_GAS
- Pump.flow = 0.05
+ Burner.gas_level = START_GAS
+ //Pump.flow = 0.35
  Pump.run = true
  turn splitter Valve center
 
 state RAMPUP:
+ if Radiator.temperature >= Radiator_Temp.user and Boiler.temperature >= Boiler_Temp.user goto RUNNING
  if Radiator.temperature > Radiator_Temp.user + RADIATOR_MARGIN and Boiler.temperature < Boiler_Temp.user - WATER_MARGIN goto BOILER
  if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN and Boiler.temperature > Boiler_Temp.user + WATER_MARGIN goto RADIATOR
- if Radiator.temperature > Radiator_Temp.user - RADIATOR_MARGIN and Boiler.temperature > Boiler_Temp.user - WATER_MARGIN goto RUNNING
  raise Burner.gas_level by BURNER_RAMPUP
+ turn splitter Valve center
 
 state BOILER:
  if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN goto RAMPUP
  if Boiler.temperature > Boiler_Temp.user goto RUNNING
+ raise Burner.gas_level by BURNER_RAMPUP
  turn splitter Valve left
 
 state RADIATOR:
  if Boiler.temperature < Boiler_Temp.user - WATER_MARGIN goto RAMPUP
  if Radiator.temperature > Radiator_Temp.user goto RUNNING
+ raise Burner.gas_level by BURNER_RAMPUP
  turn splitter Valve right
 
 state COOLDOWN:
- if Radiator.temperature > Radiator_Temp.user + RADIATOR_MARGIN and Boiler.temperature < Boiler_Temp.user goto BOILER
- if Radiator.temperature < Radiator_Temp.user and Boiler.temperature > Boiler_Temp.user + WATER_MARGIN goto RADIATOR
- if Radiator.temperature < Radiator_Temp.user + RADIATOR_MARGIN  and Boiler.temperature < Boiler_Temp.user + WATER_MARGIN goto RUNNING
- lower Burner.gas_level by BURNER_RAMPUP
+ if Radiator.temperature <= Radiator_Temp.user and Boiler.temperature <= Boiler_Temp.user goto RUNNING
+ if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN goto RADIATOR
+ if Boiler.temperature < Boiler_Temp.user - RADIATOR_MARGIN goto BOILER
+ lower Burner.gas_level by BURNER_RAMPDOWN
 
 state RUNNING:
- if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN or Boiler.temperature < Boiler_Temp.user - WATER_MARGIN goto RAMPUP
+ if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN and Boiler.temperature < Boiler_Temp.user - WATER_MARGIN goto RAMPUP
+ if Boiler.temperature < Boiler_Temp.user - WATER_MARGIN goto BOILER
+ if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN goto RADIATOR
  if Radiator.temperature > Radiator_Temp.user + RADIATOR_MARGIN or Boiler.temperature > Boiler_Temp.user + WATER_MARGIN goto COOLDOWN
- turn splitter Valve center
+

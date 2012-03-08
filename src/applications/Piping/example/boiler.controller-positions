@@ -1,29 +1,29 @@
 --- 
 "*VERSION*": 2
 "*WINDOW*": 
-  x: 610
-  y: 418
+  x: 768
+  y: 432
 "default:": !ruby/object:EnsoPoint 
-  x: 19
-  y: 11
+  x: 33
+  y: 15
 default:/states[IGNITE]: !ruby/object:EnsoPoint 
-  x: 229
-  y: 12
+  x: 283
+  y: 21
 default:/states[RAMPUP]: !ruby/object:EnsoPoint 
-  x: 150
-  y: 134
+  x: 260
+  y: 136
 default:/states[BOILER]: !ruby/object:EnsoPoint 
-  x: 85
-  y: 216
+  x: 47
+  y: 213
 default:/states[RADIATOR]: !ruby/object:EnsoPoint 
-  x: 439
-  y: 216
+  x: 469
+  y: 211
 default:/states[COOLDOWN]: !ruby/object:EnsoPoint 
-  x: 153
-  y: 308
+  x: 249
+  y: 291
 default:/states[RUNNING]: !ruby/object:EnsoPoint 
-  x: 252
-  y: 216
+  x: 339
+  y: 227
 default:/states[IGNITE]:/states[RAMPUP]$*: 
 - !ruby/object:EnsoPoint 
   x: 0.5
@@ -40,50 +40,50 @@ default:/states[RAMPUP]:/states[RUNNING]$*:
   y: 0
 default:/states[BOILER]:/states[RAMPUP]$*: 
 - !ruby/object:EnsoPoint 
-  x: 0.21352977714372456
+  x: 0.5
   y: 0
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5
+  y: 0.5000000000000001
 default:/states[BOILER]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5
+  y: 0.44127797804852953
 default:/states[RADIATOR]:/states[RAMPUP]$*: 
 - !ruby/object:EnsoPoint 
-  x: 0.7318708612829563
+  x: 0.5
   y: 0
 - !ruby/object:EnsoPoint 
   x: 1
-  y: 0.5
+  y: 0.43923002793693317
 default:/states[RADIATOR]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
   x: 0
-  y: 0.5
+  y: 0.5568438788263668
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
-default:/states[COOLDOWN]:/states[BOILER]$*: 
+default:/states[COOLDOWN]:/states[RUNNING]$*: 
 - !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5
+  x: 0.5
+  y: 0
 - !ruby/object:EnsoPoint 
-  x: 0.21767576135391098
+  x: 0.5
   y: 1
 default:/states[COOLDOWN]:/states[RADIATOR]$*: 
 - !ruby/object:EnsoPoint 
   x: 1
   y: 0.5
 - !ruby/object:EnsoPoint 
-  x: 0.7281649224510913
-  y: 1
-default:/states[COOLDOWN]:/states[RUNNING]$*: 
-- !ruby/object:EnsoPoint 
   x: 0.5
-  y: 0
+  y: 1
+default:/states[COOLDOWN]:/states[BOILER]$*: 
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.5000000000000001
 - !ruby/object:EnsoPoint 
   x: 0.5
   y: 1

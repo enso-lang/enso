@@ -410,6 +410,8 @@ module ManagedData
 
     def connected?; @owner end
 
+    def has_key?(key); keys.include?(key) end
+
     def check(mobj)
       return if !connected?
       super(mobj)

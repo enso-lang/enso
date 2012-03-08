@@ -44,6 +44,7 @@ end
 
 class Text < Part
 ! string: Expr
+  editable: bool
 end
 
 class Shape < Part

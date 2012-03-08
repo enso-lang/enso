@@ -5,18 +5,22 @@ require "applications/Piping/code/controller-stencil-defs.rb"
 graph [font.size=12,fill.color=(255,255,255)] {
   // create an "init" state
   label controller {
-     box [line.width=1, fill.color=(255,228,181)] {  // this is the class rectangle
+     box [line.width=1, fill.color=(255,228,181)] {
        vertical {
         text [font.size=13,font.weight=600] "START"
         for global : controller.globals
-          text [font.size=8,font.weight=400] Layout(global)
+          horizontal {
+            text [font.size=8,font.weight=400] Layout_Global(global)
+            text [font.size=8,font.weight=400] ": "
+            text [font.size=8,font.weight=400] global.val.val
+          }
        }
      }
   }
   // create one state for each State
   for "State" state : controller.states
    label state {
-     box [fill.color=(controller.current==state ? (255,100,100): (255,228,181))] {  // this is the class rectangle
+     box [fill.color=(controller.current==state ? (255,100,100): (255,228,181))] {
        vertical {
         text [font.size=13,font.weight=600] state.name
         for "Command" command : state.commands

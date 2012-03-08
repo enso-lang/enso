@@ -11,7 +11,8 @@ require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/expr/code/env'
-require 'yaml' 
+require 'core/expr/code/render'
+require 'yaml'
 
 # render(Stencil, data) = diagram
 
@@ -78,7 +79,8 @@ class StencilFrame < DiagramFrame
       @stencil.root => @data,
       :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
       :pen => @factory.Pen(1, "solid", black),
-      :brush => @factory.Brush(white)
+      :brush => @factory.Brush(white),
+      "nil" => nil
     }
 
     @shapeToAddress = {}  # used for text editing
@@ -214,7 +216,7 @@ class StencilFrame < DiagramFrame
   def on_double_click(e)
     clear_selection
     text = find e, &:Text?
-    if text
+    if text and text.editable
       address = @shapeToAddress[text]
       edit_address(address, text) if address
     end
@@ -285,7 +287,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case "#{prop.loc.e.name}.#{prop.loc.fname}"
+      case Interpreter(RenderExpr).render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -342,7 +344,9 @@ class StencilFrame < DiagramFrame
     is_traversal = false
     if this.list.EField?
       lhs = eval(this.list.e, env)
-      is_traversal = lhs.schema_class.fields[this.list.fname].traversal
+      f = lhs.schema_class.all_fields[this.list.fname]
+      raise "MISSING #{this.list.fname} on #{lhs.schema_class}" if !f
+      is_traversal = f.traversal
     end
 
     nenv = env.clone
@@ -507,6 +511,7 @@ class StencilFrame < DiagramFrame
     else
       text.string = val.to_s
     end
+    text.editable = this.editable
     make_styles(this, text, env)
     if addr
 	    @shapeToAddress[text] = addr
@@ -530,6 +535,7 @@ class StencilFrame < DiagramFrame
     if labelStr
       label = @factory.Text
       label.string = labelStr
+      label.editable = false
       return label
     end
     return nil

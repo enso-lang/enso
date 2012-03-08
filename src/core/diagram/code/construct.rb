@@ -62,6 +62,7 @@ module EvalStencil
           r = r.dynamic_update
         end
       end
+      return r._id if fname == "_id"
       r[fname]
     end
   end

@@ -5,7 +5,7 @@ graph [font.size=12,fill.color=(255,255,255)] {
   for "Element" elem : system.elements
    label elem {
      if (elem is Temperatured)
-       oval [line.width=1,fill.color=(elem.temperature*2,0,0)] {
+       oval [line.width=1,fill.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))] {
          vertical {
            text [font.size=16,font.weight=700] elem.name
            if (elem is UserTemperature)
@@ -20,11 +20,11 @@ graph [font.size=12,fill.color=(255,255,255)] {
   // create the links
   for "Input" elem : system.elements
     if (elem is InputElement and not (elem is Joint))
-        connector [line.width=3,line.color=(elem.input.temperature*2,0,0)] (elem <-- elem.input.input)
+        connector [line.width=3,line.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))] (elem <-- elem.input.input)
   for elem : system.elements
     if (elem is Joint)
         for "Connection" pipe : elem.inputs
-           connector [line.width=3,line.color=(pipe.temperature*2,0,0)]  (elem <-- pipe.input)
+           connector [line.width=3,line.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))]  (elem <-- pipe.input)
 
   // create the sensors
   for "Sensor" sensor : system.sensors
@@ -44,8 +44,8 @@ graph [font.size=12,fill.color=(255,255,255)] {
            }
            if sensor.controllable
              horizontal {
-              text [font.size=8,font.weight=400] "desired:"
-              text [font.size=8,font.weight=400] sensor.user
+              text [font.size=8,font.weight=400] "desired: "
+              text+ [font.size=8,font.weight=400] sensor.user
              }
           }
         }

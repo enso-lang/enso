@@ -3,6 +3,8 @@ start Stencil
 abstract Block
 abstract Expr
 
+// To make text fields editable, add a "+" behind the name
+
 // diagrams
 Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Command*
 
@@ -12,7 +14,7 @@ Command ::= Part
 Part ::= [Label] "label" Props? label:Expr body:Block
        | [Container] Dir Props? items:Block
        | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
-       | [Text] "text" Props? string:Expr
+       | [Text] "text" ("+" @"@editable=true" | @"@editable=false") Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Block
        | [Require] "require" path:str
 

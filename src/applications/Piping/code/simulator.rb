@@ -87,7 +87,7 @@ module CalcHeatFlow
     #assume the efficiency is 15%, ie 15% of the heat difference is transferred from the water to the environment
     #if the water passing through is cold, then this doubles up as a cooling system (?)
     flow = set_pipe_flow(elem.output, args[:flowconst])
-    temp = (old.input.temperature - old.temperature) * 0.15
+    temp = (old.input.temperature - old.temperature) * 0.10
     elem.temperature = (old.temperature + temp).sigfig(3)
     new_temp = old.input.temperature - temp
     transfer_heat(elem.output, flow, new_temp)
@@ -96,10 +96,10 @@ module CalcHeatFlow
   def CalcHeatFlow_Vessel(elem, old, args=nil)
     #Allows material to fill up the vessel. Once filled it acts like a joint
     if false #elem.contents < elem.capacity
-
     else #behave like a joint
-      elem.temperature = elem.input.temperature.round(2)
       flow = set_pipe_flow(elem.output, args[:flowconst])
+      temp = (old.input.temperature - old.temperature) * 0.15
+      elem.temperature = (old.temperature + temp).sigfig(3)
       transfer_heat(elem.output, flow, elem.temperature)
     end
   end
@@ -128,9 +128,7 @@ module CalcHeatFlow
   end
 end
 
-class CalcPressure
-
-  include WorkList
+module CalcPressure
 
   #default element with one input and output
   def CalcPressure_?(fields, type, args=nil)
@@ -215,11 +213,10 @@ class CalcPressure
   end
 end
 
-class Init
-  include Map
+module Init
 
   def Init_Pipe(args=nil)
-    p = args[:obj]
+    p = args[:self]
     p.diameter = 0.1 if p.diameter == 0
     p.length = 10 if p.length == 0
     p.temperature = ROOM_TEMP
@@ -229,23 +226,23 @@ class Init
   end
 
   def Init_Radiator(args=nil)
-    args[:obj].temperature = ROOM_TEMP
+    args[:self].temperature = ROOM_TEMP
   end
 
   def Init_Vessel(args=nil)
-    args[:obj].temperature = ROOM_TEMP
+    args[:self].temperature = ROOM_TEMP
   end
 
   def Init_Joint(inputs, args=nil)
-    inputs.each {|p| p.output = args[:obj]}
+    inputs.each {|p| p.output = args[:self]}
   end
 
   def Init_Sensor(args=nil)
-    args[:obj].user = ROOM_TEMP
+    args[:self].user = ROOM_TEMP
   end
 
   def Init_?(fields, type, args=nil)
-    args[:obj]
+    args[:self]
   end
 
 end
@@ -264,10 +261,10 @@ class Simulator
   def initialize(piping)
     @piping = piping
     #do initialization here by setting the default states of the pipes, etc
-    Init.new.Init(@piping)
+    Interpreter(Map, Init).Init(@piping)
   end
 
-    #will run continuously
+  #will run continuously
   def execute
     while true
       tick
@@ -280,7 +277,9 @@ class Simulator
     pumps = @piping.elements.select {|o| o.Pump? }.values
     valves = @piping.elements.select {|o| o.Splitter? or o.Valve? }.values
     if !pumps.empty?
-      CalcPressure.new(pumps+valves).CalcPressure
+      @interp = Interpreter(WorkList, CalcPressure)
+      @interp.worklist = pumps+valves
+      @interp.CalcPressure
       p = pumps[0].output
       flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
       oldpipe = Clone(@piping)
