@@ -2,7 +2,7 @@
 class Genealogy
 	name: str
 	members: Person*
-end
+
 
 class Person
 	#id: str
@@ -10,13 +10,13 @@ class Person
 	name: str
 	father: Person?
 	mother: Person?
-end
+
 
 class Date
 	year: int
 	month: int
 	day: int
-end
+
 
 primitive \int
 primitive \str

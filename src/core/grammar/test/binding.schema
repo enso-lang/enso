@@ -1,0 +1,10 @@
+
+primitive str
+
+class Foo
+  !out: Bar
+
+
+class Bar
+  name: str
+

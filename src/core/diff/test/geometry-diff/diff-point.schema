@@ -4,22 +4,22 @@
   primitive \real
 
 class Point
-end
+
 class Point2D < Point
   x: int
   y: int
-end
+
 class Point3D < Point
   x: int
   y: int
   z: int
-end
+
 class Line
 #  label: str
   len: int?
 !  pts: Point2D *
   adj: Line?
-end
+
 class Drawing
 !  lines: Line *
-end
+

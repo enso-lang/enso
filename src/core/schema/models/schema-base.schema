@@ -7,15 +7,15 @@ class Schema
 ! types: Type*
   classes: Class* = "@types.select(&:Class?)"
   primitives: Primitive* = "@types.select(&:Primitive?)"
-end
+
 
 class Type
 # name: str
   schema: Schema / types
-end
+
 
 class Primitive < Type
-end
+
   
 class Class < Type
   supers: Class*
@@ -23,7 +23,7 @@ class Class < Type
 ! defined_fields: Field*
   fields: Field* = "@all_fields.select {|f| !f.computed}"
   all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
-end
+
   
 class Field
 # name: str
@@ -36,6 +36,6 @@ class Field
   inverse: Field? / inverse 
 ! computed: Expr?
   traversal: bool
-end
 
-class Expr end
+
+class Expr

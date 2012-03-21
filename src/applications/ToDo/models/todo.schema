@@ -4,11 +4,11 @@ primitive \bool
 
 class Todos
 ! todos: Todo*
-end
+
 
 class Todo
   owner: Todos / todos
   todo: str
   done: bool
   related: Todo*
-end
+

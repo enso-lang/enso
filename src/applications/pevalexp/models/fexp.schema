@@ -6,57 +6,57 @@ primitive bool
 class Prog
 ! main: Expr
 ! funcs: FuncDef*
-end
+
 
 class FuncDef
   name: str
 ! formals: Var*
 ! body: Expr
-end
+
 
 class Expr
-end
+
 
 class Const < Expr
 ! value: Value
-end
+
 
 class Var < Expr
   name: str
-end
+
 
 class Prim < Expr
   op: str
 ! args: Expr*
-end
+
 
 class If < Expr
 ! cond: Expr
 ! body: Expr
 ! elseBody: Expr
-end
+
 
 class Apply < Expr
   name: str
 ! args: Expr*
-end
+
 
 class Value
-end
+
 
 class Int < Value
   value: int
-end
+
 
 class Bool < Value
   value: bool
-end
+
 
 class Pair < Value
 ! first: Value
 ! second: Value
-end
+
 
 class List < Value
 ! elements: Value*
-end
+

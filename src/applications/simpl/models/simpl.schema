@@ -2,39 +2,39 @@
 
 class Program
 ! body:Stm
-end
+
 
 class Stm
   
-end
+
 
 class Assign < Stm
   var: str
 ! exp: Exp
-end
+
 
 class Flow < Stm
 ! cond: Exp
 ! body: Stm*
-end
+
 
 class While < Flow
-end
+
 
 class If < Flow
 ! else: Stm
-end
+
 
 class Return < Stm
 ! ret: Exp
-end
+
 
 class Empty < Stm
-end
+
 
 class Exp
-end
+
 
 class Var < Exp
   name: str
-end
+

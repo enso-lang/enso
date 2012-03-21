@@ -5,64 +5,64 @@ primitive bool
 class Grammar 
   start: Rule 
 ! rules: Rule* 
-end 
+ 
 
-class Expression end 
+class Expression
 
 class Rule < Expression
 # name: str 
   grammar: Grammar / rules 
   // optional because of abstract rules
 ! arg: Expression?
-end 
+ 
 
 class Alt < Expression 
 ! alts: Expression+ 
-end 
+ 
 
 class Sequence < Expression 
 ! elements: Expression* 
-end 
+ 
 
 class Create < Expression 
   name: str 
 ! arg: Expression
-end 
+ 
 
 class Field < Expression 
   name: str 
 ! arg: Expression 
-end 
+ 
 
 class Code < Expression 
   code: str 
-end 
+ 
 
 class Value < Expression 
   kind: str 
-end 
+ 
 
 class Ref < Expression
   !path: Path
-end
+
 
 class Lit < Expression 
   value: str
-end 
+ 
 
 class Call < Expression 
   rule: Rule 
-end 
+ 
 
 class Regular < Expression 
 ! arg: Expression 
   optional: bool 
   many: bool 
   sep: str ? 
-end 
+ 
 
 class Epsilon < Expression
-end
+
 
 
 // extension for parsing
@@ -70,11 +70,30 @@ class Item
   expression: Expression
   elements: Expression*
   dot: int
-end
+
 
 
 // extensions to path.schema
 
-class Key end
-class It < Key end
-class Path end
+class Key 
+class It < Key 
+class Path 
+
+
+// let bindings
+
+class Let < Expression
+  arg: Expression
+  binding: Binding
+
+  
+
+class Var < Key
+  name: str
+
+
+class Binding
+  target: Path
+  value: Path
+
+

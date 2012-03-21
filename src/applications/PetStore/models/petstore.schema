@@ -10,7 +10,7 @@ class Catalog
 ! sellers: SellerContactInfo*
 ! addresses: Address*
 ! tags: Tag*
-end
+
 
 class Category
 ##id: str
@@ -19,7 +19,7 @@ class Category
   imageurl: str
   map_coords: str
   products: Product* / category
-end
+
 
 class Product
 ##id: str
@@ -28,7 +28,7 @@ class Product
   imageURL: str
   category: Category / products
   items: Item* / product
-end
+
 
 
 class Item
@@ -45,7 +45,7 @@ class Item
   numberOfVotes: int
   disabled: int
   tags: Tag* / items
-end
+
 
 class Address 
 ##id: str
@@ -56,14 +56,14 @@ class Address
   zip: str
   latitude: float
   longitude: float
-end
+
 
 class SellerContactInfo
 ##id: str
   lastName: str
   firstName: str
   email: str
-end
+
 
 class Tag
 ##id: int
@@ -73,5 +73,5 @@ class Tag
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
   name: str = "@tag"
-end
+
 

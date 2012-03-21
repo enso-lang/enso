@@ -5,20 +5,20 @@ primitive \int
 class PetriNet
 ! nodes: Node*
 ! arcs: Arc*
-end
+
 
 class Node
 # name: str
-end
+
 
 class Place < Node
   arcs: Arc* / place
-end
+
 
 
 class Transition < Node
   arcs: Arc* / transition
-end
+
 
 // need this, because there can be multiple
 // arcs between the same p/t, t/p
@@ -28,5 +28,5 @@ class Arc
   multiplicity: int
   place: Place
   transition: Transition
-end
+
 

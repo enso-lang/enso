@@ -4,12 +4,12 @@ primitive bool
 class Schema
   root: str?
   root_class: Class = "@classes[@root]"
-end
+
 
 class Class
   table: str?
-end
+
 
 class Field
   column: str?
-end
+

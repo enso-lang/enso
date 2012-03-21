@@ -4,104 +4,104 @@ primitive bool
 
 // abstract
 
-class EXP end
-class ITER end
-class COND end
-class GROUP end
+class EXP 
+class ITER 
+class COND 
+class GROUP 
 
 class _Grammar
   start: EXP
 ! rules: _Rule_Elt
-end
+
 
 ////----
 
 class _Rule_Elt
-end
+
 
 class _Rule_Iter < _Rule_Elt, ITER
 ! body: _Rule_Elt
-end
+
 
 class _Rule_Group < _Rule_Elt, GROUP // need this?
 ! elements: _Rule_Elt*
-end
+
 
 class _Rule < _Rule_Elt
   name: EXP
 ! arg: _Expression
-end
+
 
 ////----
 
 class _Alt < _Expression
 ! alts: _Expression+
-end
+
 
 ////----
 
 class _Create_Elt
-end
+
 
 class _Create < _Create_Elt
   name: EXP
 ! arg: _Sequence
-end
+
 
 class _Sequence
   elements: _Field_Elt*
-end
+
 
 ////----
 
 class _Field_Elt
-end
+
 
 class _Field_Iter < _Field_Elt, ITER
   body: _Field_Elt
-end
+
 
 class _Field_Group < _Field_Elt
   elements: _Field_Elt
-end
+
 
 class _Field < _Field_Elt
   name: EXP
   arg: _Expression
-end
+
 
 ////----
 
 class _Expression 
-end
+
 
 class _Code < _Expression
   code: EXP
-end
+
 
 class _Ref < _Expression
   name: EXP
-end
+
 
 class _Lit < _Expression
   value: EXP
-end
+
 
 class _Call < _Expression
   rule: EXP
-end
+
 
 class _Regular < _Expression
 ! arg: _Expression
   optional: bool
   many: bool
   sep: EXP?  // Hmmm.
-end
+
 
 /////
 
 class _Value < _Expression
-end
+
 
 
 ///////////////// Normal grammar schema with _Elt enhancements
@@ -109,70 +109,70 @@ end
 class Grammar < _Grammar
   start: Rule 
 ! rules: Rule* 
-end 
+ 
 
 class Expression < _Expression
-end 
+ 
 
 class Rule < Expression, _Rule_Elt
 # name: str 
   grammar: Grammar / rules 
 ! arg: Expression 
-end 
+ 
 
 class Alt < Expression, _Alt
 ! alts: Expression+ 
-end 
+ 
 
 class Sequence < Expression, _Sequence 
 ! elements: Expression* 
-end 
+ 
 
 class Create < Expression, _Create
   name: str 
 ! arg: Expression
-end 
+ 
 
 class Field < Expression, _Field
   name: str 
 ! arg: Expression 
-end 
+ 
 
 class Code < Expression, _Code
   code: str 
-end 
+ 
 
 class Value < Expression, _Value
   kind: str 
-end 
+ 
 
 class Ref < Expression, _Ref
   name: str 
-end 
+ 
 
 class Lit < Expression, _Lit
   value: str
-end 
+ 
 
 class Call < Expression, _Call
   rule: Rule 
-end 
+ 
 
 class Regular < Expression, _Regular
 ! arg: Expression 
   optional: bool 
   many: bool 
   sep: str ? 
-end 
+ 
 
 
 //// for parsing;
 class Epsilon < Expression
-end
+
 
 class Item
   expression: Expression
   elements: Expression*
   dot: int
-end
+
   

@@ -6,58 +6,58 @@ class Query
   classname: str
 ! fields: Field*
 ! filter: Expr?
-end
+
 
 class Field
 # name: str
 ! query: Query?
   owner: Query / fields
-end
+
 
 class ComputedField < Field
 ! expr:Expr
-end
 
-class Expr end
+
+class Expr 
 
 class EBinOp < Expr
   op:str
 ! e1:Expr
 ! e2:Expr
-end
+
 
 class EUnOp < Expr
   op:str
 ! e:Expr
-end
+
 
 class EField < Expr
 ! e:Expr
   fname:str
-end
+
 
 class EVar < Expr
   name:str
-end
+
 
 class EFunCall < Expr
   fun:str
 ! args:Expr*
-end
+
 
 class EListComp < Expr
   var:str
 ! list:Expr
 ! e:Expr
-end
 
-class EConst < Expr end
+
+class EConst < Expr 
 class EStrConst < EConst
   val:str
-end
+
 class EIntConst < EConst
   val:int
-end
+
 class EBoolConst < EConst
   val:bool
-end
+

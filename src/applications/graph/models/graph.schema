@@ -6,16 +6,16 @@ primitive int
 class Graph
 ! nodes: Node*
 ! edges: Edge*
-end
+
 
 class Node
 # name: str
   value: int?
-end
+
 
 class Edge
   label: str?
   from: Node
   to: Node
-end
+
 
