@@ -1,14 +1,8 @@
 
-\section{Parsing}
+\section{Parsing by interpretation}
 
 General: left-recursion etc., infinite lookahead. GLL. 
 
-Fixed tokenizer: builtin paths for references, identifiers, int, real,
-string, whitespace and comments. Escaping of identifiers to avoid
-clashes. Automatic reservation of (alpha-numeric) literals. Code
-symbols (@"code"). NB: naive implementation; could go scannerless, but
-need to implement lookahead restrictions on identifiers and whitespace
-to avoid ambiguities.
 
 \begin{verbatim}
 class EvalGrammar < Eval

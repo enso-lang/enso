@@ -1,49 +1,131 @@
-\documentclass[a4paper]{article}
-\usepackage{authblk,xspace, amsmath, amssymb, subfigure, a4wide}
+\documentclass[preprint,10pt]{sigplanconf}
+\usepackage{authblk,xspace, amsmath, amssymb, subfigure}
 \usepackage{stmaryrd,algorithm}
+\usepackage{enso}
 \usepackage[noend]{algpseudocode}
-\def\enso{Ens\={o}\xspace}
 \begin{document}
+\conferenceinfo{Something'12}{Somewhere}
+\copyrightyear{2012}
+\titlebanner{DRAFT---do not distribute}
+\preprintfooter{Enso grammars}
 
 \title{Information Grammars} % Schema Grammars
-\author[1]{William R. Cook} 
-\author[2]{Tijs van der Storm}
-\affil[1]{University of Texas at Austin} 
-\affil[2]{CWI}
+
+\authorinfo{William R. Cook}%
+{University of Texas at Austin}%
+{wcook@cs.utexas.edu}
+
+\authorinfo{Tijs van der Storm}%
+{Centrum Wiskunde \&\ Informatica (CWI)}%
+{storm@cwi.nl}
 \maketitle
 
 \begin{abstract}
   \enso is a programming environment based on interpretation of
   domain-specific languages (DSLs). The abstract syntax of a DSL is
   represented as an object-oriented information model. We present a
-  detailed description of \enso grammars, which are used to load such
-  models from textual representation, similar to how the Lisp
-  \texttt{read} function parses text into s-expressions.
+  detailed description of \enso grammars, which are used to serialize
+  and deserialize such models to and from textual representation.
 \end{abstract}
+
+\category{D.x.y}{Programming Languages}{To be done}
+
+\terms
+Domain-specific languages, Language-oriented programming
+
+\keywords
+Grammar, parsing, schema
+
 
 \section{Introduction}
 
+``Killer'' example
+
+\begin{figure}
+\begin{minipage}[t]{0.5\linewidth}
+\begin{lstlisting}[language=ensoschema]
+primitive str
+
+class Machine
+  start: State
+! states: State*
+
+class State
+  machine: Machine
+  name: str
+  out: Transition*
+  in: Transition*
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{0.4\linewidth}
+\begin{lstlisting}[language=ensoschema]
+class Transition
+  event: str
+  from: State
+  to: State
+  action: str
+\end{lstlisting}
+\end{minipage}
+\caption{Schema describing state machines}
+\end{figure}
+
+\begin{figure}
+\begin{lstlisting}[language=ensogrammar]
+start Machine
+Machine ::= [Machine] "start" 
+               \start:/states[it]^ 
+               states:State*
+State ::= [State] "state" name:sym 
+               out:Transition*
+Transition ::= [Transition] "on" event:sym 
+               "go" to:/states[it]^
+\end{lstlisting}
+\caption{Grammar to (de)serialize state machines}
+\end{figure}
+
+\begin{figure}
+\begin{minipage}[t]{0.5\linewidth}
+\begin{lstlisting}[language=ensostm]
+start Opened
+state Opened
+  on close go Closed
+state Closed
+  on open go Opened
+  on lock go Locked
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[t]{0.4\linewidth}
+\begin{lstlisting}[language=ensostm]
+state Locked
+  on unlock go Closed
+\end{lstlisting}
+\end{minipage}
+\caption{Textual rendering of a state machine}
+\end{figure}
+
+\paragraph{Contributions}
 
 \begin{itemize}
-\item Interpretive
-\item Models not ASTs
-\item General
-\item Self-describing
+\item \ensogrammars for (de)serializing arbitrary graphs that
+  are typed by a class-based schema.
+\item Bi-directional semantics for cross links and semantic actions.
+\item Type checking procedure to ensure that a grammar and schema are
+  compatible (bi-directional?).
+\item A simple but powerful parsing method based on grammar
+  interpretation, using the GLL algorithm.
+\item A rendering algorithm based on Wadler's prettier printer to
+  transform a model to text, again through grammar interpretation.
 \end{itemize}
 
-Interpretive: parsing is interpretive, (we could do interpreter
-composition to extend the interpreter for regular operators, for
-instance; this could also simplify the bootstrap grammar if we can
-rewrite it to not use iter\_star etc.)
+\section{Design}
 
-Example: schema + grammar.
+\input{design}
 
 \section{Meta Syntax}
 
 \def\literal#1{\ensuremath{\text{\texttt{"}}#1\text{\texttt{"}}}}
 
 \begin{figure}
-\begin{minipage}[t]{0.5\textwidth}
 \[
 \begin{array}{rcll}
 S & ::= & \varepsilon & \text{(Empty)} \\
@@ -57,8 +139,11 @@ S & ::= & \varepsilon & \text{(Empty)} \\
   & \mid & S \mid S & \text{(Alternative)}\\
 \end{array}
 \]
-\end{minipage}
-\begin{minipage}[t]{0.5\textwidth}
+\caption{Abstract syntax of \enso grammars\label{FIG:metasyntax}}
+\end{figure}
+
+
+\begin{figure}
 \[
 \begin{array}{rcll}
 P & ::= & \varepsilon & \text{(Root)}\\
@@ -69,12 +154,10 @@ P & ::= & \varepsilon & \text{(Root)}\\
   & \mid & P [P] & \text{(Path subscript)}\\
 \end{array}
 \]
-\end{minipage}
-\caption{Abstract syntax of \enso grammars\label{FIG:metasyntax}}
+\caption{Abstract syntax of paths\label{FIG:pathsyntax}}
 \end{figure}
 
 \begin{figure}
-\begin{minipage}{0.5\textwidth}
 \[
 \begin{array}{rcll}
 T & ::=  &\varepsilon & \text{(Empty)}\\
@@ -82,19 +165,7 @@ T & ::=  &\varepsilon & \text{(Empty)}\\
   & \mid & \text{appl}(S, \overline{T}) & \text{(Application)}\\
 \end{array}
 \]
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
-\[
-\begin{array}{rcll}
-V & ::=  & \bot & \text{(Nil)}\\
-  & \mid & s  & \text{(String)}\\
-  & \mid & P  & \text{(Reference)}\\
-  & \mid & \llbracket C \rrbracket(\overline{B}) & \text{(Object)}\\
-B & ::= & f: \overline{V} & \text{(Binding)}\\
-\end{array}
-\]
-\end{minipage}
-\caption{Syntax of derivation trees $T$ and instance trees $V$\label{FIG:derivationInstancs}}
+\caption{Syntax of derivation trees $T$\label{FIG:derivation}}
 \end{figure}
 
 
@@ -105,33 +176,6 @@ B & ::= & f: \overline{V} & \text{(Binding)}\\
 
 
 
-\def\implode{\ensuremath{\mathcal{I}}}
-
-\begin{figure}
-\begin{minipage}[t]{0.4\textwidth}
-\begin{align*}
-\implode(\varepsilon, v) &= \bot\\
-\implode(t: s, v) &= s\\
-\implode(\text{appl}(P\Uparrow, t: s), v) &= P[\text{\texttt{it}}\mapsto s]\\
-\implode(\text{appl}([C] S, \overline{T}), v) &=
-\text{fold}(\implode, \overline{T}, \llbracket C\rrbracket())\\
-\end{align*}
-\end{minipage}
-\begin{minipage}[t]{0.6\textwidth}
-\begin{align*}
-\implode(\text{appl}(f:S, \overline{T}), 
-\llbracket C\rrbracket(\overline{B})) 
-&= \llbracket C\rrbracket(\overline{B} \cup f: \sum_{\tau\in\overline{T}}\implode(\tau))\\
-\implode(\text{appl}(S,\overline{T}), v) &= 
-\sum_{\tau\in \overline{T}}\implode(\tau)\text{ otherwise }
-\end{align*}
-\end{minipage}
-\caption{Implode $\implode: T\times V\rightarrow V*$: Map derivation
-  trees to instance trees.\label{FIG:implode}}
-\end{figure}
-
-NB: the union in (5) is union on maps, which concatenates values for the
-same key, if any. Summation is flatmap.
 
 
 \algblockdefx[Case]{Case}{EndCase}[1]{\textbf{case}\  #1\ \textbf{of}}[0]{\textbf{end case}}
@@ -145,33 +189,24 @@ Build
 %\begin{minipage}{0.7\textwidth}
 \begin{algorithmic}[1]
 \Function{instantiate}{$v: V$, $S: Schema$}
-  \Procedure{update}{$o: S$, $f_S: Schema.classes[Field]$, $x: S$}
-          \If{$f_S.many$}
-            $o'[f_S.name] \ll x$ 
-               \Comment{Insert instead of assign if $f$ is many-valued}
-          \Else
-           \ $o'[f_S.name] \gets x$
-          \EndIf     
+  \Procedure{update}{$o: S$, $f_S: Field$, $x: S$}
+    \State $o'[f_S.name] \ll x$ 
   \EndProcedure
   \State $fixups \gets \{\}$
-  \Function{build}{$v: V$, $o: S$, $f_S: Schema.classes[Field]$}
+  \Function{build}{$v: V$, $o: S$, $f_S: Field$}
     \Case{$v$}
     \When{$\llbracket C\rrbracket(\overline{B})$} 
         $o'\gets \text{\textbf{new }}S.classes[C]$
-          \Comment{Create a new object of class $C$}
        \ForAll{$f:\overline{V}\in \overline{B}$, $v\in \overline{V}$}
           \State $f_S \gets S.classes[C].fields[f]$
-             \Comment{Lookup $f$ in the schema $S$}
           \State \Call{update}{$o'$, $f_S$, \textsc{build}($v$, $o'$, $f_S$)}
        \EndFor
        \State \Return{$o'$}
     \When{$P$}
         $fixups \ll \langle o, f_S, P\rangle$
-         \Comment{Record a fixup for later patching}
        \State \Return{$\bot$}
     \Else
        \ \Return{}\Call{valueOf}{$v$, $f_S.type$}
-         \Comment{Convert the value according to the field type}
     \EndCase
   \EndFunction
   \State $o \gets$ \Call{build}{$v$, $\bot$, $\bot$}
@@ -196,7 +231,7 @@ The goal of type checking is something like
 
 \[
 typecheck(G, S) \implies \forall \tau \in \mathcal{L}(G): 
-instantiate(\implode(\tau, \bot), S) \in S
+instantiate(\tau, S) \in S
 \]
 [Need to be expressed in terms of derivations, an non-ambiguity]
 
@@ -254,22 +289,16 @@ $+$ & * & * & + \\  \hline
 \def\fixpoint{\ensuremath{\text{lfp}}}
 \def\reachability{\ensuremath{\mathcal{R}}}
 \begin{figure}
-\begin{minipage}[t]{0.5\textwidth}
 \begin{align*}
 \reachability_C(A \circ B) &= \reachability_C(A) \cup \reachability_C(B)
  \text{ where } \circ \in \{\mid, \cdot\}\\
 \reachability_C(A\;\oplus) &= \reachability(A) \text{ where } \oplus \in \{?, *, +\}\\
-\reachability_C(N) &= \fixpoint(\emptyset, \reachability_C, \alpha) \text{ where }N ::= \alpha\\
-\end{align*}
-\end{minipage}
-\begin{minipage}[t]{0.5\textwidth}
-\begin{align*}
+\reachability_C(N) &= \reachability_C(\alpha) \text{ where }N ::= \alpha\\
 \reachability_C(f: A) &= \{\langle C, f\rangle\} \cup \reachability_C(A)\\
 \reachability_C([C'] A) &= \reachability_{C'}(A)\\
 \reachability_C(x) &= \emptyset \text{ otherwise }
 \end{align*}
-\end{minipage}
-\caption{The reachability function $\reachability_C$ computes the set
+\caption{The reachability relation $\reachability_C$ computes the set
   of fields that can be derived from a grammar symbol.\label{FIG:reachability}}
 \end{figure}
 
@@ -281,24 +310,18 @@ $+$ & * & * & + \\  \hline
 \def\multoff{\ensuremath{\multof_f}}
 
 \begin{figure}
-\begin{minipage}[t]{0.5\textwidth}
 \begin{align*}
 \multoff(A\mid B) &= \multoff(A) \mymultjoin  \multoff(B)\\
 \multoff(A\cdot B) &= \multoff(A) \mymultmeet  \multoff(B)\\
 \multoff(A\;\oplus) &= \multoff(A)^\oplus \text{ where } \oplus\in \{?, *, +\}\\
-\multoff(N) &= \fixpoint(\mymultbottom, \multoff, \alpha) \text{ where } N ::= \alpha\\
+\multoff(N) &= \multoff(\alpha) \text{ where } N ::= \alpha\\
 \multoff(f: A) &= \multoff(A)\\
-\end{align*}
-\end{minipage}
-\begin{minipage}[t]{0.5\textwidth}
-\begin{align*}
 \multoff([C'] A) &= 1\\
 \multoff(P\Uparrow) &= 1\\
 \multoff(t) &= 1 \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{sym}}, \literal{s}, ...  \}\\
 \multoff(x) &= 0 \text{ otherwise}
 \end{align*}
-\end{minipage}
-\caption{The multiplicity function \multoff\ computes the multiplicity
+\caption{The multiplicity relation \multoff\ computes the multiplicity
   of field occurrences in a grammar symbol.\label{FIG:multiplicity}}
 \end{figure}
 
@@ -310,79 +333,26 @@ $+$ & * & * & + \\  \hline
 \def\typeof{\ensuremath{\mathcal{T}}}
 \def\typeoff{\ensuremath{\typeof^C_f}}
 \begin{figure}
-\begin{minipage}[t]{0.4\textwidth}
 \begin{align*}
 \typeoff(A\mid B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
 \typeoff(A\cdot B) &= \typeoff(A) \mytypejoin  \typeoff(B)\\
 \typeoff(A\;\oplus) &= \typeoff(A) \text{ where } \oplus \in \{?, *, +\}\\
-\typeoff(N) &= \fixpoint(\mytypebottom, \typeoff, \alpha) \text{ where } N ::= \alpha\\
+\typeoff(N) &= \typeoff(\alpha) \text{ where } N ::= \alpha\\
 \typeoff(f: A) &= \typeoff(A)\\
 \typeoff([C'] A) &= \sigma.classes[C']\\
-\end{align*}
-\end{minipage}
-\begin{minipage}[t]{0.6\textwidth}
-\begin{align*}
 \typeoff(\Uparrow) &= root\\
-\typeoff(/P\Uparrow) &= \text{deref}(root, P)\\
-\typeoff(./P\Uparrow) &= \text{deref}(C, P)\\
+\typeoff(/P\Uparrow) &= \text{\textsc{deref}}(root, P)\\
+\typeoff(./P\Uparrow) &= \text{\textsc{deref}}(C, P)\\
 \typeoff(t) &= \sigma.prims[\text{\texttt{str}}] \text{ where } t\in\{\text{\texttt{sym}}, \literal{s}, ...\}\\
 \typeoff(t) &= \sigma.prims[t] \text{ where } t\in \{\text{\texttt{str}}, \text{\texttt{int}}, \text{\texttt{real}} \}\\
 \typeoff(x) &= \mytypetop \text{ otherwise}
 \end{align*}
-\end{minipage}
-\caption{Function \typeoff computes the schema type of the field named
+\caption{The relation \typeoff computes the schema type of the field named
   $f$ in class $C$ as used in a grammar.\label{FIG:typeof}}
 \end{figure}
 
 
 % F, such that \bigsqcup_{i\in \mathbb{N}} F^i(S \mapsto \emptyset)
-
-\section{Parsing}
-
-General: left-recursion etc., infinite lookahead. GLL. 
-
-Fixed tokenizer: builtin paths for references, identifiers, int, real,
-string, whitespace and comments. Escaping of identifiers to avoid
-clashes. Automatic reservation of (alpha-numeric) literals. Code
-symbols (@"code"). NB: naive implementation; could go scannerless, but
-need to implement lookahead restrictions on identifiers and whitespace
-to avoid ambiguities.
-
-\begin{verbatim}
-class EvalGrammar < Eval
-  def Item(this, gll, _)
-    return gll.pop if this.finished?
-    eval(this.nxt, gll, this.move)
-  end
-
-  def Alt(this, gll, nxt)
-    item = Item.new(this)
-    if this.empty? then
-      gll.empty_node(item)
-      eval(nxt, gll, nil) if nxt
-    else
-      gll.create(nxt) if nxt
-      eval(item, gll, nil)
-    end
-  end
-  
-  def Rule(this, gll, nxt)
-    gll.create(nxt) if nxt
-    this.alts.each do |alt|
-      gll.add(alt)
-    end
-  end
-
-  def Token(this, gll, nxt)
-    return unless this.match?(gll.token)
-    cr = gll.leaf_node(this)
-    if nxt then
-      gll.item_node(nxt, cr)
-      eval(nxt, gll, nil)
-    end
-  end
-end
-\end{verbatim}
 
 
 \section{Instantiating}
