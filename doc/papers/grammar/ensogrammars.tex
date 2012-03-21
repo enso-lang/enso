@@ -13,12 +13,17 @@
 \maketitle
 
 \begin{abstract}
-  \enso is a programming environment based on interpretation of
-  domain-specific languages (DSLs). The abstract syntax of a DSL is
-  represented as an object-oriented information model. We present a
-  detailed description of \enso grammars, which are used to load such
-  models from textual representation, similar to how the Lisp
-  \texttt{read} function parses text into s-expressions.
+  \enso is a programming system based on definition, interpretation, and composition of
+  domain-specific languages (DSLs). In \enso, the problem of parsing and pretty-printing
+  is viewed as a potentially complex mapping between abstract models and textual presentations.
+  \enso grammars enable both parsing and printing by specifying both the abstract model
+  structure and the textual presentation declaratively. The system supports automatic
+  resolution of names to handle cases where the abstract model is a graph, but the 
+  text presentation uses names to connect concepts. Predicates on the abstract model 
+  can be used to provide additional control over the mapping. The \enso parser handles arbitrary
+  context-free grammars, which facilitates composition of grammars. 
+  Finally, we show how grammars can be checked statically for consistency with the
+  corresponding abstract model structure.
 \end{abstract}
 
 \section{Introduction}
