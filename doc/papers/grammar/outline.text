@@ -2,9 +2,15 @@
 Enso Grammars
 =============
 
+Titles: Bootstrapping a Model-driven Language Environment in less than
+1000 lines of code
+Syntax for Models in under 1000 LOC
+
 Motivation (?): readable (de)serialization for data/object/language
 models representing executable specification languages. Focus on
 grammars and models, *not* parsing.
+
+Analogy with Lisp: lists + reader, models + grammar
 
 ### Unique features
 
@@ -66,7 +72,8 @@ composition? Our interpreter approach really makes debugging output
 easy.
 
 Schema inference: TODO (Do we want this? If this is really easy to
-implement, we can use it to compare with xText.)
+implement, we can use it to compare with xText.) Other way around:
+derive a grammar from a schema.
 
 ### Evaluation
 

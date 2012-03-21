@@ -6,7 +6,7 @@ TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
 
-Class ::= [Class] "class" name:sym ClassAnnot defined_fields:Field* "end"
+Class ::= [Class] "class" name:sym ClassAnnot defined_fields:Field*
 ClassAnnot ::= Parent?
 Parent ::= "<" supers:{Super ","}+
 Super ::= /classes[it]^

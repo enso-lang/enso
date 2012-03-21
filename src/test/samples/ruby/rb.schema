@@ -5,113 +5,113 @@ primitive bool
 class RubyScript
   name: str
 ! commands: Command*
-end
+
 
 class Command
-end
+
 
 class Req < Command
   path:str
-end
+
 
 class FunDef < Command
 # fun:str
   argslist:Name*
 ! body:Command*
-end
+
 
 class IfStmt < Command
 ! expr:Expr
 ! body:Command*
 ! elbody:Command*
-end
+
 
 class FunCall < Command
   fun:str
 ! args:Expr*
 ! proc:Proc?
-end
+
 
 class RetStmt < Command
 ! expr:Expr
-end
+
 
 class AssgnStmt < Command
   lhs:str
 ! rhs:Expr
-end
+
 
 class Expr
-end
+
 
 class EVarAcc < Expr
   name:str
-end
+
 
 class EFunCall < Expr
   fun:str
 ! args:Expr*
 ! proc:Proc?
-end
+
 
 class EUnOp < Expr
-end
+
 
 class EUNeg < EUnOp
 ! e:Expr
-end
+
 
 class EBinOp < Expr
-end
+
 
 class EBPlus < EBinOp
 ! e1:Expr
 ! e2:Expr
-end
+
 
 class EBEquals < EBinOp
 ! e1:Expr
 ! e2:Expr
-end
+
 
 class EBNequals < EBinOp
 ! e1:Expr
 ! e2:Expr
-end
+
 
 class ETernOp < Expr
-end
+
 
 class ETChoice < ETernOp
 ! expr:Expr
 ! e1:Expr
 ! e2:Expr
-end
+
 
 class EConst < Expr
-end
+
 
 class EStrConst < EConst
   val:str
-end
+
 
 class EIntConst < EConst
   val:int
-end
+
 
 class EBoolConst < EConst
   val:bool
-end
+
 
 class Proc
   argslist:str*
 ! body:Command*
-end
+
 
 class FullName
 ! parts:Name+
-end
+
 
 class Name
  name:str
-end
+

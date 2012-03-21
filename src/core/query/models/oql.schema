@@ -8,89 +8,89 @@ primitive \bool
 class OQL
 ! defs: Def*
 ! query: Exp
-end
+
 
 class Def
   name: str
 ! query: Exp
-end
+
 
 class Exp
-end
 
-class Nil < Exp end
-class Bool < Exp value: bool end
-class Int < Exp value: int end
-class Float < Exp value: real end
-class Str < Exp value: str end
 
-class Var < Exp name: str end
+class Nil < Exp 
+class Bool < Exp value: bool 
+class Int < Exp value: int 
+class Float < Exp value: real 
+class Str < Exp value: str 
+
+class Var < Exp name: str 
 
 class New < Exp
   type: str?  // absence means: struct
 ! bindings: Binding+
-end
+
 
 class Binding
   name: str
 ! exp: Exp
-end
+
 
 class Tuple < Exp
 ! first: Exp
 ! rest: Exp+
-end
+
 
 class Call < Exp
   name: str
 ! args: Exp*
-end
+
 
 class Access < Exp
 ! obj: Exp
-end
+
 
 class Field < Access
   name: str
 ! args: Exp*
-end
+
 
 class Subscript < Access
 ! arg: Exp
-end
+
 
 class Slice < Access
 ! from: Exp
 ! to: Exp
-end
+
 
 class Operator < Exp
   op: str
-end
+
 
 class Unary < Operator
 ! arg: Exp
-end
+
 
 class Binary < Operator
 ! lhs: Exp
 ! rhs: Exp
-end
+
 
 class Compare < Binary
   quantifier: str?
-end
+
 
 class Like < Unary
   pattern: str
-end
+
 
 class Comprehension < Exp
   quantifier: str
   var: str
 ! coll: Exp
 ! body: Exp
-end
+
 
 class Select < Exp
   distinct: bool
@@ -100,17 +100,17 @@ class Select < Exp
 ! groupings: Named*
 ! having: Exp?
 ! orderings: Ordering*
-end
+
 
 class Named 
   name: str?
 ! exp: Exp
-end
+
 
 class Ordering
 ! exp: Exp
   direction: str
-end
+
 
 
 

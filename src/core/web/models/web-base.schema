@@ -5,33 +5,33 @@ primitive bool
 
 class Web
 ! toplevels: Toplevel*
-end
+
 
 class Toplevel
-end
+
 
 
 class Abstraction
 ! formals: Formal*
 ! tail: Tail?
-end
+
 
 class Def < Toplevel, Abstraction
 # name: str
 ! body: Stat
-end
+
 
 class Import < Toplevel
 # module: str
-end
+
 
 class Stat
-end
+
 
 class Do < Stat
 ! call: Exp
 ! cond: Exp?
-end
+
 
 
 class For < Stat
@@ -39,118 +39,118 @@ class For < Stat
 ! iter: Exp
 ! body: Stat
   index: str?
-end
+
 
 class If < Stat
 ! cond: Exp
 ! body: Stat
 ! else: Stat?
-end
+
 
 class Switch < Stat
 ! exp: Exp
 ! cases: Case*
 ! default: Stat?
-end
+
 
 class Case
   name: str
 ! body: Stat
-end
+
 
 
 class Let < Stat
 ! decls:Assign*
 ! body:Stat
-end
+
 
 class Call < Stat, Exp
 ! exp: Exp
 ! args: Exp*
 ! block: Stat?
-end
+
 
 class Assign
   name: str
 ! exp: Exp
-end
+
 
 class Block < Stat
 ! stats: Stat*
-end
+
 
 class Text < Stat
   value: str
-end
+
 
 class Output < Stat
 ! exp: Exp
-end
+
 
 class Formal 
   name: str
 ! cons: Cons?
-end
+
 
 class Cons < Abstraction
  name: str
-end
+
 
 class Tail < Abstraction
   name: str
-end
 
-class Exp end
+
+class Exp 
 
 class Str < Exp
 ! value: str
-end
+
 
 class Int < Exp
   value: int
-end
+
 
 class Var < Exp
   name: str
-end
+
 
 class All < Exp
   klass: str
-end
+
 
 class Field < Exp
 ! exp: Exp
   name: str
-end
+
 
 class Subscript < Exp
 ! obj: Exp
 ! exp: Exp
-end
+
 
 class Address < Exp
 ! exp: Exp
-end
+
 
 class Concat < Exp
 ! lhs: Exp
 ! rhs: Exp
-end
+
 
 class Equal < Exp
 ! lhs: Exp
 ! rhs: Exp
-end
+
 
 class In < Exp
 ! lhs: Exp
 ! rhs: Exp
-end
+
 
 class List < Exp
 ! elements: Exp*
-end
+
 
 class New < Exp
   \class: str
-end
+

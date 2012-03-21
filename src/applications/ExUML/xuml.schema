@@ -8,10 +8,10 @@ ss = Load('schema.schema')
 connection = Load_text 'schema', ManagedData::Factory.new(ss), <<-PART, true
   class Class
   ! machine: StateMachine?
-  end
+  
   class StateMachine
     klass: Class / machine
-  end
+  
 PART
 
 Union(Factory.new(ss), 

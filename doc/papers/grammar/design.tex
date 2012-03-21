@@ -1,0 +1,71 @@
+
+Goals: flexible grammar language to describe DSLs/executable
+specification languages; To be used by programmers. Not used to parse
+existing languages. Common programming notions are builtin: integers,
+reals, strings.
+
+
+Audience: Enso more an approach than a set of languages, so: programmer's that (probably) have built/exended the languages themselves.
+
+Tradeoffs: 
+- expressivity (what grammars can be expressed?), 
+- convenience (how much do you have to type or think about)
+- modularity (can we composed grammars --> hard contrained wrt arb. CFG class)
+- purity/generality/declarativeness: specification language, not a parser implementation; unlike Yacc
+    --> algebraic quality: every syntactically valid combination has a semanticly well-defined meaning
+     (like with numbers, only / 0 is undefined)
+    --> with yacc, only the combinations that LR1 are well-defined; you get a static error, but you have
+        mold the grammar so that it fits (artifacts of implementation)
+    --> with enso: any syntactically valid combination can be meaningfully parsed, but only non-ambiguous
+      parses can be instantiated. There is no static check for this (undecidable). This might be a big problem
+      but in our experience does not occur much in practice; moreover, this problem only occurs if the input string is actually
+      ambiguous (?),  so even though the grammar may in fact be ambiguous, this problem might never manifest itself.
+  Moreover: since we only deal with context-free ambiguities (not lexical), such ambiguities are always localized and
+  easy to understand. Most common ambs have to do with operator precedence and associativity, for which well-known solutions
+  exist, and dangling else type ambiguities which can be solved by introducing bracketing constructs. 
+
+Design choices:
+- fixed lexical syntax
+- interpretive: no code generation, simpler, possibly easier to debug (?)
+- general parsing algorithm: want left-recursion and right recursion, infinite lookahead (e.g. no dependence on grammar class)
+      -> also needed for modularity
+      -> however, risk of ambiguity, but in practice does not occur as much and is per file. NB: dangling else cannot be solved.
+- regular operators: lists, separated lists  (+/*) and optional
+- no support for precedence (have to encode it): but, formatter can automatically insert parens. And priorities bad for (simple) modularity. 
+- asynchronous model construction (e.g. not 1-to-1 tree from grammar): create, field
+    -> result of parsing is an instance of a class-based schema
+    Example: expression where everything maps to [Exp]
+- literals can be assigned to fields
+- graphs/references (first, flat namespace; but ambiguous, then paths /rules[sym])
+- self-describing
+
+
+Scannerless: have to deal with lexical ambiguity.
+   
+  
+- performance 
+
+
+On demand scanning/lazy scanning/delayed, with "fixed" lexical syntax
+(id, int, str, real), but for keywords; Fixed comment convention //
+ids are longest match, keywords (literals) are always
+reserved. Identifiers can be escaped.  Keywords cannot be directly
+followed by alphanum/int; then it will be an identifier
+
+- drawbacks of tokenization
+- drawbacks of scannerless
+
+Tokenizer: bad for modularity, need tokenizer composition. 
+
+On demand, because otherwise longest match on operators, which we don't want (e.g. + and ++)
+
+
+\subsection{Expressivity}
+
+\subsection{Lexical syntax}
+
+\subsection{Data binding}
+
+Asynchronous: Sort $\neq$ Class
+
+\subsection{Imlementation}

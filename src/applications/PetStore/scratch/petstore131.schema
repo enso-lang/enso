@@ -11,7 +11,7 @@ class Catalog
   !products: Product*
   !ziplocations: ZipLocation*
   !tags: Tag*
-end
+
 
 class Category
   #name: str
@@ -19,7 +19,7 @@ class Category
   imageURL: str
   coords: str
   products: Product / category
-end
+
 
 class Product
   name: str
@@ -27,7 +27,7 @@ class Product
   imageURL: str
   category: Category / products
   !items: Item* / product
-end
+
 
 
 class Item
@@ -44,19 +44,19 @@ class Item
   tags: Tag* / items
   product: Product / items
   !ratings: Rating* / item
-end
+
 
 
 class SellerContactInfo
   lastName: str
   firstName: str
   email: str
-end
+
 
 class Rating
   item: Item / ratings
   grade: int
-end
+
 
 class Address 
   street1: str
@@ -66,7 +66,7 @@ class Address
   zip: str
   latitude: real
   longitude: real
-end
+
 
 
 class Tag
@@ -75,12 +75,12 @@ class Tag
   refCount: int
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
-end
+
 
 
 class ZipLocation
   zipCode: int
   city: str
   state: str
-end
+
 

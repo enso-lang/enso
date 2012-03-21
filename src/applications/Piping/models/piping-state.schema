@@ -8,46 +8,46 @@ class Pipe
   out_pressure: real
   temperature: real
   velocity: real = "@flow / @area"
-end
 
-class Element end
+
+class Element 
 
 class Temperatured
   temperature: real
-end
 
-class End < Element end
+
+class End < Element 
 class Source < End
   pressure: real
-end
+
 
 class Burner < Element, Temperatured
   ignite: bool
   gas_level: real
-end
+
 
 class Radiator < Element, Temperatured
-end
+
 
 class Vessel < Element, Temperatured
   contents: real
-end
+
 
 class Valve < Element
   flow: real // between 0 and 1
-end
+
 
 class Splitter < Element
   position: real // between 0 and 1
-end
+
 
 class Pump < Element
   pressure: real
   flow: real
   run: bool
-end
+
 
 class Sensor
   user: real?
   value: real = "@attach[@kind]"
-end
+

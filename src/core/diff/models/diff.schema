@@ -1,37 +1,37 @@
 
 class Diffs
   !deltas : Delta*
-end
 
-class Path end
+
+class Path 
 
 class Delta
   !path : Path
   deps : Delta*
-end
+
 
 class Add < Delta
   !val : Value
-end
+
 
 class Delete < Delta
-end
+
 
 class Modify < Delta
   !val : Value
-end
+
 
 class New < Delta
   type : str
   !loct : Path
-end
 
-class Value end
+
+class Value 
 
 class Path < Value
   val:Path
-end
+
 
 class Primitive < Value
   val:atom
-end
+

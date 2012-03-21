@@ -3,29 +3,29 @@
 primitive \str
 
 class EXP
-end
+
 
 class Access < EXP
   obj: EXP
-end
+
 
 class Dot < Access
   field: str
-end
+
 
 class Sub < Access
   index: EXP
-end
+
 
 class Str < EXP
   value: str
-end
+
 
 class ITER
   var: str
   exp: EXP
-end
+
 
 class COND
   cond: EXP
-end
+

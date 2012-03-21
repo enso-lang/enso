@@ -4,20 +4,20 @@
 primitive str
 primitive bool
 
-class Field end
+class Field 
 
-class Expression end
+class Expression 
 
-class Value end
+class Value 
 
 class Attribute < Field
 ! result: Expression 
 ! formals: Formal*
 ! default: Value?
-end
+
 
 class Formal
   name: str
-end
+
 
   

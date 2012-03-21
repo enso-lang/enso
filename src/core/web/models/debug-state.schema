@@ -3,7 +3,7 @@ primitive str
 primitive int
 primitive bool
 
-class Instance end
+class Instance 
 
 class Debugger
   !sources: Source*
@@ -13,74 +13,74 @@ class Debugger
   result: Result
   output: str
   line: int  
-end
+
 
 class Environment
   bindings: Binding*
-end
+
 
 class Source
   #name: str
   !lines: Line*
-end
+
 
 class Line
   break: bool
   text: str
-end
+
 
 class Binding
   #name: str
   !value: Result
-end
 
-class Result end
+
+class Result 
 
 class Closure < Result
   #id: str
   source: str
   line: int
-end
+
 
 class Call < Closure
   bound: bool
   !args: Result
-end
+
 
 class Record < Result
   !entry: Entry*
-end
+
 
 class Entry
   #key: str
   !value: Result
-end
+
 
 class Action < Result
   #name: str
   cond: str?
   !args: Result*
-end
+
 
 class List < Result
   !elts: Result*
-end
+
 
 class String < Result
   value: str
-end
+
 
 class Int < Result
   value: int
-end
+
 
 class Bool < Result
   value: bool
-end
+
 
 class Object < Result
   instance: Instance
-end
+
 
 
 

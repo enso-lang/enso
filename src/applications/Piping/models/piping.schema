@@ -2,9 +2,9 @@
 class System
 ! elements: Element*
 ! sensors: Sensor*
-end
 
-class Attachable end
+
+class Attachable 
 
 class Pipe < Attachable
   input: OutputElement
@@ -14,60 +14,60 @@ class Pipe < Attachable
   // computed
   area: real = "@diameter**2 * 3.14/4"
   volume: real = "@area * @length"
-end
+
 
 class Element < Attachable
   #name: str
-end
+
 
 class OutputElement < Element
 ! outputs: Pipe* / input
   output:Pipe = "@outputs[0]"
-end
+
 class InputElement < Element
   inputs: Pipe* / output
   input: Pipe = "@inputs[0]"
-end
+
 
 // END_PIPING_SCHEMA_ONE
 // BEGIN_PIPING_SCHEMA_TWO
 
-class Joint < OutputElement, InputElement end
+class Joint < OutputElement, InputElement 
 
 class Source < OutputElement
   kind: str
-end
 
-class Exhaust < InputElement end
+
+class Exhaust < InputElement 
 
 class Burner < OutputElement, InputElement
   gas: Pipe
-end
+
 
 class Radiator < OutputElement, InputElement
-end
+
 
 class Vessel < OutputElement, InputElement
   capacity: real
-end
+
 
 class Valve < OutputElement, InputElement
-end
+
 
 class Splitter < InputElement, OutputElement
   left:Pipe = "@outputs[0]"
   right:Pipe = "@outputs[1]"
-end
+
 
 class Pump < OutputElement, InputElement
-end
+
 
 class Sensor
 # name: str
   kind: str // temperature, pressure, flow
   controllable: bool
   attach:Attachable
-end
+
 
 // END_PIPING_SCHEMA_TWO
 
