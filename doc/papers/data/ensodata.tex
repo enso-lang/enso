@@ -57,7 +57,8 @@
 
 \def\Enso{Ens\={o}\xspace}
 
-\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Data:\\ Structure and Interpretation of Data in \Enso}
+% \includegraphics[scale=0.25]{enso.jpg}\\  
+\title{Managed Data}
 \author{William R. Cook, Tijs van der Storm, and Alex Loh}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -88,10 +89,6 @@ Bootstrapping also poses difficulties, because implementing the first
 data manager requires some data. Our implementation of Managed Data is the
 foundation for the \Enso project.
 \end{abstract}
-
-\begin{ex}
-TEhis is a test
-\end{ex}
 
 \section{Introduction}
 
@@ -142,26 +139,44 @@ The Adaptive Object Model Architecture provides an architecture for
 this approach, but does not discuss how it is bootstrapped or integrated
 with existing languages.
 
-This paper presents Managed Data, an approach to data definition
+This paper presents Managed Data, an approach to data abstraction
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-Managed Data has four main requirements: 
-(1) definition of \textit{data description languages} that 
+Managed Data has three essential requirements: 
+(1) \textit{data description languages} that 
 describe the desired structure and properties of data,
-(2) implementation of \textit{data managers} that interpret a data description language
+(2) \textit{data managers} that interpret a data description language
 and enable creation and manipulation of instances of data that conform
-to the description,
-(3) \textit{integration} with a programming language, so that managed data instances can be
-created and manipulated, 
-and (4) a \textit{bootstrapping} process that enables data managers to use
+to the description, and 
+(3) \textit{integration} with a programming language, so that managed data instances can be created and manipulated.
+In addition, Managed Data may also include a fourth component, which is
+a \textit{bootstrapping} process that enables data managers to use
 managed data in their implementation. 
 
-Managed Data places strong requirements on the host programming language, to 
-support use-defined description and management of data.
+One way to understand Managed Data is as a \textit{design pattern}. 
+This pattern
+can be implemented in many different ways in different languages, 
+or in different programming styles, including object-oriented or functional.
+Some of these approaches were mentioned above, and they are discussed in
+more detail in Section~\ref{related}. In general, static languages
+are less able to support Managed Data directly, so they require the
+use of external code generators. Dynamic languages often provide 
+reflective hooks that can be used to implement Managed Data. 
 
-There are
-several ways to approach this question, but one concrete example is to
+In this paper we present an implementation of Managed Data in Ruby.
+Even in Ruby there are several ways to implement Managed Data.
+Or first implementation used dynamic proxies, which implement properties
+and methods on the fly using Ruby's \lstinline{method_missing} mechanism.
+A second implementation is slightly more static, in that is 
+uses \lstinline{define_method} to define instance methods as closures.
+Other implementations are also possible.
+
+It is also possible to consider adding explicit support for 
+managed data into a programming language. It is difficult to imagine
+exactly how this would look, because nobody has tried to create
+a language whose data management mechanisms are user-definable.
+One concrete example is to
 consider what it would mean to override the ``dot'' operator, which 
 selects a field of a structure or object in many languages. One might also
 consider a global override of the field assignment operator. Giving the
@@ -169,60 +184,212 @@ programmer control over the data manipulation mechanisms means defining
 or modifying the behavior of all the data manipulation operations that
 are often considered built-in primitives, including initialization, type tests, 
 casting, pointer equality, and field access. 
+In this view, the data structuring mechanisms are an 
+\textit{aspect} of an overall programming system. Rather than having
+a single builtin notion of data definition, 
 Defining type systems for managed data is an important topic for
 future research, but is not discussed in this paper.
 
-In this paper we illustrate the concept of Managed Data in Ruby, a dynamic object-oriented
-style. It is also possible to imagine implementations for other
-programming styles, including functional or logic programming. Some of
-these options are discussed further in Section~\ref{discussion}.
+[Contributions]
 
-What is involved in making fundamental and potentially pervasive 
-changes to the way data is described and managed in a programming language? 
-There are
-several ways to approach this question, but one concrete example is to
-consider what it would mean to override the ``dot'' operator, which 
-selects a field of a structure or object in many languages. One might also
-consider a global override of the field assignment operator. Giving the
-programmer control over the data manipulation mechanisms means defining
-or modifying the behavior of all the data manipulation operations that
-are often considered built-in primitives, including initialization, type tests, 
-casting, pointer equality, and field access. In this view, the
-data structuring mechanisms are an \textit{aspect} of an overall programming
-system. 
+\subsection{Managed Data Example}
 
+The three essential components of Managed Data are
+a \textit{data description language} to 
+describe the desired structure and properties of data,
+a \textit{data manager} to interpret the data description language,
+and \textit{integration} of the data manager with the programming
+language to allow data to be created and manipulated.
+This section illustrates these concepts with a simple example.
 
-\section{Examples}
+\subsection{Data Description}
 
-This section gives examples of using and implementing Managed Data.
+A basic record is a collection of named fields
+each of whose value is constrained to be a value of a 
+primitive type. To define basic records as Managed Data,
+we need a simple data description language, which in
+this case is just a mapping from field names to primitive
+type names. While we will eventually consider stand-alone 
+data description languages, for now we can describe 
+a basic record using a Ruby hash. For example, the following
+hash describes simple two-dimensional points:
 
-\begin{figure}[language=Schema]
-\begin{minipage}{0.5\columnwidth}
 \begin{lstlisting}
-class Machine
-  start: State
-  states: State*
-
-class State
-  machine: Machine / Machine.states
-  name: str
-  out: Transition*
-  in: Transition*
-  
-class Transition
-  event: str
-  from: State / State.out
-  to: State / State.in
+  Point = { :x => Integer, :y => Integer }
 \end{lstlisting}
-\end{minipage}
-\begin{minipage}{0.5\columnwidth}
-\includegraphics[scale=0.9]{state_machine.png}
-\end{minipage}
-\caption{A schema for simple state machines}
-\label{sm_schema}
-\end{figure}
+
+A name with a colon prefix represents a \textit{symbol} in Ruby.
+These symbols are analogous to symbols in Lisp or Scheme.
+\lstinline|Point| describes 
+records with \lstinline|x| and \lstinline|y|
+fields whose values are integers. 
+
+\lstinline|Point| is a simple example of a \textit{schema}.
+A schema is a description of the structure, and possibly behavior,
+of data. In later sections we will consider more
+complex schema languages, but for now we will consider just
+simple schemas that describe basic records. 
+It is easy to describe
+many different kinds of records using this simple notation.
+\begin{lstlisting}
+  Person = { :name => String, :birthday => Date, :erdos => Integer }
+\end{lstlisting}
+
+Schemas are not complete specifications. In this case
+they don't say whether the records are immutable or mutable, of
+if they can be stored in a database, or transformed in other ways.
+Schemas can be interpreted in many different ways to create
+different kinds of records.
 
 \subsection{Using Managed Data}
+
+Before showing how to implement managed data, it is useful
+to talk about how managed data is used. By describing how
+managed data is used, we will create a set of requirements,
+or a specification, that will guide the implementation.
+
+For the current example, 
+the goal is to be able to create and manipulate 
+records that conform to a basic record schema.
+Lets assume that we have a data manager, 
+called \lstinline|BasicRecordManager|, that enables creating
+and updating basic records, given a schema. 
+
+\begin{lstlisting}
+  p = BasicRecordManager.new(Point)
+  p.x = 3
+  p.y = -10
+  print p.x + p.y
+\end{lstlisting}
+
+In this example, the \lstinline|BasicRecordManager| is 
+instantiated and passed the \lstinline|Point| schema
+as an input. The result is a new point object, that is,
+an object that conforms to the point schema. The
+object \lstinline|p| has fields \lstinline|x| and
+\lstinline|y| which can be accessed and assigned.
+
+Attempting to violate the schema results in an error.
+Some examples are given below:
+
+\begin{lstlisting}
+  print p.z
+  -- unknown field z
+  p.x = "top"
+  -- x must have type Integer
+  p.z = 3
+  -- assigning unknown field z
+\end{lstlisting}
+
+The \lstinline|BasicRecordManager| interprets the \lstinline|Point|
+schema to manage points. We have specified that
+\lstinline|BasicRecordManager| supports mutable fields, and that
+it checks types and checks the legality of field names.
+In later sections we will consider many different kinds of
+data managers, which implement a variety of features,
+including immutability, persistence, invarients, etc.
+These features are often part of the data manager, not part of
+the schema. A given schema can be interpreted in many different
+ways.
+
+\subsection{Data Manager}
+
+We have not specified \textit{how} the data manager works.
+It could work by code generation, reflection, byte-code
+manipulation, or other techniques. However, it is 
+specified as a dynamic operation: once the data manager
+is initialized with the schema, points can be created.
+
+
+In many
+object-oriented languages (e.g. Java, C\#, JavaScript, and PHP) 
+the dot operator, which is used to access
+fields \lstinline{o.f} and methods \lstinline{o.m(args)},
+requires a declared class or record that defines 
+a field \lstinline{f} or a method \lstinline{m}. 
+But the example in the previous section requires dynamic
+definitions of fields and methods: the factory implements methods 
+based on the classes listed in the metadata object, and the
+objects created by the factory contain fields that are specified
+in a schema.
+
+\begin{figure}
+\begin{lstlisting}
+class BasicRecordManager
+  def initialize(fields)
+    @fields = fields
+    @values = {}
+  end
+  def method_missing(name, *args)
+    if name =~ /(.*)=/
+      name = $1.to_sym
+      type = @fields[name]
+      raise "assigning unknown field #{name}" if !type
+      raise "#{name} must have type #{type}" if type != args[0].class
+      @values[name] = args[0]
+    else
+      raise "unknown field #{name}" if !@fields[name]
+      return @values[name] || @fields[name].default_value
+    end
+  end
+end
+\end{lstlisting}
+\caption{Definition and use of a simple record manager in Ruby}
+\label{sdm}
+\end{figure}
+
+In what follows, we used the reflective capabilities
+found in some object-oriented languages, including Smalltalk, Ruby,
+and Python, to implement Managed Data.
+In Ruby the form \lstinline{o.f}
+can be implemented by defining a \lstinline{method_missing} method.
+This technique is illustrated in 
+Figure~\ref{sdm}, which defines a simple data manager for 
+updatable records, using Ruby.
+This data manager is simpler than the one used in in the previous
+section, but it illustrates the basic technique.
+
+As in the previous section, the data manager is initialized with
+a schema, but in this case the schema is a record of types rather than
+a full data model. The managed object stores the type record in the
+\lstinline{@types} member variable. It then defines a \lstinline{@values}
+record and initializes it with default values for each type (the way
+that default values are defined is omitted). 
+
+\subsection{Using Managed Data}
+
+Here is an example using the record manager:
+
+\begin{lstlisting}
+x = RecordManager.new :foo => Fixnum, :bar => String
+puts x.foo
+x.foo = 32
+x.biff            # throws undefined field
+x.foo = "asdf"    # throws a type exception
+puts x.foo
+\end{lstlisting}
+
+The key mechanism for implementing a dynamic object is the 
+\lstinline{method_missing} method. It is called whenever a method (or field)
+is called on the object that is not defined. Since the class does not
+define any methods, the \lstinline{method_missing} is called for all fields
+and methods. The arguments to \lstinline{method_missing} are the method
+name and the arguments of the original call. There is one special case. 
+In Ruby, an assignment to a field,
+of the form \lstinline{obj.field = val} is converted into a  
+call of the form \lstinline{o.method_missing(:field=, val)}, where
+\lstinline{:field=} is a symbol formed by appending \lstinline{=} to the
+field name.
+
+The \lstinline{method_missing} method first checks if the call is a 
+field assignment, in which case it sets \lstinline{assign} to true. 
+If it is an assignment, the field name is updated to remove the \lstinline{=}.
+It then checks if the field is defined in the schema, and returns an 
+error if not. For an assignment, it checks if the argument is 
+of the right type, and raises an error if not. It then updates the
+\lstinline{@values} map with the new value. For regular field access,
+it returns the current value for the named field in \lstinline{@values}.
+
 
 Managed Data allows a programmer to 
 build libraries, or \textit{data managers}, that implement the fundamental
@@ -236,47 +403,6 @@ the creation and use of managed data instances. Following sections will
 describe how to implement data managers and integrate them with programming
 languages. 
 
-Figure~\ref{sm_schema} defines a schema for a simple form of
-state machine. The schema consists of three \textit{classes}, for
-state machines, states, and transitions. The body of a class definition
-is a list of \textit{fields} of the form \textit{name}\lstinline{:}\textit{type}, where \textit{type}
-is either a class name or one of the primitive types (\lstinline{int}, \lstinline{str}, \lstinline{bool}). 
-The field definition is followed by some attributes. The suffix 
-\lstinline{*} after the name means
-that the field is multi-valued.
-For example, the \lstinline{Machine}
-class has two fields, a \lstinline{start} state and a 
-multivalued field \lstinline{states} containing a set of states.
-A class-valued field may also have an \textit{inverse}. For example,
-the \lstinline{machine} field of the \lstinline{State} class is the
-inverse of the \lstinline{states} field in the \lstinline{StateMachine} class.
-A field and its inverse are semantically tied. For example, setting the
-\lstinline{machine} field of a state causes the state to be added to the
-\lstinline{states} collection of the machine. In general, any change to
-\lstinline{states} or \lstinline{machine} requires a corresponding change 
-to the other field of the related object.
-The concept of inverse fields is frequently used in object-relational
-mapping. 
-
-\begin{figure}[t]
-\begin{lstlisting}
-state_machine_schema = Load("state_machine.schema")
-f = InMemoryDataManager.new(state_machine_schema)
-
-# create the state machine, by calling constructors of the factory
-door = f.Machine                # create the door state machine
-open = f.State(door, "Open")     # create and add the open state to the door
-closed = f.State(door, "Closed")                   # create and add the closed state to the door
-f.Transition("close", open, closed)  # create a transition from open to closed
-f.Transition("open", closed, open)              # create a transition from closed to open
-door.start = open         # set the start state of the machine
-door.validate             # validate the state machine graph, checking invariants
-
-run_state_machine(door)    # run the machine (see next figure)
-\end{lstlisting}
-\caption{Creating a simple state machine using an in-memory data manager}
-\label{sm_create}
-\end{figure}
 
 A schema defines the structure and behavior of data. The simple schema
 for state machines is primarily structural, but it does include some
@@ -320,34 +446,8 @@ means that the machine is checked for consistency and then locked, so
 that it cannot be changed. The semantics of validation is determined
 by the particular data manager that is used. 
 
-A data manager works very much like a
-relational database management system (RDBMS), 
-where the SQL Data Definition Language (DDL) defines a schema. 
-The RDBMS interprets the schema to create tables, which can then
-be accessed in SQL queries. 
-Managed Data imports this approach from databases into
-the core of a programming language. 
 
-\begin{figure}[t]
-\begin{lstlisting}
-# this function runs a state machine, by reading events from an input stream
-def run_state_machine(sm)
-  current = sm.start   # access the start state of the state machine
-  puts current        # print the current state
-  while gets               # read a line of input and check for end of file
-    input = $_.strip   # capture the input line
-    current.out.each do |trans|   # iterate over each outgoing transitions
-      if trans.event == input            # test of the transition event equals the input
-        current = trans.to               # if so, change to the new state
-      end
-    end
-    puts current.name  # print the current state (which may not have changed)
-  end
-end
-\end{lstlisting}
-\caption{A function to interpret a state machine}
-\label{sm_run}
-\end{figure}
+
 
 Managed Data also 
 drops the idea of a single predefined schema language, and
@@ -358,110 +458,8 @@ there can also be multiple data managers for a given
 schema, for example, to implement in-memory strategy versus
 a database strategy for managing the data. 
 
-Finally, the machine is run. The code for running a state machine is
-given in Figure~\ref{sm_run}. At this point the dynamic state machine object
-\lstinline{sm} is treated just like any other object. It has a field 
-named \lstinline{start} that is directly accessed using dot notation. 
-The \lstinline{current} variable is a state object, which has a fields
-\lstinline{name} and \lstinline{out}, which is a collection of transitions, 
-which have fields \lstinline{event} and \lstinline{to}.
 
 \subsection{Implementing Managed Data}
-
-The example usage illustrated in the previous section cannot
-be implemented easily in most programming languages. In many
-object-oriented languages (e.g. Java, C\#, JavaScript, and PHP) 
-the dot operator, which is used to access
-fields \lstinline{o.f} and methods \lstinline{o.m(args)},
-requires a declared class or record that defines 
-a field \lstinline{f} or a method \lstinline{m}. 
-But the example in the previous section requires dynamic
-definitions of fields and methods: the factory implements methods 
-based on the classes listed in the metadata object, and the
-objects created by the factory contain fields that are specified
-in a schema.
-To get around this problem, most approaches to model-driven 
-development resort to code generation.  However, our approach
-is based on dynamic interpretation, so alternative techniques
-are required.
-
-\begin{figure}
-\begin{lstlisting}
-class RecordManager
-  def initialize(types)
-    @types = types
-    @values = {}
-    puts types
-    types.each_pair do |key, type| 
-      @values[key] = type.default
-    end
-  end
-  def method_missing(name, *args)
-    assign = (name =~ /(.*)=/)
-    name = $1.to_sym if assign
-    raise "unknown field #{name}" if !@types[name]
-    if assign
-      raise "#{name} must be #{@types[name]}" if @types[name] != args[0].class
-      @values[name] = args[0]
-    else
-      return @values[name]
-    end
-  end
-end
-\end{lstlisting}
-\caption{Definition and use of a simple data manager in Ruby}
-\label{sdm}
-\end{figure}
-
-In what follows, we used the reflective capabilities
-found in some object-oriented languages, including Smalltalk, Ruby,
-and Python, to implement Managed Data.
-In Ruby the form \lstinline{o.f}
-can be implemented by defining a \lstinline{method_missing} method.
-This technique is illustrated in 
-Figure~\ref{sdm}, which defines a simple data manager for 
-updatable records, using Ruby.
-This data manager is simpler than the one used in in the previous
-section, but it illustrates the basic technique.
-As in the previous section, the data manager is initialized with
-a schema, but in this case the schema is a record of types rather than
-a full data model. The managed object stores the type record in the
-\lstinline{@types} member variable. It then defines a \lstinline{@values}
-record and initializes it with default values for each type (the way
-that default values are defined is omitted). 
-
-Here is an example using the record manager:
-
-\begin{lstlisting}
-x = RecordManager.new :foo => Fixnum, :bar => String
-puts x.foo
-x.foo = 32
-x.biff            # throws undefined field
-x.foo = "asdf"    # throws a type exception
-puts x.foo
-\end{lstlisting}
-
-The key mechanism for implementing a dynamic object is the 
-\lstinline{method_missing} method. It is called whenever a method (or field)
-is called on the object that is not defined. Since the class does not
-define any methods, the \lstinline{method_missing} is called for all fields
-and methods. The arguments to \lstinline{method_missing} are the method
-name and the arguments of the original call. There is one special case. 
-In Ruby, an assignment to a field,
-of the form \lstinline{obj.field = val} is converted into a  
-call of the form \lstinline{o.method_missing(:field=, val)}, where
-\lstinline{:field=} is a symbol formed by appending \lstinline{=} to the
-field name.
-
-The \lstinline{method_missing} method first checks if the call is a 
-field assignment, in which case it sets \lstinline{assign} to true. 
-If it is an assignment, the field name is updated to remove the \lstinline{=}.
-It then checks if the field is defined in the schema, and returns an 
-error if not. For an assignment, it checks if the argument is 
-of the right type, and raises an error if not. It then updates the
-\lstinline{@values} map with the new value. For regular field access,
-it returns the current value for the named field in \lstinline{@values}.
-
 \begin{figure}
 \begin{lstlisting}[language=Schema]
 class Schema
@@ -820,12 +818,20 @@ case distinction.
 
 
 \section{Related Work}
-\label{relatedwork}
+\label{related}
 
 "Data providers" in F\# are important.
 Talk about the new F\# feature of dynamic type instantiation (is it in C\# too?)
 
 - Virtual Objects (proxies.. there was a talk on this at the Scripting Dagstuhl
+
+A data manager works very much like a
+relational database management system (RDBMS), 
+where the SQL Data Definition Language (DDL) defines a schema. 
+The RDBMS interprets the schema to create tables, which can then
+be accessed in SQL queries. 
+Managed Data imports this approach from databases into
+the core of a programming language. 
 
 Managed Data is based on traditional 
 entity-relationship (ER) models \cite{FOO},
