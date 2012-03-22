@@ -57,7 +57,8 @@
 
 \def\Enso{Ens\={o}\xspace}
 
-\title{\includegraphics[scale=0.25]{enso.jpg}\\  Managed Data:\\ Structure and Interpretation of Data in \Enso}
+% \includegraphics[scale=0.25]{enso.jpg}\\  
+\title{Managed Data}
 \author{William R. Cook, Tijs van der Storm, and Alex Loh}
 %\date{}                                           % Activate to display a given date or no date
 
@@ -142,12 +143,12 @@ This paper presents Managed Data, an approach to data abstraction
 in which programmers have control over the data structuring 
 mechanisms, either to define
 new mechanisms or modify the system's built-in mechanisms. 
-Managed Data has three essential components: 
+Managed Data has three essential requirements: 
 (1) \textit{data description languages} that 
 describe the desired structure and properties of data,
 (2) \textit{data managers} that interpret a data description language
 and enable creation and manipulation of instances of data that conform
-to the description,
+to the description, and 
 (3) \textit{integration} with a programming language, so that managed data instances can be created and manipulated.
 In addition, Managed Data may also include a fourth component, which is
 a \textit{bootstrapping} process that enables data managers to use
@@ -199,8 +200,7 @@ describe the desired structure and properties of data,
 a \textit{data manager} to interpret the data description language,
 and \textit{integration} of the data manager with the programming
 language to allow data to be created and manipulated.
-This section develops a series of increasingly powerful
-Managed Data mechanisms.
+This section illustrates these concepts with a simple example.
 
 \subsection{Data Description}
 
@@ -215,16 +215,91 @@ a basic record using a Ruby hash. For example, the following
 hash describes simple two-dimensional points:
 
 \begin{lstlisting}
-  PointDescription = { :x => :integer, :y => :integer }
+  Point = { :x => Integer, :y => Integer }
 \end{lstlisting}
 
 A name with a colon prefix represents a \textit{symbol} in Ruby.
 These symbols are analogous to symbols in Lisp or Scheme.
-The hash \lstinline|PointDescription| describes 
+\lstinline|Point| describes 
 records with \lstinline|x| and \lstinline|y|
-fields whose values are integers.
+fields whose values are integers. 
+
+\lstinline|Point| is a simple example of a \textit{schema}.
+A schema is a description of the structure, and possibly behavior,
+of data. In later sections we will consider more
+complex schema languages, but for now we will consider just
+simple schemas that describe basic records. 
+It is easy to describe
+many different kinds of records using this simple notation.
+\begin{lstlisting}
+  Person = { :name => String, :birthday => Date, :erdos => Integer }
+\end{lstlisting}
+
+Schemas are not complete specifications. In this case
+they don't say whether the records are immutable or mutable, of
+if they can be stored in a database, or transformed in other ways.
+Schemas can be interpreted in many different ways to create
+different kinds of records.
+
+\subsection{Using Managed Data}
+
+Before showing how to implement managed data, it is useful
+to talk about how managed data is used. By describing how
+managed data is used, we will create a set of requirements,
+or a specification, that will guide the implementation.
+
+For the current example, 
+the goal is to be able to create and manipulate 
+records that conform to a basic record schema.
+Lets assume that we have a data manager, 
+called \lstinline|BasicRecordManager|, that enables creating
+and updating basic records, given a schema. 
+
+\begin{lstlisting}
+  p = BasicRecordManager.new(Point)
+  p.x = 3
+  p.y = -10
+  print p.x + p.y
+\end{lstlisting}
+
+In this example, the \lstinline|BasicRecordManager| is 
+instantiated and passed the \lstinline|Point| schema
+as an input. The result is a new point object, that is,
+an object that conforms to the point schema. The
+object \lstinline|p| has fields \lstinline|x| and
+\lstinline|y| which can be accessed and assigned.
+
+Attempting to violate the schema results in an error.
+Some examples are given below:
+
+\begin{lstlisting}
+  print p.z
+  -- unknown field z
+  p.x = "top"
+  -- x must have type Integer
+  p.z = 3
+  -- assigning unknown field z
+\end{lstlisting}
+
+The \lstinline|BasicRecordManager| interprets the \lstinline|Point|
+schema to manage points. We have specified that
+\lstinline|BasicRecordManager| supports mutable fields, and that
+it checks types and checks the legality of field names.
+In later sections we will consider many different kinds of
+data managers, which implement a variety of features,
+including immutability, persistence, invarients, etc.
+These features are often part of the data manager, not part of
+the schema. A given schema can be interpreted in many different
+ways.
 
 \subsection{Data Manager}
+
+We have not specified \textit{how} the data manager works.
+It could work by code generation, reflection, byte-code
+manipulation, or other techniques. However, it is 
+specified as a dynamic operation: once the data manager
+is initialized with the schema, points can be created.
+
 
 In many
 object-oriented languages (e.g. Java, C\#, JavaScript, and PHP) 
@@ -248,8 +323,9 @@ class BasicRecordManager
   def method_missing(name, *args)
     if name =~ /(.*)=/
       name = $1.to_sym
-      raise "assigning unknown field #{name}" if !@fields[name]
-      raise "#{name} must be #{@fields[name]}" if @fields[name] != args[0].class
+      type = @fields[name]
+      raise "assigning unknown field #{name}" if !type
+      raise "#{name} must have type #{type}" if type != args[0].class
       @values[name] = args[0]
     else
       raise "unknown field #{name}" if !@fields[name]
