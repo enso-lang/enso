@@ -52,6 +52,8 @@ class Build
   def Field(this, sppf, owner, accu, _, fixes, paths)
     field = owner.schema_class.fields[this.name]
     #puts "FIELD: #{this.name}"
+    # TODO: this check should be done if owner = Env
+    # for new paths.
     raise "Object #{owner} has no field #{this.name} as required by grammar fixups" if !field
     kids(sppf, owner, accu = {}, field, fixes, paths = {})
     accu.each do |org, value|
@@ -77,6 +79,33 @@ class Build
   def Ref(this, sppf, owner, accu, field, fixes, paths)
     paths[origin(sppf)] = ToPath.to_path(this.path, sppf.value)
   end
+
+  def Let(this, sppf, owner, accu, field, fixes, paths)
+    # We use an environment structure that plays an object so
+    # that we can reuse build to binding "fields" in this.arg.
+    # The environment becomes the "owner". 
+    env = Env.new
+    build(this.arg, sppf, env, accu = [], nil, fixes = [], paths = [])
+    # eval substitutes variables in the binding for the values
+    # in env; so we get "ground" equations. They should be passed up
+    # like paths, because they might use ./ paths which are local
+    # to the current object (i.e. the Create were are "below").
+    # NB: currently there is only one equation/binding
+    # NB: the environment might contain full objects, so the
+    # paths that we use must be able to handle those; it's
+    # not just string-valued keys as with the old refs.
+    # NB: me/this/self/. is bound upwards in the control-flow
+    # in the handling of creates (where paths are converted to fixes).
+    # NB: the fixes do not need the field anymore since this is
+    # explicit in the equations. 
+    #   NB: this means that x:(y:sym) => x will be nil. (like x:y:sym now).
+    # NB: we pass up a closure; upon fixup the variables in the
+    # binding equations are looked up in the environment.
+    # Q: what to do with recursive bindings (e.g. below arg)?
+    eqs[origin(sppf)] = Closure.new(this.binding, env)
+  end
+    
+    
 
   def Code(this, sppf, owner, accu, field, fixes, paths)
     owner.instance_eval(this.code.gsub(/@/, 'self.'))
@@ -128,15 +157,24 @@ class Build
   end
 
 
-  def fixup(obj, fixes)
-    fixes.each do |fix|
-      #puts "FXING: #{fix.path} on #{obj}"
-      actual = fix.path.deref(obj, fix.obj)
-      # TODO: is this really an error?
-      raise "Could not deref path: #{fix.path}"  if actual.nil?
-      update(fix.obj, fix.field, actual)
-      update_origin(fix.obj, fix.field, fix.origin)
-    end
+
+  def fixup(root, fixes)
+    begin
+      later = []
+      change = false
+      fixes.each do |fix|
+        x = fix.path.deref(root, fix.obj)
+        if x then # the path can resolved
+          update(fix.obj, fix.field, x)
+          update_origin(fix.obj, fix.field, fix.origin)
+        else # try it later
+          later << fix
+          change = true
+        end
+      end
+      fixes = later
+    end while change
+    raise "Fix-up error" unless later.empty?
   end
 
   def update(owner, field, x)
