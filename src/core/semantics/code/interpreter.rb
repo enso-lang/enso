@@ -67,7 +67,7 @@ class Hash
   end
   def set(key, &block)
     res = self.clone
-    res.set!(key, block)
+    res.set!(key, &block)
     res
   end
   def +(hash)

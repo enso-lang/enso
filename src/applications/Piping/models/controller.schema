@@ -1,2 +1,0 @@
-#ruby
-union(load('controller-base.schema'), load('expr.schema'))

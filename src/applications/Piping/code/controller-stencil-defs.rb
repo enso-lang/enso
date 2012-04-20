@@ -1,6 +1,7 @@
 require 'core/expr/code/render'
 require 'core/semantics/code/interpreter'
 require 'core/diff/code/equals'
+require 'core/grammar/render/layout'
 
 def Layout(obj)
   if respond_to? "Layout_#{obj.schema_class.name}"
@@ -32,7 +33,11 @@ def Layout_TurnSplitter(obj)
 end
 
 def Layout_Expr(obj)
-  Interpreter(RenderExpr).render(obj)
+  begin
+    Interpreter(RenderExpr).render(obj)
+  rescue
+    ""
+  end
 end
 
 def CheckConnect(src, trans)

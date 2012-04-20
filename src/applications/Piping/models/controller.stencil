@@ -12,7 +12,8 @@ graph [font.size=12,fill.color=(255,255,255)] {
           horizontal {
             text [font.size=8,font.weight=400] Layout_Global(global)
             text [font.size=8,font.weight=400] ": "
-            text [font.size=8,font.weight=400] global.val.val
+            let v = global.val in
+              text+ [font.size=8,font.weight=400] v.val
           }
        }
      }

@@ -1,2 +1,0 @@
-#ruby
-union(load('expr.grammar'), load('controller-base.grammar'))

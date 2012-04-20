@@ -1,14 +1,15 @@
 // inputs
    I: source water
    G: source \gas
+
 // elements
    Burner: burner in=Return gas=G
    Pump: pump [ l:10.0 d:0.1 ] in=Burner
    Valve: splitter in=Pump
    Boiler: vessel in=Valve.left
    Radiator: radiator in=Valve.right
-   //RoomTemp: thermostat
-   Return = Boiler + Radiator + I
+   Return = Boiler + Radiator + I + G
+
 // sensors
    control Radiator_Temp : temperature ( Radiator )
    control Boiler_Temp : temperature ( Boiler )
