@@ -21,9 +21,10 @@ class RenderClass < Dispatch
   end
 
   def recurse(pat, *args)
-    #puts "#{' '*@depth}RENDER #{pat} #{args}"
+    # puts "#{' '*@depth}RENDER #{pat} #{args}"
     @depth = @depth + 1
     begin
+      throw :fail if pat.nil?
       val = send(pat.schema_class.name, pat, *args)
     ensure
       @depth = @depth - 1
