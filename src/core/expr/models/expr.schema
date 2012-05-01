@@ -46,7 +46,7 @@ class ESubscript < Expr
 // data constructors
 
 class EList < Expr
-  elems:Expr*
+! elems:Expr*
 
 
 class EAddress < Expr
