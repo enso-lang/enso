@@ -57,10 +57,15 @@ class DerefType
     # how should we check that the class found
     # here is actuall also instantiated on the spine?!?!?!
     klass = subclass_for(ctx, this.name)
-    klass.all_fields[this.name].type
+    if klass then
+      klass.all_fields[this.name].type
+    else
+      nil
+    end
   end
 
   def subclass_for(klass, fname)
+    return nil if klass.nil?
     if klass.all_fields[fname] then
       return klass
     end
