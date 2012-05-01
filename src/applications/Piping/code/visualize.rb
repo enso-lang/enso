@@ -13,6 +13,9 @@ Wx::App.run do
   win_piping.show
   win_control.show
 
+  gs = Loader.load("stencil.grammar")
+  Print.print(gs)
+
   time = 0
   Wx::Timer.every(1000) do
     time+=1

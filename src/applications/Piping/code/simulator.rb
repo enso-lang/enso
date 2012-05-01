@@ -71,9 +71,14 @@ module CalcHeatFlow
     elem.output.flow = 0
   end
 
+  def CalcHeatFlow_Room(elem, old, args)
+    elem.temperature = (args[:radiator].temperature - ROOM_TEMP) * 0.5 + ROOM_TEMP
+  end
+
   def CalcHeatFlow_Burner(elem, old, args)
     #burner heats up water that passes through it
     if elem.ignite
+      elem.gas_level = [elem.gas_level, ROOM_TEMP].max
       elem.temperature = elem.gas_level
     else
       elem.temperature = old.input.temperature
@@ -283,7 +288,7 @@ class Simulator
       p = pumps[0].output
       flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
       oldpipe = Clone(@piping)
-      @piping.elements.each {|e| CalcHeatFlow(e, :oldpipe=>oldpipe, :flowconst=>flowconst)}
+      @piping.elements.each {|e| CalcHeatFlow(e, :oldpipe=>oldpipe, :flowconst=>flowconst, :radiator=>@piping.elements['Radiator'])}
     end
   end
 

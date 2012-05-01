@@ -11,6 +11,7 @@ Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
         |   [Radiator] name:sym ":" "radiator" outputs:pipe in
         |   [Joint]   name:sym outputs:pipe "=" inputs:{Connection "+"}+
         |   [Burner] name:sym ":" "burner" in gas outputs:pipe
+        |   [Room] name:sym ":" "room"
 
 Sensor ::= [Sensor] ("sensor" @"@controllable=false" | "control" @"@controllable=true") name:sym ":" kind:sym "(" (attach:/elements[it]^ | attach:Connection) ")"
 

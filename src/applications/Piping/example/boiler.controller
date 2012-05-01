@@ -1,12 +1,9 @@
 start IGNITE
 
 START_GAS = 50
-
 Pump.flow = 0.35
-
 WATER_MARGIN = 3
 RADIATOR_MARGIN = 3
-
 BURNER_RAMPUP = 2
 BURNER_RAMPDOWN = 2
 
@@ -14,7 +11,6 @@ state IGNITE:
  if Burner.ignite goto RAMPUP
  Burner.ignite = true
  Burner.gas_level = START_GAS
- //Pump.flow = 0.35
  Pump.run = true
  turn splitter Valve center
 

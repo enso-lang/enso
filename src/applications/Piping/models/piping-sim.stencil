@@ -14,7 +14,10 @@ graph [font.size=12,fill.color=(255,255,255)] {
        }
      if not (elem is Temperatured)
        oval [line.width=1,fill.color=(200,200,200)] {
-         text [font.size=16,font.weight=700] elem.name
+         if (elem is Valve)
+           text [font.size=12 + elem.flow * 4,font.weight=700] "elem.name"
+         else
+           text [font.size=16,font.weight=700] elem.name
        }
     }
   // create the links

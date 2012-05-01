@@ -6,29 +6,34 @@ class Controller
 ! globals:Assign*
 ! states:State*
   current:State //dynamic
+  constraints:Constraint*
 
 
 class State
  #name:str
-! commands:Command*
+! commands:Action*
 ! transitions:Transition*
 
 
-class Command 
+class Action
 
 class Transition
 ! guard:Expr
   target:State
 
 
-class Assign < Command
+class Assign < Action
 ! var:Expr
 ! val:Expr
 
 
-class TurnSplitter < Command
+class TurnSplitter < Action
   splitter:str
   percent:real
+
+class Constraint
+  cond:Expr
+  action:Action
 
 
 class Expr 

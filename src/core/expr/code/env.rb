@@ -29,12 +29,21 @@ module Env
     @parent = env
     self
   end
+  def set_grandparent(env)
+    if @parent.nil? || @parent=={}
+      set_parent(env)
+    else
+      @parent.set_grandparent(env)
+    end
+  end
   def +(env)
     set_parent(env)
     self
   end
   def to_s
-    "{ #{each{|k,v| "#{k}=>#{v}"}.join(", ")} }"
+    r = []
+    each {|k,v| r << "#{k}=>#{v}"}
+    "{ #{r.join(", ")} }"
   end
   def clone
     self
@@ -109,10 +118,8 @@ class LambdaEnv
     @block = block
   end
   def [](key)
-    puts "accessing #{key}"
     if @label==key
       res = @block.call
-      puts "Calling lambdaevn with key #{key} begets #{res}"
       res
     else
       @parent.nil? ? nil : @parent[key]

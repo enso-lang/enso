@@ -1,9 +1,9 @@
 start Controller
 
-Controller ::= [Controller] "start" initial:/states[it]^ globals:Assign* states:State*
-State ::= [State] "state" name:sym ":" transitions:Transition* commands:Command*
+Controller ::= [Controller] "start" initial:/states[it]^ globals:Assign* states:State* constraints:Constraint*
+State ::= [State] "state" name:sym ":" transitions:Transition* commands:Action*
 
-Command ::= Assign | TurnSplitter
+Action ::= Assign | TurnSplitter
 Assign ::= [Assign] var:Expr "=" val:Expr
          | [Assign] "raise" var:Expr "by" val:Expr @"@val = @val.factory.EBinOp('+', @var, @val)"
          | [Assign] "lower" var:Expr "by" val:Expr @"@val = @val.factory.EBinOp('-', @var, @val)"
@@ -13,5 +13,7 @@ TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym (
                     "right"  @"@percent = 1" )
 
 Transition ::= [Transition] "if" guard:Expr "goto" target:/states[it]^
+
+Constraint ::= [Constraint] "test" cond:Expr "do" action:Action
 
 abstract Expr

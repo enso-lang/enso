@@ -28,6 +28,8 @@ class Burner < Element, Temperatured
 
 class Radiator < Element, Temperatured
 
+class Room < Element
+  temperature: real
 
 class Vessel < Element, Temperatured
   contents: real

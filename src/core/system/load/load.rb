@@ -8,6 +8,8 @@ require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/schema/tools/loadxml'
 
+require 'core/feature/code/load'
+
 require 'rexml/document'
 
 module Loading
@@ -52,6 +54,12 @@ module Loading
       model, type = name.split(/\./) if type.nil?
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
+      if g.nil? or s.nil?
+        f = load("#{type}.feature")
+        Interpreter(BuildFeature).build(f) unless f.nil?
+        g = load("#{type}.grammar")
+        s = load("#{type}.schema")
+      end
       return load_with_models(name, g, s)
     end
 
@@ -86,9 +94,9 @@ module Loading
     end
         
     def load_with_models(name, grammar, schema, encoding = nil)
-      find_model(name) do |path|
-        load_path(path, grammar, schema, encoding)
-      end
+        find_model(name) do |path|
+          load_path(path, grammar, schema, encoding)
+        end
     end
 
     def load_path(path, grammar, schema, encoding = nil)
@@ -124,8 +132,12 @@ module Loading
         path = Dir['**/*.*'].find do |p|
           File.basename(p) == name
         end
-        raise "File not found #{name}" unless path
-        yield path
+        if path.nil?
+          nil
+        else
+          raise "File not found #{name}" unless path
+          yield path
+        end
       end
     end
 

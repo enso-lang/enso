@@ -1,4 +1,3 @@
-//BEGIN_PIPING_SCHEMA_ONE
 class System
 ! elements: Element*
 ! sensors: Sensor*
@@ -29,9 +28,6 @@ class InputElement < Element
   input: Pipe = "@inputs[0]"
 
 
-// END_PIPING_SCHEMA_ONE
-// BEGIN_PIPING_SCHEMA_TWO
-
 class Joint < OutputElement, InputElement 
 
 class Source < OutputElement
@@ -46,6 +42,7 @@ class Burner < OutputElement, InputElement
 
 class Radiator < OutputElement, InputElement
 
+class Room < Element
 
 class Vessel < OutputElement, InputElement
   capacity: real
@@ -68,8 +65,6 @@ class Sensor
   controllable: bool
   attach:Attachable
 
-
-// END_PIPING_SCHEMA_TWO
 
 primitive str
 primitive int

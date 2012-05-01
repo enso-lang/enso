@@ -30,13 +30,16 @@ default:/elements[Radiator]: !ruby/object:EnsoPoint
 default:/elements[Return]: !ruby/object:EnsoPoint 
   x: 92
   y: 179
-default:/sensors[Radiator_Temp]: !ruby/object:EnsoPoint 
+default:/elements[Room]: !ruby/object:EnsoPoint
+  x: 342
+  y: 230
+default:/sensors[Radiator_Temp]: !ruby/object:EnsoPoint
   x: 433
   y: 27
 default:/sensors[Boiler_Temp]: !ruby/object:EnsoPoint 
   x: 21
   y: 24
-default:/elements[Burner]:/elements[Return]$*: 
+default:/elements[Burner]:/elements[Return]$*:
 - !ruby/object:EnsoPoint 
   x: 0
   y: 0.44754014044534796

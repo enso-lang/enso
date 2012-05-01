@@ -5,6 +5,21 @@ require 'core/expr/code/impl'
 
 class CommandTest < Test::Unit::TestCase
 
+  def test_load_print
+    obj = Loader.load("test1.impl")
+    g = Loader.load("impl.grammar")
+    str = ""
+    DisplayFormat.print(g, obj, 80, str)
+=begin
+    assert_equal(str, "{
+        x = 0
+        i = 0
+        j = 0
+        while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 }
+        return x }")
+=end
+  end
+
   def test_impl1
     #test while loops, assignments
     interp = Interpreter(EvalCommand)
