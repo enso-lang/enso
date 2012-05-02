@@ -15,11 +15,19 @@ class ExtractSchema
     @anon_counter = 0
   end
 
+  def log(str)
+    $stderr << "LOG: #{str}\n"
+  end
+
   def extract(grammar, root, collapse = true)
     @schema = @fact.Schema
+    log("Inferring reachable fields")
     tbl = ReachEval.reachable_fields(grammar)
+    log("Running type inference")
     run(tbl, root)
+    log("Collapsing inheritance hierarchy")
     collapse!(@schema) if collapse
+    log("Inferring multiplicities")
     infer_multiplicities(tbl)
     return @schema
   end
@@ -29,9 +37,20 @@ class ExtractSchema
   end
 
   def Call(this, in_field)
-    # always terminates on Create or terminal
-    # (except if grammar is cyclic in non-productive way...)
-    eval(this.rule, in_field)
+    if @memo.has_key?(this)
+      # use has_key, since nil is also bottom
+      return @memo[this]
+    end
+
+    @memo[this] = nil
+    x = eval(this.rule, in_field)
+    log("First round of call #{this.rule.name}: #{x}")
+    while x != @memo[this]
+      @memo[this] = x
+      x = lub(x, eval(this.rule, in_field))
+      log("  next: #{x}")
+    end
+    return x
   end
 
   def Sequence(this, in_field)
@@ -55,7 +74,7 @@ class ExtractSchema
   end
 
   def Field(this, _)
-    eval(this.arg, true)
+    #eval(this.arg, true)
   end
 
 
@@ -80,13 +99,18 @@ class ExtractSchema
 
   def run(tbl, root)
     init_classes(tbl, root)
+    i = 0
     begin
+      log("Starting iteration #{i}")
+      @memo = {}
       @change = false
       tbl.each do |cr, fs|
         fs.each do |f|
+          log("Inferring type for #{cr.name}.#{f.name}")
           infer_field(cr, f)
         end
       end
+      i += 1
     end while @change
   end
 
@@ -105,7 +129,7 @@ class ExtractSchema
       cls.defined_fields[f.name].type = new_type
       @change = true
     end
-    cls.defined_fields[f.name].traversal = @traversal
+    cls.defined_fields[f.name].traversal ||= @traversal
   end
 
   def init_classes(tbl, root)
@@ -119,6 +143,7 @@ class ExtractSchema
 
   def eval(this, in_field)
     if respond_to?(this.schema_class.name) then
+      #log("Evaluating: #{this}")
       x = send(this.schema_class.name, this, in_field)
       return x
     end
@@ -177,6 +202,7 @@ class ExtractSchema
 
   def infer_multiplicities(tbl)
     result = combine(tbl, Multiplicity::ZERO) do |cr, f|
+      log("Inferring multiplicity for #{cr.name}.#{f.name}")
       FieldMultEval.new(f).eval(cr.arg, false)
     end
 
