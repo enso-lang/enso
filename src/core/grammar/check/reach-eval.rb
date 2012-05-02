@@ -7,12 +7,19 @@ class ReachEval < GrammarFold
 
   EMPTY = Set.new
 
+  def self.reachable_fields(grammar)
+    x = self.new
+    x.eval(grammar.start, false)
+    x.tbl
+  end
+
   def initialize
     super(:|, :|, EMPTY, EMPTY) 
+    @tbl = {}
   end
 
   def Create(this, in_field)
-    eval(this.arg, false)
+    @tbl[this] = eval(this.arg, false)
   end
 
   def Field(this, in_field)
@@ -28,6 +35,6 @@ if __FILE__ == $0 then
   g = Loader.load(ARGV[0])
   tbl = ReachEval.reachable_fields(g)
   tbl.each do |cr, fs|
-    puts "#{cr.name}: #{fs.inspect}"
+    puts "#{cr.name}: #{fs.map(&:name).inspect}"
   end
 end
