@@ -4,6 +4,10 @@ require 'core/schema/code/factory'
 require 'core/system/library/schema'
 require 'core/system/load/load'
 require 'core/grammar/check/reach-eval'
+require 'core/grammar/check/mult-eval'
+require 'core/grammar/check/combine'
+require 'core/grammar/check/multiplicity'
+
 
 class ExtractSchema
   def initialize(ss = Loader.load('schema.schema'))
@@ -16,10 +20,10 @@ class ExtractSchema
     tbl = ReachEval.reachable_fields(grammar)
     run(tbl, root)
     collapse!(@schema) if collapse
+    infer_multiplicities(tbl)
     return @schema
   end
-
-
+    
   def Rule(this, in_field)
     eval(this.arg, in_field)
   end
@@ -64,6 +68,7 @@ class ExtractSchema
   end
 
   def Create(this, _)
+    @traversal = true
     @schema.types[this.name]
   end
 
@@ -87,6 +92,7 @@ class ExtractSchema
 
 
   def infer_field(cr, f)
+    @traversal = false
     @owner = cls = @schema.classes[cr.name]
     unless cls.defined_fields[f.name]
       cls.defined_fields << @fact.Field(f.name)
@@ -99,6 +105,7 @@ class ExtractSchema
       cls.defined_fields[f.name].type = new_type
       @change = true
     end
+    cls.defined_fields[f.name].traversal = @traversal
   end
 
   def init_classes(tbl, root)
@@ -168,6 +175,34 @@ class ExtractSchema
     c.name =~ /^C_[0-9]+$/
   end
 
+  def infer_multiplicities(tbl)
+    result = combine(tbl, Multiplicity::ZERO) do |cr, f|
+      FieldMultEval.new(f).eval(cr.arg, false)
+    end
+
+    result.each do |c, fs|
+      fs.each do |f, m|
+        cls = @schema.classes[c]
+        fld = cls.defined_fields[f]
+        if m.is_a?(Multiplicity::Zero) then
+          $stderr << "WARNING: #{c}.#{f} has multiplicity 0\n"
+        elsif m.is_a?(Multiplicity::One) then
+        elsif m.is_a?(Multiplicity::OneOrMore) then
+          fld.many = true
+        elsif m.is_a?(Multiplicity::ZeroOrMore) then
+          fld.many = true
+          fld.optional = true
+        elsif m.is_a?(Multiplicity::ZeroOrOne) then
+          fld.optional = true
+        else
+          raise "Unsupported multiplicity: #{m}"
+        end
+      end
+    end
+  end
+
+
+
   def collapse!(schema)
     del = []
     schema.classes.each do |c|
@@ -223,6 +258,7 @@ if __FILE__ == $0 then
   end
 
   require 'core/schema/tools/print'
+  require 'core/grammar/render/layout'
 
   g = Loader.load(ARGV[0])
   root = ARGV[1]
@@ -232,4 +268,6 @@ if __FILE__ == $0 then
 
   dump_inheritance_dot(ns, 'bla.dot')
   Print.print(ns)
+
+  DisplayFormat.print(Loader.load('schema-base.grammar'), ns)
 end

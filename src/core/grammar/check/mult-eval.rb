@@ -75,7 +75,6 @@ if __FILE__ == $0 then
   # a set of fields.
   tbl = ReachEval.reachable_fields(g)
 
-
   result = combine(tbl, Multiplicity::ZERO) do |cr, f|
     FieldMultEval.new(f).eval(cr.arg, false)
   end
