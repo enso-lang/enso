@@ -25,19 +25,9 @@ class ExtractSchema
   end
 
   def Call(this, in_field)
-    # TODO: this stuff with nil having dual meaning
-    # is not good.
-    if @memo[this]
-      return nil # unit for lub
-    end
-
-    @memo[this] = :bottom # stopping token
-    x = eval(this.rule, in_field)
-    while x != @memo[this]
-      @memo[this] = x
-      x = lub(x, eval(this.rule, in_field))
-    end
-    return x
+    # always terminates on Create or terminal
+    # (except if grammar is cyclic in non-productive way...)
+    eval(this.rule, in_field)
   end
 
   def Sequence(this, in_field)
@@ -77,13 +67,16 @@ class ExtractSchema
     @schema.types[this.name]
   end
 
+  def Lit(this, in_field)
+    in_field ? primitive('str') : nil
+  end
+
   private
 
   def run(tbl, root)
     init_classes(tbl, root)
     begin
       @change = false
-      @memo = {}
       tbl.each do |cr, fs|
         fs.each do |f|
           infer_field(cr, f)
@@ -122,12 +115,6 @@ class ExtractSchema
       x = send(this.schema_class.name, this, in_field)
       return x
     end
-  end
-
-  def Lit(this, in_field)
-    x = in_field ? primitive('str') : nil
-    puts "RETURNING LIT: #{x}"
-    return x
   end
 
   def primitive(name)
