@@ -1,160 +1,167 @@
 
-require 'core/system/load/load'
-require 'core/schema/code/factory'
 require 'core/grammar/check/deref-type'
-
-# extract a minimally viable schema from a grammar.
+require 'core/schema/code/factory'
+require 'core/system/library/schema'
+require 'core/system/load/load'
+require 'core/grammar/check/reach-eval'
 
 class ExtractSchema
-
-  def initialize
-    @fact = ManagedData::Factory.new(Loader.load('schema.schema'))
-  end
-
-  def extract(grammar)
-    @schema = @fact.Schema
-    @root_class = nil
-    @lub_of = {}
+  def initialize(ss = Loader.load('schema.schema'))
+    @fact = ManagedData::Factory.new(ss)
     @anon_counter = 0
-    begin
-      @memo = {}    
-      @change = false
-      eval(grammar.start, nil, nil, false)
-    end while @change
-    @schema
   end
 
-  def eval(this, owner, fld, in_field)
-    #puts "EVALING: #{this.schema_class.name} with #{owner} and #{fld}"
-    send(this.schema_class.name, this, owner, fld, in_field)
+  def extract(grammar, root, collapse = true)
+    @schema = @fact.Schema
+    tbl = ReachEval.reachable_fields(grammar)
+    run(tbl, root)
+    collapse!(@schema) if collapse
+    return @schema
   end
 
-  def Sequence(this, owner, fld, in_field)
-    this.elements.each do |elt|
-      eval(elt, owner, fld, false)
+
+  def Rule(this, in_field)
+    eval(this.arg, in_field)
+  end
+
+  def Call(this, in_field)
+    # TODO: this stuff with nil having dual meaning
+    # is not good.
+    if @memo[this]
+      return nil # unit for lub
     end
-  end
 
-  def Alt(this, owner, fld, in_field)
-    this.alts.each do |alt|
-      eval(alt, owner, fld, in_field)
+    @memo[this] = :bottom # stopping token
+    x = eval(this.rule, in_field)
+    while x != @memo[this]
+      @memo[this] = x
+      x = lub(x, eval(this.rule, in_field))
     end
+    return x
   end
 
-  def Rule(this, owner, fld, in_field)
-    # TODO: move to schema
-    return if this.arg.nil? # abstract
-    eval(this.arg, owner, fld, in_field)
-  end
-
-  def Call(this, owner, fld, in_field)
-    return if @memo[[this,owner,fld]]
-    @memo[[this,owner,fld]] = true
-    eval(this.rule, owner, fld, in_field)
-  end
-
-  def Create(this, owner, fld, _)
-    unless @schema.types[this.name] then
-      @schema.types << @fact.Class(this.name)
-      puts "schema.types: #{@schema.types}"
-      @change = true
-    end
-    cls = @schema.types[this.name]
-    @root_class ||= cls
-
-    if fld then
-      new_type = type_lub(fld.type, cls)
-      if new_type != fld.type then
-        fld.type = new_type
-        # NON-TERMINATION!!!
-        # @change = true
+  def Sequence(this, in_field)
+    if this.elements.length == 1 then
+      eval(this.elements[0], in_field)
+    else
+      this.elements.inject(nil) do |cur, elt|
+        lub(cur, eval(elt, false))
       end
-      # THIS IS A BIG ASSUMPTION
-      # (but needed now, for rendering)
-      fld.traversal = true
-    end
-
-    eval(this.arg, cls, nil, false)
-  end
-
-  def Field(this, owner, _, _)
-    unless owner.defined_fields[this.name] then
-      owner.defined_fields << @fact.Field(this.name)
-      @change = true
-    end
-    eval(this.arg, owner, owner.defined_fields[this.name], true)
-  end
-
-  def Lit(this, owner, fld, in_field)
-    return unless in_field
-    new_type = type_lub(fld.type, primitive('str'))
-    if new_type != fld.type then
-      fld.type = new_type
-      @change = true
     end
   end
 
-  def Value(this, owner, fld, in_field)
-    p = this.kind == 'sym' ? 'str' : this.kind
-    new_type = type_lub(fld.type, primitive(p))
-    if new_type != fld.type then
-      fld.type = new_type
-      @change = true
+  def Alt(this, in_field)
+    this.alts.inject(nil) do |cur, alt|
+      lub(cur, eval(alt, in_field))
     end
   end
 
-  def Ref(this, owner, fld, in_field)
-    cls = DerefType.deref(@schema, @root_class, owner, this.path)
-    return if cls.nil?
-    new_type = type_lub(fld.type, cls) 
-    if new_type != fld.type then
-      fld.type = new_type
-      @change = true
-    end
+  def Regular(this, in_field)
+    eval(this.arg, in_field)
   end
 
-  def Regular(this, owner, fld, in_field)
-    # multiplicity is done in separate phase
-    eval(this.arg, owner, fld, in_field)
+  def Field(this, _)
+    eval(this.arg, true)
   end
 
-  def Code(this, owner, _, _)
-    # TODO: parse this.code
+
+  def Value(this, _);
+    primitive(this.kind == 'sym' ? 'str' : this.kind)
+  end
+
+  def Ref(this, _)
+    DerefType.deref(@schema, @root_class, @owner, this.path)
+  end
+
+  def Create(this, _)
+    @schema.types[this.name]
   end
 
   private
 
+  def run(tbl, root)
+    init_classes(tbl, root)
+    begin
+      @change = false
+      @memo = {}
+      tbl.each do |cr, fs|
+        fs.each do |f|
+          infer_field(cr, f)
+        end
+      end
+    end while @change
+  end
+
+
+  def infer_field(cr, f)
+    @owner = cls = @schema.classes[cr.name]
+    unless cls.defined_fields[f.name]
+      cls.defined_fields << @fact.Field(f.name)
+      @change = true
+    end
+    type = eval(f.arg, true)
+    old_type = cls.defined_fields[f.name].type
+    new_type = lub(old_type, type)
+    if new_type != old_type then
+      cls.defined_fields[f.name].type = new_type
+      @change = true
+    end
+  end
+
+  def init_classes(tbl, root)
+    tbl.each_key do |cr|
+      unless @schema.types[cr.name] then
+        @schema.types << @fact.Class(cr.name)
+      end
+    end
+    @root_class = @schema.types[root]
+  end
+
+  def eval(this, in_field)
+    if respond_to?(this.schema_class.name) then
+      x = send(this.schema_class.name, this, in_field)
+      return x
+    end
+  end
+
+  def Lit(this, in_field)
+    x = in_field ? primitive('str') : nil
+    puts "RETURNING LIT: #{x}"
+    return x
+  end
+
   def primitive(name)
-    unless @schema.types[name] then
+    unless @schema.types[name] 
       @schema.types << @fact.Primitive(name)
       @change = true
     end
-    @schema.types[name] 
+    @schema.types[name]
   end
 
   def class_lub(t1, t2)
-    return t1 if t1 == t2
-    return t2 if Subclass?(t1, t2)
-    return t1 if Subclass?(t2, t1)
-    t1.supers.each do |sup1|
-      t2.supers.each do |sup2|
-        x = class_lub(sup1, sup2)
-        return x if x
-      end
+    xs = @schema.classes.select do |x|
+      Subclass?(t1, x) && Subclass?(t2, x)
     end
-    return nil
+    lub = xs.find do |x|
+      any_bigger = @schema.classes.any? do |y|
+        x != y && Subclass?(x, y)
+      end
+      !any_bigger
+    end
+    return lub
   end
 
-  def type_lub(t1, t2)
+
+  def lub(t1, t2)
+    return t1 if t2.nil?
     return t2 if t1.nil?
     return t1 if t1 == t2
     if t1.Primitive? && t2.Primitive? then
-      primitive('atom')
+      return primitive('atom')
     elsif t1.Class? && t2.Class? then
       x = class_lub(t1, t2)
       return x if x
-      @anon_counter += 1
-      anon_class = @fact.Class("C_#{@anon_counter}")
+      anon_class = @fact.Class(anon!)
       @schema.types << anon_class
       t1.supers << anon_class
       t2.supers << anon_class
@@ -165,25 +172,77 @@ class ExtractSchema
     end
   end
 
+  def anon!
+    @anon_counter += 1
+    "C_#{@anon_counter}"
+  end
+
+  def anon?(c)
+    c.name =~ /^C_[0-9]+$/
+  end
+
+  def collapse!(schema)
+    del = []
+    schema.classes.each do |c|
+      next unless anon?(c)
+      next unless c.supers.length == 1
+      c.subclasses.each do |sub|
+        sub.supers.delete(c)
+        # use each because no positinos in keyed colls.
+        c.supers.each do |sup|
+          sub.supers << sup
+        end
+      end
+      schema.classes.each do |c2|
+        c2.defined_fields.each do |fld|
+          if fld.type == c then
+            # use each because no positinos in keyed colls.
+            c.supers.each do |sup|
+              fld.type = sup
+            end
+          end
+        end
+      end
+      del << c
+    end
+    del.each do |c|
+      schema.types.delete(c)
+    end
+  end
+
+
 end
 
 
-if __FILE__ == $0 then
-  require 'core/grammar/render/layout'
-  require 'core/schema/tools/print'
-  grammar = ARGV[0]
-  xg = Loader.load(grammar)
-  xs = ExtractSchema.new.extract(xg)
-  Print.print(xs)
-  sg = Loader.load('schema-base.grammar')
-  File.open('bla.dot', 'w') do |f|
-    f.puts("digraph bla {")
-    xs.classes.each do |c|
+
+def dump_inheritance_dot(schema, fname)
+  File.open(fname, 'w') do |f|
+    f.puts("digraph inheritance {")
+    schema.classes.each do |c|
       c.supers.each do |s|
-        f.puts("#{c.name} -> #{s.name}")
+        f.puts("#{s.name} -> #{c.name} [dir=back]")
       end
     end
     f.puts("}")
   end
-  DisplayFormat.print(sg, xs)
+end
+
+
+
+if __FILE__ == $0 then
+  if !ARGV[0] || !ARGV[1] then
+    puts "use type-eval.rb <name>.grammar <rootclass>"
+    exit!(1)
+  end
+
+  require 'core/schema/tools/print'
+
+  g = Loader.load(ARGV[0])
+  root = ARGV[1]
+
+  ti = ExtractSchema.new
+  ns = ti.extract(g, root)
+
+  dump_inheritance_dot(ns, 'bla.dot')
+  Print.print(ns)
 end
