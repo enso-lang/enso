@@ -10,6 +10,7 @@ class GrammarFold
   end
 
   def eval(this, in_field)
+    return @unit_of_meet if this.nil?
     if respond_to?(this.schema_class.name) then
       send(this.schema_class.name, this, in_field)
     else
@@ -48,9 +49,10 @@ class GrammarFold
   def Alt(this, in_field)
     # NB: alts is never empty
     x = eval(this.alts[0], in_field)
-    this.alts[1..-1].inject(x) do |cur, alt|
-      cur.send(@join, eval(alt, in_field))
+    1.upto(this.alts.length - 1) do |i|
+      x = x.send(@join, eval(this.alts[i], in_field))
     end
+    return x
   end
 
   def Regular(this, in_field)
