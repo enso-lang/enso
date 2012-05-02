@@ -167,9 +167,9 @@ class Build
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
           update_origin(fix.obj, fix.field, fix.origin)
+          change = true
         else # try it later
           later << fix
-          change = true
         end
       end
       fixes = later
