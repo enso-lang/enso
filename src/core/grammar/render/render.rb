@@ -10,7 +10,7 @@ class RenderClass < Dispatch
 
   def initialize()
     @factory = ManagedData::Factory.new(Loader.load('layout.schema'))
-    @depth = 0
+    @stack = []
   end
 
   def Grammar(this, data)
@@ -21,13 +21,12 @@ class RenderClass < Dispatch
   end
 
   def recurse(pat, *args)
-    # puts "#{' '*@depth}RENDER #{pat} #{args}"
-    @depth = @depth + 1
+    throw :fail if @stack.include? pat
+    @stack << pat
     begin
-      throw :fail if pat.nil?
       val = send(pat.schema_class.name, pat, *args)
     ensure
-      @depth = @depth - 1
+      @stack.pop
     end
     return val
   end
