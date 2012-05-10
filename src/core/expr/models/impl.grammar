@@ -1,3 +1,0 @@
-#ruby
-
-union(load('expr.grammar'), load('impl-base.grammar'))

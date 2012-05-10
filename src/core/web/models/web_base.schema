@@ -29,26 +29,26 @@ class Stat
 
 
 class Do < Stat
-! call: Exp
-! cond: Exp?
+! call: Expr
+! cond: Expr?
 
 
 
 class For < Stat
   var: str
-! iter: Exp
+! iter: Expr
 ! body: Stat
   index: str?
 
 
 class If < Stat
-! cond: Exp
+! cond: Expr
 ! body: Stat
 ! else: Stat?
 
 
 class Switch < Stat
-! exp: Exp
+! exp: Expr
 ! cases: Case*
 ! default: Stat?
 
@@ -64,15 +64,15 @@ class Let < Stat
 ! body:Stat
 
 
-class Call < Stat, Exp
-! exp: Exp
-! args: Exp*
+class Call < Stat, Expr
+! exp: Expr
+! args: Expr*
 ! block: Stat?
 
 
 class Assign
   name: str
-! exp: Exp
+! exp: Expr
 
 
 class Block < Stat
@@ -84,7 +84,7 @@ class Text < Stat
 
 
 class Output < Stat
-! exp: Exp
+! exp: Expr
 
 
 class Formal 
@@ -99,58 +99,57 @@ class Cons < Abstraction
 class Tail < Abstraction
   name: str
 
+class Expr
 
-class Exp 
-
-class Str < Exp
+class Str < Expr
 ! value: str
 
 
-class Int < Exp
+class Int < Expr
   value: int
 
 
-class Var < Exp
+class Var < Expr
   name: str
 
 
-class All < Exp
+class All < Expr
   klass: str
 
 
-class Field < Exp
-! exp: Exp
+class Field < Expr
+! exp: Expr
   name: str
 
 
-class Subscript < Exp
-! obj: Exp
-! exp: Exp
+class Subscript < Expr
+! obj: Expr
+! exp: Expr
 
 
-class Address < Exp
-! exp: Exp
+class Address < Expr
+! exp: Expr
 
 
-class Concat < Exp
-! lhs: Exp
-! rhs: Exp
+class Concat < Expr
+! lhs: Expr
+! rhs: Expr
 
 
-class Equal < Exp
-! lhs: Exp
-! rhs: Exp
+class Equal < Expr
+! lhs: Expr
+! rhs: Expr
 
 
-class In < Exp
-! lhs: Exp
-! rhs: Exp
+class In < Expr
+! lhs: Expr
+! rhs: Expr
 
 
-class List < Exp
-! elements: Exp*
+class List < Expr
+! elements: Expr*
 
 
-class New < Exp
+class New < Expr
   \class: str
 

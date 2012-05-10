@@ -10,23 +10,28 @@ class RenderClass < Dispatch
 
   def initialize()
     @factory = ManagedData::Factory.new(Loader.load('layout.schema'))
+    @depth=0
     @stack = []
+    @current = nil
   end
 
-  def Grammar(this, data)
+  def Grammar(this, stream)
     # ugly, should be higher up
-    @root = data
+    @root = stream.current
     @literals = Scan.collect_keywords(this)
-    return Rule(this.start, SingletonStream.new(data))
+    return Rule(this.start, SingletonStream.new(stream.current))
   end
 
   def recurse(pat, *args)
     throw :fail if @stack.include? pat
+    @stack.clear if @current != args[0].current
+    @current = args[0].current
     @stack << pat
+    @depth=@depth+1
     begin
       val = send(pat.schema_class.name, pat, *args)
     ensure
-      @stack.pop
+      @depth=@depth-1
     end
     return val
   end
@@ -204,7 +209,7 @@ end
 
 def Render(grammar, obj)
   catch :fail do
-    return RenderClass.new.recurse(grammar, obj)
+    return RenderClass.new.recurse(grammar, SingletonStream.new(obj))
   end
   puts "-"*50
 #  Print.print(obj)

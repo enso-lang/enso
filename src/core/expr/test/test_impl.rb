@@ -10,6 +10,7 @@ class CommandTest < Test::Unit::TestCase
     g = Loader.load("impl.grammar")
     str = ""
     DisplayFormat.print(g, obj, 80, str)
+    puts str
 =begin
     assert_equal(str, "{
         x = 0

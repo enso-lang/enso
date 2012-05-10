@@ -1,3 +1,0 @@
-#ruby
-
-union(load('impl-base.schema'), load('expr.schema'))
