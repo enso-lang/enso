@@ -41,11 +41,11 @@ module LValueExpr
     end
 
     def type
-      @array.is_a?(ManagedData::MObject) ? @array.schema_class.all_fields[@index].type : nil
+      @array.is_a?(ObjEnv) ? @array.type(@index) : nil
     end
 
     def object
-      @array.is_a?(ManagedData::MObject) ? @array : nil
+      @array.is_a?(ObjEnv) ? @array.obj : nil
     end
   end
 

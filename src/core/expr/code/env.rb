@@ -99,6 +99,9 @@ class ObjEnv
   def to_s
     @obj.to_s
   end
+  def type(fname)
+    @obj.schema_class.all_fields[fname].type
+  end
   def clone
     self #there can only be one env for the object
   end

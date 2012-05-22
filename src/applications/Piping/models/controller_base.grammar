@@ -5,8 +5,8 @@ State ::= [State] "state" name:sym ":" transitions:Transition* commands:Action*
 
 Action ::= Assign | TurnSplitter
 Assign ::= [Assign] var:Expr "=" val:Expr
-         | [Assign] "raise" var:Expr "by" val:Expr @"@val = @val.factory.EBinOp('+', @var, @val)"
-         | [Assign] "lower" var:Expr "by" val:Expr @"@val = @val.factory.EBinOp('-', @var, @val)"
+         | [Assign] "raise" var:Expr "by" val:Expr { val = val.factory.EBinOp("+", var, val) }
+         | [Assign] "lower" var:Expr "by" val:Expr { val = val.factory.EBinOp("-", var, val) }
 TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym (
                     "left"   @"@percent = 0" |
                     "center" @"@percent = 0.5" |
