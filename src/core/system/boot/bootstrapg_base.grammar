@@ -26,11 +26,11 @@
     | [Ref] path:Path "^"
     | [Lit] value:str
     | [Call] rule:/rules[it]^
-    | [Regular] arg:Pattern "*" { optional = true many = true sep = "" }
-    | [Regular] arg:Pattern "?"	{ optional = true sep = "" }
-    | [Regular] arg:Pattern "+" { many = true sep = "" }
-    | [Regular] "{" arg:Pattern sep:str "}" "*" { optional = true many = true }
-    | [Regular] "{" arg:Pattern sep:str "}" "+" { many = true }
+    | [Regular] arg:Pattern "*" @"@optional = true; @many = true; @sep = nil"
+    | [Regular] arg:Pattern "?"	@"@optional = true; @sep = nil"
+    | [Regular] arg:Pattern "+" @"@many = true; @sep = nil"
+    | [Regular] "{" arg:Pattern sep:str "}" "*" @"@optional = true; @many = true"
+    | [Regular] "{" arg:Pattern sep:str "}" "+" @"@many = true"
     | "(" Alt ")"
 
 // extension of path.grammar

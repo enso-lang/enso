@@ -13,14 +13,14 @@ Super ::= /classes[it]^
 
 Field ::= [Field] Key? Traversal? name:sym ":" type:/types[it]^ Multiplicity Annot?
 Key ::= "#" @"@key = true"
-     |  "##" @"@key = true; @auto = true"
+     | "##" @"@key = true; @auto = true"
 
 Traversal ::= "!" @"@traversal = true"
 
 Multiplicity ::= "*" @"@many = true; @optional = true"
-	       | "?" @"@optional = true"
-	       | "+" @"@many = true"
-	       | @"true"
+| "?" @"@optional = true"
+| "+" @"@many = true"
+| @"true"
 
 Annot ::= "/" inverse:./type/fields[it]^
         | "=" computed:str

@@ -1,4 +1,4 @@
-start Block
+start EBlock
 
 Command ::= EWhile
           | EFor
@@ -8,7 +8,7 @@ Command ::= EWhile
           | EFunDef
           | EAssign
           | EImport
-          | Block
+          | EBlock
           | EReturn
 
 EWhile ::= [EWhile] "while" cond:Expr body:Command
@@ -22,7 +22,7 @@ EReturn ::= "return" Expr
 
 Formal ::= [Formal] name:sym
 
-Block ::= [EBlock] "{" body:Command* "}"
+EBlock ::= [EBlock] "{" body:Command* "}"
 
 abstract EFunCall
 abstract Expr

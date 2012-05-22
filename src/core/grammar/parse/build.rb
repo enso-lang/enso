@@ -2,6 +2,7 @@
 require 'core/grammar/parse/unparse'
 require 'core/grammar/parse/to-path'
 require 'core/system/utils/location'
+require 'core/expr/code/impl'
 
 class Build
   def self.build(sppf, factory, origins)
@@ -108,7 +109,11 @@ class Build
     
 
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    owner.instance_eval(this.code.gsub(/@/, 'self.'))
+    if this.code!="" # FIXME: this case is needed to parse bootstrap schema
+      owner.instance_eval(this.code.gsub(/@/, 'self.'))
+    else
+      Interpreter(EvalCommand).eval(this.expr, :env=>ObjEnv.new(owner))
+    end
   end
 
   private

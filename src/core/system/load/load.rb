@@ -91,14 +91,17 @@ module Loading
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
 
-      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('bootstrap.grammar', gg, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('bootstraps.grammar', gg, gs)
+      @cache[GRAMMAR_SCHEMA] = gg = load_with_models('bootstrapg.schema', gg, gs)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('bootstrapg.grammar', gg, gs)
+
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
     end
-        
+
     def load_with_models(name, grammar, schema, encoding = nil)
         find_model(name) do |path|
           load_path(path, grammar, schema, encoding)
@@ -118,7 +121,12 @@ module Loading
           result = FromXML.load(schema, doc)
         end
       else
-        header = File.open(path, &:readline)
+        begin
+          header = File.open(path, &:readline)
+        rescue EOFError => err
+          puts "Unable to load file #{path}"
+          raise err
+        end
         if header =~ /#ruby/
           $stderr << "## building #{path}...\n"
           result = instance_eval(File.read(path))

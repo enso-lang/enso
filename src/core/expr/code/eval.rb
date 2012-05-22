@@ -28,6 +28,10 @@ module EvalExpr
     val
   end
 
+  def eval_ENil(args=nil)
+    nil
+  end
+
   def eval_EFunCall(fun, params, args={})
     nargs = args.clone
     nargs[:in_fc]=true

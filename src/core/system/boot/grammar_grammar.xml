@@ -511,7 +511,7 @@
                       </arg>
                     </Field>
                     <Lit value='*'/>
-                    <Code code='@optional = true; @many = true; @sep = nil'/>
+                    <Code code='@optional = true; @many = true; @sep = ""'/>
                   </elements>
                 </Sequence>
               </arg>
@@ -530,7 +530,7 @@
                       </arg>
                     </Field>
                     <Lit value='?'/>
-                    <Code code='@optional = true; @sep = nil'/>
+                    <Code code='@optional = true; @sep = ""'/>
                   </elements>
                 </Sequence>
               </arg>
@@ -549,7 +549,7 @@
                       </arg>
                     </Field>
                     <Lit value='+'/>
-                    <Code code='@many = true; @sep = nil'/>
+                    <Code code='@many = true; @sep = ""'/>
                   </elements>
                 </Sequence>
               </arg>

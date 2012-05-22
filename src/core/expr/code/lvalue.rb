@@ -10,8 +10,8 @@ module LValueExpr
     def initialize(array, index)
       @array = array
       @index = index
-      if @array[@index].nil?
-        @array[@index] = 0
+      unless @array.has_key? @index
+        @array[@index] = nil
       end
     end
 
@@ -50,7 +50,7 @@ module LValueExpr
   end
 
   def lvalue_EField(e, fname, args=nil)
-    Address.new(self.eval(e, args), fname)
+    Address.new(ObjEnv.new(self.eval(e, args)), fname)
   end
 
   def lvalue_EVar(name, args=nil)

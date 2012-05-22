@@ -521,7 +521,9 @@ module ManagedData
     def keys; Array.new(length){|i|i} end
 
     def <<(mobj)
-      raise "Cannot insert nil into list" if !mobj
+      if !mobj
+      raise "Cannot insert nil into list"
+      end 
       check(mobj)
       notify(nil, mobj)
       __insert(mobj)

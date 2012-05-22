@@ -4,20 +4,20 @@ System ::= [System] elements:Element* sensors:Sensor*
 
 Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
         |   [Exhaust] name:sym ":" "exhaust" input:pipe  name:sym
-        |   [Vessel]  name:sym ":" "vessel"  outputs:pipe in    // capacity:real
-        |   [Valve]   name:sym ":" "valve" outputs:pipe in
-        |   [Splitter] name:sym ":" "splitter" outputs:(pipe pipe) in
-        |   [Pump]    name:sym ":" "pump" outputs:pipe in
-        |   [Radiator] name:sym ":" "radiator" outputs:pipe in
+        |   [Vessel]  name:sym ":" "vessel"  outputs:pipe inputs    // capacity:real
+        |   [Valve]   name:sym ":" "valve" outputs:pipe inputs
+        |   [Splitter] name:sym ":" "splitter" outputs:(pipe pipe) inputs
+        |   [Pump]    name:sym ":" "pump" outputs:pipe inputs
+        |   [Radiator] name:sym ":" "radiator" outputs:pipe inputs
         |   [Joint]   name:sym outputs:pipe "=" inputs:{Connection "+"}+
-        |   [Burner] name:sym ":" "burner" in gas outputs:pipe
+        |   [Burner] name:sym ":" "burner" inputs gas outputs:pipe
         |   [Room] name:sym ":" "room"
 
-Sensor ::= [Sensor] ("sensor" @"@controllable=false" | "control" @"@controllable=true") name:sym ":" kind:sym "(" (attach:/elements[it]^ | attach:Connection) ")"
+Sensor ::= [Sensor] ("sensor" {controllable = false} | "control" {controllable = true}) name:sym ":" kind:sym "(" (attach:/elements[it]^ | attach:Connection) ")"
 
 pipe ::= [Pipe]
        | [Pipe] "[" ("l" ":" length:real)? ("d" ":" diameter:real)? "]"
-in ::= "in" "=" inputs:Connection
+inputs ::= "in" "=" inputs:Connection
 gas ::= "gas" "=" gas:Connection
 
 Connection ::=

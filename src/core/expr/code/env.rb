@@ -14,11 +14,6 @@ module Env
     res.set!(key, block)
     res
   end
-  def +(env)
-    env.each do |k,v|
-      self[k]=v
-    end
-  end
   def has_key?(key)
     self.each do |k,v|
       return true if k==key
