@@ -9,11 +9,13 @@ module BuildFeature
 
   #load the triumvirate of schema, grammar, stencil
   def self.load_feature(name)
-    hash={}
-    begin hash['schema'] = Loader.load("#{name}.schema"); rescue; end
-    begin hash['grammar'] = Loader.load("#{name}.grammar"); rescue; end
-    begin hash['stencil'] = Loader.load("#{name}.stencil"); rescue; end
-    hash
+    f = build_feature('#{name}.feature')
+    if f.nil?
+      f={}
+      begin f['schema'] = Loader.load("#{name}.schema"); rescue; end
+      begin f['grammar'] = Loader.load("#{name}.grammar"); rescue; end
+    end
+    f
   end
 
   def self.cache_feature(name, feature)
@@ -115,5 +117,5 @@ end
 
 def build_feature(feature)
   feature = Loader.load(feature) if feature.is_a? String
-  Interpreter(BuildFeature).build(feature)
+  Interpreter(BuildFeature).build(feature) unless feature.nil?
 end

@@ -1,6 +1,0 @@
-#ruby
-
-union(rename(load('element.grammar'), {'Value' => 'Exp', 'Content' => 'Stat'}),
-      load('web-base.grammar'))	  
-
-

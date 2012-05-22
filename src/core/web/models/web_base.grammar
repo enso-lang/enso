@@ -28,14 +28,14 @@ Case ::= [Case] "case" name:sym ":" body:Stat
 
 
 
-Primary ::= [Field] exp:Primary "->" name:sym
+Primary ::= [EField] e:Primary "->" fname:sym
       | [Subscript] obj:Primary "[" exp:Expr "]"
-      | [Var] name:sym
+      | [EVar] name:sym
 
 
 Expr ::= Primary
-      | [Str] value:str
-      | [Int] value:int
+      | [EStrConst] val:str
+      | [EIntConst] val:int
       | Call  
       | [New] "new" "(" class:sym ")"
       | [Address] "address" "(" exp:Expr ")"

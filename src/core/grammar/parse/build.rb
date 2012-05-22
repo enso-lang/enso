@@ -174,7 +174,7 @@ class Build
       end
       fixes = later
     end while change
-    raise "Fix-up error" unless later.empty?
+    raise "Fix-up error: unable to fixup #{later}" unless later.empty?
   end
 
   def update(owner, field, x)

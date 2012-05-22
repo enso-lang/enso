@@ -2,6 +2,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 require 'core/expr/code/eval'
+require 'core/semantics/code/dispatch'
 
 class ExprTest < Test::Unit::TestCase
 
@@ -13,7 +14,7 @@ class ExprTest < Test::Unit::TestCase
   end
 
   def test_internal
-    interp = Interpreter(InternalVisitor("eval", EvalExprIntern))
+    interp = Interpreter(Propagate, EvalExprIntern)
 
     ex0 = Loader.load("expr1.expr")
     assert_equal(6, interp.visit(ex0))

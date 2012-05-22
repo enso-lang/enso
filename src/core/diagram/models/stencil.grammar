@@ -1,4 +1,4 @@
 #ruby
 
+build_feature('impl.feature')
 union(load('impl.grammar'), load('stencil_base.grammar'))
-

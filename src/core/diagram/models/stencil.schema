@@ -1,3 +1,4 @@
 #ruby
 
+build_feature('impl.feature')
 union(load('stencil_base.schema'), load('impl.schema'))

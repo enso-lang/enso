@@ -7,15 +7,15 @@ module Web::Eval
   class Expr
     include Dispatch
 
-    def Str(this, env)
-      Result.new(this.value)
+    def EStrConst(this, env)
+      Result.new(this.val)
     end
 
-    def Int(this, env)
-      Result.new(this.value.to_i)
+    def EIntConst(this, env)
+      Result.new(this.val.to_i)
     end
 
-    def Var(this, env)
+    def EVar(this, env)
       env[this.name]
     end
 
@@ -50,9 +50,9 @@ module Web::Eval
       Ref.create(this.class, env.root)
     end
 
-    def Field(this, env)
-      r = eval(this.exp, env)
-      r.field(this.name)
+    def EField(this, env)
+      r = eval(this.e, env)
+      r.field(this.fname)
     end
 
     def Subscript(this, env)

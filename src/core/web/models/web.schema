@@ -1,5 +1,0 @@
-#ruby
-
-union(rename(load('element.schema'), {'Value' => 'Exp', 'Content' => 'Stat'}), 
-      load('web-base.schema'))
-

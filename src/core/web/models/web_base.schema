@@ -2,6 +2,7 @@
 primitive str
 primitive int
 primitive bool
+primitive real
 
 class Web
 ! toplevels: Toplevel*
@@ -101,25 +102,31 @@ class Tail < Abstraction
 
 class Expr
 
-class Str < Expr
-! value: str
+class EConst < Expr 
 
+class EStrConst < EConst
+  val:str
 
-class Int < Expr
-  value: int
+class EIntConst < EConst
+  val:int
 
+class EBoolConst < EConst
+  val:bool
 
-class Var < Expr
-  name: str
+class ERealConst < EConst
+  val:real
+
+class EVar < Expr
+  name:str
 
 
 class All < Expr
   klass: str
 
 
-class Field < Expr
-! exp: Expr
-  name: str
+class EField < Expr
+! e:Expr
+  fname:str
 
 
 class Subscript < Expr
