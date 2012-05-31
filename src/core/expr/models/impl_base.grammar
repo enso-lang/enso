@@ -1,4 +1,4 @@
-start EBlock
+start EBlock_nocurl
 
 Command ::= EWhile
           | EFor
@@ -23,6 +23,11 @@ EReturn ::= "return" Expr
 Formal ::= [Formal] name:sym
 
 EBlock ::= [EBlock] "{" body:Command* "}"
+EBlock_nocurl ::= [EBlock] body:Command* 
 
-abstract EFunCall
+EFunCall ::= [EFunCall] fun:EUnOp "(" params:{Expr ","}* ")" lambda:ELambda?
+
+ELambda ::= [ELambda] "{" "|" formals:{Formal ","}* "|" body:EBlock_nocurl "}"
+
 abstract Expr
+abstract EUnOp

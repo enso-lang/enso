@@ -5,8 +5,8 @@ primitive real
 
 class Schema
 ! types: Type*
-  classes: Class* = "@types.select(&:Class?)"
-  primitives: Primitive* = "@types.select(&:Primitive?)"
+  classes: Class* = "@types.select(&:Class?)" // types.select { |t| t.schema_class.name=="Class" }
+  primitives: Primitive* = "@types.select(&:Primitive?)" // types.select { |t| t.schema_class.name=="Primitive" }
 
 
 class Type
@@ -24,7 +24,7 @@ class Class < Type
   fields: Field* = "@all_fields.select {|f| !f.computed}"
   all_fields: Field* = "@supers.flat_map(&:all_fields) + @defined_fields"
 
-  
+
 class Field
 # name: str
   owner: Class / defined_fields

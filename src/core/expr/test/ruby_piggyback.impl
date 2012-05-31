@@ -1,0 +1,1 @@
+return s.select() { |x| return x > 1 }

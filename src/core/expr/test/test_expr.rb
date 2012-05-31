@@ -12,14 +12,14 @@ class ExprTest < Test::Unit::TestCase
     ex0 = Loader.load("expr1.expr")
     assert_equal(6, interp.eval(ex0))
   end
-
+=begin
   def test_internal
     interp = Interpreter(Propagate, EvalExprIntern)
 
     ex0 = Loader.load("expr1.expr")
     assert_equal(6, interp.visit(ex0))
   end
-
+=end
   class A
     attr_reader :f1
     def initialize(f1); @f1=f1; end

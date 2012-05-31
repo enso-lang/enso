@@ -33,6 +33,11 @@ class EBlock < Command
 class EFunCall < Expr, Command
 ! fun:Expr
 ! params:Expr*
+! lambda:ELambda?
+
+class ELambda
+! body:Command
+! formals:Formal*
 
 
 class EFunDef < Command

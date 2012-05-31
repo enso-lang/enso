@@ -12,12 +12,12 @@ class CommandTest < Test::Unit::TestCase
     DisplayFormat.print(g, obj, 80, str)
     puts str
 =begin
-    assert_equal(str, "{
-        x = 0
-        i = 0
-        j = 0
-        while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 }
-        return x }")
+    assert_equal(str.squeeze(" "), "{
+    x = 0 
+    i = 0 
+    j = 0 
+    while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 } 
+    return x".squeeze(" "))
 =end
   end
 
@@ -43,5 +43,13 @@ class CommandTest < Test::Unit::TestCase
     fib = Loader.load("fibo.impl")
 
     assert_equal(34, interp.eval(fib, :env=>{'f'=>10}))
+  end
+  
+  def test_piggyback
+    #test the ability to piggyback on top of ruby's libraries, incl procs
+    interp = Interpreter(EvalCommand)
+    fib = Loader.load("ruby_piggyback.impl")
+
+    assert_equal([2,3], interp.eval(fib, :env=>{'s'=>[1,2,3]}))
   end
 end

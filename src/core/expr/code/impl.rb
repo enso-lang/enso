@@ -70,12 +70,27 @@ module EvalCommand
     end
     res
   end
-
+  
   def eval_EFunDef(name, formals, body, args={})
     res = Closure.new(body, formals, args[:env], self, args)
     res.env[name] = res #hack to enable self-recursion
     args[:env][name] = res
     res
+  end
+  
+  def eval_ELambda(body, formals, args={})
+    Proc.new { |*p| Closure.new(body, formals, args[:env], self, args).call(*p) }
+  end
+
+  def eval_EFunCall(fun, params, lambda, args={})
+    nargs = args.clone
+    nargs[:in_fc]=true
+    if lambda.nil?
+      self.eval(fun, nargs).call(*(params.map{|p|self.eval(p, args)}))
+    else
+      p = self.eval(lambda, args)
+      self.eval(fun, nargs).call(*(params.map{|p|self.eval(p, args)}), &p) 
+    end
   end
 
   def eval_EAssign(var, val, args={})

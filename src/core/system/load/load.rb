@@ -77,8 +77,18 @@ module Loading
       FromXML.load(schema, doc)
     end
 
+    def build_feature(feature)
+      @feature = @feature || {}
+      if not @feature.has_key? feature
+        f = load(feature)
+        @feature[feature] = f
+        Interpreter(BuildFeature).build(f) unless f.nil?
+      end
+    end
+
     def setup
       @cache = {}
+      @feature = {}
       $stderr << "Initializing...\n"
 
       # TODO: this is not (yet) correct bootstrapping
@@ -149,7 +159,7 @@ module Loading
         if path.nil?
           nil
         else
-          raise "File not found #{name}" unless path
+          raise EOFError, "File not found #{name}" unless path
           yield path
         end
       end
