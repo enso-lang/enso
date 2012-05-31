@@ -9,12 +9,12 @@ module BuildFeature
 
   #load the triumvirate of schema, grammar, stencil
   def self.load_feature(name)
-    f = build_feature('#{name}.feature')
-    if f.nil?
+    f = Loader.build_feature('#{name}.feature')
+    #if f.nil?
       f={}
-      begin f['schema'] = Loader.load("#{name}.schema"); rescue; end
-      begin f['grammar'] = Loader.load("#{name}.grammar"); rescue; end
-    end
+      begin f['schema'] = Loader.load("#{name}.schema"); rescue EOFError; end
+      begin f['grammar'] = Loader.load("#{name}.grammar"); rescue EOFError; end
+    #end
     f
   end
 
@@ -42,6 +42,7 @@ module BuildFeature
       if args[:rules][name].nil?
         args[:env][name] = BuildFeature.load_feature(name)
       else
+      puts "dont be here"
         build(args[:rules][name], args)
       end
     end
@@ -113,9 +114,4 @@ module BuildFeature
       end
     end
   end
-end
-
-def build_feature(feature)
-  feature = Loader.load(feature) if feature.is_a? String
-  Interpreter(BuildFeature).build(feature) unless feature.nil?
 end

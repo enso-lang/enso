@@ -1,9 +1,9 @@
 def index {
   html("Todos") {
     form {
-      datatable(root->todos) {
-        column("Todo") { textedit(row->todo); }
-        column("Done") { checkbox(row->done); }
+      datatable(root.todos) {
+        column("Todo") { textedit(row.todo); }
+        column("Done") { checkbox(row.done); }
         column("Delete") { delete_checkbox(row); }
       }
       submit("Submit", index());
@@ -18,8 +18,8 @@ def todo_new() {
   in {
     html("New Todo") {
       form {
-        "Todo: " textedit(todo->todo);
-        insert(todo, root->todos);
+        "Todo: " textedit(todo.todo);
+        insert(todo, root.todos);
         submit("Submit", todo_show(todo));
       }
     }
@@ -40,8 +40,8 @@ def insert(x, coll) {
 def todo_show(todo) {
   html("Created a todo") {
    <ul>
-    <li>"Todo: " $todo->todo</li>
-    <li>"Done: " $todo->done</li>
+    <li>"Todo: " $todo.todo</li>
+    <li>"Done: " $todo.done</li>
     <li>"Address: " $address(todo)</li>
    </ul>
    navigate("Index", index());

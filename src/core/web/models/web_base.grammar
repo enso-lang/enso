@@ -8,7 +8,7 @@ Toplevel ::= [Def] "def" name:sym Sig? body:Stat
 // TODO: we have a dangling else problem...
 
 Stat ::= [For] "for" "(" var:sym ":" iter:Expr Index? ")" body:Stat
-       | [If] "if" "(" cond:Expr ")" body:Stat ("else" else:Stat)?
+       | [If] "if" "(" cond:Expr ")" body:Stat ("else" else1:Stat)?
        | [Call] exp:Primary Args? block:Block
        | Call ";"  // todo: should be exp if we have closures
        | Block
@@ -28,14 +28,10 @@ Case ::= [Case] "case" name:sym ":" body:Stat
 
 
 
-Primary ::= [EField] e:Primary "->" fname:sym
-      | [Subscript] obj:Primary "[" exp:Expr "]"
-      | [EVar] name:sym
+Primary ::= [Subscript] obj:Primary "[" exp:Expr "]"
 
 
 Expr ::= Primary
-      | [EStrConst] val:str
-      | [EIntConst] val:int
       | Call  
       | [New] "new" "(" class:sym ")"
       | [Address] "address" "(" exp:Expr ")"

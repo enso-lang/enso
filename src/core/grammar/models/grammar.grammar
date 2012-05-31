@@ -2,5 +2,5 @@
 
 # NB: order is important we want start to be Grammar not Path
 build_feature('impl.feature')
-union(union(load!('path.grammar'),load('impl.grammar')), load!('grammar-base.grammar'))
+union(union(load!('path.grammar'), load('impl.grammar')), load!('grammar-base.grammar'))
 

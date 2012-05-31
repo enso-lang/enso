@@ -10,7 +10,7 @@ def datatable(rows, columns: column(label, view[row])) {
     <thead>
     <tr>
     for (c: columns) {
-      <th>$c->label</th>
+      <th>$c.label</th>
     }
     </tr>
     </thead>
@@ -19,7 +19,7 @@ def datatable(rows, columns: column(label, view[row])) {
       <tr>
     	for (c: columns) {
 	  <td>
-    	  c->view(row);
+    	  c.view(row);
 	   </td>
 	}
       </tr>
@@ -80,10 +80,10 @@ def textedit(data) {
 def crud(obj, return) {
   form {
     <table>
-      for (f: obj->schema_class->fields) {
+      for (f: obj.schema_class.fields) {
         <tr>
-          <td> $obj[f->name] ": " </td>
-          <td> edit_field(f, obj[f->name]); </td>
+          <td> $obj[f.name] ": " </td>
+          <td> edit_field(f, obj[f.name]); </td>
         </tr>
       }
     </table>
@@ -92,18 +92,18 @@ def crud(obj, return) {
 }
 
 def edit_field(owner, field, data) {
-  switch (field->type) {
+  switch (field.type) {
     case Primitive: {
-       if (field->type->name == "bool")
+       if (field.type.name == "bool")
          checkbox(data);
        else 
          textedit(data);
     }
     case Class: {
-       if (field->many)
-         select(data, owner[field->name]);
+       if (field.many)
+         select(data, owner[field.name]);
        else
-         select1(data, owner[field->name]);
+         select1(data, owner[field.name]);
     }
   }
 }
@@ -114,9 +114,9 @@ def select1(elt, list) {
    for (x: list) 
      if (x == elt)
        <option selected="true"
-              value=address(x)> $x->name </option>
+              value=address(x)> $x.name </option>
      else
-       <option value=address(x)> $x->name </option>
+       <option value=address(x)> $x.name </option>
   </select>   
 }
 
@@ -125,9 +125,9 @@ def select(elts, list) {
    for (x: list) 
      if (x in elts)  
        <option selected="true" 
-       	       value=address(x)> $x->name </option>
+       	       value=address(x)> $x.name </option>
      else
-       <option value=address(x)> $x->name </option>
+       <option value=address(x)> $x.name </option>
   </select>   
 }
 

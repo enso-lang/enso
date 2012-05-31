@@ -27,8 +27,8 @@ module Web::Eval
     def If(this, env, out)
       if expr.eval(this.cond, env).truthy? then
         eval(this.body, env, out)
-      elsif this.else then
-        eval(this.else, env, out)
+      elsif this.else1 then
+        eval(this.else1, env, out)
       end
     end
     

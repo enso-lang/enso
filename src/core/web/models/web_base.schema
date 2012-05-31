@@ -45,7 +45,7 @@ class For < Stat
 class If < Stat
 ! cond: Expr
 ! body: Stat
-! else: Stat?
+! else1: Stat?
 
 
 class Switch < Stat
@@ -102,31 +102,10 @@ class Tail < Abstraction
 
 class Expr
 
-class EConst < Expr 
-
-class EStrConst < EConst
-  val:str
-
-class EIntConst < EConst
-  val:int
-
-class EBoolConst < EConst
-  val:bool
-
-class ERealConst < EConst
-  val:real
-
-class EVar < Expr
-  name:str
-
 
 class All < Expr
   klass: str
 
-
-class EField < Expr
-! e:Expr
-  fname:str
 
 
 class Subscript < Expr
