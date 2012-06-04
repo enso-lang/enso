@@ -23,6 +23,6 @@ Multiplicity ::= "*" { many = true optional = true }
 	       | { }
 
 Annot ::= "/" inverse:./type/fields[it]^
-        | "=" computed:Expr
+        | "=" computed:Command
 
-abstract Expr
+abstract Command

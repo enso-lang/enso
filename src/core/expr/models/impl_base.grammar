@@ -18,7 +18,7 @@ ESwitch ::= [ESwitch] "switch" e:Expr
 EFunDef ::= [EFunDef] "def" name:sym "(" formals:{Formal ","}* ")" body:Command
 EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
-EReturn ::= "return" Expr
+EReturn ::= "return" Expr | Expr
 
 Formal ::= [Formal] name:sym
 

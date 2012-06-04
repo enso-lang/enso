@@ -2,7 +2,7 @@ start Feature
 
 Feature ::= [Feature] rules:Rule*
 Rule ::= [Rule] Save? lhs:sym "::=" rhs:FeatureExpr
-Save ::= "load" @"@save=true"
+Save ::= "load" {save=true}
 
 FeatureExpr ::= Var
               | File

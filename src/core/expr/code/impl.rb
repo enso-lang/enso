@@ -24,10 +24,11 @@ module EvalCommand
     #params are the values used to call this function
     #args are used by the interpreter
     def call(*params)
-      nenv = @env.clone
+      nenv = HashEnv.new
       @formals.zip(params).each do |f,v|
         nenv[f.name] = v
       end
+      nenv.set_parent(@env)
       res = @interp.eval(@body, @args.merge({:env=>nenv}))
       res
     end

@@ -14,15 +14,21 @@
             /types[Type]/defined_fields[schema]
           </inverse>
         </Field>
-        <Field name='classes' optional='true' many='true' computed='@types.select(&amp;:Class?)'>
+        <Field name='classes' optional='true' many='true'>
           <type>
             /types[Class]
           </type>
+          <computed>
+          	<ECode code='@types.select(&amp;:Class?)'/>
+          </computed>
         </Field>
-        <Field name='primitives' optional='true' many='true' computed='@types.select(&amp;:Primitive?)'>
+        <Field name='primitives' optional='true' many='true'>
           <type>
             /types[Primitive]
           </type>
+          <computed>
+          	<ECode code='@types.select(&amp;:Primitive?)'/>
+          </computed>
         </Field>
       </defined_fields>
     </Class>
@@ -80,15 +86,21 @@
             /types[Field]/defined_fields[owner]
           </inverse>
         </Field>
-        <Field name='fields' optional='true' many='true' computed='@all_fields.select {|f| !f.computed}'>
+        <Field name='fields' optional='true' many='true'>
           <type>
             /types[Field]
           </type>
+          <computed>
+          	<ECode code='@all_fields.select {|f| !f.computed}'/>
+          </computed>
         </Field>
-        <Field name='all_fields' optional='true' many='true' computed='@supers.flat_map(&amp;:all_fields) + @defined_fields'>
+        <Field name='all_fields' optional='true' many='true'>
           <type>
             /types[Field]
           </type>
+          <computed>
+          	<ECode code='@supers.flat_map(&amp;:all_fields) + @defined_fields'/>
+          </computed>
         </Field>
       </defined_fields>
     </Class>
@@ -140,14 +152,426 @@
             /types[Field]/defined_fields[inverse]
           </inverse>
         </Field>
-        <Field name='computed' optional='true'>
+        <Field name='computed' optional='true' traversal='true'>
           <type>
-            /types[str]
+            /types[Command]
           </type>
         </Field>
         <Field name='traversal'>
           <type>
             /types[bool]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='Command'>
+      <subclasses>
+        /types[Expr] /types[EWhile] /types[EFor] /types[EIf] /types[EBlock]
+        /types[EFunCall] /types[EFunDef] /types[EAssign] /types[EImport]
+      </subclasses>
+    </Class>
+    <Class name='EWhile'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='cond' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='body' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EFor'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='var'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='list' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='body' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EIf'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='cond' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='body' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+        <Field name='body2' optional='true' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EBlock'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='body' optional='true' many='true' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='ELambda'>
+      <defined_fields>
+        <Field name='body' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+        <Field name='formals' optional='true' many='true' traversal='true'>
+          <type>
+            /types[Formal]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EFunDef'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='name'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='formals' optional='true' many='true' traversal='true'>
+          <type>
+            /types[Formal]
+          </type>
+        </Field>
+        <Field name='body' traversal='true'>
+          <type>
+            /types[Command]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='Formal'>
+      <defined_fields>
+        <Field name='name'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EAssign'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='var' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='val' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EImport'>
+      <supers>
+        /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='path'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='Expr'>
+      <supers>
+        /types[Command]
+      </supers>
+      <subclasses>
+        /types[EFunCall] /types[ETernOp] /types[EBinOp] /types[EUnOp]
+        /types[EField] /types[EVar] /types[ESubscript] /types[EList]
+        /types[EAddress] /types[ENew] /types[EConst]
+      </subclasses>
+    </Class>
+    <Class name='ETernOp'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='op1'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='op2'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='e1' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='e2' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='e3' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EBinOp'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='op'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='e1' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='e2' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EUnOp'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='op'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+        <Field name='e' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EFunCall'>
+      <supers>
+        /types[Expr] /types[Command]
+      </supers>
+      <defined_fields>
+        <Field name='lambda' optional='true' traversal='true'>
+          <type>
+            /types[ELambda]
+          </type>
+        </Field>
+        <Field name='fun' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='params' optional='true' many='true' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EField'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='e' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='fname'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EVar'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='name'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='ESubscript'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='e' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+        <Field name='sub' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EList'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='elems' optional='true' many='true' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EAddress'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='e' traversal='true'>
+          <type>
+            /types[Expr]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='ENew'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <defined_fields>
+        <Field name='class'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EConst'>
+      <supers>
+        /types[Expr]
+      </supers>
+      <subclasses>
+        /types[EStrConst] /types[EIntConst] /types[EBoolConst]
+        /types[ERealConst] /types[ENil]
+      </subclasses>
+    </Class>
+    <Class name='EStrConst'>
+      <supers>
+        /types[EConst]
+      </supers>
+      <defined_fields>
+        <Field name='val'>
+          <type>
+            /types[str]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EIntConst'>
+      <supers>
+        /types[EConst]
+      </supers>
+      <defined_fields>
+        <Field name='val'>
+          <type>
+            /types[int]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='EBoolConst'>
+      <supers>
+        /types[EConst]
+      </supers>
+      <defined_fields>
+        <Field name='val'>
+          <type>
+            /types[bool]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='ERealConst'>
+      <supers>
+        /types[EConst]
+      </supers>
+      <defined_fields>
+        <Field name='val'>
+          <type>
+            /types[real]
+          </type>
+        </Field>
+      </defined_fields>
+    </Class>
+    <Class name='ENil'>
+      <supers>
+        /types[EConst]
+      </supers>
+    </Class>
+    <Class name='ECode'>
+      <supers>
+        /types[EConst]
+      </supers>
+      <defined_fields>
+        <Field name='code'>
+          <type>
+            /types[str]
           </type>
         </Field>
       </defined_fields>

@@ -1,5 +1,0 @@
-#ruby
-
-union(
-	union(load!('bootstrapg_base.schema'), load('path.schema')), 
-	union(load('impl_base.schema'),load('expr.schema')) )

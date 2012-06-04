@@ -145,6 +145,26 @@ module Boot
       p = Paths::Path.parse(elt.get_text.value.strip)
       p.deref(owner.schema)
     end
+    
+    def computed
+      c = @this.elements['computed/ECode']
+      return nil if c.nil?
+      ECode.new(c, self) 
+    end
+
+    def method_missing(sym)
+      @this.attributes[sym.to_s]
+    end
+  end
+  
+  #this is used to make bootstrap boot properly 
+  #with computed fields but not full expression support
+  class ECode < Mock
+    def initialize(this, field)
+      @this = this
+      @field = field
+    end
+    def ECode?; true end
 
     def method_missing(sym)
       @this.attributes[sym.to_s]

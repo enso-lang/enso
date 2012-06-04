@@ -4,7 +4,7 @@ require 'core/schema/code/dynamic'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
-require 'core/expr/code/eval'
+require 'core/expr/code/impl'
 require 'core/expr/code/env'
 
 =begin
@@ -25,7 +25,7 @@ module ManagedData
     def initialize(schema, interp=nil)
       @schema = schema
       @interp = interp || Interpreter(FactorySchema)
-      @interp.compose!(EvalExpr)
+      @interp.compose!(EvalCommand)
       @roots = []
       __constructor(schema.types)
     end
@@ -226,10 +226,8 @@ module ManagedData
 
     def __computed(name, exp)
       define_singleton_method(name) do
-        if exp.is_a? String # FIXME: this case is needed to parse bootstrap schema
-          instance_eval(exp.gsub(/@/, 'self.'))
-        elsif exp.EStrConst?
-          instance_eval(exp.val.gsub(/@/, 'self.'))
+        if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
+          instance_eval(exp.code.gsub(/@/, 'self.'))
         else
           @interp.eval(exp, :env=>ObjEnv.new(self))
         end

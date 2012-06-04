@@ -3,17 +3,17 @@ start Expr
 Expr ::= ETernOp
 ETernOp ::= [ETernOp] e1:ETernOp op1:"?" e2:EOr op2:":" e3:EOr
        | EOr
-EOr ::= [EBinOp] e1:EOr "or" e2:EAnd {op = "|"}
+EOr ::= [EBinOp] e1:EOr "or" e2:EAnd @"@op = '|'"
        | EAnd
-EAnd ::= [EBinOp] e1:EAnd "and" e2:EBinOp1 {op = "&"}
+EAnd ::= [EBinOp] e1:EAnd "and" e2:EBinOp1 @"@op = '&'"
         | EBinOp1
-EBinOp1 ::= [EBinOp] e1:EBinOp1 ("==" {op="eql?"} |op:"!="|op:">"|op:"<"|op:">="|op:"<=") e2:EBinOp2
+EBinOp1 ::= [EBinOp] e1:EBinOp1 ("==" @"@op='eql?'" |op:"!="|op:">"|op:"<"|op:">="|op:"<=") e2:EBinOp2
          | EBinOp2
 EBinOp2 ::= [EBinOp] e1:EBinOp2 (op:"+"|op:"-") e2:EBinOp3
          | EBinOp3
 EBinOp3 ::= [EBinOp] e1:EBinOp3 (op:"*"|op:"/"|op:"%") e2:EUnOp
          | EUnOp
-EUnOp ::= [EUnOp] "not" e:Expr {op = "!"}
+EUnOp ::= [EUnOp] "not" e:Expr @"@op = '!'"
         | EFunCall
         | EListComp
         | Primary
@@ -27,6 +27,6 @@ Primary ::= EConst
 EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:Expr
 EConst ::= [EStrConst] val:str
          | [EIntConst] val:int
-         | [EBoolConst] "true" {val=true} | [EBoolConst] "false" {val=false}
+         | [EBoolConst] "true" @"@val=true" | [EBoolConst] "false" @"@val=false"
          | [ERealConst] val:real
          | [ENil] "nil"

@@ -433,16 +433,15 @@
             </Create>
             <Create name='Code'>
               <arg>
-                <Sequence>
-                  <elements>
-                    <Lit value='@'/>
-                    <Field name='code'>
-                      <arg>
-                        <Value kind='str'/>
-                      </arg>
-                    </Field>
-                  </elements>
-                </Sequence>
+                <Field name='expr'>
+                  <arg>
+                    <Call>
+                      <rule>
+                        /rules[EBlock]
+                      </rule>
+                    </Call>
+                  </arg>
+                </Field>
               </arg>
             </Create>
             <Create name='Ref'>
@@ -617,6 +616,1283 @@
                 <Lit value=')'/>
               </elements>
             </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Command'>
+      <arg>
+        <Alt>
+          <alts>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EWhile]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EFor]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EIf]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[ESwitch]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EFunCall]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EFunDef]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EAssign]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EImport]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EBlock]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EReturn]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EWhile'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EWhile'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='while'/>
+                    <Field name='cond'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='body'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Command]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EFor'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EFor'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='for'/>
+                    <Field name='var'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value=':'/>
+                    <Field name='list'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='body'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Command]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EIf'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EIf'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='if'/>
+                    <Field name='cond'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='body'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Command]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Regular optional='true' sep=''>
+                      <arg>
+                        <Alt>
+                          <alts>
+                            <Sequence>
+                              <elements>
+                                <Lit value='else'/>
+                                <Field name='body2'>
+                                  <arg>
+                                    <Call>
+                                      <rule>
+                                        /rules[Command]
+                                      </rule>
+                                    </Call>
+                                  </arg>
+                                </Field>
+                              </elements>
+                            </Sequence>
+                          </alts>
+                        </Alt>
+                      </arg>
+                    </Regular>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='ESwitch'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='ESwitch'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='switch'/>
+                    <Field name='e'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EFunDef'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EFunDef'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='def'/>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value='('/>
+                    <Field name='formals'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=','>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Formal]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value=')'/>
+                    <Field name='body'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Command]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EAssign'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EAssign'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='var'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='='/>
+                    <Field name='val'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EImport'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EImport'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='require'/>
+                    <Field name='path'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EReturn'>
+      <arg>
+        <Alt>
+          <alts>
+            <Sequence>
+              <elements>
+                <Lit value='return'/>
+                <Call>
+                  <rule>
+                    /rules[Expr]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Formal'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Formal'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EBlock'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBlock'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='{'/>
+                    <Field name='body'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=''>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Command]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value='}'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EBlock_nocurl'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBlock'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='body'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=''>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Command]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='ELambda'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='ELambda'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='{'/>
+                    <Lit value='|'/>
+                    <Field name='formals'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=','>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Formal]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value='|'/>
+                    <Field name='body'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBlock_nocurl]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='}'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Expr'>
+      <arg>
+        <Alt>
+          <alts>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[ETernOp]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='ETernOp'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='ETernOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[ETernOp]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='op1'>
+                      <arg>
+                        <Lit value='?'/>
+                      </arg>
+                    </Field>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EOr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Field name='op2'>
+                      <arg>
+                        <Lit value=':'/>
+                      </arg>
+                    </Field>
+                    <Field name='e3'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EOr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EOr]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EOr'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBinOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EOr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='or'/>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EAnd]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Code code='@op = &apos;|&apos;'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EAnd]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EAnd'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBinOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EAnd]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='and'/>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp1]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Code code='@op = &apos;&amp;&apos;'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EBinOp1]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EBinOp1'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBinOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp1]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Alt>
+                      <alts>
+                        <Sequence>
+                          <elements>
+                            <Lit value='=='/>
+                            <Code code='@op=&apos;eql?&apos;'/>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='!='/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='&gt;'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='&lt;'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='&gt;='/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='&lt;='/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                      </alts>
+                    </Alt>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp2]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EBinOp2]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EBinOp2'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBinOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp2]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Alt>
+                      <alts>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='+'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='-'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                      </alts>
+                    </Alt>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp3]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EBinOp3]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EBinOp3'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EBinOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e1'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EBinOp3]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Alt>
+                      <alts>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='*'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='/'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='%'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                      </alts>
+                    </Alt>
+                    <Field name='e2'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EUnOp]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EUnOp]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EUnOp'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EUnOp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='not'/>
+                    <Field name='e'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Code code='@op = &apos;!&apos;'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EFunCall]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EListComp]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[Primary]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Sequence>
+              <elements>
+                <Lit value='('/>
+                <Call>
+                  <rule>
+                    /rules[Expr]
+                  </rule>
+                </Call>
+                <Lit value=')'/>
+              </elements>
+            </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EFunCall'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EFunCall'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='fun'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EUnOp]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='('/>
+                    <Field name='params'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=','>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Expr]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value=')'/>
+                    <Field name='lambda'>
+                      <arg>
+                        <Regular optional='true' sep=''>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[ELambda]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='EFunCall'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='fun'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[EUnOp]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='('/>
+                    <Field name='params'>
+                      <arg>
+                        <Regular optional='true' many='true' sep=','>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Expr]
+                              </rule>
+                            </Call>
+                          </arg>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value=')'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Primary'>
+      <arg>
+        <Alt>
+          <alts>
+            <Sequence>
+              <elements>
+                <Call>
+                  <rule>
+                    /rules[EConst]
+                  </rule>
+                </Call>
+              </elements>
+            </Sequence>
+            <Create name='EField'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Primary]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='.'/>
+                    <Field name='fname'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='ESubscript'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='e'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='['/>
+                    <Field name='sub'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value=']'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='EVar'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='name'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EListComp'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EListComp'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Alt>
+                      <alts>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='all?'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                        <Sequence>
+                          <elements>
+                            <Field name='op'>
+                              <arg>
+                                <Lit value='any?'/>
+                              </arg>
+                            </Field>
+                          </elements>
+                        </Sequence>
+                      </alts>
+                    </Alt>
+                    <Field name='var'>
+                      <arg>
+                        <Value kind='sym'/>
+                      </arg>
+                    </Field>
+                    <Lit value='in'/>
+                    <Field name='list'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value=':'/>
+                    <Field name='e'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='EConst'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='EStrConst'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='val'>
+                      <arg>
+                        <Value kind='str'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='EIntConst'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='val'>
+                      <arg>
+                        <Value kind='int'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='EBoolConst'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='true'/>
+                    <Code code='@val=true'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='EBoolConst'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='false'/>
+                    <Code code='@val=false'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='ERealConst'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='val'>
+                      <arg>
+                        <Value kind='real'/>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
+            <Create name='ENil'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Lit value='nil'/>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
           </alts>
         </Alt>
       </arg>

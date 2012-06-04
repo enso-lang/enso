@@ -90,6 +90,9 @@ class ObjEnv
   def []=(key, value)
     @obj[key] = value
   end
+  def has_key?(key)
+    @obj.schema_class.all_fields.map{|f|f.name}.include? key
+  end
   def each(&block)
     @obj.schema_class.all_fields.each do |f|
       yield f.name, @obj[f.name]

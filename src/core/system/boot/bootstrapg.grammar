@@ -1,3 +1,0 @@
-#ruby
-
-union(union(union(load('expr.grammar'),load('impl_base.grammar')), load!('path.grammar')), load!('bootstrapg_base.grammar'))

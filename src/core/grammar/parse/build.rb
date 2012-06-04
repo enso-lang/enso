@@ -109,7 +109,7 @@ class Build
     
 
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    if this.code!="" # FIXME: this case is needed to parse bootstrap schema
+    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
       owner.instance_eval(this.code.gsub(/@/, 'self.'))
     else
       Interpreter(EvalCommand).eval(this.expr, :env=>ObjEnv.new(owner))
