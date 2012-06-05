@@ -106,10 +106,11 @@ module Loading
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
 
-      patch_schema_pointers(sg, gs)
-      patch_schema_pointers(ss, ss)
-      patch_schema_pointers(gs, ss)
-      patch_schema_pointers(gg, gs)
+      @cache.each do |k,v|
+        model, type = k.split(/\./)
+        schema = @cache["#{type}.schema"]
+        patch_schema_pointers(v, schema)
+      end
     end
     
     def patch_schema_pointers(obj, schema)
