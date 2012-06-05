@@ -21,7 +21,6 @@
     | [Value] kind:"real"
     | [Value] kind:"sym"
     | [Value] kind:"atom"
-    | [Code] "@" code:str
     | [Code] expr:EBlock
     | [Ref] path:Path "^"
     | [Lit] value:str

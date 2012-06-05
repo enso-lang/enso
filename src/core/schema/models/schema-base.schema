@@ -5,8 +5,8 @@ primitive real
 
 class Schema
 ! types: Type*
-  classes: Class* = types.select() { |t| t.schema_class.name=="Class" }
-  primitives: Primitive* = types.select() { |t| t.schema_class.name=="Primitive" }
+  classes: Class* = types.select() { |t| return t.schema_class.name=="Class" }
+  primitives: Primitive* = types.select() { |t| return t.schema_class.name=="Primitive" }
 
 
 class Type
