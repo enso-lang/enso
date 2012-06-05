@@ -21,8 +21,8 @@ class Class < Type
   supers: Class*
   subclasses: Class* / supers
 ! defined_fields: Field*
-  fields: Field = all_fields.select() {|f| not f.computed}
-  all_fields: Field* = supers.flat_map() {|s| s.all_fields } + defined_fields
+  fields: Field = "@all_fields.select() {|f| not f.computed}"
+  all_fields: Field* = "@supers.flat_map() {|s| s.all_fields } + @defined_fields"
 
 
 class Field

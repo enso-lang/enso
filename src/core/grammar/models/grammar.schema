@@ -1,4 +1,3 @@
 #ruby
 
-build_feature('impl.feature')
 union(union(load!('grammar-base.schema'), load!('path.schema')), load('impl.schema'))

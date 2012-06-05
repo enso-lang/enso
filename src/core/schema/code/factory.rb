@@ -228,6 +228,8 @@ module ManagedData
       define_singleton_method(name) do
         if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
           instance_eval(exp.code.gsub(/@/, 'self.'))
+        elsif exp.EStrConst?
+          instance_eval(exp.val.gsub(/@/, 'self.'))
         else
           @interp.eval(exp, :env=>ObjEnv.new(self))
         end

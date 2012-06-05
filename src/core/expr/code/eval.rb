@@ -24,6 +24,10 @@ module EvalExpr
     env[name]
   end
 
+  def eval_ESubscript(e, sub, args=nil)
+    self.eval(e, args)[self.eval(sub, args)]
+  end
+
   def eval_EConst(val, args=nil)
     val
   end

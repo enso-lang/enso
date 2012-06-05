@@ -7,7 +7,7 @@ class Pipe
   in_pressure: real
   out_pressure: real
   temperature: real
-  velocity: real = "@flow / @area"
+  velocity: real = flow / area
 
 
 class Element 
@@ -51,5 +51,5 @@ class Pump < Element
 
 class Sensor
   user: real?
-  value: real = "@attach[@kind]"
+  value: real = attach[kind]
 
