@@ -103,10 +103,22 @@ module Loading
       
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
-      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
-      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
-      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
+
+      patch_schema_pointers(sg, gs)
+      patch_schema_pointers(ss, ss)
+      patch_schema_pointers(gs, ss)
+      patch_schema_pointers(gg, gs)
+    end
+    
+    def patch_schema_pointers(obj, schema)
+      all_classes = []
+      map(obj) do |o|
+        all_classes << o;
+        o
+      end
+      all_classes.each { |o| o.instance_eval { @schema_class = schema.types[@schema_class.name] } }
     end
 
     def load_with_models(name, grammar, schema, encoding = nil)

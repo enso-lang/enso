@@ -70,4 +70,19 @@ def ClassMinimum(a, b)
   end
 end
 
-  
+def map(obj, &block)
+  return nil if obj.nil?
+  res = yield obj
+  obj.schema_class.fields.each do |f|
+    next unless f.traversal and !f.type.Primitive?
+    if !f.many
+      map(obj[f.name], &block)
+    else
+      res[f.name].keys.each do |k|
+        map(obj[f.name][k], &block)
+      end
+    end
+  end
+  res
+end
+
