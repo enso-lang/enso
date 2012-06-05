@@ -5,8 +5,8 @@ Ledger ::= [Ledger] accounts:Account* transactions:Transaction*
 
 Account ::= [Account] Type name:sym
 
-Type ::= "asset"     @"@asset = true"
-     |   "liability" @"@asset = false"
+Type ::= "asset"     {asset = true}
+     |   "liability" {asset = false}
 
 Transaction ::= [Transaction] "transaction" name:sym Proration
                    "{" transfers:Transfer* "}"
@@ -14,7 +14,7 @@ Transaction ::= [Transaction] "transaction" name:sym Proration
 Transfer ::= [Transfer] account:Account^ ":" amount:int
 
 Proration ::= "(" proration:int ")"
-	   |  @"@proration = 1"
+	   |  {proration = 1}
 
 
 

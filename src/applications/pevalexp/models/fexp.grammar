@@ -14,7 +14,7 @@ Expr ::= [Const] value:Value
 Var ::= [Var] name:sym
 
 Value ::= [Int] value:int
-       |  [Bool] ("true" @"@value=true") | ("false" @"@value=false")
+       |  [Bool] ("true" {value=true}) | ("false" {value=false})
        |  [Pair] "<" first:Value "," second:Value ">"
        |  [List] "[" elements:{Value ","}* "]"
 

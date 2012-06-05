@@ -40,7 +40,7 @@ Expression ::= [Variable] name:sym
 
 Binding ::= [Binding] name:sym Many? "=" expression:Expression
 
-Many ::= "*" @"@many = true"
+Many ::= "*" {many = true}
 
 Argument ::= [Splat] "*" arg:Expression
 	  | Expression
@@ -51,8 +51,8 @@ Value ::= [Int] value:int
        | Bool
 
 
-Bool ::= [Bool] "true" @"@value = true"
-      |  [Bool] "false" @"@value = false"
+Bool ::= [Bool] "true" {value = true}
+      |  [Bool] "false" {value = false}
 
 Assign ::= [Assign] name:sym ":" expressions:{Expression ","}*
 

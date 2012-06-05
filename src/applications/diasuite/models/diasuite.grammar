@@ -50,8 +50,8 @@ Type ::= Primitive
 	     | [Class] name:sym
 	     | [Array] type:Type "[" "]"
  
-Primitive ::= [Primitive] "Integer" @"@kind = 'Integer'"
-	   |  [Primitive] "Boolean" @"@kind = 'Boolean'"
-	   |  [Primitive] "String" @"@kind = 'String'"
-	   |  [Primitive] "Float" @"@kind = 'Float'"
+Primitive ::= [Primitive] "Integer" {kind = "Integer"}
+	   |  [Primitive] "Boolean" {kind = "Boolean"}
+	   |  [Primitive] "String" {kind = "String"}
+	   |  [Primitive] "Float" {kind = "Float"}
 

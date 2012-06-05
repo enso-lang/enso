@@ -4,5 +4,5 @@ Domain ::= [Domain] "domain" sources:Source* "end"
 
 Source ::= [Source] "source" name:sym path:str basedir:Node ? "end"
 Node ::= Dir | File
-Dir ::= [Dir] name:sym "(" nodes:Node * ")" @"@isdir = true"
-File ::= [File] name:sym "["checksum:str"]" @"@isdir = false"
+Dir ::= [Dir] name:sym "(" nodes:Node * ")" { isdir = true }
+File ::= [File] name:sym "["checksum:str"]" { isdir = false }
