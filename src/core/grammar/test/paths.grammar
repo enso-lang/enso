@@ -1,0 +1,15 @@
+start Exp
+
+Exp ::= [Eq] lhs:Exp "==" rhs:Term
+     |  Term
+
+Term ::= [Add] lhs:Term "+" rhs:Factor
+      |  [Min] lhs:Term "-" rhs:Factor
+      |  Factor
+
+Factor ::= [Mul] lhs:Factor "*" rhs:Prim
+        |  [Div] lhs:Factor "/" rhs:Prim
+        |  Prim
+
+Prim ::= [Var] name:sym
+       | "(" Exp ")"

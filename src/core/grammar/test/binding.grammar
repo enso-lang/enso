@@ -1,0 +1,10 @@
+
+
+start Top
+
+Top ::= [Top] (Foo | Bar)*
+
+Foo ::= [Foo] "foo" name:sym "{" out:Bar "}"
+
+Bar ::= [Bar] "bar" name:sym 
+      | [Bar] "bar" name:sym  (x:sym) => /foos[it].out = .

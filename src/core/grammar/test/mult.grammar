@@ -1,0 +1,18 @@
+
+
+start Alt
+
+Alt ::= Create
+ 
+Create ::= [Create]  arg:Sequence
+    | Sequence
+
+  Sequence ::= [Sequence] elements:Field*
+
+  Field ::= [Field] name:sym ":" arg:Pattern
+    | Pattern
+  
+  Pattern ::= 
+    | [Regular] arg:Pattern "*" 
+    | [Regular] arg:Pattern "+" 
+    | "(" Alt ")"

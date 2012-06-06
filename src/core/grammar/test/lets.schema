@@ -1,0 +1,22 @@
+
+
+class Exp
+  parent: Exp?
+  scope: Exp = "@let || @parent.let"
+
+class Let < Exp
+  !bindings: Binding*
+  !body: Exp / let
+
+class Var < Exp
+  decl: Binding
+
+class Val < Exp
+  value: int
+
+class Binding
+  #name: str
+  !exp: Exp
+
+primitive str
+primitive int
