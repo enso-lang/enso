@@ -5,7 +5,7 @@
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
 
-  Alt ::= [Alt] alts:{Create "|"}+
+  Alt ::= [Alt] alts:Create+@"|"
 
   Create ::= [Create] "[" name:sym "]" arg:Sequence
     | Sequence
@@ -25,12 +25,12 @@
     | [Ref] path:Path "^"
     | [Lit] value:str
     | [Call] rule:/rules[it]^
-    | [Regular] arg:Pattern "*" { optional = true many = true sep = "" }
-    | [Regular] arg:Pattern "?"	{ optional = true sep = "" }
-    | [Regular] arg:Pattern "+" { many = true sep = "" }
-    | [Regular] "{" arg:Pattern sep:str "}" "*" { optional = true many = true }
-    | [Regular] "{" arg:Pattern sep:str "}" "+" { many = true }
+    | [Regular] arg:Pattern "?" { optional = true }
+    | [Regular] arg:Pattern "*" Sep? { optional = true many = true }
+    | [Regular] arg:Pattern "+" Sep? { many = true }
     | "(" Alt ")"
+
+  Sep ::= "@" sep:Pattern
 
 // extension of path.grammar
 abstract Path

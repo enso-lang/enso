@@ -59,7 +59,7 @@ class Regular < Expression
 ! arg: Expression 
   optional: bool 
   many: bool 
-  sep: str ? 
+! sep: Expression ? 
  
 
 class Epsilon < Expression

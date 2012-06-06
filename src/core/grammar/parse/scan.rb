@@ -61,11 +61,11 @@ class Scan
       accu << this.value if this.value.match(SYMBOL)
     end
 
-    def Regular(this, accu)
-      accu << this.sep if this.sep && this.sep.match(SYMBOL)
-      # since we visit regular explicitly, we have to recurse explicitly
-      recurse(this.arg, accu)
-    end
+    # def Regular(this, accu)
+    #   accu << this.sep if this.sep && this.sep.match(SYMBOL)
+    #   # since we visit regular explicitly, we have to recurse explicitly
+    #   recurse(this.arg, accu)
+    # end
   end
 
   private

@@ -103,17 +103,16 @@ class GrammarEval
     if !this.many && this.optional then
       gll.add(@epsilon)
       gll.add(this.arg)
-    elsif this.many && !this.optional && (!this.sep || this.sep=="") then
+    elsif this.many && !this.optional && !this.sep then
       gll.add(this.arg)
       gll.add(item(this, [this.arg, this], 0))
-    elsif this.many && this.optional && (!this.sep || this.sep=="") then
+    elsif this.many && this.optional && !this.sep then
       gll.add(@epsilon)
       gll.add(item(this, [this.arg, this], 0))
-    elsif this.many && !this.optional && this.sep && this.sep!="" then
+    elsif this.many && !this.optional && this.sep then
       gll.add(this.arg) 
-      @seps[this.sep] ||= @fact.Lit(this.sep)
-      gll.add(item(this, [this.arg, @seps[this.sep], this], 0))
-    elsif this.many && this.optional && this.sep && this.sep!="" then
+      gll.add(item(this, [this.arg, this.sep, this], 0))
+    elsif this.many && this.optional && this.sep then
       @iters[this] ||= @fact.Regular(this.arg, false, true, this.sep)
       gll.add(@epsilon)
       gll.add(@iters[this])

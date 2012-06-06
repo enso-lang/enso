@@ -23,7 +23,7 @@ ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
 Index ::= "," index:sym
 
-Props ::= "[" props:{ Assign ","}* "]"
+Props ::= "[" props:Assign*@"," "]"
 Assign ::= [Assign] loc:Expr "=" exp:Expr
 EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
 

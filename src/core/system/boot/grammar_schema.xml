@@ -197,9 +197,9 @@
             /types[bool]
           </type>
         </Field>
-        <Field name='sep' optional='true'>
+        <Field name='sep' optional='true' traversal='true'>
           <type>
-            /types[str]
+            /types[Expression]
           </type>
         </Field>
       </defined_fields>

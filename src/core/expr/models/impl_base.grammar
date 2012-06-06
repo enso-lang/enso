@@ -15,7 +15,7 @@ EWhile ::= [EWhile] "while" cond:Expr body:Command
 EFor ::= [EFor] "for" var:sym ":" list:Expr body:Command
 EIf ::= [EIf] "if" cond:Expr body:Command ("else" body2:Command)?
 ESwitch ::= [ESwitch] "switch" e:Expr
-EFunDef ::= [EFunDef] "def" name:sym "(" formals:{Formal ","}* ")" body:Command
+EFunDef ::= [EFunDef] "def" name:sym "(" formals:Formal*@"," ")" body:Command
 EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
 EReturn ::= "return" Expr
@@ -25,9 +25,9 @@ Formal ::= [Formal] name:sym
 EBlock ::= [EBlock] "{" body:Command* "}"
 EBlock_nocurl ::= [EBlock] body:Command* 
 
-EFunCall ::= [EFunCall] fun:EUnOp "(" params:{Expr ","}* ")" lambda:ELambda
+EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr*@"," ")" lambda:ELambda
 
-ELambda ::= [ELambda] "{" "|" formals:{Formal ","}* "|" body:EBlock_nocurl "}"
+ELambda ::= [ELambda] "{" "|" formals:Formal*@"," "|" body:EBlock_nocurl "}"
 
 abstract Expr
 abstract EUnOp

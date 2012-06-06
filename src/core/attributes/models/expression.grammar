@@ -4,16 +4,16 @@ start Schema
 
 abstract Schema
 
-Body ::= body:{Expression ";"}+
+Body ::= body:Expression+@";"
 
 // TODO: this is ambiguous, use at own risk
 Expression ::= [Variable] name:sym
 	    | Value
 
 	    | [Lookup] obj:Expression "[" key:Expression "]"
-	    | [Update] obj:Expression "[" contents:{Assign ";"}* "]"
+	    | [Update] obj:Expression "[" contents:Assign*@";" "]"
 	    | [Dot]  obj:Expression "->" field:sym
-	    | [Dot]  obj:Expression "->" field:sym "(" args:{Expression ","}+ ")"
+	    | [Dot]  obj:Expression "->" field:sym "(" args:Expression+@"," ")"
 
 	    | [Not] "!" arg:Expression // is special
 
@@ -26,14 +26,14 @@ Expression ::= [Variable] name:sym
 	    | [Binary] lhs:Expression op:">=" rhs:Expression
 	    | [Binary] lhs:Expression op:"<=" rhs:Expression
 
-	    | [IfThen] "if" conds:{Condition ","}+ "then" Body
+	    | [IfThen] "if" conds:Condition+@"," "then" Body
 	      	       elsifs:ElsIf* else:Else? "end"
-  	    | [For] "for" conds:{Condition ","}+ "do" Body "end"
+  	    | [For] "for" conds:Condition+@"," "do" Body "end"
 
-            | [Call] name:sym "(" args:{Argument ","}* ")"
-            | [Cons] type:sym  "{" contents:{Assign ";"}* "}"
+            | [Call] name:sym "(" args:Argument*@"," ")"
+            | [Cons] type:sym  "{" contents:Assign*@";" "}"
 
-	    | [Let] "let" bindings:{Binding ";"}+ "in" Body "end"
+	    | [Let] "let" bindings:Binding+@";" "in" Body "end"
 
 	    | "(" Expression ")"
 	    
@@ -54,9 +54,9 @@ Value ::= [Int] value:int
 Bool ::= [Bool] "true" {value = true}
       |  [Bool] "false" {value = false}
 
-Assign ::= [Assign] name:sym ":" expressions:{Expression ","}*
+Assign ::= [Assign] name:sym ":" expressions:Expression*@","
 
-ElsIf ::= [IfThen] "elsif" conds:{Condition ","}+  "then" Body
+ElsIf ::= [IfThen] "elsif" conds:Condition+@","  "then" Body
 Else ::= [Else] "else" Body
 
 Condition ::= Expression

@@ -233,7 +233,7 @@
                   <elements>
                     <Field name='alts'>
                       <arg>
-                        <Regular many='true' sep='|'>
+                        <Regular many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -241,6 +241,9 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Lit value='|'/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>
@@ -510,7 +513,16 @@
                       </arg>
                     </Field>
                     <Lit value='*'/>
-                    <Code code='@optional = true; @many = true; @sep = ""'/>
+		    <Regular optional='true'>
+		      <arg>
+			<Call>
+			  <rule>
+			    /rules[Sep]
+			  </rule>
+			</Call>
+		      </arg>
+		    </Regular>
+                    <Code code='@optional = true; @many = true'/>
                   </elements>
                 </Sequence>
               </arg>
@@ -529,7 +541,7 @@
                       </arg>
                     </Field>
                     <Lit value='?'/>
-                    <Code code='@optional = true; @sep = ""'/>
+                    <Code code='@optional = true'/>
                   </elements>
                 </Sequence>
               </arg>
@@ -548,58 +560,15 @@
                       </arg>
                     </Field>
                     <Lit value='+'/>
-                    <Code code='@many = true; @sep = ""'/>
-                  </elements>
-                </Sequence>
-              </arg>
-            </Create>
-            <Create name='Regular'>
-              <arg>
-                <Sequence>
-                  <elements>
-                    <Lit value='{'/>
-                    <Field name='arg'>
-                      <arg>
-                        <Call>
-                          <rule>
-                            /rules[Pattern]
-                          </rule>
-                        </Call>
-                      </arg>
-                    </Field>
-                    <Field name='sep'>
-                      <arg>
-                        <Value kind='str'/>
-                      </arg>
-                    </Field>
-                    <Lit value='}'/>
-                    <Lit value='*'/>
-                    <Code code='@optional = true; @many = true'/>
-                  </elements>
-                </Sequence>
-              </arg>
-            </Create>
-            <Create name='Regular'>
-              <arg>
-                <Sequence>
-                  <elements>
-                    <Lit value='{'/>
-                    <Field name='arg'>
-                      <arg>
-                        <Call>
-                          <rule>
-                            /rules[Pattern]
-                          </rule>
-                        </Call>
-                      </arg>
-                    </Field>
-                    <Field name='sep'>
-                      <arg>
-                        <Value kind='str'/>
-                      </arg>
-                    </Field>
-                    <Lit value='}'/>
-                    <Lit value='+'/>
+		    <Regular optional='true'>
+		      <arg>
+			<Call>
+			  <rule>
+			    /rules[Sep]
+			  </rule>
+			</Call>
+		      </arg>
+		    </Regular>
                     <Code code='@many = true'/>
                   </elements>
                 </Sequence>
@@ -618,6 +587,28 @@
             </Sequence>
           </alts>
         </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Sep'>
+      <arg>
+	<Alt>
+	  <alts>
+	    <Sequence>
+	      <elements>
+		<Lit value='@'/>
+		<Field name='sep'>
+		  <arg>
+		    <Call>
+		      <rule>
+			/rules[Pattern]
+		      </rule>
+		    </Call>
+		  </arg>
+		</Field>
+	      </elements>
+	    </Sequence>
+	  </alts>
+	</Alt>
       </arg>
     </Rule>
     <Rule name='Command'>
@@ -821,7 +812,7 @@
                         </Call>
                       </arg>
                     </Field>
-                    <Regular optional='true' sep=''>
+                    <Regular optional='true'>
                       <arg>
                         <Alt>
                           <alts>
@@ -894,7 +885,7 @@
                     <Lit value='('/>
                     <Field name='formals'>
                       <arg>
-                        <Regular optional='true' many='true' sep=','>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -902,6 +893,9 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Lit value=','/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>
@@ -1030,7 +1024,7 @@
                     <Lit value='{'/>
                     <Field name='body'>
                       <arg>
-                        <Regular optional='true' many='true' sep=''>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1060,7 +1054,7 @@
                   <elements>
                     <Field name='body'>
                       <arg>
-                        <Regular optional='true' many='true' sep=''>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1091,7 +1085,7 @@
                     <Lit value='|'/>
                     <Field name='formals'>
                       <arg>
-                        <Regular optional='true' many='true' sep=','>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1099,6 +1093,9 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Lit value=','/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>
@@ -1612,7 +1609,7 @@
                     <Lit value='('/>
                     <Field name='params'>
                       <arg>
-                        <Regular optional='true' many='true' sep=','>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1620,13 +1617,16 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Lit value=','/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>
                     <Lit value=')'/>
                     <Field name='lambda'>
                       <arg>
-                        <Regular optional='true' sep=''>
+                        <Regular optional='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1657,7 +1657,7 @@
                     <Lit value='('/>
                     <Field name='params'>
                       <arg>
-                        <Regular optional='true' many='true' sep=','>
+                        <Regular optional='true' many='true'>
                           <arg>
                             <Call>
                               <rule>
@@ -1665,6 +1665,9 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Lit value=','/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>

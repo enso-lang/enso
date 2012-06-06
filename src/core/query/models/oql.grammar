@@ -17,11 +17,11 @@ Primary ::= [Nil] "nil"
        	 |  [Float] value:real
        	 |  [Str] value:str
        	 |  [Var] name:sym
-	 |  [New] type:sym "(" bindings:{Binding ","}+ ")"
-	 |  [New] "struct" "(" bindings:{Binding ","}+ ")"
-	 |  [Tuple] "(" first:Exp "," rest:{Exp ","}+ ")"
-	 |  [Call] name:sym "(" args:{Exp ","}* ")"
-	 |  [Field] obj:Primary "->" name:sym ("(" args:{Exp ","}* ")")?
+	 |  [New] type:sym "(" bindings:Binding+@"," ")"
+	 |  [New] "struct" "(" bindings:Binding+@"," ")"
+	 |  [Tuple] "(" first:Exp "," rest:Exp+@"," ")"
+	 |  [Call] name:sym "(" args:Exp*@"," ")"
+	 |  [Field] obj:Primary "->" name:sym ("(" args:Exp*@"," ")")?
 	 |  [Subscript] obj:Primary "[" arg:Exp "]"
 	 |  [Slice] obj:Primary "[" from:Exp ":" to:Exp "]"
 	 |  "(" Exp ")"
@@ -77,17 +77,17 @@ Disjunctive ::= [Binary] lhs:Disjunctive op:"or" rhs:Conjunctive
 // TODO: query ::= (class_name) query (= cast)
 // Range ::= [Binary] lhs:Range op:".." rhs:Disjunctive
 
-Exp ::= [Select] "select" distinct:"distinct"? Spec "from" from:{Decl ","}+
+Exp ::= [Select] "select" distinct:"distinct"? Spec "from" from:Decl+@","
     		 Where? GroupBy? Having? OrderBy?
        | Disjunctive
 
 
 Where ::= "where" condition:Disjunctive
-GroupBy ::= "group" "by" groupings:{Projection ","}+
+GroupBy ::= "group" "by" groupings:Projection+@","
 Having ::= "having" having:Disjunctive
-OrderBy ::= "order" "by" orderings:{Ordering ","}+
+OrderBy ::= "order" "by" orderings:Ordering+@","
 
-Spec ::= projections:{Projection ","}+
+Spec ::= projections:Projection+@","
       |  "*"  // recorded as projections being empty
 
 Projection ::= [Named] (name:sym ":")? exp:Disjunctive // or Exp?
