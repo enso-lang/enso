@@ -1,6 +1,6 @@
 start Controller
 
-Controller ::= [Controller] "start" initial:/states[it]^ globals:Assign* states:State* constraints:Constraint*
+Controller ::= [Controller] "start" initial:</states[it]> globals:Assign* states:State* constraints:Constraint*
 State ::= [State] "state" name:sym ":" transitions:Transition* commands:Action*
 
 Action ::= Assign | TurnSplitter
@@ -12,7 +12,7 @@ TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym (
                     "center" {percent = 0.5} |
                     "right"  {percent = 1} )
 
-Transition ::= [Transition] "if" guard:Expr "goto" target:/states[it]^
+Transition ::= [Transition] "if" guard:Expr "goto" target:</states[it]>
 
 Constraint ::= [Constraint] "test" cond:Expr "do" action:Action
 

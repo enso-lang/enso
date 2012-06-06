@@ -2,11 +2,11 @@
 
 start Graph
 
-Graph ::= [Graph] "graph" root:Node^ "{" nodes:Node*  "}"
+Graph ::= [Graph] "graph" root:<./nodes[it]> "{" nodes:Node*  "}"
 
 Node ::= [Node] "node" name:sym Number? Out
 
-Out ::= "[" out:Node^* "]"
+Out ::= "[" out:</nodes[it]>* "]"
 
 Number ::= "(" value:int ")"
 

@@ -8,7 +8,7 @@ Node ::= [Node] "node" name:sym Number?
 
 Number ::= "(" value:int ")"
 
-Edge ::= [Edge] "edge" from:Node^ "->" to:Node^ Label?
+Edge ::= [Edge] "edge" from:</nodes[it]> "->" to:</nodes[it]> Label?
 
 Label ::= "(" label:sym ")"
 

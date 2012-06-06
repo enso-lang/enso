@@ -3,7 +3,7 @@
 start Exp
 
 Exp ::= [Let] "let" bindings:Binding* "in" body:Exp "end"
-     |  [Var] decl:./parent/bindings[it]^
+     |  [Var] decl:<./parent/bindings[it]>
      |  [Val] value:int
 
 Binding ::= [Binding] name:sym "=" exp:Exp

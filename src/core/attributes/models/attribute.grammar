@@ -7,7 +7,7 @@ abstract Type
 abstract Multiplicity
 abstract Value
 
-Field ::= [Attribute] "@" name:sym Formals? ":" type:Type^ 
+Field ::= [Attribute] "@" name:sym Formals? ":" type:</types[it]>
       	  	      	  Multiplicity Default? "=" result:Expression
 
 Default ::= "(" default:Value ")"

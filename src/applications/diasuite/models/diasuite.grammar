@@ -42,9 +42,9 @@ ActionImpl ::= [ActionImpl] "action" name:sym ";"
 
 Indices ::= "indexed" "by" indices:{Variable ","}+
 
-SourceRef ::= [SourceRef] "source" name:sym "from" device:Device^ ";"
-ContextRef ::= [ContextRef] "context" context:Context^ ";"
-ActionRef ::= [ActionRef] "action" action:Action^ "on" device:Device^ ";"
+SourceRef ::= [SourceRef] "source" name:sym "from" device:</defs[it]> ";"
+ContextRef ::= [ContextRef] "context" context:</defs[it]> ";"
+ActionRef ::= [ActionRef] "action" action:</defs[it]> "on" device:</defs[it]> ";"
 
 Type ::= Primitive
 	     | [Class] name:sym

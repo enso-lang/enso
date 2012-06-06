@@ -9,7 +9,7 @@ Node ::= [Place] "place" name:sym
 
 
 // multiplicity indicates direction (- or +)
-Arc ::= [Arc] place:Place^ ":" transition:Transition^ "(" multiplicity:int ")"
+Arc ::= [Arc] place:</nodes[it]> ":" transition:</nodes[it]> "(" multiplicity:int ")"
 
 
 

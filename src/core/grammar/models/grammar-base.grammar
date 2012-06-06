@@ -1,6 +1,6 @@
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:/rules[it]^ rules:Rule*
+  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule*
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
@@ -22,9 +22,9 @@
     | [Value] kind:"sym"
     | [Value] kind:"atom"
     | [Code] expr:EBlock
-    | [Ref] path:Path "^"
+    | [Ref] "<" path:Path ">"
     | [Lit] value:str
-    | [Call] rule:/rules[it]^
+    | [Call] rule:</rules[it]>
     | [Regular] arg:Pattern "?" { optional = true }
     | [Regular] arg:Pattern "*" Sep? { optional = true many = true }
     | [Regular] arg:Pattern "+" Sep? { many = true }

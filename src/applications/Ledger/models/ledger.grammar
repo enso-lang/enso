@@ -11,7 +11,7 @@ Type ::= "asset"     {asset = true}
 Transaction ::= [Transaction] "transaction" name:sym Proration
                    "{" transfers:Transfer* "}"
 
-Transfer ::= [Transfer] account:Account^ ":" amount:int
+Transfer ::= [Transfer] account:</accounts[it]> ":" amount:int
 
 Proration ::= "(" proration:int ")"
 	   |  {proration = 1}

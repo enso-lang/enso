@@ -451,6 +451,7 @@
               <arg>
                 <Sequence>
                   <elements>
+		    <Lit value='&lt;'/>
                     <Field name='path'>
                       <arg>
                         <Call>
@@ -460,7 +461,7 @@
                         </Call>
                       </arg>
                     </Field>
-                    <Lit value='^'/>
+                    <Lit value='&gt;'/>
                   </elements>
                 </Sequence>
               </arg>
