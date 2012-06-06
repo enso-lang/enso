@@ -32,3 +32,15 @@ doc/papers/grammar/ensogrammars.synctex.gz
 
 # -NEWs
 *-NEW
+
+doc/papers/grammar/ensogrammars.bbl
+
+doc/papers/grammar/ensogrammars.blg
+
+doc/papers/grammar/sigplanconf-guide.pdf
+
+doc/papers/piping/piping.aux
+
+doc/papers/piping/piping.log
+
+doc/papers/piping/piping.pdf
