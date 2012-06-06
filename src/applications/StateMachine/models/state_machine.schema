@@ -1,21 +1,16 @@
-
 class Machine
   start: State
 ! states: State*
 
-
 class State
-  machine: Machine / states
+  machine: Machine
 # name: str
-! out: Transition*
-  \in: Transition*
+! out: Trans*
+  \in: Trans*
 
-
-class Transition
+class Trans
   event: str
   from: State / out
   to: State / \in
-  action: str
-
 
 primitive str

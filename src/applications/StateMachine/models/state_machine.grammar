@@ -2,6 +2,6 @@ start Machine
 
 Machine ::= [Machine] "start" \start:/states[it]^ states:State*
 
-State ::= [State] "state" name:sym out:Transition*
+State ::= [State] "state" name:sym out:Trans*
 
-Transition ::= [Transition] "on" event:sym "go" to:/states[it]^
+Trans ::= [Trans] "on" event:sym "go" to:/states[it]^
