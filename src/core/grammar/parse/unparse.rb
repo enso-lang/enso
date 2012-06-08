@@ -30,7 +30,12 @@ class Unparse
   end
 
   def Value(this, sppf, out)
-    out << sppf.value
+    # todo: escaping in strings
+    if this.kind == 'str' then
+      out << "\"#{sppf.value}\""
+    else
+      out << sppf.value
+    end
     out << sppf.ws
   end
 
