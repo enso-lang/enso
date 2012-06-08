@@ -9,7 +9,7 @@ class Grammar
 
 class Expression
 
-class Rule < Expression
+class Rule
 # name: str 
   grammar: Grammar / rules 
   // optional because of abstract rules
@@ -63,16 +63,6 @@ class Regular < Expression
  
 
 class Epsilon < Expression
-
-
-
-// extension for parsing
-class Item
-  expression: Expression
-  elements: Expression*
-  dot: int
-
-
 
 // extensions to path.schema
 

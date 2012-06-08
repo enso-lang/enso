@@ -20,11 +20,33 @@ class GrammarEval
     @start = item(top.arg, [top.arg], 1)
   end
 
-  def eval(this, gll, nxt)
-    send(this.schema_class.name, this, gll, nxt)
+
+  class Item
+    attr_reader :expression
+    attr_reader :elements
+    attr_reader :dot
+    
+    def initialize(exp, elts, dot)
+      @expression = exp
+      @elements = elts
+      @dot = dot
+    end
+
+    def schema_class
+      self.class
+    end
   end
 
-  def Item(this, gll, _)
+
+  def eval(this, gll, nxt)
+    if this.is_a?(Item)
+      eval_item(this, gll, nxt)
+    else
+      send(this.schema_class.name, this, gll, nxt)
+    end
+  end
+
+  def eval_item(this, gll, _)
     if this.dot == this.elements.length then
       gll.pop
     else
@@ -41,16 +63,16 @@ class GrammarEval
       # we lose empty Creates which are needed to make "empty" objects.
 
       gll.empty_node(item, @epsilon)
-      Item(nxt, gll, nil) if nxt
+      eval_item(nxt, gll, nil) if nxt
     else
       gll.create(nxt) if nxt
-      Item(item, gll, nil)
+      eval_item(item, gll, nil)
     end
   end
   
   def Epsilon(this, gll, nxt)
     gll.empty_node(item(this, [], 0), @epsilon)
-    Item(nxt, gll, nil) if nxt
+    eval_item(nxt, gll, nil) if nxt
   end
 
   def Call(this, gll, nxt)
@@ -133,13 +155,13 @@ class GrammarEval
     cr = gll.leaf_node(pos, type, value, ws)
     if nxt then
       gll.item_node(nxt, cr)
-      Item(nxt, gll, nil)
+      eval_item(nxt, gll, nil)
     end
   end
 
   def item(exp, elts, dot)
     key = [exp, elts, dot]
-    @items[key] ||= @fact.Item(exp, elts, dot)
+    @items[key] ||= Item.new(exp, elts, dot)
   end
 
 end
