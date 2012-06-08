@@ -3,6 +3,7 @@ require 'core/system/load/load'
 require 'core/grammar/parse/parse'
 require 'core/grammar/parse/scan' # for keywords...
 require 'core/schema/tools/print'
+require 'core/expr/code/impl'
 
 # render an object into a grammar, to create a parse tree
 class RenderClass < Dispatch
@@ -137,8 +138,13 @@ class RenderClass < Dispatch
   
   def Code(this, stream)
     obj = stream.current
-    code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.")
-    throw :fail unless obj.instance_eval(code)
+    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
+      code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.")
+      ok = obj.instance_eval(code)
+    else
+      ok = Interpreter(EvalCommandTest).eval(this.expr, :env=>ObjEnv.new(obj))
+    end
+    throw :fail unless ok
     @factory.Sequence()
   end
 
