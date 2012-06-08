@@ -1,18 +1,18 @@
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule*
+  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule*/
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
 
-  Alt ::= [Alt] alts:Create+@"|"
+  Alt ::= [Alt] alts:Create+@(/ "|")
 
-  Create ::= [Create] "[" name:sym "]" arg:Sequence
+  Create ::= [Create] "[" . name:sym . "]" arg:Sequence
     | Sequence
 
   Sequence ::= [Sequence] elements:Field*
 
-  Field ::= [Field] name:sym ":" arg:Pattern
+  Field ::= [Field] name:sym . ":" . arg:Pattern
     | Pattern
   
   Pattern ::= 
@@ -22,15 +22,17 @@
     | [Value] kind:"sym"
     | [Value] kind:"atom"
     | [Code] expr:EBlock
-    | [Ref] "<" path:Path ">"
+    | [Ref] "<" . path:Path . ">"
     | [Lit] value:str
     | [Call] rule:</rules[it]>
-    | [Regular] arg:Pattern "?" { optional = true }
-    | [Regular] arg:Pattern "*" Sep? { optional = true many = true }
-    | [Regular] arg:Pattern "+" Sep? { many = true }
-    | "(" Alt ")"
+    | [Regular] arg:Pattern .  "?" { optional = true }
+    | [Regular] arg:Pattern . "*" . Sep? { optional = true many = true }
+    | [Regular] arg:Pattern . "+" . Sep? { many = true }
+    | [NoSpace] "."
+    | [Break] "/"
+    | "(" . Alt . ")"
 
-  Sep ::= "@" sep:Pattern
+  Sep ::= "@" . sep:Pattern
 
 // extension of path.grammar
 abstract Path
