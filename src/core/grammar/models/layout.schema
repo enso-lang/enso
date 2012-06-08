@@ -1,13 +1,13 @@
   class Format 
   
   class Sequence < Format 
-  ! elements: Format* 
+    elements! Format* 
   
   class Group < Format
-  ! arg: Format 
+    arg! Format 
   
   class Nest < Format
-  ! arg: Format 
+    arg! Format 
     indent: int
   
   class Break < Format 

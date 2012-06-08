@@ -1,10 +1,8 @@
-
-primitive \str
-primitive \bool
+primitive str
+primitive bool
 
 class Todos
-! todos: Todo*
-
+  todos! Todo*
 
 class Todo
   owner: Todos / todos

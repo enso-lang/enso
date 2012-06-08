@@ -4,52 +4,43 @@ primitive bool
 
 class Query
   classname: str
-! fields: Field*
-! filter: Expr?
-
+  fields! Field*
+  filter! Expr?
 
 class Field
-# name: str
-! query: Query?
+  name# str
+  query! Query?
   owner: Query / fields
 
-
 class ComputedField < Field
-! expr:Expr
-
+  expr!Expr
 
 class Expr 
 
 class EBinOp < Expr
   op:str
-! e1:Expr
-! e2:Expr
-
+  e1!Expr
+  e2!Expr
 
 class EUnOp < Expr
   op:str
-! e:Expr
-
+  e!Expr
 
 class EField < Expr
-! e:Expr
+  e!Expr
   fname:str
-
 
 class EVar < Expr
   name:str
 
-
 class EFunCall < Expr
   fun:str
-! args:Expr*
-
+  args!Expr*
 
 class EListComp < Expr
   var:str
-! list:Expr
-! e:Expr
-
+  list!Expr
+  e!Expr
 
 class EConst < Expr 
 class EStrConst < EConst

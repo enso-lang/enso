@@ -1,5 +1,3 @@
-
-
 // what are the position/size operators
 // x/y: fixed | computed
 // height/width: 
@@ -12,36 +10,31 @@
 
 class Part 
   constraints: SizeConstraints?
-! styles: Style*
+  styles! Style*
 
-    
 class Container < Part
   direction: int
-! items: Part*
-
+  items! Part*
 
 class Text < Part
   string: str
   editable: bool
 
-
 class Shape < Part
-! content: Part?
+  content! Part?
   kind: str
   location: Point?  // only used for graph shapes
   connectors: ConnectorEnd* 
 
-
 class Connector < Part
   label: Text?
-! ends: ConnectorEnd*
+  ends! ConnectorEnd*
   path: Point*
-
 
 class ConnectorEnd
   arrow: str?
-! label: Text?
-! other_label: Text?
+  label! Text?
+  other_label! Text?
   to: Shape / connectors
   attach: EdgePos
   minOut: int
@@ -49,12 +42,10 @@ class ConnectorEnd
   minRight: int
   owner: Connector / ends
 
-
 class EdgePos
   // x==1 or x==0 or y==1 or y==0
   x: real
   y: real
-
 
 // styles
 class Style 
@@ -62,26 +53,22 @@ class Style
 class Pen < Style
   width: int
   style: str
-! color: Color
-
+  color! Color
 
 class Brush < Style
-! color: Color
-
+  color! Color
 
 class Font < Style
   name: str
   size: int
   style: str
   weight: int  // 400 is normal
-! color: Color
-
+  color! Color
 
 class Color
   r: int
   g: int
   b: int
-
 
 // basics
   
@@ -89,21 +76,17 @@ class Point
   x: int
   y: int
 
-
 class Rect < Point
   w: int
   h: int
-
 
 class SizeConstraints
   width: Constraint
   height: Constraint
 
-
 class Constraint
   min: int?
   var: str?
-
 
 primitive real
 primitive int

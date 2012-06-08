@@ -11,7 +11,7 @@ class GROUP
 
 class _Grammar
   start: EXP
-! rules: _Rule_Elt
+  rules! _Rule_Elt
 
 
 ////----
@@ -20,22 +20,22 @@ class _Rule_Elt
 
 
 class _Rule_Iter < _Rule_Elt, ITER
-! body: _Rule_Elt
+  body! _Rule_Elt
 
 
 class _Rule_Group < _Rule_Elt, GROUP // need this?
-! elements: _Rule_Elt*
+  elements! _Rule_Elt*
 
 
 class _Rule < _Rule_Elt
   name: EXP
-! arg: _Expression
+  arg! _Expression
 
 
 ////----
 
 class _Alt < _Expression
-! alts: _Expression+
+  alts! _Expression+
 
 
 ////----
@@ -45,7 +45,7 @@ class _Create_Elt
 
 class _Create < _Create_Elt
   name: EXP
-! arg: _Sequence
+  arg! _Sequence
 
 
 class _Sequence
@@ -92,7 +92,7 @@ class _Call < _Expression
 
 
 class _Regular < _Expression
-! arg: _Expression
+  arg! _Expression
   optional: bool
   many: bool
   sep: EXP?  // Hmmm.
@@ -108,34 +108,34 @@ class _Value < _Expression
 
 class Grammar < _Grammar
   start: Rule 
-! rules: Rule* 
+  rules! Rule* 
  
 
 class Expression < _Expression
  
 
 class Rule < Expression, _Rule_Elt
-# name: str 
+  name# str 
   grammar: Grammar / rules 
-! arg: Expression 
+  arg! Expression 
  
 
 class Alt < Expression, _Alt
-! alts: Expression+ 
+  alts! Expression+ 
  
 
 class Sequence < Expression, _Sequence 
-! elements: Expression* 
+  elements! Expression* 
  
 
 class Create < Expression, _Create
   name: str 
-! arg: Expression
+  arg! Expression
  
 
 class Field < Expression, _Field
   name: str 
-! arg: Expression 
+  arg! Expression 
  
 
 class Code < Expression, _Code
@@ -159,7 +159,7 @@ class Call < Expression, _Call
  
 
 class Regular < Expression, _Regular
-! arg: Expression 
+  arg! Expression 
   optional: bool 
   many: bool 
   sep: str ? 

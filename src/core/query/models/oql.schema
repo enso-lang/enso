@@ -1,22 +1,17 @@
-
-
-primitive \str
-primitive \int
-primitive \real
-primitive \bool
+primitive str
+primitive int
+primitive real
+primitive bool
 
 class OQL
-! defs: Def*
-! query: Exp
-
+  defs! Def*
+  query! Exp
 
 class Def
   name: str
-! query: Exp
-
+  query! Exp
 
 class Exp
-
 
 class Nil < Exp 
 class Bool < Exp value: bool 
@@ -28,89 +23,70 @@ class Var < Exp name: str
 
 class New < Exp
   type: str?  // absence means: struct
-! bindings: Binding+
-
+  bindings! Binding+
 
 class Binding
   name: str
-! exp: Exp
-
+  exp! Exp
 
 class Tuple < Exp
-! first: Exp
-! rest: Exp+
-
+  first! Exp
+  rest! Exp+
 
 class Call < Exp
   name: str
-! args: Exp*
-
+  args! Exp*
 
 class Access < Exp
-! obj: Exp
-
+  obj! Exp
 
 class Field < Access
   name: str
-! args: Exp*
-
+  args! Exp*
 
 class Subscript < Access
-! arg: Exp
-
+  arg! Exp
 
 class Slice < Access
-! from: Exp
-! to: Exp
-
+  from! Exp
+  to! Exp
 
 class Operator < Exp
   op: str
 
-
 class Unary < Operator
-! arg: Exp
-
+  arg! Exp
 
 class Binary < Operator
-! lhs: Exp
-! rhs: Exp
-
+  lhs! Exp
+  rhs! Exp
 
 class Compare < Binary
   quantifier: str?
 
-
 class Like < Unary
   pattern: str
-
 
 class Comprehension < Exp
   quantifier: str
   var: str
-! coll: Exp
-! body: Exp
+  coll! Exp
+  body! Exp
 
 
 class Select < Exp
   distinct: bool
-! projections: Named*
-! from: Named+
-! condition: Exp?
-! groupings: Named*
-! having: Exp?
-! orderings: Ordering*
-
+  projections! Named*
+  from! Named+
+  condition! Exp?
+  groupings! Named*
+  having! Exp?
+  orderings! Ordering*
 
 class Named 
   name: str?
-! exp: Exp
-
+  exp! Exp
 
 class Ordering
-! exp: Exp
+  exp! Exp
   direction: str
-
-
-
-

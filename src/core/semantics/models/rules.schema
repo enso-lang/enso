@@ -3,15 +3,13 @@ primitive str
 primitive bool
 
 class Rules
-! rules:Rule*
-
+  rules!Rule*
 
 class Rule
-# name:str
-! obj:Object
-! action:Action
-! cond:Expr?
-
+  name#str
+  obj!Object
+  action!Action
+  cond!Expr?
 
 class Object 
 class Action 

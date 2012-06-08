@@ -1,9 +1,7 @@
-
 primitive str
 
 class Foo
-  !out: Bar
-
+   out! Bar
 
 class Bar
   name: str

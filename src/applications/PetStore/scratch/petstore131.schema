@@ -1,4 +1,3 @@
-
 primitive int
 primitive real
 primitive str
@@ -6,29 +5,25 @@ primitive bool
 
 class Catalog
   // todo
-  !customers: Customer*
-  !categories: Category*
-  !products: Product*
-  !ziplocations: ZipLocation*
-  !tags: Tag*
-
+   customers! Customer*
+   categories! Category*
+   products! Product*
+   ziplocations! ZipLocation*
+   tags! Tag*
 
 class Category
-  #name: str
+   name# str
   description: str
   imageURL: str
   coords: str
   products: Product / category
-
 
 class Product
   name: str
   description: str
   imageURL: str
   category: Category / products
-  !items: Item* / product
-
-
+   items! Item* / product
 
 class Item
   name: str
@@ -36,27 +31,23 @@ class Item
   imageURL: str
   imageThumbURL: str
   price: real
-  !address: Address
-  !contactInfo: SellerContactInfo
+   address! Address
+   contactInfo! SellerContactInfo
   totalScore: int
   numberOfVotes: int
   disabled: int
   tags: Tag* / items
   product: Product / items
-  !ratings: Rating* / item
-
-
+   ratings! Rating* / item
 
 class SellerContactInfo
   lastName: str
   firstName: str
   email: str
 
-
 class Rating
   item: Item / ratings
   grade: int
-
 
 class Address 
   street1: str
@@ -67,16 +58,12 @@ class Address
   latitude: real
   longitude: real
 
-
-
 class Tag
   items: Item* / tags
   tag: str
   refCount: int
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
-
-
 
 class ZipLocation
   zipCode: int

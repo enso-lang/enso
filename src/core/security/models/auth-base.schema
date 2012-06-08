@@ -3,35 +3,29 @@ primitive str
 primitive bool
 
 class Authentication
-! rules:Rule*
+  rules!Rule*
   allowrules:Rule* = "@rules.select(&:AllowRule?)"
   denyrules:Rule* = "@rules.select(&:DenyRule?)"
 
-
 class Rule
   strength:int
-! action:Action
-! cond:Expr?
-
+  action!Action
+  cond!Expr?
 
 class AllowRule < Rule
-
 
 class DenyRule < Rule
   msg:str?
 
-
 class Action
-! op:Operation+
+  op!Operation+
   obj:str
   type:str
-! fields:Field*
+  fields!Field*
   allfields:bool
-
 
 class Field
   name:str
-
 
 class Operation 
 class OpCreate < Operation 

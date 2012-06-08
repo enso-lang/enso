@@ -1,40 +1,28 @@
 
-
 class Program
-! body:Stm
-
+  body!Stm
 
 class Stm
   
-
-
 class Assign < Stm
   var: str
-! exp: Exp
-
+  exp! Exp
 
 class Flow < Stm
-! cond: Exp
-! body: Stm*
-
+  cond! Exp
+  body! Stm*
 
 class While < Flow
 
-
 class If < Flow
-! else: Stm
-
+  else! Stm
 
 class Return < Stm
-! ret: Exp
-
+  ret! Exp
 
 class Empty < Stm
 
-
 class Exp
-
 
 class Var < Exp
   name: str
-

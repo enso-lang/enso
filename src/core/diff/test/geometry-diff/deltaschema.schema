@@ -110,8 +110,8 @@
       pos: int
     
     class D_Point2D < D_Point
-    ! x: D_int?
-    ! y: D_int?
+      x! D_int?
+      y! D_int?
     
     class Insert_Point2D < D_Point2D 
     class Delete_Point2D < D_Point2D 
@@ -126,9 +126,9 @@
       pos: int
     
     class D_Point3D < D_Point
-    ! x: D_int?
-    ! y: D_int?
-    ! z: D_int?
+      x! D_int?
+      y! D_int?
+      z! D_int?
     
     class Insert_Point3D < D_Point3D 
     class Delete_Point3D < D_Point3D 
@@ -143,11 +143,11 @@
       pos: int
     
     class D_Line
-    ! label : D_str?
-    ! len: D_int?
-    ! pts: D_Point2D*
+      label ! D_str?
+      len! D_int?
+      pts! D_Point2D*
       // was missing
-    ! adj: DeltaRef?
+      adj! DeltaRef?
     
    
     class Insert_Line < D_Line 
@@ -163,7 +163,7 @@
       pos: str
     
     class D_Drawing
-    ! lines: D_Line*
+      lines! D_Line*
     
     class Insert_Drawing < D_Drawing 
     class Delete_Drawing < D_Drawing 

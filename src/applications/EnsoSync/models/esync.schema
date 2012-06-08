@@ -1,28 +1,26 @@
 	primitive \str
 	primitive \bool
 class Domain
-!  sources: Source *
-!  rules: Rule *
-
+  sources! Source *
+  rules! Rule *
 
 class Source
-#  name: str
-!  basedir: Node
+  name# str
+  basedir! Node
   path: str
 
 class Node
-#  name: str
-   isdir: bool
+  name# str
+  isdir: bool
 
 class File < Node
   checksum: str
 
 class Dir < Node
-!  nodes: Node *
-
+   nodes! Node *
 
 class Rule
-#  name: str
+   name# str
 
 class SyncRule < Rule
   s1: Source
@@ -32,4 +30,3 @@ class SyncRule < Rule
 class CopyRule < Rule
   from: Source
   to: Source
-

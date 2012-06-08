@@ -3,17 +3,17 @@ primitive int
 
 class School
   name : str
-  !courses : Course*
+  courses ! Course*
 end
 
 class Course
-  !cname : str
+  cname ! str
   duration : int
   cost : int
-  !students : Student*
+  students ! Student*
 end
 
 class Student
-  !sname : str
+  sname ! str
   fees : int
 end

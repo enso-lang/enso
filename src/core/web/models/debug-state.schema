@@ -1,4 +1,3 @@
-
 primitive str
 primitive int
 primitive bool
@@ -6,77 +5,63 @@ primitive bool
 class Instance 
 
 class Debugger
-  !sources: Source*
-  !root: Instance
-  !env: Environment
-  !self: Call
+   sources! Source*
+   root! Instance
+   env! Environment
+   self! Call
   result: Result
   output: str
   line: int  
 
-
 class Environment
   bindings: Binding*
 
-
 class Source
-  #name: str
-  !lines: Line*
-
+   name# str
+   lines! Line*
 
 class Line
   break: bool
   text: str
 
-
 class Binding
-  #name: str
-  !value: Result
-
+   name# str
+   value! Result
 
 class Result 
 
 class Closure < Result
-  #id: str
+   id# str
   source: str
   line: int
 
-
 class Call < Closure
   bound: bool
-  !args: Result
-
+   args! Result
 
 class Record < Result
-  !entry: Entry*
-
+   entry! Entry*
 
 class Entry
-  #key: str
-  !value: Result
-
+   key# str
+   value! Result
 
 class Action < Result
-  #name: str
+   name# str
   cond: str?
-  !args: Result*
-
+   args! Result*
 
 class List < Result
-  !elts: Result*
-
+   elts! Result*
 
 class String < Result
   value: str
 
-
 class Int < Result
   value: int
 
-
 class Bool < Result
   value: bool
-
 
 class Object < Result
   instance: Instance

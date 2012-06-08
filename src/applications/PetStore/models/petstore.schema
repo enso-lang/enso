@@ -4,35 +4,31 @@ primitive str
 primitive bool
 
 class Catalog
-! categories: Category*
-! products: Product*
-! items: Item*
-! sellers: SellerContactInfo*
-! addresses: Address*
-! tags: Tag*
-
+  categories! Category*
+  products! Product*
+  items! Item*
+  sellers! SellerContactInfo*
+  addresses! Address*
+  tags! Tag*
 
 class Category
-##id: str
+  id## str
   name: str
   description: str
   imageurl: str
   map_coords: str
   products: Product* / category
 
-
 class Product
-##id: str
+  id## str
   name: str
   description: str
   imageURL: str
   category: Category / products
   items: Item* / product
 
-
-
 class Item
-##id: str
+  id## str
   product: Product / items
   name: str
   description: str
@@ -46,9 +42,8 @@ class Item
   disabled: int
   tags: Tag* / items
 
-
 class Address 
-##id: str
+  id## str
   street1: str
   street2: str
   city: str
@@ -57,21 +52,17 @@ class Address
   latitude: float
   longitude: float
 
-
 class SellerContactInfo
-##id: str
+  id## str
   lastName: str
   firstName: str
   email: str
 
-
 class Tag
-##id: int
+  id## int
   tag: str
   refCount: int
   items: Item* / tags
   style: str = 
     "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
   name: str = "@tag"
-
-

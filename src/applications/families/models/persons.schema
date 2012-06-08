@@ -2,15 +2,12 @@
 primitive str
 
 class Persons
-! persons: Person*
-
+  persons! Person*
 
 class Person
-# full_name: str
-
+  full_name# str
 
 class Male < Person
-
 
 class Female < Person
 

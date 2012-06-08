@@ -3,13 +3,13 @@ primitive int
 primitive bool
 
 class Dataflow
-  #domain : str
-  #action : str
-  !rules : Rule*
+   domain # str
+   action # str
+   rules ! Rule*
 end
 
 class Rule
-  #type : str
-  #field : str
-  !expr : Expression
+   type # str
+   field # str
+   expr ! Expression
 end

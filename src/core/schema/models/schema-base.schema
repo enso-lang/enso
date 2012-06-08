@@ -4,29 +4,25 @@ primitive bool
 primitive real
 
 class Schema
-! types: Type*
+  types! Type*
   classes: Class* = types.select() { |t| return t.schema_class.name=="Class" }
   primitives: Primitive* = types.select() { |t| return t.schema_class.name=="Primitive" }
 
-
 class Type
-# name: str
+  name# str
   schema: Schema / types
 
-
 class Primitive < Type
-
   
 class Class < Type
   supers: Class*
   subclasses: Class* / supers
-! defined_fields: Field*
+  defined_fields! Field*
   fields: Field = "@all_fields.select() {|f| not f.computed}"
   all_fields: Field* = "@supers.flat_map() {|s| s.all_fields } + @defined_fields"
 
-
 class Field
-# name: str
+  name# str
   owner: Class / defined_fields
   type: Type
   optional: bool
@@ -34,8 +30,7 @@ class Field
   key: bool
   auto: bool
   inverse: Field? / inverse 
-! computed: Expr?
+  computed! Expr?
   traversal: bool
-
 
 class Expr

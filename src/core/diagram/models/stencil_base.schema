@@ -1,79 +1,65 @@
-
 class Command 
 class Expr 
 
 class Stencil
   title: str?
   root: str
-! body: Command*
-
+  body! Command*
 
 class Part < Command
-! props: Assign*
-
+  props! Assign*
 
 // TEMPLATE STUFF
 
 class Label < Part
-! label: Expr
-! body: Command
-
+  label! Expr
+  body! Command
 
 class Assign
-! loc: Expr
-! exp: Expr
-
+  loc! Expr
+  exp! Expr
 
 class InstanceOf < Expr
-! base: Expr
+  base! Expr
   class_name: str
 
-
 class Color < Expr
-! r: Expr
-! g: Expr
-! b: Expr
-
+  r! Expr
+  g! Expr
+  b! Expr
 
 // DIAGRAMS
 
 class Container < Part
   direction: int // 1=vert, 2=hoiz, 3=graph
-! items: Command*
-
+  items! Command*
 
 class Text < Part
-! string: Expr
+  string! Expr
   editable: bool
-
 
 class Shape < Part
   kind: str
-! content: Command?
-
+  content! Command?
 
 class Connector < Part
-! label: Expr?
-! ends: ConnectorEnd*
-
+  label! Expr?
+  ends! ConnectorEnd*
 
 class ConnectorEnd
   arrow: str?
-! label: Expr?
-! other_label: Expr?
-! part: Expr
-
+  label! Expr?
+  other_label! Expr?
+  part! Expr
 
 class EAssign
-! var:Expr
-! val:Expr
-! body:Command
-
+  var!Expr
+  val!Expr
+  body!Command
 
 class EFor
   index: str?
   label: str?
-
 
 primitive int
 primitive str

@@ -1,123 +1,94 @@
-
 primitive str
 primitive bool
 primitive int
 
 class Expression < Condition
 
-
 class Variable < Expression
   name: str
 
-
 class Access < Expression
-! obj: Expression
-
+  obj! Expression
 
 class Dot < Access
   field: str
   args: Expression*
 
-
 class Cons < Expression
   type: str
-! contents: Assign*
-
+  contents! Assign*
 
 class Assign
   name: str
-! expressions: Expression*
-
+  expressions! Expression*
 
 class Value < Expression
-
 
 class Int < Value
   value: int
 
-
 class Str < Value
   value: str
-
 
 class Bool < Value
   value: bool
 
-
 class Not < Expression
   arg: Expression
-
 
 class Operator < Expression
   op: str
 
-
-
 class Unary < Operator
-! arg: Expression
-
+  arg! Expression
 
 class Binary < Operator
-! lhs: Expression
-! rhs: Expression
-
+  lhs! Expression
+  rhs! Expression
 
 class Cond < Expression
-! conds: Expression+
-! body: Expression+
-
+  conds! Expression+
+  body! Expression+
 
 class For < Cond
 
-
 class IfThen < Cond
-! elsifs: ElsIf*
-! else: Else?
-
+  elsifs! ElsIf*
+  else! Else?
 
 class ElsIf < Cond
 
-
 class Else 
-! body: Expression+
-
+  body! Expression+
 
 class Call < Expression
   name: str
-! args: Expression*
-
+  args! Expression*
 
 class Splat < Expression
-! arg: Expression
-
+  arg! Expression
 
 class Lookup < Access
-! key: Expression
-
+  key! Expression
 
 class Content
 
-
 class Update < Expression
-! obj: Expression
-! contents: Content+
-
+  obj! Expression
+  contents! Content+
 
 class Condition
 
-
 class Generator < Condition
   var: str
-! expression: Expression
-
+  expression! Expression
 
 class Let < Expression
-! bindings: Binding+
-! body: Expression+
-
+  bindings! Binding+
+  body! Expression+
 
 class Binding
   name: str
   many: bool
-! expression: Expression
+  expression! Expression
 

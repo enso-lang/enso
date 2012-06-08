@@ -5,136 +5,107 @@ primitive bool
 primitive real
 
 class Web
-! toplevels: Toplevel*
-
+  toplevels! Toplevel*
 
 class Toplevel
 
-
-
 class Abstraction
-! formals: Formal*
-! tail: Tail?
-
+  formals! Formal*
+  tail! Tail?
 
 class Def < Toplevel, Abstraction
-# name: str
-! body: Stat
-
+  name# str
+  body! Stat
 
 class Import < Toplevel
-# module: str
-
+  module# str
 
 class Stat
 
-
 class Do < Stat
-! call: Expr
-! cond: Expr?
-
-
+  call! Expr
+  cond! Expr?
 
 class For < Stat
   var: str
-! iter: Expr
-! body: Stat
+  iter! Expr
+  body! Stat
   index: str?
 
-
 class If < Stat
-! cond: Expr
-! body: Stat
-! else1: Stat?
+  cond! Expr
+  body! Stat
+  else1! Stat?
 
 
 class Switch < Stat
-! exp: Expr
-! cases: Case*
-! default: Stat?
-
+  exp! Expr
+  cases! Case*
+  default! Stat?
 
 class Case
   name: str
-! body: Stat
-
-
+  body! Stat
 
 class Let < Stat
-! decls:Assign*
-! body:Stat
-
+  decls!Assign*
+  body!Stat
 
 class Call < Stat, Expr
-! exp: Expr
-! args: Expr*
-! block: Stat?
-
+  exp! Expr
+  args! Expr*
+  block! Stat?
 
 class Assign
   name: str
-! exp: Expr
+  exp! Expr
 
 
 class Block < Stat
-! stats: Stat*
-
+  stats! Stat*
 
 class Text < Stat
   value: str
 
-
 class Output < Stat
-! exp: Expr
-
+  exp! Expr
 
 class Formal 
   name: str
-! cons: Cons?
-
+  cons! Cons?
 
 class Cons < Abstraction
  name: str
-
 
 class Tail < Abstraction
   name: str
 
 class Expr
 
-
 class All < Expr
   klass: str
 
-
-
 class Subscript < Expr
-! obj: Expr
-! exp: Expr
-
+  obj! Expr
+  exp! Expr
 
 class Address < Expr
-! exp: Expr
-
+  exp! Expr
 
 class Concat < Expr
-! lhs: Expr
-! rhs: Expr
-
+  lhs! Expr
+  rhs! Expr
 
 class Equal < Expr
-! lhs: Expr
-! rhs: Expr
-
+  lhs! Expr
+  rhs! Expr
 
 class In < Expr
-! lhs: Expr
-! rhs: Expr
-
+  lhs! Expr
+  rhs! Expr
 
 class List < Expr
-! elements: Expr*
-
+  elements! Expr*
 
 class New < Expr
   \class: str

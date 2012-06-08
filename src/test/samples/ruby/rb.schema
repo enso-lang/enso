@@ -4,114 +4,88 @@ primitive bool
 
 class RubyScript
   name: str
-! commands: Command*
-
+  commands! Command*
 
 class Command
-
 
 class Req < Command
   path:str
 
-
 class FunDef < Command
-# fun:str
+  fun#str
   argslist:Name*
-! body:Command*
-
+  body!Command*
 
 class IfStmt < Command
-! expr:Expr
-! body:Command*
-! elbody:Command*
-
+  expr!Expr
+  body!Command*
+  elbody!Command*
 
 class FunCall < Command
   fun:str
-! args:Expr*
-! proc:Proc?
-
+  args!Expr*
+  proc!Proc?
 
 class RetStmt < Command
-! expr:Expr
-
+  expr!Expr
 
 class AssgnStmt < Command
   lhs:str
-! rhs:Expr
-
+  rhs!Expr
 
 class Expr
-
 
 class EVarAcc < Expr
   name:str
 
-
 class EFunCall < Expr
   fun:str
-! args:Expr*
-! proc:Proc?
-
+  args!Expr*
+  proc!Proc?
 
 class EUnOp < Expr
 
-
 class EUNeg < EUnOp
-! e:Expr
-
+  e!Expr
 
 class EBinOp < Expr
 
-
 class EBPlus < EBinOp
-! e1:Expr
-! e2:Expr
-
+  e1!Expr
+  e2!Expr
 
 class EBEquals < EBinOp
-! e1:Expr
-! e2:Expr
-
+  e1!Expr
+  e2!Expr
 
 class EBNequals < EBinOp
-! e1:Expr
-! e2:Expr
-
+  e1!Expr
+  e2!Expr
 
 class ETernOp < Expr
 
-
 class ETChoice < ETernOp
-! expr:Expr
-! e1:Expr
-! e2:Expr
-
+  expr!Expr
+  e1!Expr
+  e2!Expr
 
 class EConst < Expr
-
 
 class EStrConst < EConst
   val:str
 
-
 class EIntConst < EConst
   val:int
-
 
 class EBoolConst < EConst
   val:bool
 
-
 class Proc
   argslist:str*
-! body:Command*
-
+  body!Command*
 
 class FullName
-! parts:Name+
-
+  parts!Name+
 
 class Name
  name:str
-

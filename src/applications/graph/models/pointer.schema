@@ -1,14 +1,12 @@
-
 primitive str
 primitive int
 
 class Graph
   root: Node
-! nodes: Node*
-
+  nodes! Node*
 
 class Node
-# name: str
+  name# str
   value: int
   in: Node* / out
   out: Node* / in

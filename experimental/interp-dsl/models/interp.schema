@@ -3,22 +3,22 @@ primitive int
 primitive bool
 
 class Interp
-  #domain : str
-  #action : str
-  init : str?
-  !args : Var*
-  !rules : Rule*
+  domain # str
+  action # str
+  init   : str?
+  args   ! Var*
+  rules  ! Rule*
 end
 
 class Var
-  #name : str
+  name # str
   type : str
   many : bool
   optional : bool
 end
 
 class Rule
-  #type : str
-  !vars : Var*
+  type # str
+  vars ! Var*
   body : str
 end

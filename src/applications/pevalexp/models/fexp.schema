@@ -1,62 +1,49 @@
-
 primitive str
 primitive int
 primitive bool
 
 class Prog
-! main: Expr
-! funcs: FuncDef*
-
+  main! Expr
+  funcs! FuncDef*
 
 class FuncDef
   name: str
-! formals: Var*
-! body: Expr
-
+  formals! Var*
+  body! Expr
 
 class Expr
 
-
 class Const < Expr
-! value: Value
-
+  value! Value
 
 class Var < Expr
   name: str
 
-
 class Prim < Expr
   op: str
-! args: Expr*
-
+  args! Expr*
 
 class If < Expr
-! cond: Expr
-! body: Expr
-! elseBody: Expr
-
+  cond! Expr
+  body! Expr
+  elseBody! Expr
 
 class Apply < Expr
   name: str
-! args: Expr*
-
+  args! Expr*
 
 class Value
-
 
 class Int < Value
   value: int
 
-
 class Bool < Value
   value: bool
 
-
 class Pair < Value
-! first: Value
-! second: Value
-
+  first! Value
+  second! Value
 
 class List < Value
-! elements: Value*
+  elements! Value*
 

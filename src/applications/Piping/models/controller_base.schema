@@ -3,29 +3,25 @@ primitive real
 
 class Controller
   initial:State
-! globals:Assign*
-! states:State*
+  globals!Assign*
+  states!State*
   current:State //dynamic
   constraints:Constraint*
 
-
 class State
- #name:str
-! commands:Action*
-! transitions:Transition*
-
+  name#str
+  commands!Action*
+  transitions!Transition*
 
 class Action
 
 class Transition
-! guard:Expr
+  guard!Expr
   target:State
 
-
 class Assign < Action
-! var:Expr
-! val:Expr
-
+  var!Expr
+  val!Expr
 
 class TurnSplitter < Action
   splitter:str
@@ -34,6 +30,5 @@ class TurnSplitter < Action
 class Constraint
   cond:Expr
   action:Action
-
 
 class Expr 

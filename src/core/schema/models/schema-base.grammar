@@ -11,11 +11,12 @@ ClassAnnot ::= Parent?
 Parent ::= "<" supers:Super+@","
 Super ::= </classes[it]>
 
-Field ::= [Field] Key? Traversal? name:sym ":" type:</types[it]> Multiplicity Annot?
-Key ::= "#" { key = true }
-     |  "##" { key = true auto = true }
+Field ::= [Field] name:sym Kind type:</types[it]> Multiplicity Annot?
 
-Traversal ::= "!" { traversal = true }
+Kind ::= "#" { key = true }
+      |  "##" { key = true auto = true }
+      |  "!" { traversal = true }
+      |  ":"
 
 Multiplicity ::= "*" { many = true optional = true }
 	       | "?" { optional = true } 

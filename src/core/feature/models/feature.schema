@@ -2,33 +2,28 @@ primitive str
 primitive bool
 
 class Feature
-! rules:Rule*
-
+  rules!Rule*
 
 class Rule
-# lhs:str
-! rhs:FeatureExpr
+  lhs#str
+  rhs!FeatureExpr
   save:bool
-
 
 class FeatureExpr 
 
 class Var < FeatureExpr
   name:str
 
-
 class File < FeatureExpr
   path:str
   as:str?
 
-
 class Dot < FeatureExpr
-! e1:FeatureExpr
-! e2:FeatureExpr
-
+  e1!FeatureExpr
+  e2!FeatureExpr
 
 class Rename < FeatureExpr
-! e:FeatureExpr
+  e!FeatureExpr
   from:str
   to:str
 

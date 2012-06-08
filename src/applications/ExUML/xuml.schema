@@ -7,7 +7,7 @@ ss = Load('schema.schema')
 
 connection = Load_text 'schema', ManagedData::Factory.new(ss), <<-PART, true
   class Class
-  ! machine: StateMachine?
+    machine! StateMachine?
   
   class StateMachine
     klass: Class / machine

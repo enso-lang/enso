@@ -8,29 +8,29 @@ class Expr
 class ETernOp < Expr
   op1:str
   op2:str
-! e1:Expr
-! e2:Expr
-! e3:Expr
+  e1!Expr
+  e2!Expr
+  e3!Expr
 
 
 class EBinOp < Expr
   op:str
-! e1:Expr
-! e2:Expr
+  e1!Expr
+  e2!Expr
 
 
 class EUnOp < Expr
   op:str
-! e:Expr
+  e!Expr
 
 
 class EFunCall < Expr
-! fun:Expr
-! params:Expr*
+  fun!Expr
+  params!Expr*
 
 
 class EField < Expr
-! e:Expr
+  e!Expr
   fname:str
 
 
@@ -39,18 +39,18 @@ class EVar < Expr
 
 
 class ESubscript < Expr
-! e:Expr
-! sub:Expr
+  e!Expr
+  sub!Expr
 
 
 // data constructors
 
 class EList < Expr
-! elems:Expr*
+  elems!Expr*
 
 
 class EAddress < Expr
-! e:Expr
+  e!Expr
 
 
 class ENew < Expr

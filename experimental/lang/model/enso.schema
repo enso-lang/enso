@@ -1,7 +1,7 @@
 primitive str
 
 class Enso
-  !body : Command*
+  body ! Command*
 end
 
 class RValue end
@@ -30,21 +30,21 @@ class LoadFile < Command
 end
 
 class Assignment < Command
-  !lhs : LValue
-  !rhs : RValue
+  lhs ! LValue
+  rhs ! RValue
 end
 
 class App < Command, RValue
-  !fun : str
-  !args : RValue
+  fun ! str
+  args ! RValue
 end
 
 class While < Command
-  !expr : RValue
-  !body : Command*
+  expr ! RValue
+  body ! Command*
 end
 
 class If < Command
-  !cond : RValue
-  !body : Command*
+  cond ! RValue
+  body ! Command*
 end

@@ -4,12 +4,12 @@ primitive \str
 class Term
 
 class App < Term
-! fun:Term
-! sub:Term
+  fun!Term
+  sub!Term
 
 class Lambda < Term
   var:str
-! body:Term
+  body!Term
 
 class Var < Term
   name:str

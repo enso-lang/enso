@@ -1,11 +1,11 @@
 class Machine
   start: State
-! states: State*
+  states! State*
 
 class State
   machine: Machine
-# name: str
-! out: Trans*
+  name# str
+  out! Trans*
   \in: Trans*
 
 class Trans

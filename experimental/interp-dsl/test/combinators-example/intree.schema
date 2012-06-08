@@ -7,6 +7,6 @@ class Leaf < Node
 end
 
 class Fork < Node
-  !left : Node
-  !right : Node
+   left ! Node
+   right ! Node
 end

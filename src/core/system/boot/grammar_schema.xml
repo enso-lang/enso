@@ -22,7 +22,7 @@
         </Field>
       </defined_fields>
     </Class>
-    <Class name='Expression'>
+    <Class name='Pattern'>
       <subclasses>
         /types[Rule] /types[Alt] /types[Sequence] /types[Create] /types[Field]
         /types[Code] /types[Value] /types[Ref] /types[Lit]
@@ -31,7 +31,7 @@
     </Class>
     <Class name='Rule'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='name' key='true'>
@@ -49,38 +49,38 @@
         </Field>
         <Field name='arg' optional='true' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Alt'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='alts' many='true' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Sequence'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='elements' optional='true' many='true' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Create'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='name'>
@@ -90,14 +90,14 @@
         </Field>
         <Field name='arg' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Field'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='name'>
@@ -107,14 +107,14 @@
         </Field>
         <Field name='arg' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Code'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='code'>
@@ -131,7 +131,7 @@
     </Class>
     <Class name='Value'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='kind'>
@@ -143,7 +143,7 @@
     </Class>
     <Class name='Ref'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='path' traversal='true'>
@@ -155,7 +155,7 @@
     </Class>
     <Class name='Lit'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='value'>
@@ -167,7 +167,7 @@
     </Class>
     <Class name='Call'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='rule'>
@@ -179,12 +179,12 @@
     </Class>
     <Class name='Regular'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
       <defined_fields>
         <Field name='arg' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
         <Field name='optional'>
@@ -199,26 +199,26 @@
         </Field>
         <Field name='sep' optional='true' traversal='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
       </defined_fields>
     </Class>
     <Class name='Epsilon'>
       <supers>
-        /types[Expression]
+        /types[Pattern]
       </supers>
     </Class>
     <Class name='Item'>
       <defined_fields>
         <Field name='expression'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
         <Field name='elements' optional='true' many='true'>
           <type>
-            /types[Expression]
+            /types[Pattern]
           </type>
         </Field>
         <Field name='dot'>

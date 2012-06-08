@@ -5,15 +5,13 @@ class Value
 
 class Content
 
-
 class Element < Content
   tag: str
-  !attrs: Attr*
-  !contents: Content*
-
+   attrs! Attr*
+   contents! Content*
 
 class Attr
   name: str
-  !value: Value
+   value! Value
 
 
