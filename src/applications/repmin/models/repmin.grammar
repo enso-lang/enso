@@ -1,7 +1,0 @@
-
-start Tree
-
-Tree ::= [Fork] "fork" "(" kids:{Tree ","}+ ")"
-      |  [Leaf] value:int
-
-

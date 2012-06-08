@@ -15,7 +15,7 @@ LoadSchema ::= [LoadSchema] "load-schema" filename : str
 LoadFunc ::= [LoadFunc] "load-function" filename : str
 
 Assignment ::= [Assignment] lhs:LValue ":=" rhs:RValue
-App ::= [App] fun:sym ("(" args:{RValue ","}* ")")?
+App ::= [App] fun:sym ("(" args:RValue*@"," ")")?
 
 While ::= [While] "while" expr:RValue "do" "{" body:Command* "}"
 If ::= [If] "if" cond:RValue "then" "{" body:Command* "}"

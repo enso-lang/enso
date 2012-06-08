@@ -35,7 +35,7 @@ Elif ::= "elif" cond:Expression body:Statement*
 Target ::= [Assigning] designator:Designator "=" name:Name
        |   [NonAssingin] name:Name
 
-Operation ::= Name "(" {Item ","}* ")"
+Operation ::= Name "(" Item*@"," ")"
 
 // param = just id
 Designator ::= [Base] name:Name
@@ -62,7 +62,7 @@ Kind ::= [Creator] "creator"
      |   [Class] "class"
 
 Meaning ::= ":" name:Name
-Params ::= "(" {Item ","}* ")"
+Params ::= "(" Item*@"," ")"
 Item ::= name:Name ":" exp:Expression
 
 // TODO precedences;

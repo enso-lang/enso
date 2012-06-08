@@ -1,5 +1,0 @@
-#ruby
-
-union(load('attribute.schema'),
- union(load('expression.schema'),
-   load('schema.schema')))

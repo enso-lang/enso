@@ -6,13 +6,13 @@ class Grammar
   start: Rule 
   rules! Rule* 
  
-class Pattern
-
-class Rule < Pattern
+class Rule
   name# str 
   grammar: Grammar / rules 
   arg! Pattern?   // optional because of abstract rules
  
+class Pattern
+
 class Alt < Pattern 
   alts! Pattern+ 
 
@@ -48,14 +48,8 @@ class Regular < Pattern
   optional: bool 
   many: bool 
   sep! Pattern ? 
-
+ 
 class Epsilon < Pattern
-
-// extension for parsing
-class Item
-  expression: Pattern
-  elements: Pattern*
-  dot: int
 
 // extensions to path.schema
 

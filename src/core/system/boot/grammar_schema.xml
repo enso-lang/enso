@@ -24,15 +24,12 @@
     </Class>
     <Class name='Pattern'>
       <subclasses>
-        /types[Rule] /types[Alt] /types[Sequence] /types[Create] /types[Field]
+        /types[Alt] /types[Sequence] /types[Create] /types[Field]
         /types[Code] /types[Value] /types[Ref] /types[Lit]
         /types[Call] /types[Regular] /types[Epsilon]
       </subclasses>
     </Class>
     <Class name='Rule'>
-      <supers>
-        /types[Pattern]
-      </supers>
       <defined_fields>
         <Field name='name' key='true'>
           <type>
@@ -208,25 +205,6 @@
       <supers>
         /types[Pattern]
       </supers>
-    </Class>
-    <Class name='Item'>
-      <defined_fields>
-        <Field name='expression'>
-          <type>
-            /types[Pattern]
-          </type>
-        </Field>
-        <Field name='elements' optional='true' many='true'>
-          <type>
-            /types[Pattern]
-          </type>
-        </Field>
-        <Field name='dot'>
-          <type>
-            /types[int]
-          </type>
-        </Field>
-      </defined_fields>
     </Class>
     <Class name='Key'>
       <subclasses>
