@@ -71,7 +71,16 @@ class GrammarEval
   end
   
   def Epsilon(this, gll, nxt)
-    gll.empty_node(item(this, [], 0), @epsilon)
+    empty(this, gll, nxt)
+  end
+
+  def NoSpace(this, gll, nxt)
+    #terminal(this, gll.ci, '', '', gll, nxt)
+    eval_item(nxt, gll, nil) if nxt
+  end
+
+  def Break(this, gll, nxt)
+    #terminal(this, gll.ci, '', '', gll, nxt)
     eval_item(nxt, gll, nil) if nxt
   end
 
@@ -151,6 +160,11 @@ class GrammarEval
     gll.add(item(this, [this.arg], 0))
   end
 
+  def empty(this, gll, nxt)
+    gll.empty_node(item(this, [], 0), @epsilon)
+    eval_item(nxt, gll, nil) if nxt
+  end
+
   def terminal(type, pos, value, ws, gll, nxt)
     cr = gll.leaf_node(pos, type, value, ws)
     if nxt then
@@ -163,5 +177,6 @@ class GrammarEval
     key = [exp, elts, dot]
     @items[key] ||= Item.new(exp, elts, dot)
   end
+
 
 end

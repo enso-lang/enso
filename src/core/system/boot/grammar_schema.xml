@@ -26,7 +26,8 @@
       <subclasses>
         /types[Alt] /types[Sequence] /types[Create] /types[Field]
         /types[Code] /types[Value] /types[Ref] /types[Lit]
-        /types[Call] /types[Regular] /types[Epsilon]
+        /types[Call] /types[Regular] /types[NoSpace] /types[Break] 
+	/types[Epsilon]
       </subclasses>
     </Class>
     <Class name='Rule'>
@@ -200,6 +201,16 @@
           </type>
         </Field>
       </defined_fields>
+    </Class>
+    <Class name='NoSpace'>
+      <supers>
+        /types[Pattern]
+      </supers>
+    </Class>
+    <Class name='Break'>
+      <supers>
+        /types[Pattern]
+      </supers>
     </Class>
     <Class name='Epsilon'>
       <supers>

@@ -1,6 +1,6 @@
 
 require 'core/grammar/parse/gss'
-require 'core/grammar/parse/todot'
+require 'core/grammar/tools/todot'
 require 'core/grammar/parse/sppf'
 require 'core/grammar/parse/eval'
 require 'core/schema/tools/print'
