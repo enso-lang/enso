@@ -29,10 +29,6 @@ class Field < Pattern
  
 class Code < Pattern
   expr! Expr
-
-class Predicate
-  lhs! Expr
-  rhs! Expr
  
 class Value < Pattern 
   kind: str 

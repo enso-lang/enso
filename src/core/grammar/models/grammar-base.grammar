@@ -32,8 +32,6 @@
     | [Break] "/"
     | "(" . Alt . ")"
     
-  Predicate ::= [Predicate] lhs:Expr "==" rhs:Expr 
-
   Sep ::= "@" . sep:Pattern
 
 // extension of path.grammar

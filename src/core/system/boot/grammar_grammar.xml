@@ -642,41 +642,6 @@
         </Alt>
       </arg>
     </Rule>
-    <Rule name='Predicate'>
-      <arg>
-        <Alt>
-          <alts>
-            <Create name='Predicate'>
-              <arg>
-                <Sequence>
-                  <elements>
-                    <Field name='lhs'>
-                      <arg>
-                        <Call>
-                          <rule>
-                            /rules[Expr]
-                          </rule>
-                        </Call>
-                      </arg>
-                    </Field>
-                    <Lit value='=='/>
-                    <Field name='rhs'>
-                      <arg>
-                        <Call>
-                          <rule>
-                            /rules[Expr]
-                          </rule>
-                        </Call>
-                      </arg>
-                    </Field>
-                  </elements>
-                </Sequence>
-              </arg>
-            </Create>
-          </alts>
-        </Alt>
-      </arg>
-    </Rule>
     <Rule name='Sep'>
       <arg>
 	<Alt>
