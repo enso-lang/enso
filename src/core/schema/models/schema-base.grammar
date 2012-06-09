@@ -13,14 +13,14 @@ Super ::= </classes[it]>
 
 Field ::= [Field] name:sym Kind type:</types[it]> Multiplicity Annot?
 
-Kind ::= "#" { key = true }
-      |  "##" { key = true auto = true }
-      |  "!" { traversal = true }
+Kind ::= "#" { key == true }
+      |  "##" { key == true & auto == true }
+      |  "!" { traversal == true }
       |  ":"
 
-Multiplicity ::= "*" { many = true optional = true }
-	       | "?" { optional = true } 
-	       | "+" { many = true }
+Multiplicity ::= "*" { many == true & optional == true }
+	       | "?" { optional == true } 
+	       | "+" { many == true }
 	       | { }
 
 Annot ::= "/" inverse:<./type/fields[it]>

@@ -28,7 +28,11 @@ class Field < Pattern
   arg! Pattern 
  
 class Code < Pattern
-  expr! Command?
+  predicates! Predicate*
+
+class Predicate
+  lhs! Expr
+  rhs! Expr
  
 class Value < Pattern 
   kind: str 
@@ -72,4 +76,4 @@ class Binding
   target: Path
   value: Path
 
-class Command
+class Expr

@@ -114,7 +114,11 @@ class Build
 #    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
       owner.instance_eval(this.code.gsub(/@/, 'self.'))
     else
-      Interpreter(EvalCommand).eval(this.expr, :env=>ObjEnv.new(owner))
+      this.predicates.each do |predicate|
+        val = Interpreter(EvalExpr).eval(predicate.rhs, :env=>ObjEnv.new(owner))
+        var = Interpreter(EvalExpr, LValueExpr).lvalue(predicate.lhs, :env=>ObjEnv.new(owner))
+        var.value = val
+      end
     end
   end
 

@@ -448,15 +448,28 @@
             </Create>
             <Create name='Code'>
               <arg>
-                <Field name='expr'>
-                  <arg>
-                    <Call>
-                      <rule>
-                        /rules[EBlock]
-                      </rule>
-                    </Call>
-                  </arg>
-                </Field>
+                <Sequence>
+                  <elements>
+                    <Lit value='{'/>
+                    <Field name='predicates'>
+                      <arg>
+                        <Regular optional='true' many='true'>
+                          <arg>
+                            <Call>
+                              <rule>
+                                /rules[Predicate]
+                              </rule>
+                            </Call>
+                          </arg>
+                          <sep>
+                            <Lit value='&amp;'/>
+                          </sep>
+                        </Regular>
+                      </arg>
+                    </Field>
+                    <Lit value='}'/>
+                  </elements>
+                </Sequence>
               </arg>
             </Create>
             <Create name='Ref'>
@@ -625,6 +638,41 @@
                 <Lit value=')'/>
               </elements>
             </Sequence>
+          </alts>
+        </Alt>
+      </arg>
+    </Rule>
+    <Rule name='Predicate'>
+      <arg>
+        <Alt>
+          <alts>
+            <Create name='Predicate'>
+              <arg>
+                <Sequence>
+                  <elements>
+                    <Field name='lhs'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                    <Lit value='=='/>
+                    <Field name='rhs'>
+                      <arg>
+                        <Call>
+                          <rule>
+                            /rules[Expr]
+                          </rule>
+                        </Call>
+                      </arg>
+                    </Field>
+                  </elements>
+                </Sequence>
+              </arg>
+            </Create>
           </alts>
         </Alt>
       </arg>

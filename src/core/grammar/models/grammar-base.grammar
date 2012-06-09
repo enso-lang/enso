@@ -21,16 +21,18 @@
     | [Value] kind:"real"
     | [Value] kind:"sym"
     | [Value] kind:"atom"
-    | [Code] expr:EBlock
+    | [Code] "{" predicates:Predicate* @"&" "}"
     | [Ref] "<" . path:Path . ">"
     | [Lit] value:str
     | [Call] rule:</rules[it]>
-    | [Regular] arg:Pattern .  "?" { optional = true }
-    | [Regular] arg:Pattern . "*" . Sep? { optional = true many = true }
-    | [Regular] arg:Pattern . "+" . Sep? { many = true }
+    | [Regular] arg:Pattern .  "?" { optional == true }
+    | [Regular] arg:Pattern . "*" . Sep? { optional == true & many == true }
+    | [Regular] arg:Pattern . "+" . Sep? { many == true }
     | [NoSpace] "."
     | [Break] "/"
     | "(" . Alt . ")"
+    
+  Predicate ::= [Predicate] lhs:Expr "==" rhs:Expr 
 
   Sep ::= "@" . sep:Pattern
 
@@ -38,4 +40,4 @@
 abstract Path
 Key ::= [It] "it"
 
-abstract EBlock
+abstract Expr
