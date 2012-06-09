@@ -451,13 +451,13 @@
                 <Sequence>
                   <elements>
                     <Lit value='{'/>
-                    <Field name='predicates'>
+                    <Field name='expr'>
                       <arg>
-                        <Regular optional='true' many='true'>
+                        <Regular optional='true'>
                           <arg>
                             <Call>
                               <rule>
-                                /rules[Predicate]
+                                /rules[Expr]
                               </rule>
                             </Call>
                           </arg>

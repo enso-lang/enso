@@ -21,12 +21,12 @@
     | [Value] kind:"real"
     | [Value] kind:"sym"
     | [Value] kind:"atom"
-    | [Code] "{" predicates:Predicate* @"&&" "}"
+    | [Code] "{" expr:Expr "}"
     | [Ref] "<" . path:Path . ">"
     | [Lit] value:str
     | [Call] rule:</rules[it]>
     | [Regular] arg:Pattern .  "?" { optional == true }
-    | [Regular] arg:Pattern . "*" Sep? { optional == true && many == true }
+    | [Regular] arg:Pattern . "*" Sep? { (optional == true) and (many == true) }
     | [Regular] arg:Pattern . "+" Sep? { many == true }
     | [NoSpace] "."
     | [Break] "/"
