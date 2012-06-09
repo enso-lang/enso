@@ -108,17 +108,68 @@ class Build
   end
     
     
+  module AssertExpr
+    include EvalExpr, LValueExpr
+  
+    def assert_?(fields, type, args=nil)
+      raise "Invalid expression in grammar" unless self.eval(args[:self], args)
+    end
+  
+    def assert_EBinOp(op, e1, e2, args=nil)
+      if op == "eql?"
+        var = lvalue(e1, args)
+        val = self.eval(e2, args)
+        if var.nil?  #try flip it around
+          var = lvalue(e2, args)
+          val = self.eval(e1, args)
+        end
+        if var.nil?
+          raise "Invalid expression in grammar"
+        end
+        var.value = val
+      elsif op == "&"
+        self.assert(e1, args)
+        self.assert(e2, args)
+      else
+        raise "Invalid expression in grammar"
+      end
+    end
+  
+    def assert_EUnOp(op, e, args=nil)
+      if op == "!"
+        var = lvalue(e, args)
+        if var.nil?
+          raise "Invalid expression in grammar"
+        end
+        var.value = false
+      else
+        raise "Invalid expression in grammar"
+      end
+    end
+  
+    def assert_EVar(name, args=nil)
+      var = lvalue(e, args)
+      if var.nil?
+        raise "Invalid expression in grammar"
+      end
+      var.value = true
+    end
+  
+    def assert_EField(e, fname, args=nil)
+      var = lvalue(e, args)
+      if var.nil?
+        raise "Invalid expression in grammar"
+      end
+      var.value = true
+    end
+  end
 
   def Code(this, sppf, owner, accu, field, fixes, paths)
     if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code!=""
 #    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
       owner.instance_eval(this.code.gsub(/@/, 'self.'))
     else
-      this.predicates.each do |predicate|
-        val = Interpreter(EvalExpr).eval(predicate.rhs, :env=>ObjEnv.new(owner))
-        var = Interpreter(EvalExpr, LValueExpr).lvalue(predicate.lhs, :env=>ObjEnv.new(owner))
-        var.value = val
-      end
+      Interpreter(AssertExpr).assert(this.expr, :env=>ObjEnv.new(owner))
     end
   end
 

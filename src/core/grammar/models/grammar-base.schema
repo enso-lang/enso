@@ -28,7 +28,7 @@ class Field < Pattern
   arg! Pattern 
  
 class Code < Pattern
-  predicates! Predicate*
+  expr! Expr
 
 class Predicate
   lhs! Expr

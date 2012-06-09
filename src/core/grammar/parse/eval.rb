@@ -111,7 +111,7 @@ class GrammarEval
     if this.schema_class.defined_fields.map{|f|f.name}.include? "code"
       terminal(this, gll.ci, this.code, '', gll, nxt)
     else
-      terminal(this, gll.ci, this.predicates, '', gll, nxt)
+      terminal(this, gll.ci, this.expr, '', gll, nxt)
     end
   end
 

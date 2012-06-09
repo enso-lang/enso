@@ -120,9 +120,9 @@
             /types[str]
           </type>
         </Field>
-        <Field name='predicates' traversal='true' many='true'>
+        <Field name='expr' traversal='true'>
           <type>
-            /types[Predicate]
+            /types[Expr]
           </type>
         </Field>
       </defined_fields>
