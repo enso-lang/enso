@@ -74,6 +74,7 @@ module ManagedData
       @interp = factory.interp
       @hash = {}
       @listeners = {}
+      @memo = {}
       __setup(klass.all_fields)
       __init(klass.fields, args)
       __install(klass.all_fields)
@@ -225,13 +226,28 @@ module ManagedData
     end
 
     def __computed(name, exp)
-      define_singleton_method(name) do
-        if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
-          instance_eval(exp.code.gsub(/@/, 'self.'))
-        elsif exp.EStrConst?
-          instance_eval(exp.val.gsub(/@/, 'self.'))
-        else
-          @interp.eval(exp, :env=>ObjEnv.new(self))
+      if ("#{name}"=="fields" || "#{name}"=="all_fields")
+        define_singleton_method(name) do
+          if @memo[name].nil?
+            @memo[name] = if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
+              instance_eval(exp.code.gsub(/@/, 'self.'))
+            elsif exp.EStrConst?
+              instance_eval(exp.val.gsub(/@/, 'self.'))
+            else
+              @interp.eval(exp, :env=>ObjEnv.new(self))
+            end
+          end
+          @memo[name]
+        end
+      else
+        define_singleton_method(name) do
+          if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
+            instance_eval(exp.code.gsub(/@/, 'self.'))
+          elsif exp.EStrConst?
+            instance_eval(exp.val.gsub(/@/, 'self.'))
+          else
+            @interp.eval(exp, :env=>ObjEnv.new(self))
+          end
         end
       end
     end

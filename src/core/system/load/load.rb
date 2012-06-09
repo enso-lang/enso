@@ -112,14 +112,17 @@ module Loading
         patch_schema_pointers(v, schema)
       end
     end
-    
+
     def patch_schema_pointers(obj, schema)
       all_classes = []
       map(obj) do |o|
         all_classes << o;
         o
       end
-      all_classes.each { |o| o.instance_eval { @schema_class = schema.types[@schema_class.name] } }
+      all_classes.each { |o| o.instance_eval { 
+        @schema_class = schema.types[@schema_class.name]
+        @factory.instance_eval { @schema = schema } 
+      } }
     end
 
     def load_with_models(name, grammar, schema, encoding = nil)
@@ -136,7 +139,7 @@ module Loading
           # this means we are loading schema_schema.xml for the first time.
           schema = Boot::Schema.new(doc.root)
           result = FromXML.load(schema, doc)
-          Boot::patch_schema_pointers(result)
+          patch_schema_pointers(result, result)
         else
           result = FromXML.load(schema, doc)
         end

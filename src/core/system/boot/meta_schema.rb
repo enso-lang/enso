@@ -171,29 +171,6 @@ module Boot
     end
   end
 
-  def self.patch_schema_pointers(schema_schema)
-    schema = schema_schema.classes["Schema"]
-    prim = schema_schema.types["Primitive"]
-    klass = schema_schema.types["Class"]
-    field = schema_schema.types["Field"]
-    
-    # Yes, we are breaking encapsulation here. Necessary for bootstrapping
-    schema_schema.instance_eval { @schema_class = schema}
-    schema_schema.primitives.each do |p|
-      p.instance_eval { @schema_class = prim }
-    end
-    schema_schema.classes.each do |c|
-      c.instance_eval { @schema_class = klass }
-      c.defined_fields.each do |f|
-        f.instance_eval { @schema_class = field }
-      end
-      # why is this needed? If removed, infinite recursion in factory.
-      # But fields is computed....???
-      c.all_fields.each do |f|
-        c.fields << f if !f.computed
-      end
-    end
-  end
 end
 
 

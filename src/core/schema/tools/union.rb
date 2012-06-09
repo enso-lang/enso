@@ -36,10 +36,9 @@ class CopyInto
     raise "Union of incompatible objects #{a} and #{b}" if a && b && a.schema_class.name != b.schema_class.name
     @memo[a] = new = b || @factory[a.schema_class.name]
     #puts "BUILD #{a} + #{b} ==> #{new}"
-    a.schema_class.fields.each do |field|
+    new.schema_class.fields.each do |field|
       a_val = a[field.name]
       b_val = b && b[field.name]
-      #puts "#{field.name} #{field.traversal}: #{a_val} / #{b_val}"
       if field.type.Primitive?
         if a && b && a_val != b_val then
           puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" 
