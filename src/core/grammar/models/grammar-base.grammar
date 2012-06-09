@@ -26,8 +26,8 @@
     | [Lit] value:str
     | [Call] rule:</rules[it]>
     | [Regular] arg:Pattern .  "?" { optional = true }
-    | [Regular] arg:Pattern . "*" . Sep? { optional = true many = true }
-    | [Regular] arg:Pattern . "+" . Sep? { many = true }
+    | [Regular] arg:Pattern . "*" Sep? { optional = true many = true }
+    | [Regular] arg:Pattern . "+" Sep? { many = true }
     | [NoSpace] "."
     | [Break] "/"
     | "(" . Alt . ")"

@@ -20,8 +20,12 @@ class FormatWidth < MemoBase
   end
 
   def Break(obj)
-    obj.indent = -1 # reset the break positions
-    obj.sep ? obj.sep.length : 0
+    if obj.optional
+      obj.indent = -1 # reset the break positions
+      obj.sep ? obj.sep.length : 0
+    else
+      999999
+    end
   end
 
   def Text(obj)

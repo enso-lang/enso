@@ -11,6 +11,7 @@
     indent: int
   
   class Break < Format 
+    optional: bool
     indent: int 
     sep: str 
   
