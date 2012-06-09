@@ -11,7 +11,11 @@
   grammar_schema = Loader.load('grammar.schema')
   schema_schema = Loader.load('schema.schema')
 
-  DisplayFormat.print(grammar_grammar, point_grammar)
+  a = Loader.load('rb.grammar')
+  DisplayFormat.print(grammar_grammar, a)
+
+#puts "----- POINT GRAMMAR -----"
+#  DisplayFormat.print(grammar_grammar, point_grammar)
 
 #puts "----- SCHEMA GRAMMAR -----"
 #  DisplayFormat.print(grammar_grammar, schema_grammar)
