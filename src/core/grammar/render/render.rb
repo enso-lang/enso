@@ -12,9 +12,9 @@ class RenderClass < Dispatch
   def initialize()
     @factory = ManagedData::Factory.new(Loader.load('layout.schema'))
     @depth=0
-    @stack = []
     @current = nil
     @needSpace = false
+    @indent_amount = 2
   end
 
   def Grammar(this, stream)
@@ -25,10 +25,7 @@ class RenderClass < Dispatch
   end
 
   def recurse(pat, *args)
-    throw :fail if @stack.include? pat
-    @stack.clear if @current != args[0].current
     @current = args[0].current
-    @stack << pat
     @depth=@depth+1
     begin
       val = send(pat.schema_class.name, pat, *args)
@@ -61,10 +58,11 @@ class RenderClass < Dispatch
 
   def Create(this, stream)
     obj = stream.current
-    #puts "[#{this.name}] #{obj}"
+    #puts "#{' '*@depth}[#{this.name}] #{obj}"
     throw :fail if obj.nil? || obj.schema_class.name != this.name
     stream.next
-    recurse(this.arg, SingletonStream.new(obj))
+    result = recurse(this.arg, SingletonStream.new(obj))
+    result
   end
 
   def Field(this, stream)
@@ -173,7 +171,7 @@ class RenderClass < Dispatch
         i += 1
       end
       throw :fail if stream.length != 0
-      return @factory.Group(@factory.Nest(s, 4))
+      return @factory.Group(@factory.Nest(s, @indent_amount))
     end
   end
   
