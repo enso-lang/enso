@@ -38,19 +38,19 @@ Expr ::= Primary
       | [Concat] lhs:Expr "+" rhs:Expr  // TODO: precedences
       | [Equal] lhs:Expr "==" rhs:Expr 
       | [In] lhs:Expr "in" rhs:Expr 
-      | [List] "[" elements:Expr*@"," "]"
+      | [List] "[" elements:Expr* @"," "]"
 
       
 Index ::= "," index:sym
 
 Assign ::= [Assign] name:sym "=" exp:Expr
 
-Args ::= "(" args:Expr*@"," ")"
+Args ::= "(" args:Expr* @"," ")"
 
 Sig ::=  "(" Formals  ")"
 
-Formals ::= formals:Formal+@"," "," tail:Tail
-         |  formals:Formal*@"," 
+Formals ::= formals:Formal+ @"," "," tail:Tail
+         |  formals:Formal* @"," 
          |  tail:Tail
 
 Tail ::= [Tail] name:sym "[" Formals "]"

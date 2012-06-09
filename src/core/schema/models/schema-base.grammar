@@ -8,7 +8,7 @@ Primitive ::= [Primitive] "primitive" name:sym
 
 Class ::= [Class] "class" name:sym ClassAnnot defined_fields:Field* 
 ClassAnnot ::= Parent?
-Parent ::= "<" supers:Super+@","
+Parent ::= "<" supers:Super+ @","
 Super ::= </classes[it]>
 
 Field ::= [Field] name:sym Kind type:</types[it]> Multiplicity Annot?

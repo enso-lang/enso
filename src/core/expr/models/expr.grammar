@@ -18,7 +18,7 @@ EUnOp ::= [EUnOp] "not" e:Expr {op == "!"}
         | EListComp
         | Primary
         | "(" Expr ")"
-EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr*@"," ")"
+EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")"
 
 Primary ::= EConst
           | [EField] e:Primary "." fname:sym
