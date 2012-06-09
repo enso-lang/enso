@@ -141,11 +141,16 @@ class RenderClass < Dispatch
   
   def Code(this, stream)
     obj = stream.current
-    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
+    if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code!=""
+     # FIXME: this case is needed to parse bootstrap grammar
       code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.")
       ok = obj.instance_eval(code)
     else
-      ok = Interpreter(EvalCommandTest).eval(this.expr, :env=>ObjEnv.new(obj))
+      ok = true
+      this.predicates.each do |pred|
+        ok &= (Interpreter(EvalExpr).eval(pred.lhs, :env=>ObjEnv.new(obj)) == 
+        Interpreter(EvalExpr).eval(pred.rhs, :env=>ObjEnv.new(obj)))
+      end 
     end
     throw :fail unless ok
     @factory.Sequence()

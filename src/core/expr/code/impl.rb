@@ -98,14 +98,3 @@ module EvalCommand
     lvalue(var, args).value = self.eval(val, args)
   end
 end
-
-module EvalCommandTest
-  include EvalCommand
-  
-  def eval_EAssign(var, val, args={})
-    a = self.eval(var, args)
-    b = self.eval(val, args)
-    puts "TESTING #{var}(#{a})==#{val}(#{b})"
-    a == b
-  end
-end

@@ -13,7 +13,7 @@ Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
         |   [Burner] name:sym ":" "burner" inputs gas outputs:pipe
         |   [Room] name:sym ":" "room"
 
-Sensor ::= [Sensor] ("sensor" {controllable = false} | "control" {controllable = true}) name:sym ":" kind:sym "(" (attach:</elements[it]> | attach:Connection) ")"
+Sensor ::= [Sensor] ("sensor" {controllable == false} | "control" {controllable == true}) name:sym ":" kind:sym "(" (attach:</elements[it]> | attach:Connection) ")"
 
 pipe ::= [Pipe]
        | [Pipe] "[" ("l" ":" length:real)? ("d" ":" diameter:real)? "]"

@@ -11,8 +11,8 @@ Def ::= [Def] "define" name:sym "as" query:Exp ";"
 
 
 Primary ::= [Nil] "nil"
-       	 |  [Bool] "true" {value = true}
-       	 |  [Bool] "false" {value = false}
+       	 |  [Bool] "true" {value == true}
+       	 |  [Bool] "false" {value == false}
        	 |  [Int] value:int
        	 |  [Float] value:real
        	 |  [Str] value:str
@@ -65,7 +65,7 @@ Equality ::= [Binary] lhs:Comparative op:"==" rhs:Comparative
 	  |  Comparative
 
 Conjunctive ::= [Binary] lhs:Conjunctive op:"and" rhs:Equality
-	     |  [Comprehension] "for" "all" Generator {quantifier = "for_all"}
+	     |  [Comprehension] "for" "all" Generator {quantifier == "for_all"}
 	     |  [Comprehension] quantifier:"exists" Generator
 	     |  Equality
 
