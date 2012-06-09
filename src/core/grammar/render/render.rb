@@ -14,6 +14,7 @@ class RenderClass < Dispatch
     @depth=0
     @stack = []
     @current = nil
+    @needSpace = false
   end
 
   def Grammar(this, stream)
@@ -85,22 +86,19 @@ class RenderClass < Dispatch
   def Value(this, stream)
     obj = stream.current
     throw :fail if obj.nil?
-    s = @factory.Sequence()
     case this.kind
     when /str/ 
-      s.elements << @factory.Text("\"")
-      s.elements << @factory.Text(obj)
-      s.elements << @factory.Text("\"")
+      val = "\"" + obj + "\""
     when /sym/
       if @literals.include?(obj) then
-        s.elements << @factory.Text('\\')
+        val = '\\' + obj.to_s
+      else
+        val = obj.to_s
       end
-      s.elements << @factory.Text(obj.to_s)
     else
-      s.elements << @factory.Text(obj.to_s)
+      val = obj.to_s
     end
-    s.elements << @factory.Text(" ")
-    s
+    output(val)
   end
 
   def Ref(this, stream)
@@ -113,7 +111,7 @@ class RenderClass < Dispatch
     throw :fail if bind.nil?
     
     #puts "RENDER REF #{obj}=#{v}"
-    return space(bind[it])  # TODO: need "." keys
+    return output(bind[it])  # TODO: need "." keys
   end
 
   def Lit(this, stream)
@@ -121,19 +119,24 @@ class RenderClass < Dispatch
     #puts "Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
     if obj.is_a?(String) then
       if this.value == obj then
-        space(this.value)
+        output(this.value)
       else
         throw :fail
       end
     end
-    space(this.value)
+    output(this.value)
   end
 
-  def space(v)
-    s = @factory.Sequence()
-    s.elements << @factory.Text(v.to_s)
-    s.elements << @factory.Text(" ")
-    s
+  def output(v)
+    if @needSpace
+      s = @factory.Sequence()
+      s.elements << @factory.Text(" ")
+      s.elements << @factory.Text(v.to_s)
+      s
+    else
+      @needSpace = true
+      @factory.Text(v.to_s)    
+    end
   end
   
   def Code(this, stream)
@@ -160,8 +163,9 @@ class RenderClass < Dispatch
       s = @factory.Sequence()
       i = 0
       while stream.length > 0
-        s.elements << @factory.Text(this.sep) if i > 0 && this.sep
-        s.elements << @factory.Break()
+        @needBreak = true
+        s.elements << recurse(this.sep, stream) if i > 0 && this.sep
+        s.elements << @factory.Break(true) if @needBreak # optional break
         pos = stream.length
         s.elements << recurse(this.arg, stream)
         stream.next if stream.length == pos
@@ -171,6 +175,17 @@ class RenderClass < Dispatch
       return @factory.Group(@factory.Nest(s, 4))
     end
   end
+  
+  def NoSpace(this, stream)
+    @needSpace = false
+    @factory.Text("")
+  end
+  
+  def Break(this, stream)
+    @needBreak = false
+    @factory.Break(false) # hard break
+  end
+  
 end
 
 class SingletonStream
