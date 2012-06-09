@@ -462,7 +462,7 @@
                             </Call>
                           </arg>
                           <sep>
-                            <Lit value='&amp;'/>
+                            <Lit value='&amp;&amp;'/>
                           </sep>
                         </Regular>
                       </arg>
