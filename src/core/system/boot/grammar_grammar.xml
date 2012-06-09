@@ -167,6 +167,9 @@
                               </rule>
                             </Call>
                           </arg>
+			  <sep>
+			    <Break/>
+			  </sep>
                         </Regular>
                       </arg>
                     </Field>
@@ -242,7 +245,12 @@
                             </Call>
                           </arg>
 			  <sep>
-			    <Lit value='|'/>
+			    <Sequence>
+			      <elements>
+				<Break/>
+				<Lit value='|'/>
+			      </elements>
+			    </Sequence>
 			  </sep>
                         </Regular>
                       </arg>
@@ -264,11 +272,13 @@
                 <Sequence>
                   <elements>
                     <Lit value='['/>
+		    <NoSpace/>
                     <Field name='name'>
                       <arg>
                         <Value kind='sym'/>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value=']'/>
                     <Field name='arg'>
                       <arg>
@@ -338,7 +348,9 @@
                         <Value kind='sym'/>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value=':'/>
+		    <NoSpace/>
                     <Field name='arg'>
                       <arg>
                         <Call>
@@ -452,6 +464,7 @@
                 <Sequence>
                   <elements>
 		    <Lit value='&lt;'/>
+		    <NoSpace/>
                     <Field name='path'>
                       <arg>
                         <Call>
@@ -461,6 +474,7 @@
                         </Call>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value='&gt;'/>
                   </elements>
                 </Sequence>
@@ -513,7 +527,9 @@
                         </Call>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value='*'/>
+		    <NoSpace/>
 		    <Regular optional='true'>
 		      <arg>
 			<Call>
@@ -541,6 +557,7 @@
                         </Call>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value='?'/>
                     <Code code='@optional = true'/>
                   </elements>
@@ -560,7 +577,9 @@
                         </Call>
                       </arg>
                     </Field>
+		    <NoSpace/>
                     <Lit value='+'/>
+		    <NoSpace/>
 		    <Regular optional='true'>
 		      <arg>
 			<Call>
@@ -575,14 +594,34 @@
                 </Sequence>
               </arg>
             </Create>
+	    <Create name='NoSpace'>
+	      <arg>
+		<Sequence>
+		  <elements>
+		    <Lit value='.'/>
+		  </elements>
+		</Sequence>
+	      </arg>
+	    </Create>
+	    <Create name='Break'>
+	      <arg>
+		<Sequence>
+		  <elements>
+		    <Lit value='/'/>
+		  </elements>
+		</Sequence>
+	      </arg>
+	    </Create>
             <Sequence>
               <elements>
                 <Lit value='('/>
+		<NoSpace/>
                 <Call>
                   <rule>
                     /rules[Alt]
                   </rule>
                 </Call>
+		<NoSpace/>
                 <Lit value=')'/>
               </elements>
             </Sequence>
@@ -597,6 +636,7 @@
 	    <Sequence>
 	      <elements>
 		<Lit value='@'/>
+		<NoSpace/>
 		<Field name='sep'>
 		  <arg>
 		    <Call>

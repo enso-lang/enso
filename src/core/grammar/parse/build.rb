@@ -1,6 +1,7 @@
 
 require 'core/grammar/parse/unparse'
 require 'core/grammar/parse/to-path'
+require 'core/grammar/tools/todot'
 require 'core/system/utils/location'
 require 'core/expr/code/impl'
 
@@ -121,7 +122,11 @@ class Build
 
   def amb_error(sppf)
     Unparse.unparse(sppf, s = '')
+    #File.open('amb.dot', 'w') do |f|
+    #  ToDot.to_dot(sppf, f)
+    #end
     raise "Ambiguity: >>>#{s}<<<" 
+    
   end
   
   def origin(sppf)

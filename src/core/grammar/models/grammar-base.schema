@@ -47,6 +47,9 @@ class Regular < Pattern
   optional: bool 
   many: bool 
   sep! Pattern ? 
+
+class NoSpace < Pattern
+class Break < Pattern
  
 class Epsilon < Pattern
 
