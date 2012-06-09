@@ -12,8 +12,9 @@ class RenderClass < Dispatch
   def initialize()
     @factory = ManagedData::Factory.new(Loader.load('layout.schema'))
     @depth=0
+    @stack = []
     @current = nil
-    @needSpace = false
+    @need_space = false
     @indent_amount = 2
   end
 
@@ -25,12 +26,16 @@ class RenderClass < Dispatch
   end
 
   def recurse(pat, *args)
+    throw :fail if @stack.include? pat
+    @stack.clear if @current != args[0].current
     @current = args[0].current
+    @stack << pat 
     @depth=@depth+1
     begin
       val = send(pat.schema_class.name, pat, *args)
     ensure
       @depth=@depth-1
+      @stack.pop
     end
     return val
   end
@@ -126,13 +131,13 @@ class RenderClass < Dispatch
   end
 
   def output(v)
-    if @needSpace
+    if @need_space
       s = @factory.Sequence()
       s.elements << @factory.Text(" ")
       s.elements << @factory.Text(v.to_s)
       s
     else
-      @needSpace = true
+      @need_space = true
       @factory.Text(v.to_s)    
     end
   end
@@ -176,12 +181,13 @@ class RenderClass < Dispatch
   end
   
   def NoSpace(this, stream)
-    @needSpace = false
+    @need_space = false
     @factory.Text("")
   end
   
   def Break(this, stream)
     @needBreak = false
+    @need_space = false
     @factory.Break(false) # hard break
   end
   
