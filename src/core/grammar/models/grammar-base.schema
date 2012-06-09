@@ -28,8 +28,7 @@ class Field < Pattern
   arg! Pattern 
  
 class Code < Pattern
-  code: str
-  expr! EBlock?
+  expr! Command?
  
 class Value < Pattern 
   kind: str 
@@ -70,4 +69,4 @@ class Binding
   target: Path
   value: Path
 
-class EBlock
+class Command

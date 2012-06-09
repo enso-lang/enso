@@ -99,7 +99,11 @@ class GrammarEval
   end
 
   def Code(this, gll, nxt)
-    terminal(this, gll.ci, this.code, '', gll, nxt)
+    if this.schema_class.defined_fields.map{|f|f.name}.include? "code"
+      terminal(this, gll.ci, this.code, '', gll, nxt)
+    else
+      terminal(this, gll.ci, this.expr, '', gll, nxt)
+    end
   end
 
   def Lit(this, gll, nxt)
