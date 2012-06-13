@@ -245,12 +245,16 @@
                             </Call>
                           </arg>
 			  <sep>
+			  	<Alt>
+			  		<alts>
 			    <Sequence>
 			      <elements>
 				<Break/>
 				<Lit value='|'/>
 			      </elements>
 			    </Sequence>
+			  		</alts>
+			  	</Alt>
 			  </sep>
                         </Regular>
                       </arg>
