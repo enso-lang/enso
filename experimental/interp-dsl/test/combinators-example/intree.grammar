@@ -1,5 +1,0 @@
-start Node
-
-Node ::= Leaf | Fork
-Leaf ::= [Leaf] "(" value:int ")"
-Fork ::= [Fork] "(" left:Node "," right:Node ")"
