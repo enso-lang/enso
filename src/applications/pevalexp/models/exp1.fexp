@@ -1,8 +1,0 @@
-
-exp(x, 4) in 
-  fun exp(x, n) = 
-    if (== n 0) then 
-      1 
-    else 
-      (* x exp(x, (- n 1))) 
-    end;
