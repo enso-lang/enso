@@ -1,6 +1,0 @@
-load-schema "expr.schema"
-load-function "expr-eval2.interp"
-
-
-a := "5":int
-val := eval ( "1 + 1":Expression )

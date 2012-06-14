@@ -1,7 +1,0 @@
-start Term
-Term ::= App | Lambda | Var | Const
-App ::= [App] "(" fun:Term sub:Term ")"
-Lambda ::= [Lambda] "#" var:sym "." body:Term
-Var ::= [Var] name:sym
-Const ::= [Const] val:int
-

@@ -1,9 +1,0 @@
-interpret Node
-
-do plusone (intree)
-
-Fork:
-  "@fact.Fork(left, right)"
-
-Leaf:
- "@fact.Leaf(value+1)"
