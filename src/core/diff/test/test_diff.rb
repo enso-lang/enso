@@ -22,16 +22,13 @@ class DiffTest < Test::Unit::TestCase
   # test matching
   def test_match
     res = Match.new.match(@p1, @p2)
-    assert_equal(res.size, 6)
+    assert_equal(9, res.size)
   end
 
   # test differencing
   def test_diff
-    puts Diff.diff(@p1, @p2)
-    
-    #assert_equal(res.schema_class.name, DeltaTransform.modify+@p1.schema_class.name)
-    
-    #assert_equal(res.lines[0].pts.length, 4)
+    deltas = Diff.diff(@p1, @p2)
+    assert_equal(12, deltas.size)
   end  
 
   def test_diff2

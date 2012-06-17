@@ -489,6 +489,10 @@ module ManagedData
       __insert(mobj)
       return self
     end
+    
+    def []=(index, mobj)
+      self<<(mobj)
+    end
 
     def delete(mobj)
       key = mobj[@key.name]
@@ -545,11 +549,33 @@ module ManagedData
       __insert(mobj)
       return self
     end
+    
+    def []=(index, mobj)
+      if !mobj
+        raise "Cannot insert nil into list"
+      end 
+      check(mobj)
+      notify(nil, mobj)
+      old = __value[index.to_i]
+      __value[index.to_i] = mobj
+      notify(old, nil) if old
+      self
+    end
 
     def delete(mobj)
       deleted = __delete(mobj)
       notify(deleted, nil)  if deleted
       return deleted
+    end
+
+    def insert(index, mobj)
+      if !mobj
+        raise "Cannot insert nil into list"
+      end 
+      check(mobj)
+      notify(nil, mobj)
+      @value.insert(index.to_i, mobj)
+      self
     end
 
     def _path(mobj)

@@ -31,7 +31,7 @@ class Match
           if f.many
             if IsKeyed? f.type
               list_matches = match_keyed_list(o1[f.name], o2[f.name])
-            elsif o1[f.name].is_a? ManyField
+            elsif o1[f.name].is_a? ManagedData::List
               list_matches = match_ordered_list(o1[f.name], o2[f.name])
             else
               raise "Trying to match a field that is neither keyed nor ordered"

@@ -37,7 +37,7 @@ module Diff
       else
         i = 0
         root[f.name].each do |v|
-          res.update map_paths(v, f.is_a?(ManyIndexedField) ? currpath.field(f.name).key(ObjectKey(v)) : currpath.field(f.name).index(i))
+          res.update map_paths(v, IsKeyed?(f.type) ? currpath.field(f.name).key(ObjectKey(v)) : currpath.field(f.name).index(i))
           i+=1
         end
       end
@@ -90,15 +90,15 @@ Topological sort of the diff list
   def self.diff_all(o1, o2, path, matches, ref=false)
     return [] if o1==o2
     type = o1 || o2
-    if type.is_a? CheckedObject
+    if type.is_a? ManagedData::MObject
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
         diff_ref(o1, o2, path, matches, ref)
       end
-    elsif type.is_a? ManyField
+    elsif type.is_a? ManagedData::List
       diff_array(o1, o2, path, matches, ref)
-    elsif type.is_a? ManyIndexedField
+    elsif type.is_a? ManagedData::Set
       diff_hash(o1, o2, path, matches, ref)
     else #primitive value
       diff_primitive(o1, o2, path, matches, ref)
@@ -110,8 +110,6 @@ Topological sort of the diff list
   end
 
   def self.diff_obj(o1, o2, path, matches, ref)
-    Print.print(o1)
-    Print.print(o2)
     if o1.nil?
       difflist = [Op.new(add, path, o2.schema_class)]
       o2.schema_class.fields.each do |f|
@@ -168,22 +166,29 @@ Topological sort of the diff list
   end
 
   def self.diff_array(o1, o2, path, matches, ref)
+    #The ordering is critical to ensure the indices are not messed up when patching.
+    #Patch should be able to apply all operations in one pass 
+    #Rules as follows:
+    # - Indices are always backwards. Larger indices occur before smaller ones
+    # - Except when appending to the end -- all indices past the end of array are forward
+    # - Operations to the same index, eg ADD[1], ADD[1], should maintain original order
+
     difflist = []
     i=j=0
     while i<o1.length and j<o2.length
       if matches[o1[i]]==nil
-        difflist.concat diff_all(o1[i], nil, path.index(i), matches, ref)
+        difflist.unshift *diff_all(o1[i], nil, path.index(i), matches, ref)
         i+=1
       elsif matches[o1[i]]==o2[j]
-        difflist.concat diff_all(o1[i], o2[j], path.index(i), matches, ref)
+        difflist.unshift *diff_all(o1[i], o2[j], path.index(i), matches, ref)
         i+=1; j+=1
-      elsif matches[o1[i]]!=o2[j]
-        difflist.concat diff_all(nil, o2[j], path.index(i), matches, ref)
+    elsif matches[o1[i]]!=o2[j]
+        difflist.unshift *diff_all(nil, o2[j], path.index(i), matches, ref)
         j+=1
       end
     end
     for n in j..o2.length-1
-      difflist.concat diff_all(nil, o2[n], path.index(i), matches, ref)
+      difflist.unshift *diff_all(nil, o2[n], path.index(i), matches, ref)
     end
     difflist
   end

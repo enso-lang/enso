@@ -162,6 +162,7 @@ module Paths
 
   class Field < Elt
     attr_reader :name
+    alias :value :name
 
     def initialize(name)
       @name = name
@@ -181,6 +182,9 @@ module Paths
   end
 
   class Index < Elt
+    attr_reader :index
+    alias :value :index
+
     def initialize(index)
       @index = index
     end
@@ -206,6 +210,9 @@ module Paths
 
 
   class Key < Elt
+    attr_reader :key
+    alias :value :key
+
     def initialize(key)
       @key = key
     end
