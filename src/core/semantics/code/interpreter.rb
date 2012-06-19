@@ -41,7 +41,7 @@ class Interpreter
           raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
         end
       rescue Exception => e 
-        raise "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type}"
+        raise e.class, "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type}"
       end
     end
   end

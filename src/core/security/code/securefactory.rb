@@ -59,7 +59,7 @@ module SecureFactory
       #check security: can I read this entire field?
       auth1, msg1 = check_privileges("OpRead", self, name)
       if !auth1
-        raise "Trying to access #{name} in #{self}"
+        raise SecurityError, "Trying to access #{name} in #{self}"
       end
       nil if !auth1
       super if auth1

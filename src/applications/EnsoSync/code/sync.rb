@@ -8,7 +8,7 @@ require 'core/diff/code/patch'
 def sync(s1, s2, base)
 
   # perform differencing on main updater
-  d = diff(base, s1)
+  d = Diff.diff(base, s1)
 
   # new base is the end state everyone should be in
   newbase = s2.factory.trusted_mode {
@@ -17,25 +17,31 @@ def sync(s1, s2, base)
   newbase = Patch.patch(newbase, d)
 
   # generate updates by differencing
-  d1u = diff(s1, newbase)
-  d2u = diff(s2, newbase)
+  d1u = Diff.diff(s1, newbase)
+  d2u = Diff.diff(s2, newbase)
 
   return d1u, d2u, newbase
 end
 
-def collate_diffs(d, root, path)
-  return {} if d.nil?
-  if DeltaTransform.isInsertChange?(d) or (!d.D_Dir? and DeltaTransform.isModifyChange?(d))
-    root.empty? ? "" : contents = d.D_Dir? ? "" : File.open("#{root}/#{path}", "rb").read
-    res = {path=>['+', d.D_Dir? ? 'D' : 'F', contents]}
-  elsif DeltaTransform.isDeleteChange?(d)
-    res = {path=>['-', d.D_Dir? ? 'D' : 'F', ""]}
-  else
-    res = {}
+def path2path(path)
+  if path =~ /\/nodes\[(\w*)\](.*)/
+    "/#{$1}#{path2path($2)}"
   end
-  if d.D_Dir?
-    d.nodes.each do |n|
-      res.merge!(collate_diffs(n, root, path+'/'+n.pos))
+end
+
+def collate_diffs(ds, root, thispath)
+  res = {}
+  for i in 0..ds.size-1
+    d = ds[i]
+    path = "/#{thispath}#{path2path(d.path.to_s)}"
+    if d.type == Diff.add or (d.type == Diff.mod && d.path.lvalue? && d.value == "File")
+      if d.value == "File"
+        res[path] = ['+', 'F', root=="" ? "" : File.open(root+path, "rb").read]
+      elsif d.value == "Dir"
+        res[path] = ['+', 'D', ""]
+      end
+    elsif d.type == Diff.del
+      res[path] = ['-', d.value=="Dir" ? 'D' : 'F', ""]
     end
   end
   res
@@ -44,8 +50,8 @@ end
 def multi_sync(s1, s2, base, factory)
 
   # perform differencing on both paths
-  d1 = diff(base, s1)
-  d2 = diff(base, s2)
+  d1 = Diff.diff(base, s1)
+  d2 = Diff.diff(base, s2)
 
   # merge all deltas to form a combined delta
   d = Union.union(d1, d2, d1.factory)
@@ -54,8 +60,8 @@ def multi_sync(s1, s2, base, factory)
   newbase = Patch.patch(base, d)
 
   # generate updates by differencing
-  d1u = diff(s1, newbase)
-  d2u = diff(s2, newbase)
+  d1u = Diff.diff(s1, newbase)
+  d2u = Diff.diff(s2, newbase)
 
   return d1u, d2u, newbase
 end

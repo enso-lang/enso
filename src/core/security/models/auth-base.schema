@@ -4,8 +4,8 @@ primitive bool
 
 class Authentication
   rules!Rule*
-  allowrules:Rule* = "@rules.select(&:AllowRule?)"
-  denyrules:Rule* = "@rules.select(&:DenyRule?)"
+  allowrules:Rule* = rules.select() { |r| return r.schema_class.name=="AllowRule" }
+  denyrules:Rule* = rules.select() { |r| return r.schema_class.name=="DenyRule" }
 
 class Rule
   strength:int

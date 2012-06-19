@@ -40,6 +40,14 @@ module Paths
       Path.new(elts + path.elts)
     end
 
+    def deref?(scan, root = scan)
+      begin
+        deref(scan, root = scan)
+      rescue
+        false
+      end
+    end
+
     def deref(scan, root = scan)
       elts.each do |elt|
         #puts "Deref element: #{elt}, scan = #{scan} "

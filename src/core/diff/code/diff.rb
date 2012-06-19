@@ -111,7 +111,7 @@ Topological sort of the diff list
 
   def self.diff_obj(o1, o2, path, matches, ref)
     if o1.nil?
-      difflist = [Op.new(add, path, o2.schema_class)]
+      difflist = [Op.new(add, path, o2.schema_class.name)]
       o2.schema_class.fields.each do |f|
         fn = f.name
         fpath = path.field(fn)
@@ -145,6 +145,8 @@ Topological sort of the diff list
   end
 
   def self.diff_hash(o1, o2, path, matches, ref)
+    o1 = {} if o1.nil?
+    o2 = {} if o2.nil?
     difflist = []
     found = []
     o1.each do |i1|
@@ -173,6 +175,8 @@ Topological sort of the diff list
     # - Except when appending to the end -- all indices past the end of array are forward
     # - Operations to the same index, eg ADD[1], ADD[1], should maintain original order
 
+    o1 = [] if o1.nil?
+    o2 = [] if o2.nil?
     difflist = []
     i=j=0
     while i<o1.length and j<o2.length

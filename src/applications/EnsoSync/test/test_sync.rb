@@ -8,8 +8,8 @@ class SyncTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @@domainpath = "applications/EnsoSync/test/example"
-    @@domainfile = "domain.esync"
+    @tmppath = "/tmp/root"
+    system("applications/EnsoSync/scripts/test-setup.sh #{@tmppath}")
 
 =begin
     create the following file structure (paths ending with / are dirs):
@@ -27,28 +27,29 @@ class SyncTest < Test::Unit::TestCase
       f/d1/
       f/d1/ddd
 =end
-
-    @domain = Loader.load(@@domainfile)
-
-    #setup temp dir
-    @tmppath=Dir.tmpdir+"/test_sync/"
-    FileUtils.cp_r(@@domainpath, @tmppath)
   end
   
   # test matching
   def test_sync
-    rule = @domain.rules['Test']
-    rule.s1.path = @tmppath+"t1/f"
-    rule.s2.path = @tmppath+"t2/f"
-    sync(rule.s1, rule.s2)
-
-    #check that domain is properly modified
-    assert(Equals.equals(rule.s1.basedir, rule.s2.basedir))
+    ts = Thread.start {
+      system("applications/EnsoSync/scripts/test-host.sh #{@tmppath}")
+    }
+    sleep(10)
+    tc = Thread.start {
+      system("applications/EnsoSync/scripts/test-client.sh #{@tmppath}")
+    }
+    sleep(20)
 
     #check that files are properly copied
-    assert(File.exists?(@tmppath+"/t1/f/bbb"))
-    assert(File.exists?(@tmppath+"/t2/f/eee"))
-    assert(! (File.exists?(@tmppath+"/t2/f/d1/ddd")))
+    begin
+    assert(File.exists?(@tmppath+"/client/f/bbb"))
+    assert(File.exists?(@tmppath+"/server/f/eee"))
+    assert(! (File.exists?(@tmppath+"/server/f/d1/ddd")))
+    
+    #kill threads
+    ensure
+    system("killall -9 ruby")
+    end
   end
 
   def teardown

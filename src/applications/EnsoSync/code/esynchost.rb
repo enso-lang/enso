@@ -43,11 +43,13 @@ def esynchost(rootpath)
   loop {  # Servers run forever
     client = server.accept
 
-      #initiate contact
-      login = client.gets[0..-2]
-      puts "\n#{login} initiated sync..."
-      sfactory = SecureFactory.new(schema, sec, true)
-      factory = ManagedData::Factory.new(schema)
+    #initiate contact
+    login = client.gets[0..-2]
+    puts "\n#{login} initiated sync..."
+#     sfactory = SecureFactory.new(schema, sec, true)
+    sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, :rules=>rules, :fail_silent=>true)
+    factory = ManagedData::Factory.new(schema)
+
 
       cbase_str = client.read(client.gets[0..-2].to_i)
       cbase = Parse.load_raw(cbase_str, grammar, schema, factory, false).finalize
@@ -57,14 +59,12 @@ def esynchost(rootpath)
 
       #merge and compute deltas
       snode1 = read_from_fs(rootpath, path, factory)
-      snode = sfactory.clone(read_from_fs(rootpath, path, factory))
+      snode = sfactory.make_secure(read_from_fs(rootpath, path, factory))
       d1u, d2u, newbase = sync(cnode, snode, cbase.sources[login].basedir)
 
-      #turn delta trees into edit lists
-      s2c = collate_diffs(d1u, rootpath, path)
-      c2s = collate_diffs(d2u, '', path)
-
       #send over diffs
+      s2c = collate_diffs(d1u, rootpath, path)
+      c2s = collate_diffs(d2u, "", path)
       s2c_str = YAML::dump(s2c)
       client.puts(s2c_str.length.to_s)
       client.send(s2c_str, 0)

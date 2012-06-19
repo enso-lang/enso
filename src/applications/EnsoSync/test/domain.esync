@@ -1,7 +1,3 @@
-domain 
-    source s1 "applications/EnsoSync/test/example/t1/f" f :( 
-        aaa [ "da39a3ee5e6b4b0d3255bfef95601890afd80709" ] 
-         ) end
-    source s2 "applications/EnsoSync/test/example/t2/f" f :( 
-        aaa [ "da39a3ee5e6b4b0d3255bfef95601890afd80709" ] 
-         ) end rules Test : synchronize s1 and s2 end
+domain
+    source Alice "f" f (
+        d1 ( aaa [ "972a1a11f19934401291cc99117ec614933374c1" ] ) ) end end

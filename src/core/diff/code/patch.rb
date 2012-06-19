@@ -14,16 +14,19 @@ module Patch
       fixes.each do |fix|
        case fix.type
           when Diff.add
-            val = factory[fix.value.name]
+            val = factory[fix.value]
             owner = fix.path.owner.deref(o)
+            next if fix.path.deref? o and !owner.is_a? ManagedData::List
             if owner.is_a?(ManagedData::MObject)
                 owner[fix.path.last.value] = val
             elsif owner.is_a? ManagedData::Set
+                val[ClassKey(val.schema_class).name] = fix.path.last.value
                 owner << val
             elsif owner.is_a? ManagedData::List
                 owner.insert(fix.path.last.value, val)
             end 
           when Diff.del
+            next unless fix.path.deref? o
             owner = fix.path.owner.deref(o)
             val = fix.path.deref(o)
             if owner.is_a?(ManagedData::MObject)
