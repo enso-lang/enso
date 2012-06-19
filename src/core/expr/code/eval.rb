@@ -20,7 +20,7 @@ module EvalExpr
 
   def eval_EVar(name, args=nil)
     env = args[:env]
-    puts "ERROR: undefined variable #{name}" if !env.has_key?(name)
+    raise "ERROR: undefined variable #{name}" if !env.has_key?(name)
     env[name]
   end
 
@@ -73,7 +73,7 @@ module EvalExprIntern
 
   def eval_EVar(name, args=nil)
     env = args[:env]
-    puts "ERROR: undefined variable #{name}" if !env.has_key?(name)
+    raise "ERROR: undefined variable #{name}" if !env.has_key?(name)
     env[name]
   end
 
@@ -82,3 +82,4 @@ module EvalExprIntern
   end
 
 end
+

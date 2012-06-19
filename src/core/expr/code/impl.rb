@@ -29,7 +29,7 @@ module EvalCommand
         nenv[f.name] = v
       end
       nenv.set_parent(@env)
-      res = @interp.eval(@body, @args.merge({:env=>nenv}))
+      res = @interp.eval(@body, @args+{:env=>nenv})
       res
     end
 
@@ -98,3 +98,4 @@ module EvalCommand
     lvalue(var, args).value = self.eval(val, args)
   end
 end
+

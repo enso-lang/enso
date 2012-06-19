@@ -77,6 +77,9 @@ end
 #Env that simulates an MObject
 class ObjEnv
   include Env
+
+  attr_reader :obj
+
   def initialize(obj)
     @obj = obj
   end
@@ -144,3 +147,4 @@ class LambdaEnv
     self #there can only be one env for the object
   end
 end
+

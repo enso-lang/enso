@@ -6,6 +6,7 @@ require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/impl'
 require 'core/expr/code/env'
+require 'core/expr/code/freevar'
 
 =begin
 
@@ -226,28 +227,21 @@ module ManagedData
     end
 
     def __computed(name, exp)
-      if ("#{name}"=="fields" || "#{name}"=="all_fields")
+      if exp.ECode?
         define_singleton_method(name) do
-          if @memo[name].nil?
-            @memo[name] = if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
-              instance_eval(exp.code.gsub(/@/, 'self.'))
-            elsif exp.EStrConst?
-              instance_eval(exp.val.gsub(/@/, 'self.'))
-            else
-              @interp.eval(exp, :env=>ObjEnv.new(self))
-            end
-          end
-          @memo[name]
+          instance_eval(exp.code.gsub(/@/, 'self.'))
         end
       else
         define_singleton_method(name) do
-          if exp.ECode? # FIXME: this case is needed to parse bootstrap schema
-            instance_eval(exp.code.gsub(/@/, 'self.'))
-          elsif exp.EStrConst?
-            instance_eval(exp.val.gsub(/@/, 'self.'))
-          else
-            @interp.eval(exp, :env=>ObjEnv.new(self))
+          if @memo[name] == nil
+            fvs = Interpreter(FreeVarExpr).depends(exp, :env=>ObjEnv.new(self), :bound=>[])
+            fvs.each do |fv|
+              next if fv.object.nil?  #should always be non-nil since computed fields have no external env
+              fv.object.add_listener(fv.index) { @memo[name]=nil }
+            end
+            @memo[name] = @interp.eval(exp, :env=>ObjEnv.new(self))
           end
+          @memo[name]
         end
       end
     end
