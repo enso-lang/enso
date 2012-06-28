@@ -19,27 +19,19 @@ module Boot0
 
   class Schema < MObject
     def classes
-      res = BootField.new(types.select{|t|t.Class?}, self, "classes", @root, :many=>true, :keyed=>true)
-      define_singleton_method(:classes) { res }
-      res
+      BootField.new(types.select{|t|t.Class?}, self, "classes", @root, :many=>true, :keyed=>true)
     end
     def primitives
-      res = BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, :many=>true, :keyed=>true)
-      define_singleton_method(:primitives) { res }
-      res
+      BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, :many=>true, :keyed=>true)
     end
   end
     
   class Class < MObject
     def all_fields
-      res = BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, :many=>true, :keyed=>true)
-      define_singleton_method(:all_fields) { res }
-      res
+      BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, :many=>true, :keyed=>true)
     end
     def fields
-      res = BootField.new(all_fields.select() {|f|not (['classes', 'primitives', 'all_fields', 'fields'].include? f.name)}, self, "fields", @root, :many=>true, :keyed=>true)
-      define_singleton_method(:def_fields) { res }
-      res
+      BootField.new(all_fields.select() {|f|!f.computed}, self, "fields", @root, :many=>true, :keyed=>true)
     end
   end
 
