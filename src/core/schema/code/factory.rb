@@ -23,11 +23,10 @@ module ManagedData
   class Factory
     attr_reader :schema, :interp
 
-    def initialize(schema, interp=nil)
+    def initialize(schema, interp=Interpreter(FactorySchema))
       @schema = schema
-      @interp = interp || Interpreter(FactorySchema)
-      @interp.compose!(EvalCommand)
       @roots = []
+      @interp = interp
       __constructor(schema.types)
     end
 
@@ -592,6 +591,7 @@ end
 
 module FactorySchema
   include ManagedData
+  include EvalCommand
 
   def Make_Schema(args=nil)
     Factory.new(args[:self], self)

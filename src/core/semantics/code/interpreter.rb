@@ -18,7 +18,6 @@ class Interpreter
 
       fields = Hash[obj.schema_class.all_fields.map{|f|[f.name,obj[f.name]]}]
       __call(method_sym, fields, obj.schema_class, args)
-
     end
 
     private
@@ -41,7 +40,7 @@ class Interpreter
           raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
         end
       rescue Exception => e 
-        raise e.class, "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type}"
+        raise e.class, "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type.name}"
       end
     end
   end

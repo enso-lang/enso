@@ -7,7 +7,7 @@ module Paths
     attr_reader :elts
 
     def self.parse(str)
-      if str.empty?
+      if str.empty? or str=="/"
         Path.new
       elsif str =~ /^\.(.*)$/ then
         Path.new([Current.new] + parse($1).elts)
@@ -136,7 +136,8 @@ module Paths
     end
 
     def to_s
-      elts.join
+      res = elts.join
+      res=="" ? "/" : res
     end
 
     private

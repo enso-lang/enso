@@ -10,8 +10,13 @@ class FromXML
   end
 
   def initialize(schema)
-    @schema = schema
-    @fact = ManagedData::Factory.new(schema)
+    if schema.class == ManagedData::Factory
+      @schema = schema.schema
+      @fact = schema
+    else
+      @schema = schema
+      @fact = ManagedData::Factory.new(schema)
+    end
   end
 
   def load(doc)
@@ -26,7 +31,7 @@ class FromXML
   def make(elt)
     obj = @fact[elt.name]
     elt.attributes.each do |name, value|
-      obj[name] = value_of(elt.name, name, value)
+      begin; obj[name] = value_of(elt.name, name, value); rescue; end
     end
     elt.elements.each do |field|
       set(obj, elt.name, field)
@@ -86,8 +91,8 @@ class FromXML
           @obj[@field.name] << ref.deref(root)
         end
       else
-        raise "Too many refs" if @refs.length != 1
-        @obj[@field.name] = @refs.first.deref(root)
+        raise "Too many refs" if @refs.length > 1
+        @obj[@field.name] = @refs.first.deref(root) unless @refs.length==0
       end
     end
   end
@@ -105,8 +110,13 @@ if __FILE__ == $0 then
   l = FromXML.new(ss)
 
   x = l.load(Document.new(File.read('core/system/boot/schema_schema.xml')))
-  Print.print(x)
-
-  puts "====="
-  Print.print(ss)
+ 
+  if Equals.equals(ss, x)
+    puts "Success!"
+  else
+    Print.print(x)
+    puts "====="
+    Print.print(ss)
+    puts "Error: Loaded XML and original schema schema are different"
+  end
 end

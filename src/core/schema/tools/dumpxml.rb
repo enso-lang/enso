@@ -14,12 +14,13 @@ module ToXML
     e = Element.new(this.schema_class.name)
     this.schema_class.fields.each do |f|
       next if f.computed
-      next if f == back_link
       next if !this[f.name]
       if f.type.Primitive? then
         e.attributes[f.name] = this[f.name].to_s
       else 
         ef = Element.new(f.name)
+        ef.attributes['many'] = f.many
+        ef.attributes['keyed'] = IsKeyed?(f.type)
         if f.many then
           next if this[f.name].empty?
           if f.traversal then
