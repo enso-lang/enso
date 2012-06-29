@@ -2,204 +2,251 @@
 require 'core/system/utils/paths'
 
 =begin
-Idea (getting rid of the fake checked objects)
- 
-- instantiate Boot::Schema initialized with schema_schema.xml: ssboot
-- ss = loadxml(schema_schema.xml, ManagedData::Factory.new(ssboot))
-- patch schema_pointers
+Meta schema that is able to load any XML file into memory as read-only pseudo-MObjects
+An (not very) optional patchup phase makes it the schema class of itself (assuming it is a schema)
 
-Grammar_schema.xml and instance_schema.xml can be loaded using ss.  No
-schema pointer patching is needed here. After that we can load
-grammar_grammar.xml. And we can parse the real stuff.
+The only requirements are:
+- root is a Schema
+- Schema has field types 
 =end
 
 module Boot
-  # these classes should be behaviorally equivalent to the schema.schema
-  # that is loaded from xml and grammars. They are only used to load
-  # from schema_schema.xml.
+  def self.load_path(path)
+    load(REXML::Document.new(File.read(path)))
+  end
+  
+  def self.load(doc)
+    ss0 = make_class(doc.root, nil)
+    Copy(ManagedData::Factory.new(ss0), ss0)
+  end
+  
+  class MObject; end
 
-  class Mock
-    attr_accessor :schema_class
-    # needed for path resolving
-    def [](name)
-      send(name)
+  class Schema < MObject
+    def classes
+      BootField.new(types.select{|t|t.Class?}, self, "classes", @root, :many=>true, :keyed=>true)
+    end
+    def primitives
+      BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, :many=>true, :keyed=>true)
     end
   end
-
-  class Many < Hash
-    # hash behaving as a keyed many field
-    def each(&block)
-      each_value(&block)
-    end
-  end
-
-  class Schema < Mock
-    attr_reader :classes, :types, :primitives
-    def initialize(this)
-      @this = this
-
-      @classes = Many.new
-      @this.elements.each('types/Class') do |elt|
-        c = Class.new(elt, self)
-        @classes[c.name] = c
-      end
-
-      @primitives = Many.new
-      @this.elements.each('types/Primitive') do |elt|
-        p = Primitive.new(elt, self)
-        @primitives[p.name] = p
-      end
-      @types = @classes.merge(@primitives)
-
-      @classes.each do |v|
-        v.schema_class = @classes['Class']
-        v.defined_fields.each do |f|
-          f.schema_class = @classes['Field']
-        end
-      end
-      @schema_class = @classes['Schema']
-    end
-  end
-
-  class Type < Mock
-    attr_reader :name, :schema
-
-    def initialize(this, schema)
-      @this = this
-      @schema = schema
-      @name = this.attributes['name']
-    end
-
-    def Primitive?; false end
-    def Class?; false end
-  end
-
-  class Primitive < Type
-    def Primitive?; true end
-  end
-
-  class Class < Type
-    attr_reader :supers, :subclasses, :defined_fields
-
-    def initialize(this, schema)
-      super(this, schema)
-      @defined_fields = Many.new
-      @this.elements.each('defined_fields/*') do |elt|
-        f = Field.new(elt, self)
-        @defined_fields[f.name] = f
-      end
-    end
-
-    def Class?; true end
-
-    def supers
-      m = Many.new
-      elt = @this.elements['supers']
-      if elt then
-        ps = elt.get_text.value.strip.split
-        ps.each do |p|
-          c = Paths::Path.parse(p).deref(schema)
-          m[c.name] = c
-        end
-      end
-      return m
-    end
-
-    def all_fields
-      m = Many.new
-      supers.each do |c|
-        c.all_fields.each do |f|
-          m[f.name] = f
-        end
-      end
-      m.merge(defined_fields)
-    end
-
-    def fields
-      m = Many.new
-      all_fields.each do |f|
-        if !f.computed then
-          m[f.name] = f
-        end
-      end
-      m
-    end
-  end
-
-  class Field < Mock
-    attr_reader :owner
-
-    def initialize(this, owner)
-      @this = this
-      @owner = owner
-    end
-
-    def type
-      p = Paths::Path.parse(@this.elements['type'].get_text.value.strip)
-      p.deref(owner.schema)
-    end
-
-    def inverse
-      elt = @this.elements['inverse']
-      return unless elt
-      p = Paths::Path.parse(elt.get_text.value.strip)
-      p.deref(owner.schema)
-    end
     
-    def computed
-      c = @this.elements['computed/ECode']
-      return nil if c.nil?
-      ECode.new(c, self) 
+  class Class < MObject
+    def all_fields
+      BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, :many=>true, :keyed=>true)
     end
+    def fields
+      BootField.new(all_fields.select() {|f|!f.computed}, self, "fields", @root, :many=>true, :keyed=>true)
+    end
+  end
 
+  private
+
+  @mobj_map={}
+  def self.make_class(this, root)
+    return @mobj_map[this] if @mobj_map[this]
+    @mobj_map[this] = if constants.map{|c|c.to_s}.include? this.name and (cl=Boot.const_get(this.name)).superclass==MObject
+      #if Boot contains a subclass of MObject named the same as this.name then use that 
+      cl.new(this, root)
+    else #otherwise make a default MObject object
+      MObject.new(this, root)
+    end
+    @mobj_map[this]
+  end
+
+  def self.make_field(this, owner, field, root)
+    if this.attributes['many']!='true' && false
+      res = if (arr = Boot.is_ref?(this))
+        deref(arr[0], root)
+      else
+        make_class(this, root)
+      end
+      res
+    else
+      if (arr = Boot.is_ref?(this))
+        arr = arr.split(" ").map {|a|deref(a, root)}
+      else
+        arr = this.elements.map {|a|Boot.make_class(a, root)}
+      end
+      BootField.new(arr, owner, field, root, :many=>(this.attributes['many']=='true'), :keyed=>(this.attributes['keyed']=='true'))
+    end
+  end
+
+  def self.deref(ref, root)
+    p = Paths::Path.parse(ref)
+    p.deref(root)
+  end
+
+  def self.is_ref?(elem)
+    return nil unless elem.elements.size==0
+    v = elem.get_text
+    return nil if v.nil?
+    v.empty? ? nil : v.to_s.strip
+  end
+
+  class MObject
+    attr_reader :this, :_id
+    begin; undef_method :lambda; rescue; end
+    @@_id = 0
+    def initialize(this, root)
+      @_id = @@_id = @@_id+1
+      @this = this
+      @root = root || self
+    end
+    def schema_class
+      #this assumes that the root is a schema and it has this thing called "types"
+      res = @root.types[@this.name]
+      define_singleton_method(:schema_class) { res }
+      res
+    end
+    def [](sym)
+      send(sym)
+    end
     def method_missing(sym)
-      @this.attributes[sym.to_s]
+      res = if sym =~ /^([A-Z].*)\?$/
+        schema_class.name == $1
+      elsif @this.attributes.include? sym.to_s
+        MObject.coerce(@this.attributes[sym.to_s])
+      elsif ! @this.elements["#{sym}"].nil?
+        Boot.make_field(@this.elements["#{sym}"], self, sym.to_s, @root)
+      else
+        if f=schema_class.defined_fields[sym.to_s]
+          MObject.default(f)
+        elsif f=schema_class.all_fields[sym.to_s]
+          MObject.default(f)
+        else
+          raise "Trying to deref nonexistent field #{sym} in #{@this.to_s[0..300]}"
+        end
+      end
+      define_singleton_method(sym) { res }
+      res
+    end
+    def eql?(other)
+      hash == other.hash and _id==other._id
+    end
+    def self.coerce(value)
+      #because we can't use schema class here, we have to be clever and guess
+      if ['true', 'false'].include? value
+        value == 'true' ? true : false
+      elsif (begin; true if Integer(value); rescue; false; end)
+        value.to_i
+      elsif (begin; true if Float(value); rescue; false; end)
+        value.to_f
+      else
+        value
+      end
+    end
+    def self.default(field)
+      if field.type.Primitive?  
+        case field.type.name
+        when 'str' then ''
+        when 'int' then 0
+        when 'bool' then false
+        when 'real' then 0.0
+        when 'datetime' then DateTime.now
+        when 'atom' then nil
+        else raise "Unknown primitive type: #{field.type.name}"
+        end
+      elsif field.many 
+        BootField.new([], self, field.name, @root, :many=>true, :keyed=>true)
+      elsif field.optional
+        nil
+      else
+        nil  #raise "No value assigned to non-optional field #{self}.#{field.name} in XML"
+      end
+    end
+    def to_ary; nil; end
+    def to_s
+      begin; "<#{@this.name} #{name}>"
+      rescue; "<#{@this.name} #{_id}>"; end
     end
   end
   
-  #this is used to make bootstrap boot properly 
-  #with computed fields but not full expression support
-  class ECode < Mock
-    def initialize(this, field)
-      @this = this
+  class BootField < Array
+    attr_reader :owner
+    #A magical array that combines arrays, hashes and singletons 
+    def initialize(arr, owner, field, root, attrs)
+      arr.each {|obj|self << obj}
+      @owner = owner
       @field = field
+      @root = root
+      @many = attrs[:many]
+      @keyed = attrs[:keyed]
     end
-    def ECode?; true end
-
     def method_missing(sym)
-      @this.attributes[sym.to_s]
+      at(0).send(sym) unless @many
+    end
+    def [](key)
+      if !@many 
+        at(0).send(key)
+      else
+        if @keyed
+          begin; find{|obj|obj.name==key}
+          rescue; find{|obj|ObjectKey(obj)==key}; end
+        else
+          at(key)
+        end
+      end
+    end
+    def eql?(other)
+      !@many ? at(0).eql?(other) : super
+    end
+    def hash
+      !@many ? at(0).hash : super
+    end
+    def join(other)
+      if @keyed
+        other = other || {}
+        ks = keys | other.keys
+        ks.each {|k| yield self[k], other[k]}
+      else
+        a = Array(self)
+        b = Array(other)
+        for i in 0..[a.length,b.length].max-1
+          yield a[i], b[i]
+        end
+      end
+    end
+    def keys
+      if @many
+        if @keyed
+          begin; self.map {|o|o.name}
+          rescue; self.map {|o|ObjectKey(o)}; end
+        else
+          nil
+        end
+      else
+        method_missing("keys")
+      end
     end
   end
-
 end
 
 
 if __FILE__ == $0 then
-  require 'rexml/document'
-  require 'core/schema/tools/print'
-  require 'core/schema/tools/loadxml'
+require 'core/system/load/load'
+require 'core/schema/tools/loadxml'
+require 'core/schema/tools/dumpxml'
+require 'rexml/document'
+include REXML
 
-  include REXML
-  doc = Document.new(File.read('core/system/boot/schema_schema.xml'))
+mod = Loader.load('schema.schema')
+pp = REXML::Formatters::Pretty.new
+ss_path = 'schema_schema2.xml'
+File.open(ss_path, 'w+') {|f| pp.write(ToXML::to_doc(mod), f)}
 
-  ss = Boot::Schema.new(doc.root)
-  ss2 = FromXML.load(ss, doc)
+ss = Boot.load_path(ss_path)
+File.delete(ss_path)
 
-  puts "ss2: #{ss2.to_s}"
-  puts "ss2.schema_class: #{ss2.schema_class.to_s}"
+puts "Test1: " + (ss.types['Field'].defined_fields['type'].type.name=='Type' ? "OK" : "Fail!")
+puts "Test2: " + (ss.types['Class'].defined_fields.length==5 ? "OK" : "Fail!")
+puts "Test3: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
 
-  Boot::patch_schema_pointers(ss2)
-  puts "After patch"
-  puts "ss2: #{ss2}"
-  $stdout.flush
-  puts "ss2.schema_class: #{ss2.schema_class.to_s}"
+puts "Done loading metaschema"
 
-  #Print.print(ss2)
-  
-  ss3 = FromXML.load(ss2, doc)
-  puts ss3.to_s
-  puts ss3.schema_class.to_s
-  puts ss3.schema_class.schema_class.to_s
+realss = Loader.load('schema.schema')
+print "Equality test: "
+raise "Wrong result!" unless Equals.equals(realss, ss)
+puts "All OK!"
 
-  Print.print(ss3)
 end

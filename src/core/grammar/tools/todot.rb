@@ -54,8 +54,7 @@ class ToDot
 
   def label(n)
     if n.is_a?(Leaf) then
-#      n.value.gsub(/"/, '\\"').gsub(/\n/, "\\n")
-      n.value
+      n.value.to_s
     elsif n.is_a?(Node) then
       if n.type.schema_class.name == 'Rule' 
         n.type.name

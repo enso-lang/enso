@@ -2,6 +2,7 @@
 require 'core/system/library/schema'
 
 require 'core/system/boot/meta_schema'
+require 'core/system/boot/meta_schema'
 
 require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
@@ -96,11 +97,10 @@ module Loading
       # models are correct. However, if there are
       # discrepancies strange things are bound to happen.
 
-      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, nil)
-      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, ss)
+      @cache[SCHEMA_SCHEMA] = ss = bootstrap_schema_schema('schema_schema.xml')
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
-      
+
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
@@ -110,6 +110,12 @@ module Loading
         model, type = k.split(/\./)
         schema = @cache["#{type}.schema"]
         patch_schema_pointers(v, schema)
+      end
+    end
+
+    def bootstrap_schema_schema(name)
+      find_model(name) do |path|
+        Boot.load_path(path)
       end
     end
 
@@ -135,14 +141,7 @@ module Loading
       if path =~ /\.xml$/ then
         $stderr << "## booting #{path}...\n"
         doc = Document.new(File.read(path))
-        if schema.nil? then
-          # this means we are loading schema_schema.xml for the first time.
-          schema = Boot::Schema.new(doc.root)
-          result = FromXML.load(schema, doc)
-          patch_schema_pointers(result, result)
-        else
-          result = FromXML.load(schema, doc)
-        end
+        result = FromXML.load(schema, doc)
       else
         begin
           header = File.open(path, &:readline)

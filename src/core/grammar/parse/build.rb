@@ -165,12 +165,7 @@ class Build
   end
 
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code!=""
-#    if this.code!="" # FIXME: this case is needed to parse bootstrap grammar
-      owner.instance_eval(this.code.gsub(/@/, 'self.'))
-    else
-      Interpreter(AssertExpr).assert(this.expr, :env=>ObjEnv.new(owner))
-    end
+    Interpreter(AssertExpr).assert(this.expr, :env=>ObjEnv.new(owner))
   end
 
   private

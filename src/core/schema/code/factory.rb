@@ -226,22 +226,16 @@ module ManagedData
     end
 
     def __computed(name, exp)
-      if exp.ECode?
-        define_singleton_method(name) do
-          instance_eval(exp.code.gsub(/@/, 'self.'))
-        end
-      else
-        define_singleton_method(name) do
-          if @memo[name] == nil
-            fvs = Interpreter(FreeVarExpr).depends(exp, :env=>ObjEnv.new(self), :bound=>[])
-            fvs.each do |fv|
-              next if fv.object.nil?  #should always be non-nil since computed fields have no external env
-              fv.object.add_listener(fv.index) { @memo[name]=nil }
-            end
-            @memo[name] = @interp.eval(exp, :env=>ObjEnv.new(self))
+      define_singleton_method(name) do
+        if @memo[name] == nil
+          fvs = Interpreter(FreeVarExpr).depends(exp, :env=>ObjEnv.new(self), :bound=>[])
+          fvs.each do |fv|
+            next if fv.object.nil?  #should always be non-nil since computed fields have no external env
+            fv.object.add_listener(fv.index) { @memo[name]=nil }
           end
-          @memo[name]
+          @memo[name] = @interp.eval(exp, :env=>ObjEnv.new(self))
         end
+        @memo[name]
       end
     end
 
@@ -534,9 +528,7 @@ module ManagedData
     def keys; Array.new(length){|i|i} end
 
     def <<(mobj)
-      if !mobj
-      raise "Cannot insert nil into list"
-      end 
+      raise "Cannot insert nil into list" if !mobj
       check(mobj)
       notify(nil, mobj)
       __insert(mobj)
