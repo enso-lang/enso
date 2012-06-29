@@ -13,11 +13,9 @@ Wx::App.run do
   win_piping.show
   win_control.show
 
-  time = 0
+  time = 1
   Wx::Timer.every(1000) do
-    time+=1
-    st.run time do |time|
-      puts "TICK after #{time} seconds: at state #{st.control.current.name}"
+    st.run time do
       win_control.refresh
       win_piping.refresh
     end

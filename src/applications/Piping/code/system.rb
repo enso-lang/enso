@@ -15,9 +15,11 @@ class PipingSystem
     @control.current = @control.initial
     @controller = Controller.new(@piping, @control)
     @sim = Simulator.new(@piping)
+    @time = 0
   end
 
   def run(time)
+      @time += time
       @controller.run
       @sim.tick
       pump = @piping.elements['Pump']
@@ -28,14 +30,14 @@ class PipingSystem
       bsensor = @piping.sensors['Boiler_Temp']
       rsensor = @piping.sensors['Radiator_Temp']
       puts "************************"
-      puts "After #{time} sec:"
+      puts "After #{@time} sec:"
       puts "In #{@control.current}"
       puts "  Burner at #{burner.temperature}"
       puts "  Boiler at #{boiler.temperature} (desired: #{bsensor.user})"
       puts "  Radiator at #{rad.temperature} (desired: #{rsensor.user})"
       puts "  Valve position #{valve.position}"
       puts "************************"
-      yield time
+      yield
   end
 end
 

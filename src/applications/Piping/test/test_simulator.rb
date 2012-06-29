@@ -1,25 +1,13 @@
 require 'applications/Piping/code/system'
 
 st = PipingSystem.new 'boiler'
-count = 0
-st.test_system do
-  return if count > 20
-  if count % 3 == 0
-    pump = st.piping.elements['Pump']
-    burner = st.piping.elements['Burner']
-    boiler = st.piping.elements['Boiler']
-    rad = st.piping.elements['Radiator']
-    valve = st.piping.elements['Valve']
-    puts "************************"
-    puts "After #{count} sec:"
-    puts "In #{st.controller.current_state}"
-    puts "  Pump is #{pump.run ? 'ON' : 'OFF'} at #{pump.flow}"
-    puts "  Burner at #{burner.temperature}"
-    puts "  Boiler at #{boiler.temperature}"
-    puts "  Radiator at #{rad.temperature}"
-    puts "  Valve position #{valve.position}"
-    puts "************************"
-    #Print.print(@piping)
+while true
+  sleep(0.1)
+  #seed user preferences changing
+  if rand(100) < 5
+    st.piping.sensors['Boiler_Temp'].user = rand(100)+30
+    st.piping.sensors['Radiator_Temp'].user = rand(100)+30
   end
-  count += 1
+  st.run 1 do
+  end
 end
