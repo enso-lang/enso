@@ -16,7 +16,7 @@ module Boot
   end
   
   def self.load(doc)
-    ss0 = make_class(doc.root, nil)
+    ss0 = make_class(doc.root.elements.to_a[-1], nil)
     Copy(ManagedData::Factory.new(ss0), ss0)
   end
   

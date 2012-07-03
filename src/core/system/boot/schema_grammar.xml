@@ -1,42 +1,15 @@
-<grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-06-27 11:13:06 +0200' checksum='c2b98dc32785f187b751773d6b9cf98da4491ab7'>
+<schema.grammar source='core/schema/models/schema.grammar' date='2012-06-27 11:13:07 +0200' checksum='609518a6c8e75584a64c77039a856aef7840fbae'>
   <depends>
     <grammar.schema source='core/grammar/models/grammar.schema' date='2012-06-27 11:13:06 +0200' checksum='e87f5167b3cdda88087f634882e45fed39000dc9'/>
     <grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-06-27 11:13:06 +0200' checksum='c2b98dc32785f187b751773d6b9cf98da4491ab7'/>
-    <path.grammar source='core/grammar/models/path.grammar' date='2012-06-27 11:13:06 +0200' checksum='ed0f4111965f95ec4416a09c0260592dba653eb8'/>
-    <expr.grammar source='core/expr/models/expr.grammar' date='2012-06-27 11:13:06 +0200' checksum='d28805c1f2e591ead9f06c521cc14993f6c76ee1'/>
-    <grammar-base.grammar source='core/grammar/models/grammar-base.grammar' date='2012-06-27 11:13:06 +0200' checksum='484c6641295604537fc451966cd10e571e9b079f'/>
+    <impl.grammar source='core/expr/models/impl.grammar' date='2012-06-27 11:13:06 +0200' checksum='398d9fecb15767f14539b512827db900825f84ed'/>
+    <schema-base.grammar source='core/schema/models/schema-base.grammar' date='2012-06-27 11:13:07 +0200' checksum='0b695cbff042d3a2f75606723763baa1bc90e428'/>
   </depends>
   <Grammar>
     <start many='false' keyed='true'>
-      /rules[Grammar]
+      /rules[Schema]
     </start>
     <rules many='true' keyed='true'>
-      <Rule name='Subscript'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Lit value='['/>
-                  <Field name='key'>
-                    <arg many='false' keyed='false'>
-                      <Call>
-                        <rule many='false' keyed='true'>
-                          /rules[Key]
-                        </rule>
-                      </Call>
-                    </arg>
-                  </Field>
-                  <Lit value=']'/>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
       <Rule name='ETernOp'>
         <grammar many='false' keyed='false'>
           /
@@ -477,131 +450,6 @@
           </Alt>
         </arg>
       </Rule>
-      <Rule name='EUnOp'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='EUnOp'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='not'/>
-                      <Field name='e'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Expr]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Code>
-                        <expr many='false' keyed='false'>
-                          <EBinOp op='eql?'>
-                            <e1 many='false' keyed='false'>
-                              <EVar name='op'/>
-                            </e1>
-                            <e2 many='false' keyed='false'>
-                              <EStrConst val='!'/>
-                            </e2>
-                          </EBinOp>
-                        </expr>
-                      </Code>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[EFunCall]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[EListComp]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Primary]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Lit value='('/>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Expr]
-                    </rule>
-                  </Call>
-                  <Lit value=')'/>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='EFunCall'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='EFunCall'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='fun'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[EUnOp]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Lit value='('/>
-                      <Field name='params'>
-                        <arg many='false' keyed='false'>
-                          <Regular optional='true' many='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Expr]
-                                </rule>
-                              </Call>
-                            </arg>
-                            <sep many='false' keyed='false'>
-                              <Lit value=','/>
-                            </sep>
-                          </Regular>
-                        </arg>
-                      </Field>
-                      <Lit value=')'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
       <Rule name='Primary'>
         <grammar many='false' keyed='false'>
           /
@@ -853,183 +701,99 @@
           </Alt>
         </arg>
       </Rule>
-      <Rule name='Grammar'>
+      <Rule name='Command'>
         <grammar many='false' keyed='false'>
           /
         </grammar>
         <arg many='false' keyed='false'>
           <Alt>
             <alts many='true' keyed='false'>
-              <Create name='Grammar'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='start'/>
-                      <Field name='start'>
-                        <arg many='false' keyed='false'>
-                          <Ref>
-                            <path many='false' keyed='false'>
-                              <Sub name='rules'>
-                                <key many='false' keyed='false'>
-                                  <It/>
-                                </key>
-                              </Sub>
-                            </path>
-                          </Ref>
-                        </arg>
-                      </Field>
-                      <Field name='rules'>
-                        <arg many='false' keyed='false'>
-                          <Regular optional='true' many='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Rule]
-                                </rule>
-                              </Call>
-                            </arg>
-                          </Regular>
-                        </arg>
-                      </Field>
-                      <Break/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Rule'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Rule'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='name'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='sym'/>
-                        </arg>
-                      </Field>
-                      <Lit value='::='/>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Alt]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Rule'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='abstract'/>
-                      <Field name='name'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='sym'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Alt'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Alt'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='alts'>
-                        <arg many='false' keyed='false'>
-                          <Regular many='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Create]
-                                </rule>
-                              </Call>
-                            </arg>
-                            <sep many='false' keyed='false'>
-                              <Alt>
-                                <alts many='true' keyed='false'>
-                                  <Sequence>
-                                    <elements many='true' keyed='false'>
-                                      <Break/>
-                                      <Lit value='|'/>
-                                    </elements>
-                                  </Sequence>
-                                </alts>
-                              </Alt>
-                            </sep>
-                          </Regular>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Create'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Create'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='['/>
-                      <NoSpace/>
-                      <Field name='name'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='sym'/>
-                        </arg>
-                      </Field>
-                      <NoSpace/>
-                      <Lit value=']'/>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Sequence]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
               <Sequence>
                 <elements many='true' keyed='false'>
                   <Call>
                     <rule many='false' keyed='true'>
-                      /rules[Sequence]
+                      /rules[EWhile]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EFor]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EIf]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[ESwitch]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EFunCall]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EFunDef]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EAssign]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EImport]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EBlock]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EReturn]
                     </rule>
                   </Call>
                 </elements>
@@ -1038,18 +802,729 @@
           </Alt>
         </arg>
       </Rule>
-      <Rule name='Sequence'>
+      <Rule name='EWhile'>
         <grammar many='false' keyed='false'>
           /
         </grammar>
         <arg many='false' keyed='false'>
           <Alt>
             <alts many='true' keyed='false'>
-              <Create name='Sequence'>
+              <Create name='EWhile'>
                 <arg many='false' keyed='false'>
                   <Sequence>
                     <elements many='true' keyed='false'>
-                      <Field name='elements'>
+                      <Lit value='while'/>
+                      <Field name='cond'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Command]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EFor'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EFor'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='for'/>
+                      <Field name='var'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='sym'/>
+                        </arg>
+                      </Field>
+                      <Lit value=':'/>
+                      <Field name='list'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Command]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EIf'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EIf'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='if'/>
+                      <Field name='cond'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Command]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Regular optional='true'>
+                        <arg many='false' keyed='false'>
+                          <Alt>
+                            <alts many='true' keyed='false'>
+                              <Sequence>
+                                <elements many='true' keyed='false'>
+                                  <Lit value='else'/>
+                                  <Field name='body2'>
+                                    <arg many='false' keyed='false'>
+                                      <Call>
+                                        <rule many='false' keyed='true'>
+                                          /rules[Command]
+                                        </rule>
+                                      </Call>
+                                    </arg>
+                                  </Field>
+                                </elements>
+                              </Sequence>
+                            </alts>
+                          </Alt>
+                        </arg>
+                      </Regular>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='ESwitch'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='ESwitch'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='switch'/>
+                      <Field name='e'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EFunDef'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EFunDef'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='def'/>
+                      <Field name='name'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='sym'/>
+                        </arg>
+                      </Field>
+                      <Lit value='('/>
+                      <Field name='formals'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Formal]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=')'/>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Command]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EAssign'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EAssign'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='var'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='='/>
+                      <Field name='val'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EImport'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EImport'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='require'/>
+                      <Field name='path'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='str'/>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EReturn'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='return'/>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Expr]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Formal'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='Formal'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='name'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='sym'/>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EBlock'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EBlock'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='{'/>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Command]
+                                </rule>
+                              </Call>
+                            </arg>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value='}'/>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EBlock_nocurl'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EBlock'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Command]
+                                </rule>
+                              </Call>
+                            </arg>
+                          </Regular>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EFunCall'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EFunCall'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='fun'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[EUnOp]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='('/>
+                      <Field name='params'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Expr]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=')'/>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Create name='EFunCall'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='fun'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[EUnOp]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='('/>
+                      <Field name='params'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Expr]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=')'/>
+                      <Field name='lambda'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[ELambda]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='ELambda'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='ELambda'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='{'/>
+                      <Lit value='|'/>
+                      <Field name='formals'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Formal]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value='|'/>
+                      <Field name='body'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[EBlock_nocurl]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='}'/>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EUnOp'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EUnOp'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='not'/>
+                      <Field name='e'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Code>
+                        <expr many='false' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EVar name='op'/>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EStrConst val='!'/>
+                            </e2>
+                          </EBinOp>
+                        </expr>
+                      </Code>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EFunCall]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EListComp]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Primary]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='('/>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Expr]
+                    </rule>
+                  </Call>
+                  <Lit value=')'/>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Schema'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='Schema'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='types'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[TypeDef]
+                                </rule>
+                              </Call>
+                            </arg>
+                          </Regular>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='TypeDef'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Primitive]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Class]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Primitive'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='Primitive'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='primitive'/>
+                      <Field name='name'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='sym'/>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Class'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='Class'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='class'/>
+                      <Field name='name'>
+                        <arg many='false' keyed='false'>
+                          <Value kind='sym'/>
+                        </arg>
+                      </Field>
+                      <Call>
+                        <rule many='false' keyed='true'>
+                          /rules[ClassAnnot]
+                        </rule>
+                      </Call>
+                      <Field name='defined_fields'>
                         <arg many='false' keyed='false'>
                           <Regular optional='true' many='true'>
                             <arg many='false' keyed='false'>
@@ -1070,6 +1545,86 @@
           </Alt>
         </arg>
       </Rule>
+      <Rule name='ClassAnnot'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Regular optional='true'>
+                    <arg many='false' keyed='false'>
+                      <Call>
+                        <rule many='false' keyed='true'>
+                          /rules[Parent]
+                        </rule>
+                      </Call>
+                    </arg>
+                  </Regular>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Parent'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='&lt;'/>
+                  <Field name='supers'>
+                    <arg many='false' keyed='false'>
+                      <Regular many='true'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Super]
+                            </rule>
+                          </Call>
+                        </arg>
+                        <sep many='false' keyed='false'>
+                          <Lit value=','/>
+                        </sep>
+                      </Regular>
+                    </arg>
+                  </Field>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Super'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Ref>
+                    <path many='false' keyed='false'>
+                      <Sub name='classes'>
+                        <key many='false' keyed='false'>
+                          <It/>
+                        </key>
+                      </Sub>
+                    </path>
+                  </Ref>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
       <Rule name='Field'>
         <grammar many='false' keyed='false'>
           /
@@ -1086,169 +1641,16 @@
                           <Value kind='sym'/>
                         </arg>
                       </Field>
-                      <NoSpace/>
-                      <Lit value=':'/>
-                      <NoSpace/>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Pattern]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Pattern]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Pattern'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Value'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='kind'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='int'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Value'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='kind'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='str'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Value'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='kind'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='real'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Value'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='kind'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='sym'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Value'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='kind'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='atom'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Code'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='{'/>
-                      <Field name='expr'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Expr]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Lit value='}'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Ref'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='&lt;'/>
-                      <NoSpace/>
-                      <Field name='path'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Path]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <NoSpace/>
-                      <Lit value='&gt;'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Lit'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='value'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='str'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Call'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='rule'>
+                      <Call>
+                        <rule many='false' keyed='true'>
+                          /rules[Kind]
+                        </rule>
+                      </Call>
+                      <Field name='type'>
                         <arg many='false' keyed='false'>
                           <Ref>
                             <path many='false' keyed='false'>
-                              <Sub name='rules'>
+                              <Sub name='types'>
                                 <key many='false' keyed='false'>
                                   <It/>
                                 </key>
@@ -1257,121 +1659,123 @@
                           </Ref>
                         </arg>
                       </Field>
+                      <Call>
+                        <rule many='false' keyed='true'>
+                          /rules[Multiplicity]
+                        </rule>
+                      </Call>
+                      <Regular optional='true'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Annot]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Regular>
                     </elements>
                   </Sequence>
                 </arg>
               </Create>
-              <Create name='Regular'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Pattern]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <NoSpace/>
-                      <Lit value='?'/>
-                      <Code>
-                        <expr many='false' keyed='false'>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Kind'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='#'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='eql?'>
+                        <e1 many='false' keyed='false'>
+                          <EVar name='key'/>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBoolConst val='true'/>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='##'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='&amp;'>
+                        <e1 many='false' keyed='false'>
                           <EBinOp op='eql?'>
                             <e1 many='false' keyed='false'>
-                              <EVar name='optional'/>
+                              <EVar name='key'/>
                             </e1>
                             <e2 many='false' keyed='false'>
                               <EBoolConst val='true'/>
                             </e2>
                           </EBinOp>
-                        </expr>
-                      </Code>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Regular'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Pattern]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <NoSpace/>
-                      <Lit value='*'/>
-                      <Regular optional='true'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Sep]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Regular>
-                      <Code>
-                        <expr many='false' keyed='false'>
-                          <EBinOp op='&amp;'>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBinOp op='eql?'>
                             <e1 many='false' keyed='false'>
-                              <EBinOp op='eql?'>
-                                <e1 many='false' keyed='false'>
-                                  <EVar name='optional'/>
-                                </e1>
-                                <e2 many='false' keyed='false'>
-                                  <EBoolConst val='true'/>
-                                </e2>
-                              </EBinOp>
+                              <EVar name='auto'/>
                             </e1>
                             <e2 many='false' keyed='false'>
-                              <EBinOp op='eql?'>
-                                <e1 many='false' keyed='false'>
-                                  <EVar name='many'/>
-                                </e1>
-                                <e2 many='false' keyed='false'>
-                                  <EBoolConst val='true'/>
-                                </e2>
-                              </EBinOp>
+                              <EBoolConst val='true'/>
                             </e2>
                           </EBinOp>
-                        </expr>
-                      </Code>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Regular'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='arg'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Pattern]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <NoSpace/>
-                      <Lit value='+'/>
-                      <Regular optional='true'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Sep]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Regular>
-                      <Code>
-                        <expr many='false' keyed='false'>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='!'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='eql?'>
+                        <e1 many='false' keyed='false'>
+                          <EVar name='traversal'/>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBoolConst val='true'/>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value=':'/>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Multiplicity'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='*'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='&amp;'>
+                        <e1 many='false' keyed='false'>
                           <EBinOp op='eql?'>
                             <e1 many='false' keyed='false'>
                               <EVar name='many'/>
@@ -1380,48 +1784,70 @@
                               <EBoolConst val='true'/>
                             </e2>
                           </EBinOp>
-                        </expr>
-                      </Code>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='NoSpace'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='.'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Break'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='/'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EVar name='optional'/>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EBoolConst val='true'/>
+                            </e2>
+                          </EBinOp>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
               <Sequence>
                 <elements many='true' keyed='false'>
-                  <Lit value='('/>
-                  <NoSpace/>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Alt]
-                    </rule>
-                  </Call>
-                  <NoSpace/>
-                  <Lit value=')'/>
+                  <Lit value='?'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='eql?'>
+                        <e1 many='false' keyed='false'>
+                          <EVar name='optional'/>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBoolConst val='true'/>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='+'/>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBinOp op='eql?'>
+                        <e1 many='false' keyed='false'>
+                          <EVar name='many'/>
+                        </e1>
+                        <e2 many='false' keyed='false'>
+                          <EBoolConst val='true'/>
+                        </e2>
+                      </EBinOp>
+                    </expr>
+                  </Code>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Code>
+                    <expr many='false' keyed='false'>
+                      <EBoolConst val='true'/>
+                    </expr>
+                  </Code>
                 </elements>
               </Sequence>
             </alts>
           </Alt>
         </arg>
       </Rule>
-      <Rule name='Sep'>
+      <Rule name='Annot'>
         <grammar many='false' keyed='false'>
           /
         </grammar>
@@ -1430,134 +1856,43 @@
             <alts many='true' keyed='false'>
               <Sequence>
                 <elements many='true' keyed='false'>
-                  <Lit value='@'/>
-                  <NoSpace/>
-                  <Field name='sep'>
+                  <Lit value='/'/>
+                  <Field name='inverse'>
+                    <arg many='false' keyed='false'>
+                      <Ref>
+                        <path many='false' keyed='false'>
+                          <Sub name='fields'>
+                            <parent many='false' keyed='false'>
+                              <Sub name='type'>
+                                <parent many='false' keyed='false'>
+                                  <Anchor type='.'/>
+                                </parent>
+                              </Sub>
+                            </parent>
+                            <key many='false' keyed='false'>
+                              <It/>
+                            </key>
+                          </Sub>
+                        </path>
+                      </Ref>
+                    </arg>
+                  </Field>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='='/>
+                  <Field name='computed'>
                     <arg many='false' keyed='false'>
                       <Call>
                         <rule many='false' keyed='true'>
-                          /rules[Pattern]
+                          /rules[Expr]
                         </rule>
                       </Call>
                     </arg>
                   </Field>
                 </elements>
               </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Path'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Anchor'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='type'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='.'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Anchor'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='type'>
-                        <arg many='false' keyed='false'>
-                          <Lit value='..'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='Sub'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='parent'>
-                        <arg many='false' keyed='false'>
-                          <Regular optional='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Path]
-                                </rule>
-                              </Call>
-                            </arg>
-                          </Regular>
-                        </arg>
-                      </Field>
-                      <Lit value='/'/>
-                      <Field name='name'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='sym'/>
-                        </arg>
-                      </Field>
-                      <Regular optional='true'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Subscript]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Regular>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Key'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='Const'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='value'>
-                        <arg many='false' keyed='false'>
-                          <Value kind='atom'/>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Path]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Create name='It'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='it'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
             </alts>
           </Alt>
         </arg>
@@ -1584,4 +1919,4 @@
       </Rule>
     </rules>
   </Grammar>
-</grammar.grammar>
+</schema.grammar>

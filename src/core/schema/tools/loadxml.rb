@@ -10,13 +10,8 @@ class FromXML
   end
 
   def initialize(schema)
-    if schema.class == ManagedData::Factory
-      @schema = schema.schema
-      @fact = schema
-    else
-      @schema = schema
-      @fact = ManagedData::Factory.new(schema)
-    end
+    @schema = schema
+    @fact = ManagedData::Factory.new(schema)
   end
 
   def load(doc)

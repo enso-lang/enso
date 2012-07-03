@@ -1,1006 +1,1014 @@
-<Schema>
-  <types many='true' keyed='true'>
-    <Class name='Schema'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <defined_fields many='true' keyed='true'>
-        <Field name='types' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[Schema]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Type]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Type]/defined_fields[schema]
-          </inverse>
-        </Field>
-        <Field name='classes' optional='true' many='true'>
-          <owner many='false' keyed='true'>
-            /types[Schema]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Class]
-          </type>
-          <computed many='false' keyed='false'>
-            <EFunCall>
-              <lambda many='false' keyed='false'>
-                <ELambda>
-                  <body many='false' keyed='false'>
-                    <EBlock>
-                      <body many='true' keyed='false'>
-                        <EBinOp op='eql?'>
-                          <e1 many='false' keyed='false'>
-                            <EField fname='name'>
-                              <e many='false' keyed='false'>
-                                <EField fname='schema_class'>
-                                  <e many='false' keyed='false'>
-                                    <EVar name='t'/>
-                                  </e>
-                                </EField>
-                              </e>
-                            </EField>
-                          </e1>
-                          <e2 many='false' keyed='false'>
-                            <EStrConst val='Class'/>
-                          </e2>
-                        </EBinOp>
-                      </body>
-                    </EBlock>
-                  </body>
-                  <formals many='true' keyed='false'>
-                    <Formal name='t'/>
-                  </formals>
-                </ELambda>
-              </lambda>
-              <fun many='false' keyed='false'>
-                <EField fname='select'>
-                  <e many='false' keyed='false'>
-                    <EVar name='types'/>
-                  </e>
-                </EField>
-              </fun>
-            </EFunCall>
-          </computed>
-        </Field>
-        <Field name='primitives' optional='true' many='true'>
-          <owner many='false' keyed='true'>
-            /types[Schema]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Primitive]
-          </type>
-          <computed many='false' keyed='false'>
-            <EFunCall>
-              <lambda many='false' keyed='false'>
-                <ELambda>
-                  <body many='false' keyed='false'>
-                    <EBlock>
-                      <body many='true' keyed='false'>
-                        <EBinOp op='eql?'>
-                          <e1 many='false' keyed='false'>
-                            <EField fname='name'>
-                              <e many='false' keyed='false'>
-                                <EField fname='schema_class'>
-                                  <e many='false' keyed='false'>
-                                    <EVar name='t'/>
-                                  </e>
-                                </EField>
-                              </e>
-                            </EField>
-                          </e1>
-                          <e2 many='false' keyed='false'>
-                            <EStrConst val='Primitive'/>
-                          </e2>
-                        </EBinOp>
-                      </body>
-                    </EBlock>
-                  </body>
-                  <formals many='true' keyed='false'>
-                    <Formal name='t'/>
-                  </formals>
-                </ELambda>
-              </lambda>
-              <fun many='false' keyed='false'>
-                <EField fname='select'>
-                  <e many='false' keyed='false'>
-                    <EVar name='types'/>
-                  </e>
-                </EField>
-              </fun>
-            </EFunCall>
-          </computed>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Type'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <subclasses many='true' keyed='true'>
-        /types[Primitive] /types[Class]
-      </subclasses>
-      <defined_fields many='true' keyed='true'>
-        <Field name='name' key='true'>
-          <owner many='false' keyed='true'>
-            /types[Type]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='schema'>
-          <owner many='false' keyed='true'>
-            /types[Type]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Schema]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Schema]/defined_fields[types]
-          </inverse>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Primitive'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Type]
-      </supers>
-    </Class>
-    <Class name='Class'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Type]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='supers' optional='true' many='true'>
-          <owner many='false' keyed='true'>
-            /types[Class]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Class]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Class]/defined_fields[subclasses]
-          </inverse>
-        </Field>
-        <Field name='subclasses' optional='true' many='true'>
-          <owner many='false' keyed='true'>
-            /types[Class]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Class]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Class]/defined_fields[supers]
-          </inverse>
-        </Field>
-        <Field name='defined_fields' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[Class]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Field]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Field]/defined_fields[owner]
-          </inverse>
-        </Field>
-        <Field name='fields'>
-          <owner many='false' keyed='true'>
-            /types[Class]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Field]
-          </type>
-          <computed many='false' keyed='false'>
-            <EFunCall>
-              <lambda many='false' keyed='false'>
-                <ELambda>
-                  <body many='false' keyed='false'>
-                    <EBlock>
-                      <body many='true' keyed='false'>
-                        <EUnOp op='!'>
-                          <e many='false' keyed='false'>
-                            <EField fname='computed'>
-                              <e many='false' keyed='false'>
-                                <EVar name='f'/>
-                              </e>
-                            </EField>
-                          </e>
-                        </EUnOp>
-                      </body>
-                    </EBlock>
-                  </body>
-                  <formals many='true' keyed='false'>
-                    <Formal name='f'/>
-                  </formals>
-                </ELambda>
-              </lambda>
-              <fun many='false' keyed='false'>
-                <EField fname='select'>
-                  <e many='false' keyed='false'>
-                    <EVar name='all_fields'/>
-                  </e>
-                </EField>
-              </fun>
-            </EFunCall>
-          </computed>
-        </Field>
-        <Field name='all_fields' optional='true' many='true'>
-          <owner many='false' keyed='true'>
-            /types[Class]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Field]
-          </type>
-          <computed many='false' keyed='false'>
-            <EBinOp op='+'>
-              <e1 many='false' keyed='false'>
-                <EFunCall>
-                  <lambda many='false' keyed='false'>
-                    <ELambda>
-                      <body many='false' keyed='false'>
-                        <EBlock>
-                          <body many='true' keyed='false'>
-                            <EField fname='all_fields'>
-                              <e many='false' keyed='false'>
-                                <EVar name='s'/>
-                              </e>
-                            </EField>
-                          </body>
-                        </EBlock>
-                      </body>
-                      <formals many='true' keyed='false'>
-                        <Formal name='s'/>
-                      </formals>
-                    </ELambda>
-                  </lambda>
-                  <fun many='false' keyed='false'>
-                    <EField fname='flat_map'>
-                      <e many='false' keyed='false'>
-                        <EVar name='supers'/>
-                      </e>
-                    </EField>
-                  </fun>
-                </EFunCall>
-              </e1>
-              <e2 many='false' keyed='false'>
-                <EVar name='defined_fields'/>
-              </e2>
-            </EBinOp>
-          </computed>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Field'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <defined_fields many='true' keyed='true'>
-        <Field name='name' key='true'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='owner'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Class]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Class]/defined_fields[defined_fields]
-          </inverse>
-        </Field>
-        <Field name='type'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Type]
-          </type>
-        </Field>
-        <Field name='optional'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-        <Field name='many'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-        <Field name='key'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-        <Field name='auto'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-        <Field name='inverse' optional='true'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Field]
-          </type>
-          <inverse many='false' keyed='true'>
-            /types[Field]/defined_fields[inverse]
-          </inverse>
-        </Field>
-        <Field name='computed' optional='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='traversal'>
-          <owner many='false' keyed='true'>
-            /types[Field]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Command'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <subclasses many='true' keyed='true'>
-        /types[Expr] /types[EWhile] /types[EFor] /types[EIf] /types[EBlock]
-        /types[EFunCall] /types[EFunDef] /types[EAssign] /types[EImport]
-      </subclasses>
-    </Class>
-    <Class name='EWhile'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='cond' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EWhile]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='body' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EWhile]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EFor'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='var'>
-          <owner many='false' keyed='true'>
-            /types[EFor]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='list' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFor]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='body' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFor]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EIf'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='cond' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EIf]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='body' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EIf]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-        <Field name='body2' optional='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EIf]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EBlock'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='body' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EBlock]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='ELambda'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <defined_fields many='true' keyed='true'>
-        <Field name='body' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ELambda]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-        <Field name='formals' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ELambda]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Formal]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EFunDef'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='name'>
-          <owner many='false' keyed='true'>
-            /types[EFunDef]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='formals' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFunDef]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Formal]
-          </type>
-        </Field>
-        <Field name='body' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFunDef]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Command]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='Formal'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <defined_fields many='true' keyed='true'>
-        <Field name='name'>
-          <owner many='false' keyed='true'>
-            /types[Formal]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EAssign'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='var' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EAssign]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='val' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EAssign]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EImport'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='path'>
-          <owner many='false' keyed='true'>
-            /types[EImport]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Primitive name='str'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-    </Primitive>
-    <Primitive name='int'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-    </Primitive>
-    <Primitive name='bool'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-    </Primitive>
-    <Primitive name='real'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-    </Primitive>
-    <Class name='Expr'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command]
-      </supers>
-      <subclasses many='true' keyed='true'>
-        /types[EFunCall] /types[ETernOp] /types[EBinOp] /types[EUnOp]
-        /types[EField] /types[EVar] /types[ESubscript] /types[EList]
-        /types[EAddress] /types[ENew] /types[EConst]
-      </subclasses>
-    </Class>
-    <Class name='ETernOp'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='op1'>
-          <owner many='false' keyed='true'>
-            /types[ETernOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='op2'>
-          <owner many='false' keyed='true'>
-            /types[ETernOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='e1' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ETernOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='e2' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ETernOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='e3' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ETernOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EBinOp'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='op'>
-          <owner many='false' keyed='true'>
-            /types[EBinOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='e1' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EBinOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='e2' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EBinOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EUnOp'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='op'>
-          <owner many='false' keyed='true'>
-            /types[EUnOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-        <Field name='e' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EUnOp]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EFunCall'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Command] /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='lambda' optional='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFunCall]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[ELambda]
-          </type>
-        </Field>
-        <Field name='fun' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFunCall]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='params' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EFunCall]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EField'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='e' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EField]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='fname'>
-          <owner many='false' keyed='true'>
-            /types[EField]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EVar'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='name'>
-          <owner many='false' keyed='true'>
-            /types[EVar]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='ESubscript'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='e' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ESubscript]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-        <Field name='sub' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[ESubscript]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EList'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='elems' optional='true' many='true' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EList]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EAddress'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='e' traversal='true'>
-          <owner many='false' keyed='true'>
-            /types[EAddress]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[Expr]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='ENew'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='class'>
-          <owner many='false' keyed='true'>
-            /types[ENew]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EConst'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[Expr]
-      </supers>
-      <subclasses many='true' keyed='true'>
-        /types[EStrConst] /types[EIntConst] /types[EBoolConst]
-        /types[ERealConst] /types[ENil]
-      </subclasses>
-    </Class>
-    <Class name='EStrConst'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[EConst]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='val'>
-          <owner many='false' keyed='true'>
-            /types[EStrConst]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[str]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EIntConst'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[EConst]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='val'>
-          <owner many='false' keyed='true'>
-            /types[EIntConst]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[int]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='EBoolConst'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[EConst]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='val'>
-          <owner many='false' keyed='true'>
-            /types[EBoolConst]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[bool]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='ERealConst'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[EConst]
-      </supers>
-      <defined_fields many='true' keyed='true'>
-        <Field name='val'>
-          <owner many='false' keyed='true'>
-            /types[ERealConst]
-          </owner>
-          <type many='false' keyed='true'>
-            /types[real]
-          </type>
-        </Field>
-      </defined_fields>
-    </Class>
-    <Class name='ENil'>
-      <schema many='false' keyed='false'>
-        /
-      </schema>
-      <supers many='true' keyed='true'>
-        /types[EConst]
-      </supers>
-    </Class>
-  </types>
-</Schema>
+<schema.schema source='core/schema/models/schema.schema' date='2012-06-27 11:13:07 +0200' checksum='2e7ef0a609c1934af2855eeb1c15e0fae5bfda0a'>
+  <depends>
+    <schema.schema source='core/schema/models/schema.schema' date='2012-06-27 11:13:07 +0200' checksum='2e7ef0a609c1934af2855eeb1c15e0fae5bfda0a'/>
+    <schema.grammar source='core/schema/models/schema.grammar' date='2012-06-27 11:13:07 +0200' checksum='609518a6c8e75584a64c77039a856aef7840fbae'/>
+    <schema-base.schema source='core/schema/models/schema-base.schema' date='2012-07-03 14:24:49 +0200' checksum='daeb8006a7c8f6fef6b9c73cfef31e83cd892262'/>
+    <impl.schema source='core/expr/models/impl.schema' date='2012-06-27 11:13:06 +0200' checksum='79e47afebb278ed620e994d0d2675e2b910e9646'/>
+  </depends>
+  <Schema>
+    <types many='true' keyed='true'>
+      <Class name='Schema'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='types' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Schema]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Type]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Type]/defined_fields[schema]
+            </inverse>
+          </Field>
+          <Field name='classes' optional='true' many='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Schema]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Class]
+            </type>
+            <computed many='false' keyed='false'>
+              <EFunCall>
+                <lambda many='false' keyed='false'>
+                  <ELambda>
+                    <body many='false' keyed='false'>
+                      <EBlock>
+                        <body many='true' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EField fname='name'>
+                                <e many='false' keyed='false'>
+                                  <EField fname='schema_class'>
+                                    <e many='false' keyed='false'>
+                                      <EVar name='t'/>
+                                    </e>
+                                  </EField>
+                                </e>
+                              </EField>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EStrConst val='Class'/>
+                            </e2>
+                          </EBinOp>
+                        </body>
+                      </EBlock>
+                    </body>
+                    <formals many='true' keyed='false'>
+                      <Formal name='t'/>
+                    </formals>
+                  </ELambda>
+                </lambda>
+                <fun many='false' keyed='false'>
+                  <EField fname='select'>
+                    <e many='false' keyed='false'>
+                      <EVar name='types'/>
+                    </e>
+                  </EField>
+                </fun>
+              </EFunCall>
+            </computed>
+          </Field>
+          <Field name='primitives' optional='true' many='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Schema]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Primitive]
+            </type>
+            <computed many='false' keyed='false'>
+              <EFunCall>
+                <lambda many='false' keyed='false'>
+                  <ELambda>
+                    <body many='false' keyed='false'>
+                      <EBlock>
+                        <body many='true' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EField fname='name'>
+                                <e many='false' keyed='false'>
+                                  <EField fname='schema_class'>
+                                    <e many='false' keyed='false'>
+                                      <EVar name='t'/>
+                                    </e>
+                                  </EField>
+                                </e>
+                              </EField>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EStrConst val='Primitive'/>
+                            </e2>
+                          </EBinOp>
+                        </body>
+                      </EBlock>
+                    </body>
+                    <formals many='true' keyed='false'>
+                      <Formal name='t'/>
+                    </formals>
+                  </ELambda>
+                </lambda>
+                <fun many='false' keyed='false'>
+                  <EField fname='select'>
+                    <e many='false' keyed='false'>
+                      <EVar name='types'/>
+                    </e>
+                  </EField>
+                </fun>
+              </EFunCall>
+            </computed>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Type'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[Primitive] /types[Class]
+        </subclasses>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' key='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Type]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='schema' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Type]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Schema]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Schema]/defined_fields[types]
+            </inverse>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Primitive'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Type]
+        </supers>
+      </Class>
+      <Class name='Class'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Type]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='supers' optional='true' many='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Class]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Class]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Class]/defined_fields[subclasses]
+            </inverse>
+          </Field>
+          <Field name='subclasses' optional='true' many='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Class]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Class]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Class]/defined_fields[supers]
+            </inverse>
+          </Field>
+          <Field name='defined_fields' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Class]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Field]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Field]/defined_fields[owner]
+            </inverse>
+          </Field>
+          <Field name='fields' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Class]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Field]
+            </type>
+            <computed many='false' keyed='false'>
+              <EFunCall>
+                <lambda many='false' keyed='false'>
+                  <ELambda>
+                    <body many='false' keyed='false'>
+                      <EBlock>
+                        <body many='true' keyed='false'>
+                          <EUnOp op='!'>
+                            <e many='false' keyed='false'>
+                              <EField fname='computed'>
+                                <e many='false' keyed='false'>
+                                  <EVar name='f'/>
+                                </e>
+                              </EField>
+                            </e>
+                          </EUnOp>
+                        </body>
+                      </EBlock>
+                    </body>
+                    <formals many='true' keyed='false'>
+                      <Formal name='f'/>
+                    </formals>
+                  </ELambda>
+                </lambda>
+                <fun many='false' keyed='false'>
+                  <EField fname='select'>
+                    <e many='false' keyed='false'>
+                      <EVar name='all_fields'/>
+                    </e>
+                  </EField>
+                </fun>
+              </EFunCall>
+            </computed>
+          </Field>
+          <Field name='all_fields' optional='true' many='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Class]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Field]
+            </type>
+            <computed many='false' keyed='false'>
+              <EBinOp op='+'>
+                <e1 many='false' keyed='false'>
+                  <EFunCall>
+                    <lambda many='false' keyed='false'>
+                      <ELambda>
+                        <body many='false' keyed='false'>
+                          <EBlock>
+                            <body many='true' keyed='false'>
+                              <EField fname='all_fields'>
+                                <e many='false' keyed='false'>
+                                  <EVar name='s'/>
+                                </e>
+                              </EField>
+                            </body>
+                          </EBlock>
+                        </body>
+                        <formals many='true' keyed='false'>
+                          <Formal name='s'/>
+                        </formals>
+                      </ELambda>
+                    </lambda>
+                    <fun many='false' keyed='false'>
+                      <EField fname='flat_map'>
+                        <e many='false' keyed='false'>
+                          <EVar name='supers'/>
+                        </e>
+                      </EField>
+                    </fun>
+                  </EFunCall>
+                </e1>
+                <e2 many='false' keyed='false'>
+                  <EVar name='defined_fields'/>
+                </e2>
+              </EBinOp>
+            </computed>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Field'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' key='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='owner' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Class]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Class]/defined_fields[defined_fields]
+            </inverse>
+          </Field>
+          <Field name='type' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Type]
+            </type>
+          </Field>
+          <Field name='optional' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='many' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='key' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='auto' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='inverse' optional='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Field]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Field]/defined_fields[inverse]
+            </inverse>
+          </Field>
+          <Field name='computed' optional='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='traversal' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Command'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[Expr] /types[EWhile] /types[EFor] /types[EIf] /types[EBlock]
+          /types[EFunCall] /types[EFunDef] /types[EAssign] /types[EImport]
+        </subclasses>
+      </Class>
+      <Class name='EWhile'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='cond' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EWhile]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='body' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EWhile]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EFor'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='var' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFor]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='list' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFor]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='body' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFor]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EIf'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='cond' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EIf]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='body' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EIf]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+          <Field name='body2' optional='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EIf]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EBlock'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='body' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EBlock]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='ELambda'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='body' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ELambda]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+          <Field name='formals' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ELambda]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Formal]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EFunDef'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunDef]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='formals' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunDef]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Formal]
+            </type>
+          </Field>
+          <Field name='body' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunDef]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Command]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Formal'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[Formal]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EAssign'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='var' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EAssign]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='val' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EAssign]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EImport'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='path' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EImport]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Primitive name='str'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='int'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='bool'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='real'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Class name='Expr'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command]
+        </supers>
+        <subclasses many='true' keyed='true'>
+          /types[EFunCall] /types[ETernOp] /types[EBinOp] /types[EUnOp]
+          /types[EField] /types[EVar] /types[ESubscript] /types[EList]
+          /types[EAddress] /types[ENew] /types[EConst]
+        </subclasses>
+      </Class>
+      <Class name='ETernOp'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='op1' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ETernOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='op2' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ETernOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='e1' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ETernOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='e2' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ETernOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='e3' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ETernOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EBinOp'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='op' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EBinOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='e1' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EBinOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='e2' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EBinOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EUnOp'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='op' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EUnOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='e' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EUnOp]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EFunCall'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Command] /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='lambda' optional='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunCall]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[ELambda]
+            </type>
+          </Field>
+          <Field name='fun' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunCall]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='params' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EFunCall]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EField'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='e' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EField]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='fname' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EField]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EVar'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EVar]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='ESubscript'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='e' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ESubscript]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+          <Field name='sub' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ESubscript]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EList'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='elems' optional='true' many='true' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EList]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EAddress'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='e' traversal='true' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EAddress]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='ENew'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='class' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ENew]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EConst'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Expr]
+        </supers>
+        <subclasses many='true' keyed='true'>
+          /types[EStrConst] /types[EIntConst] /types[EBoolConst]
+          /types[ERealConst] /types[ENil]
+        </subclasses>
+      </Class>
+      <Class name='EStrConst'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[EConst]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='val' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EStrConst]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EIntConst'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[EConst]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='val' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EIntConst]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[int]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='EBoolConst'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[EConst]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='val' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[EBoolConst]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='ERealConst'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[EConst]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='val' cardinality='0'>
+            <owner many='false' keyed='true'>
+              /types[ERealConst]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[real]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='ENil'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[EConst]
+        </supers>
+      </Class>
+    </types>
+  </Schema>
+</schema.schema>

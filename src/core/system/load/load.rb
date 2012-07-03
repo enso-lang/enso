@@ -2,12 +2,12 @@
 require 'core/system/library/schema'
 
 require 'core/system/boot/meta_schema'
-require 'core/system/boot/meta_schema'
 
 require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/schema/tools/loadxml'
+require 'core/system/load/cache'
 
 require 'core/feature/code/load'
 
@@ -57,25 +57,25 @@ module Loading
     #private
 
     def _load(name, type)
-      # this is very cool!
-      model, type = name.split(/\./) if type.nil?
-      g = load("#{type}.grammar")
-      s = load("#{type}.schema")
-      if g.nil? or s.nil?
-        f = load("#{type}.feature")
-        Interpreter(BuildFeature).build(f) unless f.nil?
+      #first check if cached XML version is still valid
+      if CacheXML::check_dep(name)
+        #$stderr << "## fetching #{name}...\n"
+        CacheXML::from_xml(name)
+      else
+        model, type = name.split(/\./) if type.nil?
         g = load("#{type}.grammar")
         s = load("#{type}.schema")
+        if g.nil? or s.nil?
+          f = load("#{type}.feature")
+          Interpreter(BuildFeature).build(f) unless f.nil?
+          g = load("#{type}.grammar")
+          s = load("#{type}.schema")
+        end
+        res = load_with_models(name, g, s)
+        #dump it back to xml
+        CacheXML::to_xml(name, res)
+        res
       end
-      return load_with_models(name, g, s)
-    end
-
-    def load_schema_xml(file, schema = nil)
-      doc = Document.new(File.read("core/system/boot/#{file}"))
-      if schema.nil? then
-        schema = Boot::Schema.new(doc.root)
-      end
-      FromXML.load(schema, doc)
     end
 
     def build_feature(feature)
@@ -91,32 +91,28 @@ module Loading
       @cache = {}
       @feature = {}
       $stderr << "Initializing...\n"
-
-      # TODO: this is not (yet) correct bootstrapping
-      # it works (probably) because our bootstrap 
-      # models are correct. However, if there are
-      # discrepancies strange things are bound to happen.
-
-      @cache[SCHEMA_SCHEMA] = ss = bootstrap_schema_schema('schema_schema.xml')
+      
+      #check if XML is not out of date then just use it
+      #else load XML first then reload
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, nil)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema_grammar.xml', nil, gs)
 
-      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema.grammar', gg, gs)
-      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema.schema', sg, ss)
-      @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar.schema', sg, ss)
-      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar.grammar', gg, gs)
-
-      @cache.each do |k,v|
-        model, type = k.split(/\./)
-        schema = @cache["#{type}.schema"]
-        patch_schema_pointers(v, schema)
-      end
+      @cache[SCHEMA_SCHEMA] = ss = update_xml('schema.schema')
+      @cache[GRAMMAR_SCHEMA] = gs = update_xml('grammar.schema')
+      @cache[GRAMMAR_GRAMMAR] = gg = update_xml('grammar.grammar')
+      @cache[SCHEMA_GRAMMAR] = sg = update_xml('schema.grammar')
     end
-
-    def bootstrap_schema_schema(name)
-      find_model(name) do |path|
-        Boot.load_path(path)
-      end
+    
+    def update_xml(name)
+      return @cache[name] if CacheXML::check_dep(name)
+      model, type = name.split(/\./) if type.nil?
+      res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
+      patch_schema_pointers(res, load("#{type}.schema"))
+      $stderr << "## re-caching #{name}...\n"
+      CacheXML::to_xml(name, res)
+      res
     end
 
     def patch_schema_pointers(obj, schema)
@@ -140,8 +136,14 @@ module Loading
     def load_path(path, grammar, schema, encoding = nil)
       if path =~ /\.xml$/ then
         $stderr << "## booting #{path}...\n"
-        doc = Document.new(File.read(path))
-        result = FromXML.load(schema, doc)
+        if schema.nil? then
+          # this means we are loading schema_schema.xml for the first time.
+          result = Boot::load_path(path)
+        else
+          name = path.split("/")[-1][0..-5]
+          name[name.rindex("_")] = '.'
+          result = CacheXML::from_xml(name)
+        end
       else
         begin
           header = File.open(path, &:readline)
