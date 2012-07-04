@@ -1,0 +1,4 @@
+#ruby
+
+union(rename(load('element.schema'), {'Value' => 'Expr', 'Content' => 'Stat'}), union(load('expr.schema'),
+      load('web_base.schema')))

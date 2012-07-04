@@ -1,3 +1,2 @@
-#ruby
+import element.schema, content.schema
 
-union(load('element.schema'), load('content.schema'))

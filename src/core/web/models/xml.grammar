@@ -1,3 +1,2 @@
-#ruby
+import element.grammar, content.grammar
 
-union(load('element.grammar'), load('content.grammar'))
