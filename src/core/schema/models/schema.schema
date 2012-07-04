@@ -1,4 +1,38 @@
-#ruby
+import impl.schema
 
-union(load!('schema-base.schema'),load('impl.schema'))
+primitive str
+primitive int
+primitive bool
+primitive real
 
+class Schema
+  types! Type*
+  classes: Class* = types.select() { |t| return t.schema_class.name=="Class" }
+  primitives: Primitive* = types.select() { |t| return t.schema_class.name=="Primitive" }
+
+class Type
+  name# str
+  schema: Schema / types
+
+class Primitive < Type
+  
+class Class < Type
+  supers: Class*
+  subclasses: Class* / supers
+  defined_fields! Field*
+  fields: Field = all_fields.select() {|f| return not f.computed}
+  all_fields: Field* = supers.flat_map() {|s| return s.all_fields } + defined_fields
+
+class Field
+  name# str
+  owner: Class / defined_fields
+  type: Type
+  optional: bool
+  many: bool
+  key: bool
+  auto: bool
+  inverse: Field? / inverse 
+  computed! Expr?
+  traversal: bool
+
+class Expr

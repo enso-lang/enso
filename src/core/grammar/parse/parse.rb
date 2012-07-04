@@ -19,7 +19,26 @@ class Parse
   end
   
   def self.load(source, grammar, schema, filename = '-')
+    #TODO: need a better way to parse imports
+    imports = []
+    s = source.split("\n")
+    for i in 0..s.length-1
+      next if s[i].strip.length==0
+      break unless s[i].strip.start_with? 'import'
+      files = s[i].gsub(' ','')[6..-1].split(',')
+      files.each do |f|
+        imports << f
+      end
+    end
+    source = s[i..-1].join("\n")
     data = load_raw(source, grammar, schema, ManagedData::Factory.new(schema), false, filename)
+    imports.each do |imp|
+      $stderr << "## importing #{imp}...\n" 
+      u = Loader.load(imp)
+      data = union(u, data)
+      Loader.find_model(imp) {|p| data.factory.file_path << p}
+    end
+    data.factory.file_path.unshift(filename)
     return data.finalize
   end
   

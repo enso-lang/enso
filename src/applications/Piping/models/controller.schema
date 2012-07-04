@@ -1,2 +1,36 @@
-#ruby
-union(load('controller_base.schema'), load('expr.schema'))
+import expr.schema
+
+primitive str
+primitive real
+
+class Controller
+  initial:State
+  globals!Assign*
+  states!State*
+  current:State //dynamic
+  constraints:Constraint*
+
+class State
+  name#str
+  commands!Action*
+  transitions!Transition*
+
+class Action
+
+class Transition
+  guard!Expr
+  target:State
+
+class Assign < Action
+  var!Expr
+  val!Expr
+
+class TurnSplitter < Action
+  splitter:str
+  percent:real
+
+class Constraint
+  cond:Expr
+  action:Action
+
+class Expr 

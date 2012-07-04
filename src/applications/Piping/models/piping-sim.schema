@@ -1,2 +1,57 @@
-#ruby
-union(load('piping.schema'), load('piping-state.schema'))
+import piping.schema
+
+// Dynamic state information used by the simulator
+primitive real
+primitive bool
+
+class Pipe
+  flow: real
+  in_pressure: real
+  out_pressure: real
+  temperature: real
+  velocity: real = flow / area
+
+
+class Element 
+
+class Temperatured
+  temperature: real
+
+
+class End < Element 
+class Source < End
+  pressure: real
+
+
+class Burner < Element, Temperatured
+  ignite: bool
+  gas_level: real
+
+
+class Radiator < Element, Temperatured
+
+class Room < Element
+  temperature: real
+
+class Vessel < Element, Temperatured
+  contents: real
+
+
+class Valve < Element
+  flow: real // between 0 and 1
+
+
+class Splitter < Element
+  position: real // between 0 and 1
+
+
+class Pump < Element
+  pressure: real
+  flow: real
+  run: bool
+
+
+class Sensor
+  user: real?
+  value: real = attach[kind]
+

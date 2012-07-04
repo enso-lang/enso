@@ -1,42 +1,12 @@
-<grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-06-27 11:13:06 +0200' checksum='c2b98dc32785f187b751773d6b9cf98da4491ab7'>
+<grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-07-04 13:53:15 +0200' checksum='564539c70df662a488e306ed27f3ec38bb30074c'>
   <depends>
-    <grammar.schema source='core/grammar/models/grammar.schema' date='2012-06-27 11:13:06 +0200' checksum='e87f5167b3cdda88087f634882e45fed39000dc9'/>
-    <grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-06-27 11:13:06 +0200' checksum='c2b98dc32785f187b751773d6b9cf98da4491ab7'/>
-    <path.grammar source='core/grammar/models/path.grammar' date='2012-06-27 11:13:06 +0200' checksum='ed0f4111965f95ec4416a09c0260592dba653eb8'/>
     <expr.grammar source='core/expr/models/expr.grammar' date='2012-06-27 11:13:06 +0200' checksum='d28805c1f2e591ead9f06c521cc14993f6c76ee1'/>
-    <grammar-base.grammar source='core/grammar/models/grammar-base.grammar' date='2012-06-27 11:13:06 +0200' checksum='484c6641295604537fc451966cd10e571e9b079f'/>
   </depends>
   <Grammar>
     <start many='false' keyed='true'>
       /rules[Grammar]
     </start>
     <rules many='true' keyed='true'>
-      <Rule name='Subscript'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Lit value='['/>
-                  <Field name='key'>
-                    <arg many='false' keyed='false'>
-                      <Call>
-                        <rule many='false' keyed='true'>
-                          /rules[Key]
-                        </rule>
-                      </Call>
-                    </arg>
-                  </Field>
-                  <Lit value=']'/>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
       <Rule name='ETernOp'>
         <grammar many='false' keyed='false'>
           /
@@ -849,6 +819,32 @@
                   </Sequence>
                 </arg>
               </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='Subscript'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='['/>
+                  <Field name='key'>
+                    <arg many='false' keyed='false'>
+                      <Call>
+                        <rule many='false' keyed='true'>
+                          /rules[Key]
+                        </rule>
+                      </Call>
+                    </arg>
+                  </Field>
+                  <Lit value=']'/>
+                </elements>
+              </Sequence>
             </alts>
           </Alt>
         </arg>

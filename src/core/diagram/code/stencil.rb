@@ -54,8 +54,8 @@ class StencilFrame < DiagramFrame
       self.set_title(@stencil.title)
     end
     @data = data
-    if data.factory.file_path
-      pos = "#{data.factory.file_path}-positions"
+    if data.factory.file_path[0]
+      pos = "#{data.factory.file_path[0]}-positions"
       #puts "FINDING #{pos}"
       @position_map = {}
       if File.exists?(pos)

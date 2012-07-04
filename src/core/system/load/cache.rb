@@ -13,12 +13,13 @@ module CacheXML
     doc1 = Document.new
     doc1 << doc.root.elements.to_a[-1] 
     res = FromXML::load(Loader.load("#{type}.schema"), doc1)
-    res.factory.file_path = doc.root.attributes['source']
+    res.factory.file_path[0] = doc.root.attributes['source']
+    doc.root.elements['depends'].elements.each {|dep| res.factory.file_path << dep.attributes['source']}
     res
   end
 
   def self.to_xml(name, model=Loader.load(name), out=find_xml(name))
-    res = add_metadata(ToXML::to_xml(model), name)
+    res = add_metadata(ToXML::to_xml(model), name, model)
     pp = REXML::Formatters::Pretty.new
     File.open(out, 'w+') {|f| pp.write(res, f)}
   end
@@ -31,7 +32,7 @@ module CacheXML
       return false unless check_file(doc.root)
       doc.root.elements['depends'].elements.each {|e| return false unless check_file(e)}
       true
-    rescue
+    rescue Errno::ENOENT => e
       false
     end
   end
@@ -76,7 +77,7 @@ module CacheXML
     e
   end
   
-  def self.add_metadata(orig, name=nil)
+  def self.add_metadata(orig, name, model)
     doc = Document.new
     if name==nil
       e = Element.new('MetaData')
@@ -85,21 +86,13 @@ module CacheXML
       deps = Element.new('depends')
 
       #analyze vertical dep
-      type = name.split('.')[-1]
-      deps << get_meta("#{type}.schema")
-      deps << get_meta("#{type}.grammar")
+#     type = name.split('.')[-1]
+#     deps << get_meta("#{type}.schema")
+#     deps << get_meta("#{type}.grammar")
 
       #analyze horizontal dep
-      #something to do with imports, but currently nothing
-      Loader.find_model(name) do |path|
-        header = File.open(path, &:readline)
-        if header =~ /#ruby/
-          str = File.read(path)
-          a = str.split("\"").map{|x|x.split("\'")}.flatten
-          fnames = a.values_at(* a.each_index.select {|i| i.odd?})
-          fnames.each {|fn| deps << get_meta(fn)}
-        end
-      end
+      #something to do with imports
+      model.factory.file_path[1..-1].each {|fn| deps << get_meta(fn.split("/")[-1])}
       e << deps
     end
     e << orig.root

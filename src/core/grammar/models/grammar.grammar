@@ -1,5 +1,43 @@
-#ruby
+import path.grammar, expr.grammar
 
-# NB: order is important we want start to be Grammar not Path
-union(union(load!('path.grammar'), load('expr.grammar')), load!('grammar-base.grammar'))
+  start Grammar
 
+  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule*/
+
+  Rule ::= [Rule] name:sym "::=" arg:Alt
+         | [Rule] "abstract" name:sym
+
+  Alt ::= [Alt] alts:Create+@(/ "|")
+
+  Create ::= [Create] "[" . name:sym . "]" arg:Sequence
+    | Sequence
+
+  Sequence ::= [Sequence] elements:Field*
+
+  Field ::= [Field] name:sym . ":" . arg:Pattern
+    | Pattern
+  
+  Pattern ::= 
+      [Value] kind:"int"
+    | [Value] kind:"str"
+    | [Value] kind:"real"
+    | [Value] kind:"sym"
+    | [Value] kind:"atom"
+    | [Code] "{" expr:Expr "}"
+    | [Ref] "<" . path:Path . ">"
+    | [Lit] value:str
+    | [Call] rule:</rules[it]>
+    | [Regular] arg:Pattern .  "?" { optional == true }
+    | [Regular] arg:Pattern . "*" Sep? { (optional == true) and (many == true) }
+    | [Regular] arg:Pattern . "+" Sep? { many == true }
+    | [NoSpace] "."
+    | [Break] "/"
+    | "(" . Alt . ")"
+    
+  Sep ::= "@" . sep:Pattern
+
+// extension of path.grammar
+abstract Path
+Key ::= [It] "it"
+
+abstract Expr

@@ -28,6 +28,7 @@ module ManagedData
       @roots = []
       @interp = interp
       __constructor(schema.types)
+      @file_path = []
     end
 
     def [](name); send(name) end

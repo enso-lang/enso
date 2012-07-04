@@ -1,9 +1,6 @@
-<schema.grammar source='core/schema/models/schema.grammar' date='2012-06-27 11:13:07 +0200' checksum='609518a6c8e75584a64c77039a856aef7840fbae'>
+<schema.grammar source='core/schema/models/schema.grammar' date='2012-07-04 15:16:20 +0200' checksum='534cee3bd6d118f37751419bc0ffa179ce1ed76f'>
   <depends>
-    <grammar.schema source='core/grammar/models/grammar.schema' date='2012-06-27 11:13:06 +0200' checksum='e87f5167b3cdda88087f634882e45fed39000dc9'/>
-    <grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-06-27 11:13:06 +0200' checksum='c2b98dc32785f187b751773d6b9cf98da4491ab7'/>
-    <impl.grammar source='core/expr/models/impl.grammar' date='2012-06-27 11:13:06 +0200' checksum='398d9fecb15767f14539b512827db900825f84ed'/>
-    <schema-base.grammar source='core/schema/models/schema-base.grammar' date='2012-06-27 11:13:07 +0200' checksum='0b695cbff042d3a2f75606723763baa1bc90e428'/>
+    <impl.grammar source='core/expr/models/impl.grammar' date='2012-07-04 14:06:23 +0200' checksum='022f066b2e0ff741ec0567d3a98cae49895d0f41'/>
   </depends>
   <Grammar>
     <start many='false' keyed='true'>

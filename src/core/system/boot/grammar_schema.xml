@@ -1,537 +1,14 @@
-<grammar.schema source='core/grammar/models/grammar.schema' date='2012-06-27 11:13:06 +0200' checksum='e87f5167b3cdda88087f634882e45fed39000dc9'>
+<grammar.schema source='core/grammar/models/grammar.schema' date='2012-07-04 15:16:43 +0200' checksum='095e5e6f7837b7740f2b37b400537729cf3cc3f4'>
   <depends>
-    <schema.schema source='core/schema/models/schema.schema' date='2012-06-27 11:13:07 +0200' checksum='2e7ef0a609c1934af2855eeb1c15e0fae5bfda0a'/>
-    <schema.grammar source='core/schema/models/schema.grammar' date='2012-06-27 11:13:07 +0200' checksum='609518a6c8e75584a64c77039a856aef7840fbae'/>
-    <grammar-base.schema source='core/grammar/models/grammar-base.schema' date='2012-06-27 11:13:06 +0200' checksum='c662d6ff2cd216799848e4969ce654594382bb3f'/>
-    <path.schema source='core/grammar/models/path.schema' date='2012-06-27 11:13:06 +0200' checksum='fec1660891f127df0bda3c4431d9e05d48ad19cc'/>
     <expr.schema source='core/expr/models/expr.schema' date='2012-06-27 11:13:06 +0200' checksum='5fbd321b1eab22f2f43da7b17f24d720d5b06b6e'/>
   </depends>
   <Schema>
     <types many='true' keyed='true'>
-      <Class name='Grammar'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <defined_fields many='true' keyed='true'>
-          <Field name='start'>
-            <owner many='false' keyed='true'>
-              /types[Grammar]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Rule]
-            </type>
-          </Field>
-          <Field name='rules' optional='true' many='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Grammar]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Rule]
-            </type>
-            <inverse many='false' keyed='true'>
-              /types[Rule]/defined_fields[grammar]
-            </inverse>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Rule'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <defined_fields many='true' keyed='true'>
-          <Field name='name' key='true'>
-            <owner many='false' keyed='true'>
-              /types[Rule]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-          <Field name='grammar'>
-            <owner many='false' keyed='true'>
-              /types[Rule]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Grammar]
-            </type>
-            <inverse many='false' keyed='true'>
-              /types[Grammar]/defined_fields[rules]
-            </inverse>
-          </Field>
-          <Field name='arg' optional='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Rule]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Pattern'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <subclasses many='true' keyed='true'>
-          /types[Alt] /types[Sequence] /types[Create] /types[Field] /types[Code]
-          /types[Value] /types[Ref] /types[Lit] /types[Call] /types[Regular]
-          /types[NoSpace] /types[Break] /types[Epsilon] /types[Let]
-        </subclasses>
-      </Class>
-      <Class name='Alt'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='alts' many='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Alt]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Sequence'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='elements' optional='true' many='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Sequence]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Create'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='name'>
-            <owner many='false' keyed='true'>
-              /types[Create]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-          <Field name='arg' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Create]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Field'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='name'>
-            <owner many='false' keyed='true'>
-              /types[Field]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-          <Field name='arg' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Field]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Code'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='expr' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Code]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Expr]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Value'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='kind'>
-            <owner many='false' keyed='true'>
-              /types[Value]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Ref'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='path' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Ref]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Path]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Lit'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='value'>
-            <owner many='false' keyed='true'>
-              /types[Lit]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Call'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='rule'>
-            <owner many='false' keyed='true'>
-              /types[Call]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Rule]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Regular'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='arg' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Regular]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-          <Field name='optional'>
-            <owner many='false' keyed='true'>
-              /types[Regular]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[bool]
-            </type>
-          </Field>
-          <Field name='many'>
-            <owner many='false' keyed='true'>
-              /types[Regular]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[bool]
-            </type>
-          </Field>
-          <Field name='sep' optional='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Regular]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='NoSpace'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-      </Class>
-      <Class name='Break'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-      </Class>
-      <Class name='Epsilon'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-      </Class>
-      <Class name='It'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Key]
-        </supers>
-      </Class>
-      <Class name='Let'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Pattern]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='arg'>
-            <owner many='false' keyed='true'>
-              /types[Let]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Pattern]
-            </type>
-          </Field>
-          <Field name='binding'>
-            <owner many='false' keyed='true'>
-              /types[Let]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Binding]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Var'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Key]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='name'>
-            <owner many='false' keyed='true'>
-              /types[Var]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Binding'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <defined_fields many='true' keyed='true'>
-          <Field name='target'>
-            <owner many='false' keyed='true'>
-              /types[Binding]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Path]
-            </type>
-          </Field>
-          <Field name='value'>
-            <owner many='false' keyed='true'>
-              /types[Binding]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Path]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Primitive name='atom'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Class name='Key'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <subclasses many='true' keyed='true'>
-          /types[It] /types[Var] /types[Const] /types[Path]
-        </subclasses>
-      </Class>
-      <Class name='Const'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Key]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='value'>
-            <owner many='false' keyed='true'>
-              /types[Const]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[atom]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Path'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Key]
-        </supers>
-        <subclasses many='true' keyed='true'>
-          /types[Anchor] /types[Sub]
-        </subclasses>
-      </Class>
-      <Class name='Anchor'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Path]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='type'>
-            <owner many='false' keyed='true'>
-              /types[Anchor]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Class name='Sub'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Path]
-        </supers>
-        <defined_fields many='true' keyed='true'>
-          <Field name='parent' optional='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Sub]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Path]
-            </type>
-          </Field>
-          <Field name='name'>
-            <owner many='false' keyed='true'>
-              /types[Sub]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[str]
-            </type>
-          </Field>
-          <Field name='key' optional='true' traversal='true'>
-            <owner many='false' keyed='true'>
-              /types[Sub]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[Key]
-            </type>
-          </Field>
-          <Field name='is_root'>
-            <owner many='false' keyed='true'>
-              /types[Sub]
-            </owner>
-            <type many='false' keyed='true'>
-              /types[bool]
-            </type>
-            <computed many='false' keyed='false'>
-              <EStrConst val='@parent == nil'/>
-            </computed>
-          </Field>
-        </defined_fields>
-      </Class>
-      <Primitive name='str'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='int'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='bool'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
       <Primitive name='real'>
         <schema many='false' keyed='false'>
           /
         </schema>
       </Primitive>
-      <Class name='Expr'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <subclasses many='true' keyed='true'>
-          /types[ETernOp] /types[EBinOp] /types[EUnOp] /types[EFunCall]
-          /types[EField] /types[EVar] /types[ESubscript] /types[EList]
-          /types[EAddress] /types[ENew] /types[EConst]
-        </subclasses>
-      </Class>
       <Class name='ETernOp'>
         <schema many='false' keyed='false'>
           /
@@ -883,6 +360,525 @@
         <supers many='true' keyed='true'>
           /types[EConst]
         </supers>
+      </Class>
+      <Primitive name='atom'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Class name='Const'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Key]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='value'>
+            <owner many='false' keyed='true'>
+              /types[Const]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[atom]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Anchor'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Path]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='type'>
+            <owner many='false' keyed='true'>
+              /types[Anchor]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Sub'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Path]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='parent' optional='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Sub]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Path]
+            </type>
+          </Field>
+          <Field name='name'>
+            <owner many='false' keyed='true'>
+              /types[Sub]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='key' optional='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Sub]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Key]
+            </type>
+          </Field>
+          <Field name='is_root'>
+            <owner many='false' keyed='true'>
+              /types[Sub]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+            <computed many='false' keyed='false'>
+              <EStrConst val='@parent == nil'/>
+            </computed>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Primitive name='str'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='int'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='bool'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Class name='Grammar'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='start'>
+            <owner many='false' keyed='true'>
+              /types[Grammar]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Rule]
+            </type>
+          </Field>
+          <Field name='rules' optional='true' many='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Grammar]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Rule]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Rule]/defined_fields[grammar]
+            </inverse>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Rule'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name' key='true'>
+            <owner many='false' keyed='true'>
+              /types[Rule]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='grammar'>
+            <owner many='false' keyed='true'>
+              /types[Rule]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Grammar]
+            </type>
+            <inverse many='false' keyed='true'>
+              /types[Grammar]/defined_fields[rules]
+            </inverse>
+          </Field>
+          <Field name='arg' optional='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Rule]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Pattern'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[Alt] /types[Sequence] /types[Create] /types[Field] /types[Code]
+          /types[Value] /types[Ref] /types[Lit] /types[Call] /types[Regular]
+          /types[NoSpace] /types[Break] /types[Epsilon] /types[Let]
+        </subclasses>
+      </Class>
+      <Class name='Alt'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='alts' many='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Alt]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Sequence'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='elements' optional='true' many='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Sequence]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Create'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name'>
+            <owner many='false' keyed='true'>
+              /types[Create]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='arg' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Create]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Field'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+          <Field name='arg' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Field]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Code'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='expr' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Code]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Expr]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Value'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='kind'>
+            <owner many='false' keyed='true'>
+              /types[Value]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Ref'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='path' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Ref]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Path]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Lit'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='value'>
+            <owner many='false' keyed='true'>
+              /types[Lit]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Call'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='rule'>
+            <owner many='false' keyed='true'>
+              /types[Call]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Rule]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Regular'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='arg' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Regular]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+          <Field name='optional'>
+            <owner many='false' keyed='true'>
+              /types[Regular]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='many'>
+            <owner many='false' keyed='true'>
+              /types[Regular]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[bool]
+            </type>
+          </Field>
+          <Field name='sep' optional='true' traversal='true'>
+            <owner many='false' keyed='true'>
+              /types[Regular]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='NoSpace'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+      </Class>
+      <Class name='Break'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+      </Class>
+      <Class name='Epsilon'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+      </Class>
+      <Class name='Key'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[Const] /types[Path] /types[It] /types[Var]
+        </subclasses>
+      </Class>
+      <Class name='It'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Key]
+        </supers>
+      </Class>
+      <Class name='Path'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Key]
+        </supers>
+        <subclasses many='true' keyed='true'>
+          /types[Anchor] /types[Sub]
+        </subclasses>
+      </Class>
+      <Class name='Let'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='arg'>
+            <owner many='false' keyed='true'>
+              /types[Let]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Pattern]
+            </type>
+          </Field>
+          <Field name='binding'>
+            <owner many='false' keyed='true'>
+              /types[Let]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Binding]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Var'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Key]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='name'>
+            <owner many='false' keyed='true'>
+              /types[Var]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[str]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Binding'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <defined_fields many='true' keyed='true'>
+          <Field name='target'>
+            <owner many='false' keyed='true'>
+              /types[Binding]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Path]
+            </type>
+          </Field>
+          <Field name='value'>
+            <owner many='false' keyed='true'>
+              /types[Binding]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[Path]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Expr'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[ETernOp] /types[EBinOp] /types[EUnOp] /types[EFunCall]
+          /types[EField] /types[EVar] /types[ESubscript] /types[EList]
+          /types[EAddress] /types[ENew] /types[EConst]
+        </subclasses>
       </Class>
     </types>
   </Schema>

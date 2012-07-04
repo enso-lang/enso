@@ -1,2 +1,21 @@
-#ruby
-union(load('expr.grammar'), load('controller_base.grammar'))
+import expr.grammar
+
+start Controller
+
+Controller ::= [Controller] "start" initial:</states[it]> globals:Assign* states:State* constraints:Constraint*
+State ::= [State] "state" name:sym ":" transitions:Transition* commands:Action*
+
+Action ::= Assign | TurnSplitter
+Assign ::= [Assign] var:Expr "=" val:Expr
+         | [Assign] "raise" var:Expr "by" val:Expr { val == val.factory.EBinOp("+", var, val) }
+         | [Assign] "lower" var:Expr "by" val:Expr { val == val.factory.EBinOp("-", var, val) }
+TurnSplitter ::= [TurnSplitter] "turn splitter" splitter:sym (
+                    "left"   {percent == 0} |
+                    "center" {percent == 0.5} |
+                    "right"  {percent == 1} )
+
+Transition ::= [Transition] "if" guard:Expr "goto" target:</states[it]>
+
+Constraint ::= [Constraint] "test" cond:Expr "do" action:Action
+
+abstract Expr

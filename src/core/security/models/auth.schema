@@ -1,2 +1,38 @@
-#ruby
-union(load('auth-base.schema'), load('expr.schema'))
+import expr.schema
+
+primitive int
+primitive str
+primitive bool
+
+class Authentication
+  rules!Rule*
+  allowrules:Rule* = rules.select() { |r| return r.schema_class.name=="AllowRule" }
+  denyrules:Rule* = rules.select() { |r| return r.schema_class.name=="DenyRule" }
+
+class Rule
+  strength:int
+  action!Action
+  cond!Expr?
+
+class AllowRule < Rule
+
+class DenyRule < Rule
+  msg:str?
+
+class Action
+  op!Operation+
+  obj:str
+  type:str
+  fields!Field*
+  allfields:bool
+
+class Field
+  name:str
+
+class Operation 
+class OpCreate < Operation 
+class OpRead   < Operation 
+class OpUpdate < Operation 
+class OpDelete < Operation 
+
+class Expr 

@@ -59,7 +59,7 @@ module Loading
     def _load(name, type)
       #first check if cached XML version is still valid
       if CacheXML::check_dep(name)
-        #$stderr << "## fetching #{name}...\n"
+        $stderr << "## fetching #{name}...\n"
         CacheXML::from_xml(name)
       else
         model, type = name.split(/\./) if type.nil?
@@ -73,6 +73,7 @@ module Loading
         end
         res = load_with_models(name, g, s)
         #dump it back to xml
+        $stderr << "## caching #{name}...\n"
         CacheXML::to_xml(name, res)
         res
       end
@@ -110,7 +111,7 @@ module Loading
       model, type = name.split(/\./) if type.nil?
       res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
       patch_schema_pointers(res, load("#{type}.schema"))
-      $stderr << "## re-caching #{name}...\n"
+      $stderr << "## caching #{name}...\n"
       CacheXML::to_xml(name, res)
       res
     end
@@ -139,6 +140,8 @@ module Loading
         if schema.nil? then
           # this means we are loading schema_schema.xml for the first time.
           result = Boot::load_path(path)
+          result.factory.file_path[0] = path
+          #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
           name = path.split("/")[-1][0..-5]
           name[name.rindex("_")] = '.'
@@ -148,21 +151,25 @@ module Loading
         begin
           header = File.open(path, &:readline)
         rescue EOFError => err
-          puts "Unable to load file #{path}"
+          puts "Unable to open file #{path}"
           raise err
         end
         if header =~ /#ruby/
           $stderr << "## building #{path}...\n"
-          result = instance_eval(File.read(path))
+          str = File.read(path)
+          result = instance_eval(str)
+          result.factory.file_path[0] = path
+          a = str.split("\"").map{|x|x.split("\'")}.flatten
+          fnames = a.values_at(* a.each_index.select {|i| i.odd?})
+          fnames.each {|fn| result.factory.file_path << fn}
         else
           $stderr << "## loading #{path}...\n"
           result = Parse.load_file(path, grammar, schema, encoding)
         end
       end
-      result.factory.file_path = path
       return result
     end
-    
+
     def find_model(name) 
       if File.exists?(name)
         yield name
