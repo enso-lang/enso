@@ -58,7 +58,11 @@ class HashEnv
     end
   end
   def []=(key, value)
-    @hash[key] = value
+    if @parent and @parent.has_key? key
+      @parent[key] = value
+    else
+      @hash[key] = value
+    end
   end
   def each(&block)
     @hash.each &block

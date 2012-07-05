@@ -19,7 +19,7 @@ module Boot
     ss0 = make_class(doc.root.elements.to_a[-1], nil)
     Copy(ManagedData::Factory.new(ss0), ss0)
   end
-  
+
   class MObject; end
 
   class Schema < MObject
@@ -86,7 +86,7 @@ module Boot
 
   class MObject
     attr_reader :this, :_id
-    begin; undef_method :lambda; rescue; end
+    begin; undef_method :lambda, :methods; rescue; end
     @@_id = 0
     def initialize(this, root)
       @_id = @@_id = @@_id+1
