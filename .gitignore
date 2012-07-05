@@ -30,6 +30,9 @@ doc/papers/grammar/ensogrammars.log
 doc/papers/grammar/ensogrammars.pdf
 doc/papers/grammar/ensogrammars.synctex.gz
 
+# Cache
+src/core/system/load/cache/*
+
 # -NEWs
 *-NEW
 
