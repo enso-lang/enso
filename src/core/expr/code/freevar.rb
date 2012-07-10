@@ -14,11 +14,7 @@ module FreeVarExpr
   include LValueExpr
 
   def depends_EField(e, fname, args={})
-    [*depends(e, args)] + begin
-      [Address.new(ObjEnv.new(self.eval(e, args)), fname)]
-    rescue
-      []
-    end
+    [*depends(e, args)] #+ 
   end
 
   def depends_EVar(name, args={})
@@ -36,7 +32,7 @@ module FreeVarExpr
     type.fields.each do |f|
       next if !f.traversal or f.type.Primitive?
       next if f.optional and fields[f.name].nil?
-      if !f.many
+      if !f.many and !f.type.Primitive?
         res += depends(fields[f.name], args)
       else
         fields[f.name].each {|o| res += depends(o, args)}

@@ -37,11 +37,11 @@ module CacheXML
     end
   end
   
-  def self.clean_cache(name=nil)
+  def self.clean(name=nil)
     if name.nil?  #clean everything
-      File.delete("#{cache_path}*")
+      File.delete("#{cache_path}*") if File.exists?("#{cache_path}*") 
     else
-      File.delete(find_xml(name))
+      File.delete(find_xml(name)) if File.exists?(find_xml(name))
     end
   end
   

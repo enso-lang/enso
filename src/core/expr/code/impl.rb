@@ -34,7 +34,7 @@ module EvalCommand
     end
 
     def to_s()
-      "#<Closure @body=#{@body} @formals=#{@formals.map{|f|f.name}} @env=#{@env}>"
+      "#<lambda(#{@formals.map{|f|f.name}.join ", "})=#{@body}>"
     end
   end
 

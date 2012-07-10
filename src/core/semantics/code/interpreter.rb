@@ -5,6 +5,11 @@ Base interpreter container. Operations must be rolled in before it is used
 require 'core/system/library/schema'
 
 class Interpreter
+  def extend(mod)
+    initialize
+    super
+  end
+
   module Dispatch
     def method_missing(method_sym, *arguments, &block)
       obj = arguments[0]
@@ -17,12 +22,13 @@ class Interpreter
       args[:self] = obj
 
       fields = Hash[obj.schema_class.all_fields.map{|f|[f.name,obj[f.name]]}]
-      __call(method_sym, fields, obj.schema_class, args)
+      __call(method_sym, fields, obj.schema_class, args, &block)
     end
 
     private
 
-    def __call(method_sym, fields, type, args)
+    def __call(method_sym, fields, type, args, &block)
+      this = args[:self]
       begin
         m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
         if !m.nil?
@@ -30,17 +36,23 @@ class Interpreter
           m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
             params << fields[f]
           end
-          m.call(*params, args)
+          m.call(*params, args, &block)
   
         elsif respond_to?("#{method_sym}_?")
           m = method("#{method_sym}_?".to_sym)
-          m.call(fields, type, args)
+          m.call(fields, type, args, &block)
   
         else
           raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
         end
-      rescue Exception => e 
-        raise e.class, "Interpreter: error #{e.message}\n\tin #{method_sym}(#{fields}) for #{type.name}"
+      rescue Exception => e
+        unless method_sym==:execute
+          args2 = args.clone
+          args2.delete(:self)
+          puts  "\tin #{this}.#{method_sym}(#{args2})"
+        end
+        #raise e.class, "\tin #{args[:self]}.#{method_sym}(#{args})"
+        raise e
       end
     end
   end

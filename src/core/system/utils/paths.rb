@@ -27,6 +27,10 @@ module Paths
     def initialize(elts = [])
       @elts = elts
     end
+    
+    def ==(other)
+      to_s == other.to_s
+    end
 
     def reset!
       @elts = []
