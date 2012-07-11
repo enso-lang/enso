@@ -21,12 +21,11 @@ Coding convention
 
 module ManagedData
   class Factory
-    attr_reader :schema, :interp
+    attr_reader :schema
 
-    def initialize(schema, interp=Interpreter(FactorySchema))
+    def initialize(schema)
       @schema = schema
       @roots = []
-      @interp = interp
       __constructor(schema.types)
       @file_path = []
     end
@@ -52,7 +51,7 @@ module ManagedData
     def __constructor(klasses)
       klasses.each do |klass|
         define_singleton_method(klass.name) do |*args|
-          @interp.Make(klass, :args=>args, :factory=>self)
+          MObject.new(klass, self, *args)
         end
       end
     end
@@ -72,7 +71,6 @@ module ManagedData
       @_id = @@_id += 1
       @schema_class = klass
       @factory = factory
-      @interp = factory.interp
       @hash = {}
       @listeners = {}
       @memo = {}
@@ -204,7 +202,19 @@ module ManagedData
 
     def __setup(fields)
       fields.each do |fld|
-        __set(fld.name, @interp.Make(fld, :class=>self))
+        klass = self
+        f = if fld.computed then
+          :computed
+        elsif fld.type.Primitive? then
+          ManagedData::Prim.new(klass, fld)
+        elsif !fld.many then
+          ManagedData::Ref.new(klass, fld)
+        elsif key = ClassKey(fld.type) then
+          ManagedData::Set.new(klass, fld, key)
+        else
+          ManagedData::List.new(klass, fld)
+        end
+        __set(fld.name, f)
       end
     end
 
@@ -234,7 +244,7 @@ module ManagedData
             next if fv.object.nil?  #should always be non-nil since computed fields have no external env
             fv.object.add_listener(fv.index) { @memo[name]=nil }
           end
-          @memo[name] = @interp.eval(exp, :env=>ObjEnv.new(self))
+          @memo[name] = Interpreter(EvalCommand).eval(exp, :env=>ObjEnv.new(self))
         end
         @memo[name]
       end
@@ -581,25 +591,25 @@ module ManagedData
   end
 end
 
-
+=begin
 module FactorySchema
   include ManagedData
   include EvalCommand
 
   def Make_Schema(args=nil)
-    Factory.new(args[:self], self)
+    Factory.new(@obj, self)
   end
 
   def Make_Class(args=nil)
-    MObject.new(args[:self], args[:factory], *args[:args])
+    MObject.new(@obj, args[:factory], *args[:args])
   end
 
   def Make_Field(computed, many, type, args=nil)
-    fld = args[:self]
+    fld = @obj
     klass = args[:class]
     if computed then
       :computed
-    elsif type.Primitive? then
+    elsif type.Make.Primitive? then
       ManagedData::Prim.new(klass, fld)
     elsif !many then
       ManagedData::Ref.new(klass, fld)
@@ -610,7 +620,7 @@ module FactorySchema
     end
   end
 end
-
+=end
 
 
 
