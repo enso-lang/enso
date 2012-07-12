@@ -5,69 +5,88 @@ Base interpreter container. Operations must be rolled in before it is used
 require 'core/system/library/schema'
 
 class Interpreter
-  def extend(mod)
-    initialize
-    super
-  end
+  def initialize(*mods)
+    @all_interps = {}    #Note that this is a generic hashtable, so keys may be anything from 
+                         # MObjects to Lists & Sets to even primitives
 
-  module Dispatch
-    def method_missing(method_sym, *arguments, &block)
-      obj = arguments[0]
-      raise "Interpreter: obj is nil for method #{method_sym}" if obj.nil?
-      #raise "Interpreter: invalid obj #{obj} for method #{method_sym}" if !obj.is_a? ManagedData::MObject
-      args = arguments[1]
-      raise "Interpreter: args is not a hash in #{obj}.#{method_sym}" if args and !args.is_a? Hash
-
-      args ||= {}
-      args[:self] = obj
-
-      fields = Hash[obj.schema_class.all_fields.map{|f|[f.name,obj[f.name]]}]
-      __call(method_sym, fields, obj.schema_class, args, &block)
-    end
-
-    private
-
-    def __call(method_sym, fields, type, args, &block)
-      this = args[:self]
-      begin
-        m = Lookup(type) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
-        if !m.nil?
-          params = []
-          m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}.each do |f|
-            params << fields[f]
-          end
-          m.call(*params, args, &block)
-  
-        elsif respond_to?("#{method_sym}_?")
-          m = method("#{method_sym}_?".to_sym)
-          m.call(fields, type, args, &block)
-  
-        else
-          raise "Interpreter: Unable to resolve method #{method_sym} for #{type}"
-        end
-      rescue Exception => e
-        unless method_sym==:execute
-          args2 = args.clone
-          args2.delete(:self)
-          puts  "\tin #{this}.#{method_sym}(#{args2})"
-        end
-        #raise e.class, "\tin #{args[:self]}.#{method_sym}(#{args})"
-        raise e
+    method_syms = mods.map{|m|Interpreter.methods_from_mod(m)}.flatten.uniq #2nd uniq because two mods can def same method
+    method_syms.each do |method_sym|
+      define_singleton_method(method_sym) do |obj, *args|
+        get_interp(obj, mods).send(method_sym, *args)
       end
     end
   end
+  
+  def get_interp(obj, mods, field=nil)
+    return @all_interps[obj] if @all_interps.has_key? obj
+    @all_interps[obj] = make_interp(obj, mods, field)
+  end
+  
+  def make_interp(obj, mods, field=nil)
+    return nil if obj.nil?
+    return Interp.new(obj, self, mods) if field.nil?
+    if !field.many
+      if field.type.Primitive?
+        obj
+      else
+        Interp.new(obj, self, mods)
+      end
+    else
+      if IsKeyed?(field.type); newl = {}
+      else; newl = []; end
+      obj.each {|val| newl << make_interp(val, mods)}
+      newl
+    end
+  end
 
-  include Dispatch
-
-  def compose!(*mods)
-    mods.each {|mod| instance_eval {extend(mod)}}
-    initialize
-    self
+  def self.methods_from_mod(mod)
+    mod.instance_methods.select{|m|m.to_s.include? "_"}.map{|m|m.to_s.split("_")[0]}.uniq
   end
 end
 
+class Interp
+  #TODO: Undef some methods here, but make sure not to undef the later defined ones
+  #ie DON'T use "undef"
+  #begin; undef_method :lambda, :methods; rescue; end
+
+  def initialize(obj, interpreter, mods=[])
+    @obj=obj
+    @interpreter=interpreter
+    @mods=mods
+
+    mods.each {|mod| instance_eval {extend(mod)}}
+    method_syms = @mods.map{|m|Interpreter.methods_from_mod(m)}.flatten.uniq #2nd uniq because two mods can def same method
+    method_syms.each do |method_sym|
+      m = Lookup(@obj.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
+      if !m.nil?
+        param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+
+        define_singleton_method(method_sym) do |args={}, &block|
+          params = param_names.map{|p|@interpreter.get_interp(@obj[p], @mods, @obj.schema_class.fields[p])}
+          m.call(*params, args, &block)
+        end
+      elsif respond_to?("#{method_sym}_?")
+        m = method("#{method_sym}_?".to_sym) 
+        param_names = @obj.schema_class.all_fields.map{|f|f.name}
+
+        define_singleton_method(method_sym) do |args={}, &block|
+          params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@obj[p], @mods, @obj.schema_class.fields[p])]}.flatten(1)]
+          m.call(@obj.schema_class, params, args, &block)
+        end
+      else
+        define_singleton_method(method_sym) do |*args|
+          @obj 
+        end
+      end
+    end
+  end
+  
+  def to_s; "Interp(#{@obj})"; end
+  def to_ary; end
+end
+
 def Interpreter(*mods)
-  Interpreter.new.compose!(*mods)
+  Interpreter.new(*mods)
 end
 
 # easier to work with args

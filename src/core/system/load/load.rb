@@ -110,13 +110,18 @@ module Loading
       return @cache[name] if CacheXML::check_dep(name)
       model, type = name.split(/\./) if type.nil?
       res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-      patch_schema_pointers(res, load("#{type}.schema"))
+      patch_schema_pointers!(res, load("#{type}.schema"))
       $stderr << "## caching #{name}...\n"
       CacheXML::to_xml(name, res)
       res
     end
 
-    def patch_schema_pointers(obj, schema)
+    #Note: patch_schema_pointers! does not erase all traces of old schema class
+    #  depending on how they were used previously
+    #  Eg. computed field methods created by the factory will still point back
+    #  to the expression from the old schema class because the method was already
+    #  defined before getting to this point
+    def patch_schema_pointers!(obj, schema)
       all_classes = []
       map(obj) do |o|
         all_classes << o;

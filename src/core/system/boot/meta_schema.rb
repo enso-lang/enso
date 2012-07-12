@@ -1,5 +1,6 @@
 
 require 'core/system/utils/paths'
+require 'core/schema/code/factory'
 
 =begin
 Meta schema that is able to load any XML file into memory as read-only pseudo-MObjects
@@ -174,7 +175,9 @@ module Boot
       @keyed = attrs[:keyed]
     end
     def method_missing(sym)
-      at(0).send(sym) unless @many
+      raise NoMethodError, "undefined method `#{sym}' for []:Array" if @many
+      raise NoMethodError, "undefined method `#{sym}' for nil:NilClass" if length==0 
+      at(0).send(sym)
     end
     def [](key)
       if !@many 

@@ -29,19 +29,19 @@ module EvalCommand
         nenv[f.name] = v
       end
       nenv.set_parent(@env)
-      res = @interp.eval(@body, @args+{:env=>nenv})
+      res = @body.eval(@args.merge({:env=>nenv}))
       res
     end
 
     def to_s()
-      "#<lambda(#{@formals.map{|f|f.name}.join ", "})=#{@body}>"
+      "#<Closure @body=#{@body} @formals=#{@formals} @env=#{@env}>"
     end
   end
 
   def eval_EWhile(cond, body, args={})
     res = nil
-    while self.eval(cond, args)
-      res = self.eval(body, args)
+    while cond.eval(args)
+      res = body.eval(args)
     end
     res
   end
@@ -49,15 +49,15 @@ module EvalCommand
   def eval_EFor(var, list, body, args={})
     list.each do |val|
       nenv = args[:env].merge({var=>val})
-      self.eval(body, args.merge({:env=>nenv}))
+      body.eval(args.merge({:env=>nenv}))
     end
   end
 
   def eval_EIf(cond, body, body2, args={})
-    if self.eval(cond, args)
-      self.eval(body, args)
+    if cond.eval(args)
+      body.eval(args)
     elsif !body2.nil?
-      self.eval(body2, args)
+      body2.eval(args)
     end
   end
 
@@ -67,35 +67,34 @@ module EvalCommand
   def eval_EBlock(body, args={})
     res = nil
     body.each do |c|
-      res = self.eval(c, args)
+      res = c.eval(args)
     end
     res
   end
   
   def eval_EFunDef(name, formals, body, args={})
-    res = Closure.new(body, formals, args[:env], self, args)
+    res = Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args)
     res.env[name] = res #hack to enable self-recursion
     args[:env][name] = res
     res
   end
   
   def eval_ELambda(body, formals, args={})
-    Proc.new { |*p| Closure.new(body, formals, args[:env], self, args).call(*p) }
+    Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args).call(*p) }
   end
 
   def eval_EFunCall(fun, params, lambda, args={})
     nargs = args.clone
     nargs[:in_fc]=true
     if lambda.nil?
-      self.eval(fun, nargs).call(*(params.map{|p|self.eval(p, args)}))
+      fun.eval(nargs).call(*(params.map{|p|p.eval(args)}))
     else
-      p = self.eval(lambda, args)
-      self.eval(fun, nargs).call(*(params.map{|p|self.eval(p, args)}), &p) 
+      p = lambda.eval(args)
+      fun.eval(nargs).call(*(params.map{|p|p.eval(args)}), &p) 
     end
   end
 
   def eval_EAssign(var, val, args={})
-    lvalue(var, args).value = self.eval(val, args)
+    var.lvalue(args).value = val.eval(args)
   end
 end
-

@@ -1,9 +1,0 @@
-start Rules
-
-Rules ::= [Rules] rules:Rule*
-
-Rule ::= [Rule] "rule" name:sym ":" obj:Object action:Action ("if" cond:Expr)?
-
-abstract Object
-abstract Action
-abstract Expr

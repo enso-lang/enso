@@ -14,7 +14,7 @@ module FreeVarExpr
   include LValueExpr
 
   def depends_EField(e, fname, args={})
-    [*depends(e, args)] #+ 
+    [*e.depends(args)] 
   end
 
   def depends_EVar(name, args={})
@@ -23,19 +23,23 @@ module FreeVarExpr
 
   def depends_ELambda(body, formals, args={})
     bound = args[:bound].clone
-    formals.each{|f|bound<<f.name}
-    depends(body, args+{:bound=>bound})
+    formals.each{|f|bound<<f.depends}
+    body.depends(args+{:bound=>bound})
+  end
+  
+  def depends_Formal(name, args={})
+    name
   end
 
-  def depends_?(fields, type, args={})
+  def depends_?(type, fields, args={})
     res = []
     type.fields.each do |f|
       next if !f.traversal or f.type.Primitive?
       next if f.optional and fields[f.name].nil?
       if !f.many and !f.type.Primitive?
-        res += depends(fields[f.name], args)
+        res += fields[f.name].depends(args)
       else
-        fields[f.name].each {|o| res += depends(o, args)}
+        fields[f.name].each {|o| res += o.depends(args)}
       end
     end
     res

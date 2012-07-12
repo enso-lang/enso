@@ -50,14 +50,14 @@ module LValueExpr
   end
 
   def lvalue_EField(e, fname, args=nil)
-    Address.new(ObjEnv.new(self.eval(e, args)), fname)
+    Address.new(ObjEnv.new(e.eval(args)), fname)
   end
 
   def lvalue_EVar(name, args=nil)
     Address.new(args[:env], name)
   end
 
-  def lvalue_?(fields, type, args={})
+  def lvalue_?(type, fields, args={})
     nil
   end
 end
