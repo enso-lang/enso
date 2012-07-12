@@ -9,8 +9,6 @@ require 'core/schema/tools/rename'
 require 'core/schema/tools/loadxml'
 require 'core/system/load/cache'
 
-require 'core/feature/code/load'
-
 require 'rexml/document'
 
 class String
@@ -62,35 +60,20 @@ module Loading
         $stderr << "## fetching #{name}...\n"
         CacheXML::from_xml(name)
       else
-        model, type = name.split(/\./) if type.nil?
+        filename = name.split(/\//)[-1]
+        model, type = filename.split(/\./) if type.nil?
         g = load("#{type}.grammar")
         s = load("#{type}.schema")
-        if g.nil? or s.nil?
-          f = load("#{type}.feature")
-          Interpreter(BuildFeature).build(f) unless f.nil?
-          g = load("#{type}.grammar")
-          s = load("#{type}.schema")
-        end
         res = load_with_models(name, g, s)
         #dump it back to xml
         $stderr << "## caching #{name}...\n"
-        CacheXML::to_xml(name, res)
+        CacheXML::to_xml(filename, res)
         res
-      end
-    end
-
-    def build_feature(feature)
-      @feature = @feature || {}
-      if not @feature.has_key? feature
-        f = load(feature)
-        @feature[feature] = f
-        Interpreter(BuildFeature).build(f) unless f.nil?
       end
     end
 
     def setup
       @cache = {}
-      @feature = {}
       $stderr << "Initializing...\n"
       
       #check if XML is not out of date then just use it

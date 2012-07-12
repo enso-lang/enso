@@ -8,33 +8,33 @@ class Interpreter
   def initialize(*mods)
     @all_interps = {}    #Note that this is a generic hashtable, so keys may be anything from 
                          # MObjects to Lists & Sets to even primitives
-
+    @mods = mods
     method_syms = mods.map{|m|Interpreter.methods_from_mod(m)}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
       define_singleton_method(method_sym) do |obj, *args|
-        get_interp(obj, mods).send(method_sym, *args)
+        get_interp(obj).send(method_sym, *args)
       end
     end
   end
   
-  def get_interp(obj, mods, field=nil)
+  def get_interp(obj, field=nil)
     return @all_interps[obj] if @all_interps.has_key? obj
-    @all_interps[obj] = make_interp(obj, mods, field)
+    @all_interps[obj] = make_interp(obj, field)
   end
   
-  def make_interp(obj, mods, field=nil)
+  def make_interp(obj, field=nil)
     return nil if obj.nil?
-    return Interp.new(obj, self, mods) if field.nil?
+    return Interp.new(obj, self, @mods) if field.nil?
     if !field.many
       if field.type.Primitive?
         obj
       else
-        Interp.new(obj, self, mods)
+        Interp.new(obj, self, @mods)
       end
     else
       if IsKeyed?(field.type); newl = {}
       else; newl = []; end
-      obj.each {|val| newl << make_interp(val, mods)}
+      obj.each {|val| newl << make_interp(val)}
       newl
     end
   end
@@ -62,7 +62,7 @@ class Interp
         param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
 
         define_singleton_method(method_sym) do |args={}, &block|
-          params = param_names.map{|p|@interpreter.get_interp(@obj[p], @mods, @obj.schema_class.fields[p])}
+          params = param_names.map{|p|@interpreter.get_interp(@obj[p], @obj.schema_class.fields[p])}
           m.call(*params, args, &block)
         end
       elsif respond_to?("#{method_sym}_?")
@@ -70,17 +70,34 @@ class Interp
         param_names = @obj.schema_class.all_fields.map{|f|f.name}
 
         define_singleton_method(method_sym) do |args={}, &block|
-          params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@obj[p], @mods, @obj.schema_class.fields[p])]}.flatten(1)]
+          params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@obj[p], @obj.schema_class.fields[p])]}.flatten(1)]
           m.call(@obj.schema_class, params, args, &block)
         end
       else
-        define_singleton_method(method_sym) do |*args|
-          @obj 
-        end
+        #$stderr << "Cannot find method #{method_sym} for #{@obj}\n"
+        #define_singleton_method(method_sym) do |*args| #this is necessary because method_missing is not 
+                                                       #called for methods inherited from Object, eg 'eval'  
+        #  self[method_sym]
+        #end
       end
     end
   end
   
+  def method_missing(method_sym, *args)
+    if @obj.schema_class.fields.map{|f|f.name}.include?(method_sym.to_s)
+      self[method_sym]
+    else 
+      super
+    end
+  end
+  
+  def [](key=nil)
+    return @obj if key.nil?
+    if field = @obj.schema_class.fields[key.to_s]
+      @interpreter.get_interp(@obj[key.to_s], field)
+    end
+  end
+
   def to_s; "Interp(#{@obj})"; end
   def to_ary; end
 end

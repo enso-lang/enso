@@ -2,15 +2,15 @@
 module RenderExpr
 
   def render_EBinOp(op, e1, e2, args=nil)
-    "#{self.render(e1, args)} #{op} #{self.render(e2, args)}"
+    "#{e1.render(args)} #{op} #{e2.render(args)}"
   end
 
   def render_EUnOp(op, e, args=nil)
-    "#{op} #{self.eval(e, args).inspect}"
+    "#{op} #{e.eval(args).inspect}"
   end
 
   def render_EField(e, fname, args=nil)
-    "#{self.render(e, args)}.#{fname}"
+    "#{e.render(args)}.#{fname}"
   end
 
   def render_EVar(name, args=nil)

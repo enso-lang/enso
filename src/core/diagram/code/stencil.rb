@@ -569,7 +569,7 @@ class StencilFrame < DiagramFrame
   #### expressions
 
   def eval(exp, env, dynamic = false)
-    @eval = Interpreter(EvalExpr, EvalStencil) if @eval.nil?
+    @eval = Interpreter(EvalStencil) if @eval.nil?
     @eval.eval(exp, :env=>env, :dynamic=>dynamic, :factory=>@factory)
   end
 

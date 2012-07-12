@@ -5,45 +5,46 @@ module ExecuteController
 
   def init_Controller(globals, args=nil)
     globals.each do |g|
-      if g.var.EVar?
-        s = self
-        l = LambdaEnv.new(g.var.name) {s.eval(g.val, args)}
+      if g.var.isEVar
+        l = LambdaEnv.new(g.var.name) {g.val.eval(args)}
         args[:env].set_grandparent(l)
       else
-        self.eval(g, args)
+        g.eval(args)
       end
     end
   end
+  def isEVar_EVar(args=nil); true; end
+  def isEVar_?(type, fields, args=nil); false; end
 
   def execute_Controller(constraints, current, args=nil)
-    execute(current, args)
+    current.execute(args)
     constraints.each do |c|
-      execute(c, args)
+      c.execute(args)
     end
   end
 
   def execute_Constraint(cond, action, args=nil)
-    if self.eval(cond, args)
-      self.eval(action, args)
+    if cond.eval(args)
+      action.eval(args)
     end
   end
 
   def execute_State(commands, transitions, args=nil)
     #test conditions BEFORE executing current state!!!
     moved = transitions.detect do |trans|
-      execute(trans, args)
+      trans.execute(args)
     end
     if !moved
       args1 = args.set(:env) {|env| e=HashEnv.new; e.set_parent(env); e}
       commands.each do |c|
-        self.eval(c, args1)
+        c.eval(args1)
       end
     end
   end
 
   def execute_Transition(guard, target, args=nil)
-    if self.eval(guard, args)
-      args[:control].current = target
+    if guard.eval(args)
+      args[:control].current = target[]
       true
     else
       false
@@ -51,7 +52,7 @@ module ExecuteController
   end
 
   def eval_Assign(var, val, args=nil)
-    lvalue(var, args).value = self.eval(val, args)
+    var.lvalue(args).value = val.eval(args)
   end
 
   def eval_TurnSplitter(splitter, percent, args=nil)

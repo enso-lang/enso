@@ -5,6 +5,8 @@ require 'core/grammar/render/layout'
 
 require 'core/semantics/code/dispatch'
 
+require '../experimental/peval/interpreter3'
+
 =begin
 NOTES:
 - How to send commands from controller?
@@ -266,7 +268,7 @@ class Simulator
   def initialize(piping)
     @piping = piping
     #do initialization here by setting the default states of the pipes, etc
-    Interpreter(Map, Init).Init(@piping)
+    Interpreter3(Map, Init).Init(@piping)
   end
 
   #will run continuously
@@ -282,7 +284,7 @@ class Simulator
     pumps = @piping.elements.select {|o| o.Pump? }.values
     valves = @piping.elements.select {|o| o.Splitter? or o.Valve? }.values
     if !pumps.empty?
-      @interp = Interpreter(WorkList, CalcPressure)
+      @interp = Interpreter3(WorkList, CalcPressure)
       @interp.worklist = pumps+valves
       @interp.CalcPressure
       p = pumps[0].output

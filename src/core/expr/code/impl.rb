@@ -34,7 +34,7 @@ module EvalCommand
     end
 
     def to_s()
-      "#<Closure @body=#{@body} @formals=#{@formals} @env=#{@env}>"
+      "#<Closure(#{@formals}) {#{@body}}>"
     end
   end
 
@@ -81,6 +81,10 @@ module EvalCommand
   
   def eval_ELambda(body, formals, args={})
     Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args).call(*p) }
+  end
+  
+  def eval_Formal(args={})
+    @obj
   end
 
   def eval_EFunCall(fun, params, lambda, args={})
