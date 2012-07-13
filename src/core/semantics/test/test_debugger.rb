@@ -13,9 +13,5 @@ Loader.find_model('fibo.impl') {|path| $file = IO.readlines(path)}
 # DebugMod is parameterized by the interpreter (ie EvalCommand),
 interp = Interpreter(Debug.wrap(EvalCommand))
 
-#specify breakpoints using paths
-#breakpt1 = fib.body[0].body.body[0].cond._path
-#interp._add_breakpoint(breakpt1)
-
 #run it!
 puts interp.eval(fib, :env=>{'f'=>10})

@@ -1,4 +1,6 @@
 module EvalExpr
+  
+  operation :eval
 
   def eval_ETernOp(op1, op2, e1, e2, e3, args=nil)
     e1.eval(args) ? e2.eval(args) : e3.eval(args)

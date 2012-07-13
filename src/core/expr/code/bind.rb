@@ -1,4 +1,6 @@
 module BindExpr
+  
+  operation :bind
 
   def bind_EVar(name, args=nil)
     env = args[:env]

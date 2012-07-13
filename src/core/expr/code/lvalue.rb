@@ -2,6 +2,8 @@ require 'core/expr/code/eval'
 
 module LValueExpr
   include EvalExpr
+  
+  operation :lvalue
 
   # An address class that simulates l-values (since Ruby does not have them)
   # Only two types of l-values are allowed: fields of schema objects and variables in the environment

@@ -1,5 +1,7 @@
 
 module RenderExpr
+  
+  operation :render
 
   def render_EBinOp(op, e1, e2, args=nil)
     "#{e1.render(args)} #{op} #{e2.render(args)}"

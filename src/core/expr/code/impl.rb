@@ -4,6 +4,8 @@ require 'core/expr/code/lvalue'
 module EvalCommand
 
   include EvalExpr, LValueExpr
+  
+  operation :eval
 
   #note that the closure stores variable states only,
   #not interpreter state
@@ -34,7 +36,7 @@ module EvalCommand
     end
 
     def to_s()
-      "#<Closure(#{@formals}) {#{@body}}>"
+      "#<Closure(#{@formals.map{|f|f.name}.join(", ")}) {#{@body}}>"
     end
   end
 
@@ -84,7 +86,7 @@ module EvalCommand
   end
   
   def eval_Formal(args={})
-    @obj
+    @this
   end
 
   def eval_EFunCall(fun, params, lambda, args={})

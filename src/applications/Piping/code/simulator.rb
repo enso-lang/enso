@@ -2,10 +2,10 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
+require 'core/semantics/interpreters/fmap'
 
 require 'core/semantics/code/dispatch'
-
-require '../experimental/peval/interpreter3'
+require 'core/semantics/code/interpreter_old'
 
 =begin
 NOTES:
@@ -222,8 +222,10 @@ end
 
 module Init
 
+  operation :Init
+
   def Init_Pipe(args=nil)
-    p = args[:self]
+    p = @this
     p.diameter = 0.1 if p.diameter == 0
     p.length = 10 if p.length == 0
     p.temperature = ROOM_TEMP
@@ -233,23 +235,19 @@ module Init
   end
 
   def Init_Radiator(args=nil)
-    args[:self].temperature = ROOM_TEMP
+    @this.temperature = ROOM_TEMP
   end
 
   def Init_Vessel(args=nil)
-    args[:self].temperature = ROOM_TEMP
-  end
-
-  def Init_Joint(inputs, args=nil)
-    inputs.each {|p| p.output = args[:self]}
+    @this.temperature = ROOM_TEMP
   end
 
   def Init_Sensor(args=nil)
-    args[:self].user = ROOM_TEMP
+    @this.user = ROOM_TEMP
   end
 
   def Init_?(fields, type, args=nil)
-    args[:self]
+    @this
   end
 
 end
@@ -268,7 +266,7 @@ class Simulator
   def initialize(piping)
     @piping = piping
     #do initialization here by setting the default states of the pipes, etc
-    Interpreter3(Map, Init).Init(@piping)
+    Interpreter(Fmap.control(Init)).Init(@piping)
   end
 
   #will run continuously

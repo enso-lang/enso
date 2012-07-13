@@ -1,10 +1,11 @@
 
 # Around advice that wraps one interpreter with another
 module Wrap
-  def wrap(mod, action=:execute)
+  def wrap(mod)
     newmod = self.clone
+    action = operations[0] 
     newmod.send(:include, mod)
-    mod.instance_methods.select{|m|m.to_s.include? "_"}.each do |sym|
+    mod.op_methods.each do |sym|
       m = mod.instance_method(sym)
 
       param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
@@ -19,9 +20,46 @@ end
 
 # Control module that specifies when a node is executed
 module Control
+  module Helper
+    @@workqueue = []
+    def prepend(obj)
+      @@workqueue.unshift(obj).uniq!
+    end
+    def append(obj)
+      (@@workqueue << obj).uniq!
+    end
+    def pop
+      nex = @@workqueue[0]
+      @@workqueue = @@workqueue[1..-1]
+      nex
+    end
+    def done?
+      @@workqueue.empty?
+    end
+    def queue
+      @@workqueue
+    end
+  end
+
   def control(mod)
     newmod = self.clone
-    newmod.
+    action = operations[0]
+    newmod.send(:include, Helper)
+    newmod.send(:include, mod)
+    mod.op_methods.each do |sym|
+      m = mod.instance_method(sym)
+      op = sym.to_s.split('_')[0]
+
+      param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+
+      newmod.send(:eval, "
+      define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
+        #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
+        unless done?
+          pop.send(:#{op}, args)
+        end
+      end")
+    end
     newmod
   end
 end
@@ -45,6 +83,7 @@ module Rename
     newmod.define_method(newname) do |args={}, &block|
       send(oldname, args, &block)
     end
+    newmod.eval("@operations << :#{newname}")
     newmod
   end
   def rename(oldname, newname)

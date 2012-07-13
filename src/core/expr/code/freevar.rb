@@ -12,6 +12,8 @@ module FreeVarExpr
 
   include EvalExpr
   include LValueExpr
+  
+  operation :depends
 
   def depends_EField(e, fname, args={})
     [*e.depends(args)] 

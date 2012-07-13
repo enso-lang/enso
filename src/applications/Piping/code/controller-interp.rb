@@ -2,6 +2,8 @@
 module ExecuteController
   include LValueExpr
   include EvalExpr
+  
+  operation :execute, :init, :isEVar
 
   def init_Controller(globals, args=nil)
     globals.each do |g|
