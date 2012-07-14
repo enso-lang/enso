@@ -11,7 +11,7 @@ module Wrap
       param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
       newmod.send(:eval, "
       define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
+        #{action}(args+{:op=>'#{sym}'}) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
       end")
     end
     newmod
@@ -22,6 +22,15 @@ end
 module Control
   module Helper
     @@workqueue = []
+    @@start = true
+    def start?
+      if @@start 
+        @@start=false
+        true 
+      else
+        false
+      end
+    end
     def prepend(obj)
       @@workqueue.unshift(obj).uniq!
     end
@@ -54,9 +63,13 @@ module Control
 
       newmod.send(:eval, "
       define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
-        unless done?
-          pop.send(:#{op}, args)
+        if start?
+          append(self)
+          until done?
+            pop.send(:#{op}, args)
+          end
+        else
+          #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
         end
       end")
     end

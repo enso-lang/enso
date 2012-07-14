@@ -7,7 +7,7 @@ module ExecuteController
 
   def init_Controller(globals, args=nil)
     globals.each do |g|
-      if g.var.isEVar
+      if g.var.isEVar(args)
         l = LambdaEnv.new(g.var.name) {g.val.eval(args)}
         args[:env].set_grandparent(l)
       else
