@@ -19,7 +19,6 @@ module Debug
         sample = @@file.nil? ? "-source file not available-" : @@file[line][this._origin.start_column..(this._origin.start_line==this._origin.end_line ? this._origin.end_column : -2)]
         vars = @@watchlist.select{|v|args[v.to_sym]}.map{|v|"#{v}=#{args[v.to_sym]}"}.join(", ")
         $stderr << "\n\nin L#{level}. #{this}:\"#{sample[0..30]}\"  #{args[:op]}(#{vars})\n"
-             #TODO: ".eval" is wrong
              #TODO: change this to a customizable debug message?
         $stderr << "--------------------------------------------\n"
         if @@file.nil?
@@ -84,8 +83,8 @@ module Debug
 
   #Constants and variables will be dispatched here and summarily ignored
   #(because they are too low-level)
-  def debug_EConst(args={}); yield; end
-  def debug_EVar(args={}); yield; end
+#  def debug_EConst(args={}); yield; end
+#  def debug_EVar(args={}); yield; end
 
   def __init
     super

@@ -21,8 +21,6 @@ end
 # Control module that specifies when a node is executed
 module Control
   module Helper
-    @@workqueue = []
-    @@start = true
     def start?
       if @@start 
         @@start=false
@@ -47,6 +45,10 @@ module Control
     end
     def queue
       @@workqueue
+    end
+    def __init
+      @@workqueue = []
+      @@start = true
     end
   end
 
