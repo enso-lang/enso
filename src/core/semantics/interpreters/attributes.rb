@@ -8,7 +8,7 @@ module AttrGrammar
   
   operation :attr
   
-  attr_accessor :clean
+  attr_accessor :clean, :onstack
 
   def attr_?(type, fields, args={})
     
@@ -35,11 +35,13 @@ module AttrGrammar
     end
 
     old = @memo
+    @onstack = true
     @memo = yield
+    @onstack = false
     
     if @memo!=old
       @@dependencies[self] ||= []
-      @@dependencies[self].each {|dep| dep.clean=false; append(dep)}
+      @@dependencies[self].each {|dep| dep.clean=false unless dep.onstack; append(dep)}
     end
 
     @clean = true

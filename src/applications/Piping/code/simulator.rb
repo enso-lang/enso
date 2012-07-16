@@ -5,7 +5,6 @@ require 'core/grammar/render/layout'
 require 'core/semantics/interpreters/fmap'
 require 'core/semantics/interpreters/attributes'
 require 'core/semantics/interpreters/debug'
-require 'core/semantics/code/dispatch'
 
 =begin
 NOTES:
@@ -204,7 +203,13 @@ module CalcPressure
   end
   
   def default(obj)
-    obj.Pipe? ? {:in=>obj.in_pressure, :out=>obj.out_pressure} : {:in=>0, :out=>0}
+    if obj.Pipe?
+      {:in=>obj.in_pressure, :out=>obj.out_pressure}
+    elsif obj.Source?
+      {:in=>obj.output.in_pressure, :out=>obj.output.in_pressure}
+    else
+      {:in=>obj.inputs[0].out_pressure, :out=>obj.outputs[0].in_pressure}
+    end
   end
 
   def __default_args; {:blocked_pipes=>[]}; end
@@ -242,92 +247,6 @@ module Init
 
 end
 
-
-module CalcPressure2
-
-  #default element with one input and output
-  def CalcPressure_?(fields, type, args=nil)
-    input = fields['input']
-    output = fields['output']
-    #compute the pressure at this component based on the pressure at the other two ends of the two pipes
-    num = input.in_pressure/input.length + output.out_pressure/output.length
-    dem = 1.0/input.length + 1.0/output.length
-    new_pressure = (num / dem).round(1)
-    if (new_pressure-input.out_pressure).abs > ERROR
-      input.out_pressure = output.in_pressure = new_pressure
-      CalcPressure(input.input)
-      CalcPressure(output.output)
-    end
-  end
-
-  def CalcPressure_Source(output, args=nil)
-    new_pressure = output.out_pressure
-    if (new_pressure-output.in_pressure).abs > ERROR
-      output.in_pressure = new_pressure
-      CalcPressure(output.output)
-    end
-  end
-
-  def CalcPressure_Joint(inputs, output, args=nil)
-    num = inputs.inject(output.out_pressure/output.length) {|memo, p| memo + p.in_pressure/p.length}
-    dem = inputs.inject(1.0/output.length) {|memo, p| memo + 1.0/p.length}
-    new_pressure = (num / dem).round(1)
-    if (new_pressure-output.in_pressure).abs > ERROR
-      output.in_pressure = new_pressure
-      inputs.each {|p| p.out_pressure = new_pressure}
-      CalcPressure(output.output)
-      inputs.each {|p| CalcPressure(p.input)}
-    end
-  end
-
-  def CalcPressure_Splitter(position, input, left, right, args=nil)
-    if position == 0
-      if (right.in_pressure - right.out_pressure).abs > ERROR
-        right.in_pressure = right.out_pressure
-        CalcPressure(right.output)
-      end
-      num = input.in_pressure/input.length + left.out_pressure/left.length
-      dem = 1.0/input.length + 1.0/left.length
-      new_pressure = (num / dem).round(1)
-      if (new_pressure - input.out_pressure).abs > ERROR
-        input.out_pressure = left.in_pressure = new_pressure
-        CalcPressure(input.input)
-        CalcPressure(left.output)
-      end
-    elsif position == 1
-      if (left.in_pressure - left.out_pressure).abs > ERROR
-        left.in_pressure = left.out_pressure
-        CalcPressure(left.output)
-      end
-      num = input.in_pressure/input.length + right.out_pressure/right.length
-      dem = 1.0/input.length + 1.0/right.length
-      new_pressure = (num / dem).round(1)
-      if (new_pressure - input.out_pressure).abs > ERROR
-        input.out_pressure = right.in_pressure = new_pressure
-        CalcPressure(input.input)
-        CalcPressure(right.output)
-      end
-    elsif position == 0.5
-      num = input.in_pressure/input.length + left.out_pressure/left.length + right.out_pressure/right.length
-      dem = 1.0/input.length + 1.0/left.length + 1.0/right.length
-      new_pressure = (num / dem).round(1)
-      if (new_pressure - input.out_pressure).abs > ERROR
-        input.out_pressure = left.in_pressure = right.in_pressure = new_pressure
-        CalcPressure(input.input)
-        CalcPressure(right.output)
-      end
-    end
-  end
-
-  def CalcPressure_Pump(input, output, args=nil)
-    if output.in_pressure != 100
-      output.in_pressure = 100
-      input.out_pressure = 0
-      CalcPressure(output.output)
-    end
-  end
-end
-
 class Float
   #utility function that rounds to significant figures
   def sigfig(digits)
@@ -358,10 +277,7 @@ class Simulator
     pumps = @piping.elements.select {|o| o.Pump? }.values
     valves = @piping.elements.select {|o| o.Splitter? or o.Valve? }.values
     if !pumps.empty?
-      @interp = Interpreter3(WorkList, CalcPressure2)
-      @interp.worklist = pumps+valves
-      @interp.CalcPressure
-      #Interpreter(AttrGrammar.control(CalcPressure)).CalcPressure(pumps[0].output)
+      Interpreter(AttrGrammar.control(CalcPressure)).CalcPressure(pumps[0].output)
       p = pumps[0].output
       flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
       oldpipe = Clone(@piping)
