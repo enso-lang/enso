@@ -2,8 +2,8 @@
 module Eval  
   operation :eval
 
-  def eval_Num(n, args=nil)
-    n
+  def eval_Num(val, args=nil)
+    val
   end
 
   def eval_Add(left, right, args=nil)

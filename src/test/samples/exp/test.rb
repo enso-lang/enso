@@ -3,7 +3,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 require 'test/samples/exp/eval.rb'
-require 'core/semantics/code/dispatch'
+require 'core/semantics/code/interpreter'
 
 
 class ExpTest < Test::Unit::TestCase

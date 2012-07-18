@@ -4,11 +4,11 @@ class Num < Exp
   val : int
 
 class Add < Exp
-  left  : Exp
-  right : Exp
+  left  ! Exp
+  right ! Exp
 
 class Mul < Exp
-  left  : Exp
-  right : Exp
+  left  ! Exp
+  right ! Exp
 
 primitive int
