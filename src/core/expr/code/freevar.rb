@@ -15,8 +15,8 @@ module FreeVarExpr
   
   operation :depends
 
-  def depends_EField(e, fname, args={})
-    [*e.depends(args)] 
+  def depends_EField(e, fname)
+    [*e.depends] 
   end
 
   def depends_EVar(name, args={})
@@ -26,22 +26,22 @@ module FreeVarExpr
   def depends_ELambda(body, formals, args={})
     bound = args[:bound].clone
     formals.each{|f|bound<<f.depends}
-    body.depends(args+{:bound=>bound})
+    body.depends({:bound=>bound})
   end
   
-  def depends_Formal(name, args={})
+  def depends_Formal(name)
     name
   end
 
-  def depends_?(type, fields, args={})
+  def depends_?(type, fields, args)
     res = []
     type.fields.each do |f|
       next if !f.traversal or f.type.Primitive?
       next if f.optional and fields[f.name].nil?
       if !f.many and !f.type.Primitive?
-        res += fields[f.name].depends(args)
+        res += fields[f.name].depends
       else
-        fields[f.name].each {|o| res += o.depends(args)}
+        fields[f.name].each {|o| res += o.depends}
       end
     end
     res

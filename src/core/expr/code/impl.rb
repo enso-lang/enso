@@ -41,16 +41,14 @@ module EvalCommand
   end
 
   def eval_EWhile(cond, body)
-    res = nil
     while cond.eval
-      res = body.eval
+      body.eval
     end
-    res
   end
 
   def eval_EFor(var, list, body, args={})
     list.each do |val|
-      body.eval({:env=>args[:env]+{var=>val}})
+      body.eval({:env=>args[:env]+{var=>val.expr}})
     end
   end
 
