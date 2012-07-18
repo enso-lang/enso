@@ -1,0 +1,4 @@
+start E
+E ::= [Add] left:E "+" right:M  | M
+M ::= [Mul] left:M "*" right:P  | P
+P ::= [Num] val:int             | "(" E ")"     
