@@ -7,13 +7,28 @@ module Wrap
     newmod.send(:include, mod)
     mod.op_methods.each do |sym|
       m = mod.instance_method(sym)
-
-      param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-      has_args = m.parameters.include? [:opt, :args]
-      newmod.send(:eval, "
-      define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args+{op: '#{sym}'}) {|args2={}| super(#{(param_names+(has_args ? ["args+args2"] : [])+["&block"]).join","}) }
-      end")
+      
+      if !sym.to_s.end_with? "?"
+        param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+        has_args = m.parameters.include? [:opt, :args]
+        newmod.send(:eval, "
+        define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
+          #{action}(args+{op: '#{sym}'}) do |args2={}| 
+            _call(m, args+args2) do |nargs|
+              super(#{(param_names+(has_args ? ["nargs"] : [])+["&block"]).join","})
+            end
+          end
+        end")
+      else
+        newmod.send(:eval, "
+        define_method(:#{sym}) do |type, fields, args, &block|
+          #{action}(args+{op: '#{sym}'}) do |args2={}|
+            _call(m, args+args2) do |nargs|
+              super(type, fields, nargs, &block)
+            end
+          end
+        end")
+      end
     end
     newmod
   end
@@ -61,20 +76,41 @@ module Control
     mod.op_methods.each do |sym|
       m = mod.instance_method(sym)
       op = sym.to_s.split('_')[0]
-
-      param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-
-      newmod.send(:eval, "
-      define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        if start?
-          append(self)
-          until done?
-            pop.send(:#{op}, args)
+      if !sym.to_s.end_with? "?"
+        param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+        has_args = m.parameters.include? [:opt, :args]
+        newmod.send(:eval, "
+        define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
+          if start?
+            append(self)
+            until done?
+              pop.send(:#{op}, args)
+            end
+          else
+            #{action}(args+{op: '#{sym}'}) do |args2={}| 
+              _call(m, args+args2) do |nargs|
+                super(#{(param_names+(has_args ? ["nargs"] : [])+["&block"]).join","})
+              end
+            end
           end
-        else
-          #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
-        end
-      end")
+        end")
+      else
+        newmod.send(:eval, "
+        define_method(:#{sym}) do |type, fields, args, &block|
+          if start?
+            append(self)
+            until done?
+              pop.send(:#{op}, args)
+            end
+          else
+            #{action}(args+{op: '#{sym}'}) do |args2={}|
+              _call(m, args+args2) do |nargs|
+                super(type, fields, nargs, &block)
+              end
+            end
+          end
+        end")
+      end
     end
     newmod
   end
