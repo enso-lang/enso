@@ -8,6 +8,8 @@ class Interpreter
   def initialize(*mods)
     @all_interps = {}    #Note that this is a generic hashtable, so keys may be anything from 
                          # MObjects to Lists & Sets to even primitives
+    @argstack = [{}]  #keep track of arguments passed to each call in the stack
+                      #this is to allow visit methods to not pass arguments manually if they are unchanged
     @mods = mods
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
@@ -46,6 +48,10 @@ class Interpreter
       newl
     end
   end
+  
+  def lastargs; @argstack.last end
+  def pushargs(args); @argstack << args end 
+  def popargs; @argstack.pop end
 end
 
 class Interp
@@ -61,19 +67,16 @@ class Interp
     mods.each {|mod| instance_eval {extend(mod)}}
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
+
       m = Lookup(@this.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
       if !m.nil?
         param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+        has_args = m.parameters.include? [:opt, :args]
 
         define_singleton_method(method_sym) do |args={}, &block|
           params = param_names.map{|p|@interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])}
-          begin
-            m.call(*params, args, &block)
-          rescue Exception => e
-            unless __hidden_calls.include? method_sym 
-              $stderr<< "\tin #{@this}.#{method_sym}(#{args})\n"
-            end
-            raise e
+          _call(m, args) do |args1|
+            m.call(*params, *(has_args ? [args1] : []), &block)
           end
         end
       elsif respond_to?("#{method_sym}_?")
@@ -82,13 +85,8 @@ class Interp
 
         define_singleton_method(method_sym) do |args={}, &block|
           params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])]}.flatten(1)]
-          begin
+          _call(m, args) do |args1|
             m.call(@this.schema_class, params, args, &block)
-          rescue Exception => e
-            unless __hidden_calls.include? method_sym 
-              $stderr<< "\tin #{@this}.#{method_sym}(#{args})\n"
-            end
-            raise e
           end
         end
       else
@@ -126,6 +124,26 @@ class Interp
   def to_s; "Interp(#{@this})"; end
   def to_ary; end
 
+  private
+
+  #utility method that does miscellaneous wiring for calls
+  # -error handling
+  # -default arguments
+  # DO NOT OVERRIDE!!!
+  def _call(m, args)
+    args1 = @interpreter.lastargs+args
+    @interpreter.pushargs(args1)
+    begin
+      yield args1
+    rescue Exception => e
+      unless __hidden_calls.include? m.name 
+        $stderr<< "\tin #{@this}.#{m.name}(#{args})\n"
+      end
+      raise e
+    ensure
+      @interpreter.popargs
+    end
+  end
 end
 
 def Interpreter(*mods)

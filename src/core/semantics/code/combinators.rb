@@ -9,9 +9,10 @@ module Wrap
       m = mod.instance_method(sym)
 
       param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+      has_args = m.parameters.include? [:opt, :args]
       newmod.send(:eval, "
       define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args+{:op=>'#{sym}'}) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
+        #{action}(args+{:op=>'#{sym}'}) {|args2={}| super(#{(param_names+(has_args ? ["args+args2"] : [])+["&block"]).join","}) }
       end")
     end
     newmod

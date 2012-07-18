@@ -40,42 +40,38 @@ module EvalCommand
     end
   end
 
-  def eval_EWhile(cond, body, args={})
+  def eval_EWhile(cond, body)
     res = nil
-    while cond.eval(args)
-      res = body.eval(args)
+    while cond.eval
+      res = body.eval
     end
     res
   end
 
   def eval_EFor(var, list, body, args={})
     list.each do |val|
-      nenv = args[:env].merge({var=>val})
-      body.eval(args.merge({:env=>nenv}))
+      body.eval({:env=>args[:env]+{var=>val}})
     end
   end
 
-  def eval_EIf(cond, body, body2, args={})
-    if cond.eval(args)
-      body.eval(args)
+  def eval_EIf(cond, body, body2)
+    if cond.eval
+      body.eval
     elsif !body2.nil?
-      body2.eval(args)
+      body2.eval
     end
   end
 
-  def eval_ESwitch(name, args={})
-  end
-
-  def eval_EBlock(body, args={})
+  def eval_EBlock(body)
     res = nil
     body.each do |c|
-      res = c.eval(args)
+      res = c.eval
     end
     res
   end
   
   def eval_EFunDef(name, formals, body, args={})
-    res = Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args)
+    res = Closure.new(body, formals.map{|f|f.eval}, args[:env], self, args)
     res.env[name] = res #hack to enable self-recursion
     args[:env][name] = res
     res
@@ -85,22 +81,20 @@ module EvalCommand
     Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args).call(*p) }
   end
   
-  def eval_Formal(args={})
+  def eval_Formal
     @this
   end
 
   def eval_EFunCall(fun, params, lambda, args={})
-    nargs = args.clone
-    nargs[:in_fc]=true
     if lambda.nil?
-      fun.eval(nargs).call(*(params.map{|p|p.eval(args)}))
+      fun.eval({:in_fc=>true}).call(*(params.map{|p|p.eval}))
     else
       p = lambda.eval(args)
-      fun.eval(nargs).call(*(params.map{|p|p.eval(args)}), &p) 
+      fun.eval({:in_fc=>true}).call(*(params.map{|p|p.eval}), &p) 
     end
   end
 
-  def eval_EAssign(var, val, args={})
-    var.lvalue(args).value = val.eval(args)
+  def eval_EAssign(var, val)
+    var.lvalue.value = val.eval
   end
 end
