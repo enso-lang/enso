@@ -8,7 +8,10 @@ module ExecuteController
   def init_Controller(globals, args=nil)
     globals.each do |g|
       if g.var.isEVar(args)
-        l = LambdaEnv.new(g.var.name) {g.val.eval(args)}
+        #Note that a new interpreter is 'needed' here because
+        # suppose the outer interpreter is being debugged, you certainly don't want
+        # this lambda env expresssion to show up in the debugger as well
+        l = LambdaEnv.new(g.var.name) {Interpreter(EvalExpr).eval(g.val[], args)}
         args[:env].set_grandparent(l)
       else
         g.eval(args)
