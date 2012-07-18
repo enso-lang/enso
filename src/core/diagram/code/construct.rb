@@ -3,12 +3,12 @@ require 'core/expr/code/eval'
 module EvalStencil
   include EvalExpr
 
-  def eval_Color(r, g, b, args={})
-    args[:factory].Color(r.eval(args).round, g.eval(args).round, b.eval(args).round)
+  def eval_Color(r, g, b, args=nil)
+    args[:factory].Color(r.eval.round, g.eval.round, b.eval.round)
   end
 
-  def eval_InstanceOf(base, class_name, args={})
-    a = base.eval(args)
+  def eval_InstanceOf(base, class_name)
+    a = base.eval
     a && Subclass?(a.schema_class, class_name)
   end
 
@@ -16,21 +16,21 @@ module EvalStencil
     if !args[:dynamic]
       super
     else
-      v = e1.eval(args)
+      v = e1.eval
       fail "NON_DYNAMIC #{v}" if !v.is_a?(Variable)
-      a = e2.eval(args)
-      b = e3.eval(args)
+      a = e2.eval
+      b = e3.eval
       v.test(a, b)
     end
   end
 
   def eval_EBinOp(op, e1, e2, args=nil)
     if !args[:dynamic]
-      super
+      super op, e1, e2
     else
-      r1 = e1.eval(args)
+      r1 = e1.eval
       r1 = Variable.new("gen", r1) if r1 && !r1.is_a?(Variable)
-      r2 = e2.eval(args)
+      r2 = e2.eval
       r2 = Variable.new("gen", r2) if r2 && !r2.is_a?(Variable)
       r1.send(op.to_s, r2)
     end
@@ -38,35 +38,25 @@ module EvalStencil
 
   def eval_EUnOp(op, e, args=nil)
     if !args[:dynamic]
-      super
+      super op, e
     else
-      r1 = e1.eval(args)
+      r1 = e1.eval
       r1 = Variable.new("gen", r1) if r1 && !r1.is_a?(Variable)
       r1.send(op.to_s)
     end
   end
 
-  def eval_EFunCall(fun, params, args={})
-    nargs = args.clone
-    nargs[:in_fc]=true
-    fun.eval(nargs).call(*(params.map{|p|p.eval(args)}))
-  end
-
   def eval_EField(e, fname, args={})
-    if args[:in_fc]
-      args[:in_fc] = false
-      e.eval(args).method(fname.to_sym)
+    if args[:in_fc] or !args[:dynamic]
+      super e, fname, args
     else
-      r = e.eval(args)
-      if args[:dynamic]
-        if r.is_a? Variable
-          r = r.value.dynamic_update
-        else
-          r = r.dynamic_update
-        end
+      r = e.eval
+      if r.is_a? Variable
+        r = r.value.dynamic_update
+      else
+        r = r.dynamic_update
       end
-      return r._id if fname == "_id"
-      r[fname]
+      r.send(fname)
     end
   end
 

@@ -2,4 +2,8 @@ def foo ( x ) {
   return x - 2
 }
 
-foo ( x * 2 )
+total = foo ( x * 2 )
+for x : lst {
+  total = total + x
+}
+return total

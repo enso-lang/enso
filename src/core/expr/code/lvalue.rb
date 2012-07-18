@@ -59,7 +59,7 @@ module LValueExpr
     Address.new(args[:env], name)
   end
 
-  def lvalue_?(type, fields)
+  def lvalue_?(type, fields, args)
     nil
   end
 end

@@ -34,7 +34,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Interpreter(EvalCommand)
     impl2 = Loader.load("test2.impl")
 
-    assert_equal(42, interp.eval(impl2, env: {'x'=>22}))
+    assert_equal(57, interp.eval(impl2, env: {'x'=>22, 'lst'=>[1,2,3,4,5]}))
   end
 
   def test_fib

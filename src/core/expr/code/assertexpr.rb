@@ -6,7 +6,7 @@ module AssertExpr
   
   operation :assert
 
-  def assert_?(type, fields)
+  def assert_?(type, fields, args)
     raise "Invalid expression in grammar" unless eval
   end
 
