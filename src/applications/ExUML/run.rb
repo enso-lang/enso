@@ -38,11 +38,11 @@ def execute(xuml)
         if transition.event.kind = obj.queue[0].kind
           event = obj.queue.pop()
           if obj.currentState != transtion.target
-            obj.eval(obj.currentState.exitAction, {:db => machineState})
-          obj.eval(transition.action, {:event => event, :db => machineState})
+            obj.eval(obj.currentState.exitAction, db: machineState})
+          obj.eval(transition.action, event: event, db: machineState)
           if obj.currentState != transtion.target
             obj.currentState = transtion.target
-            obj.eval(obj.currentState.enterAction, {:db => machineState})
+            obj.eval(obj.currentState.enterAction, db: machineState)
         end
       end
     end

@@ -108,7 +108,7 @@ class Build
   end
     
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    Interpreter(AssertExpr).assert(this.expr, :env=>ObjEnv.new(owner))
+    Interpreter(AssertExpr).assert(this.expr, env: ObjEnv.new(owner))
   end
 
   private

@@ -31,7 +31,7 @@ module EvalCommand
         nenv[f.name] = v
       end
       nenv.set_parent(@env)
-      res = @body.eval(@args.merge({:env=>nenv}))
+      res = @body.eval(@args.merge(env: nenv))
       res
     end
 
@@ -47,8 +47,10 @@ module EvalCommand
   end
 
   def eval_EFor(var, list, body, args={})
-    list.each do |val|
-      body.eval({:env=>args[:env]+{var=>val.expr}})
+    nenv = HashEnv.new.set_parent(args[:env])
+    list.eval.each do |val|
+      nenv[var] = val
+      body.eval(env: nenv)
     end
   end
 

@@ -145,7 +145,7 @@ module CalcPressure
       @this.in_pressure = input.CalcPressure(args)[:out]
       @this.out_pressure = output.CalcPressure(args)[:in]
     end
-    {:in=>@this.in_pressure, :out=>@this.out_pressure}
+    {in: @this.in_pressure, out: @this.out_pressure}
   end
 
   #default element with one input and output
@@ -156,12 +156,12 @@ module CalcPressure
     num = input[:in]/fields['input'].length + output[:out]/fields['output'].length
     dem = 1.0/fields['input'].length + 1.0/fields['output'].length
     new_pressure = (num / dem).round(1)
-    {:in=>new_pressure, :out=>new_pressure}
+    {in: new_pressure, out: new_pressure}
   end
 
   def CalcPressure_Source(output, args=nil)
     new_pressure = output.CalcPressure(args)[:out]
-    {:in=>new_pressure, :out=>new_pressure}
+    {in: new_pressure, out: new_pressure}
   end
 
   def CalcPressure_Joint(inputs, output, args=nil)
@@ -169,7 +169,7 @@ module CalcPressure
     num = inputs.inject(outp[:out]/output.length) {|memo, p| memo + p.CalcPressure(args)[:in]/p.length}
     dem = inputs.inject(1.0/output.length) {|memo, p| memo + 1.0/p.length}
     new_pressure = (num / dem).round(1)
-    {:in=>new_pressure, :out=>new_pressure}
+    {in: new_pressure, out: new_pressure}
   end
 
   def CalcPressure_Splitter(position, input, left, right, args=nil)
@@ -195,20 +195,20 @@ module CalcPressure
       dem = 1.0/input.length + 1.0/left.length + 1.0/right.length
       new_pressure = (num / dem).round(1)
     end
-    {:in=>new_pressure, :out=>new_pressure}
+    {in: new_pressure, out: new_pressure}
   end
 
   def CalcPressure_Pump(input, output, args=nil)
-    {:in=>0, :out=>100}
+    {in: 0, out: 100}
   end
   
   def default(obj)
     if obj.Pipe?
-      {:in=>obj.in_pressure, :out=>obj.out_pressure}
+      {in: obj.in_pressure, out: obj.out_pressure}
     elsif obj.Source?
-      {:in=>obj.output.in_pressure, :out=>obj.output.in_pressure}
+      {in: obj.output.in_pressure, out: obj.output.in_pressure}
     else
-      {:in=>obj.inputs[0].out_pressure, :out=>obj.outputs[0].in_pressure}
+      {in: obj.inputs[0].out_pressure, out: obj.outputs[0].in_pressure}
     end
   end
 
@@ -281,7 +281,7 @@ class Simulator
       p = pumps[0].output
       flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
       oldpipe = Clone(@piping)
-      @piping.elements.each {|e| CalcHeatFlow(e, :oldpipe=>oldpipe, :flowconst=>flowconst, :radiator=>@piping.elements['Radiator'])}
+      @piping.elements.each {|e| CalcHeatFlow(e, oldpipe: oldpipe, flowconst: flowconst, radiator: @piping.elements['Radiator'])}
     end
   end
 

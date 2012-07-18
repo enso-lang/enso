@@ -237,8 +237,8 @@ module Rack
       header["Set-Cookie"] = cookies.join("\n")
 
       set_cookie_header!(header, key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :expires => Time.at(0) }.merge(value))
+                 {value: '', path: nil, domain: nil,
+                   expires: Time.at(0) }.merge(value))
 
       nil
     end

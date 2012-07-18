@@ -47,7 +47,7 @@ def esynchost(rootpath)
     login = client.gets[0..-2]
     puts "\n#{login} initiated sync..."
 #     sfactory = SecureFactory.new(schema, sec, true)
-    sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, :rules=>rules, :fail_silent=>true)
+    sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, rules: rules, :fail_silent=>true)
     factory = ManagedData::Factory.new(schema)
 
 

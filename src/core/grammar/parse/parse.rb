@@ -9,7 +9,7 @@ class Parse
 
   def self.load_file(path, grammar, schema, encoding = nil)
     if encoding then
-      File.open(path, 'r', :encoding => encoding) do |f|
+      File.open(path, 'r', encoding: encoding) do |f|
         src = f.read
         return load(src, grammar, schema, path)
       end

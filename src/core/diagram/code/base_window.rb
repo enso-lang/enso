@@ -3,7 +3,7 @@ include Wx
 
 class BaseWindow < Wx::Frame
   def initialize(title)
-    super(nil, :title => title)
+    super(nil, title: title)
     @menu_id = 100
     setup_menus()
   end
@@ -56,9 +56,9 @@ class BaseWindow < Wx::Frame
   # Display an "About this program" dialog
   def on_about
     Wx::about_box(
-      :name => self.title,
-      :version => "1.0",
-      :description => "Enso Diagram Editor"
+      name: self.title,
+      version: "1.0",
+      description: "Enso Diagram Editor"
     )
   end
   

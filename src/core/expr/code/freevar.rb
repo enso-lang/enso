@@ -26,7 +26,7 @@ module FreeVarExpr
   def depends_ELambda(body, formals, args={})
     bound = args[:bound].clone
     formals.each{|f|bound<<f.depends}
-    body.depends({:bound=>bound})
+    body.depends(bound: bound)
   end
   
   def depends_Formal(name)

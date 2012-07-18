@@ -24,7 +24,7 @@ class ExprTest < Test::Unit::TestCase
     ex0 = Loader.load("expr2.expr")
     a = A.new(2)
     x = 12
-    assert_equal(12, interp.eval(ex0, :env=>{'a'=>a, 'x'=>x}))
+    assert_equal(12, interp.eval(ex0, env: {'a'=>a, 'x'=>x}))
   end
 
 end

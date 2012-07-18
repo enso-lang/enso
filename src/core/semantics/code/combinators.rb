@@ -12,7 +12,7 @@ module Wrap
       has_args = m.parameters.include? [:opt, :args]
       newmod.send(:eval, "
       define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args+{:op=>'#{sym}'}) {|args2={}| super(#{(param_names+(has_args ? ["args+args2"] : [])+["&block"]).join","}) }
+        #{action}(args+{op: '#{sym}'}) {|args2={}| super(#{(param_names+(has_args ? ["args+args2"] : [])+["&block"]).join","}) }
       end")
     end
     newmod
