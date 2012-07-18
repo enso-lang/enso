@@ -76,11 +76,11 @@ module Debug
           ready = false
         end
       end
-      res = yield :stack=>stack
+      res = yield stack: stack
       $stderr << "=> #{res}  (from L#{stack.size})\n\n"
       res
     else
-      yield :stack=>stack
+      yield stack: stack
     end
   end
 
@@ -98,7 +98,7 @@ module Debug
     @@file = nil
   end
   def __hidden_calls; super+[:debug]; end
-  def __default_args; super+{:stack=>[]}; end
+  def __default_args; super+{stack: []}; end
 end
 
 # 'Lightweight' version of Debug that only print logging lines
@@ -110,12 +110,12 @@ module PrintWrap
   def print_?(fields, type, args={})
     indent = args[:indent]
     puts "#{"  "*indent}evaling #{@obj}:#{type}"
-    res = yield :indent=>indent+1
+    res = yield indent: indent+1
     puts "#{"  "*indent}-> #{res}"
     res
   end
   def __hidden_calls; super+[:print]; end
-  def __default_args; super+{:indent=>0}; end
+  def __default_args; super+{indent: 0}; end
 end
 
 def read_char

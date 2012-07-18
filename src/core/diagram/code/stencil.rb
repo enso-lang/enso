@@ -77,9 +77,9 @@ class StencilFrame < DiagramFrame
 
     env = {
       @stencil.root => @data,
-      :font => @factory.Font("Helvetica", 12, "swiss", 400, black),
-      :pen => @factory.Pen(1, "solid", black),
-      :brush => @factory.Brush(white),
+      font: @factory.Font("Helvetica", 12, "swiss", 400, black),
+      pen: @factory.Pen(1, "solid", black),
+      brush: @factory.Brush(white),
       "nil" => nil
     }
 
@@ -570,12 +570,12 @@ class StencilFrame < DiagramFrame
 
   def eval(exp, env, dynamic = false)
     @eval = Interpreter(EvalStencil) if @eval.nil?
-    @eval.eval(exp, :env=>env, :dynamic=>dynamic, :factory=>@factory)
+    @eval.eval(exp, env: env, dynamic: dynamic, factory: @factory)
   end
 
   def lvalue(exp, env)
     @lval = Interpreter(LValueExpr) if @lval.nil?
-    @lval.lvalue(exp, :env=>env, :factory=>@factory)
+    @lval.lvalue(exp, env: env, factory: @factory)
   end
 
 end

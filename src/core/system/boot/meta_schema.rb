@@ -25,19 +25,19 @@ module Boot
 
   class Schema < MObject
     def classes
-      BootField.new(types.select{|t|t.Class?}, self, "classes", @root, :many=>true, :keyed=>true)
+      BootField.new(types.select{|t|t.Class?}, self, "classes", @root, many: true, keyed: true)
     end
     def primitives
-      BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, :many=>true, :keyed=>true)
+      BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, many: true, keyed: true)
     end
   end
     
   class Class < MObject
     def all_fields
-      BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, :many=>true, :keyed=>true)
+      BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, many: true, keyed: true)
     end
     def fields
-      BootField.new(all_fields.select() {|f|!f.computed}, self, "fields", @root, :many=>true, :keyed=>true)
+      BootField.new(all_fields.select() {|f|!f.computed}, self, "fields", @root, many: true, keyed: true)
     end
   end
 
@@ -69,7 +69,7 @@ module Boot
       else
         arr = this.elements.map {|a|Boot.make_class(a, root)}
       end
-      BootField.new(arr, owner, field, root, :many=>(this.attributes['many']=='true'), :keyed=>(this.attributes['keyed']=='true'))
+      BootField.new(arr, owner, field, root, many: (this.attributes['many']=='true'), keyed: (this.attributes['keyed']=='true'))
     end
   end
 
@@ -149,7 +149,7 @@ module Boot
         else raise "Unknown primitive type: #{field.type.name}"
         end
       elsif field.many 
-        BootField.new([], self, field.name, @root, :many=>true, :keyed=>true)
+        BootField.new([], self, field.name, @root, many: true, keyed: true)
       elsif field.optional
         nil
       else

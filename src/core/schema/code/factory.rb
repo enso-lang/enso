@@ -241,12 +241,12 @@ module ManagedData
       commInterp = Interpreter(EvalCommand)
       define_singleton_method(name) do
         if @memo[name] == nil
-          fvs = fvInterp.depends(exp, :env=>ObjEnv.new(self), :bound=>[])
+          fvs = fvInterp.depends(exp, env: ObjEnv.new(self), bound: [])
           fvs.each do |fv|
             next if fv.object.nil?  #should always be non-nil since computed fields have no external env
             fv.object.add_listener(fv.index) { @memo[name]=nil }
           end
-          @memo[name] = commInterp.eval(exp, :env=>ObjEnv.new(self))
+          @memo[name] = commInterp.eval(exp, env: ObjEnv.new(self))
         end
         @memo[name]
       end

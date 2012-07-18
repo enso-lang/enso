@@ -14,4 +14,4 @@ Loader.find_model('fibo.impl') {|path| $file = IO.readlines(path)}
 interp = Interpreter(Debug.wrap(EvalCommand))
 
 #run it!
-puts interp.eval(fib, :env=>{'f'=>10})
+puts interp.eval(fib, env: {'f'=>10})

@@ -14,10 +14,10 @@ class Controller
     @control = control
     @env = ControlEnv.new(@piping).set_parent({})
     @interp = Interpreter(ExecuteController)
-    @interp.init(@control, :env=>@env)
+    @interp.init(@control, env: @env)
   end
 
   def run
-    @interp.execute(@control, :env=>@env, :piping=>@piping, :control=>@control)
+    @interp.execute(@control, env: @env, piping: @piping, control: @control)
   end
 end

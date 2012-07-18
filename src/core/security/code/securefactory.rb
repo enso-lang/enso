@@ -41,7 +41,7 @@ module SecureFactory
       if @trusted > 0
         true
       else
-        @interp.check(@security, :op=>op, :obj=>obj, :field=>field, :user=>@user)
+        @interp.check(@security, op: op, obj: obj, field: field, user: @user)
       end
     end
 

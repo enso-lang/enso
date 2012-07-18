@@ -149,7 +149,7 @@ class RenderClass < Dispatch
       code = this.code.gsub(/=/, "==").gsub(/;/, "&&").gsub(/@/, "self.")
       ok = obj.instance_eval(code)
     else
-      ok = Interpreter(EvalExpr).eval(this.expr, :env=>ObjEnv.new(obj))
+      ok = Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj))
     end
     throw :fail unless ok
     @factory.Sequence()

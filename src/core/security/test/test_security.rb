@@ -12,7 +12,7 @@ class SecurityTest < Test::Unit::TestCase
   def setup
     interp = Interpreter(FactorySchema, SecureFactory)
     schema = Loader.load('todo.schema')
-    sfact = interp.Make(schema, :rules=>Loader.load('todo.auth'), :fail_silent=>false)
+    sfact = interp.Make(schema, rules: Loader.load('todo.auth'), :fail_silent=>false)
     @todo = sfact.make_secure(Loader.load('test.todo'))
   end
 

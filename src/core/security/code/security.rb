@@ -63,7 +63,7 @@ class Security
 
   # check if the current user has privileges to perform operatr on object obj or one of its field
   def check_privileges(op, obj, field=nil)
-    Interpreter.compose(CheckPrivileges).new.check(allrules, [:op=>op, :obj=>obj, :field=>field])
+    Interpreter.compose(CheckPrivileges).new.check(allrules, [op: op, :obj=>obj, :field=>field])
   end
 
   # return the requirements the fields of the object must satisfy such that the operation is allowed for user

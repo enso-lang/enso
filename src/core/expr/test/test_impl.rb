@@ -26,7 +26,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Interpreter(EvalCommand)
     impl1 = Loader.load("test1.impl")
 
-    assert_equal(20, interp.eval(impl1, :env=>{}))
+    assert_equal(20, interp.eval(impl1, env: {}))
   end
 
   def test_impl2
@@ -34,7 +34,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Interpreter(EvalCommand)
     impl2 = Loader.load("test2.impl")
 
-    assert_equal(42, interp.eval(impl2, :env=>{'x'=>22}))
+    assert_equal(42, interp.eval(impl2, env: {'x'=>22}))
   end
 
   def test_fib
@@ -42,7 +42,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Interpreter(EvalCommand)
     fib = Loader.load("fibo.impl")
 
-    assert_equal(34, interp.eval(fib, :env=>{'f'=>10}))
+    assert_equal(34, interp.eval(fib, env: {'f'=>10}))
   end
   
   def test_piggyback
@@ -50,6 +50,6 @@ class CommandTest < Test::Unit::TestCase
     interp = Interpreter(EvalCommand)
     fib = Loader.load("ruby_piggyback.impl")
 
-    assert_equal([2,3], interp.eval(fib, :env=>{'s'=>[1,2,3]}))
+    assert_equal([2,3], interp.eval(fib, env: {'s'=>[1,2,3]}))
   end
 end
