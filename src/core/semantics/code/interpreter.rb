@@ -1,6 +1,33 @@
+=begin
+ Usage example: Interpreter(Debug.wrap(EvalExpr)).eval(exp1, env: {x: 5})
+
+ Some definitions for documentation below:
+ - operation: an action the interpreter can take, eg eval, debug, lvalue, etc
+ - type: schema type, eg BinaryOp
+ - visit method: action for {o:operation X t:type} eg eval_BinaryOp()
+ - strategy: a visitor contain a set of visit methods plus interpreter configurations, eg EvalExpr
+ - combinator: combines strategies to form new strategies, eg Wrap :: Strategy X Strategy -> Strategy
+ - higher-order strategy: a strategy that is typically used with a combinator, eg Debug, Memo, AttrGrammar 
+ - interpreter: initialized with strategy. can then use its operations on objects
+ - interp: delayed execution of a strategy on an object, used by interpreter for composition and specialization
+=end
 
 require 'core/system/library/schema'
 
+=begin
+Base interpreter container for all interp objects created during an evaluation
+This is the main interpreter interacting with the user
+Each interpreter is created by accepting a set of strategies
+Attributes:
+  interpreter-level configuration info: eg @mods
+  global interpreter state: @all_interps, @argstack
+  State that is specific to one interpreter strategy do NOT go here
+Methods:
+  interpreter management methods: push/pop stack, get_interp, etc
+  Each operation will get a method here
+    - this method will invoke the first interpreter object
+    - as well as contain hooks for init, cleanup, and default_args
+=end 
 class Interpreter
   def initialize(*mods)
     @all_interps = {}    #Note that this is a generic hashtable, so keys may be anything from 
@@ -51,6 +78,38 @@ class Interpreter
   def popargs; @argstack.pop end
 end
 
+=begin
+Interp represents a delayed execution of a strategy on an object
+Essentially an interpreter specialized for this one object
+An interpreter contains a graph of interps which it will invoke accordingly
+Visit methods in strategies are passed interps, not the actual object
+Attributes:
+  @this is the object specialized for, 
+  @interpreter is the containing interpreter
+  Persistent state specific to an evaluation strategy go here, eg
+    - State for only one interp: eg @memo
+    - State globally applicable: eg @@sec_policy, @@workqueue
+    - At this time impossible to share state between interp objects in different interpreters
+Methods:
+  Each operation, foo, will have the following methods:
+    - foo: this is the usual method to call, normally it simply redirects to foo!
+           (PS. this is needed because foo! is only created when the interpreter is specialized,
+            but some combinators, eg Wrap, Rename, require a 'main' method to work with when the
+            strategy is being defined, before the interpreter is used.
+            So foo is that 'main' method that can be extended, renamed, etc before foo!
+            is created)
+    - foo!: invoke operation foo (on this object)
+             specialized to the object --- any optimization/peval should be put here! 
+             handles dispatch, argument mangling, error-handling, call stack mgmt, etc
+             normally it calls some variant of foo_Type
+    - foo_<Type>: these are visit methods included from strategies
+    Try to define as few methods here as possible to avoid name clashes with operations!
+  __bar: methods used by the interpreter machinery, eg __init, __cleanup
+         to be overridden by strategies to produce specific behavior
+  _bar: methods used by interpreter strategies (like Debug, Memo), eg _add_to_workqueue
+  bar: methods used by user strategies (like eval, construct), eg closure
+       utility methods in user strategies can clash with operations as well, so avoid them!
+=end
 class Interp
   #TODO: Undef some methods here, but make sure not to undef the later defined ones
   #ie DON'T use "undef"
