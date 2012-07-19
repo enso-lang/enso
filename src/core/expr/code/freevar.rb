@@ -19,14 +19,14 @@ module FreeVarExpr
     [*e.depends] 
   end
 
-  def depends_EVar(name, args={})
-    args[:bound].include?(name) ? [] : [Address.new(args[:env], name)]
+  def depends_EVar(name, bound, env)
+    bound.include?(name) ? [] : [Address.new(env, name)]
   end
 
-  def depends_ELambda(body, formals, args={})
-    bound = args[:bound].clone
-    formals.each{|f|bound<<f.depends}
-    body.depends(bound: bound)
+  def depends_ELambda(body, formals, bound)
+    bound2 = bound.clone
+    formals.each{|f|bound2<<f.depends}
+    body.depends(bound: bound2)
   end
   
   def depends_Formal(name)

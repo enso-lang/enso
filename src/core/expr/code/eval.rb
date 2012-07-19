@@ -20,8 +20,7 @@ module EvalExpr
     e.eval.send(op.to_s)
   end
 
-  def eval_EVar(name, args={})
-    env = args[:env]
+  def eval_EVar(name, env)
     raise "ERROR: undefined variable #{name}" unless env.has_key?(name)
     env[name]
   end
@@ -38,13 +37,13 @@ module EvalExpr
     nil
   end
 
-  def eval_EFunCall(fun, params, args={})
-    fun.eval(:in_fc=>true).call(*(params.map{|p|p.eval}))
+  def eval_EFunCall(fun, params)
+    fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
   end
 
-  def eval_EField(e, fname, args={})
-    if args[:in_fc]
-      e.eval(:in_fc=>false).method(fname.to_sym)
+  def eval_EField(e, fname, in_fc)
+    if in_fc
+      e.eval(in_fc: false).method(fname.to_sym)
     else
       e.eval.send(fname)
     end

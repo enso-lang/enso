@@ -55,8 +55,8 @@ module LValueExpr
     Address.new(ObjEnv.new(e.eval), fname)
   end
 
-  def lvalue_EVar(name, args={})
-    Address.new(args[:env], name)
+  def lvalue_EVar(name, env)
+    Address.new(env, name)
   end
 
   def lvalue_?(type, fields, args)

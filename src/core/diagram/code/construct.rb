@@ -3,8 +3,8 @@ require 'core/expr/code/eval'
 module EvalStencil
   include EvalExpr
 
-  def eval_Color(r, g, b, args=nil)
-    args[:factory].Color(r.eval.round, g.eval.round, b.eval.round)
+  def eval_Color(r, g, b, factory)
+    factory.Color(r.eval.round, g.eval.round, b.eval.round)
   end
 
   def eval_InstanceOf(base, class_name)
@@ -12,8 +12,8 @@ module EvalStencil
     a && Subclass?(a.schema_class, class_name)
   end
 
-  def eval_ETernOp(op1, op2, e1, e2, e3, args=nil)
-    if !args[:dynamic]
+  def eval_ETernOp(op1, op2, e1, e2, e3, dynamic)
+    if !dynamic
       super
     else
       v = e1.eval
@@ -24,8 +24,8 @@ module EvalStencil
     end
   end
 
-  def eval_EBinOp(op, e1, e2, args=nil)
-    if !args[:dynamic]
+  def eval_EBinOp(op, e1, e2, dynamic)
+    if !dynamic
       super op, e1, e2
     else
       r1 = e1.eval
@@ -36,8 +36,8 @@ module EvalStencil
     end
   end
 
-  def eval_EUnOp(op, e, args=nil)
-    if !args[:dynamic]
+  def eval_EUnOp(op, e, dynamic)
+    if !dynamic
       super op, e
     else
       r1 = e1.eval
@@ -46,9 +46,9 @@ module EvalStencil
     end
   end
 
-  def eval_EField(e, fname, args={})
-    if args[:in_fc] or !args[:dynamic]
-      super e, fname, args
+  def eval_EField(e, fname, in_fc, dynamic)
+    if in_fc or !dynamic
+      super e, fname, in_fc
     else
       r = e.eval
       if r.is_a? Variable

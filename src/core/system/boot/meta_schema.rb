@@ -191,6 +191,9 @@ module Boot
         end
       end
     end
+    def has_key?(key)
+      not self[key].nil?
+    end
     def eql?(other)
       !@many ? at(0).eql?(other) : super
     end

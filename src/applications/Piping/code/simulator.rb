@@ -138,20 +138,20 @@ module CalcPressure
 
   operation :CalcPressure
 
-  def CalcPressure_Pipe(input, output, args={})
-    if args[:blocked_pipes].include? self
-      @this.in_pressure = @this.out_pressure = output.CalcPressure(args)[:in]
+  def CalcPressure_Pipe(input, output, blocked_pipes)
+    if blocked_pipes.include? self
+      @this.in_pressure = @this.out_pressure = output.CalcPressure[:in]
     else
-      @this.in_pressure = input.CalcPressure(args)[:out]
-      @this.out_pressure = output.CalcPressure(args)[:in]
+      @this.in_pressure = input.CalcPressure[:out]
+      @this.out_pressure = output.CalcPressure[:in]
     end
     {in: @this.in_pressure, out: @this.out_pressure}
   end
 
   #default element with one input and output
-  def CalcPressure_?(type, fields, args=nil)
-    input = fields['input'].CalcPressure(args)
-    output = fields['output'].CalcPressure(args)
+  def CalcPressure_?(type, fields, args)
+    input = fields['input'].CalcPressure
+    output = fields['output'].CalcPressure
     #compute the pressure at this component based on the pressure at the other two ends of the two pipes
     num = input[:in]/fields['input'].length + output[:out]/fields['output'].length
     dem = 1.0/fields['input'].length + 1.0/fields['output'].length
@@ -159,38 +159,38 @@ module CalcPressure
     {in: new_pressure, out: new_pressure}
   end
 
-  def CalcPressure_Source(output, args=nil)
-    new_pressure = output.CalcPressure(args)[:out]
+  def CalcPressure_Source(output)
+    new_pressure = output.CalcPressure[:out]
     {in: new_pressure, out: new_pressure}
   end
 
-  def CalcPressure_Joint(inputs, output, args=nil)
-    outp = output.CalcPressure(args)
-    num = inputs.inject(outp[:out]/output.length) {|memo, p| memo + p.CalcPressure(args)[:in]/p.length}
+  def CalcPressure_Joint(inputs, output)
+    outp = output.CalcPressure
+    num = inputs.inject(outp[:out]/output.length) {|memo, p| memo + p.CalcPressure[:in]/p.length}
     dem = inputs.inject(1.0/output.length) {|memo, p| memo + 1.0/p.length}
     new_pressure = (num / dem).round(1)
     {in: new_pressure, out: new_pressure}
   end
 
-  def CalcPressure_Splitter(position, input, left, right, args=nil)
-    inp = input.CalcPressure(args)
+  def CalcPressure_Splitter(position, input, left, right, blocked_pipes)
+    inp = input.CalcPressure
     if position == 0
-      args[:blocked_pipes] << right
-      args[:blocked_pipes].delete(left)
-      leftp = left.CalcPressure(args)
+      blocked_pipes << right
+      blocked_pipes.delete(left)
+      leftp = left.CalcPressure
       num = inp[:in]/input.length + leftp[:out]/left.length
       dem = 1.0/input.length + 1.0/left.length
       new_pressure = (num / dem).round(1)
     elsif position == 1
-      args[:blocked_pipes] << left
-      args[:blocked_pipes].delete(right)
-      rightp = left.CalcPressure(args)
+      blocked_pipes << left
+      blocked_pipes.delete(right)
+      rightp = left.CalcPressure
       num = inp[:in]/input.length + rightp[:out]/right.length
       dem = 1.0/input.length + 1.0/right.length
       new_pressure = (num / dem).round(1)
     elsif position == 0.5
-      leftp = left.CalcPressure(args)
-      rightp = left.CalcPressure(args)
+      leftp = left.CalcPressure
+      rightp = left.CalcPressure
       num = inp[:in]/input.length + leftp[:out]/left.length + rightp[:out]/right.length
       dem = 1.0/input.length + 1.0/left.length + 1.0/right.length
       new_pressure = (num / dem).round(1)
@@ -198,10 +198,10 @@ module CalcPressure
     {in: new_pressure, out: new_pressure}
   end
 
-  def CalcPressure_Pump(input, output, args=nil)
+  def CalcPressure_Pump
     {in: 0, out: 100}
   end
-  
+
   def default(obj)
     if obj.Pipe?
       {in: obj.in_pressure, out: obj.out_pressure}
@@ -219,7 +219,7 @@ module Init
 
   operation :Init
 
-  def Init_Pipe(args=nil)
+  def Init_Pipe
     p = @this
     p.diameter = 0.1 if p.diameter == 0
     p.length = 10 if p.length == 0
@@ -229,19 +229,19 @@ module Init
     p
   end
 
-  def Init_Radiator(args=nil)
+  def Init_Radiator
     @this.temperature = ROOM_TEMP
   end
 
-  def Init_Vessel(args=nil)
+  def Init_Vessel
     @this.temperature = ROOM_TEMP
   end
 
-  def Init_Sensor(args=nil)
+  def Init_Sensor
     @this.user = ROOM_TEMP
   end
 
-  def Init_?(fields, type, args=nil)
+  def Init_?(fields, type, args)
     @this
   end
 
@@ -261,7 +261,7 @@ class Simulator
   def initialize(piping)
     @piping = piping
     #do initialization here by setting the default states of the pipes, etc
-    Interpreter(Fmap.control(Init)).Init(@piping)
+    Interpreter(Fmap.traverse(Init)).Init(@piping)
   end
 
   #will run continuously
@@ -277,7 +277,7 @@ class Simulator
     pumps = @piping.elements.select {|o| o.Pump? }.values
     valves = @piping.elements.select {|o| o.Splitter? or o.Valve? }.values
     if !pumps.empty?
-      Interpreter(AttrGrammar.control(CalcPressure)).CalcPressure(pumps[0].output)
+      Interpreter(AttrGrammar.traverse(CalcPressure)).CalcPressure(pumps[0].output)
       p = pumps[0].output
       flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
       oldpipe = Clone(@piping)

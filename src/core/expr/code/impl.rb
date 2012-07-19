@@ -15,12 +15,11 @@ module EvalCommand
   class Closure
     attr_accessor :env #this is a hack to allow self-recursion
 
-    def initialize(body, formals, env, interp, args)
+    def initialize(body, formals, env, interp)
       @body = body
       @formals = formals
       @env = env.clone
       @interp = interp
-      @args = args.clone
     end
 
     #params are the values used to call this function
@@ -31,7 +30,7 @@ module EvalCommand
         nenv[f.name] = v
       end
       nenv.set_parent(@env)
-      res = @body.eval(@args.merge(env: nenv))
+      res = @body.eval(env: nenv)
       res
     end
 
@@ -46,8 +45,8 @@ module EvalCommand
     end
   end
 
-  def eval_EFor(var, list, body, args={})
-    nenv = HashEnv.new.set_parent(args[:env])
+  def eval_EFor(var, list, body, env)
+    nenv = HashEnv.new.set_parent(env)
     list.eval.each do |val|
       nenv[var] = val
       body.eval(env: nenv)
@@ -70,27 +69,27 @@ module EvalCommand
     res
   end
   
-  def eval_EFunDef(name, formals, body, args={})
-    res = Closure.new(body, formals.map{|f|f.eval}, args[:env], self, args)
+  def eval_EFunDef(name, formals, body, env)
+    res = Closure.new(body, formals.map{|f|f.eval}, env, self)
     res.env[name] = res #hack to enable self-recursion
-    args[:env][name] = res
+    env[name] = res
     res
   end
   
-  def eval_ELambda(body, formals, args={})
-    Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval(args)}, args[:env], self, args).call(*p) }
+  def eval_ELambda(body, formals, env)
+    Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval}, env, self).call(*p) }
   end
   
   def eval_Formal
     @this
   end
 
-  def eval_EFunCall(fun, params, lambda, args={})
+  def eval_EFunCall(fun, params, lambda)
     if lambda.nil?
-      fun.eval({:in_fc=>true}).call(*(params.map{|p|p.eval}))
+      fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
     else
-      p = lambda.eval(args)
-      fun.eval({:in_fc=>true}).call(*(params.map{|p|p.eval}), &p) 
+      p = lambda.eval
+      fun.eval(in_fc: true).call(*(params.map{|p|p.eval}), &p) 
     end
   end
 

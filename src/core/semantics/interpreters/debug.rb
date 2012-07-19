@@ -5,10 +5,10 @@ module Debug
 
   operation :debug
 
-  def debug_?(type, fields, args={})
+  def debug_?(type, fields, args)
     stack = args[:stack] + ["in #{@this}"]
     this = @this
-    if !__hidden_calls.include?(args[:op].split('_')[0].to_sym) and (stack.size<=@@stoplevel or @@breakpts.include?(this._path))
+    if !__hidden_calls.include?(args[:op]) and (stack.size<=@@stoplevel or @@breakpts.include?(this._path))
       @@file ||= begin; IO.readlines(this._origin.path); rescue; end
       ready = false
       while !ready
@@ -58,7 +58,7 @@ module Debug
           ready = false
         when "s"
           $stderr << "Currently stack: \n"
-          stack.each {|s| $stderr << "\t"+s+"\n"}
+          stack.each {|s| $stderr << "  #{s}\n"}
           ready = false
         when "v"
           $stderr << "New view width? "

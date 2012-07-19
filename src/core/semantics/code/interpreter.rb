@@ -1,6 +1,3 @@
-=begin
-Base interpreter container. Operations must be rolled in before it is used
-=end
 
 require 'core/system/library/schema'
 
@@ -62,7 +59,6 @@ class Interp
   def initialize(obj, interpreter, mods=[])
     @this=obj
     @interpreter=interpreter
-    @mods=mods
 
     mods.each {|mod| instance_eval {extend(mod)}}
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
@@ -70,23 +66,29 @@ class Interp
 
       m = Lookup(@this.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
       if !m.nil?
-        param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-        has_args = m.parameters.include? [:opt, :args]
+        all_fields = @this.schema_class.all_fields
 
-        define_singleton_method(method_sym) do |args={}, &block|
-          params = param_names.map{|p|@interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])}
-          _call(m, args) do |args1|
-            m.call(*params, *(has_args ? [args1] : []), &block)
+        define_singleton_method("#{method_sym}!") do |args={}, &block|
+          __call(m, args) do |nargs|
+            params = m.parameters.map do |k,v|
+              name=v.to_s
+              if all_fields.has_key? name
+                @interpreter.get_interp(@this[name], all_fields[name])
+              else
+                nargs[v]
+              end
+            end
+            m.call(*params, &block)
           end
         end
       elsif respond_to?("#{method_sym}_?")
         m = method("#{method_sym}_?".to_sym) 
-        param_names = @this.schema_class.all_fields.map{|f|f.name}
+        all_fields = @this.schema_class.all_fields
 
-        define_singleton_method(method_sym) do |args={}, &block|
-          params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])]}.flatten(1)]
-          _call(m, args) do |args1|
-            m.call(@this.schema_class, params, args, &block)
+        define_singleton_method("#{method_sym}!") do |args={}, &block|
+          __call(m, args) do |nargs|
+            fields = Hash[*all_fields.map{|f|[f.name, @interpreter.get_interp(@this[f.name], f)]}.flatten(1)]
+            m.call(@this.schema_class, fields, nargs, &block)
           end
         end
       else
@@ -106,7 +108,7 @@ class Interp
       super
     end
   end
-  
+
   def [](key=nil)
     return @this if key.nil?
     if field = @this.schema_class.fields[key.to_s]
@@ -126,11 +128,11 @@ class Interp
 
   private
 
-  #utility method that does miscellaneous wiring for calls
+  #utility call method that does miscellaneous wiring
   # -error handling
   # -default arguments
   # DO NOT OVERRIDE!!!
-  def _call(m, args)
+  def __call(m, args)
     args1 = @interpreter.lastargs+args
     @interpreter.pushargs(args1)
     begin
@@ -150,7 +152,7 @@ def Interpreter(*mods)
   Interpreter.new(*mods)
 end
 
-# easier to work with arguments
+# easier to work with standard Ruby classes
 class Hash
   def set!(key)
     self[key] = yield self[key]
@@ -173,7 +175,14 @@ class Module
   def operation(*ops)
     @operations||=[]
     @operations+=ops
+    ops.each do |op|
+      eval("
+      define_method(:#{op}) do |args={}, &block|
+        #{op}! args, &block
+      end")
+    end
   end
+
   def operations
     @operations||=[]
     (@operations + included_modules.map{|mod|mod.operations||[]}.flatten).uniq

@@ -48,8 +48,8 @@ class CommandTest < Test::Unit::TestCase
   def test_piggyback
     #test the ability to piggyback on top of ruby's libraries, incl procs
     interp = Interpreter(EvalCommand)
-    fib = Loader.load("ruby_piggyback.impl")
+    piggy = Loader.load("ruby_piggyback.impl")
 
-    assert_equal([2,3], interp.eval(fib, env: {'s'=>[1,2,3]}))
+    assert_equal([2,3], interp.eval(piggy, env: {'s'=>[1,2,3]}))
   end
 end
