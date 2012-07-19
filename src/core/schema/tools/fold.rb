@@ -2,33 +2,30 @@
 require 'yaml'
 require 'core/system/library/schema'
 
-class Fold
-
-  def initialize(mod, *args)
+class AbstractFold
+  def initialize(mod)
     @mod = mod
-    @args = args
     @memo = {}
   end
 
-  def fold(obj)
+  def fold(scls, obj)
     return if obj.nil?
     if @memo[obj] then
       return @memo[obj]
     end
-    cls = lookup_class(obj.schema_class)
+    scls, cls = lookup_class(obj, scls) 
+    puts "CLASS: #{cls} (for #{obj})"
     if cls.nil? then
       return obj # original model
     end
-    #puts "CREATING: #{cls}"
     @memo[obj] = trg = cls.new
-    update_fields(obj, trg, obj.schema_class.fields)
-    #puts "DONE: #{cls}"
+    update_fields(obj, trg, scls.fields)
     return trg
   end
 
   def update_fields(obj, trg, fields)
     fields.each do |f|
-      #puts "\tsetting #{f.name}"
+      puts "\tsetting #{f.name}"
       if f.type.Primitive? then
         update_prim(obj, trg, f)
       else
@@ -37,57 +34,48 @@ class Fold
     end
   end
 
-  def lookup_class(scls)
-    const = scls.name
-    if !@mod.const_defined?(const) then
-      $stderr << "WARNING: no class for #{const}\n"
-      #return Object
-      return nil
+  def lookup_class(obj, scls)
+    #puts "Classname obj: #{class_name(obj)}"
+    if @mod.const_defined?(class_name(obj)) then
+      return class_of(obj), @mod.const_get(class_name(obj))
+    elsif @mod.const_defined?(scls.name) then
+      return scls, @mod.const_get(scls.name)
+    else
+      $stderr << "WARNING: no (super)class for #{scls.name}\n"
+      nil
     end
-    @mod.const_get(const)
   end
 
 
   def update_prim(obj, trg, f)
-    #puts "\t\tprim: #{f.name} = #{obj[f.name]}"
-    set!(trg, f, obj[f.name])
+    x = lookup(obj, f)
+    puts "\t\t#{f.name} --> #{x}"
+    set!(trg, f, x)
   end
 
   def update_ref(obj, trg, f)
-    if f.many && IsKeyed?(f.type) then
-      update_set(obj, trg, f)
-    elsif f.many
-      update_list(obj, trg, f)
+    if f.many then
+      update_many(obj, trg, f)
     else
       update_single(obj, trg, f)
     end
   end
 
-  def update_set(obj, trg, f)
-    coll = {}
-    obj[f.name].each do |x|
-      # class keys are assumed to be primitive.
-      other = fold(x)
-      coll[ObjectKey(x)] = other
-      update_inverse(obj, trg, f, other)
-    end
-    #puts "\t\tset: #{f.name} = #{coll.values.map { |x| x.class.name }.join(',')}"
-    set!(trg, f, coll)
-  end
-
-  def update_list(obj, trg, f)
+  def update_many(obj, trg, f)
+    puts "\tMANY (#{f.name})"
     coll = []
-    obj[f.name].each do |x|
-      other = fold(x)
+    lookup(obj, f).each do |x|
+      puts "\t\telt = #{x}"
+      other = fold(f.type, x)
       coll << other
       update_inverse(obj, trg, f, other)
     end
-    #puts "\t\tlist: #{f.name} = #{coll.map { |x| x.class.name }.join(',')}"
     set!(trg, f, coll)
   end
 
   def update_single(obj, trg, f)
-    other = fold(obj[f.name])
+    puts "Updating single: #{obj} into #{f.name}: #{f.type}"
+    other = fold(f.type, lookup(obj, f))
     set!(trg, f, other)
     update_inverse(obj, trg, f, other)
   end
@@ -116,7 +104,6 @@ class Fold
     trg.instance_variable_get(ivar(f))
   end
 
-
   def init_if_needed(trg, f, value)
     return if trg.instance_variable_defined?(ivar(f))
     trg.instance_variable_set(ivar(f), value)
@@ -126,6 +113,42 @@ class Fold
     "@#{f.name}"
   end
 end
+
+class Fold < AbstractFold
+  def class_name(obj)
+    class_of(obj).name
+  end
+
+  def class_of(obj)
+    obj.schema_class
+  end
+
+  def lookup(obj, fld)
+    obj[fld.name]
+  end
+end
+
+class RubyFold < AbstractFold
+
+  def lookup_class(obj, scls)
+    x, cls = super(obj, scls)
+    n = cls.name.split('::').last
+    return scls.schema.classes[n], cls
+  end
+
+  def class_of(obj)
+    obj.class
+  end
+
+  def class_name(obj)
+    class_of(obj).name.split('::').last
+  end
+
+  def lookup(obj, fld)
+    obj.instance_variable_get(ivar(fld))
+  end
+end
+
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
@@ -170,8 +193,12 @@ if __FILE__ == $0 then
   #ss = Loader.load('state_machine.schema')
   fold = Fold.new(Grammar)
   ss = Loader.load('path.grammar')
+  gs = Loader.load('grammar.schema')
   
-  folded = fold.fold(ss)
-  #pp folded
+  folded = fold.fold(gs.classes['Grammar'], ss)
   YAML.dump(folded, $stdout)
+
+  fold2 = RubyFold.new(Grammar)
+  folded2 = fold2.fold(gs.classes['Grammar'], folded)
+  YAML.dump(folded2, $stdout)
 end
