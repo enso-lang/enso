@@ -1,5 +1,10 @@
 
+require 'core/expr/code/eval2'
+require 'core/grammar/parse/path-eval'
+
 module GrammarInterpreter
+  include ExprEval
+  include PathEval
 
   class Grammar
     attr_reader :start, :rules
@@ -42,16 +47,6 @@ module GrammarInterpreter
       end
     end
 
-    # def hash
-    #   1
-    # end
-
-    # def eql?(o)
-    #   return false if !o.is_a?(Item)
-    #   expression.eql?(o.expression) &&
-    #     elements.eql?(o.elements) &&
-    #     dot.eql?(o.dot)
-    # end
   end
 
   class Pattern

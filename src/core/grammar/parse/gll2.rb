@@ -195,8 +195,9 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'yaml'
   gg = Loader.load('grammar.grammar')
+  gs = Loader.load('grammar.schema')
   f = Fold.new(GrammarInterpreter)
-  rg = f.fold(gg)
+  rg = f.fold(gs.classes['Grammar'], gg)
   #YAML.dump(rg, $stdout)
   gll = GLL2.new(rg)
   x = gll.parse(File.read('core/expr/models/expr.grammar'))
