@@ -131,7 +131,7 @@ end
 class RubyFold < AbstractFold
 
   def lookup_class(obj, scls)
-    x, cls = super(obj, scls)
+    _, cls = super(obj, scls)
     n = cls.name.split('::').last
     return scls.schema.classes[n], cls
   end
@@ -196,9 +196,10 @@ if __FILE__ == $0 then
   gs = Loader.load('grammar.schema')
   
   folded = fold.fold(gs.classes['Grammar'], ss)
-  YAML.dump(folded, $stdout)
+  YAML.dump(folded, x = '')
 
   fold2 = RubyFold.new(Grammar)
   folded2 = fold2.fold(gs.classes['Grammar'], folded)
-  YAML.dump(folded2, $stdout)
+  YAML.dump(folded2, y = '')
+  puts "X = Y? #{x == y}"
 end
