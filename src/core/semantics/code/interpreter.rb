@@ -1,13 +1,39 @@
 =begin
-Base interpreter container. Operations must be rolled in before it is used
+ Usage example: Interpreter(Debug.wrap(EvalExpr)).eval(exp1, env: {x: 5})
+
+ Some definitions for documentation below:
+ - operation: an action the interpreter can take, eg eval, debug, lvalue, etc
+ - type: schema type, eg BinaryOp
+ - visit method: action for {o:operation X t:type} eg eval_BinaryOp()
+ - strategy: a visitor contain a set of visit methods plus interpreter configurations, eg EvalExpr
+ - combinator: combines strategies to form new strategies, eg Wrap :: Strategy X Strategy -> Strategy
+ - higher-order strategy: a strategy that is typically used with a combinator, eg Debug, Memo, AttrGrammar 
+ - interpreter: initialized with strategy. can then use its operations on objects
+ - interp: delayed execution of a strategy on an object, used by interpreter for composition and specialization
 =end
 
 require 'core/system/library/schema'
 
+=begin
+Base interpreter container for all interp objects created during an evaluation
+This is the main interpreter interacting with the user
+Each interpreter is created by accepting a set of strategies
+Attributes:
+  interpreter-level configuration info: eg @mods
+  global interpreter state: @all_interps, @argstack
+  State that is specific to one interpreter strategy do NOT go here
+Methods:
+  interpreter management methods: push/pop stack, get_interp, etc
+  Each operation will get a method here
+    - this method will invoke the first interpreter object
+    - as well as contain hooks for init, cleanup, and default_args
+=end 
 class Interpreter
   def initialize(*mods)
     @all_interps = {}    #Note that this is a generic hashtable, so keys may be anything from 
                          # MObjects to Lists & Sets to even primitives
+    @argstack = [{}]  #keep track of arguments passed to each call in the stack
+                      #this is to allow visit methods to not pass arguments manually if they are unchanged
     @mods = mods
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
@@ -46,8 +72,44 @@ class Interpreter
       newl
     end
   end
+  
+  def lastargs; @argstack.last end
+  def pushargs(args); @argstack << args end 
+  def popargs; @argstack.pop end
 end
 
+=begin
+Interp represents a delayed execution of a strategy on an object
+Essentially an interpreter specialized for this one object
+An interpreter contains a graph of interps which it will invoke accordingly
+Visit methods in strategies are passed interps, not the actual object
+Attributes:
+  @this is the object specialized for, 
+  @interpreter is the containing interpreter
+  Persistent state specific to an evaluation strategy go here, eg
+    - State for only one interp: eg @memo
+    - State globally applicable: eg @@sec_policy, @@workqueue
+    - At this time impossible to share state between interp objects in different interpreters
+Methods:
+  Each operation, foo, will have the following methods:
+    - foo: this is the usual method to call, normally it simply redirects to foo!
+           (PS. this is needed because foo! is only created when the interpreter is specialized,
+            but some combinators, eg Wrap, Rename, require a 'main' method to work with when the
+            strategy is being defined, before the interpreter is used.
+            So foo is that 'main' method that can be extended, renamed, etc before foo!
+            is created)
+    - foo!: invoke operation foo (on this object)
+             specialized to the object --- any optimization/peval should be put here! 
+             handles dispatch, argument mangling, error-handling, call stack mgmt, etc
+             normally it calls some variant of foo_Type
+    - foo_<Type>: these are visit methods included from strategies
+    Try to define as few methods here as possible to avoid name clashes with operations!
+  __bar: methods used by the interpreter machinery, eg __init, __cleanup
+         to be overridden by strategies to produce specific behavior
+  _bar: methods used by interpreter strategies (like Debug, Memo), eg _add_to_workqueue
+  bar: methods used by user strategies (like eval, construct), eg closure
+       utility methods in user strategies can clash with operations as well, so avoid them!
+=end
 class Interp
   #TODO: Undef some methods here, but make sure not to undef the later defined ones
   #ie DON'T use "undef"
@@ -56,39 +118,36 @@ class Interp
   def initialize(obj, interpreter, mods=[])
     @this=obj
     @interpreter=interpreter
-    @mods=mods
 
     mods.each {|mod| instance_eval {extend(mod)}}
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
+
       m = Lookup(@this.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
       if !m.nil?
-        param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+        all_fields = @this.schema_class.all_fields
 
-        define_singleton_method(method_sym) do |args={}, &block|
-          params = param_names.map{|p|@interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])}
-          begin
-            m.call(*params, args, &block)
-          rescue Exception => e
-            unless __hidden_calls.include? method_sym 
-              $stderr<< "\tin #{@this}.#{method_sym}(#{args})\n"
+        define_singleton_method("#{method_sym}!") do |args={}, &block|
+          __call(m, args) do |nargs|
+            params = m.parameters.map do |k,v|
+              name=v.to_s
+              if all_fields.has_key? name
+                @interpreter.get_interp(@this[name], all_fields[name])
+              else
+                nargs[v]
+              end
             end
-            raise e
+            m.call(*params, &block)
           end
         end
       elsif respond_to?("#{method_sym}_?")
         m = method("#{method_sym}_?".to_sym) 
-        param_names = @this.schema_class.all_fields.map{|f|f.name}
+        all_fields = @this.schema_class.all_fields
 
-        define_singleton_method(method_sym) do |args={}, &block|
-          params = Hash[*param_names.map{|p|[p, @interpreter.get_interp(@this[p], @this.schema_class.all_fields[p])]}.flatten(1)]
-          begin
-            m.call(@this.schema_class, params, args, &block)
-          rescue Exception => e
-            unless __hidden_calls.include? method_sym 
-              $stderr<< "\tin #{@this}.#{method_sym}(#{args})\n"
-            end
-            raise e
+        define_singleton_method("#{method_sym}!") do |args={}, &block|
+          __call(m, args) do |nargs|
+            fields = Hash[*all_fields.map{|f|[f.name, @interpreter.get_interp(@this[f.name], f)]}.flatten(1)]
+            m.call(@this.schema_class, fields, nargs, &block)
           end
         end
       else
@@ -108,7 +167,7 @@ class Interp
       super
     end
   end
-  
+
   def [](key=nil)
     return @this if key.nil?
     if field = @this.schema_class.fields[key.to_s]
@@ -126,13 +185,33 @@ class Interp
   def to_s; "Interp(#{@this})"; end
   def to_ary; end
 
+  private
+
+  #utility call method that does miscellaneous wiring
+  # -error handling
+  # -default arguments
+  # DO NOT OVERRIDE!!!
+  def __call(m, args)
+    args1 = @interpreter.lastargs+args
+    @interpreter.pushargs(args1)
+    begin
+      yield args1
+    rescue Exception => e
+      unless __hidden_calls.include? m.name 
+        $stderr<< "\tin #{@this}.#{m.name}(#{args})\n"
+      end
+      raise e
+    ensure
+      @interpreter.popargs
+    end
+  end
 end
 
 def Interpreter(*mods)
   Interpreter.new(*mods)
 end
 
-# easier to work with arguments
+# easier to work with standard Ruby classes
 class Hash
   def set!(key)
     self[key] = yield self[key]
@@ -155,7 +234,14 @@ class Module
   def operation(*ops)
     @operations||=[]
     @operations+=ops
+    ops.each do |op|
+      eval("
+      define_method(:#{op}) do |args={}, &block|
+        #{op}! args, &block
+      end")
+    end
   end
+
   def operations
     @operations||=[]
     (@operations + included_modules.map{|mod|mod.operations||[]}.flatten).uniq

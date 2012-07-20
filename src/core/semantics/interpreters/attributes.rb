@@ -1,17 +1,12 @@
 require 'core/semantics/code/combinators'
 
 module AttrGrammar
-  #this is technically *not* a map as all it does is go through the entire graph once
-  #I would rather call it a 'Functor'(?), and can be used to write maps, folds, filter, etc
-
-  extend Control
-  
-  operation :attr
+  extend Traverse
   
   attr_accessor :clean, :onstack
 
-  def attr_?(type, fields, args={})
-    
+  def traverse_?(type, fields, args)
+
     return @memo if @clean
 
     @memo = @memo || default(@this)
@@ -49,5 +44,4 @@ module AttrGrammar
   end
 
   def __init; super; @@dependencies={}; end
-  def __hidden_calls; super+[:attr]; end
 end

@@ -2,7 +2,7 @@ require 'test/unit'
 
 require 'core/system/load/load'
 require 'core/expr/code/eval'
-require 'core/semantics/code/dispatch'
+require 'core/semantics/code/interpreter'
 
 class ExprTest < Test::Unit::TestCase
 

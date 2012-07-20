@@ -1,82 +1,61 @@
 
 # Around advice that wraps one interpreter with another
 module Wrap
-  def wrap(mod)
+  def wrap(mod, action=operations[0])
     newmod = self.clone
-    action = operations[0] 
     newmod.send(:include, mod)
-    mod.op_methods.each do |sym|
-      m = mod.instance_method(sym)
-
-      param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
+    mod.operations.each do |op|
       newmod.send(:eval, "
-      define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        #{action}(args+{op: '#{sym}'}) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
-      end")
+        define_method(:#{op}) do |args={}, &block|
+          #{action}(args+{op: :#{op}}) do |args2={}|
+            super(args+args2, &block)
+          end
+        end")
     end
     newmod
   end
 end
 
 # Control module that specifies when a node is executed
-module Control
-  module Helper
-    def start?
-      if @@start 
-        @@start=false
-        true 
+# controlling interpreter must define traverse operation
+module Traverse
+  include Wrap
+
+  def traverse(mod)
+    newmod = wrap(mod, :control)
+    newmod.send(:include, TraversalHelper)
+  end
+
+  module TraversalHelper
+    operation :traverse
+
+    #workqueue management
+    def prepend(obj); @@workqueue.unshift(obj).uniq! end
+    def append(obj); (@@workqueue << obj).uniq! end
+    def pop; @@workqueue.shift end
+    def done?; @@workqueue.empty? end
+    def queue; @@workqueue end
+    def start?; @@start ? !@@start=false : false end
+
+    def control(args, &block)
+      if start?
+        prepend(self)
+        until done?
+          pop.send(args[:op], args)
+        end
       else
-        false
+        traverse &block
       end
     end
-    def prepend(obj)
-      @@workqueue.unshift(obj).uniq!
-    end
-    def append(obj)
-      (@@workqueue << obj).uniq!
-    end
-    def pop
-      nex = @@workqueue[0]
-      @@workqueue = @@workqueue[1..-1]
-      nex
-    end
-    def done?
-      @@workqueue.empty?
-    end
-    def queue
-      @@workqueue
-    end
+
     def __init
+      super
       @@workqueue = []
       @@start = true
     end
+    def __hidden_calls; super+[:traverse]; end
   end
 
-  def control(mod)
-    newmod = self.clone
-    action = operations[0]
-    newmod.send(:include, Helper)
-    newmod.send(:include, mod)
-    mod.op_methods.each do |sym|
-      m = mod.instance_method(sym)
-      op = sym.to_s.split('_')[0]
-
-      param_names = m.parameters.select{|k,v|k==:req}.map{|k,v|v.to_s}
-
-      newmod.send(:eval, "
-      define_method(:#{sym}) do |#{(param_names+["args={}", "&block"]).join","}|
-        if start?
-          append(self)
-          until done?
-            pop.send(:#{op}, args)
-          end
-        else
-          #{action}(args) {|args2={}| super(#{(param_names+["args+args2", "&block"]).join","}) }
-        end
-      end")
-    end
-    newmod
-  end
 end
 
 # Sum of two interpreters, with the second overriding the first

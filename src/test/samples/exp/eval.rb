@@ -2,18 +2,18 @@
 module Eval  
   operation :eval
 
-  def eval_Num(val, args=nil)
+  def eval_Num(val)
     val
   end
 
-  def eval_Add(left, right, args=nil)
+  def eval_Add(left, right)
     puts "#{left}+#{right}"
-    left.eval(args) + right.eval(args)
+    left.eval + right.eval
   end
 
-  def eval_Mul(left, right, args=nil)
+  def eval_Mul(left, right)
     puts "#{left}*#{right}"
-    left.eval(args) * right.eval(args)
+    left.eval * right.eval
   end
 end
 

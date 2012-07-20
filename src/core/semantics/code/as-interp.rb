@@ -7,10 +7,10 @@ class Interpreter
 
   def self.do(operation, &block)
     newmod = AsInterp.clone
-    newmod.send(:define_method, "#{operation}_?") do |type, fields, args={}| 
-      block.call(@this)
-    end
     newmod.operation(operation.to_sym)
+    newmod.send(:define_method, operation) do |args={}, &block2| 
+      block.call(@this, args, &block2)
+    end
     newmod
   end
 end
