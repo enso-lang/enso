@@ -1,4 +1,15 @@
 
+
+=begin
+
+Combinators:
+Supplant: add data passing methods to children for non-given classgen methods.
+Profile (= count + stats)
+
+=end
+
+
+
 module Factory
   def supplies?(cls)
     respond_to?(cls.name)
@@ -111,6 +122,40 @@ class Fixpoint
   end
 end
 
+# TODO: also lazy etc.
+class Generic
+  def supplies?(cls)
+    true
+  end
+end
+
+
+class Memo < Generic
+  def initialize(ops)
+    @ops = ops
+  end
+
+  def lookup(cls, sup)
+    cls = Class.new(sup) do
+      def initialize
+        @memo = {}
+      end
+    end
+    @ops.each do |op|
+      cls.class_eval %Q{
+        def #{op}(*args, &block)
+          @memo[:#{op}] ||= {}
+          if @memo[:#{op}].has_key?(args) then
+             return @memo[:#{op}][args]
+          end
+          @memo[:#{op}][args] = super(*args, &block)
+        end
+      }
+    end
+    cls
+  end
+end
+
 
 class Lazy
   include Factory
@@ -141,3 +186,75 @@ class Lazy
     cls
   end
 end
+
+
+
+class Count < Generic
+  def initialize(ops)
+    @ops = ops
+  end
+
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    cls.send(:define_method, :count) do
+      @@__count
+    end
+    cls.send(:define_method, :__incr) do |op|
+      @@__count ||= {}
+      @@__count[op] ||= 0
+      @@__count[op] += 1
+    end
+    @ops.each do |op|
+      cls.class_eval %Q{
+        def #{op}(*args, &block)
+          __incr(:#{op})
+          super(*args, &block)
+        end
+      }
+    end
+    cls
+  end
+end
+
+class Map < Generic
+  def initialize(op)
+    @op = op
+  end
+
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    cls.send(:define_method, @op) do |*args, &block|
+      inits = super(*args, &block)
+      self.class.new(*inits)
+    end
+    cls
+  end
+end
+
+
+
+# class Tuple < Generic
+#   def initialize(op1, op2, op)
+#     @op1 = op1
+#     @op2 = op2
+#     @op = op
+#   end
+
+#   def lookup(cls, sup)
+#     cls = Class.new(sup)
+#     cls.class_eval %Q{
+#       def #{@op}(*args, &block)
+#         x = #{@op1}(*args, &block)
+#         y = #{@op2}(*args, &block)
+#         [x, y]
+#       end
+#       def #{@op1}(*args, &block)
+#         @__x = super(*args, &block)
+#       end
+#       def #{@op2}(*args, &block)
+#         @__y = super(*args, &block)
+#         [@__x, @__y]
+#       end
+#     }
+      
+#   end
