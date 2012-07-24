@@ -120,11 +120,14 @@ Arith = Grammar.new(NonTerminal.new(:Stat),
 
 #FixNullable = RExtend.new(Fixpoint.new(:nullable?, true), Nullable.new, 
 #                          {:NonTerminal => :Node})
-FixNullable = Extend.new(Rename.new(Fixpoint.new(:nullable?, true),
-                                    {:NonTerminal => :Node}),
-                          Nullable.new)
+#FixNullable = Extend.new(Rename.new(Fixpoint.new(:nullable?, true),
+#                                    {:NonTerminal => :Node}),
+#                          Nullable.new)
+
+FixNullable = Extend.new(Only.new(Fixpoint.new({:nullable? => true}),
+                                  [:NonTerminal]), Nullable.new)
 
 ArithNullableFix = FFold.new(FixNullable).fold(Arith)
 tbl = {}
 puts ArithNullableFix.nullable?(tbl)
-puts tbl      
+p tbl      

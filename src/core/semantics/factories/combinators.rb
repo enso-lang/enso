@@ -93,39 +93,62 @@ class Rename
   end
 end 
 
-class Fixpoint
-  include Factory
-
-  def initialize(op, seed)
-    @op = op
-    @seed = seed
-  end
-
-  def Node(sup)
-    cls = Class.new(sup)
-    cls.class_eval %Q{
-      def #{@op}(*args)
-        @memo ||= {}
-        if @memo[self]
-          return @memo[self]
-        end
-        @memo[self] = prev = #{@seed}
-        x = super(*args)
-        while x != prev do
-          prev = x
-          x = super(*args)
-          @memo[self] = x
-        end
-      end
-    }
-    cls
-  end
-end
-
 # TODO: also lazy etc.
 class Generic
   def supplies?(cls)
     true
+  end
+end
+
+class Only
+  # TODO: probably to restrictive
+  # Should be more like extend and passing through super factory
+  # if requested class is not in @only.
+  def initialize(fact, only)
+    @fact = fact
+    @only = only
+  end
+
+  def supplies?(cls)
+    @only.include?(cls.name.to_sym)
+  end
+
+  def lookup(cls, sup)
+    if @only.include?(cls.name.to_sym)
+      @fact.lookup(cls, sup)
+    else
+      sup
+    end
+  end
+end
+
+
+class Fixpoint < Generic
+  def initialize(inits)
+    @inits = inits
+  end
+
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    @inits.each do |op, seed|
+      cls.class_eval %Q{
+        def #{op}(*args)
+          @memo ||= {}
+          @memo[:#{op}] ||= {}
+          if @memo[:#{op}].has_key?(self) then
+            return @memo[:#{op}][self]
+          end
+          @memo[:#{op}][self] = prev = #{seed.inspect}
+          x = super(*args)
+          while x != prev do
+            prev = x
+            x = super(*args)
+            @memo[:#{op}][self] = x
+          end
+        end
+      }
+    end
+    cls
   end
 end
 
