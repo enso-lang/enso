@@ -111,3 +111,34 @@ class Fixpoint
   end
 end
 
+
+class Lazy
+  include Factory
+
+  def initialize(op)
+    @op = op
+  end
+
+  class Delay
+    def initialize(args, block_block, &block)
+      @args = args
+      @block_block = block_block
+      @block = block
+    end
+    
+    def method_missing(sym, *args, &block)
+      @block.call(*@args, &@block_block).send(sym, *args, &block)
+    end
+  end
+
+  def Node(sup)
+    cls = Class.new(sup)
+    cls.class_eval %Q{
+      def #{@op}(*args, &block)
+        Delay.new(args, block) { |*args, &block| 
+          super(*args, &block) 
+        }
+      end
+    }
+  end
+end
