@@ -133,12 +133,11 @@ class Lazy
 
   def Node(sup)
     cls = Class.new(sup)
-    cls.class_eval %Q{
-      def #{@op}(*args, &block)
-        Delay.new(args, block) { |*args, &block| 
-          super(*args, &block) 
-        }
+    cls.send(:define_method, @op) do |*args, &block|
+      Delay.new(args, block) do |*args, &block| 
+        super(*args, &block) 
       end
-    }
+    end
+    cls
   end
 end
