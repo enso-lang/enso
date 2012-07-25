@@ -10,7 +10,7 @@ class Fold
     if @memo[obj] then
       return @memo[obj]
     end
-    cls = lookup_class(obj) 
+    cls = lookup_class(obj)
     arity = cls.instance_method(:initialize).arity
     args = [nil] * arity
     @memo[obj] = trg = cls.new(*args)

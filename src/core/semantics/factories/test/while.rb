@@ -159,7 +159,7 @@ class Visit
   def Stm(sup)
     Class.new(sup) do
       def visit(&block)
-        yield self, out, inn
+        yield self, inn, out
       end
     end
   end
@@ -232,9 +232,13 @@ if __FILE__ == $0 then
   end
 
   puts "### Liveness"
-  f = Extend.new(Circular.new({out: "Set.new", inn: "Set.new"}),
-                 Extend.new(Liveness.new, CFlow.new))
-  f = Extend.new(Visit.new, f)
+  # f = Extend.new(Circular.new({out: "Set.new", inn: "Set.new"}),
+  #                Extend.new(Liveness.new, CFlow.new))
+  # f = Extend.new(Visit.new, f)
+  f = Visit.new < 
+    Circular.new({out: "Set.new", inn: "Set.new"}) < 
+    Liveness.new < 
+    CFlow.new
   live = FFold.new(f).fold(prog)
   
   puts live.inn.inspect

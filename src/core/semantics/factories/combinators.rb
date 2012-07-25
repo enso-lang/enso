@@ -10,11 +10,29 @@ Some of these combinators can be improved if we have full knowledge of
 the schema structure (hence, in Enso it will be better). For instance when
 generically traversing all fields, knowledge of inverses, spine etc.
 
+Note: to implement extension of signatures, tupling, function
+composition, allow a class factory to also provide deepest classes for
+reference typed fields.
+
 =end
 
+module Operators
+  def <(other)
+    Extend.new(self, other)
+  end
 
+  def +(other)
+    Merge.new(self, other)
+  end
+
+  def [](syms)
+    Only.new(self, syms)
+  end
+end
 
 module Factory
+  include Operators
+
   def supplies?(cls)
     respond_to?(cls.name)
   end
@@ -47,6 +65,7 @@ end
 
 
 class Merge < Combinator
+  include Operators
   def lookup(cls, sup)
     if @f1.supplies?(cls)
       @f1.lookup(cls, sup)
@@ -57,12 +76,36 @@ class Merge < Combinator
 end    
 
 class Extend < Combinator
+  include Operators
   def lookup(cls, sup)
     @f1.lookup(cls, @f2.lookup(cls, sup))
   end
 
   def to_s
     "#{@f1} < #{@f2}"
+  end
+end
+
+class Only
+  include Operators
+  # TODO: probably to restrictive
+  # Should be more like extend and passing through super factory
+  # if requested class is not in @only.
+  def initialize(fact, only)
+    @fact = fact
+    @only = only
+  end
+
+  def supplies?(cls)
+    @only.include?(cls.name.to_sym)
+  end
+
+  def lookup(cls, sup)
+    if @only.include?(cls.name.to_sym)
+      @fact.lookup(cls, sup)
+    else
+      sup
+    end
   end
 end
 
@@ -99,32 +142,12 @@ end
 
 # TODO: also lazy etc.
 class Generic
+  include Operators
   def supplies?(cls)
     true
   end
 end
 
-class Only
-  # TODO: probably to restrictive
-  # Should be more like extend and passing through super factory
-  # if requested class is not in @only.
-  def initialize(fact, only)
-    @fact = fact
-    @only = only
-  end
-
-  def supplies?(cls)
-    @only.include?(cls.name.to_sym)
-  end
-
-  def lookup(cls, sup)
-    if @only.include?(cls.name.to_sym)
-      @fact.lookup(cls, sup)
-    else
-      sup
-    end
-  end
-end
 
 class Circular < Generic
   # Implementation based on Magnusson, Hedin. Circular Reference
@@ -288,31 +311,3 @@ class Map < Generic
     cls
   end
 end
-
-
-
-# class Tuple < Generic
-#   def initialize(op1, op2, op)
-#     @op1 = op1
-#     @op2 = op2
-#     @op = op
-#   end
-
-#   def lookup(cls, sup)
-#     cls = Class.new(sup)
-#     cls.class_eval %Q{
-#       def #{@op}(*args, &block)
-#         x = #{@op1}(*args, &block)
-#         y = #{@op2}(*args, &block)
-#         [x, y]
-#       end
-#       def #{@op1}(*args, &block)
-#         @__x = super(*args, &block)
-#       end
-#       def #{@op2}(*args, &block)
-#         @__y = super(*args, &block)
-#         [@__x, @__y]
-#       end
-#     }
-      
-#   end
