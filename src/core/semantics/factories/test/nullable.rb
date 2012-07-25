@@ -124,7 +124,7 @@ Arith = Grammar.new(NonTerminal.new(:Stat),
 #                                    {:NonTerminal => :Node}),
 #                          Nullable.new)
 
-FixNullable = Extend.new(Only.new(Fixpoint.new({:nullable? => true}),
+FixNullable = Extend.new(Only.new(Circular.new({:nullable? => false}),
                                   [:NonTerminal]), Nullable.new)
 
 ArithNullableFix = FFold.new(FixNullable).fold(Arith)

@@ -186,16 +186,11 @@ class Circular < Generic
   def lookup(cls, sup)
     cls = Class.new(sup)
 
-        # def initialize(*args, &block)
-        #   super(*args, &block)
-        #   @computed_#{op} = false
-        #   @value_#{op} = #{seed}
-        #   @visited_#{op} = false
-        # end
-
     @inits.each do |op, seed|
+      org_op = op
+      op = op.to_s.sub(/[?!]/, '')
       cls.class_eval %Q{          
-        def #{op}(*args, &block)
+        def #{org_op}(*args, &block)
           @computed_#{op} ||= false
           @value_#{op} ||= #{seed}
           @visited_#{op} ||= false
