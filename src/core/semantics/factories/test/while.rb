@@ -1,7 +1,7 @@
 
 require 'core/semantics/factories/combinators'
 require 'core/semantics/factories/obj-fold'
-
+require 'set'
 
 class Stm
   attr_accessor :parent
@@ -72,55 +72,34 @@ class CFlow
 
   def Stm(sup)
     Class.new(sup) do
-      def succ
-        following.map { |x| [self, x] }
-      end
-
-      def following
-        parent.follow(self)
-      end
-
-      def follow(kid)
-        []
-      end
+      def succ; following end
+      def following; parent.follow(self) end
+      def follow(kid); [] end
     end
   end
   
   def If(sup)
     Class.new(sup) do
-      def succ
-        [[self, body1], [self, body2]]
-      end
+      def succ; [body1, body2] end
     end
   end
 
   def While(sup)
     Class.new(sup) do
-      def succ
-        (following | [body]).map do |x|
-          [self, x]
-        end
-      end
-
-      def follow(kid)
-        [self]
-      end
+      def succ; following | [body] end
+      def follow(kid); [self] end
     end
   end
 
   def Return(sup)
     Class.new(sup) do
-      def succ
-        []
-      end
+      def succ; [] end
     end
   end
 
   def Block(sup)
     Class.new(sup) do
-      def succ
-        [[self, stms.first]]
-      end
+      def succ; [stms.first] end
 
       def follow(kid)
         if kid == stms.last then
@@ -130,8 +109,7 @@ class CFlow
           [stms[i + 1]]
         end
       end
-    end
-    
+    end    
   end
 end
 
@@ -141,56 +119,80 @@ class Liveness
   include Factory
   
   def Stm(sup)
-    def uses
-      Set.new
-    end
-    
-    def defines
-      Set.new
-    end
-
-    def inn
-      uses + out - defines
-    end
-
-    def out
-      # ???
-      succ.flat_map(inn)
+    Class.new(sup) do
+      def uses; Set.new end
+      def defines; Set.new end
+      def inn; uses | (out - defines) end
+      def out; succ.inject(Set.new) { |cur, x| cur | x.inn } end
     end
   end
 
   def Assign(sup)
     Class.new(sup) do
-      def defines
-        var
-      end
+      def defines; Set.new([var]) end
+      def uses; Set.new([exp]) end
     end
   end
 
   def While(sup)
     Class.new(sup) do
-      def uses
-        Set.new([exp])
-      end
+      def uses; Set.new([exp]) end
+    end
+  end
 
-      def succ
-        following + Set.new([body])
-      end
+  def Return(sup)
+    Class.new(sup) do
+      def uses; Set.new([exp]) end
+    end
+  end
 
-      def following
-        Set.new([self])
+  def If(sup)
+    Class.new(sup) do
+      def uses; Set.new([exp]) end
+    end
+  end
+end
+
+class Visit
+  include Factory
+
+  def Stm(sup)
+    Class.new(sup) do
+      def visit(tbl)
+        tbl[self] = {}
+        tbl[self][:out] = out
+        tbl[self][:in] = inn
+      end
+    end
+  end
+
+  def While(sup)
+    Class.new(Stm(sup)) do
+      def visit(tbl)
+        super(tbl)
+        body.visit(tbl)
+      end
+    end
+  end
+
+  def If(sup)
+    Class.new(Stm(sup)) do
+      def visit(tbl)
+        super(tbl)
+        body1.visit(tbl)
+        body2.visit(tbl)
       end
     end
   end
 
   def Block(sup)
-    Class.new(sup) do
-      def succ
-        [stms.first]
+    Class.new(Stm(sup)) do
+      def visit(tbl)
+        # super(tbl)
+        stms.each { |x| x.visit(tbl) }
       end
     end
   end
-
 end
 
 
@@ -222,14 +224,27 @@ if __FILE__ == $0 then
   while !todo.empty?
     x = todo.shift
     done << x
-    x.succ.each do |f, t|
-      puts "#{f} -> #{t}"
-      if !done.include?(f)
-        todo |= [f]
-      end
+    x.succ.each do |t|
+      puts "#{x} -> #{t}"
       if !done.include?(t)
         todo |= [t]
       end
     end
   end
+
+  puts "### Liveness"
+  f = Extend.new(Fixpoint.new({:out => "Set.new", :inn => "Set.new"}),
+                 Extend.new(Liveness.new, CFlow.new))
+  f = Extend.new(Visit.new, f)
+  live = FFold.new(f).fold(prog)
+  
+  puts live.inn.inspect
+  puts live.out.inspect
+
+  tbl = {}
+  live.visit(tbl)
+  tbl.each do |n, io|
+    puts "#{n}: in = {#{io[:in].to_a.sort.join(', ')}}; out = {#{io[:out].to_a.sort.join(', ')}}"
+  end
+
 end
