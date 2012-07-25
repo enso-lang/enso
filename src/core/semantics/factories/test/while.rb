@@ -233,7 +233,7 @@ if __FILE__ == $0 then
   end
 
   puts "### Liveness"
-  f = Extend.new(Fixpoint.new({:out => "Set.new", :inn => "Set.new"}),
+  f = Extend.new(Circular.new({out: "Set.new", inn: "Set.new"}),
                  Extend.new(Liveness.new, CFlow.new))
   f = Extend.new(Visit.new, f)
   live = FFold.new(f).fold(prog)

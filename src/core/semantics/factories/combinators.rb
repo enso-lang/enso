@@ -177,6 +177,72 @@ end
 # end
 
 
+class Circular < Generic
+  def initialize(inits)
+    @inits = inits
+  end
+
+  # TODO: must detect if i'm in a circle or not (a la JastAdd)
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+
+        # def initialize(*args, &block)
+        #   super(*args, &block)
+        #   @computed_#{op} = false
+        #   @value_#{op} = #{seed}
+        #   @visited_#{op} = false
+        # end
+
+    @inits.each do |op, seed|
+      cls.class_eval %Q{          
+        def #{op}(*args, &block)
+          @computed_#{op} ||= false
+          @value_#{op} ||= #{seed}
+          @visited_#{op} ||= false
+
+          $in_circle ||= false
+          $change ||= false
+
+          if @computed_#{op} then
+            return @value_#{op}
+          end
+
+          if !$in_circle then
+            $in_circle = true
+            @visited_#{op} = true
+            begin
+              $change = false
+              new = super(*args, &block)
+              if new != @value_#{op} then
+                $change = true
+              end
+              @value_#{op} = new
+            end while $change
+            @visited_#{op} = false
+            @computed_#{op} = true
+            $in_circle = false
+            return @value_#{op}
+          elsif !@visited_#{op} then
+            @visited_#{op} = true
+            new = super(*args, &block)
+            if new != @value_#{op} then
+              $change = true
+            end
+            @value_#{op} = new
+            @visited_#{op} = false
+            return @value_#{op}
+          else
+            return @value_#{op}
+          end                      
+        end
+      }
+    end
+    cls
+  end
+
+end
+
+
 class Fixpoint < Generic
   def initialize(inits)
     @inits = inits
