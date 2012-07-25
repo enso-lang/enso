@@ -15,6 +15,11 @@ composition, allow a class factory to also provide deepest classes for
 reference typed fields. For instance, they can then override eval and
 extend it with an env param and calling super without args.
 
+Todo: make a generic aspect that takes a class factory and produces
+classes based on the type of a field, but the connectivity of the
+graph itself. E.g. lift a SPPF into another SPPF structure where the
+nodes are typed according to node.type.
+
 =end
 
 module Operators
@@ -53,25 +58,10 @@ module Factory
   private
 
   def lookup_schema_class(cls, sup)
-    if supplies?(cls)
-      if cls.supers.empty? then
-        send(cls.name, sup)
-      else
-        cls.supers.each do
-          # take first one, for now.
-          puts "SUPER = #{x}"
-          return send(cls.name, lookup_schema_class(x, sup))
-        end
-      end
+    if supplies?(cls) then
+      send(cls.name, cls.supers.inject(sup) { |sup, c| lookup_schema_class(c, sup) })
     else
-      if cls.supers.empty? then
-        sup
-      else
-        cls.supers.each do |x|
-          puts "SUPER = #{x}"
-          return lookup_schema_class(x, sup)
-        end
-      end
+      cls.supers.inject(sup) { |sup, c| lookup_schema_class(c, sup) }
     end
   end
 
@@ -183,6 +173,15 @@ class Generic
   end
 end
 
+class BottomUp < Generic
+  def initialize(op)
+    @op = op
+  end
+
+  # TBD
+end  
+
+
 
 class Circular < Generic
   # Implementation based on Magnusson, Hedin. Circular Reference
@@ -246,25 +245,44 @@ class Circular < Generic
 end
 
 
+class Cyclic < Generic
+  def initialize(inits)
+    @inits = inits
+  end
+
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    @inits.each do |op, bot|
+      cls.class_eval %Q{
+        def #{op}(*args, &block)
+          @memo_#{op} ||= {}
+          if @memo_#{op}.has_key?(args) then
+            return @memo_#{op}[args]
+          end
+          @memo_#{op}[args] = #{bot}
+          super(*args, &block)
+        end
+      }
+    end
+    cls
+  end
+end
+
 class Memo < Generic
   def initialize(ops)
     @ops = ops
   end
 
   def lookup(cls, sup)
-    cls = Class.new(sup) do
-      def initialize
-        @memo = {}
-      end
-    end
+    cls = Class.new(sup)
     @ops.each do |op|
       cls.class_eval %Q{
         def #{op}(*args, &block)
-          @memo[:#{op}] ||= {}
-          if @memo[:#{op}].has_key?(args) then
-             return @memo[:#{op}][args]
+          @memo_#{op} ||= {}
+          if @memo_#{op}.has_key?(args) then
+            return @memo_#{op}[args]
           end
-          @memo[:#{op}][args] = super(*args, &block)
+          @memo_#{op}[args] = super(*args, &block)
         end
       }
     end

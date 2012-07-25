@@ -2,7 +2,7 @@
 require 'set'
 
 class BaseNode
-  attr_reader :type, :starts, :ends, :id
+  attr_reader :type, :starts, :ends
 
   # TODO: remove the global variable
   # cannot resue it for multiple parses
@@ -12,9 +12,9 @@ class BaseNode
     @@nodes
   end
 
-  def kids
-    []
-  end
+  # def kids
+  #   []
+  # end
 
   def self.new(*args)
     @@nodes[args] ||= super(*args)
@@ -27,8 +27,31 @@ class BaseNode
     @hash = 29 * self.class.to_s.hash + 37 * starts + 17 * ends
   end
 
+  
+  def build(owner, accu, field, fixes, paths, fact, orgs)
+    type.build_spine(self, owner, accu, field, fixes, paths, fact, orgs)
+  end
+
+  def build_kids(owner, accu, field, fixes, paths, fact, orgs)
+    raise Ambiguity.new(self) if kids.length > 1
+    return if kids.empty?
+    kids.first.build(owner, accu, field, fixes, paths, fact, orgs)
+  end
+
   def hash
     @hash
+  end
+
+  def origin(orgs)
+    path = orgs.path
+    offset = orgs.offset(starts)
+    length = ends - starts
+    start_line = orgs.line(starts)
+    start_column = orgs.column(starts)
+    end_line = orgs.line(ends)
+    end_column = orgs.column(ends)
+    Location.new(path, offset, length, start_line, 
+                 start_column, end_line, end_column)
   end
 end
 
@@ -41,6 +64,9 @@ class Empty < BaseNode
     return true if x.equal?(self)
     return false unless x.is_a?(Empty)
     return true
+  end
+
+  def build(owner, accu, field, fixes, paths, fact, orgs)
   end
 
 end
@@ -122,7 +148,7 @@ end
 
 
 class Pack
-  attr_reader :item, :pivot, :left, :right, :id
+  attr_reader :item, :pivot, :left, :right
 
   def initialize(item, pivot, left, right)
     @item = item
@@ -131,12 +157,13 @@ class Pack
     @right = right
   end
 
-  def kids
-    [left, right].compact
-  end
-
   def hash
     "pack".hash + 7 * item.hash + 31 * pivot
+  end
+
+  def build(owner, accu, field, fixes, paths, fact, orgs)
+    left.build(owner, accu, field, fixes, paths, fact, orgs) if left
+    right.build(owner, accu, field, fixes, paths, fact, orgs)
   end
 
   def ==(x)

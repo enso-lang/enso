@@ -5,14 +5,14 @@ class FoldModel
     @memo = {}
   end
 
-  def fold(scls, obj)
+  def fold(obj)
     return nil if obj.nil?
     if @memo[obj] then
       return @memo[obj]
     end
-    cls = lookup_class(obj, scls) 
+    cls = lookup_class(obj, obj.schema_class) 
     @memo[obj] = trg = cls.new
-    update_fields(obj, trg, scls.fields)
+    update_fields(obj, trg, obj.schema_class.fields)
     return trg
   end
 
@@ -42,7 +42,7 @@ class FoldModel
   def update_many(obj, trg, f)
     coll = []
     obj[f.name].each do |x|
-      other = fold(f.type, x)
+      other = fold(x)
       coll << other
       update_inverse(obj, trg, f, other)
     end
@@ -50,7 +50,7 @@ class FoldModel
   end
 
   def update_single(obj, trg, f)
-    other = fold(f.type, obj[f.name])
+    other = fold(obj[f.name])
     set!(trg, f, other)
     update_inverse(obj, trg, f, other)
   end
