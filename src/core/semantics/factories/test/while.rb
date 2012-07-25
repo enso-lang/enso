@@ -158,38 +158,37 @@ class Visit
 
   def Stm(sup)
     Class.new(sup) do
-      def visit(tbl)
-        tbl[self] = {}
-        tbl[self][:out] = out
-        tbl[self][:in] = inn
+      def visit(&block)
+        yield self, out, inn
       end
     end
   end
 
   def While(sup)
     Class.new(Stm(sup)) do
-      def visit(tbl)
-        super(tbl)
-        body.visit(tbl)
+      def visit(&block)
+        super(&block)
+        body.visit(&block)
       end
     end
   end
 
   def If(sup)
     Class.new(Stm(sup)) do
-      def visit(tbl)
-        super(tbl)
-        body1.visit(tbl)
-        body2.visit(tbl)
+      def visit(&block)
+        super(&block)
+        body1.visit(&block)
+        body2.visit(&block)
       end
     end
   end
 
   def Block(sup)
     Class.new(Stm(sup)) do
-      def visit(tbl)
-        # super(tbl)
-        stms.each { |x| x.visit(tbl) }
+      def visit(&block)
+        stms.each { |x| 
+          x.visit(&block)
+        }
       end
     end
   end
@@ -241,10 +240,8 @@ if __FILE__ == $0 then
   puts live.inn.inspect
   puts live.out.inspect
 
-  tbl = {}
-  live.visit(tbl)
-  tbl.each do |n, io|
-    puts "#{n}: in = {#{io[:in].to_a.sort.join(', ')}}; out = {#{io[:out].to_a.sort.join(', ')}}"
+  live.visit do |n, i, o|
+    puts "#{n}: in = {#{i.to_a.sort.join(', ')}}; out = {#{o.to_a.sort.join(', ')}}"
   end
 
 end

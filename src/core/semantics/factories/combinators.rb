@@ -126,63 +126,14 @@ class Only
   end
 end
 
-# class Visit < Generic
-#   # This one needs schema info to work...
-#   def initialize(visit, ops)
-#     @visit = visit
-#     @ops = ops
-#   end
-
-#   def lookup(cls, sup)
-#     cls = Class.new(sup)
-#     calls = @ops.map do |op|
-#       "@@tbl[self][:#{op}] = #{op}(*args, &block)"
-#     end
-#     cls.class_eval %Q{
-#       def #{@visit}(*args, &block)
-#         @@stack = []
-#         @@tbl ||= {}
-#         @@tbl[self] ||= {}
-#         #{calls}
-#         puts "Visiting: \#{self}"
-#         self.instance_variables.each do |ivar|
-#           next if ivar == :@parent
-#           puts "Visiting: \#{ivar}"
-#           value = self.instance_variable_get(ivar)
-#           unless value.is_a?(String) || value.is_a?(Numeric) ||
-#               value.is_a?(TrueClass) || value.is_a?(FalseClass) ||
-#               value.is_a?(Symbol) then
-#             if value.is_a?(Array) then
-#               value.each do |x|
-#                 if !@@stack.include?(x) then
-#                   @@stack.push(x)
-#                   x.#{@visit}(*args, &block)
-#                   @@stack.pop
-#                 end
-#               end
-#             else
-#               if !@@stack.include?(value) then
-#                 @@stack.push(value)
-#                 value.#{@visit}(*args, &block)
-#                 @@stack.pop
-#               end
-#             end
-#           end
-#         end
-#         @@tbl
-#       end
-#     }
-#     cls
-#   end   
-# end
-
-
 class Circular < Generic
+  # Implementation based on Magnusson, Hedin. Circular Reference
+  # Attributed Grammars - their Evaluation and Applications, 2004.
+
   def initialize(inits)
     @inits = inits
   end
 
-  # TODO: must detect if i'm in a circle or not (a la JastAdd)
   def lookup(cls, sup)
     cls = Class.new(sup)
 
@@ -234,40 +185,6 @@ class Circular < Generic
     end
     cls
   end
-
-end
-
-
-class Fixpoint < Generic
-  def initialize(inits)
-    @inits = inits
-  end
-
-  # TODO: must detect if i'm in a circle or not (a la JastAdd)
-  def lookup(cls, sup)
-    cls = Class.new(sup)
-    @inits.each do |op, seed|
-      cls.class_eval %Q{
-        def #{op}(*args, &block)
-          @memo ||= {}
-          @memo[:#{op}] ||= {}
-          if @memo[:#{op}].has_key?(self) then
-            return @memo[:#{op}][self]
-          end
-          @memo[:#{op}][self] = prev = #{seed}
-          x = super(*args, &block)
-          while x != prev do
-            prev = x
-            @memo[:#{op}][self] = x
-            x = super(*args, &block)
-          end
-          @memo[:#{op}][self]
-        end
-      }
-    end
-    cls
-  end
-
 end
 
 
