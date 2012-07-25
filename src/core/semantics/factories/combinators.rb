@@ -12,7 +12,8 @@ generically traversing all fields, knowledge of inverses, spine etc.
 
 Note: to implement extension of signatures, tupling, function
 composition, allow a class factory to also provide deepest classes for
-reference typed fields.
+reference typed fields. For instance, they can then override eval and
+extend it with an env param and calling super without args.
 
 =end
 
@@ -26,7 +27,7 @@ module Operators
   end
 
   def [](syms)
-    Only.new(self, syms)
+    Restrict.new(self, syms)
   end
 end
 
@@ -38,6 +39,43 @@ module Factory
   end
   
   def lookup(cls, sup)
+    if cls.respond_to?(:schema_class)
+      lookup_schema_class(cls, sup)
+    else
+      lookup_ruby_class(cls, sup)
+    end
+  end
+
+  def to_s
+    self.class.name
+  end
+
+  private
+
+  def lookup_schema_class(cls, sup)
+    if supplies?(cls)
+      if cls.supers.empty? then
+        send(cls.name, sup)
+      else
+        cls.supers.each do
+          # take first one, for now.
+          puts "SUPER = #{x}"
+          return send(cls.name, lookup_schema_class(x, sup))
+        end
+      end
+    else
+      if cls.supers.empty? then
+        sup
+      else
+        cls.supers.each do |x|
+          puts "SUPER = #{x}"
+          return lookup_schema_class(x, sup)
+        end
+      end
+    end
+  end
+
+  def lookup_ruby_class(cls, sup)
     if cls == Object then
       sup
     elsif supplies?(cls)
@@ -47,9 +85,6 @@ module Factory
     end
   end
 
-  def to_s
-    self.class.name
-  end
 end
 
 class Combinator
@@ -86,7 +121,7 @@ class Extend < Combinator
   end
 end
 
-class Only
+class Restrict
   include Operators
   # TODO: probably to restrictive
   # Should be more like extend and passing through super factory
@@ -268,6 +303,12 @@ class Lazy
   end
 end
 
+
+class Debug < Generic
+  def lookup(cls, up)
+    
+  end
+end
 
 
 class Count < Generic

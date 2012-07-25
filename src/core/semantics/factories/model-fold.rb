@@ -5,7 +5,7 @@ class FoldModel
     @memo = {}
   end
 
-  def fold(obj, scls)
+  def fold(scls, obj)
     return nil if obj.nil?
     if @memo[obj] then
       return @memo[obj]
@@ -89,13 +89,13 @@ class FoldModel
   end
 end
 
-class FactoryFoldModel < FoldModel
+class FFold < FoldModel
   def lookup_class(obj, scls)
-    @fact.lookup(scls, scls)
+    @fact.lookup(scls, Object)
   end
 end
 
-class ModuleFoldModel < FoldModel
+class MFold < FoldModel
   def lookup_class(obj, scls)
     @fact.const_get(obj.schema_class.name)
   end
