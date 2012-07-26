@@ -9,6 +9,8 @@ end
 
 class While < Stm
   attr_reader :exp, :body
+  def self.fields; [:body] end
+
   def initialize(exp, body)
     @exp = exp
     @body = body
@@ -21,6 +23,9 @@ end
 
 class If < Stm
   attr_reader :exp, :body1, :body2
+
+  def self.fields; [:body1, :body2] end
+
   def initialize(exp, body1, body2)
     @exp = exp
     @body1 = body1
@@ -34,6 +39,8 @@ end
 
 class Assign < Stm
   attr_reader :var, :exp
+  def self.fields; [] end
+
   def initialize(var, exp)
     @var = var
     @exp = exp
@@ -46,6 +53,8 @@ end
 
 class Return < Stm
   attr_reader :exp
+  def self.fields; [] end
+
   def initialize(exp)
     @exp = exp
   end
@@ -57,6 +66,8 @@ end
 
 class Block < Stm
   attr_reader :stms
+  def self.fields; [:stms] end
+
   def initialize(stms)
     @stms = stms
   end
@@ -232,20 +243,14 @@ if __FILE__ == $0 then
   end
 
   puts "### Liveness"
-  # f = Extend.new(Circular.new({out: "Set.new", inn: "Set.new"}),
-  #                Extend.new(Liveness.new, CFlow.new))
-  # f = Extend.new(Visit.new, f)
-  f = Visit.new < 
+  f = TopDown.new(:visit, [:out, :inn]) < 
     Circular.new({out: "Set.new", inn: "Set.new"}) < 
     Liveness.new < 
     CFlow.new
   live = FFold.new(f).fold(prog)
   
-  puts live.inn.inspect
-  puts live.out.inspect
-
   live.visit do |n, i, o|
-    puts "#{n}: in = {#{i.to_a.sort.join(', ')}}; out = {#{o.to_a.sort.join(', ')}}"
+   puts "#{n}: in = {#{i.to_a.sort.join(', ')}}; out = {#{o.to_a.sort.join(', ')}}"
   end
 
 end

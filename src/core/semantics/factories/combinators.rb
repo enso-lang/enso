@@ -18,7 +18,8 @@ extend it with an env param and calling super without args.
 Todo: make a generic aspect that takes a class factory and produces
 classes based on the type of a field, but the connectivity of the
 graph itself. E.g. lift a SPPF into another SPPF structure where the
-nodes are typed according to node.type.
+nodes are typed according to node.type. This would solve the ugliness
+of Item and Epsilon in Parse.
 
 =end
 
@@ -56,6 +57,8 @@ module Factory
   end
 
   private
+
+  # TODO: make different factory modules
 
   def lookup_schema_class(cls, sup)
     if supplies?(cls) then
@@ -173,12 +176,61 @@ class Generic
   end
 end
 
-class BottomUp < Generic
-  def initialize(op)
-    @op = op
+class Traversal < Generic
+  def initialize(visit, ops)
+    raise "Traversal name #{visit} in #{ops}" if ops.include?(visit)
+    @visit = visit
+    @ops = ops
   end
 
-  # TBD
+  def field_visits(cls)
+    #tflds = cls.fields.select { |f| f.traversal }.map { |f| f.name }
+    tflds = cls.fields.map { |f| f }
+    calls = tflds.map do |f| 
+      "if #{f}.is_a?(Array) then 
+          #{f}.each { |x| x.#{@visit}(*args, &block) }
+       elsif !#{f}.nil?
+          #{f}.#{@visit}(*args, &block)
+       end"
+    end
+    calls.join("\n")
+  end
+
+  def self_visits
+    vs = @ops.map { |o| "#{o} = #{o}(*args)" } +
+      ["yield self, #{@ops.join(', ')}"]
+    vs.join("\n")
+  end
+end
+
+
+
+
+class TopDown < Traversal
+  def lookup(cls, sup)
+    # TODO: deal with graphs instead of trees only
+    cls = Class.new(sup)
+    cls.class_eval %Q{
+      def #{@visit}(*args, &block)
+        #{self_visits}
+        #{field_visits(cls)}
+      end
+    }
+    cls
+  end
+end  
+
+class BottomUp < Traversal
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    cls.class_eval %Q{
+      def #{@visit}(*args, &block)
+        #{field_visits(cls)}
+        #{self_visits}
+      end
+    }
+    cls
+  end
 end  
 
 
