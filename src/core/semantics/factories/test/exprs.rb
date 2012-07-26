@@ -20,22 +20,6 @@ class Const < Expr
   end
 end
 
-# class LoadExp
-#   def initialize(fact)
-#     @fact = fact
-#   end
-
-#   def load(obj)
-#     cls = @fact.lookup(obj.class, obj.class) #load_class(obj.class)
-#     if obj.class == Add then
-#       cls.new(load(obj.lhs), load(obj.rhs))
-#     else
-#       cls.new(obj.value)
-#     end
-#   end  
-# end
-    
-
 class Eval
   include Factory
 

@@ -19,7 +19,8 @@ Todo: make a generic aspect that takes a class factory and produces
 classes based on the type of a field, but the connectivity of the
 graph itself. E.g. lift a SPPF into another SPPF structure where the
 nodes are typed according to node.type. This would solve the ugliness
-of Item and Epsilon in Parse.
+of Item and Epsilon in Parse. Also, lift any object into schema
+behavior.
 
 Todo [?]: remove the multiple ops argument in the generic
 combinators. Not essential. Can always compose multiple weavings using
@@ -116,6 +117,60 @@ class Extend < Combinator
   end
 end
 
+
+class Morph < Combinator
+  $stack = []
+
+  $extra = {}
+
+  # Extends op with an extra parameter.
+
+  def initialize(f1, f2, op, from, with)
+    super(f1, f2)
+    @op = op
+    @from = from
+    @with = with
+  end
+
+  def lookup(cls, sup)
+    above = Class.new(@f2.lookup(cls, sup))
+    above.class_eval %Q{
+      def #{@op}(*args, &block)
+        $extra[:#{@with}] = args.first
+        super(*args[1..-1], &block)
+      end
+    }
+    new_cls = @f1.lookup(cls, above)
+    below = Class.new(new_cls)
+    arity = @from.length + 1
+    below.class_eval %Q{
+      def #{@op}(*args, &block)
+        x = #{arity} - args.length
+        if x > 0 then
+          extra = []
+          keys = #{(@from + [@with]).reverse}
+          0.upto(x - 1) { |i| extra << $extra[keys[i]] }
+          super(*extra, *args, &block)
+        else
+          super(*args, &block)
+        end
+      end
+    }
+    below
+    # below_below = Class.new(below)
+    # below_below.class_eval %Q{
+    #   def #{@op}(*args, &block)
+    #     $stack.push({})
+    #     x = super(*args, &block)
+    #     $stack.pop
+    #     x
+    #   end       
+    # }
+    # below_below
+  end
+end
+
+
 class Restrict
   include Operators
   # TODO: probably to restrictive
@@ -139,19 +194,23 @@ class Restrict
   end
 end
 
-
+# TypeLift? Meta?
+# "interpret a structure in terms of its type (as indicated by some field)"
 class Lift
   include Operators
 
   # Example use
   # FFold.new(Lift.new(Build.new, :type)).fold(sppf)
+  # FFold.new(Lift.new(ToDot.new, :schema_class)).fold(any_object)
+  # But how to access schema class's fields? via the original "type" field.
+  # Can this be independent of fold???
   def initialize(fact, field)
     @fact = fact
     @field = field.to_s
   end
 
   def lookup(cls, sup)
-    f = cls.fields[@field_s]
+    f = cls.fields[@field]
     if f.type.Primitive? then
       raise "Cannot lift primitive field #{@field}" 
     else
@@ -198,6 +257,8 @@ class Generic
     true
   end
 end
+
+
 
 class Traversal < Generic
   def initialize(visit, ops)

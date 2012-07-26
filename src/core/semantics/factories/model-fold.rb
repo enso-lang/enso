@@ -12,6 +12,7 @@ class FoldModel
     end
     cls = lookup_class(obj, obj.schema_class) 
     @memo[obj] = trg = cls.new
+    # for type lift to work, this should be cls.fields
     update_fields(obj, trg, obj.schema_class.fields)
     return trg
   end
