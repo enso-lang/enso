@@ -137,6 +137,25 @@ class Restrict
   end
 end
 
+
+class Lift
+  # Example use
+  # FFold.new(Lift.new(Build.new, :type)).fold(sppf)
+  def initialize(fact, field)
+    @fact = fact
+    @field = field.to_s
+  end
+
+  def lookup(cls, sup)
+    f = cls.fields[@field_s]
+    if f.type.Primitive? then
+      raise "Cannot lift primitive field #{@field}" 
+    else
+      @fact.lookup(f.type, sup)
+    end
+  end
+end
+
 class Rename
   def initialize(fact, renaming)
     @fact = fact
@@ -221,6 +240,25 @@ class TopDown < Traversal
 end  
 
 class BottomUp < Traversal
+  def lookup(cls, sup)
+    cls = Class.new(sup)
+    cls.class_eval %Q{
+      def #{@visit}(*args, &block)
+        #{field_visits(cls)}
+        #{self_visits}
+      end
+    }
+    cls
+  end
+end  
+
+
+class Suspendable < Generic
+  def initialize(run, op)
+    @run = run
+    @op = op
+  end
+
   def lookup(cls, sup)
     cls = Class.new(sup)
     cls.class_eval %Q{
