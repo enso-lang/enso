@@ -50,7 +50,7 @@ if __FILE__ == $0 then
   ex3 = Add.new(ex1, ex2)
 
   puts "### Eval + Env"
-  eval = FFold.new(Morph.new(EnvEval.new, Eval.new, :eval, [], :env)).fold(ex3)
+  eval = FFold.new(Morph.new(EnvEval.new, :eval, [], :env) < Eval.new).fold(ex3)
 
   puts eval.eval(x: 100)
 
@@ -63,11 +63,9 @@ if __FILE__ == $0 then
   ex2 = Add.new(Puts.new(Const.new(5)), ex1)
   ex4 = Add.new(ex1, ex2)
 
-  eval = FFold.new(Morph.new(IOEval.new, 
-                             Morph.new(EnvEval.new, Eval.new, :eval, [], :env),
-                             :eval, [:env], :out)).fold(ex4)
-
-
+  eval = FFold.new(Morph.new(IOEval.new, :eval, [:env], :out) <
+                   Morph.new(EnvEval.new, :eval, [], :env) <
+                   Eval.new).fold(ex4)
 
   puts eval.eval($stdout, {x: 100})
 

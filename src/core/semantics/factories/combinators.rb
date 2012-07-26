@@ -117,60 +117,6 @@ class Extend < Combinator
   end
 end
 
-
-class Morph < Combinator
-  $stack = []
-
-  $extra = {}
-
-  # Extends op with an extra parameter.
-
-  def initialize(f1, f2, op, from, with)
-    super(f1, f2)
-    @op = op
-    @from = from
-    @with = with
-  end
-
-  def lookup(cls, sup)
-    above = Class.new(@f2.lookup(cls, sup))
-    above.class_eval %Q{
-      def #{@op}(*args, &block)
-        $extra[:#{@with}] = args.first
-        super(*args[1..-1], &block)
-      end
-    }
-    new_cls = @f1.lookup(cls, above)
-    below = Class.new(new_cls)
-    arity = @from.length + 1
-    below.class_eval %Q{
-      def #{@op}(*args, &block)
-        x = #{arity} - args.length
-        if x > 0 then
-          extra = []
-          keys = #{(@from + [@with]).reverse}
-          0.upto(x - 1) { |i| extra << $extra[keys[i]] }
-          super(*extra, *args, &block)
-        else
-          super(*args, &block)
-        end
-      end
-    }
-    below
-    # below_below = Class.new(below)
-    # below_below.class_eval %Q{
-    #   def #{@op}(*args, &block)
-    #     $stack.push({})
-    #     x = super(*args, &block)
-    #     $stack.pop
-    #     x
-    #   end       
-    # }
-    # below_below
-  end
-end
-
-
 class Restrict
   include Operators
   # TODO: probably to restrictive
@@ -257,6 +203,47 @@ class Generic
     true
   end
 end
+
+class Morph < Generic
+  $extra = {}
+
+  # Extends op with an extra parameter.
+
+  def initialize(fact, op, from, with)
+    @fact = fact
+    @op = op
+    @from = from
+    @with = with
+  end
+
+  def lookup(cls, sup)
+    above = Class.new(sup)
+    above.class_eval %Q{
+      def #{@op}(*args, &block)
+        $extra[:#{@with}] = args.first
+        super(*args[1..-1], &block)
+      end
+    }
+    new_cls = @fact.lookup(cls, above)
+    below = Class.new(new_cls)
+    arity = @from.length + 1
+    below.class_eval %Q{
+      def #{@op}(*args, &block)
+        x = #{arity} - args.length
+        if x > 0 then
+          extra = []
+          keys = #{(@from + [@with]).reverse}
+          0.upto(x - 1) { |i| extra << $extra[keys[i]] }
+          super(*extra, *args, &block)
+        else
+          super(*args, &block)
+        end
+      end
+    }
+    below
+  end
+end
+
 
 
 
