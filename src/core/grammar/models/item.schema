@@ -1,0 +1,8 @@
+
+import grammar.schema
+
+class Item < Pattern
+  expression! Pattern
+  elements! Pattern*
+  dot: int
+
