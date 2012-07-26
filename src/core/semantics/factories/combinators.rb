@@ -21,6 +21,10 @@ graph itself. E.g. lift a SPPF into another SPPF structure where the
 nodes are typed according to node.type. This would solve the ugliness
 of Item and Epsilon in Parse.
 
+Todo [?]: remove the multiple ops argument in the generic
+combinators. Not essential. Can always compose multiple weavings using
+extend.
+
 =end
 
 module Operators
@@ -32,7 +36,7 @@ module Operators
     Merge.new(self, other)
   end
 
-  def [](syms)
+  def [](*syms)
     Restrict.new(self, syms)
   end
 end
@@ -77,10 +81,10 @@ module Factory
       lookup(cls.superclass, sup)
     end
   end
-
 end
 
 class Combinator
+  include Operators
   def initialize(f1, f2)
     @f1 = f1
     @f2 = f2
@@ -93,7 +97,6 @@ end
 
 
 class Merge < Combinator
-  include Operators
   def lookup(cls, sup)
     if @f1.supplies?(cls)
       @f1.lookup(cls, sup)
@@ -104,7 +107,6 @@ class Merge < Combinator
 end    
 
 class Extend < Combinator
-  include Operators
   def lookup(cls, sup)
     @f1.lookup(cls, @f2.lookup(cls, sup))
   end
@@ -139,6 +141,8 @@ end
 
 
 class Lift
+  include Operators
+
   # Example use
   # FFold.new(Lift.new(Build.new, :type)).fold(sppf)
   def initialize(fact, field)
@@ -253,20 +257,19 @@ class BottomUp < Traversal
 end  
 
 
-class Suspendable < Generic
-  def initialize(run, op)
-    @run = run
+class Suspend < Generic
+  def initialize(op, run = op)
     @op = op
   end
 
   def lookup(cls, sup)
     cls = Class.new(sup)
-    cls.class_eval %Q{
-      def #{@visit}(*args, &block)
-        #{field_visits(cls)}
-        #{self_visits}
-      end
-    }
+    cls.send(:define_method, @op) do |*args, &block|
+      Fiber.yield(:enter, self, nil, args)
+      x = super(*args, &block)
+      Fiber.yield(:exit, self, x, args)
+      x
+    end
     cls
   end
 end  
@@ -274,7 +277,7 @@ end
 
 
 class Circular < Generic
-  # Implementation based on Magnusson, Hedin. Circular Reference
+  # Implementation based on: Magnusson, Hedin. Circular Reference
   # Attributed Grammars - their Evaluation and Applications, 2004.
 
   def initialize(inits)
@@ -381,9 +384,7 @@ class Memo < Generic
 end
 
 
-class Lazy
-  include Factory
-
+class Lazy < Generic
   def initialize(op)
     @op = op
   end
@@ -400,7 +401,7 @@ class Lazy
     end
   end
 
-  def Node(sup)
+  def lookup(cls, sup)
     cls = Class.new(sup)
     cls.send(:define_method, @op) do |*args, &block|
       Delay.new(args, block) do |*args, &block| 
@@ -410,14 +411,6 @@ class Lazy
     cls
   end
 end
-
-
-class Debug < Generic
-  def lookup(cls, up)
-    
-  end
-end
-
 
 class Count < Generic
   def initialize(ops)
