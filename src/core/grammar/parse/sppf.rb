@@ -12,9 +12,9 @@ class BaseNode
     @@nodes
   end
 
-  # def kids
-  #   []
-  # end
+  def kids
+    []
+  end
 
   def self.new(*args)
     @@nodes[args] ||= super(*args)
