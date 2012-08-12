@@ -44,11 +44,11 @@ class GLL
     r = Node.nodes.values.find do |n|
       top_node?(n, source, top)
     end
-    if r then 
-      File.open('sppf.dot', 'w') do |f|
-        ToDot.to_dot(r, f)
-      end
-    end
+    # if r then 
+    #   File.open('sppf.dot', 'w') do |f|
+    #     ToDot.to_dot(r, f)
+    #   end
+    # end
     return r if r
     loc = @origins.str(@ci)
     #Print.print(@cu.item)
