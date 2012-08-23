@@ -1,0 +1,11 @@
+import schema.schema
+
+class Class
+  restricts! Restriction*
+  
+class Restriction
+  owner : Class / restricts
+  field : Field
+  components: Field*
+  
+class Field
