@@ -1,15 +1,14 @@
-
-
-
 arch -i386 ruby applications/Piping/code/visualize.rb
-
 
 arch -i386 ruby core/diagram/code/stencil.rb core/schema/models/schema.schema
 
-
 arch -i386 ruby core/diagram/code/stencil.rb applications/StateMachine/tests/door.state_machine
 
+ruby core/schema/tools/inspect.rb test/samples/exp/exp.user_schema
+
 ruby test/render.rb
+
+ruby test/samples/exp/test.rb
 
 ./core/web/scripts/ensoweb.sh todo.web test.todo
 open http://localhost:3000/index

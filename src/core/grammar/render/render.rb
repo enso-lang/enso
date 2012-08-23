@@ -242,14 +242,17 @@ def Render(grammar, obj)
   raise "ERROR: Could not render #{obj}"
 end
 
-def main
-  require 'core/schema/tools/print'
-  gg = Loader.load('grammar.grammar')
-
-  pt = Render(gg, gg)  
-  Print.print(pt)
-end
-
 if __FILE__ == $0 then
-  main
+  if !ARGV[0] then
+    $stderr << "Usage: render.rb <model>"
+    exit!(1)
+  end
+  name = ARGV[0]
+  m = Loader.load(name)
+  filename = name.split(/\//)[-1]
+  model, type = filename.split(/\./) if type.nil?
+  g = Loader.load("#{type}.grammar")
+  DisplayFormat.print(g, m)
 end
+
+
