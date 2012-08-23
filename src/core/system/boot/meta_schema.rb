@@ -103,6 +103,7 @@ module Boot
     def [](sym)
       send(sym)
     end
+    def type; method_missing :type; end  # HACK for JRuby to work, because it defines :type
     def method_missing(sym)
       res = if sym =~ /^([A-Z].*)\?$/
         schema_class.name == $1
@@ -111,6 +112,7 @@ module Boot
       elsif ! @this.elements["#{sym}"].nil?
         Boot.make_field(@this.elements["#{sym}"], self, sym.to_s, @root)
       else
+        # this is a strange hack, to avoid infinite recursion
         if f=schema_class.defined_fields[sym.to_s]
           MObject.default(f)
         elsif f=schema_class.all_fields[sym.to_s]
