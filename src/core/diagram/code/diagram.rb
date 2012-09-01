@@ -77,8 +77,6 @@ end
 class DiagramFrame < GUI::Window
   def initialize(title = 'Diagram')
     super(title)
-    
-    @menu_id = 0
     @selection = nil
     @mouse_down = false
     @select_color = GUI::Color.new(0, 255, 0)
@@ -411,6 +409,7 @@ class DiagramFrame < GUI::Window
     pFrom = position(e0)
     pTo = position(e1)
 
+    # compute what side of the shapes both ends are on
     sideFrom = getSide(e0.attach)
     sideTo = getSide(e1.attach)
     if sideFrom == sideTo   # this it the "same" case
@@ -478,6 +477,7 @@ class DiagramFrame < GUI::Window
     end
   end
 
+  # draw 
   def simpleSameSide(a, b, d)
     case d
     when 2 # DOWN
@@ -495,6 +495,7 @@ class DiagramFrame < GUI::Window
     end  
   end
 
+  # connector is from top to bottom or left to right
   def simpleOppositeSide(a, b, d)
     case d
     when 0, 2 # UP, DOWN
@@ -510,15 +511,17 @@ class DiagramFrame < GUI::Window
     return Integer((m + n) / 2)
   end
 
+  # need to handle more cases
   def simpleOrthogonalSide(a, b, d)
     case d
-    when 0, 2 # UP, DOWN
+    when 0 # 
       return [EnsoPoint.new(a.x, b.y)]
-    when 1, 3# LEFT, RIGHT
+    when 1 # LEFT, RIGHT
       return [EnsoPoint.new(b.x, a.y)]
     end  
   end
 
+  # compute the side of an attachment point for a connector end
   # sides are labeld top=0, right=1, bottom=2, left=3  
   def getSide(cend)
     return 0 if cend.y == 0 #top
