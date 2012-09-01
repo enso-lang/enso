@@ -11,8 +11,13 @@ class ExpTest < Test::Unit::TestCase
   def test_base
     interp = Interpreter(Eval)
 
-    ex0 = Loader.load("sample.exp")
-    assert_equal(33, interp.eval(ex0))
+    e = Loader.load("sample.exp")
+    assert_equal(33, interp.eval(e))
+    
+    puts "EXP #{e}"
+    puts "Children #{e.subexpressions}"
+    a = e.subexpressions[0]
+    puts "PARENT #{a.parent}"
   end
 
 end

@@ -1,13 +1,18 @@
 class Exp
-
+  subexpressions ! Exp*
+  parent : Exp? / subexpressions
+  
 class Num < Exp
+  subexpressions ! Exp* = []
   val : int
 
 class Add < Exp
+  subexpressions ! Exp*  = [left, right]
   left  ! Exp
   right ! Exp
 
 class Mul < Exp
+  subexpressions ! Exp* = [left, right]
   left  ! Exp
   right ! Exp
 

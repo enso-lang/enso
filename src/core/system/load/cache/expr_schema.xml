@@ -1,27 +1,7 @@
-<expr.schema source='core/expr/models/expr.schema' date='2012-07-04 15:30:07 +0200' checksum='5fbd321b1eab22f2f43da7b17f24d720d5b06b6e'>
+<expr.schema source='core/expr/models/expr.schema' date='2012-09-01 02:46:52 -0500' checksum='57d49e5cc388844fbef9d0306467f08cf28aeec5'>
   <depends/>
   <Schema>
     <types many='true' keyed='true'>
-      <Primitive name='str'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='int'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='bool'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='real'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
       <Class name='Expr'>
         <schema many='false' keyed='false'>
           /
@@ -384,6 +364,26 @@
           /types[EConst]
         </supers>
       </Class>
+      <Primitive name='str'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='int'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='bool'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='real'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
     </types>
   </Schema>
 </expr.schema>

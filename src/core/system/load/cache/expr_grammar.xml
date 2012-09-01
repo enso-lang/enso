@@ -1,4 +1,4 @@
-<expr.grammar source='core/expr/models/expr.grammar' date='2012-07-04 15:30:07 +0200' checksum='d28805c1f2e591ead9f06c521cc14993f6c76ee1'>
+<expr.grammar source='core/expr/models/expr.grammar' date='2012-09-01 02:49:09 -0500' checksum='53b188dc4a5a0aaf853933073a1eaab2a688f7fa'>
   <depends/>
   <Grammar>
     <start many='false' keyed='true'>
@@ -529,17 +529,6 @@
                   </Call>
                 </elements>
               </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Lit value='('/>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Expr]
-                    </rule>
-                  </Call>
-                  <Lit value=')'/>
-                </elements>
-              </Sequence>
             </alts>
           </Alt>
         </arg>
@@ -670,6 +659,43 @@
                   </Sequence>
                 </arg>
               </Create>
+              <Create name='EList'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='['/>
+                      <Field name='elems'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Expr]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=']'/>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Lit value='('/>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Expr]
+                    </rule>
+                  </Call>
+                  <Lit value=')'/>
+                </elements>
+              </Sequence>
             </alts>
           </Alt>
         </arg>

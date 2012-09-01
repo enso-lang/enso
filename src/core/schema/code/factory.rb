@@ -228,6 +228,17 @@ module ManagedData
     def __install(fields)
       fields.each do |fld|
         if fld.computed then
+          # check if this is a computed override of a field
+          if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
+            #puts "LIST #{fld.name} overrides #{c.name}"
+            base = c.all_fields[fld.name]
+            if base.inverse
+              fld.computed.elems.each do |var|
+                raise "Field override #{fld.name} includes non-var #{var}" if !var.EVar?
+                __get(var.name)._inverse = base.inverse
+              end
+            end
+          end
           __computed(fld.name, fld.computed)
         else
           __setter(fld.name)
@@ -271,10 +282,16 @@ module ManagedData
     # this origin is the same as the _origin
     # of the mobject pointed to.
     attr_accessor :_origin
+    attr_reader :_inverse
+    def _inverse=(inv)
+      raise "Overiding inverse of field '#{inv.owner.name}.#{invk.name}'" if @_inverse
+      @_inverse = inv
+    end
 
     def initialize(owner, field)
       @owner = owner
       @field = field
+      @_inverse = field.inverse if field # might get overriden!!
     end
 
     def __delete_obj(mobj)
@@ -341,15 +358,16 @@ module ManagedData
   module RefHelpers
     def notify(old, new)
       @owner.notify(@field.name, new)
-      return unless @field.inverse
-      if @field.inverse.many then
+      return unless @_inverse
+      #puts "INVERSE #{@field.name} SET #{@_inverse.name}"
+      if @_inverse.many then
         # old and new are both collections
-        old.__get(@field.inverse.name).__delete(@owner) if old
-        new.__get(@field.inverse.name).__insert(@owner) if new
+        old.__get(@_inverse.name).__delete(@owner) if old
+        new.__get(@_inverse.name).__insert(@owner) if new
       else
         # old and new are both mobjs
-        old.__get(@field.inverse.name).__set(nil) if old
-        new.__get(@field.inverse.name).__set(@owner) if new
+        old.__get(@_inverse.name).__set(nil) if old
+        new.__get(@_inverse.name).__set(@owner) if new
       end
     end
 
@@ -484,7 +502,8 @@ module ManagedData
       key = mobj[@key.name]
       raise "Nil key when adding #{mobj} to #{self}" unless key
       return self if @value[key] == mobj
-      raise "Duplicate key #{key}" if @value[key]
+      delete(@value[key]) if @value[key]
+      #raise "Duplicate key #{key}" if @value[key]
       notify(@value[key], mobj)
       __insert(mobj)
       return self

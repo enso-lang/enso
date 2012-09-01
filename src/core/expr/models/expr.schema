@@ -1,75 +1,65 @@
-primitive str
-primitive int
-primitive bool
-primitive real
-
 class Expr 
 
 class ETernOp < Expr
-  op1:str
-  op2:str
-  e1!Expr
-  e2!Expr
-  e3!Expr
-
+  op1: str
+  op2: str
+  e1! Expr
+  e2! Expr
+  e3! Expr
 
 class EBinOp < Expr
-  op:str
-  e1!Expr
-  e2!Expr
-
+  op: str
+  e1! Expr
+  e2! Expr
 
 class EUnOp < Expr
-  op:str
-  e!Expr
-
+  op: str
+  e! Expr
 
 class EFunCall < Expr
-  fun!Expr
-  params!Expr*
-
+  fun! Expr
+  params! Expr*
 
 class EField < Expr
-  e!Expr
-  fname:str
-
+  e! Expr
+  fname: str
 
 class EVar < Expr
-  name:str
-
+  name: str
 
 class ESubscript < Expr
-  e!Expr
-  sub!Expr
-
+  e! Expr
+  sub! Expr
 
 // data constructors
 
 class EList < Expr
-  elems!Expr*
-
+  elems! Expr*
 
 class EAddress < Expr
-  e!Expr
-
+  e! Expr
 
 class ENew < Expr
-  \class:str
-
+  \class: str
 
 // constants
 
 class EConst < Expr 
 class EStrConst < EConst
-  val:str
+  val: str
 
 class EIntConst < EConst
-  val:int
+  val: int
 
 class EBoolConst < EConst
-  val:bool
+  val: bool
 
 class ERealConst < EConst
-  val:real
+  val: real
 
 class ENil < EConst
+
+primitive str
+primitive int
+primitive bool
+primitive real

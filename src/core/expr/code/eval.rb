@@ -1,3 +1,5 @@
+require 'core/schema/code/factory'
+
 module EvalExpr
   
   operation :eval
@@ -39,6 +41,15 @@ module EvalExpr
 
   def eval_EFunCall(fun, params)
     fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
+  end
+
+  def eval_EList(elems)
+    r = ManagedData::List.new(nil, nil)
+    elems.each do |elem|
+      #puts "ELEM #{elem}=#{elem.eval}"
+      r << elem.eval
+    end
+    r
   end
 
   def eval_EField(e, fname, in_fc)
