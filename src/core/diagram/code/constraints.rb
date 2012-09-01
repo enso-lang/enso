@@ -41,6 +41,7 @@ class Variable
     @vars = []
     @value = val
     @bounds = []
+    throw "NO name variable" if name.to_s == ""
   end
 
   def to_i
@@ -53,6 +54,10 @@ class Variable
   
   def to_str
     return value.to_s
+  end
+
+  def inspect
+    return "<VAR #{@name}=#{@val}>"
   end
 
   def to_ary
@@ -122,10 +127,11 @@ class Variable
     if @block
       path << self
       vals = @vars.collect do |var|
-        val = var.is_a?(Variable) ? var.internal_evaluate(path) : var
-        if val.nil?
-          puts "WARNING: undefined variable '#{var}'"
-          val = 10
+        if var.is_a?(Variable)
+          val = var.internal_evaluate(path)
+          throw "unbound variable #{var.inspect}" if val.nil?
+        else
+          val = var
         end
         val
       end

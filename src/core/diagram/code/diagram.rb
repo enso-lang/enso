@@ -1,8 +1,7 @@
-require 'wx'
-include Wx
+require 'java'
+require 'core/diagram/code/swt'
 
 require 'core/system/load/load'
-require 'core/diagram/code/base_window'
 require 'core/diagram/code/constraints'
 #require 'core/schema/tools/print'
 
@@ -66,7 +65,8 @@ require 'core/diagram/code/constraints'
   end
   
 def RunDiagramApp(content = nil)
-  Wx::App.run do
+
+  GUI::Application.run do 
     win = DiagramFrame.new
     win.set_root content if content
     win.show 
@@ -74,20 +74,14 @@ def RunDiagramApp(content = nil)
 end
 
 
-class DiagramFrame < BaseWindow
+class DiagramFrame < GUI::Window
   def initialize(title = 'Diagram')
     super(title)
-    evt_paint :on_paint
-    evt_left_dclick :on_double_click
-    evt_left_down :on_mouse_down
-    evt_right_down :on_right_down
-    evt_motion :on_move
-    evt_left_up :on_mouse_up
-
+    
     @menu_id = 0
     @selection = nil
     @mouse_down = false
-    @select_color = Wx::Colour.new(0, 255, 0)
+    @select_color = GUI::Color.new(0, 255, 0)
     @DIST = 4
     @factory = ManagedData::Factory.new(Load('diagram.schema'))
   end
@@ -97,7 +91,7 @@ class DiagramFrame < BaseWindow
   attr_accessor :font
   attr_accessor :factory
   
-  def on_open
+  def openFile
     dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;")
     if dialog.show_modal() == ID_OK
       path = dialog.get_path
@@ -113,22 +107,22 @@ class DiagramFrame < BaseWindow
     root.finalize
     #Print.print(root)
     @root = root
-    clear_refresh
+    clear_redraw
   end
 
-  def clear_refresh
-    refresh
+  def clear_redraw
+    redraw
     @cs = ConstraintSystem.new
     @positions = {}
   end      
   
   # ------- event handling -------  
 
-  def on_mouse_down(e)
+  def mouse_down(e)
     #puts "DOWN #{e.x} #{e.y}"
     @mouse_down = true
     if @selection
-      subselect = @selection.on_mouse_down(e)
+      subselect = @selection.mouse_down(e)
       if subselect == :cancel
         @selection = nil
         return
@@ -148,15 +142,15 @@ class DiagramFrame < BaseWindow
     set_selection(select, e)
   end
   
-  def on_mouse_up(e)
+  def mouse_up(e)
     @mouse_down = false
   end
 
-  def on_move(e)
-    @selection.on_move(e, @mouse_down) if @selection
+  def mouse_move(e)
+    @selection.mouse_move(e, @mouse_down) if @selection
   end
 
-  def on_key(e)
+  def key_pressed(e)
   
   end
 
@@ -176,7 +170,7 @@ class DiagramFrame < BaseWindow
         @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(e.x, e.y))
       end
     end
-    refresh
+    redraw
   end
   
   # ---- finding ------
@@ -255,6 +249,7 @@ class DiagramFrame < BaseWindow
   end
   
   def constrain(part, x, y)
+    puts "CONST #{part} #{x} #{y}"
     w, h = nil
     with_styles part do 
       if part.Connector?
@@ -308,15 +303,17 @@ class DiagramFrame < BaseWindow
   
   def constrainShape(part, x, y, width, height)
     case part.kind 
-    when "box"
-      a = b = 0
     when "oval"
       a = @cs.var("pos1", 0)
       b = @cs.var("pos2", 0)
     when "rounded"
       a = b = 20
+    else
+      a = b = 0
     end
-    margin = @dc.get_pen.get_width
+    margin = @graphics.stroke_width
+    puts "CO #{@graphics.stroke_color}"
+    puts "AB #{part.kind}, #{a}, #{b}, #{margin}"
     a, b = a + margin, b + margin
     ow, oh = constrain(part.content, x + a, y + b)
     # position of sub-object depends on size of sub-object, so we
@@ -332,7 +329,7 @@ class DiagramFrame < BaseWindow
   end
 
   def constrainText(part, x, y, width, height)
-    w, h = @dc.get_text_extent(part.string)
+    w, h = @graphics.get_text_extent(part.string)
     width >= w
     height >= h
   end
@@ -372,16 +369,11 @@ class DiagramFrame < BaseWindow
   
   # ----- drawing --------    
   # Writes the gruff graph to a file then reads it back to draw it
-  def on_paint
-    paint do | dc |
-      @dc = dc
-      @pen = @brush = @font = @foreground = nil
-      do_constraints() if @positions == {}
-      s = get_client_size()
-      @pen = @brush = @font = @foreground = nil
-      draw(@root)
-	    @selection.on_paint(dc) if @selection
-    end
+  def on_paint(graphics, rect, count)
+    @graphics = graphics
+    do_constraints() if @positions == {}
+    draw(@root)
+    @selection.paint(@graphics) if @selection
   end
   
   def draw(part)
@@ -393,7 +385,7 @@ class DiagramFrame < BaseWindow
   def drawContainer(part)
     if part.direction == 3
 	    r = boundary(part)
-	    @dc.draw_rectangle(r.x, r.y, r.w, r.h)
+	    @graphics.draw_rectangle(r.x, r.y, r.w, r.h)
 	  end
     (part.items.length-1).downto(0).each do |i|
       draw(part.items[i])
@@ -402,13 +394,13 @@ class DiagramFrame < BaseWindow
   
   def drawShape(shape)
     r = boundary(shape)
-    margin = @dc.get_pen.get_width
+    margin = @graphics.stroke_width
     m2 = margin - (margin % 2)
     case shape.kind
     when "box"
-      @dc.draw_rectangle(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+      @graphics.draw_rectangle(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
     when "oval"
-	    @dc.draw_ellipse(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+	    @graphics.draw_ellipse(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	  end
     draw(shape.content)
   end
@@ -434,8 +426,8 @@ class DiagramFrame < BaseWindow
 
     part.path.clear
     ps.each {|p| part.path << @factory.Point(p.x, p.y) }
-#    @dc.draw_lines(ps.collect {|p| [p.x, p.y] })
-    @dc.draw_spline(ps.collect {|p| [p.x, p.y] })
+#    @graphics.draw_lines(ps.collect {|p| [p.x, p.y] })
+    @graphics.draw_spline(ps.collect {|p| [p.x, p.y] })
 
     drawEnd part.ends[0]
     drawEnd part.ends[1]
@@ -464,10 +456,10 @@ class DiagramFrame < BaseWindow
 	      offset = EnsoPoint.new(0, r.h)
 	    end
 	    with_styles cend.label do 
-		    @dc.draw_rotated_text(cend.label.string, r.x, r.y, angle)
+		    @graphics.draw_rotated_text(cend.label.string, r.x, r.y, angle)
 		  end
 	    with_styles cend.other_label do 
-		    @dc.draw_rotated_text(cend.other_label.string, r.x + offset.x, r.y + offset.y, angle)
+		    @graphics.draw_rotated_text(cend.other_label.string, r.x + offset.x, r.y + offset.y, angle)
 		  end
 		end
 
@@ -482,7 +474,7 @@ class DiagramFrame < BaseWindow
 		  end
 		  #puts "ARROW #{arrow}"
       pos = position(cend)
-      @dc.draw_polygon(arrow, pos.x, pos.y)
+      @graphics.draw_polygon(arrow, pos.x, pos.y)
     end
   end
 
@@ -537,76 +529,27 @@ class DiagramFrame < BaseWindow
 
   def drawText(text)
     r = boundary(text)
-    @dc.draw_text(text.string, r.x, r.y)
+    @graphics.draw_text(text.string, r.x, r.y)
   end
  
   #  --- helper functions ---
   def with_styles(part)
     return if part.nil?
-    oldPen = oldFont = oldBrush = oldForeground = nil
-    part.styles.each do |style|
-      if style.Pen?
-        oldPen = @pen
-        @dc.set_pen(makePen(@pen = style))
-      elsif style.Font?
-        oldFont = @font
-        oldForeground = @foreground
-        @dc.set_text_foreground(makeColor(@foreground = style.color))
-        @dc.set_font(makeFont(@font = style))
-      elsif style.Brush?
-        oldBrush = @brush
-        @dc.set_brush(makeBrush(@brush = style))
+    @graphics.push_style(part.style) do
+      if @selection && @selection.is_selected(part)
+        @graphics.stroke_color = @select_color
       end
+      yield
     end
-    if @selection && @selection.is_selected(part)
-	    oldPen = @pen
-  	  @dc.set_pen(Wx::Pen.new(@select_color, @pen.width.to_i))
-  	end
-    yield
-    @dc.set_pen(makePen(@pen = oldPen)) if oldPen
-    @dc.set_text_foreground(makeColor(@foreground = oldForeground)) if oldForeground
-    @dc.set_font(makeFont(@font = oldFont)) if oldFont
-    @dc.set_brush(makeBrush(@brush = oldBrush)) if oldBrush
   end
 
   def makeColor(c)
-    return Wx::Colour.new(to_byte(c.r), to_byte(c.g), to_byte(c.b))
+    return GUI::Color.new(to_byte(c.r), to_byte(c.g), to_byte(c.b))
   end
   
   def to_byte(v)
     return [0, [255, v.to_i].min].max
   end
-
-  def makePen(pen)
-    return Wx::Pen.new(makeColor(pen.color), pen.width.to_i) # style!!!
-  end
-    
-  def makeBrush(brush)
-    return Wx::Brush.new(makeColor(brush.color))
-  end
-
-  def makeFont(font)
-    weight = case
-      when font.weight < 400 then Wx::FONTWEIGHT_LIGHT
-      when font.weight > 400 then Wx::FONTWEIGHT_BOLD
-      else Wx::FONTWEIGHT_NORMAL
-      end
-    style = case font.style
-      when "italic" then Wx::FONTSTYLE_ITALIC
-      when "slant" then Wx::FONTSTYLE_SLANT
-      else FONTSTYLE_NORMAL
-      end
-    family = case font.name
-      when "roman" then Wx::FONTFAMILY_ROMAN
-      when "swiss" then Wx::FONTFAMILY_SWISS
-      when "mono" then Wx::FONTFAMILY_MODERN
-      when "teletype" then Wx::FONTFAMILY_TELETYPE
-      else FONTFAMILY_DEFAULT
-      end
-    underline = false
-    faceName = ""
-    return Font.new(font.size, family, style, weight, underline, faceName)
-  end  
 end
 
 ############# selection #####
@@ -619,10 +562,10 @@ class MoveShapeSelection
     @move_base = @diagram.boundary(part)
   end
   
-  def on_move(e, down)
+  def mouse_move(e, down)
     if down
       @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
-      @diagram.refresh
+      @diagram.redraw
     end
   end
   
@@ -630,10 +573,10 @@ class MoveShapeSelection
     return @part == check
   end
   
-  def on_paint(dc)
+  def paint(graphics)
   end
 
-  def on_mouse_down(e)
+  def mouse_down(e)
 	end
 	 
   def clear
@@ -650,19 +593,17 @@ class ConnectorSelection
     return @conn == check
   end
 
-  def on_paint(dc)
-	  dc.set_brush(Wx::Brush.new(Wx::Colour.new(255, 0, 0)))
-	  dc.set_pen(Wx::NULL_PEN)
+  def paint(graphics)
 	  size = 8
 	  p = @conn.path[0]
-    dc.draw_rectangle(p.x - size / 2, p.y - size / 2, size, size)
+    graphics.draw_rectangle(p.x - size / 2, p.y - size / 2, size, size)
 	  p = @conn.path[-1]
-    dc.draw_rectangle(p.x - size / 2, p.y - size / 2, size, size)
+    graphics.draw_rectangle(p.x - size / 2, p.y - size / 2, size, size)
 #    @conn.path.each do |p|
 #	  end
   end
     
-  def on_mouse_down(e)
+  def mouse_down(e)
 	  size = 8
 	  pnt = @diagram.factory.Point(e.x, e.y)
 	  p = @conn.path[0]
@@ -678,7 +619,7 @@ class ConnectorSelection
     end
   end
 
-  def on_move(e, down)    
+  def mouse_move(e, down)    
   end
   
   def clear
@@ -697,17 +638,15 @@ class PointSelection
     return @ce == check
   end
 
-  def on_paint(dc)
-	  dc.set_brush(Wx::Brush.new(Wx::Colour.new(0, 0, 255)))
-	  dc.set_pen(Wx::NULL_PEN)
+  def paint(graphics)
 	  size = 8
-    dc.draw_rectangle(@pnt.x - size / 2, @pnt.y - size / 2, size, size)
+    graphics.draw_rectangle(@pnt.x - size / 2, @pnt.y - size / 2, size, size)
   end
     
-  def on_mouse_down(e)
+  def mouse_down(e)
   end
 
-  def on_move(e, down)
+  def mouse_move(e, down)
     return if !down
     pos = @diagram.boundary(@ce.to)
     x = (e.x - (pos.x + pos.w / 2)) / Float(pos.w / 2)
@@ -720,7 +659,7 @@ class PointSelection
     #puts("   EDGE #{nx} #{ny}")
 		@ce.attach.x = nx
 		@ce.attach.y = ny
-    @diagram.refresh
+    @diagram.redraw
     #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
   end
   
