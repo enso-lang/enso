@@ -52,8 +52,8 @@ class Build
   end
 
   def Field(this, sppf, owner, accu, _, fixes, paths)
+    #puts "FIELD: #{this.name} #{this.schema_class.name} #{owner}"
     field = owner.schema_class.fields[this.name]
-    #puts "FIELD: #{this.name}"
     # TODO: this check should be done if owner = Env
     # for new paths.
     raise "Object #{owner} has no field #{this.name} as required by grammar fixups" if !field

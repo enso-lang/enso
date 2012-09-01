@@ -20,7 +20,7 @@ module FreeVarExpr
   end
 
   def depends_EVar(name, bound, env)
-    bound.include?(name) ? [] : [Address.new(env, name)]
+    (bound.include?(name) || name == "self") ? [] : [Address.new(env, name)]
   end
 
   def depends_ELambda(body, formals, bound)

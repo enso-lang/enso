@@ -12,12 +12,17 @@ class ExpTest < Test::Unit::TestCase
     interp = Interpreter(Eval)
 
     e = Loader.load("sample.exp")
-    assert_equal(33, interp.eval(e))
-    
-    puts "EXP #{e}"
-    puts "Children #{e.subexpressions}"
+    puts "--LOADING SIMPLE EXPRESSION---"
+    e = Loader.load("sample.exp")
+
+    puts "*EXP #{e}"
+    puts "*Children #{e.subexpressions}"
     a = e.subexpressions[0]
-    puts "PARENT #{a.parent}"
+    puts "*BINDING #{e.body.body.left.binding}"
+    puts "*PARENT #{a.parent}"
+
+    assert_equal(10, interp.eval(e))
+    
   end
 
 end

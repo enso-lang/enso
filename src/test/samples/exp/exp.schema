@@ -1,19 +1,32 @@
 class Exp
   subexpressions ! Exp*
   parent : Exp? / subexpressions
+  bindings : Let* = parent==nil ? [] : parent.newbindings + parent.bindings
+  newbindings : Let* = []
   
 class Num < Exp
   subexpressions ! Exp* = []
   val : int
 
 class Add < Exp
-  subexpressions ! Exp*  = [left, right]
   left  ! Exp
   right ! Exp
+  subexpressions ! Exp*  = [left, right]
 
 class Mul < Exp
-  subexpressions ! Exp* = [left, right]
   left  ! Exp
   right ! Exp
+  subexpressions ! Exp* = [left, right]
+
+class Let < Exp
+  var# str
+  val! Exp
+  body! Exp
+  subexpressions ! Exp* = [val, body]
+  newbindings : Let* = [self]
+
+class Var < Exp
+  binding: Let
 
 primitive int
+primitive str

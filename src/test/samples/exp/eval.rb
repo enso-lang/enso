@@ -15,5 +15,13 @@ module Eval
     puts "#{left}*#{right}"
     left.eval * right.eval
   end
+
+  def eval_Let(val, body)
+    body.eval
+  end
+
+  def eval_Var(binding)
+    binding.val.eval
+  end
 end
 

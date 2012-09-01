@@ -235,11 +235,11 @@ module ManagedData
             if base.inverse
               fld.computed.elems.each do |var|
                 raise "Field override #{fld.name} includes non-var #{var}" if !var.EVar?
-                __get(var.name)._inverse = base.inverse
+                __get(var.name)._set_inverse = base.inverse
               end
             end
           end
-          __computed(fld.name, fld.computed)
+          __computed(fld)
         else
           __setter(fld.name)
           __getter(fld.name)
@@ -247,7 +247,9 @@ module ManagedData
       end
     end
 
-    def __computed(name, exp)
+    def __computed(fld)
+      name = fld.name
+      exp = fld.computed
       fvInterp = Interpreter(FreeVarExpr)
       commInterp = Interpreter(EvalCommand)
       define_singleton_method(name) do
@@ -257,7 +259,9 @@ module ManagedData
             next if fv.object.nil?  #should always be non-nil since computed fields have no external env
             fv.object.add_listener(fv.index) { @memo[name]=nil }
           end
-          @memo[name] = commInterp.eval(exp, env: ObjEnv.new(self))
+          val = commInterp.eval(exp, env: ObjEnv.new(self), for_field: fld)
+          #puts "COMPUTED #{name}=#{val}"
+          @memo[name] = val
         end
         @memo[name]
       end
@@ -282,16 +286,16 @@ module ManagedData
     # this origin is the same as the _origin
     # of the mobject pointed to.
     attr_accessor :_origin
-    attr_reader :_inverse
-    def _inverse=(inv)
-      raise "Overiding inverse of field '#{inv.owner.name}.#{invk.name}'" if @_inverse
-      @_inverse = inv
+
+    def _set_inverse=(inv)
+      raise "Overiding inverse of field '#{inv.owner.name}.#{invk.name}'" if @inverse
+      @inverse = inv
     end
 
     def initialize(owner, field)
       @owner = owner
       @field = field
-      @_inverse = field.inverse if field # might get overriden!!
+      @inverse = field.inverse if field # might get overriden!!
     end
 
     def __delete_obj(mobj)
@@ -357,17 +361,21 @@ module ManagedData
 
   module RefHelpers
     def notify(old, new)
+      return if old == new
       @owner.notify(@field.name, new)
-      return unless @_inverse
-      #puts "INVERSE #{@field.name} SET #{@_inverse.name}"
-      if @_inverse.many then
+      return unless @inverse
+      if @inverse.many then
         # old and new are both collections
-        old.__get(@_inverse.name).__delete(@owner) if old
-        new.__get(@_inverse.name).__insert(@owner) if new
+        #puts "INVERSE #{old}.#{@inverse.name} DEL #{@owner}" if old
+        #puts "INVERSE #{new}.#{@inverse.name} << #{@owner}" if new
+        old.__get(@inverse.name).__delete(@owner) if old
+        new.__get(@inverse.name).__insert(@owner) if new
       else
+        #puts "INVERSE #{old}.#{@inverse.name} = #{@owner}" if old
+        #puts "INVERSE #{new}.#{@inverse.name} = #{@owner}" if new
         # old and new are both mobjs
-        old.__get(@_inverse.name).__set(nil) if old
-        new.__get(@_inverse.name).__set(@owner) if new
+        old.__get(@inverse.name).__set(nil) if old
+        new.__get(@inverse.name).__set(@owner) if new
       end
     end
 

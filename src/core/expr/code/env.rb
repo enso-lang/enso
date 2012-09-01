@@ -88,7 +88,10 @@ class ObjEnv
     @obj = obj
   end
   def [](key)
-    if @obj.schema_class.all_fields.map{|f|f.name}.include? key
+    if key == "self"
+      puts "SELF = #{obj}"
+      @obj
+    elsif @obj.schema_class.all_fields.map{|f|f.name}.include? key
       @obj[key]
     else
       @parent.nil? ? nil : @parent[key]
@@ -98,7 +101,7 @@ class ObjEnv
     @obj[key] = value
   end
   def has_key?(key)
-    @obj.schema_class.all_fields.map{|f|f.name}.include? key
+    key == "self" || @obj.schema_class.all_fields.map{|f|f.name}.include?(key)
   end
   def each(&block)
     @obj.schema_class.all_fields.each do |f|

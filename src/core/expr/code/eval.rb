@@ -1,4 +1,5 @@
 require 'core/schema/code/factory'
+require 'core/system/library/schema'
 
 module EvalExpr
   
@@ -43,8 +44,14 @@ module EvalExpr
     fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
   end
 
-  def eval_EList(elems)
-    r = ManagedData::List.new(nil, nil)
+  def eval_EList(elems, for_field)
+    k = ClassKey(for_field.type)
+    #puts "KEY #{for_field}= #{k}"
+    if k
+      r = ManagedData::Set.new(nil, nil, k)
+    else
+      r = ManagedData::List.new(nil, nil)
+    end
     elems.each do |elem|
       #puts "ELEM #{elem}=#{elem.eval}"
       r << elem.eval
