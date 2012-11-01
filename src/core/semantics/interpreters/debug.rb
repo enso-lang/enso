@@ -44,7 +44,8 @@ module Debug
         when " ", "8" #space = resume
           @@stoplevel=0
         when "w"
-          $stderr << "Currently watching: #{@@watchlist}\n"
+          $stderr << "Currently watching: #{@@watchlist.map{|sym|sym.to_s}.join(", ")}\n"
+          $stderr << "Available: #{(args.keys-@@watchlist).map{|sym|sym.to_s}.join(", ")}\n"
           $stderr << "add (+) or remove (-)? "; op=read_char
           if op=="+"
             $stderr << "Which variable? "

@@ -1,5 +1,3 @@
-
-
 require 'core/system/load/load'
 require 'applications/StateMachine/code/state_machine'
 

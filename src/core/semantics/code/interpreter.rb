@@ -158,6 +158,7 @@ class Interp
         #end
       end
     end
+    __setup
   end
   
   def method_missing(method_sym, *args)
@@ -176,8 +177,9 @@ class Interp
   end
   
   #to be overridden by interpreters
-  def __init; end
+  def __init; end     #interpreter level initialization (after __setup of root interp)
   def __cleanup; end
+  def __setup; end    #object level initialization (after modules loaded)
   def __hidden_calls; []; end
   def __default_args; {}; end
 
