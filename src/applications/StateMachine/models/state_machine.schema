@@ -3,14 +3,14 @@ class Machine
   states! State*
 
 class State
-  machine: Machine
+  machine: Machine / states
   name# str
   out! Trans*
-  \in: Trans*
+  in: Trans*
 
 class Trans
   event: str
   from: State / out
-  to: State / \in
+  to: State / in
 
 primitive str

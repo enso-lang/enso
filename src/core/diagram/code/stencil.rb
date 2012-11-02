@@ -12,7 +12,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/expr/code/env'
 require 'core/expr/code/render'
-require 'yaml'
+require 'yaml'  
 
 # render(Stencil, data) = diagram
 
@@ -243,6 +243,9 @@ class StencilFrame < DiagramFrame
   def on_right_down(e)
     clear_selection
     actions = {}
+    # call the diagram find routine, which generates a list
+    # of diagram objects that contain the mouse location
+    # in order from largest to smallest
     find e do |part|
       actions.update @actions[part] if @actions[part]
 		  false
@@ -483,7 +486,7 @@ class StencilFrame < DiagramFrame
   
   # shapes
   def constructContainer(this, env, container, &block)
-    if this.direction == 4
+    if this.direction == 4  # graph
       this.items.each do |item|
         construct item, env, container, &block
       end

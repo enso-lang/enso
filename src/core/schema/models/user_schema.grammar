@@ -1,0 +1,11 @@
+import schema.grammar
+
+start Schema
+
+abstract Schema
+abstract Parent
+
+ClassAnnot ::= Parent? restricts:Restricts*
+
+Restricts ::= [Restriction] "restrict" field:<./owner/fields[it]> "(" Subfield+ @"," ")"
+Subfield ::= components:<./owner/fields[it]>

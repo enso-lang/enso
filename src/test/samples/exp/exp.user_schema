@@ -1,0 +1,18 @@
+class Exp
+  children : Exp*
+  parent : Exp / children
+  
+class Num < Exp
+  val : int
+
+class Add < Exp
+  restrict children(left, right)
+  left  ! Exp
+  right ! Exp
+
+class Mul < Exp
+  restrict children(left, right)
+  left  ! Exp
+  right ! Exp
+
+primitive int
