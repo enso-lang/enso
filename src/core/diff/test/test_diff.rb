@@ -22,13 +22,17 @@ class DiffTest < Test::Unit::TestCase
   # test matching
   def test_match
     res = Match.new.match(@p1, @p2)
-    assert_equal(9, res.size)
+    Print.print(@p1)
+    Print.print(@p2)
+    p res
+    assert_equal(10, res.size)
   end
 
   # test differencing
   def test_diff
     deltas = Diff.diff(@p1, @p2)
-    assert_equal(12, deltas.size)
+    p deltas
+    assert_equal(11, deltas.size)
   end  
 
   def test_diff2
