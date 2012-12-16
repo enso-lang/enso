@@ -50,7 +50,6 @@ module Diff
     @path_map1 = map_paths(o1)
     @path_map2 = map_paths(o2)
     matches = Match.new.match(o1, o2)
-puts "matches = #{matches}"
     diff_all(o1, o2, Path.new, matches)
   end
 
