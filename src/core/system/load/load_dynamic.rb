@@ -19,11 +19,6 @@ module Loading
       filename = name.split(/\//)[-1]
       model, type = filename.split(/\./)
 
-puts "changed= #{changed}"
-puts "name = #{name}"
-puts "filename = #{filename}"
-
-
       if !CacheXML::check_dep(name)
         #load changes from file
 
@@ -50,18 +45,13 @@ puts "filename = #{filename}"
 end
 
 if __FILE__ == $0 then
-  l = Loader
+  dt1 = Loader.load_dynamic("diff-test1.diff-point")
+  gets
 
-  p l.load('grammar.grammar')
-  p l.load('schema.grammar')
-  p l.load('grammar.schema')
-  p l.load('schema.schema')
-  p l.load('layout.schema')
-  p l.load('value.schema')
-  p l.load('proto.schema')
+  #changing memory model
+  dt1.lines['Flamingo'].pts[0].x = 100
+  dt1.lines['Flamingo'].pts[0].y = 200
+  Loader.sync_dynamic("diff-test1.diff-point")
 
-  p l.load('instance.schema')
-
-  #p l.load_parsetree('bla.pt')
 end
 
