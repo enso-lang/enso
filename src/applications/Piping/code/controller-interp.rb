@@ -21,8 +21,8 @@ module ExecuteController
   def isEVar_EVar; true; end
   def isEVar_?(type, fields, args); false; end
 
-  def execute_Controller(constraints, current)
-    current.execute
+  def execute_Controller(states, constraints, env)
+    states[env[:current_state].value].execute
     constraints.each do |c|
       c.execute
     end
@@ -47,9 +47,9 @@ module ExecuteController
     end
   end
 
-  def execute_Transition(guard, target, control)
+  def execute_Transition(guard, target, control, env)
     if guard.eval
-      control.current = target[]
+      env[:current_state].value = target[].name
       true
     else
       false

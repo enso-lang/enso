@@ -46,6 +46,10 @@ module Diff
   end
 
   #given two objects, return a list of operations that
+  #DO NOT use custom schema to do delta-ing
+  # problem with subtyping, eg computed : Expr
+  # will be compared based the schema for Expr
+  # rather than the schema class the objects actually are 
   def self.diff(o1, o2)
     @path_map1 = map_paths(o1)
     @path_map2 = map_paths(o2)

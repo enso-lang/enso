@@ -15,13 +15,13 @@ module Loading
     def sync_dynamic(name)
       @old_cache = {} if !@old_cache
       return if !@old_cache[name]
-      changed = !Diff.diff(@old_cache[name], @cache[name]).empty?
+      diffs = Diff.diff(@old_cache[name], @cache[name])
+
       filename = name.split(/\//)[-1]
       model, type = filename.split(/\./)
 
       if !CacheXML::check_dep(name)
         #load changes from file
-
         new = _load(name, type)
         patch = Diff.diff(@old_cache[name], new)
 
@@ -30,7 +30,7 @@ module Loading
         @old_cache[name] = Clone(@cache[name])
       end
 
-      if changed
+      if !diffs.empty?
         #update file
         g = load("#{type}.grammar")
         find_model(filename) do |path|
@@ -38,6 +38,7 @@ module Loading
             DisplayFormat.print(g, @cache[name], 160, f)
           end
         end
+        _load(name, type)
       end
     end
 

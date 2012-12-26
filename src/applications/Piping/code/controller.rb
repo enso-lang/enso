@@ -7,12 +7,16 @@ require 'applications/Piping/code/controller-interp'
 
 class Controller
 
+  attr_reader :current
+
   def initialize(piping, control)
     #piping is the interface to the state of the pipes. connects either to a simulator or hardware
     #state is the current state of the controller, used to store global runtime variables
     @piping = piping
     @control = control
-    @env = ControlEnv.new(@piping).set_parent({})
+    @current = Variable.new("curr", @control.initial.name)
+    @env = HashEnv.new(current_state: @current).set_parent ControlEnv.new(@piping).set_parent({})
+
     @interp = Interpreter(ExecuteController)
     @interp.init(@control, env: @env)
   end

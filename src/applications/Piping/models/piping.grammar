@@ -15,8 +15,9 @@ Element ::= [Source]  name:sym ":" "source" outputs:pipe kind:sym
 
 Sensor ::= [Sensor] ("sensor" {controllable == false} | "control" {controllable == true}) name:sym ":" kind:sym "(" (attach:</elements[it]> | attach:Connection) ")"
 
-pipe ::= [Pipe]
+pipe ::= [Pipe] { length == 0.0 and diameter == 0.0}
        | [Pipe] "[" ("l" ":" length:real)? ("d" ":" diameter:real)? "]"
+ 
 inputs ::= "in" "=" inputs:Connection
 gas ::= "gas" "=" gas:Connection
 
