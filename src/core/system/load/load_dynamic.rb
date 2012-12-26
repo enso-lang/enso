@@ -38,6 +38,7 @@ module Loading
             DisplayFormat.print(g, @cache[name], 160, f)
           end
         end
+        @old_cache[name] = Clone(@cache[name])
         _load(name, type)
       end
     end

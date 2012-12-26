@@ -14,7 +14,7 @@ Wx::App.run do
   win_control.show
 
   time = 1
-  Wx::Timer.every(1000) do
+  Wx::Timer.every(2000) do
     $st.run time do
       win_control.refresh
       win_piping.refresh
