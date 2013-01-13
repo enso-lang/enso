@@ -1,0 +1,39 @@
+import expr.schema
+
+primitive str
+
+class Expr
+
+class Questionaire
+  elements ! Element*
+  answers ! Answer*
+  
+class Element
+
+class Group < Element
+  elems ! Element*
+  guard ! Expr?
+
+class Question < Element
+  name # str
+  qn : str
+  ans : Answer
+
+class Answer
+  name # str
+
+class CheckBox < Answer
+  choices ! Label+
+
+class MultiChoice < Answer
+  choices ! Label+
+
+class TextBox < Answer
+  type : str
+  
+class Computed < Answer
+  expr ! Expr
+
+class Label
+  label : str
+
