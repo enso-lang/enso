@@ -33,7 +33,7 @@ module Diff
     root.schema_class.fields.each do |f|
       next unless !f.Primitive? and f.traversal
       if !f.many
-        res.update map_paths(root[f.name], currpath.field(f.name))
+        res.update map_paths(root[f.name], currpath.field(f.name)) if root[f.name]
       else
         i = 0
         root[f.name].each do |v|

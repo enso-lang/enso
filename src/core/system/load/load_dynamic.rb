@@ -13,6 +13,8 @@ module Loading
     end
 
     def sync_dynamic(name)
+      res = false
+
       @old_cache = {} if !@old_cache
       return if !@old_cache[name]
       diffs = Diff.diff(@old_cache[name], @cache[name])
@@ -21,6 +23,7 @@ module Loading
       model, type = filename.split(/\./)
 
       if !CacheXML::check_dep(name)
+        res = true
         #load changes from file
         new = _load(name, type)
         patch = Diff.diff(@old_cache[name], new)
@@ -31,6 +34,7 @@ module Loading
       end
 
       if !diffs.empty?
+        res = true
         #update file
         g = load("#{type}.grammar")
         find_model(filename) do |path|
@@ -41,8 +45,9 @@ module Loading
         @old_cache[name] = Clone(@cache[name])
         _load(name, type)
       end
-    end
 
+      res
+    end
   end
 end
 
