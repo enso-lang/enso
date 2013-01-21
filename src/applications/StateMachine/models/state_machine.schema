@@ -6,11 +6,11 @@ class State
   machine: Machine / states
   name# str
   out! Trans*
-  in: Trans*
+  \in: Trans*
 
 class Trans
   event: str
   from: State / out
-  to: State / in
+  to: State / \in
 
 primitive str

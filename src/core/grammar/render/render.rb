@@ -91,6 +91,7 @@ class RenderClass < Dispatch
     throw :fail if obj.nil?
     case this.kind
     when /str/ 
+      throw :fail if !obj.is_a?(String)
       val = "\"" + obj + "\""
     when /sym/
       if @literals.include?(obj) then
@@ -98,8 +99,16 @@ class RenderClass < Dispatch
       else
         val = obj.to_s
       end
-    else
+    when /int/
+      throw :fail if !obj.is_a?(Fixnum)
       val = obj.to_s
+    when /flaot/
+      throw :fail if !obj.is_a?(Float)
+      val = obj.to_s
+    when /atom/
+      val = obj.to_s
+    else
+      raise "Unknonwn type #{this.kind}"
     end
     output(val)
   end
@@ -199,7 +208,7 @@ class SingletonStream
     @used = used
   end
   def length
-    used ? 0 : 1
+    @used ? 0 : 1
   end
   def current
     @used ? nil : @data

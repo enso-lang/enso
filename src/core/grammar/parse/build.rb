@@ -209,6 +209,9 @@ class Build
       @obj = obj
       @field = field
       @origin = origin
-    end    
+    end
+    def inspect
+      "#{obj}.#{field} = #{path}"
+    end     
   end
 end

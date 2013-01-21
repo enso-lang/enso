@@ -1,0 +1,61 @@
+start Program
+
+Program ::= Def*
+
+// class N < N 
+//   D* 
+// end
+// class 
+// D ::= def N 
+
+Def     ::= Class | Method | Module | Require
+Require ::= [Require] "require" name:str
+Module  ::= [Module] "module" name:sym defs:Def* "end" /
+Class   ::= [Class] "class" name:sym ("<" parent:sym)? defs:Def* "end" /
+Method  ::= [Binding] "def" name:sym value:Fun
+Fun     ::= [Fun] Params? / body:Seq "end" /
+Params  ::= args:Arg+ @"," ":"
+Arg     ::= [Arg] name:sym
+
+Seq     ::= [Seq] statements:S* | S
+
+S       ::= If | While | SFunCall | Assign | Primary ";" /
+SFunCall   ::= [Call] (target:Primary ".")? name:sym args:Primary* @"," named:NamedArg* (block:Block | ";" /)
+Assign  ::= [Assign] to:Primary "=" from:EB
+EB      ::= Expr ";" / | Block
+Block   ::= "do" Fun
+
+Expr ::= EOr
+EOr ::= [EBinOp] e1:EAnd op:"or" e2:EOr
+       | EAnd
+EAnd ::= [EBinOp] e1:EBinOp1 op:"and" e2:EAnd
+        | EBinOp1
+EBinOp1 ::= [EBinOp] e1:EBinOp2 (op:"==" | op:"!=" | op:">" | op:"<" | op:">=" | op:"<=") e2:EBinOp1
+         | EBinOp2
+EBinOp2 ::= [EBinOp] e1:EBinOp3 (op:"+" | op:"-") e2:EBinOp2
+         | EBinOp3
+EBinOp3 ::= [EBinOp] e1:EUnOp (op:"*" | op:"/" | op:"%") e2:EBinOp3
+         | EUnOp
+EUnOp ::= [EUnOp] op:"not" e:EUnOp
+        | EFunCall
+        | If
+        | Primary
+
+EFunCall  ::= [Call] (target:Primary ".")? name:sym args:Primary* @"," named:NamedArg* block:Block?
+NamedArg  ::= [Binding] "," name:sym ":" value:Expr
+
+If      ::= [If] "if" cond:Expr "then" sthen:Seq IfTail? "end" /
+IfTail  ::= "else" selse:Seq | selse:ElseIf
+ElseIf  ::= [If] "elsif" cond:Expr "then" sthen:Seq IfTail?
+
+While   ::= [While] "while" cond:Expr "do" body:Seq "end" /
+
+Primary ::= Var | Index | List | Record | String | Num | "(" Expr ")"
+Var     ::= [Var] name:sym
+Field   ::= [Field] "@" name:sym
+Index   ::= [Index] base:Primary "[" index:Expr "]"
+List    ::= [List] "[" items:Expr* @"," "]"
+Record  ::= [Record] "{" fields:Field* @"," "}"
+Field   ::= [Binding] name:sym ":" value:EB
+String  ::= [Lit] value:str
+Num     ::= [Lit] value:int
