@@ -564,10 +564,11 @@ class DemoBuilder < Ripper::SexpBuilder
 end
 
 # s = "def x ; 23 + 43 * 2; end"
-f = File.new("applications/StateMachine/code/state_machine.rb", "r")
+name = "applications/StateMachine/code/state_machine_basic.rb"
+f = File.new(name, "r")
 pp Ripper.sexp_raw(f)
 
-f = File.new("applications/StateMachine/code/state_machine.rb", "r")
+f = File.new(name, "r")
 m = DemoBuilder.build(f)
 g = Loader.load("code.grammar")
 pp m

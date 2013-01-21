@@ -33,7 +33,7 @@ module Diff
     root.schema_class.fields.each do |f|
       next unless !f.Primitive? and f.traversal
       if !f.many
-        res.update map_paths(root[f.name], currpath.field(f.name))
+        res.update map_paths(root[f.name], currpath.field(f.name)) if root[f.name]
       else
         i = 0
         root[f.name].each do |v|
@@ -46,8 +46,13 @@ module Diff
   end
 
   #given two objects, return a list of operations that
+  #DO NOT use custom schema to do delta-ing
+  # problem with subtyping, eg computed : Expr
+  # will be compared based the schema for Expr
+  # rather than the schema class the objects actually are 
   def self.diff(o1, o2)
-    @path_map = map_paths(o2)
+    @path_map1 = map_paths(o1)
+    @path_map2 = map_paths(o2)
     matches = Match.new.match(o1, o2)
     diff_all(o1, o2, Path.new, matches)
   end
@@ -141,7 +146,11 @@ Topological sort of the diff list
   end
 
   def self.diff_ref(o1, o2, path, matches, ref)
-    [Op.new(mod, path, o2.nil? ? nil : get_path(o2))]
+    if get_path1(o1)==get_path2(o2)
+      []
+    else
+      [Op.new(mod, path, o2.nil? ? nil : get_path2(o2))]
+    end
   end
 
   def self.diff_hash(o1, o2, path, matches, ref)
@@ -197,7 +206,11 @@ Topological sort of the diff list
     difflist
   end
 
-  def self.get_path(obj)
-    @path_map[obj]
+  def self.get_path1(obj)
+    @path_map1[obj]
   end
+  def self.get_path2(obj)
+    @path_map2[obj]
+  end
+
 end

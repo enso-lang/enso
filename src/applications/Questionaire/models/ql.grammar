@@ -1,0 +1,25 @@
+import expr.grammar
+
+start Questionaire
+
+abstract Expr
+
+Questionaire ::= [Questionaire] elements:Elem*@/ "answers" / answers:Answer*@/
+
+Elem ::= Group | Question
+
+Group ::= [Group] ("if" guard:Expr)? "{" elems:Elem*@/ "}"
+
+Question ::= [Question] name:sym ":" qn:str ans:</answers[it]>
+
+Answer ::= CheckBox
+         | MultiChoice
+         | TextBox
+         | Computed
+
+CheckBox ::= [CheckBox] "Checkbox" name:sym "{" choices:Label+ "}"
+MultiChoice ::= [MultiChoice] "MultiChoice" name:sym "{" choices:Label+ "}"
+TextBox ::= [TextBox] "TextBox" name:sym ":" type:sym
+Computed ::= [Computed] "Computed" name:sym ":" expr:Expr
+
+Label ::= [Label] label:str

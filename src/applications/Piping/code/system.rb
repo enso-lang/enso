@@ -1,6 +1,6 @@
 require 'applications/Piping/code/simulator'
 require 'applications/Piping/code/controller'
-require 'core/system/load/load'
+require 'core/system/load/load_dynamic'
 require 'core/schema/code/factory'
 
 class PipingSystem
@@ -8,17 +8,18 @@ class PipingSystem
   attr_reader :piping, :control, :sim, :controller
   
   def initialize(name)
+    @name = name
     grammar = Loader.load('piping.grammar')
     schema = Loader.load('piping-sim.schema')
     @piping = Loader.load_with_models("#{name}.piping", grammar, schema)
-    @control = Loader.load("#{name}.controller")
-    @control.current = @control.initial
+    @control = Loader.load_dynamic("#{name}.controller")
     @controller = Controller.new(@piping, @control)
     @sim = Simulator.new(@piping)
     @time = 0
   end
 
   def run(time)
+      Loader.sync_dynamic("#{@name}.controller")
       @time += time
       @controller.run
       @sim.tick
@@ -31,7 +32,7 @@ class PipingSystem
       rsensor = @piping.sensors['Radiator_Temp']
       puts "************************"
       puts "After #{@time} sec:"
-      puts "In #{@control.current}"
+      puts "In #{@controller.current}"
       puts "  Burner at #{burner.temperature}"
       puts "  Boiler at #{boiler.temperature} (desired: #{bsensor.user})"
       puts "  Radiator at #{rad.temperature} (desired: #{rsensor.user})"

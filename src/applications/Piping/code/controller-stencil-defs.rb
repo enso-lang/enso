@@ -52,3 +52,8 @@ def CheckConnect(src, trans)
     1
   end
 end
+
+def getCurrState
+  $st.controller.current
+end
+

@@ -1,4 +1,4 @@
-<expr.grammar source='core/expr/models/expr.grammar' date='2012-09-01 02:49:09 -0500' checksum='53b188dc4a5a0aaf853933073a1eaab2a688f7fa'>
+<expr.grammar source='core/expr/models/expr.grammar' date='2013-01-21 11:10:08 -0600' checksum='1a3b10fb6ed587bfd6e98bc61850f0e64afbf30b'>
   <depends/>
   <Grammar>
     <start many='false' keyed='true'>
@@ -608,7 +608,9 @@
                           </Call>
                         </arg>
                       </Field>
+                      <NoSpace/>
                       <Lit value='.'/>
+                      <NoSpace/>
                       <Field name='fname'>
                         <arg many='false' keyed='false'>
                           <Value kind='sym'/>

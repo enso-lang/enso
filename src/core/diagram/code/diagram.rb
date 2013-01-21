@@ -419,7 +419,7 @@ class DiagramFrame < GUI::Window
     else  # this is the "orthogonal" case
       ps = simpleOrthogonalSide(pFrom, pTo, sideFrom)
     end
-    
+
     ps.unshift(pFrom)
     ps << pTo
 
@@ -514,9 +514,9 @@ class DiagramFrame < GUI::Window
   # need to handle more cases
   def simpleOrthogonalSide(a, b, d)
     case d
-    when 0 # 
+    when 0, 2 # 
       return [EnsoPoint.new(a.x, b.y)]
-    when 1 # LEFT, RIGHT
+    when 1, 3 # LEFT, RIGHT
       return [EnsoPoint.new(b.x, a.y)]
     end  
   end

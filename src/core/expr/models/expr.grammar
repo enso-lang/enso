@@ -20,7 +20,7 @@ EUnOp ::= [EUnOp] "not" e:Expr {op == "!"}
 EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")"
 
 Primary ::= EConst
-          | [EField] e:Primary "." fname:sym
+          | [EField] e:Primary . "." . fname:sym
           | [ESubscript] e:Expr "[" sub:Expr "]"
           | [EVar] name:sym
           | [EList] "[" elems:Expr* @"," "]"

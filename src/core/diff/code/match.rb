@@ -19,6 +19,7 @@ require 'core/system/library/schema'
 class Match
   
   def match(o1, o2)
+    return {} if o1==o2
 
     if eq(o1, o2)
       # add current match to results
@@ -118,6 +119,8 @@ class Match
   end
 
   def eq (o1, o2)
+    return true if o1==o2
+    return false if o1.nil? or o2.nil?
     #select appropriate schema based on schema_class of o1
     #assumption is that o1 and o2 are the same
     meta_schema_class = o1.schema_class.schema_class
