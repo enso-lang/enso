@@ -4,14 +4,16 @@ require 'core/schema/tools/print'
 
 def run_state_machine(sm)
   current = sm.start
-  puts "#{current.name}"
+  puts current.name
   while $stdin.gets
     input = $_.strip
     trans = current.out.find do |trans|
       trans.event == input
     end
+    foo.bar.baz.bif.frob
+    foo.bar.baz.bif 3,4
     current = trans.to
-    puts "#{current.name}"
+    puts current.name
   end
 end
 

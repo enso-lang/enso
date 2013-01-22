@@ -1,17 +1,21 @@
 
 class Def
+
+class Directive < Def
+  action: str
+  what! Expr
+  
+class Named < Def
   name#   str?
 
-class Require < Def
-
-class Module < Def
-  defs:   Def*
+class Module < Named
+  defs!   Def*
 
 class Class < Module
   parent: str?
 
-class Binding < Def
-  value:  Expr
+class Binding < Named
+  value!  Expr
 
 class Expr
   
@@ -25,50 +29,58 @@ class EUnOp < Expr
   e! Expr
     
 class Seq < Expr
-  statements: Expr*
+  statements! Expr*
 
 class Call < Expr
-  target: Expr?
+  target! Expr?
   name:   str
-  args:   Expr*
-  named:  Binding*
-  block:  Fun
+  args!   Expr*
+  block!  Fun
 
 class Fun < Expr
-  args: Arg*
-  body: Expr
+  args! Arg*
+  body! Expr
 
 class Arg
   name: str
+  default! Expr?
 
 class Assign < Expr
-  to:   Expr
-  from: Expr
+  to!   Expr
+  from! Expr
 
 class If < Expr
-  cond: Expr
-  sthen: Expr
-  selse: Expr?
+  cond! Expr
+  sthen! Expr
+  selse! Expr?
 
 class While < Expr
-  cond: Expr
-  body: Expr
+  cond! Expr
+  body! Expr
+
+class Rescue < Expr
+  base! Expr
+  rescues! Handler*
+  ensure! Expr?
+ 
+class Handler
+  kind: str
+  var: str
+  body! Expr  
 
 class Var < Expr
   name: str
-
-class Field < Expr 
-  name: str
+  kind: str?
 
 class Index < Expr
-  base:   Expr
-  index:  Expr
+  base!   Expr
+  index!  Expr
   
 class List < Expr
-  items:  Expr*
+  items!  Expr*
 
 class Record < Expr
-  fields: Binding*
+  fields! Binding*
 
 class Lit < Expr
   value: atom
