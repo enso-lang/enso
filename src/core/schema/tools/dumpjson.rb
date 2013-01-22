@@ -8,6 +8,7 @@ module ToJSON
     return nil if this.nil?
     e = {}
     e["class"] = this.schema_class.name
+    e["_"] = this._id
     this.schema_class.fields.each do |f|
       next if !this[f.name]
       if f.type.Primitive? then
@@ -26,14 +27,17 @@ module ToJSON
               ef << fobj._path.to_s
             end
           end
+          e[name] = ef if ef.length > 0
         else
-          if f.traversal then
-            ef = to_json(this[f.name])
-          else
-            ef = this[f.name]._path.to_s
+          v = this[f.name]
+          if v
+            if f.traversal then
+              e[name] = to_json(v)
+            else
+              e[name] = v._path.to_s
+            end
           end
         end
-        e[name] = ef
       end
     end
     return e

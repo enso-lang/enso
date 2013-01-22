@@ -339,7 +339,7 @@ module ManagedData
       when 'datetime'
         return if value.is_a?(DateTime)
       when 'atom'
-        return
+        return if value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
       end
       raise "Invalid value for #{@field.type.name}: #{value}"
     end
@@ -385,7 +385,7 @@ module ManagedData
         raise "Cannot assign nil to non-optional field #{@field.name}"
       end
       if !Subclass?(mobj.schema_class, @field.type) then
-        raise "Invalid type for #{@field.name}: #{mobj.schema_class.name}"
+        raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
       end
       if mobj._graph_id != @owner._graph_id then
         raise "Inserting object #{mobj} into the wrong model"
