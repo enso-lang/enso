@@ -21,82 +21,18 @@ module Boot
     Copy(ManagedData::Factory.new(ss0), ss0)
   end
 
-  class MObject; end
-
-  class Schema < MObject
-    def classes
-      BootField.new(types.select{|t|t.Class?}, self, "classes", @root, many: true, keyed: true)
-    end
-    def primitives
-      BootField.new(types.select{|t|t.Primitive?}, self, "primitives", @root, many: true, keyed: true)
-    end
-  end
-    
-  class Class < MObject
-    def all_fields
-      BootField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, self, "all_fields", @root, many: true, keyed: true)
-    end
-    def fields
-      BootField.new(all_fields.select() {|f|!f.computed}, self, "fields", @root, many: true, keyed: true)
-    end
-  end
-
-  private
-
-  @mobj_map={}
-  def self.make_class(this, root)
-    return @mobj_map[this] if @mobj_map[this]
-    @mobj_map[this] = if constants.map{|c|c.to_s}.include? this.name and (cl=Boot.const_get(this.name)).superclass==MObject
-      #if Boot contains a subclass of MObject named the same as this.name then use that 
-      cl.new(this, root)
-    else #otherwise make a default MObject object
-      MObject.new(this, root)
-    end
-    @mobj_map[this]
-  end
-
-  def self.make_field(this, owner, field, root)
-    if this.attributes['many']!='true' && false
-      res = if (arr = Boot.is_ref?(this))
-        deref(arr[0], root)
-      else
-        make_class(this, root)
-      end
-      res
-    else
-      if (arr = Boot.is_ref?(this))
-        arr = arr.split(" ").map {|a|deref(a, root)}
-      else
-        arr = this.elements.map {|a|Boot.make_class(a, root)}
-      end
-      BootField.new(arr, owner, field, root, many: (this.attributes['many']=='true'), keyed: (this.attributes['keyed']=='true'))
-    end
-  end
-
-  def self.deref(ref, root)
-    p = Paths::Path.parse(ref)
-    p.deref(root)
-  end
-
-  def self.is_ref?(elem)
-    return nil unless elem.elements.size==0
-    v = elem.get_text
-    return nil if v.nil?
-    v.empty? ? nil : v.to_s.strip
-  end
-
   class MObject
-    attr_reader :this, :_id
+    attr_reader :_id
     begin; undef_method :lambda, :methods; rescue; end
     @@_id = 0
-    def initialize(this, root)
+    def initialize(data, root)
       @_id = @@_id = @@_id+1
-      @this = this
+      @data = data
       @root = root || self
     end
     def schema_class
       #this assumes that the root is a schema and it has this thing called "types"
-      res = @root.types[@this.name]
+      res = @root.types[@data.name]
       define_singleton_method(:schema_class) { res }
       res
     end
@@ -105,12 +41,12 @@ module Boot
     end
     def type; method_missing :type; end  # HACK for JRuby to work, because it defines :type
     def method_missing(sym)
-      res = if sym =~ /^([A-Z].*)\?$/
-        schema_class.name == $1
-      elsif @this.attributes.include? sym.to_s
-        MObject.coerce(@this.attributes[sym.to_s])
-      elsif ! @this.elements["#{sym}"].nil?
-        Boot.make_field(@this.elements["#{sym}"], self, sym.to_s, @root)
+      res = if sym[-1] == "?"
+        schema_class.name == sym.slice(0, sym.length-1)
+      elsif @data.attributes.include? sym.to_s
+        MObject.coerce(@data.attributes[sym.to_s])
+      elsif ! @data.elements[sym.to_s].nil?
+        Boot.make_field(@data.elements[sym.to_s], @root)
       else
         # this is a strange hack, to avoid infinite recursion
         if f=schema_class.defined_fields[sym.to_s]
@@ -118,7 +54,7 @@ module Boot
         elsif f=schema_class.all_fields[sym.to_s]
           MObject.default(f)
         else
-          raise "Trying to deref nonexistent field #{sym} in #{@this.to_s[0..300]}"
+          raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
         end
       end
       define_singleton_method(sym) { res }
@@ -129,8 +65,10 @@ module Boot
     end
     def self.coerce(value)
       #because we can't use schema class here, we have to be clever and guess
-      if ['true', 'false'].include? value
-        value == 'true' ? true : false
+      if value == 'true'
+        true
+      elsif value == 'false'
+        false
       elsif (begin; true if Integer(value); rescue; false; end)
         value.to_i
       elsif (begin; true if Float(value); rescue; false; end)
@@ -151,7 +89,7 @@ module Boot
         else raise "Unknown primitive type: #{field.type.name}"
         end
       elsif field.many 
-        BootField.new([], self, field.name, @root, many: true, keyed: true)
+        BootManyField.new([], @root, keyed: true)
       elsif field.optional
         nil
       else
@@ -160,47 +98,89 @@ module Boot
     end
     def to_ary; nil; end
     def to_s
-      begin; "<#{@this.name} #{name}>"
-      rescue; "<#{@this.name} #{_id}>"; end
+      @name || 
+      @name = begin; "<#{@data.name} #{name}>"
+              rescue; "<#{@data.name} #{_id}>"; end
     end
   end
+
+  class Schema < MObject
+    def classes
+      BootManyField.new(types.select{|t|t.Class?}, @root, keyed: true)
+    end
+    def primitives
+      BootManyField.new(types.select{|t|t.Primitive?}, @root, keyed: true)
+    end
+  end
+    
+  class Class < MObject
+    def all_fields
+      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, keyed: true)
+    end
+    def fields
+      BootManyField.new(all_fields.select() {|f|!f.computed}, @root, keyed: true)
+    end
+  end
+
+  private
+
+  @mobj_map={}
+  def self.make_class(data, root)
+    return @mobj_map[data] if @mobj_map[data]
+    @mobj_map[data] = if constants.map{|c|c.to_s}.include? data.name and (cl=Boot.const_get(data.name)).superclass==MObject
+      #if Boot contains a subclass of MObject named the same as data.name then use that 
+      cl.new(data, root)
+    else #otherwise make a default MObject object
+      MObject.new(data, root)
+    end
+    @mobj_map[data]
+  end
+
+  def self.make_field(data, root)
+    if (arr = Boot.is_ref?(data))
+      arr = arr.map {|a| deref(a, root)}
+    else
+      arr = data.elements.map {|a| Boot.make_class(a, root)}
+    end
+    if data.attributes['many']=='true'
+      BootManyField.new(arr, root, keyed: (data.attributes['keyed']=='true'))
+    else
+      arr[0]
+    end
+  end
+
+  def self.deref(ref, root)
+    p = Paths::Path.parse(ref)
+    p.deref(root)
+  end
+
+  def self.is_ref?(data)
+    return nil unless data.elements.size==0
+    v = data.get_text
+    return nil if v.nil?
+    v.empty? ? nil : v.to_s.strip.split(" ")
+  end
   
-  class BootField < Array
-    attr_reader :owner
+  class BootManyField < Array
     #A magical array that combines arrays, hashes and singletons 
-    def initialize(arr, owner, field, root, attrs)
+    def initialize(arr, root, attrs)
       arr.each {|obj|self << obj}
-      @owner = owner
-      @field = field
       @root = root
-      @many = attrs[:many]
       @keyed = attrs[:keyed]
     end
     def method_missing(sym)
-      raise NoMethodError, "undefined method `#{sym}' for []:Array" if @many
-      raise NoMethodError, "undefined method `#{sym}' for nil:NilClass" if length==0 
-      at(0).send(sym)
+      raise NoMethodError, "undefined method `#{sym}' for []:BootManyField"
     end
     def [](key)
-      if !@many 
-        at(0).send(key)
+      if @keyed
+        begin; find{|obj|obj.name==key}
+        rescue; find{|obj|ObjectKey(obj)==key}; end
       else
-        if @keyed
-          begin; find{|obj|obj.name==key}
-          rescue; find{|obj|ObjectKey(obj)==key}; end
-        else
-          at(key)
-        end
+        at(key)
       end
     end
     def has_key?(key)
       not self[key].nil?
-    end
-    def eql?(other)
-      !@many ? at(0).eql?(other) : super
-    end
-    def hash
-      !@many ? at(0).hash : super
     end
     def join(other)
       if @keyed
@@ -216,15 +196,11 @@ module Boot
       end
     end
     def keys
-      if @many
-        if @keyed
-          begin; self.map {|o|o.name}
-          rescue; self.map {|o|ObjectKey(o)}; end
-        else
-          nil
-        end
+      if @keyed
+        begin; self.map {|o|o.name}
+        rescue; self.map {|o|ObjectKey(o)}; end
       else
-        method_missing("keys")
+        nil
       end
     end
   end
@@ -232,29 +208,28 @@ end
 
 
 if __FILE__ == $0 then
-require 'core/system/load/load'
-require 'core/schema/tools/loadxml'
-require 'core/schema/tools/dumpxml'
-require 'rexml/document'
-include REXML
-
-mod = Loader.load('schema.schema')
-pp = REXML::Formatters::Pretty.new
-ss_path = 'schema_schema2.xml'
-File.open(ss_path, 'w+') {|f| pp.write(ToXML::to_doc(mod), f)}
-
-ss = Boot.load_path(ss_path)
-File.delete(ss_path)
-
-puts "Test1: " + (ss.types['Field'].defined_fields['type'].type.name=='Type' ? "OK" : "Fail!")
-puts "Test2: " + (ss.types['Class'].defined_fields.length==5 ? "OK" : "Fail!")
-puts "Test3: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
-
-puts "Done loading metaschema"
-
-realss = Loader.load('schema.schema')
-print "Equality test: "
-raise "Wrong result!" unless Equals.equals(realss, ss)
-puts "All OK!"
-
+  require 'core/system/load/load'
+  require 'core/schema/tools/loadxml'
+  require 'core/schema/tools/dumpxml'
+  require 'rexml/document'
+  include REXML
+  
+  mod = Loader.load('schema.schema')
+  pp = REXML::Formatters::Pretty.new
+  ss_path = 'schema_schema2.xml'
+  File.open(ss_path, 'w+') {|f| pp.write(ToXML::to_doc(mod), f)}
+  
+  ss = Boot.load_path(ss_path)
+  File.delete(ss_path)
+  
+  puts "Test1: " + (ss.types['Field'].defined_fields['type'].type.name=='Type' ? "OK" : "Fail!")
+  puts "Test2: " + (ss.types['Class'].defined_fields.length==5 ? "OK" : "Fail!")
+  puts "Test3: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
+  
+  puts "Done loading metaschema"
+  
+  realss = Loader.load('schema.schema')
+  print "Equality test: "
+  raise "Wrong result!" unless Equals.equals(realss, ss)
+  puts "All OK!"
 end

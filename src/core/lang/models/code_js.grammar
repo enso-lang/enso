@@ -1,0 +1,63 @@
+start Program
+
+Program ::= [Module] defs:Def*
+
+// class N < N 
+//   D* 
+// end
+// class 
+// D ::= def N 
+
+Def     ::= Class | Method | Module | Directive
+Directive ::= [Directive] (action:"require" | action:"include") what:Expr
+Module  ::= [Module] "module" name:sym defs:Def* "end"
+Class   ::= [Class] name:sym "= new JS.Class(" (parent:sym .",")? "{" defs:Def* "});"
+Method  ::= [Binding] name:sym ":" value:Fun
+Fun     ::= [Fun] "function" Params body:Seq
+Params  ::= "(". args:Arg* @(.",") .")"
+Arg     ::= [Arg] name:sym ("=" default:Expr)?
+
+Seq     ::= [Seq] "{" statements:Statement* @(.";") "}" | "{" Expr "}"
+
+Statement ::= Stat | Expr .";"
+Stat      ::= If | While | Assign
+While   ::= [While] "while" "(". cond:Expr .")" body:Seq
+Assign  ::= [Assign] to:Primary "=" from:Expr ";"
+
+Expr ::= EOr
+EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
+       | EAnd
+EAnd ::= [EBinOp] e1:EBinOp1 op:"&&" e2:EAnd
+        | EBinOp1
+EBinOp1 ::= [EBinOp] e1:EBinOp2 (op:"==" | op:"!=") e2:EBinOp1
+         | EBinOp2
+EBinOp2 ::= [EBinOp] e1:EBinOp3 (op:">" | op:"<" | op:">=" | op:"<=") e2:EBinOp2
+         | EBinOp3
+EBinOp3 ::= [EBinOp] e1:EBinOp3 (op:"<<" | op:">>" | op:"++") e2:EBinOp4
+         | EBinOp4
+EBinOp4 ::= [EBinOp] e1:EBinOp5 (op:"+" | op:"-") e2:EBinOp4
+         | EBinOp5
+EBinOp5 ::= [EBinOp] e1:EUnOp (op:"*" | op:"/" | op:"%") e2:EBinOp5
+         | EUnOp
+EUnOp ::= [EUnOp] (op:"!" | op:"-") e:EUnOp
+        | EBinOp6
+EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
+         | Primary
+
+If      ::= [If] "if" "(". cond:Expr .")" sthen:Seq IfTail?
+IfTail  ::= "else" (selse:If | selse:Seq)
+
+Primary ::= InstVar | ClassVar | Var | If | Index | List | Record | Call | Lit | "(". (Expr | Seq) .")"
+Var     ::= [Var] name:sym
+InstVar ::= [Var] "this". name:sym { kind == "@" }
+ClassVar::= [Var] kind:"@@". name:sym
+Index   ::= [Index] base:Primary "[". index:Expr ."]"
+List    ::= [List] "[". items:Expr* @"," ."]"
+Record  ::= [Record] "{" fields:Field* @"," "}"
+  Field   ::= [Binding] name:sym .":" value:Expr
+Lit     ::= [Lit] value:(str | int | real)
+Call  ::= [Call] Target? name:sym Args
+  Target  ::= target:Primary .".".
+  Args    ::= ."(". args:Primary* @(.",") block:Fun? .")"
+
+

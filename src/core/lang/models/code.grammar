@@ -12,9 +12,9 @@ Def     ::= Class | Method | Module | Directive
 Directive ::= [Directive] (action:"require" | action:"include") what:Expr
 Module  ::= [Module] "module" name:sym defs:Def* "end"
 Class   ::= [Class] "class" name:sym ("<" parent:sym)? defs:Def* "end" /
-Method  ::= [Binding] "def" name:sym value:(Fun | Seq)
+Method  ::= [Binding] "def" name:sym value:Fun
 Fun     ::= [Fun] Params? / body:Seq "end" /
-Params  ::= ."(". args:Arg+ @"," .")"
+Params  ::= ."(". args:Arg+ @(.",") .")"
 Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
 Seq     ::= [Seq] statements:Statement* | Statement

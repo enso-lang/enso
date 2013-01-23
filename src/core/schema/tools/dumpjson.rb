@@ -4,37 +4,37 @@ require 'json'
 module ToJSON
   include 
 
-  def self.to_json(this)
+  def self.to_json(this, do_all = false)
     return nil if this.nil?
     e = {}
     e["class"] = this.schema_class.name
-    e["_"] = this._id
+    #e["_"] = this._id
     this.schema_class.fields.each do |f|
-      next if !this[f.name]
+      name = f.name
+      val = this[name]
+      next if !(do_all || val)
       if f.type.Primitive? then
-        e["#{f.name}="] = this[f.name].to_s
+        e["#{name}="] = val
       else 
-        name = f.name
         if f.many then
           name = name + "#" if IsKeyed?(f.type)
           ef = []
           if f.traversal then
-            this[f.name].each do |fobj|
-              ef << to_json(fobj)
+            val.each do |fobj|
+              ef << to_json(fobj, do_all)
             end
           else
-            this[f.name].each do |fobj|
+            val.each do |fobj|
               ef << fobj._path.to_s
             end
           end
-          e[name] = ef if ef.length > 0
+          e[name] = ef if do_all || ef.length > 0
         else
-          v = this[f.name]
-          if v
+          if do_all || val
             if f.traversal then
-              e[name] = to_json(v)
+              e[name] = val && to_json(val, do_all)
             else
-              e[name] = v._path.to_s
+              e[name] = val && val._path.to_s
             end
           end
         end
@@ -53,5 +53,5 @@ if __FILE__ == $0 then
   end
 
   mod = Loader.load(ARGV[0])
-  jj ToJSON::to_json(mod)
+  jj ToJSON::to_json(mod, true)
 end

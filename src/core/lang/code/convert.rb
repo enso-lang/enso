@@ -46,7 +46,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_aref_field(target, args)
-      @f.Index(target, args[1])
+      @f.Index(target, args[0])
     end
 
     def on_arg_paren(args)
@@ -74,7 +74,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_assoc_new(key, value)
-      @f.Binding(key, value)
+      @f.Binding(key, get_seq(value))
     end
 
     def on_assoclist_from_args(args)
@@ -127,7 +127,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_brace_block(params, statements)
-      @f.Fun(params, get_seq(statements))
+      @f.Fun(params || [], get_seq(statements))
     end
 
     def on_break(args)
@@ -135,7 +135,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_call(target, separator, identifier)
-      @f.Call(target, identifier)
+      @f.Call(get_seq(target), identifier)
     end
 
     def on_case(test, when_block)
@@ -233,7 +233,8 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_defs(target, separator, identifier, params, body)
-      Ruby::Method.new(target, identifier, params, body)
+      # TODO: target!!!
+      @f.Binding(identifier, @f.Fun(params, get_seq(body)))
     end
 
     def on_defined(ref)
@@ -245,11 +246,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_dot2(min, max)
-      Ruby::Range.new(min, max, false)
+      @f.Call(@f.Var("Range"), "new", [min, max])
     end
 
     def on_dot3(min, max)
-      Ruby::Range.new(min, max, true)
+      undefined
     end
 
     def on_dyna_symbol(symbol)
@@ -269,6 +270,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_if(expression, statements, else_block)
+      expression = get_seq(expression)
       if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
         @f.Binding("__main__", @f.Fun([], get_seq(statements)))
       else
@@ -423,11 +425,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_rescue(types, var, statements, block)
-      if types.length != 1
+      if types && types.length != 1
         raise "Only one rescue type allowed"
       end 
       if block
-        [@f.Handler(types[0], var, statements)] + on_rescue(block)
+        [@f.Handler(types && types[0], var, statements)] + on_rescue(block)
       else
         []
       end
@@ -491,7 +493,7 @@ class DemoBuilder < Ripper::SexpBuilder
     # weird string syntax that I didn't know existed until writing this lib.
     # ex. "safe level is #$SAFE" => "safe level is 0"
     def on_string_dvar(variable)
-      undefined
+      variable
     end
 
     def on_string_embexpr(expression)

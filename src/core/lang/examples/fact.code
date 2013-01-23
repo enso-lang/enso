@@ -1,13 +1,19 @@
-def fact(n)
+def str(*args); args.join; end
+   def fact(n)
   if n == 0 then
-    1
+  1;
   else
-    n * fact(n-1)
-  end
-end
-
-def foo
-  print "#{single}"
-  print "MORE #{stuff} AND #{more}"
-  print("test")
-end
+   n *fact( n - 1 );
+  end end
+  
+  class Person
+     def initialize(fname, lname)
+    @fname = fname; @lname = lname; end
+    
+    def to_s
+    str( "Person: ", @fname, " ", @lname ); end
+    end
+  
+  def __main__
+  person = Person.new( "Augustus", "Bondi" );print( person ); end
+  
