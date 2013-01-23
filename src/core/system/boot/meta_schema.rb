@@ -211,22 +211,31 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/schema/tools/loadxml'
   require 'core/schema/tools/dumpxml'
+  require 'core/diff/code/equals'
   require 'rexml/document'
   include REXML
   
   mod = Loader.load('schema.schema')
   pp = REXML::Formatters::Pretty.new
-  ss_path = 'schema_schema2.xml'
-  File.open(ss_path, 'w+') {|f| pp.write(ToXML::to_doc(mod), f)}
   
+  puts "Writing new metaschema"  
+  ss_path = 'schema_schema2.xml'
+  File.open(ss_path, 'w+') do |f| 
+    xml = Element.new('Base')
+    xml << ToXML::to_doc(mod)
+    pp.write(xml, f)
+  end
+
+  puts "Loading..."  
   ss = Boot.load_path(ss_path)
   File.delete(ss_path)
   
+  puts "Testing"
   puts "Test1: " + (ss.types['Field'].defined_fields['type'].type.name=='Type' ? "OK" : "Fail!")
   puts "Test2: " + (ss.types['Class'].defined_fields.length==5 ? "OK" : "Fail!")
   puts "Test3: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
   
-  puts "Done loading metaschema"
+  puts "Done loading new metaschema"
   
   realss = Loader.load('schema.schema')
   print "Equality test: "
