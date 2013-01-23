@@ -3,7 +3,7 @@ require 'core/system/utils/paths'
 require 'core/schema/code/factory'
 
 =begin
-Meta schema that is able to load any XML file into memory as read-only pseudo-MObjects
+Meta schema that is able to load any JSON file into memory as read-only pseudo-MObjects
 An (not very) optional patchup phase makes it the schema class of itself (assuming it is a schema)
 
 The only requirements are:
@@ -13,11 +13,11 @@ The only requirements are:
 
 module Boot
   def self.load_path(path)
-    load(REXML::Document.new(File.read(path)))
+    load(JSON.load(File.new(path)))
   end
   
   def self.load(doc)
-    ss0 = make_class(doc.root.elements.to_a[-1], nil)
+    ss0 = make_object(doc, nil)
     Copy(ManagedData::Factory.new(ss0), ss0)
   end
 
@@ -32,7 +32,7 @@ module Boot
     end
     def schema_class
       #this assumes that the root is a schema and it has this thing called "types"
-      res = @root.types[@data.name]
+      res = @root.types[@data["class"]]
       define_singleton_method(:schema_class) { res }
       res
     end
@@ -41,21 +41,17 @@ module Boot
     end
     def type; method_missing :type; end  # HACK for JRuby to work, because it defines :type
     def method_missing(sym)
+      #puts "GET #{sym} #{@data}"
       res = if sym[-1] == "?"
         schema_class.name == sym.slice(0, sym.length-1)
-      elsif @data.attributes.include? sym.to_s
-        MObject.coerce(@data.attributes[sym.to_s])
-      elsif ! @data.elements[sym.to_s].nil?
-        Boot.make_field(@data.elements[sym.to_s], @root)
+      elsif @data.key?("#{sym}=")
+        @data["#{sym}="]
+      elsif @data.key?("#{sym}#")
+        Boot.make_field(@data["#{sym}#"], @root, true)
+      elsif @data.key?(sym.to_s)
+        Boot.make_field(@data[sym.to_s], @root, false)
       else
-        # this is a strange hack, to avoid infinite recursion
-        if f=schema_class.defined_fields[sym.to_s]
-          MObject.default(f)
-        elsif f=schema_class.all_fields[sym.to_s]
-          MObject.default(f)
-        else
-          raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
-        end
+        raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
       end
       define_singleton_method(sym) { res }
       res
@@ -63,118 +59,80 @@ module Boot
     def eql?(other)
       hash == other.hash and _id==other._id
     end
-    def self.coerce(value)
-      #because we can't use schema class here, we have to be clever and guess
-      if value == 'true'
-        true
-      elsif value == 'false'
-        false
-      elsif (begin; true if Integer(value); rescue; false; end)
-        value.to_i
-      elsif (begin; true if Float(value); rescue; false; end)
-        value.to_f
-      else
-        value
-      end
-    end
-    def self.default(field)
-      if field.type.Primitive?  
-        case field.type.name
-        when 'str' then ''
-        when 'int' then 0
-        when 'bool' then false
-        when 'real' then 0.0
-        when 'datetime' then DateTime.now
-        when 'atom' then nil
-        else raise "Unknown primitive type: #{field.type.name}"
-        end
-      elsif field.many 
-        BootManyField.new([], @root, keyed: true)
-      elsif field.optional
-        nil
-      else
-        nil  #raise "No value assigned to non-optional field #{self}.#{field.name} in XML"
-      end
-    end
-    def to_ary; nil; end
     def to_s
-      @name || 
-      @name = begin; "<#{@data.name} #{name}>"
-              rescue; "<#{@data.name} #{_id}>"; end
+      @name || @name = begin; "<#{@data['name']} #{name}>"
+              rescue; "<#{@data['name']} #{_id}>"; end
     end
   end
 
   class Schema < MObject
     def classes
-      BootManyField.new(types.select{|t|t.Class?}, @root, keyed: true)
+      BootManyField.new(types.select{|t|t.Class?}, @root, true)
     end
     def primitives
-      BootManyField.new(types.select{|t|t.Primitive?}, @root, keyed: true)
+      BootManyField.new(types.select{|t|t.Primitive?}, @root, true)
     end
   end
     
   class Class < MObject
     def all_fields
-      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, keyed: true)
+      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
     end
     def fields
-      BootManyField.new(all_fields.select() {|f|!f.computed}, @root, keyed: true)
+      BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
     end
   end
 
   private
 
   @mobj_map={}
-  def self.make_class(data, root)
-    return @mobj_map[data] if @mobj_map[data]
-    @mobj_map[data] = if constants.map{|c|c.to_s}.include? data.name and (cl=Boot.const_get(data.name)).superclass==MObject
-      #if Boot contains a subclass of MObject named the same as data.name then use that 
-      cl.new(data, root)
-    else #otherwise make a default MObject object
-      MObject.new(data, root)
+  def self.make_object(data, root)
+    @mobj_map[data] || @mobj_map[data] = case data['class']
+      when "Schema" 
+       Schema.new(data, root)
+      when "Class"  
+        Class.new(data, root)
+      else
+        MObject.new(data, root)
     end
-    @mobj_map[data]
   end
 
-  def self.make_field(data, root)
-    if (arr = Boot.is_ref?(data))
-      arr = arr.map {|a| deref(a, root)}
+  def self.make_field(data, root, keyed)
+    if data.is_a?(Array)
+      make_many(data, root, keyed)
     else
-      arr = data.elements.map {|a| Boot.make_class(a, root)}
+      get_object(data, root)
     end
-    if data.attributes['many']=='true'
-      BootManyField.new(arr, root, keyed: (data.attributes['keyed']=='true'))
-    else
-      arr[0]
-    end
-  end
-
-  def self.deref(ref, root)
-    p = Paths::Path.parse(ref)
-    p.deref(root)
-  end
-
-  def self.is_ref?(data)
-    return nil unless data.elements.size==0
-    v = data.get_text
-    return nil if v.nil?
-    v.empty? ? nil : v.to_s.strip.split(" ")
   end
   
+  def self.get_object(data, root)
+    if data.nil?
+      nil
+    elsif data.is_a?(String)
+      Paths::Path.parse(data).deref(root)
+    else
+      Boot.make_object(data, root)
+    end
+  end
+  
+  def self.make_many(data, root, keyed)
+    arr = data.map {|a| Boot.get_object(a, root)}
+    BootManyField.new(arr, root, keyed)
+  end
+
   class BootManyField < Array
     #A magical array that combines arrays, hashes and singletons 
-    def initialize(arr, root, attrs)
-      arr.each {|obj|self << obj}
+    def initialize(arr, root, keyed)
+      arr.each {|obj| self << obj}
       @root = root
-      @keyed = attrs[:keyed]
+      @keyed = keyed
     end
     def method_missing(sym)
       raise NoMethodError, "undefined method `#{sym}' for []:BootManyField"
     end
     def [](key)
       if @keyed
-        begin; find{|obj|obj.name==key}
-        rescue; find{|obj|ObjectKey(obj)==key}; end
+        find {|obj| obj.name == key}
       else
         at(key)
       end
@@ -197,8 +155,7 @@ module Boot
     end
     def keys
       if @keyed
-        begin; self.map {|o|o.name}
-        rescue; self.map {|o|ObjectKey(o)}; end
+        self.map {|o| o.name}
       else
         nil
       end
@@ -209,21 +166,16 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/schema/tools/loadxml'
-  require 'core/schema/tools/dumpxml'
+  #require 'core/schema/tools/loadjson'
+  require 'core/schema/tools/dumpjson'
   require 'core/diff/code/equals'
-  require 'rexml/document'
-  include REXML
   
   mod = Loader.load('schema.schema')
-  pp = REXML::Formatters::Pretty.new
   
   puts "Writing new metaschema"  
-  ss_path = 'schema_schema2.xml'
+  ss_path = 'schema_schema2.json'
   File.open(ss_path, 'w+') do |f| 
-    xml = Element.new('Base')
-    xml << ToXML::to_doc(mod)
-    pp.write(xml, f)
+    f.write(JSON.pretty_generate(ToJSON::to_json(mod, true)))
   end
 
   puts "Loading..."  
@@ -231,9 +183,11 @@ if __FILE__ == $0 then
   File.delete(ss_path)
   
   puts "Testing"
-  puts "Test1: " + (ss.types['Field'].defined_fields['type'].type.name=='Type' ? "OK" : "Fail!")
-  puts "Test2: " + (ss.types['Class'].defined_fields.length==5 ? "OK" : "Fail!")
-  puts "Test3: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
+  puts "Test1: Type=#{ss.types['Field'].defined_fields['type'].type.name}"
+  puts "Test2: Class=#{ss.types['Field'].schema_class.name}"
+  puts "Test2: Primitive=#{ss.types['int'].schema_class.name}"
+  puts "Test3: 5=#{ss.types['Class'].defined_fields.length}"
+  puts "Test4: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
   
   puts "Done loading new metaschema"
   

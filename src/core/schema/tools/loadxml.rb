@@ -26,7 +26,7 @@ class FromXML
   def make(elt)
     obj = @fact[elt.name]
     elt.attributes.each do |name, value|
-      begin; obj[name] = value_of(elt.name, name, value); rescue; end
+      obj[name] = value_of(elt.name, name, value)
     end
     elt.elements.each do |field|
       set(obj, elt.name, field)

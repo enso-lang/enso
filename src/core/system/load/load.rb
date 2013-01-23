@@ -78,7 +78,7 @@ module Loading
       
       #check if XML is not out of date then just use it
       #else load XML first then reload
-      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.xml', nil, nil)
+      @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.json', nil, nil)
       @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema_grammar.xml', nil, gs)
@@ -123,7 +123,7 @@ module Loading
     end
 
     def load_path(path, grammar, schema, encoding = nil)
-      if path =~ /\.xml$/ then
+      if path =~ /\.xml$/ || path =~ /\.json$/ then
         $stderr << "## booting #{path}...\n"
         if schema.nil? then
           # this means we are loading schema_schema.xml for the first time.
