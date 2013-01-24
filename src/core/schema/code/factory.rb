@@ -20,6 +20,10 @@ Coding convention
 
 
 module ManagedData
+  def self.new(schema)
+    Factory.new(schema)
+  end
+
   class Factory
     attr_reader :schema
 
@@ -141,7 +145,7 @@ module ManagedData
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths::Path.new
+      __shell ? __shell._path(self) : Paths.new
     end
 
     def _clone

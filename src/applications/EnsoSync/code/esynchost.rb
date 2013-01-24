@@ -29,7 +29,7 @@ def esynchost(rootpath)
   begin
     auth_schema = Loader.load("auth.schema")
     rules_str =  File.open("#{rootpath}/.rules.auth", "rb") { |f| f.read }
-    rules = Loader.load_text("auth", ManagedData::Factory.new(auth_schema), rules_str)
+    rules = Loader.load_text("auth", ManagedData.new(auth_schema), rules_str)
     sec = Security.new(rules)
 
   #rescue
@@ -48,7 +48,7 @@ def esynchost(rootpath)
     puts "\n#{login} initiated sync..."
 #     sfactory = SecureFactory.new(schema, sec, true)
     sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, rules: rules, :fail_silent=>true)
-    factory = ManagedData::Factory.new(schema)
+    factory = ManagedData.new(schema)
 
 
       cbase_str = client.read(client.gets[0..-2].to_i)

@@ -5,7 +5,7 @@ require 'core/schema/tools/union'
 
 ss = Load('schema.schema')
 
-connection = Load_text 'schema', ManagedData::Factory.new(ss), <<-PART, true
+connection = Load_text 'schema', ManagedData.new(ss), <<-PART, true
   class Class
     machine! StateMachine?
   

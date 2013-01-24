@@ -19,7 +19,7 @@ Print.print Loader.load('schema.schema')
 
 puts "-"*50
 
-f = ManagedData::Factory.new(point_schema)
+f = ManagedData.new(point_schema)
 p = f.Point(3,4)
 
 puts "-"*50

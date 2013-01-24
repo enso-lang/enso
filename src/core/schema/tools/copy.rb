@@ -46,7 +46,7 @@ end
 
 
 def copy(obj)
-  f = ManagedData::Factory.new(obj._graph_id.schema)
+  f = ManagedData.new(obj._graph_id.schema)
   obj = Copy.new(f).copy(obj)
   obj.finalize
 end

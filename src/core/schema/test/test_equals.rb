@@ -39,8 +39,8 @@ class EqualityTest < Test::Unit::TestCase
 
   def test_transitive
     s1 = SS
-    s2 = Copy.new(ManagedData::Factory.new(SS)).copy(s1)
-    s3 = Copy.new(ManagedData::Factory.new(SS)).copy(s2)
+    s2 = Copy.new(ManagedData.new(SS)).copy(s1)
+    s3 = Copy.new(ManagedData.new(SS)).copy(s2)
     assert(Equals.equals(s1, s3))
   end
 

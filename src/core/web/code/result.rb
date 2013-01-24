@@ -112,16 +112,16 @@ module Web::Eval
       end
       obj = @@store[id] ||= root._graph_id[klass]
       start = NewPath.new(klass, id, @@store, obj)
-      path = Paths::Path.new([start])
+      path = Paths.new([start])
       Ref.new(obj, path, root)
     end
 
     def self.parse(str, root, env)
       str = str[1..-1] # skip initial ^
       if str =~ /^@([a-zA-Z_][a-zA-Z0-9_]*):([0-9]+)(.*)$/ then
-        create($1, root, $2).extend(Paths::Path.parse($3))
+        create($1, root, $2).extend(Paths.parse($3))
       else
-        path = Paths::Path.parse(str)
+        path = Paths.parse(str)
         value = path.deref(root)
         Ref.new(value, path, root)
       end

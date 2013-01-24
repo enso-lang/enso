@@ -9,11 +9,11 @@ class Named < Def
   name#   str?
 
 class Module < Named
+  meta!   Def*
   defs!   Def*
 
 class Class < Module
   parent: str?
-  meta: Def*
 
 class Binding < Named
   value!  Expr
@@ -40,6 +40,7 @@ class Call < Expr
 
 class Fun < Expr
   args! Arg*
+  block: str?
   body! Expr
 
 class Arg

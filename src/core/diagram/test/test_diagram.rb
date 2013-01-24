@@ -7,7 +7,7 @@ require 'core/schema/tools/print'
 
 diagram_schema = Loader.load('diagram.schema')
 
-f = ManagedData::Factory.new(diagram_schema)
+f = ManagedData.new(diagram_schema)
 
 max = f.Constraint(100, "foo")
 t1 = f.Text(nil, nil, "Hello World")

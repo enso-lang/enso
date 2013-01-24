@@ -242,7 +242,7 @@ if __FILE__ == $0 then
   Print.print(x)
 
   #f = FFold.new(Build4.new).fold(gg)
-  fact = ManagedData::Factory.new(gs)
+  fact = ManagedData.new(gs)
   y = f.build(x, fact, Origins.new(src, file))
   Print.print(y)
 end

@@ -5,12 +5,10 @@ require 'core/schema/tools/dumpjson.rb'
 require 'ripper'
 require 'pp'
 
-class Params
-  attr_accessor :params, :optionals, :rest, :block
-  def initialize(params, optionals, rest, block)
-    @params = params
-    @optionals = optionals
-    @rest = rest
+class Formals
+  attr_accessor :normal, :block
+  def initialize(normal, block)
+    @normal = normal
     @block = block
   end
 end
@@ -24,11 +22,18 @@ class When
   end
 end
 
+class MetaMethod
+  attr_accessor :defn
+  def initialize(defn)
+    @defn = defn
+  end
+end
+
 class DemoBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
       super
       schema = Loader.load('code.schema')
-      @f = ManagedData::Factory.new(schema)
+      @f = ManagedData.new(schema)
     end
 
     class << self
@@ -94,19 +99,26 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_binary(lvalue, operator, rvalue)
-      puts "#{operator}"
-      op = fix_op(operator)
-      case op
-      when "and"
-        op = "&&"
-      when "or"
-        op = "||"
-      end
-      @f.EBinOp(op, get_seq(lvalue), get_seq(rvalue))
+      operator = fix_op(operator)
+      @f.EBinOp(operator, get_seq(lvalue), get_seq(rvalue))
     end
 
     def fix_op(operator)
-      operator.to_s.gsub("@", "")
+      operator = operator.to_s.gsub("@", "")
+      case operator
+      when "|"
+        raise "Can't use | operator"
+      when "&"
+        raise "Can't use & operator"
+      when "and"
+        "&&"
+      when "or"
+        "||"
+      when "not"
+        "!"
+      else
+        operator
+      end
     end
 
     def on_blockarg(arg)
@@ -127,7 +139,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_brace_block(params, statements)
-      @f.Fun(params || [], get_seq(statements))
+      @f.Fun(params ? params.normal : [], params && params.block, get_seq(statements))
     end
 
     def on_break(args)
@@ -140,7 +152,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_case(test, when_block)
       puts "CASE #{test} #{when_block}"
-#      raise "Only one value for case" if test.length != 1
+      #raise "Only one value for case" if test.length != 1
       if when_block.nil?
         nil
       elsif when_block.is_a?(When)
@@ -161,7 +173,18 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_class(const, superclass, body)
       puts "CLASS #{const} < #{superclass} : #{body}"
-      @f.Class(const, body, superclass && superclass.name)
+      parts = body.flatten.partition {|x| x.is_a? MetaMethod}
+      @f.Class(const, fixup_defs(parts[0].collect(&:defn)), fixup_defs(parts[1]), superclass && superclass.name)
+    end
+
+    def fixup_defs(body)
+      body.collect do |d|
+        if d.Assign?
+          @f.Binding(d.to.name, d.from)
+        else
+          d
+        end
+      end
     end
 
     def on_class_name_error(ident)
@@ -170,7 +193,13 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_command(name, args)
       if name == "require" || name == "include"
+        puts "CMD #{name} #{args}"
         @f.Directive(name, args[0])
+      elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
+        puts "CMD #{name} #{args}"
+        args.collect do |var|
+          @f.Directive(name, var)
+        end
       else
         @f.Call(nil, name, args)
       end
@@ -185,11 +214,13 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_const_path_field(namespace, const)
-      @f.Call(@f.Lit(namespace), const)
+      raise "Can't use ::"
+      # @f.Call(@f.Lit(namespace), const)
     end
 
     def on_const_path_ref(namespace, const)
-      @f.Call(namespace, const)
+      raise "Can't use ::"
+      # @f.Call(namespace, const)
     end
 
     def on_const_ref(const)
@@ -213,12 +244,11 @@ class DemoBuilder < Ripper::SexpBuilder
           formals << @f.Arg(x[0], x[1])
         end
       end
-      formals.push block if block
-      formals
+      puts "FORM #{formals} #{block}"
+      Formals.new(formals, block)
     end
 
     def get_seq(body)
-      puts "SEQ #{body}"
       return nil if body.nil?
       return body if !body.is_a?(Array)
       if body.size == 1
@@ -229,12 +259,15 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_def(name, params, body)
-      @f.Binding(name, @f.Fun(params, get_seq(body)))
+      puts "DEF #{name} #{params} #{body}"
+      @f.Binding(name, @f.Fun(params.normal, params.block, get_seq(body)))
     end
 
     def on_defs(target, separator, identifier, params, body)
-      # TODO: target!!!
-      @f.Binding(identifier, @f.Fun(params, get_seq(body)))
+      if !(target.Var? && target.name == "self")
+        raise "only self meta-methods allowed"
+      end
+      MetaMethod.new(@f.Binding(identifier, @f.Fun(params.normal, params.block, get_seq(body))))
     end
 
     def on_defined(ref)
@@ -242,7 +275,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_do_block(params, body)
-      @f.Fun(params || [], get_seq(body))
+      on_brace_block(params, body)
     end
 
     def on_dot2(min, max)
@@ -272,7 +305,7 @@ class DemoBuilder < Ripper::SexpBuilder
     def on_if(expression, statements, else_block)
       expression = get_seq(expression)
       if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
-        @f.Binding("__main__", @f.Fun([], get_seq(statements)))
+        @f.Binding("__main__", @f.Fun([], nil, get_seq(statements)))
       else
         @f.If(expression, get_seq(statements), get_seq(else_block))
       end
@@ -300,7 +333,8 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_for(variable, range, statements)
-      @f.Call(range, "each", @f.Fun([variable], get_seq(statements)))
+      block = @f.Fun([@f.Arg(variable.name)], nil, get_seq(statements))
+      @f.Call(range, "each", [], block)
     end
 
     def on_gvar(token)
@@ -365,7 +399,9 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_module(const, body)
-      @f.Module(const, body)
+      puts "MODULE #{const} #{body}"
+      parts = body.flatten.partition {|x| x.is_a? MetaMethod}
+      @f.Module(const, fixup_defs(parts[0].collect(&:defn)), fixup_defs(parts[1]))
     end
 
     def on_mrhs_add(assignment, ref)
@@ -397,7 +433,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_program(defs) # parser event
-      @f.Module("TOP", defs)
+      @f.Module("TOP", [], defs)
     end
     
     def on_qwords_add(array, word)

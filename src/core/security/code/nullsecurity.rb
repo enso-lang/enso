@@ -9,7 +9,7 @@ class NullSecurity
   attr_accessor :user, :root
 
   def initialize(rulefile=nil)
-    @factory = ManagedData::Factory.new(Loader.load('auth.schema'))
+    @factory = ManagedData.new(Loader.load('auth.schema'))
   end
 
   def check_privileges(op, obj, *field)

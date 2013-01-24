@@ -19,7 +19,7 @@ class Resolve
     Class.new(sup) do 
       attr_reader :type
       def resolve(it)
-        Paths::Path.new([Current.new])
+        Paths.new([Current.new])
       end
     end
   end
@@ -28,7 +28,7 @@ class Resolve
     Class.new(sup) do 
       attr_reader :parent, :name, :key
       def resolve(it)
-        p = parent ? parent.resolve(it) : Paths::Path.new
+        p = parent ? parent.resolve(it) : Paths.new
         if key then
           p.field(name).key(key.resolve(it))
         else

@@ -31,7 +31,7 @@ class Parse
       end
     end
     source = s[i..-1].join("\n")
-    data = load_raw(source, grammar, schema, ManagedData::Factory.new(schema), false, filename)
+    data = load_raw(source, grammar, schema, ManagedData.new(schema), false, filename)
     imports.each do |imp|
       $stderr << "## importing #{imp}...\n" 
       u = Loader.load(imp)
@@ -62,7 +62,7 @@ if __FILE__ == $0 then
   require 'ruby-prof'
   grammar = Loader.load('web.grammar')
   ss = Loader.load('web.schema')
-  factory = ManagedData::Factory.new(ss)
+  factory = ManagedData.new(ss)
   path = 'core/web/models/prelude.web'
   source = File.read(path)
   org = Origins.new(source, path)

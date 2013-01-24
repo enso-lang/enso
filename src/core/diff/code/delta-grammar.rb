@@ -14,7 +14,7 @@ class DeltaGrammar
 
   def self.delta(g)
     gs = Loader.load('grammar.schema')
-    fact = ManagedData::Factory.new(gs)
+    fact = ManagedData.new(gs)
     g2 = fact.Grammar
     rules = []
     g2.start = DeltaGrammar.new(fact).delta(g, rules)

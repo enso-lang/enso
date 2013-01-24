@@ -1,6 +1,7 @@
 
 require 'core/system/utils/paths'
 require 'core/schema/code/factory'
+require 'core/system/boot/base.rb'
 
 =begin
 Meta schema that is able to load any JSON file into memory as read-only pseudo-MObjects
@@ -18,12 +19,11 @@ module Boot
   
   def self.load(doc)
     ss0 = make_object(doc, nil)
-    Copy(ManagedData::Factory.new(ss0), ss0)
+    Copy(ManagedData.new(ss0), ss0)
   end
 
-  class MObject
+  class MObject < BareObject
     attr_reader :_id
-    begin; undef_method :lambda, :methods; rescue; end
     @@_id = 0
     def initialize(data, root)
       @_id = @@_id = @@_id+1
@@ -83,8 +83,6 @@ module Boot
     end
   end
 
-  private
-
   @mobj_map={}
   def self.make_object(data, root)
     @mobj_map[data] || @mobj_map[data] = case data['class']
@@ -109,7 +107,7 @@ module Boot
     if data.nil?
       nil
     elsif data.is_a?(String)
-      Paths::Path.parse(data).deref(root)
+      Paths.parse(data).deref(root)
     else
       Boot.make_object(data, root)
     end
@@ -140,16 +138,16 @@ module Boot
     def has_key?(key)
       not self[key].nil?
     end
-    def join(other)
+    def join(other, &block)
       if @keyed
         other = other || {}
-        ks = keys | other.keys
-        ks.each {|k| yield self[k], other[k]}
+        ks = keys || other.keys
+        ks.each {|k| block.call self[k], other[k]}
       else
         a = Array(self)
         b = Array(other)
         for i in 0..[a.length,b.length].max-1
-          yield a[i], b[i]
+          block.call a[i], b[i]
         end
       end
     end
@@ -164,18 +162,18 @@ module Boot
 end
 
 
-if __FILE__ == $0 then
   require 'core/system/load/load'
   #require 'core/schema/tools/loadjson'
   require 'core/schema/tools/dumpjson'
   require 'core/diff/code/equals'
+if __FILE__ == $0 then
   
   mod = Loader.load('schema.schema')
   
   puts "Writing new metaschema"  
   ss_path = 'schema_schema2.json'
   File.open(ss_path, 'w+') do |f| 
-    f.write(JSON.pretty_generate(ToJSON::to_json(mod, true)))
+    f.write(JSON.pretty_generate(ToJSON.to_json(mod, true)))
   end
 
   puts "Loading..."  

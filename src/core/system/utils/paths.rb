@@ -2,6 +2,13 @@
 # TODO: error handling
 
 module Paths
+  def self.parse(str)
+    Path.parse(str)
+  end
+
+  def self.new(elts = [])
+    Path.new(elts)
+  end
 
   class Path
     attr_reader :elts

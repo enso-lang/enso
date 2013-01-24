@@ -1,6 +1,6 @@
 start Program
 
-Program ::= [Module] "def str(*args); args.join; end" defs:Def*
+Program ::= [Module] "def str(*args); args.join; end" defs:Def* " __main__"
 
 // class N < N 
 //   D* 
@@ -9,15 +9,17 @@ Program ::= [Module] "def str(*args); args.join; end" defs:Def*
 // D ::= def N 
 
 Def     ::= Class | Method | Module | Directive
-Directive ::= [Directive] (action:"require" | action:"include") what:Expr
-Module  ::= [Module] "module" name:sym defs:Def* "end"
-Class   ::= [Class] "class" name:sym ("<" parent:sym)? defs:Def* "end" /
-Method  ::= [Binding] "def" name:sym value:Fun
+Directive ::= [Directive] action:("require" | "include" | "attr_reader" | "attr_writer" | "attr_accessor") what:Expr
+Module  ::= [Module] "module" name:sym meta:MetaDef* defs:Def* "end"
+Class   ::= [Class] "class" name:sym ("<" parent:sym)? meta:MetaDef* defs:Def* "end" /
+MetaDef ::= [Binding] "def self.". name:sym value:Fun
+Method  ::= [Binding] ("def" name:sym value:Fun | name:sym "=" value:Expr)
 Fun     ::= [Fun] Params? / body:Seq "end" /
-Params  ::= ."(". args:Arg+ @(.",") .")"
+Params  ::= ."(". args:Arg+ @(.",") (."," "&". block:sym)? .")"
+          | ."(". "&". block:sym .")"
 Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
-Seq     ::= [Seq] statements:Statement* | Statement
+Seq     ::= [Seq] statements:Statement* | Statement | Block
 
 Statement ::= Stat | Expr .";"
 Stat      ::= If | While | BlockCall | Rescue | Assign

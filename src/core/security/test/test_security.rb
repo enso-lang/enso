@@ -66,7 +66,7 @@ class SecurityTest < Test::Unit::TestCase
   TODO: Interpreter model does not support constraints
 
   def test_constraints
-    fact = ManagedData::Factory.new(Loader.load("auth.schema"))
+    fact = ManagedData.new(Loader.load("auth.schema"))
 
     alice_const = fact.EBoolConst(true)
     @todo.factory.user = 'Alice'

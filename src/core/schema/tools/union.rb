@@ -106,6 +106,6 @@ end
 
 
 def union(a, b)
-  f = ManagedData::Factory.new(a._graph_id.schema)
+  f = ManagedData.new(a._graph_id.schema)
   Union(f, a, b)
 end

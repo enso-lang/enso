@@ -8,6 +8,7 @@
 
 # Rubymine noise
 .idea
+src/node_modules
 
 # Emacs noise
 *~

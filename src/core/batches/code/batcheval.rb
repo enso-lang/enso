@@ -21,7 +21,7 @@ class BatchEval < Web::Eval::Render
 
   def self.batch(web, rootschema)
     schema = rootschema.schema
-    factory = ManagedData::Factory.new(Loader.load('batch.schema'))
+    factory = ManagedData.new(Loader.load('batch.schema'))
     res = {}
     env = {}
     prelude = Loader.load("prelude.web")
