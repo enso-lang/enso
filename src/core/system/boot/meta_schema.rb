@@ -56,8 +56,8 @@ module Boot
       self.hash == other.hash and self._id==other._id
     end
     def to_s
-      @name || @name = begin; "<#{@data['name']} #{name}>"
-              rescue; "<#{@data['name']} #{_id}>"; end
+      @name || @name = begin; "<#{@data['class']} #{self.name}>"
+              rescue; "<#{@data['class']} #{self._id}>"; end
     end
   end
 

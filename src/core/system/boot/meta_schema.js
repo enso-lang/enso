@@ -2,74 +2,74 @@
   require ( "enso" )
   
      MObject = MakeClass({ _class_ : { seq_no : 0 },
-       _id : function ( ) { return this.AT$. _id } ,
+       _id : function ( ) { return this.$. _id } ,
        initialize : function (data, root) { var self=this;
-         self.AT$._id = self._class_.seq_no = self._class_.seq_no + 1 ;
-         self.AT$.data = data ;
-         self.AT$.root = root || self ; } ,
+         self.$._id = self._class_.seq_no = self._class_.seq_no + 1 ;
+         self.$.data = data ;
+         self.$.root = root || self ; } ,
        schema_class : function () { var self=this; {
-         res = self.AT$.root.types().GET(self.AT$.data.GET("class")) ;
+         var res = self.$.root.types().GET(self.$.data.GET("class")) ;
          self.define_singleton_method("schema_class" , function () { return res ; }) ;
          return res ; } } ,
        GET : function (sym) { var self=this; {
-         res = sym.GET((- 1)) == "?" ? self.schema_class().name() == sym.slice(
+         var res = sym.GET((- 1)) == "?" ? self.schema_class().name() == sym.slice(
           0,
-           ( sym.length() - 1)) : self.AT$.data.has_key( str( sym, "=")) ? self.AT$.data.GET(
-           str( sym, "=")) : self.AT$.data.has_key( str( sym, "#")) ? Boot.make_field(
-          self.AT$.data.GET( str( sym, "#")),
-           self.AT$.root,
-           true) : self.AT$.data.has_key( sym.to_s()) ? Boot.make_field(
-          self.AT$.data.GET( sym.to_s()),
-           self.AT$.root,
+           ( sym.length() - 1)) : self.$.data.has_key( str( sym, "=")) ? self.$.data.GET(
+           str( sym, "=")) : self.$.data.has_key( str( sym, "#")) ? Boot.make_field(
+          self.$.data.GET( str( sym, "#")),
+           self.$.root,
+           true) : self.$.data.has_key( sym.to_s()) ? Boot.make_field(
+          self.$.data.GET( sym.to_s()),
+           self.$.root,
            false) : raise(
            str(
             "Trying to deref nonexistent field ",
              sym,
              " in ",
-             self.AT$.data.to_s().slice(0, 300))) ;
+             self.$.data.to_s().slice(0, 300))) ;
          self.define_singleton_method( sym , function () { return res ; }) ;
          return res ; } } ,
        eql : function (other) { var self=this; { return self._id() == other._id() ; } } ,
-       to_s : function () { var self=this; { return self.AT$.name || (self.AT$.name =((function(){ { try { return str(
+       to_s : function () { var self=this; { return self.$.name || (self.$.name =((function(){ { try { return str(
         "<",
-         self.AT$.data.GET("name"),
+         self.$.data.GET("class"),
          " ",
-         name,
+         self.name(),
          ">") ; }
          catch ( DUMMY ) { return str(
           "<",
-           self.AT$.data.GET("name"),
+           self.$.data.GET("class"),
            " ",
-           _id,
+           self._id(),
            ">") ; } } })())) ; } } })
      Schema = MakeClass( MObject, { _class_ : { },
        classes : function () { var self=this; { return BootManyField(
          self.types().select(function (t) { return t.Class() ; }),
-         self.AT$.root,
+         self.$.root,
          true) ; } } ,
        primitives : function () { var self=this; { return BootManyField(
          self.types().select(function (t) { return t.Primitive() ; }),
-         self.AT$.root,
+         self.$.root,
          true) ; } } })
      Class = MakeClass( MObject, { _class_ : { },
        all_fields : function () { var self=this; { return BootManyField(
         ( self.supers().flat_map(function (s) { return s.all_fields() ; }) + defined_fields),
-         self.AT$.root,
+         self.$.root,
          true) ; } } ,
        fields : function () { var self=this; { return BootManyField(
          self.all_fields().select(function (f) { return ! f.computed() ; }),
-         self.AT$.root,
+         self.$.root,
          true) ; } } })
      BootManyField = MakeClass( Array, { _class_ : { },
        initialize : function (arr, root, keyed) { var self=this;
          arr.each(function (obj) { return self.push(obj) ; }) ;
-         self.AT$.root = root ;
-         self.AT$.keyed = keyed ; } ,
+         self.$.root = root ;
+         self.$.keyed = keyed ; } ,
        GET : function (key) { 
-        var self=this; { if (self.AT$.keyed) { return self.find(function (
+        var self=this; { if (self.$.keyed) { return self.find(function (
         obj) { return obj.name() == key ; }) ; } else { return self.at( key) ; } } } ,
        has_key : function (key) { var self=this; { return self.GET( key) ; } } ,
-       join : function (other) { var self=this; { if (self.AT$.keyed) {
+       joinXX : function (other) { var self=this; { if (self.$.keyed) {
          other = other || new EnsoHash ( { } ) ;
          ks = self.keys() || other.keys() ;
          return ks.each(function (k) { return block.call(
@@ -79,7 +79,7 @@
          b = Array( other) ;
          return new Range(0, ( [ a.length() , b.length()].max() - 1)).each(function (
           i) { return block.call( a.GET( i), b.GET( i)) ; }) ; } } } ,
-       keys : function () { var self=this; { if (self.AT$.keyed) { return self.map(function (
+       keys : function () { var self=this; { if (self.$.keyed) { return self.map(function (
         o) { return o.name() ; }) ; } else { return null ; } } } })
      load_path = function (path) { return load( System.readJSON( path)) ; }
      load = function (doc) {
@@ -105,6 +105,7 @@
 
  x = load_path("/Users/wcook/enso/src/core/system/boot/schema_schema.json");
 console.log("x._id = " + x._id()) ;
-//console.log("Test = " + x.types().to_s());
+console.log("Test = " + x.types().to_s());
 console.log("Test = " + x.types().GET("Primitive").name()) ;
+console.log("Test = " + x.types().GET("Primitive").to_s()) ;
  
