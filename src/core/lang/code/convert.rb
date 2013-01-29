@@ -22,7 +22,7 @@ class When
   end
 end
 
-class MetaMethod
+class MetaDef
   attr_accessor :defn
   def initialize(defn)
     @defn = defn
@@ -47,11 +47,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_aref(target, args)
-      @f.Index(target, args[0])
+      make_call(target, "GET", [args[0]])
     end
 
     def on_aref_field(target, args)
-      @f.Index(target, args[0])
+      make_call(target, "GET", [args[0]])
     end
 
     def on_arg_paren(args)
@@ -75,11 +75,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_assign(lvalue, rvalue)
-      @f.Assign(lvalue, rvalue)
+      @f.Assign(lvalue, get_seq(rvalue))
     end
 
     def on_assoc_new(key, value)
-      @f.Binding(key, get_seq(value))
+      @f.Binding(fixup_name(key), get_seq(value))
     end
 
     def on_assoclist_from_args(args)
@@ -147,11 +147,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_call(target, separator, identifier)
-      @f.Call(get_seq(target), identifier)
+      make_call(get_seq(target), identifier)
     end
 
     def on_case(test, when_block)
-      puts "CASE #{test} #{when_block}"
+      #puts "CASE #{test} #{when_block}"
       #raise "Only one value for case" if test.length != 1
       if when_block.nil?
         nil
@@ -159,7 +159,7 @@ class DemoBuilder < Ripper::SexpBuilder
         if when_block.expressions.length == 1
           cond = @f.EBinOp("==", test, when_block.expressions[0])
         else
-          cond = @f.Call(@f.List(when_block.expressions), "contains", [test])
+          cond = make_call(@f.List(when_block.expressions), "contains", [test])
         end
         @f.If(cond, when_block.statements, on_case(test, when_block.next_block))
       else
@@ -172,15 +172,34 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_class(const, superclass, body)
-      puts "CLASS #{const} < #{superclass} : #{body}"
-      parts = body.flatten.partition {|x| x.is_a? MetaMethod}
-      @f.Class(const, fixup_defs(parts[0].collect(&:defn)), fixup_defs(parts[1]), superclass && superclass.name)
+      #puts "CLASS #{const} < #{superclass} : #{body}"
+      parts = split_meta(body)
+      @f.Class(const, parts[0], parts[1], superclass && superclass.name)
+    end
+
+    def split_meta(body)
+      parts = body.flatten.partition {|x| is_meta(x)}
+      parts = [ fixup_defs(parts[0]), fixup_defs(parts[1]) ]
+      return parts
+    end
+    
+    def is_meta(d)
+      if d.is_a? MetaDef
+        return true
+      elsif d.Assign?
+        puts "DEF #{d.to.name} #{d.to.kind}"
+        return d.to.kind == "@@"
+      else
+        return false 
+      end
     end
 
     def fixup_defs(body)
       body.collect do |d|
-        if d.Assign?
-          @f.Binding(d.to.name, d.from)
+        if d.is_a? MetaDef
+          d.defn
+        elsif d.Assign?            
+          @f.Binding(fixup_name(d.to.name), d.from)
         else
           d
         end
@@ -193,20 +212,20 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_command(name, args)
       if name == "require" || name == "include"
-        puts "CMD #{name} #{args}"
+        #puts "CMD #{name} #{args}"
         @f.Directive(name, args[0])
       elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
-        puts "CMD #{name} #{args}"
+        #puts "CMD #{name} #{args}"
         args.collect do |var|
           @f.Directive(name, var)
         end
       else
-        @f.Call(nil, name, args)
+        make_call(nil, name, args)
       end
     end
 
     def on_command_call(target, separator, identifier, args)
-      @f.Call(target, identifier, args)
+      make_call(target, identifier, args)
     end
 
     def on_const(token)
@@ -215,12 +234,12 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_const_path_field(namespace, const)
       raise "Can't use ::"
-      # @f.Call(@f.Lit(namespace), const)
+      # make_call(@f.Lit(namespace), const)
     end
 
     def on_const_path_ref(namespace, const)
       raise "Can't use ::"
-      # @f.Call(namespace, const)
+      # make_call(namespace, const)
     end
 
     def on_const_ref(const)
@@ -244,7 +263,7 @@ class DemoBuilder < Ripper::SexpBuilder
           formals << @f.Arg(x[0], x[1])
         end
       end
-      puts "FORM #{formals} #{block}"
+      #puts "FORM #{formals} #{block}"
       Formals.new(formals, block)
     end
 
@@ -259,15 +278,15 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_def(name, params, body)
-      puts "DEF #{name} #{params} #{body}"
-      @f.Binding(name, @f.Fun(params.normal, params.block, get_seq(body)))
+      #puts "DEF #{name} #{params} #{body}"
+      @f.Binding(fixup_name(name), @f.Fun(params.normal, params.block, get_seq(body)))
     end
 
     def on_defs(target, separator, identifier, params, body)
       if !(target.Var? && target.name == "self")
         raise "only self meta-methods allowed"
       end
-      MetaMethod.new(@f.Binding(identifier, @f.Fun(params.normal, params.block, get_seq(body))))
+      MetaDef.new(@f.Binding(fixup_name(identifier), @f.Fun(params.normal, params.block, get_seq(body))))
     end
 
     def on_defined(ref)
@@ -279,7 +298,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_dot2(min, max)
-      @f.Call(@f.Var("Range"), "new", [min, max])
+      make_call(@f.Var("Range"), "new", [min, max])
     end
 
     def on_dot3(min, max)
@@ -295,7 +314,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_END(statements)
-      @f.Call(nil, "END", nil, statements)
+      make_call(nil, "END", nil, statements)
     end
 
     def on_ensure(statements)
@@ -321,11 +340,15 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_fcall(identifier)
-      @f.Call(nil, identifier)
+      make_call(nil, identifier)
     end
 
     def on_field(target, separator, identifier)
-      @f.Call(target, identifier)
+      make_call(target, identifier)
+    end
+    
+    def make_call(target, method, args = [], block = nil)
+       @f.Call(target, fixup_name(method), args, block)
     end
 
     def on_float(token)
@@ -334,7 +357,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_for(variable, range, statements)
       block = @f.Fun([@f.Arg(variable.name)], nil, get_seq(statements))
-      @f.Call(range, "each", [], block)
+      make_call(range, "each", [], block)
     end
 
     def on_gvar(token)
@@ -399,9 +422,9 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_module(const, body)
-      puts "MODULE #{const} #{body}"
-      parts = body.flatten.partition {|x| x.is_a? MetaMethod}
-      @f.Module(const, fixup_defs(parts[0].collect(&:defn)), fixup_defs(parts[1]))
+      #puts "MODULE #{const} #{body}"
+      parts = split_meta(body)
+      @f.Module(const, parts[0], parts[1])
     end
 
     def on_mrhs_add(assignment, ref)
@@ -413,7 +436,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_next(args)
-      @f.Call(nil, "next", args)
+      make_call(nil, "next", args)
     end
 
     def on_op(operator)
@@ -433,6 +456,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_program(defs) # parser event
+      defs.unshift(@f.Directive("require", @f.Lit("enso")))
       @f.Module("TOP", [], defs)
     end
     
@@ -445,7 +469,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_redo
-      @f.Call(nil, "redo")
+      make_call(nil, "redo")
     end
 
     def on_regexp_add(regexp, content)
@@ -461,14 +485,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_rescue(types, var, statements, block)
+      puts "RESCUE #{types} #{var} #{block}"
       if types && types.length != 1
         raise "Only one rescue type allowed"
-      end 
-      if block
-        [@f.Handler(types && types[0], var, statements)] + on_rescue(block)
-      else
-        []
       end
+      [@f.Handler(types && types[0], var, get_seq(statements))] + (block || [])
     end
 
     def on_rescue_mod(expression, statements)
@@ -480,11 +501,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_retry
-      @f.Call(nil, "retry")
+      make_call(nil, "retry")
     end
 
     def on_return(args)
-      @f.Call(nil, "return", args)
+      make_call(nil, "return", args)
     end
 
     def on_sclass(superclass, body)
@@ -500,14 +521,14 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_string_add(string, content)
-      puts "STR #{string} #{content}"
+      #puts "STR #{string} #{content}"
       if string.Lit? && string.value == ""
         content
       elsif content.Lit? && content.value == ""
         string
       else
         if !string.Call? || string.name != "str"
-          string = @f.Call(nil, "str", [string])
+          string = make_call(nil, "str", [string])
         end
         string.args << content
         string
@@ -541,7 +562,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_super(args)
-      @f.Call(nil, "super", args)
+      make_call(nil, "super", args)
     end
 
     def on_symbol(token)
@@ -569,7 +590,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_undef(args)
-      @f.Call(nil, "undef", args)
+      make_call(nil, "undef", args)
     end
 
     def on_unless(expression, statements, else_block)
@@ -593,14 +614,35 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_var_field(name)
-      @f.Var(name)
+      make_var(name)
     end
 
     def on_var_ref(name)
-      name = name[1..-1] if name[0]=="$"
-      @f.Var(name)
+      make_var(name)
     end
-
+    
+    def make_var(name)
+      kind = nil
+      if name[0] == "@"
+        if name[1] == "@"
+          name = name[2..-1]
+          kind = "@@"
+        else
+          name = name[1..-1]
+          kind = "@"
+        end
+      end
+      @f.Var(fixup_name(name), kind)
+    end
+    
+    def fixup_name(name)
+      if name == "[]"
+         name = "get"
+      end
+      name = name[1..-1] if name[0]=="$"
+      return name.gsub("?", "")
+    end
+    
     alias on_vcall on_var_ref
 
     def on_void_stmt
@@ -608,7 +650,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_when(expressions, statements, next_block)
-      puts "WHEN #{expressions} >> #{statements} NEXT #{next_block}" 
+      #puts "WHEN #{expressions} >> #{statements} NEXT #{next_block}" 
       When.new(expressions, get_seq(statements), next_block)
     end
 
@@ -657,7 +699,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_zsuper(*)
-      @f.Call(nil, "super")
+      make_call(nil, "super")
     end
 
 end
@@ -674,7 +716,7 @@ if __FILE__ == $0 then
   jj ToJSON::to_json(m)
    
   out = File.new("#{name.chomp(".rb")}.code", "w")
-  DisplayFormat.print(g, m, 80, out)
+  DisplayFormat.print(g, m, 80, out, false)
 end
 
 

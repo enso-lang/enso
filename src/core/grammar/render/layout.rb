@@ -86,8 +86,8 @@ class DisplayFormat < Dispatch
     @output = output
   end
 
-  def self.print(grammar, obj, width = 80, output=$stdout)
-    layout = Render(grammar, obj)
+  def self.print(grammar, obj, width = 80, output=$stdout, slash_keywords = true)
+    layout = Render(grammar, obj, slash_keywords)
     FormatChoice.new(width).run(layout)
     DisplayFormat.new(output).recurse(layout)
     output << "\n"

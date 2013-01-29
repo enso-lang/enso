@@ -9,12 +9,13 @@ require 'core/expr/code/impl'
 class RenderClass < Dispatch
   include Paths
 
-  def initialize()
+  def initialize(slash_keywords = true)
     @factory = ManagedData.new(Loader.load('layout.schema'))
     @depth=0
     @stack = []
     @need_space = false
     @indent_amount = 2
+    @slash_keywords = slash_keywords
   end
 
   def Grammar(this, stream)
@@ -28,10 +29,11 @@ class RenderClass < Dispatch
     pair = [pat, data.current]
     if !@stack.include?(pair)
       @stack << pair 
+      #puts "#{' '*@depth}#{pat} #{data.current}"
       @depth = @depth + 1
       val = send(pat.schema_class.name, pat, data)
-      #puts "#{' '*@depth}#{pat} #{data.current} ==> #{val}"
       @depth = @depth - 1
+      #puts "#{' '*@depth}#{pat} #{data.current} ==> #{val}"
       @stack.pop
       val
     end
@@ -102,7 +104,7 @@ class RenderClass < Dispatch
       when "str" 
         output(obj.inspect) if obj.is_a?(String)
       when "sym"
-        if @literals.include?(obj) then
+        if @slash_keywords && @literals.include?(obj) then
           output('\\' + obj.to_s)
         else
           output(obj.to_s)
@@ -158,7 +160,7 @@ class RenderClass < Dispatch
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
       ok = obj.instance_eval(code)
     else
-      ok = Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj))
+      ok = Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, @localEnv))
     end
     ok && @factory.Sequence()
   end
@@ -169,10 +171,16 @@ class RenderClass < Dispatch
       recurse(this.arg, stream) || @factory.Sequence()
     else
       if stream.length > 0 || this.optional
+        oldEnv = @localEnv
+        @localEnv = HashEnv.new
+        @localEnv['_length'] = stream.length
         s = @factory.Sequence()
         i = 0
         ok = true
         while ok && stream.length > 0
+          @localEnv['_index'] = i
+          @localEnv['_first'] = (i == 0)
+          @localEnv['_last'] = (stream.length == 1)
           @needBreak = true
           if i > 0 && this.sep
             v = recurse(this.sep, stream)
@@ -195,6 +203,7 @@ class RenderClass < Dispatch
             end
           end
         end
+        @localEnv = oldEnv
         ok && (stream.length == 0) && @factory.Group(@factory.Nest(s, @indent_amount))
       end
     end
@@ -252,8 +261,8 @@ class ManyStream
 end
 
 
-def Render(grammar, obj)
-  r = RenderClass.new.recurse(grammar, SingletonStream.new(obj))
+def Render(grammar, obj, slash_keywords = true)
+  r = RenderClass.new(slash_keywords).recurse(grammar, SingletonStream.new(obj))
   if !r
     puts "-"*50
     raise "ERROR: Could not render #{obj}"

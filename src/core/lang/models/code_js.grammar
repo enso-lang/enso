@@ -1,6 +1,11 @@
 start Program
 
-Program ::= [Module] defs:Def*
+Program ::= [Module] defs:Top*
+Top     ::=  Require | MainModule
+Require ::= [Directive] action:"require" "(" what:Expr ")"
+MainModule ::= [Module] defs:Def* meta:Binding*
+Def     ::= Binding | Class | Module
+Binding  ::= [Binding] name:sym "=" value:Expr
 
 // class N < N 
 //   D* 
@@ -8,23 +13,44 @@ Program ::= [Module] defs:Def*
 // class 
 // D ::= def N 
 
-Def     ::= Class | Method | Module | Directive
-Directive ::= [Directive] (action:"require" | action:"include") what:Expr
-Module  ::= [Module] "module" name:sym defs:Def* "end"
-Class   ::= [Class] name:sym "= new JS.Class(" (parent:sym .",")? "{" defs:Def* "});"
-Method  ::= [Binding] name:sym ":" value:Fun
-Fun     ::= [Fun] "function" Params body:Seq
-Params  ::= "(". args:Arg* @(.",") .")"
-Arg     ::= [Arg] name:sym ("=" default:Expr)?
+Module  ::= [Module] name:sym "= EnsoModule({" Body "})"
+Class   ::= [Class] name:sym "= EnsoClass(" (parent:sym .",")? "{" Body "})"
+Body    ::= Meta? defs:DefB* @","
+Meta    ::= "extend" ":" "{" meta:DefB* @"," "},"
+DefB     ::= BindingB | Directive
+BindingB  ::= [Binding] name:sym ":" ({name=="initialize"} value:Method | value:MethodR | value:Expr)
+Method   ::= [Fun] "function" Params "{ var self=this;" body:SeqBody "}"
+MethodR ::= [Fun] "function" Params "{ var self=this;" body:SeqR "}"
 
-Seq     ::= [Seq] "{" statements:Statement* @(.";") "}" | "{" Expr "}"
+Directive ::= Attr | Include
+Include ::= [Directive] action:"include" ":" what:LitName
+Attr    ::= [Directive] { action=="attr_reader" } Reader
+Reader  ::= what:LitName ":" "function" "(" ")" "{" "return" "this"."."."AT$"."." what:LitName "}"
+// Writer  ::= "set".what:LitName ":" "function" "(val)" "{" "this"."."."AT$"."." what:LitName "=val" "}"
+LitName ::= [Lit] value:sym
 
-Statement ::= Stat | Expr .";"
-Stat      ::= If | While | Assign
+Seq     ::= "{" SeqBody "}"
+SeqBody     ::= [Seq] statements:Statement* | Statement
+SeqR     ::= "{" SeqBodyR "}"
+SeqBodyR     ::= [Seq] statements:StatementLR* | StatementR
+
+Statement ::= Basic | Expr ";"
+StatementR ::= BasicR | "return" Expr ";"
+StatementLR ::= {_last} StatementR | Statement
+Basic   ::= If | While | TryCatch
+If      ::= [If] "if" "(". cond:Expr .")" sthen:Seq ("else" (selse:If | selse:Seq))?
 While   ::= [While] "while" "(". cond:Expr .")" body:Seq
-Assign  ::= [Assign] to:Primary "=" from:Expr ";"
+TryCatch ::= [Rescue] "try" base:Seq rescues:Handler* ("finally" ensure:Seq)? 
+Handler ::= [Handler] "catch" "(" (var:str | "DUMMY") ")" body:Seq // TODO: deal with kind:str!!!
 
-Expr ::= EOr
+BasicR   ::= IfR | While | TryCatchR
+IfR      ::= [If] "if" "(". cond:Expr .")" sthen:SeqR ("else" (selse:IfR | selse:SeqR))?
+TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)? 
+HandlerR ::= [Handler] "catch" "(" (var:str | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
+
+Expr ::= Assign
+Assign  ::= [Assign] to:Primary "=" from:Assign
+        | EOr
 EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
        | EAnd
 EAnd ::= [EBinOp] e1:EBinOp1 op:"&&" e2:EAnd
@@ -44,20 +70,24 @@ EUnOp ::= [EUnOp] (op:"!" | op:"-") e:EUnOp
 EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
          | Primary
 
-If      ::= [If] "if" "(". cond:Expr .")" sthen:Seq IfTail?
-IfTail  ::= "else" (selse:If | selse:Seq)
 
-Primary ::= InstVar | ClassVar | Var | If | Index | List | Record | Call | Lit | "(". (Expr | Seq) .")"
+Primary ::= InstVar | ClassVar | Nil | Var |  IfE | List | Record | Fun | Call | Lit | "(". Expr .")" | 
+             "((function(){" SeqR "})())"
+Nil     ::= [Var] "null" { name == "nil" }
 Var     ::= [Var] name:sym
-InstVar ::= [Var] "this". name:sym { kind == "@" }
-ClassVar::= [Var] kind:"@@". name:sym
-Index   ::= [Index] base:Primary "[". index:Expr ."]"
+InstVar ::= [Var] "self"."."."AT$".".". name:sym { kind=="@" }
+ClassVar::= [Var] "self"."."."klass".".". name:sym { kind=="@@" }
 List    ::= [List] "[". items:Expr* @"," ."]"
-Record  ::= [Record] "{" fields:Field* @"," "}"
+Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @"," "}" ")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
-Call  ::= [Call] Target? name:sym Args
-  Target  ::= target:Primary .".".
-  Args    ::= ."(". args:Primary* @(.",") block:Fun? .")"
+IfE      ::= [If] cond:Expr "?" sthen:Expr ":" selse:Expr  // TODO: Precedence!!
+
+Call  ::= [Call] (target:Primary .".".)? name:sym Args
+  Args    ::= ."(". args:Primary+ @(.",") ("," block:Fun)? .")"
+            | ."(". block:Fun? .")"
+Fun     ::= [Fun] "function" Params body:SeqR
+Params  ::= "(". args:Arg* @(.",") .")"
+Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
 

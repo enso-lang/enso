@@ -54,7 +54,7 @@ class HashEnv
     if @hash.has_key? key
       @hash[key]
     else
-      @parent.nil? ? nil : @parent[key]
+      @parent && @parent[key]
     end
   end
   def []=(key, value)
@@ -84,24 +84,27 @@ class ObjEnv
 
   attr_reader :obj
 
-  def initialize(obj)
+  def initialize(obj, parent = nil)
     @obj = obj
+    @parent = parent
   end
   def [](key)
     if key == "self"
       puts "SELF = #{obj}"
       @obj
-    elsif @obj.schema_class.all_fields.map{|f|f.name}.include? key
+    elsif @obj.schema_class.all_fields.any?{|f|f.name == key}
       @obj[key]
     else
-      @parent.nil? ? nil : @parent[key]
+      @parent && @parent[key]
     end
   end
   def []=(key, value)
     @obj[key] = value
   end
   def has_key?(key)
-    key == "self" || @obj.schema_class.all_fields.map{|f|f.name}.include?(key)
+    key == "self" ||
+      @obj.schema_class.all_fields.any?{|f|f.name == key} ||
+      (@parent && @parent.has_key?(key))
   end
   def each(&block)
     @obj.schema_class.all_fields.each do |f|
@@ -133,7 +136,7 @@ class LambdaEnv
       res = @block.call
       res
     else
-      @parent.nil? ? nil : @parent[key]
+      @parent && @parent[key]
     end
   end
   def []=(key, value)

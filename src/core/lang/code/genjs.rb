@@ -6,7 +6,9 @@ if __FILE__ == $0 then
   m = Loader.load(name)
   g = Loader.load("code_js.grammar")
   
+  
+  
   out = File.new("#{name.chomp(".code")}.js", "w")
-  DisplayFormat.print(g, m, 80, out)
+  DisplayFormat.print(g, m, 80, out, false)
   
 end

@@ -1,7 +1,8 @@
 
 require 'core/system/utils/paths'
 require 'core/schema/code/factory'
-require 'core/system/boot/base.rb'
+require 'json'
+require 'enso'
 
 =begin
 Meta schema that is able to load any JSON file into memory as read-only pseudo-MObjects
@@ -14,7 +15,7 @@ The only requirements are:
 
 module Boot
   def self.load_path(path)
-    load(JSON.load(File.new(path)))
+    load(System.readJSON(path))
   end
   
   def self.load(doc)
@@ -22,42 +23,37 @@ module Boot
     Copy(ManagedData.new(ss0), ss0)
   end
 
-  class MObject < BareObject
+  class MObject < EnsoBaseObject
     attr_reader :_id
-    @@_id = 0
+    @@seq_no = 0
     def initialize(data, root)
-      @_id = @@_id = @@_id+1
+      @_id = (@@seq_no = @@seq_no + 1)
       @data = data
       @root = root || self
     end
     def schema_class
       #this assumes that the root is a schema and it has this thing called "types"
       res = @root.types[@data["class"]]
-      define_singleton_method(:schema_class) { res }
+      self.define_singleton_method(:schema_class) { res }
       res
     end
-    def [](sym)
-      send(sym)
-    end
-    def type; method_missing :type; end  # HACK for JRuby to work, because it defines :type
-    def method_missing(sym)
-      #puts "GET #{sym} #{@data}"
+    def get(sym)
       res = if sym[-1] == "?"
-        schema_class.name == sym.slice(0, sym.length-1)
-      elsif @data.key?("#{sym}=")
+        self.schema_class.name == sym.slice(0, sym.length-1)
+      elsif @data.has_key?("#{sym}=")
         @data["#{sym}="]
-      elsif @data.key?("#{sym}#")
+      elsif @data.has_key?("#{sym}#")
         Boot.make_field(@data["#{sym}#"], @root, true)
-      elsif @data.key?(sym.to_s)
+      elsif @data.has_key?(sym.to_s)
         Boot.make_field(@data[sym.to_s], @root, false)
       else
         raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
       end
-      define_singleton_method(sym) { res }
+      self.define_singleton_method(sym) { res }
       res
     end
     def eql?(other)
-      hash == other.hash and _id==other._id
+      self.hash == other.hash and self._id==other._id
     end
     def to_s
       @name || @name = begin; "<#{@data['name']} #{name}>"
@@ -67,31 +63,30 @@ module Boot
 
   class Schema < MObject
     def classes
-      BootManyField.new(types.select{|t|t.Class?}, @root, true)
+      BootManyField.new(self.types.select{|t|t.Class?}, @root, true)
     end
     def primitives
-      BootManyField.new(types.select{|t|t.Primitive?}, @root, true)
+      BootManyField.new(self.types.select{|t|t.Primitive?}, @root, true)
     end
   end
     
   class Class < MObject
     def all_fields
-      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
+      BootManyField.new(self.supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
     end
     def fields
-      BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
+      BootManyField.new(self.all_fields.select() {|f|!f.computed}, @root, true)
     end
   end
 
-  @mobj_map={}
   def self.make_object(data, root)
-    @mobj_map[data] || @mobj_map[data] = case data['class']
-      when "Schema" 
-       Schema.new(data, root)
-      when "Class"  
-        Class.new(data, root)
-      else
-        MObject.new(data, root)
+    case data['class']
+    when "Schema" 
+      makeProxy(Schema.new(data, root))
+    when "Class"  
+      makeProxy(Class.new(data, root))
+    else
+      makeProxy(MObject.new(data, root))
     end
   end
 
@@ -104,44 +99,40 @@ module Boot
   end
   
   def self.get_object(data, root)
-    if data.nil?
+    if !data
       nil
     elsif data.is_a?(String)
       Paths.parse(data).deref(root)
     else
-      Boot.make_object(data, root)
+      make_object(data, root)
     end
   end
   
   def self.make_many(data, root, keyed)
-    arr = data.map {|a| Boot.get_object(a, root)}
+    arr = data.map {|a| get_object(a, root)}
     BootManyField.new(arr, root, keyed)
   end
 
   class BootManyField < Array
-    #A magical array that combines arrays, hashes and singletons 
     def initialize(arr, root, keyed)
       arr.each {|obj| self << obj}
       @root = root
       @keyed = keyed
     end
-    def method_missing(sym)
-      raise NoMethodError, "undefined method `#{sym}' for []:BootManyField"
-    end
     def [](key)
       if @keyed
-        find {|obj| obj.name == key}
+        self.find {|obj| obj.name == key}
       else
-        at(key)
+        self.at(key)
       end
     end
     def has_key?(key)
-      not self[key].nil?
+      self[key]
     end
     def join(other, &block)
       if @keyed
         other = other || {}
-        ks = keys || other.keys
+        ks = self.keys || other.keys
         ks.each {|k| block.call self[k], other[k]}
       else
         a = Array(self)
@@ -162,35 +153,4 @@ module Boot
 end
 
 
-  require 'core/system/load/load'
-  #require 'core/schema/tools/loadjson'
-  require 'core/schema/tools/dumpjson'
-  require 'core/diff/code/equals'
-if __FILE__ == $0 then
-  
-  mod = Loader.load('schema.schema')
-  
-  puts "Writing new metaschema"  
-  ss_path = 'schema_schema2.json'
-  File.open(ss_path, 'w+') do |f| 
-    f.write(JSON.pretty_generate(ToJSON.to_json(mod, true)))
-  end
 
-  puts "Loading..."  
-  ss = Boot.load_path(ss_path)
-  File.delete(ss_path)
-  
-  puts "Testing"
-  puts "Test1: Type=#{ss.types['Field'].defined_fields['type'].type.name}"
-  puts "Test2: Class=#{ss.types['Field'].schema_class.name}"
-  puts "Test2: Primitive=#{ss.types['int'].schema_class.name}"
-  puts "Test3: 5=#{ss.types['Class'].defined_fields.length}"
-  puts "Test4: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
-  
-  puts "Done loading new metaschema"
-  
-  realss = Loader.load('schema.schema')
-  print "Equality test: "
-  raise "Wrong result!" unless Equals.equals(realss, ss)
-  puts "All OK!"
-end

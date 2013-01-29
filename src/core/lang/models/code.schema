@@ -36,7 +36,7 @@ class Call < Expr
   target! Expr?
   name:   str
   args!   Expr*
-  block!  Fun
+  block!  Fun?
 
 class Fun < Expr
   args! Arg*
@@ -66,18 +66,14 @@ class Rescue < Expr
   ensure! Expr?
  
 class Handler
-  kind: str
-  var: str
+  kind: str?
+  var: str?
   body! Expr  
 
 class Var < Expr
   name: str
   kind: str?
 
-class Index < Expr
-  base!   Expr
-  index!  Expr
-  
 class List < Expr
   items!  Expr*
 
