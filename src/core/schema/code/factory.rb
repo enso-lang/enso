@@ -50,7 +50,7 @@ module ManagedData
 
     attr_accessor :file_path
 
-    private
+    #private
 
     def __constructor(klasses)
       klasses.each do |klass|
@@ -86,8 +86,8 @@ module ManagedData
     # TODO: get rid of this
     def method_missing(sym, *args, &block)
       # $stderr << "WARNING: method_missing #{sym}\n"
-      if sym =~ /^([A-Z].*)\?$/
-        schema_class.name == $1
+      if sym[-1] == "?"
+        schema_class.name == sym.slice(0, sym.length-1)
       else
         super(sym, *args, &block)
       end
@@ -130,9 +130,10 @@ module ManagedData
     end
 
     def notify(name, val)
-      return unless @listeners[name]
-      @listeners[name].each do |blk|
-        blk.call(val)
+      if @listeners[name]
+        @listeners[name].each do |blk|
+          blk.call(val)
+        end
       end
     end
 
@@ -160,7 +161,7 @@ module ManagedData
           r[field.name] = self[field.name]
         end
       end
-      return r
+      r
     end
     def __get(name); @hash[name] end
 
@@ -168,10 +169,8 @@ module ManagedData
 
     def eql?(o); self == o end
 
-    def ==(o)
-      return false if o.nil?
-      return false unless o.is_a?(MObject)
-      _id == o._id
+    def equals(o)
+      o && o.is_a?(MObject) && _id == o._id
     end
 
     def hash; _id end
@@ -191,7 +190,7 @@ module ManagedData
       self
     end
 
-    private
+    #private
 
     def check_field(name, can_be_computed)
       if !@hash.include?(name) then
@@ -224,8 +223,9 @@ module ManagedData
 
     def __init(fields, args)
       fields.each_with_index do |fld, i|
-        break if i >= args.length
-        __get(fld.name).init(args[i])
+        if i < args.length
+          __get(fld.name).init(args[i])
+        end
       end
     end
 
@@ -260,8 +260,9 @@ module ManagedData
         if @memo[name] == nil
           fvs = fvInterp.depends(exp, env: ObjEnv.new(self), bound: [])
           fvs.each do |fv|
-            next if fv.object.nil?  #should always be non-nil since computed fields have no external env
-            fv.object.add_listener(fv.index) { @memo[name]=nil }
+            if fv.object  #should always be non-nil since computed fields have no external env
+              fv.object.add_listener(fv.index) { @memo[name]=nil }
+            end
           end
           val = commInterp.eval(exp, env: ObjEnv.new(self), for_field: fld)
           #puts "COMPUTED #{name}=#{val}"
@@ -330,69 +331,74 @@ module ManagedData
 
   class Prim < Single
     def check(value)
-      return if value.nil? && @field.optional
-      case @field.type.name
-      when 'str' then
-        return if value.is_a?(String)
-      when 'int'
-        return if value.is_a?(Integer)
-      when 'bool'
-        return if value.is_a?(TrueClass) || value.is_a?(FalseClass)
-      when 'real'
-        return if value.is_a?(Numeric)
-      when 'datetime'
-        return if value.is_a?(DateTime)
-      when 'atom'
-        return if value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
+      if !@field.optional || value 
+        ok = case @field.type.name
+        when 'str' then
+          value.is_a?(String)
+        when 'int'
+          value.is_a?(Integer)
+        when 'bool'
+          value.is_a?(TrueClass) || value.is_a?(FalseClass)
+        when 'real'
+          value.is_a?(Numeric)
+        when 'datetime'
+          value.is_a?(DateTime)
+        when 'atom'
+          value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
+        end
+        raise "Invalid value for #{@field.type.name}: #{value}" if !ok 
       end
-      raise "Invalid value for #{@field.type.name}: #{value}"
     end
 
     def default
-      return nil if @field.optional
-      case @field.type.name
-      when 'str' then ''
-      when 'int' then 0
-      when 'bool' then false
-      when 'real' then 0.0
-      when 'datetime' then DateTime.now
-      when 'atom' then nil
-      else
-        raise "Unknown primitive type: #{@field.type.name}"
+      if !@field.optional
+        case @field.type.name
+        when 'str' then ''
+        when 'int' then 0
+        when 'bool' then false
+        when 'real' then 0.0
+        when 'datetime' then DateTime.now
+        when 'atom' then nil
+        else
+          raise "Unknown primitive type: #{@field.type.name}"
+        end
       end
     end
   end
 
   module RefHelpers
     def notify(old, new)
-      return if old == new
-      @owner.notify(@field.name, new)
-      return unless @inverse
-      if @inverse.many then
-        # old and new are both collections
-        #puts "INVERSE #{old}.#{@inverse.name} DEL #{@owner}" if old
-        #puts "INVERSE #{new}.#{@inverse.name} << #{@owner}" if new
-        old.__get(@inverse.name).__delete(@owner) if old
-        new.__get(@inverse.name).__insert(@owner) if new
-      else
-        #puts "INVERSE #{old}.#{@inverse.name} = #{@owner}" if old
-        #puts "INVERSE #{new}.#{@inverse.name} = #{@owner}" if new
-        # old and new are both mobjs
-        old.__get(@inverse.name).__set(nil) if old
-        new.__get(@inverse.name).__set(@owner) if new
+      if old != new
+        @owner.notify(@field.name, new)
+        if @inverse
+          if @inverse.many then
+            # old and new are both collections
+            #puts "INVERSE #{old}.#{@inverse.name} DEL #{@owner}" if old
+            #puts "INVERSE #{new}.#{@inverse.name} << #{@owner}" if new
+            old.__get(@inverse.name).__delete(@owner) if old
+            new.__get(@inverse.name).__insert(@owner) if new
+          else
+            #puts "INVERSE #{old}.#{@inverse.name} = #{@owner}" if old
+            #puts "INVERSE #{new}.#{@inverse.name} = #{@owner}" if new
+            # old and new are both mobjs
+            old.__get(@inverse.name).__set(nil) if old
+            new.__get(@inverse.name).__set(@owner) if new
+          end
+        end
       end
     end
 
     def check(mobj)
-      return if mobj.nil? && @field.optional
-      if mobj.nil? then
-        raise "Cannot assign nil to non-optional field #{@field.name}"
-      end
-      if !Subclass?(mobj.schema_class, @field.type) then
-        raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
-      end
-      if mobj._graph_id != @owner._graph_id then
-        raise "Inserting object #{mobj} into the wrong model"
+      if mobj || !@field.optional
+        if mobj.nil? then
+          raise "Cannot assign nil to non-optional field #{@field.name}"
+        end
+        if !Subclass?(mobj.schema_class, @field.type) then
+          raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
+        end
+        if mobj._graph_id != @owner._graph_id then
+          raise "Inserting object #{mobj} into the wrong model"
+        end
       end
     end
   end
@@ -459,13 +465,15 @@ module ManagedData
     def has_key?(key); keys.include?(key) end
 
     def check(mobj)
-      return if !connected?
-      super(mobj)
+      if connected?
+        super(mobj)
+      end
     end
 
     def notify(old, new)
-      return if !connected?
-      super(old, new)
+      if connected?
+        super(old, new)
+      end
     end
 
     def __delete_obj(mobj)
@@ -513,12 +521,13 @@ module ManagedData
       check(mobj)
       key = mobj[@key.name]
       raise "Nil key when adding #{mobj} to #{self}" unless key
-      return self if @value[key] == mobj
-      delete(@value[key]) if @value[key]
-      #raise "Duplicate key #{key}" if @value[key]
-      notify(@value[key], mobj)
-      __insert(mobj)
-      return self
+      if @value[key] != mobj
+        delete(@value[key]) if @value[key]
+        #raise "Duplicate key #{key}" if @value[key]
+        notify(@value[key], mobj)
+        __insert(mobj)
+      end
+      self
     end
     
     def []=(index, mobj)
@@ -527,9 +536,10 @@ module ManagedData
 
     def delete(mobj)
       key = mobj[@key.name]
-      return unless @value.has_key?(key)
-      notify(@value[key], nil)
-      __delete(mobj)
+      if @value.has_key?(key)
+        notify(@value[key], nil)
+        __delete(mobj)
+      end
     end
 
     def _path(mobj)
@@ -544,7 +554,7 @@ module ManagedData
     def __delete(mobj)
       deleted = @value.delete(mobj[@key.name])
       connect(deleted, nil)
-      return deleted
+      deleted
     end
 
   end
@@ -576,7 +586,7 @@ module ManagedData
       check(mobj)
       notify(nil, mobj)
       __insert(mobj)
-      return self
+      self
     end
     
     def []=(index, mobj)
@@ -594,7 +604,7 @@ module ManagedData
     def delete(mobj)
       deleted = __delete(mobj)
       notify(deleted, nil)  if deleted
-      return deleted
+      deleted
     end
 
     def insert(index, mobj)
@@ -619,7 +629,7 @@ module ManagedData
     def __delete(mobj)
       deleted = @value.delete(mobj)
       connect(deleted, nil)
-      return deleted
+      deleted
     end
   end
 end

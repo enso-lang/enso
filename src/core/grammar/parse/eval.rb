@@ -79,6 +79,11 @@ class GrammarEval
     eval_item(nxt, gll, nil) if nxt
   end
 
+  def Indent(this, gll, nxt)
+    #terminal(this, gll.ci, '', '', gll, nxt)
+    eval_item(nxt, gll, nil) if nxt
+  end
+
   def Break(this, gll, nxt)
     #terminal(this, gll.ci, '', '', gll, nxt)
     eval_item(nxt, gll, nil) if nxt

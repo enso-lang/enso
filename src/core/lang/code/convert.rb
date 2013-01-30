@@ -7,7 +7,7 @@ require 'pp'
 
 class Formals
   attr_accessor :normal, :block, :rest
-  def initialize(normal, block, rest)
+  def initialize(normal = [], block = nil, rest = nil)
     @normal = normal
     @block = block
     @rest = rest
@@ -48,11 +48,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_aref(target, args)
-      make_call(target, "_get", [args[0]])
+      make_call(target, "_get", [args.normal[0]])
     end
 
     def on_aref_field(target, args)
-      make_call(target, "_get", [args[0]])
+      make_call(target, "_get", [args.normal[0]])
     end
 
     def on_arg_paren(args)
@@ -60,7 +60,8 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_args_add(args, arg)
-      args.normal << arg
+      #puts "ARGS #{arg}"
+      args.normal << arg; args
     end
 
     def on_args_add_block(args, block)
@@ -76,11 +77,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_array(args)
-      @f.List(args || [])
+      @f.List(args ? args.normal : [])
     end
 
     def on_assign(lvalue, rvalue)
-      @f.Assign(lvalue, get_seq(rvalue))
+      @f.Assign(lvalue, "=", get_seq(rvalue))
     end
 
     def on_assoc_new(key, value)
@@ -107,7 +108,7 @@ class DemoBuilder < Ripper::SexpBuilder
       operator = fix_op(operator)
       case operator
       when "<<"
-        make_call(lvalue, "push", [rvalue])
+        make_call(get_seq(lvalue), "push", [get_seq(rvalue)])
       else
         @f.EBinOp(operator, get_seq(lvalue), get_seq(rvalue))
       end
@@ -141,7 +142,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_bodystmt(body, rescue_block, else_block, ensure_block)
       if rescue_block || else_block || ensure_block
-        puts "BODY #{body} RESCUE #{rescue_block} ENSURE #{ensure_block}"
+        #puts "BODY #{body} RESCUE #{rescue_block} ENSURE #{ensure_block}"
         @f.Rescue(get_seq(body), rescue_block || [], ensure_block && get_seq(ensure_block))
       else
         body
@@ -153,7 +154,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_break(args)
-      undefined
+      raise "BREAK not allowed"
     end
 
     def on_call(target, separator, identifier)
@@ -166,10 +167,11 @@ class DemoBuilder < Ripper::SexpBuilder
       if when_block.nil?
         nil
       elsif when_block.is_a?(When)
-        if when_block.expressions.length == 1
-          cond = @f.EBinOp("==", test, when_block.expressions[0])
+        tests = when_block.expressions.normal
+        if tests.length == 1
+          cond = @f.EBinOp("==", test, tests[0])
         else
-          cond = make_call(@f.List(when_block.expressions), "contains", [test])
+          cond = make_call(@f.List(tests), "contains", [test])
         end
         @f.If(cond, when_block.statements, on_case(test, when_block.next_block))
       else
@@ -190,6 +192,7 @@ class DemoBuilder < Ripper::SexpBuilder
     def split_meta(body)
       parts = body.flatten.partition {|x| is_meta(x)}
       parts = [ fixup_defs(parts[0]), fixup_defs(parts[1]) ]
+      #puts "META #{body}"
       return parts
     end
     
@@ -197,7 +200,7 @@ class DemoBuilder < Ripper::SexpBuilder
       if d.is_a? MetaDef
         return true
       elsif d.Assign?
-        puts "DEF #{d.to.name} #{d.to.kind}"
+        #puts "DEF #{d.to.name} #{d.to.kind}"
         return d.to.kind == "@@"
       else
         return false 
@@ -223,19 +226,19 @@ class DemoBuilder < Ripper::SexpBuilder
     def on_command(name, args)
       if name == "require" || name == "include"
         #puts "CMD #{name} #{args}"
-        @f.Directive(name, args[0])
+        @f.Directive(name, args.normal[0])
       elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
         #puts "CMD #{name} #{args}"
-        args.collect do |var|
+        args.normal.collect do |var|
           @f.Directive(name, var)
         end
       else
-        make_call(nil, name, args)
+        make_call_formals(nil, name, args)
       end
     end
 
     def on_command_call(target, separator, identifier, args)
-      make_call(target, identifier, args)
+      make_call_formals(target, identifier, args)
     end
 
     def on_const(token)
@@ -247,8 +250,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_const_path_ref(namespace, const)
-      raise "Can't use ::"
-      # make_call(namespace, const)
+      make_call(namespace, const)
     end
 
     def on_const_ref(const)
@@ -287,6 +289,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_def(name, params, body)
       #puts "DEF #{name} #{params} #{body}"
+      raise "can't redefine ==" if name == "=="
       @f.Binding(fixup_name(name), @f.Fun(params.normal, params.block, params.rest, get_seq(body)))
     end
 
@@ -322,6 +325,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_END(statements)
+      raise "WHAT IS THIS??"
       make_call(nil, "END", nil, statements)
     end
 
@@ -356,8 +360,13 @@ class DemoBuilder < Ripper::SexpBuilder
     end
     
     def make_call(target, method, args = [], block = nil)
-       @f.Call(target, fixup_name(method), args, block)
+       @f.Call(target, fixup_name(method), args, nil, block)
     end
+
+    def make_call_formals(target, method, args)
+       @f.Call(target, fixup_name(method), args.normal, args.rest, args.block)
+    end
+
 
     def on_float(token)
       @f.Lit(token.to_f)
@@ -406,10 +415,13 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_method_add_arg(call, args)
       if args
-        puts "CALL #{call} #{args}"
-        args.each do |arg|
+        #puts "CALL #{call} #{args}"
+        args.normal.each do |arg|
           call.args << arg
         end
+        raise "ARG PROBLEM" if args.rest && call.rest || args.block && call.block
+        call.rest = args.rest if args.rest
+        call.block = args.block if args.block
       end
       call
     end
@@ -445,7 +457,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_next(args)
-      make_call(nil, "next", args)
+      raise "NEXT not allowed"
     end
 
     def on_op(operator)
@@ -453,7 +465,8 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_opassign(lvalue, operator, rvalue)
-      undefined
+      raise "Can't use #{operator}" if ["%=", "/=", "|=", "&=", ">>=", "<<=", "*=", "**="].include?(operator)
+      @f.Assign(lvalue, operator, rvalue)
     end
 
     def on_paren(node)
@@ -482,19 +495,19 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_regexp_add(regexp, content)
-      regexp.push(content); regexp
+      raise "regular expressions not supported"
     end
 
     def on_regexp_literal(regexp, rdelim)
-      regexp
+      raise "regular expressions not supported"
     end
 
     def on_regexp_new
-      ""
+      raise "regular expressions not supported"
     end
 
     def on_rescue(types, var, statements, block)
-      puts "RESCUE #{types} #{var} #{block}"
+      #puts "RESCUE #{types} #{var} #{block}"
       if types && types.length != 1
         raise "Only one rescue type allowed"
       end
@@ -572,7 +585,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_super(args)
-      make_call(nil, "super", args)
+      make_call_formals(nil, "super", args)
     end
 
     def on_symbol(token)
@@ -648,9 +661,17 @@ class DemoBuilder < Ripper::SexpBuilder
     def fixup_name(name)
       if name == "[]"
          name = "_get"
+      elsif name == "[]="
+         name = "_set"
+      elsif name == "<<"
+         name = "push" 
+      elsif name[-1] == "!"
+         name = "#{name[0..-2]}_in_place" 
+      elsif name[-1] == "="
+         name = "set_#{name[0..-2]}" 
       end
       name = name[1..-1] if name[0]=="$"
-      return name.gsub("?", "")
+      return name.gsub("?", "_p")
     end
     
     alias on_vcall on_var_ref
@@ -717,8 +738,8 @@ end
 if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
-  f = File.new(name, "r")
-  pp Ripper.sexp_raw(f)
+#  f = File.new(name, "r")
+#  pp Ripper.sexp_raw(f)
   
   f = File.new(name, "r")
   m = DemoBuilder.build(f)

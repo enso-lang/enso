@@ -1,9 +1,19 @@
-<grammar.schema source='core/grammar/models/grammar.schema' date='2012-08-18 12:21:38 -0500' checksum='095e5e6f7837b7740f2b37b400537729cf3cc3f4'>
+<grammar.schema source='core/grammar/models/grammar.schema' date='2013-01-30 12:32:56 -0600' checksum='82c9707fd22a8f291bd9b83ced1c2dd8270e4c6a'>
   <depends>
-    <expr.schema source='core/expr/models/expr.schema' date='2012-09-01 02:46:52 -0500' checksum='57d49e5cc388844fbef9d0306467f08cf28aeec5'/>
+    <expr.schema source='core/expr/models/expr.schema' date='2012-12-10 18:07:32 -0600' checksum='57d49e5cc388844fbef9d0306467f08cf28aeec5'/>
   </depends>
   <Schema>
     <types many='true' keyed='true'>
+      <Class name='Expr'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[ETernOp] /types[EBinOp] /types[EUnOp] /types[EFunCall]
+          /types[EField] /types[EVar] /types[ESubscript] /types[EList]
+          /types[EAddress] /types[ENew] /types[EConst]
+        </subclasses>
+      </Class>
       <Class name='ETernOp'>
         <schema many='false' keyed='false'>
           /
@@ -356,6 +366,21 @@
           /types[EConst]
         </supers>
       </Class>
+      <Primitive name='str'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='int'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
+      <Primitive name='bool'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+      </Primitive>
       <Primitive name='real'>
         <schema many='false' keyed='false'>
           /
@@ -366,6 +391,14 @@
           /
         </schema>
       </Primitive>
+      <Class name='Key'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <subclasses many='true' keyed='true'>
+          /types[Const] /types[Path] /types[It] /types[Var]
+        </subclasses>
+      </Class>
       <Class name='Const'>
         <schema many='false' keyed='false'>
           /
@@ -383,6 +416,17 @@
             </type>
           </Field>
         </defined_fields>
+      </Class>
+      <Class name='Path'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Key]
+        </supers>
+        <subclasses many='true' keyed='true'>
+          /types[Anchor] /types[Sub]
+        </subclasses>
       </Class>
       <Class name='Anchor'>
         <schema many='false' keyed='false'>
@@ -447,21 +491,6 @@
           </Field>
         </defined_fields>
       </Class>
-      <Primitive name='str'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='int'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
-      <Primitive name='bool'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-      </Primitive>
       <Class name='Grammar'>
         <schema many='false' keyed='false'>
           /
@@ -529,7 +558,8 @@
         <subclasses many='true' keyed='true'>
           /types[Alt] /types[Sequence] /types[Create] /types[Field] /types[Code]
           /types[Value] /types[Ref] /types[Lit] /types[Call] /types[Regular]
-          /types[NoSpace] /types[Break] /types[Epsilon] /types[Let]
+          /types[NoSpace] /types[Break] /types[Indent] /types[Epsilon]
+          /types[Let]
         </subclasses>
       </Class>
       <Class name='Alt'>
@@ -767,6 +797,34 @@
         <supers many='true' keyed='true'>
           /types[Pattern]
         </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='lines'>
+            <owner many='false' keyed='true'>
+              /types[Break]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[int]
+            </type>
+          </Field>
+        </defined_fields>
+      </Class>
+      <Class name='Indent'>
+        <schema many='false' keyed='false'>
+          /
+        </schema>
+        <supers many='true' keyed='true'>
+          /types[Pattern]
+        </supers>
+        <defined_fields many='true' keyed='true'>
+          <Field name='indent'>
+            <owner many='false' keyed='true'>
+              /types[Indent]
+            </owner>
+            <type many='false' keyed='true'>
+              /types[int]
+            </type>
+          </Field>
+        </defined_fields>
       </Class>
       <Class name='Epsilon'>
         <schema many='false' keyed='false'>
@@ -776,14 +834,6 @@
           /types[Pattern]
         </supers>
       </Class>
-      <Class name='Key'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <subclasses many='true' keyed='true'>
-          /types[Const] /types[Path] /types[It] /types[Var]
-        </subclasses>
-      </Class>
       <Class name='It'>
         <schema many='false' keyed='false'>
           /
@@ -791,17 +841,6 @@
         <supers many='true' keyed='true'>
           /types[Key]
         </supers>
-      </Class>
-      <Class name='Path'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <supers many='true' keyed='true'>
-          /types[Key]
-        </supers>
-        <subclasses many='true' keyed='true'>
-          /types[Anchor] /types[Sub]
-        </subclasses>
       </Class>
       <Class name='Let'>
         <schema many='false' keyed='false'>
@@ -869,16 +908,6 @@
             </type>
           </Field>
         </defined_fields>
-      </Class>
-      <Class name='Expr'>
-        <schema many='false' keyed='false'>
-          /
-        </schema>
-        <subclasses many='true' keyed='true'>
-          /types[ETernOp] /types[EBinOp] /types[EUnOp] /types[EFunCall]
-          /types[EField] /types[EVar] /types[ESubscript] /types[EList]
-          /types[EAddress] /types[ENew] /types[EConst]
-        </subclasses>
       </Class>
     </types>
   </Schema>

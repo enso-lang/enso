@@ -13,9 +13,21 @@ class RenderClass < Dispatch
     @factory = ManagedData.new(Loader.load('layout.schema'))
     @depth=0
     @stack = []
-    @need_space = false
     @indent_amount = 2
     @slash_keywords = slash_keywords
+  end
+
+  def render(grammar, obj)
+    r = recurse(grammar, SingletonStream.new(obj))
+    if !r
+      puts "-"*50
+      Print.print(@last_pattern)
+      puts "-"*50
+      Print.print(@last_object)
+      puts "-"*50
+      raise "Could not render AT:#{@last_pattern}\n FOR #{@last_object}"
+    end
+    r
   end
 
   def Grammar(this, stream)
@@ -54,20 +66,32 @@ class RenderClass < Dispatch
   end
 
   def Sequence(this, stream)
-    items = []
+    items = true
     ok = this.elements.all? do |x|
       item = recurse(x, stream)
       if item
-        items << item
+        if item == true
+          true
+        else
+          if items.is_a?(Array)
+            items << item
+          elsif items != true
+            items = [items, item]
+          else
+            items = item
+          end
+        end
       end
     end
-    @factory.Sequence(items) if ok
+    items if ok
   end
 
   def Create(this, stream)
     obj = stream.current
     #puts "#{' '*@depth}[#{this.name}] #{obj}"
     if !obj.nil? && obj.schema_class.name == this.name
+      @last_pattern = this
+      @last_object = obj
       stream.next
       recurse(this.arg, SingletonStream.new(obj))
     else
@@ -90,8 +114,10 @@ class RenderClass < Dispatch
       end
     end
     # handle special case of [[ field:"text" ]] in a grammar 
-    if this.arg.Lit? && this.arg.value != obj[this.name]
-      nil
+    if this.arg.Lit?
+      if this.arg.value == obj[this.name]
+        this.arg.value
+      end
     else
       recurse(this.arg, data)
     end
@@ -100,9 +126,12 @@ class RenderClass < Dispatch
   def Value(this, stream)
     obj = stream.current
     if !obj.nil?
+      if !(obj.is_a?(String) || obj.is_a?(Fixnum)  || obj.is_a?(Float))
+        raise "Data is not literal #{obj}"
+      end
       case this.kind
-      when "str" 
-        output(obj.inspect) if obj.is_a?(String)
+      when "str"
+        output(obj.inspect) 
       when "sym"
         if @slash_keywords && @literals.include?(obj) then
           output('\\' + obj.to_s)
@@ -110,9 +139,9 @@ class RenderClass < Dispatch
           output(obj.to_s)
         end
       when "int"
-        output(obj.to_s) if obj.is_a?(Fixnum)
+        output(obj.to_s)
       when "real"
-        output(obj.to_s) if obj.is_a?(Float)
+        output(obj.to_s)
       when "atom"
         output(obj.to_s)
       else
@@ -129,28 +158,18 @@ class RenderClass < Dispatch
       bind = path.search(@root, obj)
       
       #puts "#{' '*@depth}RENDER REF #{obj}=#{v}"
-      !bind.nil? && output(bind[it])  # TODO: need "." keys
+      output(bind[it]) if !bind.nil? # TODO: need "." keys
     end
   end
 
   def Lit(this, stream)
     obj = stream.current
     #puts "#{' '*@depth}Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
-    if !obj.is_a?(String) || this.value == obj
-      output(this.value)
-    end
+    output(this.value)
   end
 
   def output(v)
-    if @need_space
-      s = @factory.Sequence()
-      s.elements << @factory.Text(" ")
-      s.elements << @factory.Text(v.to_s)
-      s
-    else
-      @need_space = true
-      @factory.Text(v.to_s)    
-    end
+    v
   end
   
   def Code(this, stream)
@@ -158,44 +177,41 @@ class RenderClass < Dispatch
     if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code != ""
      # FIXME: this case is needed to parse bootstrap grammar
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
-      ok = obj.instance_eval(code)
+      obj.instance_eval(code)
     else
-      ok = Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, @localEnv))
+      Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, @localEnv))
     end
-    ok && @factory.Sequence()
   end
 
   def Regular(this, stream)
     if !this.many
       # optional
-      recurse(this.arg, stream) || @factory.Sequence()
+      recurse(this.arg, stream) || true
     else
       if stream.length > 0 || this.optional
         oldEnv = @localEnv
         @localEnv = HashEnv.new
         @localEnv['_length'] = stream.length
-        s = @factory.Sequence()
+        s = []
         i = 0
         ok = true
         while ok && stream.length > 0
           @localEnv['_index'] = i
           @localEnv['_first'] = (i == 0)
           @localEnv['_last'] = (stream.length == 1)
-          @needBreak = true
           if i > 0 && this.sep
             v = recurse(this.sep, stream)
             if v
-              s.elements << v
+              s << v
             else
               ok = false
             end
           end
           if ok
-            s.elements << @factory.Break(true) if @needBreak # optional break
             pos = stream.length
             v = recurse(this.arg, stream)
             if v
-              s.elements << v
+              s << v
               stream.next if stream.length == pos
               i = i + 1
             else
@@ -204,20 +220,21 @@ class RenderClass < Dispatch
           end
         end
         @localEnv = oldEnv
-        ok && (stream.length == 0) && @factory.Group(@factory.Nest(s, @indent_amount))
+        s if ok && (stream.length == 0)
       end
     end
   end
   
   def NoSpace(this, stream)
-    @need_space = false
-    @factory.Text("")
+    this
+  end
+  
+  def Indent(this, stream)
+    this
   end
   
   def Break(this, stream)
-    @needBreak = false
-    @need_space = false
-    @factory.Break(false) # hard break
+    this
   end
   
 end
@@ -262,12 +279,7 @@ end
 
 
 def Render(grammar, obj, slash_keywords = true)
-  r = RenderClass.new(slash_keywords).recurse(grammar, SingletonStream.new(obj))
-  if !r
-    puts "-"*50
-    raise "ERROR: Could not render #{obj}"
-  end
-  r
+  RenderClass.new(slash_keywords).render(grammar, obj)
 end
 
 if __FILE__ == $0 then

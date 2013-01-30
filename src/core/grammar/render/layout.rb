@@ -1,84 +1,7 @@
 
 require 'core/system/library/cyclicmap'
 require 'core/grammar/render/render'
-
-class FormatWidth < MemoBase
-  def Sequence(obj)
-    n = 0
-    obj.elements.map do |x|
-      n += recurse(x)
-    end
-    return n
-  end
-
-  def Group(obj)
-    recurse(obj.arg)
-  end
-
-  def Nest(obj)
-    recurse(obj.arg)
-  end
-
-  def Break(obj)
-    if obj.optional
-      obj.indent = -1 # reset the break positions
-      obj.sep ? obj.sep.length : 0
-    else
-      999999
-    end
-  end
-
-  def Text(obj)
-    obj.value.length
-  end
-end
-
-# computes the position of all the breaks
-# indent: current indent level
-# current: current output position
-# output: final output position
-class FormatChoice < Dispatch
-  def initialize(width)
-    super()
-    @width = width
-    @computed = FormatWidth.new
-  end
-
-  def run(obj)
-    recurse(obj, 0, 0)
-  end
-
-  def Sequence(obj, indent, current)
-    obj.elements.each do |sub|
-      current = recurse(sub, indent, current)
-    end
-    return current
-  end
-
-  def Group(obj, indent, current)
-    subwidth = @computed.recurse(obj.arg)
-    if current + subwidth <= @width
-      return current + subwidth
-    else
-      #puts "BREAKING"
-      return recurse(obj.arg, indent, current) # flip the bits
-    end
-  end
-
-  def Nest(obj, indent, current)
-    recurse(obj.arg, indent + obj.indent, current)
-  end
-
-  def Break(obj, indent, current)
-    obj.indent = indent
-    return indent
-  end
-
-  def Text(obj, indent, current)
-    return current + obj.value.length
-  end
-end
-
+require 'pp'
 
 class DisplayFormat < Dispatch
   def initialize(output)
@@ -88,37 +11,43 @@ class DisplayFormat < Dispatch
 
   def self.print(grammar, obj, width = 80, output=$stdout, slash_keywords = true)
     layout = Render(grammar, obj, slash_keywords)
-    FormatChoice.new(width).run(layout)
-    DisplayFormat.new(output).recurse(layout)
+    #pp layout
+    DisplayFormat.new(output).print(layout)
     output << "\n"
   end
-  
-  def Sequence(obj)
-    obj.elements.each do |x|
-      recurse(x)
-    end
+
+  def initialize(out)
+    @out = out
+    @indent = 0
+    @lines = 0
   end
 
-  def Group(obj)
-    recurse(obj.arg)
-  end
-
-  def Nest(obj)
-    recurse(obj.arg)
-  end
-
-  def Break(obj)
-    if obj.indent == -1
-      @output << obj.sep if obj.sep
+  def print obj
+    if obj == true
+      # nothing
+    elsif obj.is_a?(Array)
+      obj.each {|x| print x}
+    elsif obj.is_a?(String)
+      if @lines > 0
+        @out << ("\n" * @lines)
+        @out << (" " * @indent)
+        @lines = 0
+      else
+        @out << " " if @space
+      end
+      @out << obj
+      @space = true
+    elsif obj.NoSpace?
+      @space = false
+    elsif obj.Indent?
+      @indent += 2 * obj.indent
+    elsif obj.Break?
+      @lines = [@lines, obj.lines].max
     else
-      @output << "\n"
-      @output << (" " * obj.indent)
+      raise "Unknown format #{obj}"
     end
   end
-
-  def Text(obj)
-    @output << obj.value
-  end
+  
 end
 
 

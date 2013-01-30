@@ -52,6 +52,9 @@ class Regular < Pattern
 
 class NoSpace < Pattern
 class Break < Pattern
+  lines: int
+class Indent < Pattern
+  indent: int
  
 class Epsilon < Pattern
 

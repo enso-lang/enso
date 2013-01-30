@@ -31,7 +31,9 @@ import path.grammar, expr.grammar
     | [Regular] arg:Pattern .  "?" { optional == true }
     | [Regular] arg:Pattern . "+" Sep? { many == true }
     | [NoSpace] "."
-    | [Break] "/"
+    | [Break] "/" (lines:int | { lines==1 })
+    | [Indent] ">" { indent==1 }
+    | [Indent] "<" { indent==(-1) }
     | "(" . Alt . ")"
     
   Sep ::= "@" . sep:Pattern

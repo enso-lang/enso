@@ -1,42 +1,43 @@
 start Program
 
-Program ::= [Module] defs:Top*
+Program ::= [Module] defs:Top* @/
 Top     ::=  Require | MainModule
 Require ::= [Directive] action:"require" what:Expr
-MainModule ::= [Module] "module" name:sym defs:Def* meta:SelfMethod* /"end"
+MainModule ::= [Module] /2 "module" name:sym /> defs:Def* @/2 / meta:Meta* @/2 </"end"
 Def     ::= "@" Binding | Class | Module
 
 Module  ::= [Module] "module" name:sym Body
 Class   ::= [Class] "class" name:sym ("<" parent:sym)? Body
-Body    ::= / meta:Meta* defs:Instance* /"end"/
-Meta    ::= SelfMethod | "@@" Binding
-SelfMethod ::= "def" "self" .".". Method
+Body    ::= /> meta:Meta* @/ / defs:Instance* @/ </"end"/
+Meta    ::= "def" "self" .".". Method | "@@". Binding
 Instance ::= Require | Directive | "def" Method | "@" Binding
 Method  ::= [Binding] name:sym value:Fun
 Binding ::= [Binding] name:sym "=" value:Expr
 Directive ::= [Directive] (action:"attr_reader" | action:"attr_writer" | action:"attr_accessor" | action:"include") what:Expr
 
-Fun     ::= [Fun] Params? / body:Seq /"end"/
-Params  ::= "(". args:Arg+ @(.",") (."," "*". rest:sym)? (."," "&". block:sym)? .")"
-          | "(". "*". rest:sym (."," "&". block:sym)? .")"
-          | "(". "&". block:sym .")"
+Fun     ::= [Fun] (."(".Params.")")? body:Seq "end"
+Params  ::= args:Arg+ @(.",") (."," "*".rest:sym)? (."," "&".block:sym)?
+          | "*".rest:sym (."," "&".block:sym)?
+          | "&".block:sym
 Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
-Seq     ::= [Seq] statements:Statement* | Statement | Block
+Seq      ::= /> SeqA </
+SeqA     ::= [Seq] statements:Statement* @/ | Statement | Block
 Statement ::= Stat | Expr .";"
 Stat      ::= If | While | BlockCall | Rescue | Assign
 BlockCall ::= [Call] Call block:Block
 
-While   ::= [While] "while" cond:Expr "do"/ body:Seq /"end"/
-Assign  ::= [Assign] to:Primary "=" from:EB
+While   ::= [While] "while" cond:Expr "do" body:Seq "end"
+Assign  ::= [Assign] to:Primary AssignOp from:EB
+AssignOp ::= op:"=" | op:"+=" | op:"-=" | op:"||=" | op:"&&="
 
-Rescue  ::= [Rescue] "begin" base:Seq rescues:Handler* ("ensure" ensure:Seq)? /"end"/ 
-Handler ::= [Handler] "rescue" ("(" kind:str var:str ")")? body:Seq
+
+Rescue  ::= [Rescue] "begin" base:Seq rescues:Handler* ("ensure" ensure:Seq)? "end"
+Handler ::= [Handler] "rescue" ("(". kind:str var:str .")")? body:Seq
 
 EB      ::= Statement | Block
 Block   ::= "do" BlockFun
-BlockFun     ::= [Fun] BarParams? / body:Seq /"end"/
-BarParams  ::= "|". args:Arg+ @"," ."|"
+BlockFun     ::= [Fun] ("|".Params."|")? body:Seq "end"
 
 Expr ::= EOr
 EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
@@ -58,10 +59,10 @@ EUnOp ::= [EUnOp] (op:"!" | op:"-") e:EUnOp
 EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
          | Primary
 
-If      ::= [If] "if" IfBody /"end"/
-IfBody  ::= cond:Expr "then"/ sthen:Seq IfTail?
-IfTail  ::= selse:ElseIf | /"else"/ selse:Seq
-ElseIf  ::= [If] /"elsif" IfBody
+If      ::= [If] "if" IfBody "end"
+IfBody  ::= cond:Expr "then" sthen:Seq IfTail?
+IfTail  ::= selse:ElseIf | "else" selse:Seq
+ElseIf  ::= [If] "elsif" IfBody
 
 Primary ::= InstVar | ClassVar | Self | Var | If | Index | List | Record | ECall | Lit | "(". (Expr | Seq) .")"
 Self    ::= [Var] name:"self"
@@ -73,7 +74,10 @@ List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
-ECall   ::= [Call] Call { block == nil }
+ECall   ::= [Call] Call
 Call    ::= Target? name:sym Args?
-  Target  ::= target:Primary "."
-  Args    ::= "(" args:Expr+ @"," ("," "*" rest:sym)? ")" | "(""*" rest:sym ")" 
+  Target  ::= target:Primary .".".
+  Args    ::= ."(". args:Expr+ @(.",") (."," "*".rest:Expr)? (."," "&".block:Var)? .")" 
+           | ."("."*".rest:Expr (."," "&".block:Var)? .")" 
+           | ."("."&".block:Var .")" 
+           

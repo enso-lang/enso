@@ -1,4 +1,4 @@
-<grammar.grammar source='core/grammar/models/grammar.grammar' date='2012-12-10 18:07:32 -0600' checksum='023c510abe28d06e7a18e58e0b5ae446905353b8'>
+<grammar.grammar source='core/grammar/models/grammar.grammar' date='2013-01-30 12:30:54 -0600' checksum='be42cd4ad60cc0b7f451b3dfc06402064d112e8d'>
   <depends>
     <expr.grammar source='core/expr/models/expr.grammar' date='2013-01-21 11:10:08 -0600' checksum='1a3b10fb6ed587bfd6e98bc61850f0e64afbf30b'/>
   </depends>
@@ -1050,7 +1050,7 @@
                           </Regular>
                         </arg>
                       </Field>
-                      <Break/>
+                      <Break lines='1'/>
                     </elements>
                   </Sequence>
                 </arg>
@@ -1133,7 +1133,7 @@
                                 <alts many='true' keyed='false'>
                                   <Sequence>
                                     <elements many='true' keyed='false'>
-                                      <Break/>
+                                      <Break lines='1'/>
                                       <Lit value='|'/>
                                     </elements>
                                   </Sequence>
@@ -1559,6 +1559,77 @@
                   <Sequence>
                     <elements many='true' keyed='false'>
                       <Lit value='/'/>
+                      <Alt>
+                        <alts many='true' keyed='false'>
+                          <Sequence>
+                            <elements many='true' keyed='false'>
+                              <Field name='lines'>
+                                <arg many='false' keyed='false'>
+                                  <Value kind='int'/>
+                                </arg>
+                              </Field>
+                            </elements>
+                          </Sequence>
+                          <Sequence>
+                            <elements many='true' keyed='false'>
+                              <Code>
+                                <expr many='false' keyed='false'>
+                                  <EBinOp op='eql?'>
+                                    <e1 many='false' keyed='false'>
+                                      <EVar name='lines'/>
+                                    </e1>
+                                    <e2 many='false' keyed='false'>
+                                      <EIntConst val='1'/>
+                                    </e2>
+                                  </EBinOp>
+                                </expr>
+                              </Code>
+                            </elements>
+                          </Sequence>
+                        </alts>
+                      </Alt>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Create name='Indent'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='&gt;'/>
+                      <Code>
+                        <expr many='false' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EVar name='indent'/>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EIntConst val='1'/>
+                            </e2>
+                          </EBinOp>
+                        </expr>
+                      </Code>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Create name='Indent'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='&lt;'/>
+                      <Code>
+                        <expr many='false' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EVar name='indent'/>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EIntConst val='-1'/>
+                            </e2>
+                          </EBinOp>
+                        </expr>
+                      </Code>
                     </elements>
                   </Sequence>
                 </arg>

@@ -36,14 +36,16 @@ class Call < Expr
   target! Expr?
   name:   str
   args!   Expr*
-  block!  Fun?
   rest!   Expr?
+  block!  Expr?
+  num_args: int = args.length + (block ? 1 : 0)
 
 class Fun < Expr
   args! Arg*
   block: str?
   rest: str?
   body! Expr
+  num_args: int = args.length + (block ? 1 : 0)
 
 class Arg
   name: str
@@ -51,6 +53,7 @@ class Arg
 
 class Assign < Expr
   to!   Expr
+  op:   str
   from! Expr
 
 class If < Expr
@@ -87,3 +90,4 @@ class Lit < Expr
 
 primitive atom
 primitive str
+primitive int
