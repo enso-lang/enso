@@ -6,10 +6,11 @@ require 'ripper'
 require 'pp'
 
 class Formals
-  attr_accessor :normal, :block
-  def initialize(normal, block)
+  attr_accessor :normal, :block, :rest
+  def initialize(normal, block, rest)
     @normal = normal
     @block = block
+    @rest = rest
   end
 end
 
@@ -47,11 +48,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_aref(target, args)
-      make_call(target, "GET", [args[0]])
+      make_call(target, "_get", [args[0]])
     end
 
     def on_aref_field(target, args)
-      make_call(target, "GET", [args[0]])
+      make_call(target, "_get", [args[0]])
     end
 
     def on_arg_paren(args)
@@ -59,15 +60,19 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_args_add(args, arg)
-      args.push(arg); args
+      args.normal << arg
     end
 
     def on_args_add_block(args, block)
-      args.add_block(block) if block; args
+      args.block = block if block; args
+    end
+    
+    def on_args_add_star(args, rest)
+      args.rest = rest; args
     end
 
     def on_args_new
-      []
+      Formals.new
     end
 
     def on_array(args)
@@ -100,7 +105,12 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_binary(lvalue, operator, rvalue)
       operator = fix_op(operator)
-      @f.EBinOp(operator, get_seq(lvalue), get_seq(rvalue))
+      case operator
+      when "<<"
+        make_call(lvalue, "push", [rvalue])
+      else
+        @f.EBinOp(operator, get_seq(lvalue), get_seq(rvalue))
+      end
     end
 
     def fix_op(operator)
@@ -139,7 +149,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_brace_block(params, statements)
-      @f.Fun(params ? params.normal : [], params && params.block, get_seq(statements))
+      @f.Fun(params ? params.normal : [], params && params.block, params && params.rest, get_seq(statements))
     end
 
     def on_break(args)
@@ -233,8 +243,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_const_path_field(namespace, const)
-      raise "Can't use ::"
-      # make_call(@f.Lit(namespace), const)
+      make_call(@f.Lit(namespace), const)
     end
 
     def on_const_path_ref(namespace, const)
@@ -251,7 +260,6 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_params(params, optionals, rest, something, block)
-      raise "bad rest" if rest
       formals = []
       if params
         params.each do |x|
@@ -264,7 +272,7 @@ class DemoBuilder < Ripper::SexpBuilder
         end
       end
       #puts "FORM #{formals} #{block}"
-      Formals.new(formals, block)
+      Formals.new(formals, block, rest)
     end
 
     def get_seq(body)
@@ -279,14 +287,14 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_def(name, params, body)
       #puts "DEF #{name} #{params} #{body}"
-      @f.Binding(fixup_name(name), @f.Fun(params.normal, params.block, get_seq(body)))
+      @f.Binding(fixup_name(name), @f.Fun(params.normal, params.block, params.rest, get_seq(body)))
     end
 
     def on_defs(target, separator, identifier, params, body)
       if !(target.Var? && target.name == "self")
         raise "only self meta-methods allowed"
       end
-      MetaDef.new(@f.Binding(fixup_name(identifier), @f.Fun(params.normal, params.block, get_seq(body))))
+      MetaDef.new(@f.Binding(fixup_name(identifier), @f.Fun(params.normal, params.block, params.rest, get_seq(body))))
     end
 
     def on_defined(ref)
@@ -324,7 +332,7 @@ class DemoBuilder < Ripper::SexpBuilder
     def on_if(expression, statements, else_block)
       expression = get_seq(expression)
       if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
-        @f.Binding("__main__", @f.Fun([], nil, get_seq(statements)))
+        @f.Binding("__main__", @f.Fun([], nil, nil, get_seq(statements)))
       else
         @f.If(expression, get_seq(statements), get_seq(else_block))
       end
@@ -356,7 +364,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_for(variable, range, statements)
-      block = @f.Fun([@f.Arg(variable.name)], nil, get_seq(statements))
+      block = @f.Fun([@f.Arg(variable.name)], nil, nil, get_seq(statements))
       make_call(range, "each", [], block)
     end
 
@@ -398,6 +406,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
     def on_method_add_arg(call, args)
       if args
+        puts "CALL #{call} #{args}"
         args.each do |arg|
           call.args << arg
         end
@@ -505,7 +514,8 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_return(args)
-      make_call(nil, "return", args)
+      raise "Return statements are illegal"
+      # make_call(nil, "return", args)
     end
 
     def on_sclass(superclass, body)
@@ -637,7 +647,7 @@ class DemoBuilder < Ripper::SexpBuilder
     
     def fixup_name(name)
       if name == "[]"
-         name = "get"
+         name = "_get"
       end
       name = name[1..-1] if name[0]=="$"
       return name.gsub("?", "")

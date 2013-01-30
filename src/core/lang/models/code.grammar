@@ -17,8 +17,9 @@ Binding ::= [Binding] name:sym "=" value:Expr
 Directive ::= [Directive] (action:"attr_reader" | action:"attr_writer" | action:"attr_accessor" | action:"include") what:Expr
 
 Fun     ::= [Fun] Params? / body:Seq /"end"/
-Params  ::= ."(". args:Arg+ @(.",") (."," "&". block:sym)? .")"
-          | ."(". "&". block:sym .")"
+Params  ::= "(". args:Arg+ @(.",") (."," "*". rest:sym)? (."," "&". block:sym)? .")"
+          | "(". "*". rest:sym (."," "&". block:sym)? .")"
+          | "(". "&". block:sym .")"
 Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
 Seq     ::= [Seq] statements:Statement* | Statement | Block
@@ -35,7 +36,7 @@ Handler ::= [Handler] "rescue" ("(" kind:str var:str ")")? body:Seq
 EB      ::= Statement | Block
 Block   ::= "do" BlockFun
 BlockFun     ::= [Fun] BarParams? / body:Seq /"end"/
-BarParams  ::= ."|". args:Arg+ @"," ."|"
+BarParams  ::= "|". args:Arg+ @"," ."|"
 
 Expr ::= EOr
 EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
@@ -67,12 +68,12 @@ Self    ::= [Var] name:"self"
 Var     ::= [Var] name:sym
 InstVar ::= [Var] kind:"@". name:sym
 ClassVar::= [Var] kind:"@@". name:sym
-Index   ::= [Call] { name=="get" } target:Primary ."[". args:Expr+ @(.",")  ."]"
+Index   ::= [Call] { name=="_get" } target:Primary ."[". args:Expr+ @(.",")  ."]"
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
 ECall   ::= [Call] Call { block == nil }
 Call    ::= Target? name:sym Args?
-  Target  ::= target:Primary .".".
-  Args    ::= ."(" args:Expr+ @(.",") ")"
+  Target  ::= target:Primary "."
+  Args    ::= "(" args:Expr+ @"," ("," "*" rest:sym)? ")" | "(""*" rest:sym ")" 

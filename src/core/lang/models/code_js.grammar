@@ -13,20 +13,22 @@ Binding  ::= [Binding] name:sym "=" value:Expr
 // class 
 // D ::= def N 
 
-Module  ::= [Module] name:sym "= EnsoModule({" Body "})"
-Class   ::= [Class] name:sym "= EnsoClass(" (parent:sym .",")? "{" Body "})"
+Module  ::= [Module] name:sym "= MakeModule({" Body "})"
+Class   ::= [Class] name:sym "= MakeClass(" (parent:sym .",")? "{" Body "})"
 Body    ::= Meta? defs:DefB* @","
-Meta    ::= "extend" ":" "{" meta:DefB* @"," "},"
+Meta    ::= "_class_:" "{" meta:DefB* @"," "},"
 DefB     ::= BindingB | Directive
 BindingB  ::= [Binding] name:sym ":" ({name=="initialize"} value:Method | value:MethodR | value:Expr)
-Method   ::= [Fun] "function" Params "{ var self=this;" body:SeqBody "}"
-MethodR ::= [Fun] "function" Params "{ var self=this;" body:SeqR "}"
+Method   ::= [Fun] "function" Params "{ var self=this;" VarArg? body:SeqBody "}"
+MethodR ::= [Fun] "function" Params "{ var self=this;" VarArg? body:SeqR "}"
+VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments" ("," block:sym)? args:CArg* ");"
+CArg ::= [Arg] "," name:sym 
 
 Directive ::= Attr | Include
 Include ::= [Directive] action:"include" ":" what:LitName
 Attr    ::= [Directive] { action=="attr_reader" } Reader
-Reader  ::= what:LitName ":" "function" "(" ")" "{" "return" "this"."."."AT$"."." what:LitName "}"
-// Writer  ::= "set".what:LitName ":" "function" "(val)" "{" "this"."."."AT$"."." what:LitName "=val" "}"
+Reader  ::= what:LitName ":" "function" "(" ")" "{" "return" "this"."."."$"."." what:LitName "}"
+// Writer  ::= "set".what:LitName ":" "function" "(val)" "{" "this"."."."$"."." what:LitName "=val" "}"
 LitName ::= [Lit] value:sym
 
 Seq     ::= "{" SeqBody "}"
@@ -75,19 +77,22 @@ Primary ::= InstVar | ClassVar | Nil | Var |  IfE | List | Record | Fun | Call |
              "((function(){" SeqR "})())"
 Nil     ::= [Var] "null" { name == "nil" }
 Var     ::= [Var] name:sym
-InstVar ::= [Var] "self"."."."AT$".".". name:sym { kind=="@" }
-ClassVar::= [Var] "self"."."."klass".".". name:sym { kind=="@@" }
+InstVar ::= [Var] "self"."."."$".".". name:sym { kind=="@" }
+ClassVar::= [Var] "self"."."."_class_".".". name:sym { kind=="@@" }
 List    ::= [List] "[". items:Expr* @"," ."]"
 Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @"," "}" ")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
 IfE      ::= [If] cond:Expr "?" sthen:Expr ":" selse:Expr  // TODO: Precedence!!
 
-Call  ::= [Call] (target:Primary .".".)? name:sym Args
-  Args    ::= ."(". args:Primary+ @(.",") ("," block:Fun)? .")"
-            | ."(". block:Fun? .")"
+CallRest ::= [Call] (target:Primary .".".)? "call_method" "(" name:str "," rest:Expr ("," Args)?  ")"
+Call  ::= [Call] (target:Primary .".".)? name:sym ."(". Args? .")"
+  Args    ::= (block:Fun ",")? args:Expr+ @(.",") 
+            | block:Fun
 Fun     ::= [Fun] "function" Params body:SeqR
-Params  ::= "(". args:Arg* @(.",") .")"
+Params  ::= ."(". (block:sym .",")? args:Arg+ @(.",") .")"
+          | ."(". block:sym? .")"
+
 Arg     ::= [Arg] name:sym ("=" default:Expr)?
 
 

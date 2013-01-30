@@ -37,10 +37,12 @@ class Call < Expr
   name:   str
   args!   Expr*
   block!  Fun?
+  rest!   Expr?
 
 class Fun < Expr
   args! Arg*
   block: str?
+  rest: str?
   body! Expr
 
 class Arg

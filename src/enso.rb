@@ -31,11 +31,11 @@ class EnsoBaseObject
     end
     def method_missing(msg, *args)
       if msg.slice(-1) == "="
-        set(msg.chomp, args[0])
+        _set(msg.chomp, args[0])
       elsif msg == "[]"
-        get(args[0])
+        _get(args[0])
       else
-        get(msg)
+        _get(msg)
       end
     end
 end

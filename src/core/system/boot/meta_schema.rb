@@ -37,7 +37,7 @@ module Boot
       self.define_singleton_method(:schema_class) { res }
       res
     end
-    def get(sym)
+    def _get(sym)
       res = if sym[-1] == "?"
         self.schema_class.name == sym.slice(0, sym.length-1)
       elsif @data.has_key?("#{sym}=")
@@ -53,7 +53,7 @@ module Boot
       res
     end
     def eql?(other)
-      self.hash == other.hash and self._id==other._id
+      self._id==other._id
     end
     def to_s
       @name || @name = begin; "<#{@data['class']} #{self.name}>"
@@ -115,7 +115,7 @@ module Boot
 
   class BootManyField < Array
     def initialize(arr, root, keyed)
-      arr.each {|obj| self << obj}
+      arr.each {|obj| self.push obj}
       @root = root
       @keyed = keyed
     end
