@@ -11,7 +11,7 @@ Class   ::= [Class] "class" name:sym ("<" parent:sym)? Body
 Body    ::= /> meta:Meta* @/ / defs:Instance* @/ </"end"/
 Meta    ::= "def" "self" .".". Method | "@@". Binding
 Instance ::= Require | Directive | "def" Method | "@" Binding
-Method  ::= [Binding] name:sym value:Fun
+Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
 Binding ::= [Binding] name:sym "=" value:Expr
 Directive ::= [Directive] (action:"attr_reader" | action:"attr_writer" | action:"attr_accessor" | action:"include") what:Expr
 
@@ -69,15 +69,17 @@ Self    ::= [Var] name:"self"
 Var     ::= [Var] name:sym
 InstVar ::= [Var] kind:"@". name:sym
 ClassVar::= [Var] kind:"@@". name:sym
-Index   ::= [Call] { name=="_get" } target:Primary ."[". args:Expr+ @(.",")  ."]"
+Index   ::= [Index] base:Primary ."[". index:Expr ."]"
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
-ECall   ::= [Call] Call
-Call    ::= Target? name:sym Args?
+ECall   ::= [Call] Call | [Super] "super" info:SuperArgs?
+  SuperArgs ::= [Call] ParenArgs
+Call    ::= Target? method:sym ParenArgs?
+  ParenArgs ::= ."(".Args.")"
   Target  ::= target:Primary .".".
-  Args    ::= ."(". args:Expr+ @(.",") (."," "*".rest:Expr)? (."," "&".block:Var)? .")" 
-           | ."("."*".rest:Expr (."," "&".block:Var)? .")" 
-           | ."("."&".block:Var .")" 
-           
+  Args    ::= args:Expr+ @(.",") (."," "*".rest:Expr)? (."," "&".block:Var)?  
+           | "*".rest:Expr (."," "&".block:Var)? 
+           | "&".block:Var 
+         

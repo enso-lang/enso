@@ -32,13 +32,21 @@ class EUnOp < Expr
 class Seq < Expr
   statements! Expr*
 
+class Index < Expr
+  base: Expr
+  index: Expr
+
 class Call < Expr
   target! Expr?
-  name:   str
+  method:   str
   args!   Expr*
   rest!   Expr?
   block!  Expr?
   num_args: int = args.length + (block ? 1 : 0)
+
+class Super < Expr
+  method: str
+  info: Call?
 
 class Fun < Expr
   args! Arg*
@@ -91,3 +99,4 @@ class Lit < Expr
 primitive atom
 primitive str
 primitive int
+primitive bool

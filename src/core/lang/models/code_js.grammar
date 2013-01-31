@@ -18,13 +18,14 @@ Class   ::= [Class] name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
 Body    ::= /> Meta? defs:DefB* @(.","/2) </
 Meta    ::= "_class_:" "{"/> meta:DefB+ @(.","/2) </"}," /2
 DefB     ::= BindingB | Directive
-BindingB  ::= [Binding] name:sym .":" ({name=="initialize"} value:Method | value:MethodR | value:Expr)
-Method   ::= [Fun] "function" Params "{" /> "var self=this;"/ VarArg? body:SeqBody </"}"
-MethodR ::= [Fun] "function" Params "{" /> "var self=this;"/ VarArg? body:SeqBodyR </"}"
+BindingB  ::= [Binding] MethodSym .":" ({name=="initialize"} value:Method | value:MethodR | value:Expr)
+Method   ::= [Fun] "function(" Params ") {" /> "var self=this;"/ VarArg? body:SeqBody </"}"
+MethodR ::= [Fun] "function(" Params ") {" /> "var self=this;"/ VarArg? body:SeqBodyR </"}"
 VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
+MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
 
 Directive ::= Attr | Include
-Include ::= [Directive] action:"include" .":" what:LitName
+Include ::= [Directive] action:"include" .":" what:Expr
 Attr    ::= [Directive] { action=="attr_reader" } Reader | { action=="attr_accessor" } Reader .","/ Writer
 Reader  ::= what:LitName .":" "function" "(" ")" "{" "return" "this"."."."$".".". what:LitName "}"
 Writer  ::= "set_".what:LitName .":" "function" "(val)" "{" "this"."."."$".".". what:LitName "=val" "}"
@@ -49,7 +50,11 @@ IfR      ::= [If] "if" "(". cond:Expr .")" sthen:SeqR ("else" (selse:IfR | selse
 TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)? 
 HandlerR ::= [Handler] "catch" "(" (var:str | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
 
-Expr ::= Assign
+Expr ::= IndexAssign | Assign
+IndexAssign ::= [Assign] to:IndexTarget "._set(" to:IndexIndex "," from:Assign ")"
+IndexTarget ::= [Index] base:Primary 
+IndexIndex ::= [Index] index:Expr
+ 
 Assign  ::= [Assign] to:Primary op:sym from:Assign
         | EOr
 EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
@@ -72,25 +77,27 @@ EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
          | Primary
 
 
-Primary ::= InstVar | ClassVar | Nil | Var |  IfE | List | Record | Fun | Call | Lit | "(". Expr .")" | 
+Primary ::= InstVar | ClassVar | Nil | Var |  IfE | List | Index | Record | Fun | Call | Super | Lit | "(". Expr .")" | 
              "((function(){" SeqR "})())"
 Nil     ::= [Var] "null" { name == "nil" }
 Var     ::= [Var] name:sym
 InstVar ::= [Var] "self"."."."$".".". name:sym { kind=="@" }
 ClassVar::= [Var] "self"."."."_class_".".". name:sym { kind=="@@" }
 List    ::= [List] "[". items:Expr* @(.",") ."]"
+Index   ::= [Index] base:Primary ."._get(". index:Expr .")"
 Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
 IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </    // TODO: Precedence!!
 
-CallRest ::= [Call] (target:Primary .".".)? "call_method" "(" name:str ."," rest:Expr (."," Args)?  ")"
-Call  ::= [Call] (target:Primary .".".)? name:sym ."(". Args? .")"
+CallRest ::= [Call] (target:Primary .".".)? "call_rest_method" "(" method:str ."," (Args.",")? rest:Expr ")"
+Call  ::= [Call] (target:Primary .".".)? method:sym ."(". Args? .")"
   Args    ::= (block:Fun .",")? args:Expr+ @(.",") 
             | block:Fun
-Fun     ::= [Fun] "function" Params body:SeqR
-Params  ::= ."(". (block:sym .",")? args:Arg+ @(.",") .")"
-          | ."(". block:sym? .")"
-Arg     ::= [Arg] name:sym ("=" default:Expr)?
+Fun     ::= [Fun] "function(". Params .")" body:SeqR
+Params  ::=  (block:sym .",")? args:Formal+ @(.",")
+          | block:sym?
+Formal     ::= [Arg] name:sym ("=" default:Expr)?
 
-
+Super ::= [Super] "this.super$." method:sym ( ".call(self, " info:CallArgs ")" | ".apply(self, arguments)" )
+  CallArgs ::= [Call] Args

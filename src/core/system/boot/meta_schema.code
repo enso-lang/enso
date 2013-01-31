@@ -1,0 +1,160 @@
+require "enso"
+require "core/system/utils/paths"
+require "core/schema/code/factory"
+require "json"
+require "enso"
+
+module Boot
+  class MObject < EnsoBaseObject
+    @@seq_no = 0
+    attr_reader "_id"
+    def initialize(data, root)
+      @_id = @@seq_no = @@seq_no + 1;
+      @data = data;
+      @root = root || self;
+    end
+    def schema_class
+      res = @root.types[@data["class"]];
+      self.define_singleton_method("schema_class") do
+        res;
+      end
+      res;
+    end
+    def _get(sym)
+      res = if sym[- 1] == "?" then
+        self.schema_class.name == sym.slice(0, sym.length - 1);
+      elsif @data.has_key_p(str(sym, "=")) then
+        @data[str(sym, "=")];
+      elsif @data.has_key_p(str(sym, "#")) then
+        Boot.make_field(@data[str(sym, "#")], @root, true);
+      elsif @data.has_key_p(sym.to_s) then
+        Boot.make_field(@data[sym.to_s], @root, false);
+      else
+        raise(str("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
+      end
+      self.define_singleton_method(sym) do
+        res;
+      end
+      res;
+    end
+    def eql_p(other)
+      self._id == other._id;
+    end
+    def to_s
+      @name || (
+        @name = begin
+          str("<", @data["class"], " ", self.name, ">");
+        rescue
+          str("<", @data["class"], " ", self._id, ">");
+        end
+      );
+    end
+  end
+
+  class Schema < MObject
+    def classes
+      BootManyField.new(self.types.select, @root, true);
+    end
+    def primitives
+      BootManyField.new(self.types.select, @root, true);
+    end
+  end
+
+  class Class < MObject
+    def all_fields
+      BootManyField.new(self.supers.flat_map + defined_fields, @root, true);
+    end
+    def fields
+      BootManyField.new(self.all_fields.select, @root, true);
+    end
+  end
+
+  class BootManyField < Array
+    def initialize(arr, root, keyed)
+      arr.each do |obj|
+        self.push(obj);
+      end
+      @root = root;
+      @keyed = keyed;
+    end
+    def [](key)
+      if @keyed then
+        self.find do |obj|
+          obj.name == key;
+        end
+      else
+        self.at(key);
+      end
+    end
+    def has_key_p(key)
+      self[key];
+    end
+    def join(other, &block)
+      if @keyed then
+        other = other || {};
+        ks = self.keys || other.keys;
+        ks.each do |k|
+          block.call(self[k], other[k]);
+        end
+      else
+        a = Array(self);
+        b = Array(other);
+        Range.new(0, [a.length, b.length].max - 1).each do |i|
+          block.call(a[i], b[i]);
+        end
+      end
+    end
+    def keys
+      if @keyed then
+        self.map do |o|
+          o.name;
+        end
+      else
+        nil;
+      end
+    end
+  end
+  def self.load_path(path)
+    load(System.readJSON(path));
+  end
+
+  def self.load(doc)
+    ss0 = make_object(doc, nil);
+    Copy(ManagedData.new(ss0), ss0);
+  end
+
+  def self.make_object(data, root)
+    if data["class"] == "Schema" then
+      makeProxy(Schema.new(data, root));
+    elsif data["class"] == "Class" then
+      makeProxy(Class.new(data, root));
+    else
+      makeProxy(MObject.new(data, root));
+    end
+  end
+
+  def self.make_field(data, root, keyed)
+    if data.is_a_p(Array) then
+      make_many(data, root, keyed);
+    else
+      get_object(data, root);
+    end
+  end
+
+  def self.get_object(data, root)
+    if ! data then
+      nil;
+    elsif data.is_a_p(String) then
+      Paths.parse(data).deref(root);
+    else
+      make_object(data, root);
+    end
+  end
+
+  def self.make_many(data, root, keyed)
+    arr = data.map do |a|
+      get_object(a, root);
+    end
+    BootManyField.new(arr, root, keyed);
+  end
+end

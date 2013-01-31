@@ -6,7 +6,7 @@ require 'ripper'
 require 'pp'
 
 class Formals
-  attr_accessor :normal, :block, :rest
+  attr_accessor :normal, :block, :rest, :parens
   def initialize(normal = [], block = nil, rest = nil)
     @normal = normal
     @block = block
@@ -48,15 +48,15 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_aref(target, args)
-      make_call(target, "_get", [args.normal[0]])
+      @f.Index(target, args.normal[0])
     end
 
     def on_aref_field(target, args)
-      make_call(target, "_get", [args.normal[0]])
+      on_aref(target, args)
     end
 
     def on_arg_paren(args)
-      args
+      args.parens = true if args; args
     end
 
     def on_args_add(args, arg)
@@ -550,7 +550,8 @@ class DemoBuilder < Ripper::SexpBuilder
       elsif content.Lit? && content.value == ""
         string
       else
-        if !string.Call? || string.name != "str"
+        # create the "str" call to handle string interpolation
+        if !string.Call? || string.method != "str"
           string = make_call(nil, "str", [string])
         end
         string.args << content
@@ -585,7 +586,11 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_super(args)
-      make_call_formals(nil, "super", args)
+      if !args.parens && args.normal == [] && !args.rest && !args.block
+        @f.Super("UNKONWN")
+      else
+        @f.Super("UNKONWN", make_call_formals(nil, "super", args))
+      end
     end
 
     def on_symbol(token)
@@ -659,11 +664,7 @@ class DemoBuilder < Ripper::SexpBuilder
     end
     
     def fixup_name(name)
-      if name == "[]"
-         name = "_get"
-      elsif name == "[]="
-         name = "_set"
-      elsif name == "<<"
+      if name == "<<"
          name = "push" 
       elsif name[-1] == "!"
          name = "#{name[0..-2]}_in_place" 
@@ -738,8 +739,8 @@ end
 if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
-#  f = File.new(name, "r")
-#  pp Ripper.sexp_raw(f)
+  f = File.new(name, "r")
+  pp Ripper.sexp_raw(f)
   
   f = File.new(name, "r")
   m = DemoBuilder.build(f)
