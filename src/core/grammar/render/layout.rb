@@ -46,13 +46,7 @@ class DisplayFormat < Dispatch
     else
       raise "Unknown format #{obj}"
     end
-  end
-  
+  end  
 end
 
 
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  gg = Loader.load('grammar.grammar')
-  DisplayFormat.print(gg, gg)
-end

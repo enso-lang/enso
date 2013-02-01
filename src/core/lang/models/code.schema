@@ -33,12 +33,12 @@ class Seq < Expr
   statements! Expr*
 
 class Index < Expr
-  base: Expr
-  index: Expr
+  base! Expr
+  index! Expr
 
 class Call < Expr
   target! Expr?
-  method:   str
+  method: str
   args!   Expr*
   rest!   Expr?
   block!  Expr?
@@ -50,8 +50,8 @@ class Super < Expr
 
 class Fun < Expr
   args! Arg*
-  block: str?
-  rest: str?
+  block: str?     // Decl
+  rest: str?      // Decl
   body! Expr
   num_args: int = args.length + (block ? 1 : 0)
 
@@ -80,11 +80,11 @@ class Rescue < Expr
  
 class Handler
   kind: str?
-  var: str?
+  var: str?     // Decl
   body! Expr  
 
 class Var < Expr
-  name: str
+  name: str   // Decl
   kind: str?
 
 class List < Expr

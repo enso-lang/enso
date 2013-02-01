@@ -14,15 +14,6 @@ The only requirements are:
 =end
 
 module Boot
-  def self.load_path(path)
-    load(System.readJSON(path))
-  end
-  
-  def self.load(doc)
-    ss0 = make_object(doc, nil)
-    Copy(ManagedData.new(ss0), ss0)
-  end
-
   class MObject < EnsoBaseObject
     attr_reader :_id
     @@seq_no = 0
@@ -34,12 +25,12 @@ module Boot
     def schema_class
       #this assumes that the root is a schema and it has this thing called "types"
       res = @root.types[@data["class"]]
-      self.define_singleton_method(:schema_class) { res }
+      define_singleton_method(:schema_class) { res }
       res
     end
     def _get(sym)
       res = if sym[-1] == "?"
-        self.schema_class.name == sym.slice(0, sym.length-1)
+        schema_class.name == sym.slice(0, sym.length-1)
       elsif @data.has_key?("#{sym}=")
         @data["#{sym}="]
       elsif @data.has_key?("#{sym}#")
@@ -47,46 +38,55 @@ module Boot
       elsif @data.has_key?(sym.to_s)
         Boot.make_field(@data[sym.to_s], @root, false)
       else
-        raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
+        System.raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
       end
-      self.define_singleton_method(sym) { res }
+      define_singleton_method(sym) { res }
       res
     end
     def eql?(other)
-      self._id==other._id
+      _id==other._id
     end
     def to_s
-      @name || @name = begin; "<#{@data['class']} #{self.name}>"
-              rescue; "<#{@data['class']} #{self._id}>"; end
+      @name || @name = begin; "<#{@data['class']} #{name}>"
+              rescue; "<#{@data['class']} #{_id}>"; end
     end
   end
 
   class Schema < MObject
     def classes
-      BootManyField.new(self.types.select{|t|t.Class?}, @root, true)
+      BootManyField.new(types.select{|t|t.Class?}, @root, true)
     end
     def primitives
-      BootManyField.new(self.types.select{|t|t.Primitive?}, @root, true)
+      BootManyField.new(types.select{|t|t.Primitive?}, @root, true)
     end
   end
     
   class Class < MObject
     def all_fields
-      BootManyField.new(self.supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
+      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
     end
     def fields
-      BootManyField.new(self.all_fields.select() {|f|!f.computed}, @root, true)
+      BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
     end
+  end
+
+  def self.load_path(path)
+    load(System.readJSON(path))
+  end
+  
+  def self.load(doc)
+    ss0 = make_object(doc, nil)
+    Copy(ManagedData.new(ss0), ss0)
   end
 
   def self.make_object(data, root)
     case data['class']
     when "Schema" 
-      makeProxy(Schema.new(data, root))
+      MakeProxy(Schema.new(data, root))
     when "Class"  
-      makeProxy(Class.new(data, root))
+      MakeProxy(Class.new(data, root))
     else
-      makeProxy(MObject.new(data, root))
+      MakeProxy(MObject.new(data, root))
     end
   end
 
@@ -115,15 +115,15 @@ module Boot
 
   class BootManyField < Array
     def initialize(arr, root, keyed)
-      arr.each {|obj| self.push obj}
+      arr.each {|obj| push obj}
       @root = root
       @keyed = keyed
     end
     def [](key)
       if @keyed
-        self.find {|obj| obj.name == key}
+        find {|obj| obj.name == key}
       else
-        self.at(key)
+        at(key)
       end
     end
     def has_key?(key)
@@ -132,7 +132,7 @@ module Boot
     def join(other, &block)
       if @keyed
         other = other || {}
-        ks = self.keys || other.keys
+        ks = keys || other.keys
         ks.each {|k| block.call self[k], other[k]}
       else
         a = Array(self)
@@ -144,7 +144,7 @@ module Boot
     end
     def keys
       if @keyed
-        self.map {|o| o.name}
+        map {|o| o.name}
       else
         nil
       end

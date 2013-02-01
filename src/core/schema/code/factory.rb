@@ -593,11 +593,13 @@ module ManagedData
       if !mobj
         raise "Cannot insert nil into list"
       end 
-      check(mobj)
-      notify(nil, mobj)
       old = __value[index.to_i]
-      __value[index.to_i] = mobj
-      notify(old, nil) if old
+      if old != mobj
+        check(mobj)
+        notify(nil, mobj)
+        __value[index.to_i] = mobj
+        notify(old, nil) if old
+      end
       self
     end
 

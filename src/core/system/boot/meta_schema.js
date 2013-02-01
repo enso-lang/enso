@@ -1,5 +1,5 @@
-require ( "enso" )
 
+require ( "enso" )
 MObject = MakeClass( EnsoBaseObject, {
   _class_: {
     seq_no: 0
@@ -27,13 +27,13 @@ MObject = MakeClass( EnsoBaseObject, {
     var self=this;
     res = sym._get(- 1) == "?"
       ? self.schema_class().name() == sym.slice(0, sym.length() - 1)
-      : self.$.data.has_key_p(str(sym, "="))
-        ? self.$.data._get(str(sym, "="))
-        : self.$.data.has_key_p(str(sym, "#"))
-          ? Boot.make_field(self.$.data._get(str(sym, "#")), self.$.root, true)
+      : self.$.data.has_key_p(S(sym, "="))
+        ? self.$.data._get(S(sym, "="))
+        : self.$.data.has_key_p(S(sym, "#"))
+          ? Boot.make_field(self.$.data._get(S(sym, "#")), self.$.root, true)
           : self.$.data.has_key_p(sym.to_s())
             ? Boot.make_field(self.$.data._get(sym.to_s()), self.$.root, false)
-            : raise(str("Trying to deref nonexistent field ", sym, " in ", self.$.data.to_s().slice(0, 300)))
+            : System.raise(S("Trying to deref nonexistent field ", sym, " in ", self.$.data.to_s().slice(0, 300)))
     ;
     self.define_singleton_method(function() {
       return res;
@@ -50,9 +50,9 @@ MObject = MakeClass( EnsoBaseObject, {
     var self=this;
     return self.$.name || (self.$.name = ((function(){ {
       try {
-        return str("<", self.$.data._get("class"), " ", self.name(), ">");
+        return S("<", self.$.data._get("class"), " ", self.name(), ">");
       } catch ( DUMMY ) {
-        return str("<", self.$.data._get("class"), " ", self._id(), ">");
+        return S("<", self.$.data._get("class"), " ", self._id(), ">");
       }
     } })()));
   }
@@ -61,24 +61,32 @@ MObject = MakeClass( EnsoBaseObject, {
 Schema = MakeClass( MObject, {
   classes: function( ) {
     var self=this;
-    return BootManyField.new(self.types().select(), self.$.root, true);
+    return BootManyField.new(self.types().select(function(t) {
+      return t.Class_p();
+    }), self.$.root, true);
   },
 
   primitives: function( ) {
     var self=this;
-    return BootManyField.new(self.types().select(), self.$.root, true);
+    return BootManyField.new(self.types().select(function(t) {
+      return t.Primitive_p();
+    }), self.$.root, true);
   }
 });
 
 Class = MakeClass( MObject, {
   all_fields: function( ) {
     var self=this;
-    return BootManyField.new(self.supers().flat_map() + defined_fields, self.$.root, true);
+    return BootManyField.new(self.supers().flat_map(function(s) {
+      return s.all_fields();
+    }) + self.defined_fields(), self.$.root, true);
   },
 
   fields: function( ) {
     var self=this;
-    return BootManyField.new(self.all_fields().select(), self.$.root, true);
+    return BootManyField.new(self.all_fields().select(function(f) {
+      return ! f.computed();
+    }), self.$.root, true);
   }
 });
 
@@ -108,7 +116,7 @@ BootManyField = MakeClass( Array, {
     return self._get(key);
   },
 
-  joinXXX: function( block, other ) {
+  joinXX: function( block, other ) {
     var self=this;
     if (self.$.keyed) {
       other = other || new EnsoHash ( { } );
@@ -143,16 +151,17 @@ load_path = function(path) {
 
 load = function(doc) {
   ss0 = make_object(doc, null);
-  return ss0; return Copy(ManagedData.new(ss0), ss0);
+  return ss0;
+  return Copy(ManagedData.new(ss0), ss0);
 }
 
 make_object = function(data, root) {
   if (data._get("class") == "Schema") {
-    return makeProxy(Schema.new(data, root));
+    return MakeProxy(Schema.new(data, root));
   } else if (data._get("class") == "Class") {
-    return makeProxy(Class.new(data, root));
+    return MakeProxy(Class.new(data, root));
   } else {
-    return makeProxy(MObject.new(data, root));
+    return MakeProxy(MObject.new(data, root));
   }
 }
 
@@ -181,11 +190,12 @@ make_many = function(data, root, keyed) {
   return BootManyField.new(arr, root, keyed);
 }
 
+
 Boot = { make_field: make_field };
 
  x = load_path("/Users/wcook/enso/src/core/system/boot/schema_schema.json");
 console.log("x._id = " + x._id()) ;
-console.log("List = " + x.types().map(function(x) {return x.to_s()}));
+console.log("Test = " + x.types().to_s());
 console.log("Test = " + x.types()._get("Primitive").name()) ;
 console.log("Test = " + x.types()._get("Primitive").to_s()) ;
  

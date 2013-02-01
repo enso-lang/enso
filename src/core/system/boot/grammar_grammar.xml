@@ -1,4 +1,4 @@
-<grammar.grammar source='core/grammar/models/grammar.grammar' date='2013-01-31 19:17:25 -0600' checksum='dbed4d21cacaa0aa26a48d02bffa82f8c800bc9e'>
+<grammar.grammar source='core/grammar/models/grammar.grammar' date='2013-02-01 08:40:38 -0600' checksum='8b52c06689e0da8e83e7054ebfa1b41ac70d53b7'>
   <depends>
     <expr.grammar source='core/expr/models/expr.grammar' date='2013-01-21 11:10:08 -0600' checksum='1a3b10fb6ed587bfd6e98bc61850f0e64afbf30b'/>
   </depends>
@@ -921,12 +921,15 @@
                           </Regular>
                         </arg>
                       </Field>
+                      <NoSpace/>
                       <Lit value='/'/>
+                      <NoSpace/>
                       <Field name='name'>
                         <arg many='false' keyed='false'>
                           <Value kind='sym'/>
                         </arg>
                       </Field>
+                      <NoSpace/>
                       <Regular optional='true'>
                         <arg many='false' keyed='false'>
                           <Call>
@@ -954,6 +957,7 @@
               <Sequence>
                 <elements many='true' keyed='false'>
                   <Lit value='['/>
+                  <NoSpace/>
                   <Field name='key'>
                     <arg many='false' keyed='false'>
                       <Call>
@@ -963,6 +967,7 @@
                       </Call>
                     </arg>
                   </Field>
+                  <NoSpace/>
                   <Lit value=']'/>
                 </elements>
               </Sequence>
@@ -1553,7 +1558,9 @@
                 <arg many='false' keyed='false'>
                   <Sequence>
                     <elements many='true' keyed='false'>
+                      <NoSpace/>
                       <Lit value='.'/>
+                      <NoSpace/>
                     </elements>
                   </Sequence>
                 </arg>
@@ -1567,6 +1574,7 @@
                         <alts many='true' keyed='false'>
                           <Sequence>
                             <elements many='true' keyed='false'>
+                              <NoSpace/>
                               <Field name='lines'>
                                 <arg many='false' keyed='false'>
                                   <Value kind='int'/>

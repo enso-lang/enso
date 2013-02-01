@@ -74,12 +74,15 @@ List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
-ECall   ::= [Call] Call | [Super] "super" info:SuperArgs?
+ECall   ::= [Call] target:Super "super" info:SuperArgs 
+          | [Call] ({block==nil} | block:IsVar) Call
+  IsVar ::= [Var] 
+  Super ::= [Super]
   SuperArgs ::= [Call] ParenArgs
 Call    ::= Target? method:sym ParenArgs?
   ParenArgs ::= ."(".Args.")"
   Target  ::= target:Primary .".".
-  Args    ::= args:Expr+ @(.",") (."," "*".rest:Expr)? (."," "&".block:Var)?  
+  Args    ::= args:Expr+ @(.",") (."," "*".rest:Expr)? (."," "&".block:Var)?
            | "*".rest:Expr (."," "&".block:Var)? 
            | "&".block:Var 
          

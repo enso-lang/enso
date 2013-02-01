@@ -1,4 +1,4 @@
-def str(*args)
+def S(*args)
   args.join
 end
 
@@ -6,16 +6,24 @@ module System
   def self.readJSON(path)
     JSON.load(File.new(path))
   end
+  def raise(error)
+    raise error
+  end
 end
   
-def makeProxy x
+def MakeProxy x
   x
+end
+
+class Hash
+  def has_key_p(x); has_key?(x); end
 end
 
 class Object
   def define_singleton_value(sym, val)
     self.define_singleton_method(sym) { val }
   end
+  def is_a_p(x); is_a?(x); end
 end
 
 class EnsoBaseObject

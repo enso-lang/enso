@@ -3,9 +3,9 @@ start Path
 
 Path ::= [Anchor] type:"."
       |  [Anchor] type:".."
-      |  [Sub] parent:Path? "/" name:sym Subscript?
+      |  [Sub] parent:Path? ."/". name:sym.Subscript?
 
-Subscript ::= "[" key:Key "]"
+Subscript ::= "[".key:Key."]"
 
 Key ::= [Const] value:atom
       | Path

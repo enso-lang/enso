@@ -9,12 +9,12 @@ import path.grammar, expr.grammar
 
   Alt ::= [Alt] > alts:Create+@(/ "|") <
 
-  Create ::= [Create] "[" . name:sym . "]" arg:Sequence
+  Create ::= [Create] "[".name:sym."]" arg:Sequence
     | Sequence
 
   Sequence ::= [Sequence] elements:Field*
 
-  Field ::= [Field] name:sym . ":" . arg:Pattern
+  Field ::= [Field] name:sym.":".arg:Pattern
     | Pattern
   
   Pattern ::= 
@@ -24,19 +24,19 @@ import path.grammar, expr.grammar
     | [Value] kind:"sym"
     | [Value] kind:"atom"
     | [Code] "{" expr:Expr "}"
-    | [Ref] "<" . path:Path . ">"
+    | [Ref] "<".path:Path.">"
     | [Lit] value:str
     | [Call] rule:</rules[it]>
-    | [Regular] arg:Pattern . "*" Sep? { (optional == true) and (many == true) }
-    | [Regular] arg:Pattern .  "?" { optional == true }
-    | [Regular] arg:Pattern . "+" Sep? { many == true }
-    | [NoSpace] "."
-    | [Break] "/" (lines:int | { lines==1 })
+    | [Regular] arg:Pattern."*" Sep? { (optional == true) and (many == true) }
+    | [Regular] arg:Pattern."?" { optional == true }
+    | [Regular] arg:Pattern."+" Sep? { many == true }
+    | [NoSpace] .".".
+    | [Break] "/" (.lines:int | { lines==1 })
     | [Indent] ">" { indent==1 }
     | [Indent] "<" { indent==(-1) }
-    | "(" . Alt . ")"
+    | "(".Alt.")"
     
-  Sep ::= "@" . sep:Pattern
+  Sep ::= "@".sep:Pattern
 
 // extension of path.grammar
 abstract Path
