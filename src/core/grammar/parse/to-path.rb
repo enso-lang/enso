@@ -17,11 +17,11 @@ class ToPath
   end
 
   def Anchor(this)
-    Path.new([Current.new])
+    Path.new
   end
   
   def Sub(this)
-    p =  this.parent ? eval(this.parent) : Path.new
+    p =  this.parent ? eval(this.parent) : Path.new([Root.new])
     if this.key then
       p.field(this.name).key(eval(this.key))
     else

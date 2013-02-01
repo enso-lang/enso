@@ -167,7 +167,7 @@ class Build
       later = []
       change = false
       fixes.each do |fix|
-        x = fix.path.deref(root, fix.obj)
+        x = fix.path.deref(fix.obj, root)
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
           update_origin(fix.obj, fix.field, fix.origin)

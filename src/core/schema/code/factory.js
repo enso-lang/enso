@@ -10,7 +10,7 @@ require ( "core/expr/code/freevar" )
 Factory = MakeClass( {
   schema: function ( ) { return this.$.schema },
 
-  initialize: function(schema) {
+  initialize: function( schema ) {
     var self=this;
     self.$.schema = schema;
     self.$.roots = [];
@@ -18,17 +18,17 @@ Factory = MakeClass( {
     self.$.file_path = [];
   },
 
-  _get: function(name) {
+  _get: function( name ) {
     var self=this;
     return send(name);
   },
 
-  register: function(root) {
+  register: function( root ) {
     var self=this;
     return self.$.roots.push(root);
   },
 
-  delete_in_place: function(obj) {
+  delete_in_place: function( obj ) {
     var self=this;
     return self.$.roots.each(function(root) {
       return root.__delete_obj(obj);
@@ -38,7 +38,7 @@ Factory = MakeClass( {
   file_path: function ( ) { return this.$.file_path },
   set_file_path: function (val) { this.$.file_path =val },
 
-  __constructor: function(klasses) {
+  __constructor: function( klasses ) {
     var self=this;
     return klasses.each(function(klass) {
       return define_singleton_method(function() {
@@ -65,7 +65,7 @@ MObject = MakeClass( {
 
   schema_class: function ( ) { return this.$.schema_class },
 
-  initialize: function(klass, factory) {
+  initialize: function( klass, factory ) {
     var self=this;
     var args = compute_rest_arguments(arguments, 2 );
     self.$._id = self._class_._id += 1;
@@ -79,27 +79,27 @@ MObject = MakeClass( {
     __install(klass.all_fields());
   },
 
-  method_missing: function(block, sym) {
+  method_missing: function( block, sym ) {
     var self=this;
     var args = compute_rest_arguments(arguments, 2 );
     if (sym._get(- 1) == "?") {
       return schema_class.name() == sym.slice(0, sym.length() - 1);
     } else {
-      return super(sym);
+      return this.super$.  .call(self,  sym );
     }
   },
 
-  _graph_id: function() {
+  _graph_id: function( ) {
     var self=this;
     return self.$.factory;
   },
 
-  instance_of_p: function(sym) {
+  instance_of_p: function( sym ) {
     var self=this;
     return schema_class.name() == sym.to_s();
   },
 
-  _get: function(name) {
+  _get: function( name ) {
     var self=this;
     check_field(name, true);
     if (computed_p(name)) {
@@ -109,18 +109,18 @@ MObject = MakeClass( {
     }
   },
 
-  _set: function(name, x) {
+  _set: function( name, x ) {
     var self=this;
     check_field(name, false);
     return __get(name).set(x);
   },
 
-  delete_in_place: function() {
+  delete_in_place: function( ) {
     var self=this;
     return factory.delete_in_place(self);
   },
 
-  __delete_obj: function(mobj) {
+  __delete_obj: function( mobj ) {
     var self=this;
     return schema_class.fields().each(function(fld) {
       if (fld.traversal()) {
@@ -129,17 +129,17 @@ MObject = MakeClass( {
     });
   },
 
-  dynamic_update: function() {
+  dynamic_update: function( ) {
     var self=this;
     return self.$.dyn ||= DynamicUpdateProxy.new(self);
   },
 
-  add_listener: function(block, name) {
+  add_listener: function( block, name ) {
     var self=this;
-    return (self.$.listeners._get(name) ||= []).push(block);
+    return (self.$.listeners ._set( name , [] )).push(block);
   },
 
-  notify: function(name, val) {
+  notify: function( name, val ) {
     var self=this;
     if (self.$.listeners._get(name)) {
       return self.$.listeners._get(name).each(function(blk) {
@@ -148,22 +148,22 @@ MObject = MakeClass( {
     }
   },
 
-  _origin_of: function(name) {
+  _origin_of: function( name ) {
     var self=this;
     return __get(name)._origin();
   },
 
-  _set_origin_of: function(name, org) {
+  _set_origin_of: function( name, org ) {
     var self=this;
     return __get(name)._origin() = org;
   },
 
-  _path_of: function(name) {
+  _path_of: function( name ) {
     var self=this;
     return _path.field(name);
   },
 
-  _path: function() {
+  _path: function( ) {
     var self=this;
     if (__shell) {
       return __shell._path(self);
@@ -172,7 +172,7 @@ MObject = MakeClass( {
     }
   },
 
-  _clone: function() {
+  _clone: function( ) {
     var self=this;
     r = MObject.new(self.$.schema_class, self.$.factory);
     schema_class.fields().each(function(field) {
@@ -181,38 +181,38 @@ MObject = MakeClass( {
           return r._get(field.name()).push(o);
         });
       } else {
-        return r._get(field.name()) = self._get(field.name());
+        return r ._set( field.name() , self._get(field.name()) );
       }
     });
     return r;
   },
 
-  __get: function(name) {
+  __get: function( name ) {
     var self=this;
     return self.$.hash._get(name);
   },
 
-  __set: function(name, fld) {
+  __set: function( name, fld ) {
     var self=this;
-    return self.$.hash._get(name) = fld;
+    return self.$.hash ._set( name , fld );
   },
 
-  eql_p: function(o) {
+  eql_p: function( o ) {
     var self=this;
     return self == o;
   },
 
-  equals: function(o) {
+  equals: function( o ) {
     var self=this;
     return (o && o.is_a_p(MObject)) && _id == o._id();
   },
 
-  hash: function() {
+  hash: function( ) {
     var self=this;
     return _id;
   },
 
-  to_s: function() {
+  to_s: function( ) {
     var self=this;
     k = ClassKey(schema_class);
     if (k) {
@@ -222,13 +222,13 @@ MObject = MakeClass( {
     }
   },
 
-  finalize: function() {
+  finalize: function( ) {
     var self=this;
     factory.register(self);
     return self;
   },
 
-  check_field: function(name, can_be_computed) {
+  check_field: function( name, can_be_computed ) {
     var self=this;
     if (! self.$.hash.include_p(name)) {
       raise(str("Non-existing field '", name, "' for ", self));
@@ -238,12 +238,12 @@ MObject = MakeClass( {
     }
   },
 
-  computed_p: function(name) {
+  computed_p: function( name ) {
     var self=this;
     return __get(name) == "computed";
   },
 
-  __setup: function(fields) {
+  __setup: function( fields ) {
     var self=this;
     return fields.each(function(fld) {
       klass = self;
@@ -261,7 +261,7 @@ MObject = MakeClass( {
     });
   },
 
-  __init: function(fields, args) {
+  __init: function( fields, args ) {
     var self=this;
     return fields.each_with_index(function(fld, i) {
       if (i < args.length()) {
@@ -270,7 +270,7 @@ MObject = MakeClass( {
     });
   },
 
-  __install: function(fields) {
+  __install: function( fields ) {
     var self=this;
     return fields.each(function(fld) {
       if (fld.computed()) {
@@ -295,7 +295,7 @@ MObject = MakeClass( {
     });
   },
 
-  __computed: function(fld) {
+  __computed: function( fld ) {
     var self=this;
     name = fld.name();
     exp = fld.computed();
@@ -307,25 +307,25 @@ MObject = MakeClass( {
         fvs.each(function(fv) {
           if (fv.object()) {
             return fv.object().add_listener(function() {
-              return self.$.memo._get(name) = null;
+              return self.$.memo ._set( name , null );
             }, fv.index());
           }
         });
         val = commInterp.eval(exp, new EnsoHash ( { } ));
-        self.$.memo._get(name) = val;
+        self.$.memo ._set( name , val );
       }
       return self.$.memo._get(name);
     }, name);
   },
 
-  __setter: function(name) {
+  __setter: function( name ) {
     var self=this;
     return define_singleton_method(function(arg) {
-      return self._get(name) = arg;
+      return self ._set( name , arg );
     }, str(name, "="));
   },
 
-  __getter: function(name) {
+  __getter: function( name ) {
     var self=this;
     return define_singleton_method(function() {
       return self._get(name);
@@ -337,7 +337,7 @@ Field = MakeClass( {
   _origin: function ( ) { return this.$._origin },
   set__origin: function (val) { this.$._origin =val },
 
-  set__set_inverse: function(inv) {
+  set__set_inverse: function( inv ) {
     var self=this;
     if (self.$.inverse) {
       raise(str("Overiding inverse of field '", inv.owner().name(), ".", invk.name(), "'"));
@@ -345,7 +345,7 @@ Field = MakeClass( {
     return self.$.inverse = inv;
   },
 
-  initialize: function(owner, field) {
+  initialize: function( owner, field ) {
     var self=this;
     self.$.owner = owner;
     self.$.field = field;
@@ -354,48 +354,48 @@ Field = MakeClass( {
     }
   },
 
-  __delete_obj: function(mobj) {
+  __delete_obj: function( mobj ) {
     var self=this;
   },
 
-  to_s: function() {
+  to_s: function( ) {
     var self=this;
     return str(".", self.$.field.name(), " = ", self.$.value);
   }
 });
 
 Single = MakeClass( Field, {
-  initialize: function(owner, field) {
+  initialize: function( owner, field ) {
     var self=this;
-    super(owner, field);
+    this.super$.  .call(self,  owner, field );
     self.$.value = default;
   },
 
-  set: function(value) {
+  set: function( value ) {
     var self=this;
     check(value);
     self.$.value = value;
     return self.$.owner.notify(self.$.field.name(), value);
   },
 
-  get: function() {
+  get: function( ) {
     var self=this;
     return self.$.value;
   },
 
-  init: function(value) {
+  init: function( value ) {
     var self=this;
     return set(value);
   },
 
-  default: function() {
+  default: function( ) {
     var self=this;
     return null;
   }
 });
 
 Prim = MakeClass( Single, {
-  check: function(value) {
+  check: function( value ) {
     var self=this;
     if (! self.$.field.optional() || value) {
       ok = self.$.field.type().name() == "str"
@@ -420,7 +420,7 @@ Prim = MakeClass( Single, {
     }
   },
 
-  default: function() {
+  default: function( ) {
     var self=this;
     if (! self.$.field.optional()) {
       if (self.$.field.type().name() == "str") {
@@ -443,7 +443,7 @@ Prim = MakeClass( Single, {
 });
 
 RefHelpers = MakeModule({
-  notify: function(old, new) {
+  notify: function( old, new ) {
     var self=this;
     if (old != new) {
       self.$.owner.notify(self.$.field.name(), new);
@@ -467,7 +467,7 @@ RefHelpers = MakeModule({
     }
   },
 
-  check: function(mobj) {
+  check: function( mobj ) {
     var self=this;
     if (mobj || ! self.$.field.optional()) {
       if (mobj.nil_p()) {
@@ -486,14 +486,14 @@ RefHelpers = MakeModule({
 Ref = MakeClass( Single, {
   include: RefHelpers,
 
-  set: function(value) {
+  set: function( value ) {
     var self=this;
     check(value);
     notify(get, value);
     return __set(value);
   },
 
-  __set: function(value) {
+  __set: function( value ) {
     var self=this;
     if (self.$.field.traversal()) {
       if (value) {
@@ -506,12 +506,12 @@ Ref = MakeClass( Single, {
     return self.$.value = value;
   },
 
-  _path: function(_) {
+  _path: function( _ ) {
     var self=this;
     return self.$.owner._path().field(self.$.field.name());
   },
 
-  __delete_obj: function(mobj) {
+  __delete_obj: function( mobj ) {
     var self=this;
     if (get == mobj) {
       return set(null);
@@ -524,85 +524,85 @@ Many = MakeClass( Field, {
 
   include: Enumerable,
 
-  get: function() {
+  get: function( ) {
     var self=this;
     return self;
   },
 
-  set: function() {
+  set: function( ) {
     var self=this;
     return raise(str("Cannot assign to many-valued field ", self.$.field.name()));
   },
 
-  init: function(values) {
+  init: function( values ) {
     var self=this;
     return values.each(function(value) {
       return self.push(value);
     });
   },
 
-  __value: function() {
+  __value: function( ) {
     var self=this;
     return self.$.value;
   },
 
-  _get: function(key) {
+  _get: function( key ) {
     var self=this;
     return __value._get(key);
   },
 
-  empty_p: function() {
+  empty_p: function( ) {
     var self=this;
     return __value.empty_p();
   },
 
-  length: function() {
+  length: function( ) {
     var self=this;
     return __value.length();
   },
 
-  to_s: function() {
+  to_s: function( ) {
     var self=this;
     return __value.to_s();
   },
 
-  clear: function() {
+  clear: function( ) {
     var self=this;
     return __value.clear();
   },
 
-  connected_p: function() {
+  connected_p: function( ) {
     var self=this;
     return self.$.owner;
   },
 
-  has_key_p: function(key) {
+  has_key_p: function( key ) {
     var self=this;
     return keys.include_p(key);
   },
 
-  check: function(mobj) {
+  check: function( mobj ) {
     var self=this;
     if (connected_p) {
-      return super(mobj);
+      return this.super$.  .call(self,  mobj );
     }
   },
 
-  notify: function(old, new) {
+  notify: function( old, new ) {
     var self=this;
     if (connected_p) {
-      return super(old, new);
+      return this.super$.  .call(self,  old, new );
     }
   },
 
-  __delete_obj: function(mobj) {
+  __delete_obj: function( mobj ) {
     var self=this;
     if (values.include_p(mobj)) {
       return delete(mobj);
     }
   },
 
-  connect: function(mobj, shell) {
+  connect: function( mobj, shell ) {
     var self=this;
     if (connected_p && self.$.field.traversal()) {
       return mobj.__shell() = shell;
@@ -613,44 +613,44 @@ Many = MakeClass( Field, {
 Set = MakeClass( Many, {
   include: SetUtils,
 
-  initialize: function(owner, field, key) {
+  initialize: function( owner, field, key ) {
     var self=this;
-    super(owner, field);
+    this.super$.  .call(self,  owner, field );
     self.$.value = new EnsoHash ( { } );
     self.$.key = key;
   },
 
-  each: function(block) {
+  each: function( block ) {
     var self=this;
     return __value.each_value();
   },
 
-  each_pair: function(block) {
+  each_pair: function( block ) {
     var self=this;
     return __value.each_pair();
   },
 
-  values: function() {
+  values: function( ) {
     var self=this;
     return __value.values();
   },
 
-  keys: function() {
+  keys: function( ) {
     var self=this;
     return __value.keys();
   },
 
-  _recompute_hash_in_place: function() {
+  _recompute_hash_in_place: function( ) {
     var self=this;
     nval = new EnsoHash ( { } );
     self.$.value.each(function(k, v) {
-      return nval._get(v._get(self.$.key.name())) = v;
+      return nval ._set( v._get(self.$.key.name()) , v );
     });
     self.$.value = nval;
     return self;
   },
 
-  push: function(mobj) {
+  push: function( mobj ) {
     var self=this;
     check(mobj);
     key = mobj._get(self.$.key.name());
@@ -667,12 +667,12 @@ Set = MakeClass( Many, {
     return self;
   },
 
-  _set: function(index, mobj) {
+  _set: function( index, mobj ) {
     var self=this;
     return self.push(mobj);
   },
 
-  delete: function(mobj) {
+  delete: function( mobj ) {
     var self=this;
     key = mobj._get(self.$.key.name());
     if (self.$.value.has_key_p(key)) {
@@ -681,18 +681,18 @@ Set = MakeClass( Many, {
     }
   },
 
-  _path: function(mobj) {
+  _path: function( mobj ) {
     var self=this;
     return self.$.owner._path().field(self.$.field.name()).key(mobj._get(self.$.key.name()));
   },
 
-  __insert: function(mobj) {
+  __insert: function( mobj ) {
     var self=this;
     connect(mobj, self);
-    return self.$.value._get(mobj._get(self.$.key.name())) = mobj;
+    return self.$.value ._set( mobj._get(self.$.key.name()) , mobj );
   },
 
-  __delete: function(mobj) {
+  __delete: function( mobj ) {
     var self=this;
     deleted = self.$.value.delete(mobj._get(self.$.key.name()));
     connect(deleted, null);
@@ -703,42 +703,42 @@ Set = MakeClass( Many, {
 List = MakeClass( Many, {
   include: ListUtils,
 
-  initialize: function(owner, field) {
+  initialize: function( owner, field ) {
     var self=this;
-    super(owner, field);
+    this.super$.  .call(self,  owner, field );
     self.$.value = [];
   },
 
-  _get: function(key) {
+  _get: function( key ) {
     var self=this;
     return __value._get(key.to_i());
   },
 
-  each: function(block) {
+  each: function( block ) {
     var self=this;
     return __value.each();
   },
 
-  each_pair: function(block) {
+  each_pair: function( block ) {
     var self=this;
     return __value.each_with_index(function(item, i) {
       return block.call(i, item);
     });
   },
 
-  values: function() {
+  values: function( ) {
     var self=this;
     return __value;
   },
 
-  keys: function() {
+  keys: function( ) {
     var self=this;
     return Array.new(function(i) {
       return i;
     }, length);
   },
 
-  push: function(mobj) {
+  push: function( mobj ) {
     var self=this;
     if (! mobj) {
       raise("Cannot insert nil into list");
@@ -749,7 +749,7 @@ List = MakeClass( Many, {
     return self;
   },
 
-  _set: function(index, mobj) {
+  _set: function( index, mobj ) {
     var self=this;
     if (! mobj) {
       raise("Cannot insert nil into list");
@@ -757,14 +757,14 @@ List = MakeClass( Many, {
     check(mobj);
     notify(null, mobj);
     old = __value._get(index.to_i());
-    __value._get(index.to_i()) = mobj;
+    __value ._set( index.to_i() , mobj );
     if (old) {
       notify(old, null);
     }
     return self;
   },
 
-  delete: function(mobj) {
+  delete: function( mobj ) {
     var self=this;
     deleted = __delete(mobj);
     if (deleted) {
@@ -773,7 +773,7 @@ List = MakeClass( Many, {
     return deleted;
   },
 
-  insert: function(index, mobj) {
+  insert: function( index, mobj ) {
     var self=this;
     if (! mobj) {
       raise("Cannot insert nil into list");
@@ -784,18 +784,18 @@ List = MakeClass( Many, {
     return self;
   },
 
-  _path: function(mobj) {
+  _path: function( mobj ) {
     var self=this;
     return self.$.owner._path().field(self.$.field.name()).index(self.$.value.index(mobj));
   },
 
-  __insert: function(mobj) {
+  __insert: function( mobj ) {
     var self=this;
     connect(mobj, self);
     return self.$.value.push(mobj);
   },
 
-  __delete: function(mobj) {
+  __delete: function( mobj ) {
     var self=this;
     deleted = self.$.value.delete(mobj);
     connect(deleted, null);

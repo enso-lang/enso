@@ -1,12 +1,32 @@
-<schema.grammar source='core/schema/models/schema.grammar' date='2012-08-18 12:21:38 -0500' checksum='534cee3bd6d118f37751419bc0ffa179ce1ed76f'>
+<schema.grammar source='core/schema/models/schema.grammar' date='2013-02-01 00:21:05 -0600' checksum='f03a99367d7e42305e4e9a479699be2826fed0fd'>
   <depends>
-    <impl.grammar source='core/expr/models/impl.grammar' date='2012-09-01 03:04:26 -0500' checksum='fcecc21583e004e66ea6fb21a7b880a32d9277c3'/>
+    <impl.grammar source='core/expr/models/impl.grammar' date='2012-12-10 18:07:32 -0600' checksum='fcecc21583e004e66ea6fb21a7b880a32d9277c3'/>
   </depends>
   <Grammar>
     <start many='false' keyed='true'>
       /rules[Schema]
     </start>
     <rules many='true' keyed='true'>
+      <Rule name='Expr'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[ETernOp]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
       <Rule name='ETernOp'>
         <grammar many='false' keyed='false'>
           /
@@ -447,6 +467,164 @@
           </Alt>
         </arg>
       </Rule>
+      <Rule name='EUnOp'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EUnOp'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Lit value='not'/>
+                      <Field name='e'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Expr]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Code>
+                        <expr many='false' keyed='false'>
+                          <EBinOp op='eql?'>
+                            <e1 many='false' keyed='false'>
+                              <EVar name='op'/>
+                            </e1>
+                            <e2 many='false' keyed='false'>
+                              <EStrConst val='!'/>
+                            </e2>
+                          </EBinOp>
+                        </expr>
+                      </Code>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EFunCall]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[EListComp]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+              <Sequence>
+                <elements many='true' keyed='false'>
+                  <Call>
+                    <rule many='false' keyed='true'>
+                      /rules[Primary]
+                    </rule>
+                  </Call>
+                </elements>
+              </Sequence>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
+      <Rule name='EFunCall'>
+        <grammar many='false' keyed='false'>
+          /
+        </grammar>
+        <arg many='false' keyed='false'>
+          <Alt>
+            <alts many='true' keyed='false'>
+              <Create name='EFunCall'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='fun'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[EUnOp]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='('/>
+                      <Field name='params'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Expr]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=')'/>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+              <Create name='EFunCall'>
+                <arg many='false' keyed='false'>
+                  <Sequence>
+                    <elements many='true' keyed='false'>
+                      <Field name='fun'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[EUnOp]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                      <Lit value='('/>
+                      <Field name='params'>
+                        <arg many='false' keyed='false'>
+                          <Regular optional='true' many='true'>
+                            <arg many='false' keyed='false'>
+                              <Call>
+                                <rule many='false' keyed='true'>
+                                  /rules[Expr]
+                                </rule>
+                              </Call>
+                            </arg>
+                            <sep many='false' keyed='false'>
+                              <Lit value=','/>
+                            </sep>
+                          </Regular>
+                        </arg>
+                      </Field>
+                      <Lit value=')'/>
+                      <Field name='lambda'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[ELambda]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Field>
+                    </elements>
+                  </Sequence>
+                </arg>
+              </Create>
+            </alts>
+          </Alt>
+        </arg>
+      </Rule>
       <Rule name='Primary'>
         <grammar many='false' keyed='false'>
           /
@@ -476,7 +654,9 @@
                           </Call>
                         </arg>
                       </Field>
+                      <NoSpace/>
                       <Lit value='.'/>
+                      <NoSpace/>
                       <Field name='fname'>
                         <arg many='false' keyed='false'>
                           <Value kind='sym'/>
@@ -1233,96 +1413,6 @@
           </Alt>
         </arg>
       </Rule>
-      <Rule name='EFunCall'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='EFunCall'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='fun'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[EUnOp]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Lit value='('/>
-                      <Field name='params'>
-                        <arg many='false' keyed='false'>
-                          <Regular optional='true' many='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Expr]
-                                </rule>
-                              </Call>
-                            </arg>
-                            <sep many='false' keyed='false'>
-                              <Lit value=','/>
-                            </sep>
-                          </Regular>
-                        </arg>
-                      </Field>
-                      <Lit value=')'/>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Create name='EFunCall'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Field name='fun'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[EUnOp]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Lit value='('/>
-                      <Field name='params'>
-                        <arg many='false' keyed='false'>
-                          <Regular optional='true' many='true'>
-                            <arg many='false' keyed='false'>
-                              <Call>
-                                <rule many='false' keyed='true'>
-                                  /rules[Expr]
-                                </rule>
-                              </Call>
-                            </arg>
-                            <sep many='false' keyed='false'>
-                              <Lit value=','/>
-                            </sep>
-                          </Regular>
-                        </arg>
-                      </Field>
-                      <Lit value=')'/>
-                      <Field name='lambda'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[ELambda]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
       <Rule name='ELambda'>
         <grammar many='false' keyed='false'>
           /
@@ -1371,74 +1461,6 @@
           </Alt>
         </arg>
       </Rule>
-      <Rule name='EUnOp'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Create name='EUnOp'>
-                <arg many='false' keyed='false'>
-                  <Sequence>
-                    <elements many='true' keyed='false'>
-                      <Lit value='not'/>
-                      <Field name='e'>
-                        <arg many='false' keyed='false'>
-                          <Call>
-                            <rule many='false' keyed='true'>
-                              /rules[Expr]
-                            </rule>
-                          </Call>
-                        </arg>
-                      </Field>
-                      <Code>
-                        <expr many='false' keyed='false'>
-                          <EBinOp op='eql?'>
-                            <e1 many='false' keyed='false'>
-                              <EVar name='op'/>
-                            </e1>
-                            <e2 many='false' keyed='false'>
-                              <EStrConst val='!'/>
-                            </e2>
-                          </EBinOp>
-                        </expr>
-                      </Code>
-                    </elements>
-                  </Sequence>
-                </arg>
-              </Create>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[EFunCall]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[EListComp]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[Primary]
-                    </rule>
-                  </Call>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
       <Rule name='Schema'>
         <grammar many='false' keyed='false'>
           /
@@ -1460,6 +1482,9 @@
                                 </rule>
                               </Call>
                             </arg>
+                            <sep many='false' keyed='false'>
+                              <Break lines='2'/>
+                            </sep>
                           </Regular>
                         </arg>
                       </Field>
@@ -1547,6 +1572,8 @@
                           /rules[ClassAnnot]
                         </rule>
                       </Call>
+                      <Break lines='1'/>
+                      <Indent indent='1'/>
                       <Field name='defined_fields'>
                         <arg many='false' keyed='false'>
                           <Regular optional='true' many='true'>
@@ -1557,9 +1584,14 @@
                                 </rule>
                               </Call>
                             </arg>
+                            <sep many='false' keyed='false'>
+                              <Break lines='1'/>
+                            </sep>
                           </Regular>
                         </arg>
                       </Field>
+                      <Indent indent='-1'/>
+                      <Break lines='1'/>
                     </elements>
                   </Sequence>
                 </arg>
@@ -1664,6 +1696,7 @@
                           <Value kind='sym'/>
                         </arg>
                       </Field>
+                      <NoSpace/>
                       <Call>
                         <rule many='false' keyed='true'>
                           /rules[Kind]
@@ -1682,11 +1715,15 @@
                           </Ref>
                         </arg>
                       </Field>
-                      <Call>
-                        <rule many='false' keyed='true'>
-                          /rules[Multiplicity]
-                        </rule>
-                      </Call>
+                      <Regular optional='true'>
+                        <arg many='false' keyed='false'>
+                          <Call>
+                            <rule many='false' keyed='true'>
+                              /rules[Multiplicity]
+                            </rule>
+                          </Call>
+                        </arg>
+                      </Regular>
                       <Regular optional='true'>
                         <arg many='false' keyed='false'>
                           <Call>
@@ -1794,6 +1831,7 @@
             <alts many='true' keyed='false'>
               <Sequence>
                 <elements many='true' keyed='false'>
+                  <NoSpace/>
                   <Lit value='*'/>
                   <Code>
                     <expr many='false' keyed='false'>
@@ -1825,6 +1863,7 @@
               </Sequence>
               <Sequence>
                 <elements many='true' keyed='false'>
+                  <NoSpace/>
                   <Lit value='?'/>
                   <Code>
                     <expr many='false' keyed='false'>
@@ -1842,6 +1881,7 @@
               </Sequence>
               <Sequence>
                 <elements many='true' keyed='false'>
+                  <NoSpace/>
                   <Lit value='+'/>
                   <Code>
                     <expr many='false' keyed='false'>
@@ -1853,15 +1893,6 @@
                           <EBoolConst val='true'/>
                         </e2>
                       </EBinOp>
-                    </expr>
-                  </Code>
-                </elements>
-              </Sequence>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Code>
-                    <expr many='false' keyed='false'>
-                      <EBoolConst val='true'/>
                     </expr>
                   </Code>
                 </elements>
@@ -1914,26 +1945,6 @@
                       </Call>
                     </arg>
                   </Field>
-                </elements>
-              </Sequence>
-            </alts>
-          </Alt>
-        </arg>
-      </Rule>
-      <Rule name='Expr'>
-        <grammar many='false' keyed='false'>
-          /
-        </grammar>
-        <arg many='false' keyed='false'>
-          <Alt>
-            <alts many='true' keyed='false'>
-              <Sequence>
-                <elements many='true' keyed='false'>
-                  <Call>
-                    <rule many='false' keyed='true'>
-                      /rules[ETernOp]
-                    </rule>
-                  </Call>
                 </elements>
               </Sequence>
             </alts>

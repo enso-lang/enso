@@ -1,4 +1,4 @@
-<grammar.grammar source='core/grammar/models/grammar.grammar' date='2013-01-30 12:30:54 -0600' checksum='be42cd4ad60cc0b7f451b3dfc06402064d112e8d'>
+<grammar.grammar source='core/grammar/models/grammar.grammar' date='2013-01-31 19:17:25 -0600' checksum='dbed4d21cacaa0aa26a48d02bffa82f8c800bc9e'>
   <depends>
     <expr.grammar source='core/expr/models/expr.grammar' date='2013-01-21 11:10:08 -0600' checksum='1a3b10fb6ed587bfd6e98bc61850f0e64afbf30b'/>
   </depends>
@@ -1047,10 +1047,12 @@
                                 </rule>
                               </Call>
                             </arg>
+                            <sep many='false' keyed='false'>
+                              <Break lines='2'/>
+                            </sep>
                           </Regular>
                         </arg>
                       </Field>
-                      <Break lines='1'/>
                     </elements>
                   </Sequence>
                 </arg>
@@ -1118,6 +1120,7 @@
                 <arg many='false' keyed='false'>
                   <Sequence>
                     <elements many='true' keyed='false'>
+                      <Indent indent='1'/>
                       <Field name='alts'>
                         <arg many='false' keyed='false'>
                           <Regular many='true'>
@@ -1143,6 +1146,7 @@
                           </Regular>
                         </arg>
                       </Field>
+                      <Indent indent='-1'/>
                     </elements>
                   </Sequence>
                 </arg>

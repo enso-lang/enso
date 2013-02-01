@@ -30,20 +30,20 @@ class RenderClass < Dispatch
     r
   end
 
-  def Grammar(this, stream)
+  def Grammar(this, stream, container)
     # ugly, should be higher up
     @root = stream.current
     @literals = Scan.collect_keywords(this)
-    Rule(this.start, SingletonStream.new(stream.current))
+    Rule(this.start, SingletonStream.new(stream.current), container)
   end
 
-  def recurse(pat, data)
+  def recurse(pat, data, container=nil)
     pair = [pat, data.current]
     if !@stack.include?(pair)
       @stack << pair 
       #puts "#{' '*@depth}#{pat} #{data.current}"
       @depth = @depth + 1
-      val = send(pat.schema_class.name, pat, data)
+      val = send(pat.schema_class.name, pat, data, container)
       @depth = @depth - 1
       #puts "#{' '*@depth}#{pat} #{data.current} ==> #{val}"
       @stack.pop
@@ -51,24 +51,24 @@ class RenderClass < Dispatch
     end
   end
 
-  def Rule(this, stream)
-    recurse(this.arg, stream)
+  def Rule(this, stream, container)
+    recurse(this.arg, stream, container)
   end
     
-  def Call(this, stream)
-    recurse(this.rule, stream)
+  def Call(this, stream, container)
+    recurse(this.rule, stream, container)
   end
 
-  def Alt(this, stream)
+  def Alt(this, stream, container)
     this.alts.reduce(nil) do |memo, alt|
-      memo || recurse(alt, stream.copy)
+      memo || recurse(alt, stream.copy, container)
     end
   end
 
-  def Sequence(this, stream)
+  def Sequence(this, stream, container)
     items = true
     ok = this.elements.all? do |x|
-      item = recurse(x, stream)
+      item = recurse(x, stream, container)
       if item
         if item == true
           true
@@ -86,20 +86,20 @@ class RenderClass < Dispatch
     items if ok
   end
 
-  def Create(this, stream)
+  def Create(this, stream, container)
     obj = stream.current
     #puts "#{' '*@depth}[#{this.name}] #{obj}"
     if !obj.nil? && obj.schema_class.name == this.name
       @last_pattern = this
       @last_object = obj
       stream.next
-      recurse(this.arg, SingletonStream.new(obj))
+      recurse(this.arg, SingletonStream.new(obj), obj)
     else
       nil
     end
   end
 
-  def Field(this, stream)
+  def Field(this, stream, container)
     obj = stream.current
     #puts "#{' '*@depth}FIELD #{this.name}"
     if this.name == "_id"
@@ -119,11 +119,11 @@ class RenderClass < Dispatch
         this.arg.value
       end
     else
-      recurse(this.arg, data)
+      recurse(this.arg, data, container)
     end
   end
   
-  def Value(this, stream)
+  def Value(this, stream, container)
     obj = stream.current
     if !obj.nil?
       if !(obj.is_a?(String) || obj.is_a?(Fixnum)  || obj.is_a?(Float))
@@ -150,19 +150,20 @@ class RenderClass < Dispatch
     end
   end
 
-  def Ref(this, stream)
+  def Ref(this, stream, container)
     obj = stream.current
     if !obj.nil?
       it = PathVar.new("it")
       path = ToPath.to_path(this.path, it)
-      bind = path.search(@root, obj)
+      #puts "#{' '*@depth}RENDER #{path} REF /=#{@root} .=#{container}"
+      bind = path.search(@root, container, obj)
       
-      #puts "#{' '*@depth}RENDER REF #{obj}=#{v}"
+      #puts "#{' '*@depth}RENDER REF #{container}=#{v}"
       output(bind[it]) if !bind.nil? # TODO: need "." keys
     end
   end
 
-  def Lit(this, stream)
+  def Lit(this, stream, container)
     obj = stream.current
     #puts "#{' '*@depth}Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
     output(this.value)
@@ -172,7 +173,7 @@ class RenderClass < Dispatch
     v
   end
   
-  def Code(this, stream)
+  def Code(this, stream, container)
     obj = stream.current
     if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code != ""
      # FIXME: this case is needed to parse bootstrap grammar
@@ -183,10 +184,10 @@ class RenderClass < Dispatch
     end
   end
 
-  def Regular(this, stream)
+  def Regular(this, stream, container)
     if !this.many
       # optional
-      recurse(this.arg, stream) || true
+      recurse(this.arg, stream, container) || true
     else
       if stream.length > 0 || this.optional
         oldEnv = @localEnv
@@ -200,7 +201,7 @@ class RenderClass < Dispatch
           @localEnv['_first'] = (i == 0)
           @localEnv['_last'] = (stream.length == 1)
           if i > 0 && this.sep
-            v = recurse(this.sep, stream)
+            v = recurse(this.sep, stream, container)
             if v
               s << v
             else
@@ -209,7 +210,7 @@ class RenderClass < Dispatch
           end
           if ok
             pos = stream.length
-            v = recurse(this.arg, stream)
+            v = recurse(this.arg, stream, container)
             if v
               s << v
               stream.next if stream.length == pos
@@ -225,15 +226,15 @@ class RenderClass < Dispatch
     end
   end
   
-  def NoSpace(this, stream)
+  def NoSpace(this, stream, container)
     this
   end
   
-  def Indent(this, stream)
+  def Indent(this, stream, container)
     this
   end
   
-  def Break(this, stream)
+  def Break(this, stream, container)
     this
   end
   

@@ -2,12 +2,12 @@ import path.grammar, expr.grammar
 
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule*/
+  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule* @/2
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
 
-  Alt ::= [Alt] alts:Create+@(/ "|")
+  Alt ::= [Alt] > alts:Create+@(/ "|") <
 
   Create ::= [Create] "[" . name:sym . "]" arg:Sequence
     | Sequence

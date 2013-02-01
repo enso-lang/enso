@@ -90,7 +90,7 @@ class ObjEnv
   end
   def [](key)
     if key == "self"
-      puts "SELF = #{obj}"
+      #puts "SELF = #{obj}"
       @obj
     elsif @obj.schema_class.all_fields.any?{|f|f.name == key}
       @obj[key]

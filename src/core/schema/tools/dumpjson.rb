@@ -53,5 +53,5 @@ if __FILE__ == $0 then
   end
 
   mod = Loader.load(ARGV[0])
-  jj ToJSON.to_json(mod, true)
+  jj ToJSON.to_json(mod, false)
 end

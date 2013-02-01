@@ -288,16 +288,21 @@ class DemoBuilder < Ripper::SexpBuilder
     end
 
     def on_def(name, params, body)
+      make_def_binding(name, params, body)
+    end
+    
+    make_def_binding(name, params, body)
       #puts "DEF #{name} #{params} #{body}"
       raise "can't redefine ==" if name == "=="
-      @f.Binding(fixup_name(name), @f.Fun(params.normal, params.block, params.rest, get_seq(body)))
+      fun = @f.Fun(params.normal, params.block, params.rest, get_seq(body))
+      @f.Binding(fixup_name(name), fun)
     end
 
-    def on_defs(target, separator, identifier, params, body)
+    def on_defs(target, separator, name, params, body)
       if !(target.Var? && target.name == "self")
         raise "only self meta-methods allowed"
       end
-      MetaDef.new(@f.Binding(fixup_name(identifier), @f.Fun(params.normal, params.block, params.rest, get_seq(body))))
+      MetaDef.new(make_def_binding(name, params, body))
     end
 
     def on_defined(ref)
@@ -668,7 +673,7 @@ class DemoBuilder < Ripper::SexpBuilder
          name = "push" 
       elsif name[-1] == "!"
          name = "#{name[0..-2]}_in_place" 
-      elsif name[-1] == "="
+      elsif name[-1] == "=" && name != "[]="
          name = "set_#{name[0..-2]}" 
       end
       name = name[1..-1] if name[0]=="$"

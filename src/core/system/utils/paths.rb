@@ -3,7 +3,9 @@
 
 module Paths
   def self.parse(str)
-    Path.parse(str)
+    p = Path.parse(str)
+    #puts "PARSE #{str} #{p}"
+    p
   end
 
   def self.new(elts = [])
@@ -16,13 +18,15 @@ module Paths
     def self.parse(str)
       if str.empty? or str=="/"
         Path.new
-      elsif str =~ /^\.(.*)$/ then
-        Path.new([Current.new] + parse($1).elts)
-      elsif str =~ /^\/([a-zA-Z_0-9]+)(.*)$/ then
+      elsif str =~ /^\.\/(.*)$/ then
+        Path.new(parse($1).elts)
+      elsif str =~ /^\/(.*)$/ then
+        Path.new([Root.new] + parse($1).elts)
+      elsif str =~ /^([a-zA-Z_0-9]+)\/?(.*)$/ then
         Path.new([Field.new($1)] + parse($2).elts)
-      elsif str =~ /^\[([0-9]+)\](.*)$/ then
+      elsif str =~ /^\[([0-9]+)\]\/?(.*)$/ then
         Path.new([Index.new($1.to_i)] + parse($2).elts)
-      elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\](.*)$/  then
+      elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\]\/?(.*)$/  then
         rest = $4
         s = $1.gsub('\\[', '[]').gsub('\\]',  ']')
         Path.new([Key.new(s)] + parse(rest).elts)
@@ -60,24 +64,25 @@ module Paths
     end
 
     def deref(scan, root = scan)
+      #puts "Deref element: #{elts}, scan = #{scan}, root=#{root}"
       elts.each do |elt|
-        #puts "Deref element: #{elt}, scan = #{scan} "
         raise "cannot dereference #{elt} on #{scan}" if !scan
         scan = elt.deref(scan, root)
       end
       return scan
     end
 
-    def search(root, obj)
-      searchElts(elts, root, root, {}) do |item, bindings|
-        #puts "SEARCH #{elts} ==> #{item} for #{obj} with #{bindings}"
-        return bindings if obj == item
+    def search(root, base, target)
+      #puts "SEARCH_START #{root} #{base} #{target}"
+      searchElts(elts, base, root, {}) do |item, bindings|
+        #puts "SEARCH #{elts} ==> #{item} for #{target} with #{bindings}"
+        return bindings if target == item
       end
       return nil
     end
 
     def searchElts(todo, scan, root, bindings, &action)
-      #puts "SEARCH #{todo} on #{scan} with #{bindings}"
+      #puts "SEARCH_ELTS #{todo} on #{scan} with #{bindings}"
       if todo.nil? || todo.first.nil?
         action.call(scan, bindings)
       else
@@ -165,7 +170,7 @@ module Paths
     # path element
   end
 
-  class Current < Elt
+  class Root < Elt
     def deref(obj, root)
       #puts "Derreffing 'this': obj = #{obj}; root = #{root}"
       root
@@ -176,7 +181,7 @@ module Paths
     end
 
     def to_s
-      '.'
+      'ROOT'
     end
   end
 
@@ -193,6 +198,7 @@ module Paths
     end
 
     def search(obj, root, bindings, &action)
+      #puts "SEARCH_FIELD #{obj}.#{@name} => #{obj[@name]}"
       action.call(obj[@name], bindings) if !obj.nil? && obj.schema_class.all_fields[@name]
     end
 
@@ -214,6 +220,7 @@ module Paths
     end
 
     def search(obj, root, bindings, &action)
+      #puts "SEARCH_INDEX #{obj} root=#{root} binds=#{bindings}"
       if @index.is_a?(PathVar)
         obj.each_with_index do |item, i|
           action.call(item, { @index => i}.update(bindings))
@@ -243,6 +250,7 @@ module Paths
 
     def search(obj, root, bindings, &action)
       if @key.is_a?(PathVar)
+        #puts "SEARCH_KEY #{obj} root=#{root} binds=#{bindings}"
         obj.each_pair do |k, item|
           action.call(item, { @key => k}.update(bindings))
         end
@@ -267,6 +275,9 @@ module Paths
       @name = name
     end
     attr_reader :name
+    def to_s
+      @name
+    end
   end
 end
 
