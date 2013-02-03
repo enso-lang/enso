@@ -36,7 +36,7 @@ module ManagedData
       new || Set.new(nil, @field, __key)
     end
       
-    def join(other)
+    def each_with_match(other)
       empty = Set.new(nil, @field, __key)
       __outer_join(other || empty) do |sa, sb|
         if sa && sb && sa[__key.name] == sb[__key.name] 
@@ -63,7 +63,7 @@ module ManagedData
   end
 
   module ListUtils
-    def join(other)
+    def each_with_match(other)
       if !empty? then
         each do |item|
           yield item, nil

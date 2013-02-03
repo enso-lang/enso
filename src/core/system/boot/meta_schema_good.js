@@ -1,7 +1,7 @@
 
   require ( "enso" )
   
-     MObject = MakeClass( EnsoBaseObject, { _class_ : { seq_no : 0 },
+     MObject = MakeClass( EnsoBaseClass, { _class_ : { seq_no : 0 },
        _id : function ( ) { return this.$. _id } ,
        initialize : function (data, root) { var self=this;
          self.$._id = self._class_.seq_no = self._class_.seq_no + 1 ;

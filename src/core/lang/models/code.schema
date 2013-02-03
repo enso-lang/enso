@@ -49,13 +49,14 @@ class Super < Expr
   info: Call?
 
 class Fun < Expr
-  args! Arg*
+  args! Decl*
   block: str?     // Decl
   rest: str?      // Decl
+  locals: Decl*
   body! Expr
   num_args: int = args.length + (block ? 1 : 0)
 
-class Arg
+class Decl
   name: str
   default! Expr?
 

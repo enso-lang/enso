@@ -15,11 +15,12 @@ Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
 Binding ::= [Binding] name:sym "=" value:Expr
 Directive ::= [Directive] (action:"attr_reader" | action:"attr_writer" | action:"attr_accessor" | action:"include") what:Expr
 
-Fun     ::= [Fun] (."(".Params.")")? body:Seq "end"
+Fun     ::= [Fun] (."(".Params.")")? /> ("local" locals:Decl+ @"," /)? body:SeqA </ "end"
 Params  ::= args:Arg+ @(.",") (."," "*".rest:sym)? (."," "&".block:sym)?
           | "*".rest:sym (."," "&".block:sym)?
           | "&".block:sym
-Arg     ::= [Arg] name:sym ("=" default:Expr)?
+Arg     ::= [Decl] name:sym ("=" default:Expr)?
+Decl     ::= [Decl] ":".name:sym
 
 Seq      ::= /> SeqA </
 SeqA     ::= [Seq] statements:Statement* @/ | Statement | Block
@@ -74,11 +75,10 @@ List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:(str | int | real)
-ECall   ::= [Call] target:Super "super" info:SuperArgs 
+ECall   ::= [Call] target:Super "super" (ParenArgs | "(".")")
           | [Call] ({block==nil} | block:IsVar) Call
   IsVar ::= [Var] 
   Super ::= [Super]
-  SuperArgs ::= [Call] ParenArgs
 Call    ::= Target? method:sym ParenArgs?
   ParenArgs ::= ."(".Args.")"
   Target  ::= target:Primary .".".

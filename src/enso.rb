@@ -11,10 +11,6 @@ module System
   end
 end
   
-def MakeProxy x
-  x
-end
-
 class Hash
   def has_key_p(x); has_key?(x); end
 end
@@ -26,25 +22,27 @@ class Object
   def is_a_p(x); is_a?(x); end
 end
 
-class EnsoBaseObject
-    begin
-      undef_method :lambda, :methods
-    rescue
-    end
-    def type  # HACK for JRuby to work, because it defines :type
-      method_missing(:type)
-    end
-    def [](prop)
-      send(prop)
-    end
-    def method_missing(msg, *args)
-      if msg.slice(-1) == "="
-        _set(msg.chomp, args[0])
-      elsif msg == "[]"
-        _get(args[0])
-      else
-        _get(msg)
-      end
-    end
+class EnsoBaseClass
+  begin
+    undef_method :lambda, :methods
+  rescue
+  end
+  def type  # HACK for JRuby to work, because it defines :type
+    method_missing(:type)
+  end
 end
 
+class EnsoProxyObject < EnsoBaseClass
+  def [](prop)
+    send(prop)
+  end
+  def method_missing(msg, *args)
+    if msg.slice(-1) == "="
+      _set(msg.chomp, args[0])
+    elsif msg == "[]"
+      _get(args[0])
+    else
+      _get(msg)
+    end
+  end
+end

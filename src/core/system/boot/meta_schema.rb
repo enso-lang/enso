@@ -14,7 +14,7 @@ The only requirements are:
 =end
 
 module Boot
-  class MObject < EnsoBaseObject
+  class MObject < EnsoProxyObject
     attr_reader :_id
     @@seq_no = 0
     def initialize(data, root)
@@ -82,11 +82,11 @@ module Boot
   def self.make_object(data, root)
     case data['class']
     when "Schema" 
-      MakeProxy(Schema.new(data, root))
+      Schema.new(data, root)
     when "Class"  
-      MakeProxy(Class.new(data, root))
+      Class.new(data, root)
     else
-      MakeProxy(MObject.new(data, root))
+      MObject.new(data, root)
     end
   end
 
@@ -129,7 +129,7 @@ module Boot
     def has_key?(key)
       self[key]
     end
-    def join(other, &block)
+    def each_with_match(other, &block)
       if @keyed
         other = other || {}
         ks = keys || other.keys

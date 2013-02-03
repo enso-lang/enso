@@ -1,4 +1,3 @@
-require "enso"
 require "core/schema/code/many"
 require "core/schema/code/dynamic"
 require "core/system/utils/paths"
@@ -14,11 +13,11 @@ module ManagedData
     def initialize(schema)
       @schema = schema;
       @roots = [];
-      __constructor(schema.types);
+      self.__constructor(schema.types);
       @file_path = [];
     end
     def [](name)
-      send(name);
+      self.send(name);
     end
     def register(root)
       @roots.push(root);
@@ -31,7 +30,7 @@ module ManagedData
     attr_accessor "file_path"
     def __constructor(klasses)
       klasses.each do |klass|
-        define_singleton_method(klass.name) do |*args|
+        self.define_singleton_method(klass.name) do |*args|
           MObject.new(klass, self, *args);
         end
       end
@@ -52,13 +51,13 @@ module ManagedData
       @hash = {};
       @listeners = {};
       @memo = {};
-      __setup(klass.all_fields);
-      __init(klass.fields, args);
-      __install(klass.all_fields);
+      self.__setup(klass.all_fields);
+      self.__init(klass.fields, args);
+      self.__install(klass.all_fields);
     end
     def method_missing(sym, *args, &block)
       if sym[- 1] == "?" then
-        schema_class.name == sym.slice(0, sym.length - 1);
+        self.schema_class.name == sym.slice(0, sym.length - 1);
       else
         super(sym, *args, &block);
       end
@@ -67,27 +66,27 @@ module ManagedData
       @factory;
     end
     def instance_of_p(sym)
-      schema_class.name == sym.to_s;
+      self.schema_class.name == sym.to_s;
     end
     def [](name)
-      check_field(name, true);
-      if computed_p(name) then
-        send(name);
+      self.check_field(name, true);
+      if self.computed_p(name) then
+        self.send(name);
       else
-        __get(name).get;
+        self.__get(name).get;
       end
     end
     def []=(name, x)
-      check_field(name, false);
-      __get(name).set(x);
+      self.check_field(name, false);
+      self.__get(name).set(x);
     end
     def delete_in_place
-      factory.delete_in_place(self);
+      self.factory.delete_in_place(self);
     end
     def __delete_obj(mobj)
-      schema_class.fields.each do |fld|
+      self.schema_class.fields.each do |fld|
         if fld.traversal then
-          __get(fld.name).__delete_obj(mobj);
+          self.__get(fld.name).__delete_obj(mobj);
         end
       end
     end
@@ -107,24 +106,25 @@ module ManagedData
       end
     end
     def _origin_of(name)
-      __get(name)._origin;
+      self.__get(name)._origin;
     end
     def _set_origin_of(name, org)
-      __get(name)._origin = org;
+      self.__get(name)._origin = org;
     end
     def _path_of(name)
-      _path.field(name);
+      self._path.field(name);
     end
     def _path
-      if __shell then
-        __shell._path(self);
+      if self.__shell then
+        self.__shell._path(self);
       else
         Paths.new;
       end
     end
     def _clone
+      local :r
       r = MObject.new(@schema_class, @factory);
-      schema_class.fields.each do |field|
+      self.schema_class.fields.each do |field|
         if field.many then
           self[field.name].each do |o|
             r[field.name].push(o);
@@ -145,35 +145,37 @@ module ManagedData
       self == o;
     end
     def equals(o)
-      (o && o.is_a_p(MObject)) && _id == o._id;
+      (o && o.is_a_p(MObject)) && self._id == o._id;
     end
     def hash
-      _id;
+      self._id;
     end
     def to_s
-      k = ClassKey(schema_class);
+      local :k
+      k = ClassKey(self.schema_class);
       if k then
-        str("<<", schema_class.name, " ", _id, " '", self[k.name], "'>>");
+        S("<<", self.schema_class.name, " ", self._id, " '", self[k.name], "'>>");
       else
-        str("<<", schema_class.name, " ", _id, ">>");
+        S("<<", self.schema_class.name, " ", self._id, ">>");
       end
     end
     def finalize
-      factory.register(self);
+      self.factory.register(self);
       self;
     end
     def check_field(name, can_be_computed)
       if ! @hash.include_p(name) then
-        raise(str("Non-existing field '", name, "' for ", self));
+        self.raise(S("Non-existing field '", name, "' for ", self));
       end
-      if ! can_be_computed && computed_p(name) then
-        raise(str("Cannot assign to computed field '", name, "'"));
+      if ! can_be_computed && self.computed_p(name) then
+        self.raise(S("Cannot assign to computed field '", name, "'"));
       end
     end
     def computed_p(name)
-      __get(name) == "computed";
+      self.__get(name) == "computed";
     end
     def __setup(fields)
+      local :klass , :key , :f
       fields.each do |fld|
         klass = self;
         f = if fld.computed then
@@ -189,17 +191,18 @@ module ManagedData
         else
           ManagedData.List.new(klass, fld);
         end
-        __set(fld.name, f);
+        self.__set(fld.name, f);
       end
     end
     def __init(fields, args)
       fields.each_with_index do |fld, i|
         if i < args.length then
-          __get(fld.name).init(args[i]);
+          self.__get(fld.name).init(args[i]);
         end
       end
     end
     def __install(fields)
+      local :c , :base
       fields.each do |fld|
         if fld.computed then
           if fld.computed.EList_p && (
@@ -211,25 +214,26 @@ module ManagedData
             if base.inverse then
               fld.computed.elems.each do |var|
                 if ! var.EVar_p then
-                  raise(str("Field override ", fld.name, " includes non-var ", var));
+                  self.raise(S("Field override ", fld.name, " includes non-var ", var));
                 end
-                __get(var.name)._set_inverse = base.inverse;
+                self.__get(var.name)._set_inverse = base.inverse;
               end
             end
           end
-          __computed(fld);
+          self.__computed(fld);
         else
-          __setter(fld.name);
-          __getter(fld.name);
+          self.__setter(fld.name);
+          self.__getter(fld.name);
         end
       end
     end
     def __computed(fld)
+      local :name , :exp , :fvInterp , :commInterp , :fvs , :val
       name = fld.name;
       exp = fld.computed;
       fvInterp = Interpreter(FreeVarExpr);
       commInterp = Interpreter(EvalCommand);
-      define_singleton_method(name) do
+      self.define_singleton_method(name) do
         if @memo[name] == nil then
           fvs = fvInterp.depends(exp, {});
           fvs.each do |fv|
@@ -246,12 +250,12 @@ module ManagedData
       end
     end
     def __setter(name)
-      define_singleton_method(str(name, "=")) do |arg|
+      self.define_singleton_method(S(name, "=")) do |arg|
         self[name] = arg;
       end
     end
     def __getter(name)
-      define_singleton_method(name) do
+      self.define_singleton_method(name) do
         self[name];
       end
     end
@@ -261,7 +265,7 @@ module ManagedData
     attr_accessor "_origin"
     def set__set_inverse(inv)
       if @inverse then
-        raise(str("Overiding inverse of field '", inv.owner.name, ".", invk.name, "'"));
+        self.raise(S("Overiding inverse of field '", inv.owner.name, ".", self.invk.name, "'"));
       end
       @inverse = inv;
     end
@@ -275,17 +279,17 @@ module ManagedData
     def __delete_obj(mobj)
     end
     def to_s
-      str(".", @field.name, " = ", @value);
+      S(".", @field.name, " = ", @value);
     end
   end
 
   class Single < Field
     def initialize(owner, field)
       super(owner, field);
-      @value = default;
+      @value = self.default;
     end
     def set(value)
-      check(value);
+      self.check(value);
       @value = value;
       @owner.notify(@field.name, value);
     end
@@ -293,7 +297,7 @@ module ManagedData
       @value;
     end
     def init(value)
-      set(value);
+      self.set(value);
     end
     def default
       nil;
@@ -302,6 +306,7 @@ module ManagedData
 
   class Prim < Single
     def check(value)
+      local :ok
       if ! @field.optional || value then
         ok = if @field.type.name == "str" then
           value.is_a_p(String);
@@ -317,7 +322,7 @@ module ManagedData
           ((value.is_a_p(Numeric) || value.is_a_p(String)) || value.is_a_p(TrueClass)) || value.is_a_p(FalseClass);
         end
         if ! ok then
-          raise(str("Invalid value for ", @field.type.name, ": ", value));
+          self.raise(S("Invalid value for ", @field.type.name, ": ", value));
         end
       end
     end
@@ -336,7 +341,7 @@ module ManagedData
         elsif @field.type.name == "atom" then
           nil;
         else
-          raise(str("Unknown primitive type: ", @field.type.name));
+          self.raise(S("Unknown primitive type: ", @field.type.name));
         end
       end
     end
@@ -368,13 +373,13 @@ module ManagedData
     def check(mobj)
       if mobj || ! @field.optional then
         if mobj.nil_p then
-          raise(str("Cannot assign nil to non-optional field ", @field.name));
+          self.raise(S("Cannot assign nil to non-optional field ", @field.name));
         end
         if ! Subclass_p(mobj.schema_class, @field.type) then
-          raise(str("Invalid value for '", @field.owner.name, ".", @field.name, "': ", mobj, " : ", mobj.schema_class.name));
+          self.raise(S("Invalid value for '", @field.owner.name, ".", @field.name, "': ", mobj, " : ", mobj.schema_class.name));
         end
         if mobj._graph_id != @owner._graph_id then
-          raise(str("Inserting object ", mobj, " into the wrong model"));
+          self.raise(S("Inserting object ", mobj, " into the wrong model"));
         end
       end
     end
@@ -383,17 +388,17 @@ module ManagedData
   class Ref < Single
     include RefHelpers
     def set(value)
-      check(value);
-      notify(get, value);
-      __set(value);
+      self.check(value);
+      self.notify(self.get, value);
+      self.__set(value);
     end
     def __set(value)
       if @field.traversal then
         if value then
           value.__shell = self;
         end
-        if get && ! value then
-          get.__shell = nil;
+        if self.get && ! value then
+          self.get.__shell = nil;
         end
       end
       @value = value;
@@ -402,8 +407,8 @@ module ManagedData
       @owner._path.field(@field.name);
     end
     def __delete_obj(mobj)
-      if get == mobj then
-        set(nil);
+      if self.get == mobj then
+        self.set(nil);
       end
     end
   end
@@ -415,7 +420,7 @@ module ManagedData
       self;
     end
     def set
-      raise(str("Cannot assign to many-valued field ", @field.name));
+      self.raise(S("Cannot assign to many-valued field ", @field.name));
     end
     def init(values)
       values.each do |value|
@@ -426,43 +431,43 @@ module ManagedData
       @value;
     end
     def [](key)
-      __value[key];
+      self.__value[key];
     end
     def empty_p
-      __value.empty_p;
+      self.__value.empty_p;
     end
     def length
-      __value.length;
+      self.__value.length;
     end
     def to_s
-      __value.to_s;
+      self.__value.to_s;
     end
     def clear
-      __value.clear;
+      self.__value.clear;
     end
     def connected_p
       @owner;
     end
     def has_key_p(key)
-      keys.include_p(key);
+      self.keys.include_p(key);
     end
     def check(mobj)
-      if connected_p then
+      if self.connected_p then
         super(mobj);
       end
     end
     def notify(old, new)
-      if connected_p then
+      if self.connected_p then
         super(old, new);
       end
     end
     def __delete_obj(mobj)
-      if values.include_p(mobj) then
-        delete(mobj);
+      if self.values.include_p(mobj) then
+        self.delete(mobj);
       end
     end
     def connect(mobj, shell)
-      if connected_p && @field.traversal then
+      if self.connected_p && @field.traversal then
         mobj.__shell = shell;
       end
     end
@@ -476,18 +481,19 @@ module ManagedData
       @key = key;
     end
     def each(&block)
-      __value.each_value(&block);
+      self.__value.each_value(&block);
     end
     def each_pair(&block)
-      __value.each_pair(&block);
+      self.__value.each_pair(&block);
     end
     def values
-      __value.values;
+      self.__value.values;
     end
     def keys
-      __value.keys;
+      self.__value.keys;
     end
     def _recompute_hash_in_place
+      local :nval
       nval = {};
       @value.each do |k, v|
         nval[v[@key.name]] = v;
@@ -496,17 +502,18 @@ module ManagedData
       self;
     end
     def push(mobj)
-      check(mobj);
+      local :key
+      self.check(mobj);
       key = mobj[@key.name];
       if ! key then
-        raise(str("Nil key when adding ", mobj, " to ", self));
+        self.raise(S("Nil key when adding ", mobj, " to ", self));
       end
       if @value[key] != mobj then
         if @value[key] then
-          delete(@value[key]);
+          self.delete(@value[key]);
         end
-        notify(@value[key], mobj);
-        __insert(mobj);
+        self.notify(@value[key], mobj);
+        self.__insert(mobj);
       end
       self;
     end
@@ -514,22 +521,24 @@ module ManagedData
       self.push(mobj);
     end
     def delete(mobj)
+      local :key
       key = mobj[@key.name];
       if @value.has_key_p(key) then
-        notify(@value[key], nil);
-        __delete(mobj);
+        self.notify(@value[key], nil);
+        self.__delete(mobj);
       end
     end
     def _path(mobj)
       @owner._path.field(@field.name).key(mobj[@key.name]);
     end
     def __insert(mobj)
-      connect(mobj, self);
+      self.connect(mobj, self);
       @value[mobj[@key.name]] = mobj;
     end
     def __delete(mobj)
+      local :deleted
       deleted = @value.delete(mobj[@key.name]);
-      connect(deleted, nil);
+      self.connect(deleted, nil);
       deleted;
     end
   end
@@ -541,59 +550,63 @@ module ManagedData
       @value = [];
     end
     def [](key)
-      __value[key.to_i];
+      self.__value[key.to_i];
     end
     def each(&block)
-      __value.each(&block);
+      self.__value.each(&block);
     end
     def each_pair(&block)
-      __value.each_with_index do |item, i|
+      self.__value.each_with_index do |item, i|
         block.call(i, item);
       end
     end
     def values
-      __value;
+      self.__value;
     end
     def keys
-      Array.new(length) do |i|
+      Array.new(self.length) do |i|
         i;
       end
     end
     def push(mobj)
       if ! mobj then
-        raise("Cannot insert nil into list");
+        self.raise("Cannot insert nil into list");
       end
-      check(mobj);
-      notify(nil, mobj);
-      __insert(mobj);
+      self.check(mobj);
+      self.notify(nil, mobj);
+      self.__insert(mobj);
       self;
     end
     def []=(index, mobj)
+      local :old
       if ! mobj then
-        raise("Cannot insert nil into list");
+        self.raise("Cannot insert nil into list");
       end
-      check(mobj);
-      notify(nil, mobj);
-      old = __value[index.to_i];
-      __value[index.to_i] = mobj;
-      if old then
-        notify(old, nil);
+      old = self.__value[index.to_i];
+      if old != mobj then
+        self.check(mobj);
+        self.notify(nil, mobj);
+        self.__value[index.to_i] = mobj;
+        if old then
+          self.notify(old, nil);
+        end
       end
       self;
     end
     def delete(mobj)
-      deleted = __delete(mobj);
+      local :deleted
+      deleted = self.__delete(mobj);
       if deleted then
-        notify(deleted, nil);
+        self.notify(deleted, nil);
       end
       deleted;
     end
     def insert(index, mobj)
       if ! mobj then
-        raise("Cannot insert nil into list");
+        self.raise("Cannot insert nil into list");
       end
-      check(mobj);
-      notify(nil, mobj);
+      self.check(mobj);
+      self.notify(nil, mobj);
       @value.insert(index.to_i, mobj);
       self;
     end
@@ -601,12 +614,13 @@ module ManagedData
       @owner._path.field(@field.name).index(@value.index(mobj));
     end
     def __insert(mobj)
-      connect(mobj, self);
+      self.connect(mobj, self);
       @value.push(mobj);
     end
     def __delete(mobj)
+      local :deleted
       deleted = @value.delete(mobj);
-      connect(deleted, nil);
+      self.connect(deleted, nil);
       deleted;
     end
   end

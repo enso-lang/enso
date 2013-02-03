@@ -34,12 +34,15 @@ class DemoBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
     super
     schema = Loader.load('code.schema')
+    @predefined = ["self", "nil", "true", "false"]
     @f = ManagedData.new(schema)
     reset_assigned_vars()
   end
   
   def reset_assigned_vars()
-      @localVariables = ["self", "nil", "true", "false"]
+    vars = @assignedVariables
+    @assignedVariables = []
+    vars
   end  
 
   class << self
@@ -87,8 +90,8 @@ class DemoBuilder < Ripper::SexpBuilder
 
   def on_assign(lvalue, rvalue)
     if lvalue.Var?
-      if !lvalue.kind && !@localVariables.include?(lvalue.name)
-        @localVariables << lvalue.name
+      if !lvalue.kind && !@predefined.include?(lvalue.name) && !@assignedVariables.include?(lvalue.name)
+        @assignedVariables << lvalue.name
       end
     end
     @f.Assign(lvalue, "=", get_seq(rvalue))
@@ -238,7 +241,7 @@ class DemoBuilder < Ripper::SexpBuilder
       #puts "CMD #{name} #{args}"
       @f.Directive(name, args.normal[0])
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
-      #puts "CMD #{name} #{args}"
+      puts "CMD #{name} #{args}"
       args.normal.collect do |var|
         @f.Directive(name, var)
       end
@@ -275,12 +278,12 @@ class DemoBuilder < Ripper::SexpBuilder
     formals = []
     if params
       params.each do |x|
-        formals << @f.Arg(x)
+        formals << @f.Decl(x)
       end
     end
     if optionals
       optionals.collect do |x|
-        formals << @f.Arg(x[0], x[1])
+        formals << @f.Decl(x[0], x[1])
       end
     end
     #puts "FORM #{formals} #{block}"
@@ -302,101 +305,123 @@ class DemoBuilder < Ripper::SexpBuilder
   end
   
   def make_def_binding(name, params, body)
-    #puts "DEF #{name} #{params} #{body}"
+    vars = reset_assigned_vars()
+    puts "DEF #{name} #{params} #{vars}"
     raise "can't redefine ==" if name == "=="
-        
-    @currentMethod = fixup_name(name)
-    f = fixup_expr(make_fun(params, body))
-    reset_assigned_vars()
-    @f.Binding(@currentMethod, f)
+    name = fixup_name(name)
+    @f.Binding(name, make_fun(params, body, vars.map {|v| @f.Decl(v) }))
   end
 
-  def make_fun(params, body)
+  def make_fun(params, body, vars=[])
     if params
-      params.normal.each {|x| @localVariables << x.name}
-      @localVariables << params.block if params.block
-      @localVariables << params.rest if params.rest
-      @f.Fun(params.normal, params.block, params.rest, get_seq(body))
+      @f.Fun(params.normal, params.block, params.rest, vars, get_seq(body))
     else
-      @f.Fun([], nil, nil, get_seq(body))
+      @f.Fun([], nil, nil, [], get_seq(body))
     end
   end
-
-  def fixup_expr(o)
+  
+  def fixup_expr(o, env)
     return nil if !o
     case o.schema_class.name
+    when "Class", "Module"
+      if @rootModule
+        @selfVar = "self"
+      elsif o.name != "$TOP$"
+        puts "MAIN MODULE #{o.name}"
+        @selfVar = @rootModule = o.name
+      end
+      o.defs.each { |d| fixup_expr(d, env) }
+      o.meta.each { |d| fixup_expr(d, env) }
+      @selfVar = @rootModule
+      
     when "Binding"
-      o.value = fixup_expr(o.value)
+      if o.value.Fun?
+        @currentMethod = o.name
+        puts "FIXUP_METHOD #{@currentMethod} #{@selfVar}"
+      end
+      o.value = fixup_expr(o.value, env)
   
     when "EBinOp"
-      o.e1 = fixup_expr(o.e1)
-      o.e2 = fixup_expr(o.e2)
+      o.e1 = fixup_expr(o.e1, env)
+      o.e2 = fixup_expr(o.e2, env)
 
     when "EUnOp"
-      o.e = fixup_expr(o.e)
+      o.e = fixup_expr(o.e, env)
     
     when "Seq"
-      fixup_list(o.statements)
+      fixup_list(o.statements, env)
 
     when "Index"
-      o.base = fixup_expr(o.base)
-      o.index = fixup_expr(o.index)
+      o.base = fixup_expr(o.base, env)
+      o.index = fixup_expr(o.index, env)
 
     when "Call"
-      if o.target && o.target.Super?
-        o.method = @currentMethod
+      if o.target
+        if o.target.Super?
+          o.method = @currentMethod
+        end
+      else
+        if !(o.method =~ /[A-Z]/)
+          o.target = @f.Var(@selfVar)
+        end
       end
-      o.target = fixup_expr(o.target)
-      fixup_list(o.args)
-      o.rest = fixup_expr(o.rest)
-      o.block = fixup_expr(o.block)
+      o.target = fixup_expr(o.target, env)
+      fixup_list(o.args, env)
+      o.rest = fixup_expr(o.rest, env)
+      o.block = fixup_expr(o.block, env)
 
     when "Fun"
-      o.body = fixup_expr(o.body)
+      newvars = []
+      o.args.each {|x| newvars << x.name}
+      newvars << o.block if o.block
+      newvars << o.rest if o.rest
+      o.locals.each {|x| newvars << x.name}
+      puts "FUN #{newvars}"
+      o.body = fixup_expr(o.body, newvars + env)
 
-    when "Arg"
-      o.default = fixup_expr(o.default)
+    when "Decl"
+      o.default = fixup_expr(o.default, env)
 
     when "Assign"
-      o.to = fixup_expr(o.to)
-      o.from = fixup_expr(o.from)
+      o.to = fixup_expr(o.to, env)
+      o.from = fixup_expr(o.from, env)
 
     when "If"
-      o.cond = fixup_expr(o.cond)
-      o.sthen = fixup_expr(o.sthen)
-      o.selse = fixup_expr(o.selse)
+      o.cond = fixup_expr(o.cond, env)
+      o.sthen = fixup_expr(o.sthen, env)
+      o.selse = fixup_expr(o.selse, env)
 
     when "While"
-      o.cond = fixup_expr(o.cond)
-      o.body = fixup_expr(o.body)
+      o.cond = fixup_expr(o.cond, env)
+      o.body = fixup_expr(o.body, env)
 
     when "Rescue"
-      o.base = fixup_expr(o.base)
-      o.rescues.each {|x| fixup_expr(x) }
-      o.ensure = fixup_expr(o.ensure)
+      o.base = fixup_expr(o.base, env)
+      o.rescues.each {|x| fixup_expr(x, env) }
+      o.ensure = fixup_expr(o.ensure, env)
  
     when "Handler"
-      o.body = fixup_expr(o.body)
+      o.body = fixup_expr(o.body, [o.var] + env)
 
     when "Var"
-      if !o.kind && !@localVariables.include?(o.name) && !(o.name =~ /[A-Z]/)
-        o = @f.Call(@f.Var("self"), o.name)
+      if !(o.name =~ /[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
+        o = @f.Call(@f.Var(@selfVar), o.name)
       end
 
     when "List"
-      fixup_list(o.items)
+      fixup_list(o.items, env)
 
     when "Record"
-      o.fields.each {|x| fixup_expr(x) }
+      o.fields.each {|x| fixup_expr(x, env) }
 
     else
     end 
     o
   end      
   
-  def fixup_list(list)
+  def fixup_list(list, env)
     list.each_with_index do |obj, i|
-      list[i] = fixup_expr(obj)
+      list[i] = fixup_expr(obj, env)
     end
   end
 
@@ -443,7 +468,7 @@ class DemoBuilder < Ripper::SexpBuilder
   def on_if(expression, statements, else_block)
     expression = get_seq(expression)
     if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
-      @f.Binding("__main__", @f.Fun([], nil, nil, get_seq(statements)))
+      @f.Binding("__main__", @f.Fun([], nil, nil, [], get_seq(statements)))
     else
       @f.If(expression, get_seq(statements), get_seq(else_block))
     end
@@ -468,17 +493,11 @@ class DemoBuilder < Ripper::SexpBuilder
   
   def make_call(target, method, args = [], block = nil)
     method = fixup_name(method)
-    if !target && !(method =~ /[A-Z]/)
-      target = @f.Var("self")
-    end
     @f.Call(target, method, args, nil, block)
   end
 
   def make_call_formals(target, method, args)
     method = fixup_name(method)
-    if !target && !(method =~ /[A-Z]/)
-      target = @f.Var("self")
-    end
     @f.Call(target, method, args.normal, args.rest, args.block)
   end
 
@@ -488,8 +507,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_for(variable, range, statements)
-    @localVariables << variable.name
-    block = @f.Fun([@f.Arg(variable.name)], nil, nil, get_seq(statements))
+    block = @f.Fun([@f.Decl(variable.name)], nil, nil, [], get_seq(statements))
     make_call(range, "each", [], block)
   end
 
@@ -594,10 +612,10 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_program(defs) # parser event
-    defs.unshift(@f.Directive("require", @f.Lit("enso")))
-    @f.Module("TOP", [], defs)
+    puts "DEFS #{defs}"
+    fixup_expr(@f.Module("$TOP$", [], defs), [])
   end
-  
+    
   def on_qwords_add(array, word)
     array.push(Ruby::String.new(word)); array
   end
@@ -624,7 +642,6 @@ class DemoBuilder < Ripper::SexpBuilder
 
   def on_rescue(types, var, statements, block)
     #puts "RESCUE #{types} #{var} #{block}"
-    @localVariables << var
     if types && types.length != 1
       raise "Only one rescue type allowed"
     end
@@ -857,12 +874,12 @@ if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
   f = File.new(name, "r")
-  pp Ripper.sexp_raw(f)
+  #pp Ripper.sexp_raw(f)
   
   f = File.new(name, "r")
   m = DemoBuilder.build(f)
   g = Loader.load("code.grammar")
-  jj ToJSON::to_json(m)
+  #jj ToJSON::to_json(m)
    
   out = File.new("#{name.chomp(".rb")}.code", "w")
   DisplayFormat.print(g, m, 80, out, false)

@@ -48,7 +48,7 @@ class CopyInto
         if !field.many
           build(a_val, b_val)
         else
-          a_val.join(b_val) do |a_item, b_item|
+          a_val.each_with_match(b_val) do |a_item, b_item|
             build(a_item, b_item)
           end
         end
@@ -72,7 +72,7 @@ class CopyInto
         val = link(field.traversal, a_val, b_val)
         new[field.name] = val
       else
-        a_val.join(b_val) do |a_item, b_item|
+        a_val.each_with_match(b_val) do |a_item, b_item|
           item = link(field.traversal, a_item, b_item)
           new[field.name] << item unless new[field.name].include? item
         end

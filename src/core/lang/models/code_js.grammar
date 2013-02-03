@@ -3,9 +3,11 @@ start Program
 Program ::= [Module] defs:Top*
 Top     ::=  Require | MainModule
 Require ::= [Directive] action:"require" "(" what:Expr ")" /
-MainModule ::= [Module] defs:Def* @/2 /2 meta:Binding* @/2
+MainModule ::= [Module] defs:Def* @/2 /2 meta:Binding* @/2 /2 "exports = " name:sym "=" "{" /> defs:Export* meta:Export* < "}" /
 Def     ::= Binding | Class | Module
 Binding  ::= [Binding] name:sym "=" value:Expr
+Export ::= [Directive] | [Class] ExportName | [Binding] ExportName | [Module] ExportName
+ExportName ::= name:sym ":" name:sym "," /
 
 // class N < N 
 //   D* 
@@ -18,15 +20,18 @@ Class   ::= [Class] name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
 Body    ::= /> Meta? defs:DefB* @(.","/2) </
 Meta    ::= "_class_:" "{"/> meta:DefB+ @(.","/2) </"}," /2
 DefB     ::= BindingB | Directive
-BindingB  ::= [Binding] MethodSym .":" ({name=="initialize"} value:Method | value:MethodR | value:Expr)
-Method   ::= [Fun] "function(" Params ") {" /> "var self=this;"/ VarArg? body:SeqBody </"}"
-MethodR ::= [Fun] "function(" Params ") {" /> "var self=this;"/ VarArg? body:SeqBodyR </"}"
-VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
-MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
-
+BindingB  ::= [Binding] MethodSym .":" (Method | value:Expr)
+  MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
+Method   ::= value:FunHeader SuperBind value:FunBody
+  FunHeader ::= [Fun] "function(" Params ") {" /> "var self = this; "/ VarArg? Locals?
+    VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
+    Locals ::= "var" locals:Decl+ @(.",") .";" /
+  SuperBind ::= "var super$ = this.super$." MethodSym ";" /
+  FunBody ::= [Fun] body:SeqBody </"}"
+   
 Directive ::= Attr | Include
 Include ::= [Directive] action:"include" .":" what:Expr
-Attr    ::= [Directive] { action=="attr_reader" } Reader | { action=="attr_accessor" } Reader .","/ Writer
+Attr    ::= [Directive] ({ action=="attr_reader" } Reader | { action=="attr_accessor" } Reader .","/ Writer)
 Reader  ::= what:LitName .":" "function" "(" ")" "{" "return" "this"."."."$".".". what:LitName "}"
 Writer  ::= "set_".what:LitName .":" "function" "(val)" "{" "this"."."."$".".". what:LitName "=val" "}"
 LitName ::= [Lit] value:sym
@@ -77,13 +82,12 @@ EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
          | Primary
 
 
-Primary ::= InstVar | ClassVar | Nil | Var | Super |  IfE | List | Index | Record | Fun | Call | Super | Lit | "(". Expr .")" | 
+Primary ::= InstVar | ClassVar | Nil | Var | Super |  IfE | List | Index | Record | Fun | Call | Lit | "(". Expr .")" | 
              "((function(){" SeqR "})())"
 Nil     ::= [Var] "null" { name == "nil" }
 Var     ::= [Var] name:sym
 InstVar ::= [Var] "self"."."."$".".". name:sym { kind=="@" }
 ClassVar::= [Var] "self"."."."_class_".".". name:sym { kind=="@@" }
-Super   ::= [Super] "this.super$"
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Index   ::= [Index] base:Primary ."._get(". index:Expr .")"
 Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
@@ -91,14 +95,17 @@ Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
 Lit     ::= [Lit] value:(str | int | real)
 IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </    // TODO: Precedence!!
 
-CallRest ::= [Call] (target:Primary .".".)? "call_rest_method$" "(" method:str ."," (Args.",")? rest:Expr ")"
-Call  ::= [Call] (target:Primary .".".)? method:sym ."(". Args? .")"
+Call     ::= SuperCallRest | SuperCall | CallRest | CallNorm
+CallRest  ::= [Call] target:Primary .".". method:sym ".call_rest_args$(".target:Primary ."," (Args.",")? rest:Expr ")"
+CallNorm  ::= [Call] (target:Primary .".".)? method:sym ."(". Args? .")"
   Args    ::= (block:Fun .",")? args:Expr+ @(.",") 
             | block:Fun
+SuperCallRest ::= [Call] target:Super "super$.call_rest_args$(self," (Args.",")? rest:Expr ")"
+SuperCall     ::= [Call] target:Super "super$.call(self" (."," Args)? .")"
+  Super ::= [Super] 
+  
 Fun     ::= [Fun] "function(". Params .")" body:SeqR
-Params  ::=  (block:sym .",")? args:Formal+ @(.",")
+Params  ::=  (block:sym .",")? args:Decl+ @(.",")
           | block:sym?
-Formal     ::= [Arg] name:sym ("=" default:Expr)?
-
-Super ::= [Super] "this.super$." method:sym ( ".call(self, " info:CallArgs ")" | ".apply(self, arguments)" )
-  CallArgs ::= [Call] Args
+Decl     ::= [Decl] name:sym ("=" default:Expr)?
+  

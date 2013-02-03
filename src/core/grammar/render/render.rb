@@ -10,22 +10,24 @@ class RenderClass < Dispatch
   include Paths
 
   def initialize(slash_keywords = true)
-    @factory = ManagedData.new(Loader.load('layout.schema'))
-    @depth=0
+    @depth = 0
     @stack = []
     @indent_amount = 2
     @slash_keywords = slash_keywords
+    @create_stack = []
+    @need_pop = 0
   end
 
   def render(grammar, obj)
     r = recurse(grammar, SingletonStream.new(obj))
     if !r
-      puts "-"*50
-      Print.print(@last_pattern)
-      puts "-"*50
-      Print.print(@last_object)
-      puts "-"*50
-      raise "Could not render AT:#{@last_pattern}\n FOR #{@last_object}"
+      @create_stack.each_with_index do |p, i|
+        puts "#{'*'*20} #{i + @success >= @create_stack.length ? 'SUCCESS' : 'FAIL'} #{'*'*20}"          
+        Print.print(p[0], 2)
+        puts "-"*50
+        Print.print(p[1], 2)
+      end
+      abort "No matches found"
     end
     r
   end
@@ -90,10 +92,16 @@ class RenderClass < Dispatch
     obj = stream.current
     #puts "#{' '*@depth}[#{this.name}] #{obj}"
     if !obj.nil? && obj.schema_class.name == this.name
-      @last_pattern = this
-      @last_object = obj
       stream.next
-      recurse(this.arg, SingletonStream.new(obj), obj)
+      @create_stack.pop(@need_pop)
+      @need_pop = @success = 0
+      @create_stack.push [this, obj]
+      res = recurse(this.arg, SingletonStream.new(obj), obj)
+      if res
+        @success += 1
+      end
+      @need_pop += 1
+      res
     else
       nil
     end

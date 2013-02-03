@@ -10,9 +10,7 @@ def run_state_machine(sm)
     trans = current.out.find do |trans|
       trans.event == input
     end
-    foo.bar.baz.bif.frob
-    foo.bar.baz.bif 3,4
-    current = trans.to
+    current = trans.to if trans
     puts current.name
   end
 end

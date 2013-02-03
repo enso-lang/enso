@@ -5,17 +5,18 @@
 # indent: amount of indent
 
 class Print
-  def initialize(output = $stdout)
+  def initialize(output = $stdout, depth = nil)
     @output = output
+    @depth = depth
   end
 
-  def self.print(obj, indent=0)
-    self.new.print(obj, indent)
+  def self.print(obj, depth = nil)
+    self.new($stdout, depth).print(obj)
   end
 
-  def self.to_s(obj, indent=0)
+  def self.to_s(obj, depth = nil)
     output = ""
-    self.new(output).print(obj, indent)
+    self.new(output, depth).print(obj)
     output
   end
     
@@ -37,14 +38,23 @@ class Print
           if !field.many
             sub = obj[field.name]
             @output << "#{' '*indent}#{field.name}: "
-            print1(field.traversal, sub, indent, field.inverse)
+            if @depth && indent > @depth*2
+              @output << "...\n"
+            else
+              print1(field.traversal, sub, indent, field.inverse)
+            end
           else
             next if obj[field.name].empty?
-            @output << "#{' '*indent}#{field.name}\n"
+            @output << "#{' '*indent}#{field.name}"
             subindent = indent + 2
-            obj[field.name].each_with_index do |sub, i|
-              @output << "#{' '*subindent}##{i} "
-              print1(field.traversal, sub, subindent, field.inverse)
+            if @depth && indent > @depth*2
+              @output << " ...\n"
+            else
+              @output << "\n"
+              obj[field.name].each_with_index do |sub, i|
+                @output << "#{' '*subindent}##{i} "
+                print1(field.traversal, sub, subindent, field.inverse)
+              end
             end
           end
         end
