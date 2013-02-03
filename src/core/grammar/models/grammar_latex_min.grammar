@@ -1,0 +1,53 @@
+import path.grammar, expr.grammar
+
+  start Grammar
+
+  Grammar ::= [Grammar] "\documentclass{article}" /
+                        "\begin{document}" /
+                        "\begin{tabbing}" /
+                        "\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\= \\" /
+                         "\textbf{start}" \start:</rules[it]> rules:Rule* @(/ "\\ \\") /
+                         "\end{tabbing}" /
+                         "\end{document}" 
+
+  Italic ::= "\textit{" sym "}"
+  Courier ::= "\texttt{" sym "}"
+  
+  Rule ::= [Rule] name:Italic "\textbf{::=}" arg:Alt
+         | [Rule] "\textbf{abstract}" name:Italic
+
+  Alt ::= [Alt] "\+" > alts:Create+@(/ "\\" "\textbf{|}") "\-" <
+
+  Create ::= [Create] arg:Sequence
+    | Sequence
+
+  Sequence ::= [Sequence] elements:Field*
+
+  Field ::= [Field] arg:Pattern
+    | Pattern
+  
+  Pattern ::= 
+      [Value] kind:"\textbf{int}"
+    | [Value] kind:"\textbf{str}"
+    | [Value] kind:"\textbf{real}"
+    | [Value] kind:"\textbf{sym}"
+    | [Value] kind:"\textbf{atom}"
+    | [Code] "\textbf{\{}" expr:Expr "\textbf{\}}"
+    | [Ref] "\textbf{<}" path:Path "\textbf{>}"
+    | [Lit] value:Courier
+    | [Call] rule:</rules[it]>
+    | [Regular] arg:Pattern "\textbf{*}" Sep? { (optional == true) and (many == true) }
+    | [Regular] arg:Pattern "\textbf{?}" { optional == true }
+    | [Regular] arg:Pattern "\textbf{+}" Sep? { many == true }
+    | [NoSpace] 
+    | [Break] 
+    | [Indent] 
+    | "\textbf{(}" Alt "\textbf{)}"
+    
+  Sep ::= "\textbf{@}" sep:Pattern
+
+// extension of path grammar
+abstract Path
+Key ::= [It] "\textbf{it}"
+
+abstract Expr
