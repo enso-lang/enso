@@ -68,6 +68,7 @@ module ManagedData
     attr_reader :_id
     attr_reader :factory
     attr_reader :schema_class
+    attr_accessor :extra_instance_data
 
     @@_id = 0
 
@@ -126,7 +127,9 @@ module ManagedData
     end
 
     def add_listener(name, &block)
-      (@listeners[name] ||= []).push(block)
+      listeners = @listeners[name]
+      listeners = @listeners[name] = [] if !listeners
+      listeners.push(block)
     end
 
     def notify(name, val)

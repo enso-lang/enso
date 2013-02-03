@@ -1,4 +1,5 @@
 
+require 'enso'
 require 'core/system/load/load'
 require 'core/grammar/parse/parse'
 require 'core/grammar/parse/scan' # for keywords...
@@ -36,7 +37,12 @@ class RenderClass < Dispatch
     # ugly, should be higher up
     @root = stream.current
     @literals = Scan.collect_keywords(this)
-    Rule(this.start, SingletonStream.new(stream.current), container)
+    this.rules.each do |rule|
+      if rule.arg.alts.length == 1
+        rule.arg = rule.arg.alts[0]
+      end
+    end
+    recurse(this.start.arg, SingletonStream.new(stream.current), container)
   end
 
   def recurse(pat, data, container=nil)
@@ -53,17 +59,32 @@ class RenderClass < Dispatch
     end
   end
 
-  def Rule(this, stream, container)
-    recurse(this.arg, stream, container)
-  end
-    
   def Call(this, stream, container)
-    recurse(this.rule, stream, container)
+    recurse(this.rule.arg, stream, container)
   end
 
   def Alt(this, stream, container)
-    this.alts.reduce(nil) do |memo, alt|
-      memo || recurse(alt, stream.copy, container)
+    if !this.extra_instance_data
+      this.extra_instance_data = []
+      scan_alts(this, this.extra_instance_data)
+      #puts "ALTS#{this.extra_instance_data}"
+    end
+    this.extra_instance_data.any_value? do |info|
+      pred = info[0]
+      if !pred || pred.call(stream.current, @localEnv)
+        recurse(info[1], stream.copy, container)
+      end
+    end
+  end
+  
+  def scan_alts(this, alts)
+    this.alts.each do |pat|
+      if pat.Alt?
+        scan_alts(pat, infos)
+      else
+        pred = PredicateAnalysis.new.recurse(pat)
+        alts << [pred, pat]
+      end
     end
   end
 
@@ -109,24 +130,24 @@ class RenderClass < Dispatch
 
   def Field(this, stream, container)
     obj = stream.current
-    #puts "#{' '*@depth}FIELD #{this.name}"
-    if this.name == "_id"
-      data = SingletonStream.new(obj._id)
-    else
-      fld = obj.schema_class.all_fields[this.name]
-      raise "Unknown field #{obj.schema_class.name}.#{this.name}" if !fld
-      if fld.many
-        data = ManyStream.new(obj[this.name])
-      else
-        data = SingletonStream.new(obj[this.name])
-      end
-    end
     # handle special case of [[ field:"text" ]] in a grammar 
     if this.arg.Lit?
       if this.arg.value == obj[this.name]
         this.arg.value
       end
     else
+      #puts "#{' '*@depth}FIELD #{this.name}"
+      if this.name == "_id"
+        data = SingletonStream.new(obj._id)
+      else
+        fld = obj.schema_class.all_fields[this.name]
+        raise "Unknown field #{obj.schema_class.name}.#{this.name}" if !fld
+        if fld.many
+          data = ManyStream.new(obj[this.name])
+        else
+          data = SingletonStream.new(obj[this.name])
+        end
+      end
       recurse(this.arg, data, container)
     end
   end
@@ -139,19 +160,31 @@ class RenderClass < Dispatch
       end
       case this.kind
       when "str"
-        output(obj.inspect) 
+        if obj.is_a?(String)
+          output(obj.inspect)
+        end
       when "sym"
-        if @slash_keywords && @literals.include?(obj) then
-          output('\\' + obj.to_s)
+        if obj.is_a?(String)
+          if @slash_keywords && @literals.include?(obj) then
+            output('\\' + obj)
+          else
+            output(obj)
+          end
+        end
+      when "int"
+        if obj.is_a?(Fixnum)
+          output(obj.to_s)
+        end
+      when "real"
+        if obj.is_a?(Float)
+          output(obj.to_s)
+        end
+      when "atom"
+        if obj.is_a?(String)
+          output(obj.inspect)
         else
           output(obj.to_s)
         end
-      when "int"
-        output(obj.to_s)
-      when "real"
-        output(obj.to_s)
-      when "atom"
-        output(obj.to_s)
       else
         raise "Unknown type #{this.kind}"
       end
@@ -248,10 +281,106 @@ class RenderClass < Dispatch
   
 end
 
+class PredicateAnalysis
+
+  def recurse(pat)
+    send(pat.schema_class.name, pat)
+  end
+
+  def Call(this)
+    recurse(this.rule.arg)
+  end
+
+  def Alt(this)
+    if this.alts.all? {|alt| alt.Field? && alt.arg.Lit? }
+      fields = this.alts.map {|alt| alt.name }
+      name = fields[0]
+      puts "ALT lits!! #{fields}"
+      if fields.all? {|x| x == name}
+        symbols = this.alts.map {|alt| alt.arg.value }
+        lambda{|obj, env| symbols.include?(obj[name]) }
+      end
+    end
+  end
+
+  def Sequence(this)
+    this.elements.reduce(nil) do |memo, x|
+      pred = recurse(x)
+      if memo && pred
+        lambda{|obj, env| memo.call(obj, env) && pred.call(obj, env) }
+      else
+        memo || pred
+      end
+    end
+  end
+
+  def Create(this)
+    name = this.name
+    pred = recurse(this.arg)
+    if pred
+      lambda{|obj, env| !obj.nil? && obj.schema_class.name == name && pred.call(obj, env)}
+    else
+      lambda{|obj, env| !obj.nil? && obj.schema_class.name == name}
+    end
+  end
+
+  def Field(this)
+    name = this.name
+    # handle special case of [[ field:"text" ]] in a grammar 
+    if this.arg.Lit?
+      value = this.arg.value
+      lambda{|obj, env| value == obj[name]}
+    elsif this.name != "_id"
+      pred = recurse(this.arg)
+      if pred
+        lambda{|obj, env| pred.call(obj[name], env)}
+      end
+    end
+  end
+  
+  def Value(this)
+  end
+
+  def Ref(this)
+    lambda{|obj, env| !obj.nil?}
+  end
+
+  def Lit(this)
+  end
+
+  def Code(this)
+    if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code != ""
+     # FIXME: this case is needed to parse bootstrap grammar
+      code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
+      lambda{|obj, env| obj.instance_eval(code) }
+    else
+      lambda{|obj, env| Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, env)) }
+    end
+  end
+
+  def Regular(this)
+    if this.many && !this.optional
+      lambda{|obj, env| obj.length > 0 }
+    end
+  end
+  
+  def NoSpace(this)
+  end
+  
+  def Indent(this)
+  end
+  
+  def Break(this)
+  end
+end
+
 class SingletonStream
   def initialize(data, used = false)
     @data = data
     @used = used
+    if @data == false
+      raise "not an object!!"
+    end
   end
   def length
     @used ? 0 : 1
@@ -271,6 +400,9 @@ class ManyStream
   def initialize(collection, index = 0)
     @collection = collection.is_a?(Array) ? collection : collection.values 
     @index = index
+    if @collection.include?(false)
+      raise "not an object!!"
+    end
   end
   def length
     @collection.length - @index
@@ -301,6 +433,7 @@ if __FILE__ == $0 then
   filename = name.split("/")[-1]
   type = filename.split(".")[-1]
   g = Loader.load("#{type}.grammar")
+  $stderr << "## Printing #{ARGV[0]}...\n"
   DisplayFormat.print(g, m)
 end
 

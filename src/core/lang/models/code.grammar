@@ -3,12 +3,12 @@ start Program
 Program ::= [Module] defs:Top* @/
 Top     ::=  Require | MainModule
 Require ::= [Directive] action:"require" what:Expr
-MainModule ::= [Module] /2 "module" name:sym /> defs:Def* @/2 / meta:Meta* @/2 </"end"
+MainModule ::= [Module] /2 "module" name:sym /> defs:Def* @/2 /2 meta:Meta* @/2 </"end"
 Def     ::= "@" Binding | Class | Module
 
 Module  ::= [Module] "module" name:sym Body
 Class   ::= [Class] "class" name:sym ("<" parent:sym)? Body
-Body    ::= /> meta:Meta* @/ / defs:Instance* @/ </"end"/
+Body    ::= /> meta:Meta* @/2 /2 defs:Instance* @/2 </"end"/
 Meta    ::= "def" "self" .".". Method | "@@". Binding
 Instance ::= Require | Directive | "def" Method | "@" Binding
 Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
@@ -29,9 +29,7 @@ Stat      ::= If | While | BlockCall | Rescue | Assign
 BlockCall ::= [Call] Call block:Block
 
 While   ::= [While] "while" cond:Expr "do" body:Seq "end"
-Assign  ::= [Assign] to:Primary AssignOp from:EB
-AssignOp ::= op:"=" | op:"+=" | op:"-=" | op:"||=" | op:"&&="
-
+Assign  ::= [Assign] to:Primary "=" from:EB
 
 Rescue  ::= [Rescue] "begin" base:Seq rescues:Handler* ("ensure" ensure:Seq)? "end"
 Handler ::= [Handler] "rescue" ("(". kind:str var:str .")")? body:Seq
@@ -74,7 +72,7 @@ Index   ::= [Index] base:Primary ."[". index:Expr ."]"
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Record  ::= [Record] "{". fields:Field* @(.",") ."}"
   Field   ::= [Binding] name:sym .":" value:Expr
-Lit     ::= [Lit] value:(str | int | real)
+Lit     ::= [Lit] value:atom
 ECall   ::= [Call] target:Super "super" (ParenArgs | "(".")")
           | [Call] ({block==nil} | block:IsVar) Call
   IsVar ::= [Var] 

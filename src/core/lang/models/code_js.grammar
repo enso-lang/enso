@@ -3,11 +3,12 @@ start Program
 Program ::= [Module] defs:Top*
 Top     ::=  Require | MainModule
 Require ::= [Directive] action:"require" "(" what:Expr ")" /
-MainModule ::= [Module] defs:Def* @/2 /2 meta:Binding* @/2 /2 "exports = " name:sym "=" "{" /> defs:Export* meta:Export* < "}" /
-Def     ::= Binding | Class | Module
-Binding  ::= [Binding] name:sym "=" value:Expr
+MainModule ::= [Module] defs:Def* @/2 /2 "exports =" name:sym "=" "{"/> defs:Export* /2 meta:Binding* @(.","/2) /<"}"/
+Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr)
+  Function   ::= FunHeader FunBody
+Def     ::= Class | Module
 Export ::= [Directive] | [Class] ExportName | [Binding] ExportName | [Module] ExportName
-ExportName ::= name:sym ":" name:sym "," /
+ExportName ::= name:sym .":" name:sym ."," /
 
 // class N < N 
 //   D* 
@@ -23,17 +24,17 @@ DefB     ::= BindingB | Directive
 BindingB  ::= [Binding] MethodSym .":" (Method | value:Expr)
   MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
 Method   ::= value:FunHeader SuperBind value:FunBody
-  FunHeader ::= [Fun] "function(" Params ") {" /> "var self = this; "/ VarArg? Locals?
+  FunHeader ::= [Fun] "function(". Params .") {" /> "var self = this; "/ VarArg? Locals?
     VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
     Locals ::= "var" locals:Decl+ @(.",") .";" /
-  SuperBind ::= "var super$ = this.super$." MethodSym ";" /
-  FunBody ::= [Fun] body:SeqBody </"}"
+  SuperBind ::= "var super$ = this.super$.". MethodSym .";" /
+  FunBody ::= [Fun] body:SeqBodyR </"}"
    
 Directive ::= Attr | Include
 Include ::= [Directive] action:"include" .":" what:Expr
 Attr    ::= [Directive] ({ action=="attr_reader" } Reader | { action=="attr_accessor" } Reader .","/ Writer)
-Reader  ::= what:LitName .":" "function" "(" ")" "{" "return" "this"."."."$".".". what:LitName "}"
-Writer  ::= "set_".what:LitName .":" "function" "(val)" "{" "this"."."."$".".". what:LitName "=val" "}"
+Reader  ::= what:LitName .":" "function()" "{" "return" "this"."."."$".".". what:LitName "}"
+Writer  ::= "set_".what:LitName .":" "function(val)" "{" "this"."."."$".".". what:LitName " = val" "}"
 LitName ::= [Lit] value:sym
 
 Seq     ::= "{"/> SeqBody </"}"
@@ -60,7 +61,7 @@ IndexAssign ::= [Assign] to:IndexTarget "._set(" to:IndexIndex "," from:Assign "
 IndexTarget ::= [Index] base:Primary 
 IndexIndex ::= [Index] index:Expr
  
-Assign  ::= [Assign] to:Primary op:sym from:Assign
+Assign  ::= [Assign] to:Primary "=" from:Assign
         | EOr
 EOr ::= [EBinOp] e1:EAnd op:"||" e2:EOr
        | EAnd
@@ -92,7 +93,7 @@ List    ::= [List] "[". items:Expr* @(.",") ."]"
 Index   ::= [Index] base:Primary ."._get(". index:Expr .")"
 Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
   Field   ::= [Binding] name:sym .":" value:Expr
-Lit     ::= [Lit] value:(str | int | real)
+Lit     ::= [Lit] value:atom
 IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </    // TODO: Precedence!!
 
 Call     ::= SuperCallRest | SuperCall | CallRest | CallNorm

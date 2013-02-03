@@ -11,15 +11,25 @@ module System
   end
 end
   
+module Enumerable
+  def any_value?
+    each do |x|
+      val = yield x
+      return val if val
+    end
+    return false
+  end
+end
+
 class Hash
-  def has_key_p(x); has_key?(x); end
+  def has_key_P(x); has_key?(x); end
 end
 
 class Object
   def define_singleton_value(sym, val)
     self.define_singleton_method(sym) { val }
   end
-  def is_a_p(x); is_a?(x); end
+  def is_a_P(x); is_a?(x); end
 end
 
 class EnsoBaseClass

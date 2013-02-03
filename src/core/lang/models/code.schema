@@ -52,7 +52,7 @@ class Fun < Expr
   args! Decl*
   block: str?     // Decl
   rest: str?      // Decl
-  locals: Decl*
+  locals! Decl*
   body! Expr
   num_args: int = args.length + (block ? 1 : 0)
 
@@ -62,7 +62,6 @@ class Decl
 
 class Assign < Expr
   to!   Expr
-  op:   str
   from! Expr
 
 class If < Expr

@@ -44,8 +44,9 @@ module ManagedData
     attr_reader "_id"
     attr_reader "factory"
     attr_reader "schema_class"
+    attr_accessor "extra_instance_data"
     def initialize(klass, factory, *args)
-      @_id = @@_id += 1;
+      @_id = @@_id = @@_id + 1;
       @schema_class = klass;
       @factory = factory;
       @hash = {};
@@ -65,12 +66,12 @@ module ManagedData
     def _graph_id
       @factory;
     end
-    def instance_of_p(sym)
+    def instance_of_P(sym)
       self.schema_class.name == sym.to_s;
     end
     def [](name)
       self.check_field(name, true);
-      if self.computed_p(name) then
+      if self.computed_P(name) then
         self.send(name);
       else
         self.__get(name).get;
@@ -91,12 +92,15 @@ module ManagedData
       end
     end
     def dynamic_update
-      @dyn ||= DynamicUpdateProxy.new(self);
+      @dyn = @dyn || DynamicUpdateProxy.new(self);
     end
     def add_listener(name, &block)
-      (
-        @listeners[name] ||= [];
-      ).push(block);
+      local :listeners
+      listeners = @listeners[name];
+      if ! listeners then
+        listeners = @listeners[name] = [];
+      end
+      listeners.push(block);
     end
     def notify(name, val)
       if @listeners[name] then
@@ -141,11 +145,11 @@ module ManagedData
     def __set(name, fld)
       @hash[name] = fld;
     end
-    def eql_p(o)
+    def eql_P(o)
       self == o;
     end
     def equals(o)
-      (o && o.is_a_p(MObject)) && self._id == o._id;
+      (o && o.is_a_P(MObject)) && self._id == o._id;
     end
     def hash
       self._id;
@@ -164,14 +168,14 @@ module ManagedData
       self;
     end
     def check_field(name, can_be_computed)
-      if ! @hash.include_p(name) then
+      if ! @hash.include_P(name) then
         self.raise(S("Non-existing field '", name, "' for ", self));
       end
-      if ! can_be_computed && self.computed_p(name) then
+      if ! can_be_computed && self.computed_P(name) then
         self.raise(S("Cannot assign to computed field '", name, "'"));
       end
     end
-    def computed_p(name)
+    def computed_P(name)
       self.__get(name) == "computed";
     end
     def __setup(fields)
@@ -180,7 +184,7 @@ module ManagedData
         klass = self;
         f = if fld.computed then
           "computed";
-        elsif fld.type.Primitive_p then
+        elsif fld.type.Primitive_P then
           ManagedData.Prim.new(klass, fld);
         elsif ! fld.many then
           ManagedData.Ref.new(klass, fld);
@@ -205,18 +209,18 @@ module ManagedData
       local :c , :base
       fields.each do |fld|
         if fld.computed then
-          if fld.computed.EList_p && (
+          if fld.computed.EList_P && (
             c = fld.owner.supers.find do |c|
               c.all_fields[fld.name];
             end
           ) then
             base = c.all_fields[fld.name];
             if base.inverse then
-              fld.computed.elems.each do |var|
-                if ! var.EVar_p then
-                  self.raise(S("Field override ", fld.name, " includes non-var ", var));
+              fld.computed.elems.each do |var_V|
+                if ! var_V.EVar_P then
+                  self.raise(S("Field override ", fld.name, " includes non-var ", var_V));
                 end
-                self.__get(var.name)._set_inverse = base.inverse;
+                self.__get(var_V.name)._set_inverse = base.inverse;
               end
             end
           end
@@ -286,7 +290,7 @@ module ManagedData
   class Single < Field
     def initialize(owner, field)
       super(owner, field);
-      @value = self.default;
+      @value = self.default_V;
     end
     def set(value)
       self.check(value);
@@ -309,17 +313,17 @@ module ManagedData
       local :ok
       if ! @field.optional || value then
         ok = if @field.type.name == "str" then
-          value.is_a_p(String);
+          value.is_a_P(String);
         elsif @field.type.name == "int" then
-          value.is_a_p(Integer);
+          value.is_a_P(Integer);
         elsif @field.type.name == "bool" then
-          value.is_a_p(TrueClass) || value.is_a_p(FalseClass);
+          value.is_a_P(TrueClass) || value.is_a_P(FalseClass);
         elsif @field.type.name == "real" then
-          value.is_a_p(Numeric);
+          value.is_a_P(Numeric);
         elsif @field.type.name == "datetime" then
-          value.is_a_p(DateTime);
+          value.is_a_P(DateTime);
         elsif @field.type.name == "atom" then
-          ((value.is_a_p(Numeric) || value.is_a_p(String)) || value.is_a_p(TrueClass)) || value.is_a_p(FalseClass);
+          ((value.is_a_P(Numeric) || value.is_a_P(String)) || value.is_a_P(TrueClass)) || value.is_a_P(FalseClass);
         end
         if ! ok then
           self.raise(S("Invalid value for ", @field.type.name, ": ", value));
@@ -348,23 +352,23 @@ module ManagedData
   end
 
   module RefHelpers
-    def notify(old, new)
-      if old != new then
-        @owner.notify(@field.name, new);
+    def notify(old, new_V)
+      if old != new_V then
+        @owner.notify(@field.name, new_V);
         if @inverse then
           if @inverse.many then
             if old then
               old.__get(@inverse.name).__delete(@owner);
             end
-            if new then
-              new.__get(@inverse.name).__insert(@owner);
+            if new_V then
+              new_V.__get(@inverse.name).__insert(@owner);
             end
           else
             if old then
               old.__get(@inverse.name).__set(nil);
             end
-            if new then
-              new.__get(@inverse.name).__set(@owner);
+            if new_V then
+              new_V.__get(@inverse.name).__set(@owner);
             end
           end
         end
@@ -372,10 +376,10 @@ module ManagedData
     end
     def check(mobj)
       if mobj || ! @field.optional then
-        if mobj.nil_p then
+        if mobj.nil_P then
           self.raise(S("Cannot assign nil to non-optional field ", @field.name));
         end
-        if ! Subclass_p(mobj.schema_class, @field.type) then
+        if ! Subclass_P(mobj.schema_class, @field.type) then
           self.raise(S("Invalid value for '", @field.owner.name, ".", @field.name, "': ", mobj, " : ", mobj.schema_class.name));
         end
         if mobj._graph_id != @owner._graph_id then
@@ -433,8 +437,8 @@ module ManagedData
     def [](key)
       self.__value[key];
     end
-    def empty_p
-      self.__value.empty_p;
+    def empty_P
+      self.__value.empty_P;
     end
     def length
       self.__value.length;
@@ -445,29 +449,29 @@ module ManagedData
     def clear
       self.__value.clear;
     end
-    def connected_p
+    def connected_P
       @owner;
     end
-    def has_key_p(key)
-      self.keys.include_p(key);
+    def has_key_P(key)
+      self.keys.include_P(key);
     end
     def check(mobj)
-      if self.connected_p then
+      if self.connected_P then
         super(mobj);
       end
     end
-    def notify(old, new)
-      if self.connected_p then
-        super(old, new);
+    def notify(old, new_V)
+      if self.connected_P then
+        super(old, new_V);
       end
     end
     def __delete_obj(mobj)
-      if self.values.include_p(mobj) then
+      if self.values.include_P(mobj) then
         self.delete(mobj);
       end
     end
     def connect(mobj, shell)
-      if self.connected_p && @field.traversal then
+      if self.connected_P && @field.traversal then
         mobj.__shell = shell;
       end
     end
@@ -523,7 +527,7 @@ module ManagedData
     def delete(mobj)
       local :key
       key = mobj[@key.name];
-      if @value.has_key_p(key) then
+      if @value.has_key_P(key) then
         self.notify(@value[key], nil);
         self.__delete(mobj);
       end

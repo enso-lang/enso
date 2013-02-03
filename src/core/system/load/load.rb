@@ -57,7 +57,6 @@ module Loading
     def _load(name, type)
       #first check if cached XML version is still valid
       if CacheXML::check_dep(name)
-        $stderr << "## fetching #{name}...\n"
         CacheXML::from_xml(name)
       else
         filename = name.split(/\//)[-1]
@@ -124,8 +123,8 @@ module Loading
 
     def load_path(path, grammar, schema, encoding = nil)
       if path =~ /\.xml$/ || path =~ /\.json$/ then
-        $stderr << "## booting #{path}...\n"
         if schema.nil? then
+          $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
           result = Boot::load_path(path)
           result.factory.file_path[0] = path

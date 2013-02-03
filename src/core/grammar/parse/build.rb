@@ -140,7 +140,14 @@ class Build
     when "int" then value.to_i
     when "real" then value.to_f
     when "sym" then value
-    when "atom" then value # ???
+    when "atom" then 
+      if value =~ /[+-]?[0-9]+/
+        value.to_i
+      elsif value =~ /\A[+-]?\d+?(\.\d+)?\Z/
+        value.to_f 
+      else
+        value
+      end
     else
       raise "Don't know kind #{kind}"
     end

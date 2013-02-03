@@ -60,7 +60,7 @@ class FromXML
     when 'int' then value.to_i
     when 'bool' then value == 'true' ? true : false
     when 'real' then value.to_f
-    when 'atom' then value # we don't know really
+    when 'atom' then eval(value) # it's in "inspect" format
     else
       raise "Unsupported primitive: #{f.type.name}"
     end

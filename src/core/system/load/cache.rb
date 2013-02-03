@@ -12,7 +12,9 @@ module CacheXML
     doc = Document.new(File.read(input))
     doc1 = Document.new
     doc1 << doc.root.elements.to_a[-1] 
-    res = FromXML::load(Loader.load("#{type}.schema"), doc1)
+    schema = Loader.load("#{type}.schema")
+    $stderr << "## fetching #{name}...\n"
+    res = FromXML::load(schema, doc1)
     res.factory.file_path[0] = doc.root.attributes['source']
     doc.root.elements['depends'].elements.each {|dep| res.factory.file_path << dep.attributes['source']}
     res

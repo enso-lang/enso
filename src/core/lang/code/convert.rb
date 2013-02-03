@@ -94,11 +94,11 @@ class DemoBuilder < Ripper::SexpBuilder
         @assignedVariables << lvalue.name
       end
     end
-    @f.Assign(lvalue, "=", get_seq(rvalue))
+    @f.Assign(lvalue, get_seq(rvalue))
   end
 
   def on_assoc_new(key, value)
-    @f.Binding(fixup_name(key), get_seq(value))
+    @f.Binding(fixup_method_name(key), get_seq(value))
   end
 
   def on_assoclist_from_args(args)
@@ -163,7 +163,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_brace_block(params, statements)
-    make_fun(params, statements)
+    make_simple_fun(params, statements)
   end
 
   def on_break(args)
@@ -225,7 +225,7 @@ class DemoBuilder < Ripper::SexpBuilder
       if d.is_a? MetaDef
         d.defn
       elsif d.Assign?            
-        @f.Binding(fixup_name(d.to.name), d.from)
+        @f.Binding(fixup_method_name(d.to.name), d.from)
       else
         d
       end
@@ -241,7 +241,7 @@ class DemoBuilder < Ripper::SexpBuilder
       #puts "CMD #{name} #{args}"
       @f.Directive(name, args.normal[0])
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
-      puts "CMD #{name} #{args}"
+      #puts "CMD #{name} #{args}"
       args.normal.collect do |var|
         @f.Directive(name, var)
       end
@@ -306,18 +306,26 @@ class DemoBuilder < Ripper::SexpBuilder
   
   def make_def_binding(name, params, body)
     vars = reset_assigned_vars()
-    puts "DEF #{name} #{params} #{vars}"
+    #puts "DEF #{name} #{params} #{vars}"
     raise "can't redefine ==" if name == "=="
-    name = fixup_name(name)
-    @f.Binding(name, make_fun(params, body, vars.map {|v| @f.Decl(v) }))
+    name = fixup_method_name(name)
+    @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
   end
 
-  def make_fun(params, body, vars=[])
+  def make_simple_fun(params, body, vars=[])
     if params
-      @f.Fun(params.normal, params.block, params.rest, vars, get_seq(body))
+      make_fun(params.normal, params.block, params.rest, vars, get_seq(body))
     else
-      @f.Fun([], nil, nil, [], get_seq(body))
+      make_fun([], nil, nil, [], get_seq(body))
     end
+  end
+  
+  def make_fun(normal, block, rest, locals, body)
+    normal.each{|decl| decl.name = fixup_var_name(decl.name) }
+    block = fixup_var_name(block)
+    rest = fixup_var_name(rest)
+    locals.each{|decl| decl.name = fixup_var_name(decl.name) }
+    @f.Fun(normal, block, rest, locals, body)
   end
   
   def fixup_expr(o, env)
@@ -327,7 +335,7 @@ class DemoBuilder < Ripper::SexpBuilder
       if @rootModule
         @selfVar = "self"
       elsif o.name != "$TOP$"
-        puts "MAIN MODULE #{o.name}"
+        #puts "MAIN MODULE #{o.name}"
         @selfVar = @rootModule = o.name
       end
       o.defs.each { |d| fixup_expr(d, env) }
@@ -337,7 +345,7 @@ class DemoBuilder < Ripper::SexpBuilder
     when "Binding"
       if o.value.Fun?
         @currentMethod = o.name
-        puts "FIXUP_METHOD #{@currentMethod} #{@selfVar}"
+        #puts "FIXUP_METHOD #{@currentMethod} #{@selfVar}"
       end
       o.value = fixup_expr(o.value, env)
   
@@ -361,7 +369,7 @@ class DemoBuilder < Ripper::SexpBuilder
           o.method = @currentMethod
         end
       else
-        if !(o.method =~ /[A-Z]/)
+        if !(o.method =~ /^[A-Z]/)
           o.target = @f.Var(@selfVar)
         end
       end
@@ -376,7 +384,7 @@ class DemoBuilder < Ripper::SexpBuilder
       newvars << o.block if o.block
       newvars << o.rest if o.rest
       o.locals.each {|x| newvars << x.name}
-      puts "FUN #{newvars}"
+      #puts "FUN #{newvars}"
       o.body = fixup_expr(o.body, newvars + env)
 
     when "Decl"
@@ -404,7 +412,7 @@ class DemoBuilder < Ripper::SexpBuilder
       o.body = fixup_expr(o.body, [o.var] + env)
 
     when "Var"
-      if !(o.name =~ /[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
+      if !(o.name =~ /^[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
         o = @f.Call(@f.Var(@selfVar), o.name)
       end
 
@@ -468,7 +476,7 @@ class DemoBuilder < Ripper::SexpBuilder
   def on_if(expression, statements, else_block)
     expression = get_seq(expression)
     if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
-      @f.Binding("__main__", @f.Fun([], nil, nil, [], get_seq(statements)))
+      @f.Binding("__main__", make_fun([], nil, nil, [], get_seq(statements)))
     else
       @f.If(expression, get_seq(statements), get_seq(else_block))
     end
@@ -492,22 +500,29 @@ class DemoBuilder < Ripper::SexpBuilder
   end
   
   def make_call(target, method, args = [], block = nil)
-    method = fixup_name(method)
-    @f.Call(target, method, args, nil, block)
+    method = fixup_method_name(method)
+    if method == "nil_P" && args.length == 1
+      @f.EBinOp("==", args[0], "nil")
+    else
+      @f.Call(target, method, args, nil, block)
+    end
   end
 
   def make_call_formals(target, method, args)
-    method = fixup_name(method)
-    @f.Call(target, method, args.normal, args.rest, args.block)
+    method = fixup_method_name(method)
+    if method == "nil_P" && args.length == 1
+      @f.EBinOp("==", args[0], "nil")
+    else
+      @f.Call(target, method, args.normal, args.rest, args.block)
+    end
   end
-
 
   def on_float(token)
     @f.Lit(token.to_f)
   end
 
   def on_for(variable, range, statements)
-    block = @f.Fun([@f.Decl(variable.name)], nil, nil, [], get_seq(statements))
+    block = make_fun([@f.Decl(variable.name)], nil, nil, [], get_seq(statements))
     make_call(range, "each", [], block)
   end
 
@@ -599,8 +614,12 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_opassign(lvalue, operator, rvalue)
-    raise "Can't use #{operator}" if ["%=", "/=", "|=", "&=", ">>=", "<<=", "*=", "**="].include?(operator)
-    @f.Assign(lvalue, operator, rvalue)
+    if operator[-1] == "="
+      raise "LValue must be variable for assignment operator #{operator}: #{lvalue}" if !lvalue.Var?
+      @f.Assign(lvalue, @f.EBinOp(operator.chop, lvalue, rvalue))
+    else
+      @f.Assign(lvalue, rvalue)
+    end
   end
 
   def on_paren(node)
@@ -612,7 +631,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_program(defs) # parser event
-    puts "DEFS #{defs}"
+    #puts "DEFS #{defs}"
     fixup_expr(@f.Module("$TOP$", [], defs), [])
   end
     
@@ -794,19 +813,32 @@ class DemoBuilder < Ripper::SexpBuilder
         kind = "@"
       end
     end
-    @f.Var(fixup_name(name), kind)
+    @f.Var(fixup_var_name(name), kind)
+  end
+
+  @@jskeywords = ["catch", "continue", "debugger", "default", "delete", "finally", "function", "new", "in", "instanceof", "switch", "this", "throw", "try", "typeof", "var", "void", "with"]
+
+  def fixup_var_name(name)
+    if @@jskeywords.include? name
+      name = "#{name}_V"
+    end
+    return name
   end
   
-  def fixup_name(name)
+  def fixup_method_name(name)
+    last = name[-1]
     if name == "<<"
-       name = "push" 
-    elsif name[-1] == "!"
+       name = "push"
+    elsif last == "=" && name != "[]="
+       name = "set_#{name[0..-2]}"
+    elsif last == "!"
        name = "#{name[0..-2]}_in_place" 
-    elsif name[-1] == "=" && name != "[]="
-       name = "set_#{name[0..-2]}" 
+    elsif last == "?"
+       name = "#{name[0..-2]}_P" 
+    elsif last == "$"
+       name = "#{name[0..-2]}" 
     end
-    name = name[1..-1] if name[0]=="$"
-    return name.gsub("?", "_p")
+    return name
   end
   
   alias on_vcall on_var_ref
@@ -873,15 +905,15 @@ end
 if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
-  f = File.new(name, "r")
-  #pp Ripper.sexp_raw(f)
   
   f = File.new(name, "r")
   m = DemoBuilder.build(f)
   g = Loader.load("code.grammar")
   #jj ToJSON::to_json(m)
    
-  out = File.new("#{name.chomp(".rb")}.code", "w")
+  outname = "#{name.chomp(".rb")}.code"
+  out = File.new(outname, "w")
+  $stdout << "## storing #{outname}\n"
   DisplayFormat.print(g, m, 80, out, false)
 end
 

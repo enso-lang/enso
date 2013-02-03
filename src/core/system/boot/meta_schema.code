@@ -3,16 +3,18 @@ require "core/schema/code/factory"
 require "json"
 require "enso"
 
-module Boot2
+module Boot
   class MObject < EnsoProxyObject
     @@seq_no = 0
+
     attr_reader "_id"
+
     def initialize(data, root)
-      
       @_id = @@seq_no = @@seq_no + 1;
       @data = data;
       @root = root || self;
     end
+
     def schema_class
       local :res
       res = @root.types[@data["class"]];
@@ -21,16 +23,17 @@ module Boot2
       end
       res;
     end
+
     def _get(sym)
       local :res
       res = if sym[- 1] == "?" then
         self.schema_class.name == sym.slice(0, sym.length - 1);
-      elsif @data.has_key_p(S(sym, "=")) then
+      elsif @data.has_key_P(S(sym, "=")) then
         @data[S(sym, "=")];
-      elsif @data.has_key_p(S(sym, "#")) then
-        Boot2.make_field(@data[S(sym, "#")], @root, true);
-      elsif @data.has_key_p(sym.to_s) then
-        Boot2.make_field(@data[sym.to_s], @root, false);
+      elsif @data.has_key_P(S(sym, "#")) then
+        Boot.make_field(@data[S(sym, "#")], @root, true);
+      elsif @data.has_key_P(sym.to_s) then
+        Boot.make_field(@data[sym.to_s], @root, false);
       else
         System.raise(S("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
       end
@@ -39,12 +42,12 @@ module Boot2
       end
       res;
     end
-    def eql_p(other)
-      
+
+    def eql_P(other)
       self._id == other._id;
     end
+
     def to_s
-      
       @name || (
         @name = begin
           S("<", @data["class"], " ", self.name, ">");
@@ -56,35 +59,35 @@ module Boot2
   end
 
   class Schema < MObject
+
     def classes
-      
       BootManyField.new((
         self.types.select do |t|
-          t.Class_p;
+          t.Class_P;
         end
       ), @root, true);
     end
+
     def primitives
-      
       BootManyField.new((
         self.types.select do |t|
-          t.Primitive_p;
+          t.Primitive_P;
         end
       ), @root, true);
     end
   end
 
   class Class < MObject
+
     def all_fields
-      
       BootManyField.new((
         self.supers.flat_map do |s|
           s.all_fields;
         end
       ) + self.defined_fields, @root, true);
     end
+
     def fields
-      
       BootManyField.new((
         self.all_fields.select do |f|
           ! f.computed;
@@ -94,16 +97,16 @@ module Boot2
   end
 
   class BootManyField < Array
+
     def initialize(arr, root, keyed)
-      
       arr.each do |obj|
         self.push(obj);
       end
       @root = root;
       @keyed = keyed;
     end
+
     def [](key)
-      
       if @keyed then
         self.find do |obj|
           obj.name == key;
@@ -112,10 +115,11 @@ module Boot2
         self.at(key);
       end
     end
-    def has_key_p(key)
-      
+
+    def has_key_P(key)
       self[key];
     end
+
     def each_with_match(other, &block)
       local :other , :ks , :a , :b
       if @keyed then
@@ -132,8 +136,8 @@ module Boot2
         end
       end
     end
+
     def keys
-      
       if @keyed then
         self.map do |o|
           o.name;
@@ -143,19 +147,18 @@ module Boot2
       end
     end
   end
+
   def self.load_path(path)
-    
-    Boot2.load(System.readJSON(path));
+    Boot.load(System.readJSON(path));
   end
 
   def self.load(doc)
     local :ss0
-    ss0 = Boot2.make_object(doc, nil);
+    ss0 = Boot.make_object(doc, nil);
     Copy(ManagedData.new(ss0), ss0);
   end
 
   def self.make_object(data, root)
-    
     if data["class"] == "Schema" then
       Schema.new(data, root);
     elsif data["class"] == "Class" then
@@ -166,31 +169,28 @@ module Boot2
   end
 
   def self.make_field(data, root, keyed)
-    
-    if data.is_a_p(Array) then
-      Boot2.make_many(data, root, keyed);
+    if data.is_a_P(Array) then
+      Boot.make_many(data, root, keyed);
     else
-      Boot2.get_object(data, root);
+      Boot.get_object(data, root);
     end
   end
 
   def self.get_object(data, root)
-    
     if ! data then
       nil;
-    elsif data.is_a_p(String) then
+    elsif data.is_a_P(String) then
       Paths.parse(data).deref(root);
     else
-      Boot2.make_object(data, root);
+      Boot.make_object(data, root);
     end
   end
 
   def self.make_many(data, root, keyed)
     local :arr
     arr = data.map do |a|
-      Boot2.get_object(a, root);
+      Boot.get_object(a, root);
     end
     BootManyField.new(arr, root, keyed);
   end
 end
-

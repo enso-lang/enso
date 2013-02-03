@@ -1,14 +1,9 @@
 require 'core/system/load/load'
 
+model = ARGV[0]
+target = ARGV[1]
 
-if __FILE__ == $0 then
-  name = ARGV[0]
-  m = Loader.load(name)
-  g = Loader.load("code_js.grammar")
-  
-  
-  
-  out = File.new("#{name.chomp(".code")}.js", "w")
-  DisplayFormat.print(g, m, 80, out, false)
-  
-end
+m = Loader.load(model)
+g = Loader.load("#{target}.grammar")
+$stderr << "### translating to #{target}\n"
+DisplayFormat.print(g, m, 80, $stdout, false)

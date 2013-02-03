@@ -1,4 +1,3 @@
-import path.grammar, expr.grammar
 
   start Grammar
 
@@ -6,17 +5,18 @@ import path.grammar, expr.grammar
                         "\begin{document}" /
                         "\begin{tabbing}" /
                         "\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\= \\" /
-                         "\textbf{start}" \start:</rules[it]> rules:Rule* @(/ "\\ \\") /
+                         "\verb~start~" \start:</rules[it]> "\\" / 
+                         rules:Rule* @(/ "\\ \\") /
                          "\end{tabbing}" /
                          "\end{document}" 
 
   Italic ::= "\textit{" sym "}"
   Courier ::= "\texttt{" sym "}"
   
-  Rule ::= [Rule] name:Italic "\textbf{::=}" arg:Alt
-         | [Rule] "\textbf{abstract}" name:Italic
+  Rule ::= [Rule] name:Italic "\verb~::=~" arg:Alt
+         | [Rule] "\verb~abstract~" name:Italic
 
-  Alt ::= [Alt] "\+" > alts:Create+@(/ "\\" "\textbf{|}") "\-" <
+  Alt ::= [Alt] "\+" > alts:Create+@(/ "\\" "\verb~|~") "\-" <
 
   Create ::= [Create] arg:Sequence
     | Sequence
@@ -27,27 +27,36 @@ import path.grammar, expr.grammar
     | Pattern
   
   Pattern ::= 
-      [Value] kind:"\textbf{int}"
-    | [Value] kind:"\textbf{str}"
-    | [Value] kind:"\textbf{real}"
-    | [Value] kind:"\textbf{sym}"
-    | [Value] kind:"\textbf{atom}"
-    | [Code] "\textbf{\{}" expr:Expr "\textbf{\}}"
-    | [Ref] "\textbf{<}" path:Path "\textbf{>}"
+      [Value] kind:"\verb~int~"
+    | [Value] kind:"\verb~str~"
+    | [Value] kind:"\verb~real~"
+    | [Value] kind:"\verb~sym~"
+    | [Value] kind:"\verb~atom~"
+    | [Code] "\verb~\{~" expr:Expr "\verb~\}~"
+    | [Ref] "\verb~<~" path:Path "\verb~>~"
     | [Lit] value:Courier
     | [Call] rule:</rules[it]>
-    | [Regular] arg:Pattern "\textbf{*}" Sep? { (optional == true) and (many == true) }
-    | [Regular] arg:Pattern "\textbf{?}" { optional == true }
-    | [Regular] arg:Pattern "\textbf{+}" Sep? { many == true }
+    | [Regular] arg:Pattern "\verb~*~" Sep? { (optional == true) and (many == true) }
+    | [Regular] arg:Pattern "\verb~?~" { optional == true }
+    | [Regular] arg:Pattern "\verb~+~" Sep? { many == true }
     | [NoSpace] 
     | [Break] 
     | [Indent] 
-    | "\textbf{(}" Alt "\textbf{)}"
+    | "\verb~(~" Alt "\verb~)~"
     
-  Sep ::= "\textbf{@}" sep:Pattern
+  Sep ::= "\verb~@~" sep:Pattern
 
 // extension of path grammar
-abstract Path
-Key ::= [It] "\textbf{it}"
 
-abstract Expr
+Expr ::= 
+
+Path ::= [Anchor] type:"\verb~.~"
+      |  [Anchor] type:"\verb~..~"
+      |  [Sub] parent:Path? "\verb~/~" name:sym Subscript?
+
+Subscript ::= "\verb~[~" key:Key "\verb~]~"
+
+Key ::= [Const] value:atom
+      | Path
+      | [It] "\verb~it~"
+      

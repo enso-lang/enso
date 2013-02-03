@@ -16,7 +16,11 @@ module ToXML
       next if f.computed
       next if !this[f.name]
       if f.type.Primitive? then
-        e.attributes[f.name] = this[f.name].to_s
+        if f.type.name == "atom"
+          e.attributes[f.name] = this[f.name].inspect
+        else
+          e.attributes[f.name] = this[f.name].to_s
+        end
       else 
         ef = Element.new(f.name)
         ef.attributes['many'] = f.many
