@@ -6,10 +6,7 @@ require 'core/system/boot/meta_schema'
 require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
-require 'core/schema/tools/loadxml'
 require 'core/system/load/cache'
-
-require 'rexml/document'
 
 class String
   def is_binary_data?
@@ -19,10 +16,8 @@ end
 
 module Loading
   class Loader
-    include REXML
 
     # TODO: get rid of bootstrap models in memory
-
     GRAMMAR_GRAMMAR = 'grammar.grammar'
     SCHEMA_SCHEMA = 'schema.schema'
     SCHEMA_GRAMMAR = 'schema.grammar'
@@ -56,9 +51,9 @@ module Loading
 
     def _load(name, type)
       #first check if cached XML version is still valid
-      if CacheXML::check_dep(name)
+      if Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
-        CacheXML::from_xml(name)
+        Cache::load_cache(name)
       else
         filename = name.split(/\//)[-1]
         model, type = filename.split(/\./) if type.nil?
@@ -67,7 +62,7 @@ module Loading
         res = load_with_models(name, g, s)
         #dump it back to xml
         $stderr << "## caching #{name}...\n"
-        CacheXML::to_xml(filename, res)
+        Cache::save_cache(filename, res)
         res
       end
     end
@@ -79,9 +74,9 @@ module Loading
       #check if XML is not out of date then just use it
       #else load XML first then reload
       @cache[SCHEMA_SCHEMA] = ss = load_with_models('schema_schema.json', nil, nil)
-      @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.xml', nil, ss)
-      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.xml', nil, gs)
-      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema_grammar.xml', nil, gs)
+      @cache[GRAMMAR_SCHEMA] = gs = load_with_models('grammar_schema.json', nil, ss)
+      @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.json', nil, gs)
+      @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema_grammar.json', nil, gs)
 
       @cache[SCHEMA_SCHEMA] = ss = update_xml('schema.schema')
       @cache[GRAMMAR_SCHEMA] = gs = update_xml('grammar.schema')
@@ -90,12 +85,12 @@ module Loading
     end
     
     def update_xml(name)
-      return @cache[name] if CacheXML::check_dep(name)
+      return @cache[name] if Cache::check_dep(name)
       model, type = name.split(/\./) if type.nil?
       res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
       patch_schema_pointers!(res, load("#{type}.schema"))
       $stderr << "## caching #{name}...\n"
-      CacheXML::to_xml(name, res)
+      Cache::save_cache(name, res)
       res
     end
 
@@ -131,9 +126,9 @@ module Loading
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
-          name = path.split("/")[-1][0..-5]
+          name = path.split("/")[-1].split(".")[0]
           name[name.rindex("_")] = '.'
-          result = CacheXML::from_xml(name)
+          result = Cache::load_cache(name)
         end
       else
         begin

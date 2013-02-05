@@ -15,7 +15,7 @@ The only requirements are:
 
 module Boot
   def self.load_path(path)
-    load(System.readJSON(path))
+    load(System.readJSON(path)['model'])
   end
   
   def self.load(doc)

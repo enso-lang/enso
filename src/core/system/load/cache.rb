@@ -1,65 +1,62 @@
 
-require 'core/schema/tools/dumpxml'
-
-require 'rexml/document'
+require 'core/schema/tools/dumpjson'
 require 'digest/sha1'
 
-module CacheXML
-  include REXML
-  
-  def self.from_xml(name, input=find_xml(name))
-    type = name.split('.')[-1]
-    doc = Document.new(File.read(input))
-    doc1 = Document.new
-    doc1 << doc.root.elements.to_a[-1] 
-    res = FromXML::load(Loader.load("#{type}.schema"), doc1)
-    res.factory.file_path[0] = doc.root.attributes['source']
-    doc.root.elements['depends'].elements.each {|dep| res.factory.file_path << dep.attributes['source']}
-    res
+module Cache
+
+  def self.save_cache(name, model=Loader.load(name), out=find_json(name))
+    res = add_metadata(name, model)
+    res['model'] = ToJSON.to_json(model, true)
+    File.open(out, 'w+') {|f| f.write(JSON.pretty_generate(res)) }
   end
 
-  def self.to_xml(name, model=Loader.load(name), out=find_xml(name))
-    res = add_metadata(ToXML::to_xml(model), name, model)
-    pp = REXML::Formatters::Pretty.new
-    File.open(out, 'w+') {|f| pp.write(res, f)}
+  def self.load_cache(name, input=find_json(name))
+    type = name.split('.')[-1]
+    factory = ManagedData::Factory.new(Loader.load("#{type}.schema"))
+    json = JSON.parse(IO.readlines(input).join("\n"))
+    res = ToJSON.from_json(factory, json['model'])
+    res.factory.file_path[0] = json['source']
+    json['depends'].each {|dep| res.factory.file_path << dep['filename']}
+    res
   end
 
   def self.check_dep(name)
     begin
-      doc = Document.new(File.read(find_xml(name)))
+      json = JSON.parse(IO.readlines(find_json(name)).join("\n"))
+
       #check that the source file has not changed
       #check that none of the dependencies have changed
-      return false unless check_file(doc.root)
-      doc.root.elements['depends'].elements.each {|e| return false unless check_file(e)}
+      return false unless check_file(json)
+      json['depends'].each {|e| return false unless check_file(e)}
       true
     rescue Errno::ENOENT => e
       false
     end
   end
-  
+
   def self.clean(name=nil)
     if name.nil?  #clean everything
       File.delete("#{cache_path}*") if File.exists?("#{cache_path}*") 
     else
-      File.delete(find_xml(name)) if File.exists?(find_xml(name))
+      File.delete(find_json(name)) if File.exists?(find_json(name))
     end
   end
-  
+
   private
 
   def self.cache_path; "core/system/load/cache/"; end
   
-  def self.find_xml(name)
+  def self.find_json(name)
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
-      "core/system/boot/#{name.gsub('.','_')}.xml"
+      "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      "#{cache_path}#{name.gsub('.','_')}.xml"
+      "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end
   
   def self.check_file(element)
-    path = element.attributes['source']
-    checksum = element.attributes['checksum']
+    path = element['source']
+    checksum = element['checksum']
     begin
       readHash(path)==checksum
     rescue
@@ -68,36 +65,33 @@ module CacheXML
   end
   
   def self.get_meta(name)
-    e = Element.new(name)
+    e = {'filename' => name}
     Loader.find_model(name) do |path|
-      e.attributes['source'] = path
-      e.attributes['date'] = File.ctime(path)
-      e.attributes['checksum'] = readHash(path)
+      e['source'] = path
+      e['date'] = File.ctime(path)
+      e['checksum'] = readHash(path)
     end
     e
   end
-  
-  def self.add_metadata(orig, name, model)
-    doc = Document.new
+
+  def self.add_metadata(name, model)
     if name==nil
-      e = Element.new('MetaData')
+      e = {'filename' =>'MetaData'}
     else
       e = get_meta(name)
-      deps = Element.new('depends')
+      type = name.split('.')[-1]
 
-      #analyze vertical dep
-#     type = name.split('.')[-1]
-#     deps << get_meta("#{type}.schema")
-#     deps << get_meta("#{type}.grammar")
+      #vertical deps up the metamodel stack
+      deps = []
+      deps << get_meta("#{type}.schema")
+      deps << get_meta("#{type}.grammar")
 
       #analyze horizontal dep
       #something to do with imports
       model.factory.file_path[1..-1].each {|fn| deps << get_meta(fn.split("/")[-1])}
-      e << deps
+      e['depends'] = deps
     end
-    e << orig.root
-    doc << e
-    doc
+    e
   end
 
   def self.readHash(path)
@@ -116,21 +110,19 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
+  require 'core/diff/code/equals'
 
   if !ARGV[0] then
     $stderr << "Usage: #{$0} <model>\n"
     exit!
   end
-#=begin
-  tmp_path = CacheXML::find_xml(ARGV[0])
+
   orig = Loader.load(ARGV[0])
-#  File.open(tmp_path, "w+") {|f| CacheXML::to_xml(ARGV[0], f)}
-CacheXML::to_xml(ARGV[0])
-#  res = File.open(tmp_path, "r") {|f| CacheXML::from_xml(ARGV[0], f)}
-  res = CacheXML::from_xml(ARGV[0])
-  raise "Wrong output!" unless Equals.equals(orig, res)
-  $stderr << "All OK!\n"
-#=end
-  puts CacheXML::check_dep(ARGV[0])
+  loaded = Cache::load_cache(ARGV[0])
+  raise "Error loading JSON!" unless Equals.equals(orig, loaded)
+
+  Cache::save_cache(ARGV[0])
+  reloaded = Cache::load_cache(ARGV[0])
+  raise "Error re-loading JSON!" unless Equals.equals(loaded, reloaded)
 end
 
