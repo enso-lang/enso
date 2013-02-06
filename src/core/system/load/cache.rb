@@ -7,13 +7,15 @@ module Cache
   def self.save_cache(name, model=Loader.load(name), out=find_json(name))
     res = add_metadata(name, model)
     res['model'] = ToJSON.to_json(model, true)
-    File.open(out, 'w+') {|f| f.write(JSON.pretty_generate(res)) }
+    File.open(out, 'w+') do |f| 
+      f.write(JSON.pretty_generate(res, allow_nan: true, max_nesting: false))
+    end
   end
 
   def self.load_cache(name, input=find_json(name))
     type = name.split('.')[-1]
     factory = ManagedData::Factory.new(Loader.load("#{type}.schema"))
-    json = JSON.parse(IO.readlines(input).join("\n"))
+    json = System.readJSON(input)
     res = ToJSON.from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
     json['depends'].each {|dep| res.factory.file_path << dep['filename']}
@@ -22,7 +24,8 @@ module Cache
 
   def self.check_dep(name)
     begin
-      json = JSON.parse(IO.readlines(find_json(name)).join("\n"))
+      path = find_json(name)
+      json = System.readJSON(path)
 
       #check that the source file has not changed
       #check that none of the dependencies have changed

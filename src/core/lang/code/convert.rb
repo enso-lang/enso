@@ -60,7 +60,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_aref(target, args)
-    puts "AREF #{target} #{args}"
+    #puts "AREF #{target} #{args}"
     if args.normal.length != 1 || args.block || args.rest
       raise "Illegal index reference"
     end
@@ -917,7 +917,7 @@ if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
   
-  pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
+  #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
   m = CodeBuilder.build(File.new(name, "r"))
   g = Loader.load("code.grammar")

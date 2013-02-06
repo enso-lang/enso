@@ -150,7 +150,7 @@ module Boot
   end
 
   def self.load_path(path)
-    Boot.load(System.readJSON(path));
+    Boot.load(System.readJSON(path)["model"]);
   end
 
   def self.load(doc)

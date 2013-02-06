@@ -4,7 +4,7 @@ end
 
 module System
   def self.readJSON(path)
-    JSON.load(File.new(path))
+    JSON.parse(File.read(path), allow_nan: true, max_nesting: false)
   end
   def raise(error)
     raise error
@@ -48,6 +48,12 @@ class Object
   end
   def is_a_P(x)
     is_a?(x)
+  end
+end
+
+class Array
+  def union(a)
+    return self | a
   end
 end
 

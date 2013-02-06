@@ -54,7 +54,7 @@ module ManagedData
     def __keys; @value.keys end
 
     def __outer_join(other, &block)
-      keys = __keys | other.__keys
+      keys = __keys.union(other.__keys)
       keys.each do |key|
         block.call( self[key], other[key], key )
         # block.call( self.get_maybe(key), other.get_maybe(key), key )   # allow non-defined fields to merge

@@ -24,9 +24,10 @@ DefB     ::= BindingB | Directive
 BindingB  ::= [Binding] MethodSym .":" (Method | value:Expr)
   MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
 Method   ::= value:FunHeader SuperBind value:FunBody
-  FunHeader ::= [Fun] "function(". Params .") {" /> "var self = this; "/ VarArg? Locals?
+  FunHeader ::= [Fun] "function(". Params .") {" /> "var self = this; "/ args:Default* VarArg? Locals?
     VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
     Locals ::= "var" locals:Decl+ @(.",") .";" /
+  Decl     ::= [Decl] name:sym ("=" default:Expr)?
   SuperBind ::= "var super$ = this.super$.". MethodSym .";" /
   FunBody ::= [Fun] body:SeqBodyR </"}"
    
@@ -105,8 +106,9 @@ SuperCallRest ::= [Call] target:Super "super$.call_rest_args$(self," (Args.",")?
 SuperCall     ::= [Call] target:Super "super$.call(self" (."," Args)? .")"
   Super ::= [Super] 
   
-Fun     ::= [Fun] "function(". Params .")" body:SeqR
-Params  ::=  (block:sym .",")? args:Decl+ @(.",")
+Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* body:SeqBodyR </"}"
+Params  ::=  (block:sym .",")? args:Param+ @(.",")
           | block:sym?
-Decl     ::= [Decl] name:sym ("=" default:Expr)?
+Param     ::= [Decl] name:sym
+Default     ::= [Decl] ("if (". name:sym "=== undefined)" name:sym "=" default:Expr .";" /)?
   
