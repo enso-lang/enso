@@ -10,7 +10,7 @@ module System
     raise error
   end
 end
-  
+
 module Enumerable
   def find_first
     each do |x|

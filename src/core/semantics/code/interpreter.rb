@@ -202,11 +202,11 @@ class Interp
   # -error handling
   # -default arguments
   # DO NOT OVERRIDE!!!
-  def __call(m, args)
+  def __call(m, args, &block)
     args1 = @interpreter.lastargs+args
     @interpreter.pushargs(args1)
     begin
-      yield args1
+      block.call( args1 )
     rescue Exception => e
       unless __hidden_calls.include? m.name 
         $stderr<< "\tin #{@this}.#{m.name}(#{args})\n"
