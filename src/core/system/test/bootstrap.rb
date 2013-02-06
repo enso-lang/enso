@@ -1,80 +1,50 @@
-
-
-require 'test/unit'
-
+require 'core/system/boot/meta_schema'
 require 'core/system/load/load'
-
-require 'core/grammar/parse/parse'
-require 'core/system/boot/grammar_grammar'
-require 'core/instance/code/instantiate'
-
+require 'core/schema/tools/dumpjson'
 require 'core/diff/code/equals'
-require 'core/diff/code/diff'
-require 'core/schema/tools/print'
+require 'test/unit'
 
 class BootstrapTests < Test::Unit::TestCase
 
-  GRAMMAR_GRAMMAR = 'grammar.grammar'
-  GRAMMAR_SCHEMA = 'grammar.schema'
-
-  PROTO_SCHEMA = 'proto.schema'
-  INSTANCE_SCHEMA = 'instance.schema'
-
-  SCHEMA_GRAMMAR = 'schema.grammar'
-  SCHEMA_SCHEMA = 'schema.schema'
-
-  def test_boot_SchemaSchema
-    assert(Equals.equals(Loader.load(SCHEMA_SCHEMA), SchemaSchema.schema))
-  end
-  def test_boot_GrammarSchema
-    assert(Equals.equals(Loader.load(GRAMMAR_SCHEMA), GrammarSchema.schema))
-  end
-  def test_boot_GrammarGrammar
-    assert(Equals.equals(Loader.load(GRAMMAR_GRAMMAR), GrammarGrammar.grammar))
-  end
-  def test_diff_boot_GrammarGrammar
-    assert_equal(nil, Diff.new.diff(Loader.load(GRAMMAR_SCHEMA), Loader.load(GRAMMAR_GRAMMAR), GrammarGrammar.grammar))    
-  end  
-
-  def test_grammar_grammar
-    grammar = GrammarGrammar.grammar
-
-    assert(Equals.equals(grammar, grammar))
-    assert(!Equals.equals(grammar, Loader.load(SCHEMA_GRAMMAR)))
-   
-    grammargrammar = 'core/grammar/models/grammar.grammar'
-    grammar2 = Parse.load_file(grammargrammar, grammar, GrammarSchema.schema)
-
-    assert(Equals.equals(grammar2, grammar2))
-    assert(Equals.equals(grammar, grammar2))
-    assert(Equals.equals(grammar2, grammar))
-
-    grammar3 = Parse.load_file(grammargrammar, grammar2, GrammarSchema.schema)
-
-    assert(Equals.equals(grammar3, grammar3))
-    assert(Equals.equals(grammar2, grammar3))
-    assert(Equals.equals(grammar3, grammar2))
-    assert(Equals.equals(grammar3, grammar))
-    assert(Equals.equals(grammar, grammar3))
-
-    grammar4 = Parse.load_file(grammargrammar, grammar3, GrammarSchema.schema)
-
-    assert(Equals.equals(grammar4, grammar4))
-    assert(Equals.equals(grammar4, grammar3))
-    assert(Equals.equals(grammar3, grammar4))
-    assert(Equals.equals(grammar4, grammar2))
-    assert(Equals.equals(grammar2, grammar4))
-    assert(Equals.equals(grammar4, grammar))
-    assert(Equals.equals(grammar, grammar4))
+  def test_load
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert(ss)
   end
   
-  def test_schema_grammar
-    x = Loader.load(SCHEMA_SCHEMA)
-    assert(Equals.equals(x, SchemaSchema.schema),
-                 "Loaded SchemaSchema != Boot SchemaSchema")
+  def test_1
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert("Type" == ss.types['Field'].defined_fields['type'].type.name)
   end
   
-  def test_instance_schema
-    assert_not_nil(Loader.load(INSTANCE_SCHEMA))
+  def test_2
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert("Class" == ss.types['Field'].schema_class.name)
+  end
+  
+  def test_3
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert("Primitive" == ss.types['int'].schema_class.name)
+  end
+  
+  def test_4
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert(5 == ss.types['Class'].defined_fields.length)
+  end
+  
+  def test_5
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    assert(ss.types['Field'] == ss.types['Class'].defined_fields['defined_fields'].type)
+  end
+  
+  def test_6
+    ss = Boot.load_path("core/system/boot/schema_schema.json")
+    realss = Loader.load('schema.schema')
+    
+    puts "Writing new metaschema"  
+    ss_path = 'schema_schema2.json'
+    File.open(ss_path, 'w+') do |f| 
+      f.write(JSON.pretty_generate(ToJSON.to_json(realss, true)))
+    end
+    assert( Equals.equals(realss, ss) )
   end
 end
