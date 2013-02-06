@@ -58,9 +58,9 @@ class FoldModel
 
   def update_inverse(obj, trg, f, other)
     if f.inverse then
-      if f.inverse.many && IsKeyed?(f.type) then
+      if f.inverse.many && Schema::is_keyed?(f.type) then
         init_if_needed(other, f.inverse, {})
-        get(other, f.inverse)[ObjectKey(obj)] = trg
+        get(other, f.inverse)[Schema::object_key(obj)] = trg
       elsif f.inverse.many then
         # TODO: this has the same problem as in factory;
         # should be done in finalize.

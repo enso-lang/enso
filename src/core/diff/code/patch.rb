@@ -20,7 +20,7 @@ module Patch
             if owner.is_a?(ManagedData::MObject)
                 owner[fix.path.last.value] = val
             elsif owner.is_a? ManagedData::Set
-                val[ClassKey(val.schema_class).name] = fix.path.last.value
+                val[Schema::class_key(val.schema_class).name] = fix.path.last.value
                 owner << val
             elsif owner.is_a? ManagedData::List
                 owner.insert(fix.path.last.value, val)

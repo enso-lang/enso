@@ -159,11 +159,11 @@ class ExtractSchema
 
   def class_lub(t1, t2)
     xs = @schema.classes.select do |x|
-      Subclass?(t1, x) && Subclass?(t2, x)
+      Schema::subclass?(t1, x) && Schema::subclass?(t2, x)
     end
     lub = xs.find do |x|
       any_bigger = @schema.classes.any? do |y|
-        x != y && Subclass?(x, y)
+        x != y && Schema::subclass?(x, y)
       end
       !any_bigger
     end

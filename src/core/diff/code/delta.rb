@@ -252,8 +252,8 @@ class DeltaTransform
     @schema.types << @factory.Class(DeltaTransform.clear + old.name, @schema, [base])
 
     #many
-    keyed = IsKeyed?(old)
-    poskey = keyed ? getPrimitiveType(ClassKey(old).type.name) : getPrimitiveType("int")
+    keyed = Schema::is_keyed?(old)
+    poskey = keyed ? getPrimitiveType(Schema::class_key(old).type.name) : getPrimitiveType("int")
     m = @factory.Class(DeltaTransform.many + DeltaTransform.insert + old.name, @schema, [base, keyed ? @keyedbase : @manybase])
     m.defined_fields << @factory.Field("pos", m, poskey)
     @schema.types << m
@@ -290,8 +290,8 @@ class DeltaTransform
       if not old.many
         new.type = @refbase
       else
-        if IsKeyed?(old.type)
-          new.type = getManyRefBase(ClassKey(old.type).type.name)
+        if Schema::is_keyed?(old.type)
+          new.type = getManyRefBase(Schema::class_key(old.type).type.name)
         else
           new.type = getManyRefBase()
         end

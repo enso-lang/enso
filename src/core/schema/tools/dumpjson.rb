@@ -17,7 +17,7 @@ module ToJSON
         e["#{name}="] = val
       else 
         if f.many then
-          name = name + "#" if IsKeyed?(f.type)
+          name = name + "#" if Schema::is_keyed?(f.type)
           ef = []
           if f.traversal then
             val.each do |fobj|

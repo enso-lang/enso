@@ -1,3 +1,6 @@
+require ( "core/system/utils/paths" )
+require ( "core/schema/code/factory" )
+require ( "json" )
 require ( "enso" )
 MObject = MakeClass( EnsoProxyObject, {
   _class_: {
@@ -6,49 +9,50 @@ MObject = MakeClass( EnsoProxyObject, {
 
   _id: function() { return this.$._id },
 
+  factory: function() { return this.$.factory },
+  set_factory: function(val) { this.$.factory  = val },
+
+  _path: function() { return this.$._path },
+  set__path: function(val) { this.$._path  = val },
+
+  file_path: function() { return this.$.file_path },
+
   initialize: function(data, root) {
     var self = this; 
     var super$ = this.super$.initialize;
     self.$._id = self._class_.seq_no = self._class_.seq_no + 1;
     self.$.data = data;
-    return self.$.root = root || self;
+    self.$.root = root || self;
+    self.$.factory = self;
+    self.$.file_path = [];
+    return self.$.fields = new EnsoHash ( { } );
   },
 
   schema_class: function() {
     var self = this; 
-    var res;
     var super$ = this.super$.schema_class;
-    res = self.$.root.types()._get(self.$.data._get("class"));
-    self.define_singleton_method(function() {
-      return res;
-    }, "schema_class");
-    return res;
+    return self.$.root.types()._get(self.$.data._get("class"));
   },
 
   _get: function(sym) {
     var self = this; 
-    var res;
+    var val;
     var super$ = this.super$._get;
-    res = sym._get(- 1) == "?"
-      ? self.schema_class().name() == sym.slice(0, sym.length() - 1)
-      : self.$.data.has_key_P(S(sym, "="))
-        ? self.$.data._get(S(sym, "="))
-        : self.$.data.has_key_P(S(sym, "#"))
-          ? Boot.make_field(self.$.data._get(S(sym, "#")), self.$.root, true)
-          : self.$.data.has_key_P(sym.to_s())
-            ? Boot.make_field(self.$.data._get(sym.to_s()), self.$.root, false)
-            : System.raise(S("Trying to deref nonexistent field ", sym, " in ", self.$.data.to_s().slice(0, 300)))
-    ;
-    self.define_singleton_method(function() {
-      return res;
-    }, sym);
-    return res;
-  },
-
-  eql_P: function(other) {
-    var self = this; 
-    var super$ = this.super$.eql_P;
-    return self._id() == other._id();
+    val = self.$.fields._get(sym);
+    if (val) {
+      return val;
+    } else {
+      return self.$.fields ._set( sym , sym._get(- 1) == "?"
+        ? self.schema_class().name() == sym.slice(0, sym.length() - 1)
+        : self.$.data.has_key_P(S(sym, "="))
+          ? self.$.data._get(S(sym, "="))
+          : self.$.data.has_key_P(S(sym, "#"))
+            ? Boot.make_field(self.$.data._get(S(sym, "#")), self.$.root, true)
+            : self.$.data.has_key_P(sym.to_s())
+              ? Boot.make_field(self.$.data._get(sym.to_s()), self.$.root, false)
+              : System.raise(S("Trying to deref nonexistent field ", sym, " in ", self.$.data.to_s().slice(0, 300)))
+      );
+    }
   },
 
   to_s: function() {
@@ -56,7 +60,7 @@ MObject = MakeClass( EnsoProxyObject, {
     var super$ = this.super$.to_s;
     return self.$.name || (self.$.name = ((function(){ {
       try {
-        return S("<", self.$.data._get("class"), " ", self.name(), ">");
+        return S("<", self.$.data._get("class"), " ", self._id(), " ", self.name(), ">");
       } catch ( DUMMY ) {
         return S("<", self.$.data._get("class"), " ", self._id(), ">");
       }
@@ -173,7 +177,7 @@ exports = Boot = {
 
   load: function(doc) {
     ss0 = Boot.make_object(doc, null);
-    return ss0; return Copy(ManagedData.new(ss0), ss0);
+    return Copy(ManagedData.new(ss0), ss0);
   },
 
   make_object: function(data, root) {
@@ -211,9 +215,3 @@ exports = Boot = {
     return BootManyField.new(arr, root, keyed);
   }
 }
- x = Boot.load_path("/Users/wcook/enso/src/core/system/boot/schema_schema.json");
-console.log("x._id = " + x._id()) ;
-console.log("Test = " + x.types().to_s());
-console.log("Test = " + x.types()._get("Primitive").name()) ;
-console.log("Test = " + x.types()._get("Primitive").to_s()) ;
- 

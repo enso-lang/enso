@@ -8,10 +8,6 @@ module SchemaObjects
       @schema_class = cls
     end
 
-    def method_missing(sym, *args, &block)
-      # TODO
-    end
-
     def [](name)
       schema_class.get(self, name)
     end

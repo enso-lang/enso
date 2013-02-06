@@ -12,6 +12,9 @@ class Formals
     @block = block
     @rest = rest
   end
+  def to_s
+    "FORMALS #{normal} *#{rest} &#{block}" 
+  end
 end
 
 class When
@@ -30,12 +33,13 @@ class MetaDef
   end
 end
 
-class DemoBuilder < Ripper::SexpBuilder
+class CodeBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
     super
     schema = Loader.load('code.schema')
     @predefined = ["self", "nil", "true", "false"]
     @f = ManagedData.new(schema)
+    @selfVar = "TOP_LEVEL"
     reset_assigned_vars()
   end
   
@@ -56,6 +60,10 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_aref(target, args)
+    puts "AREF #{target} #{args}"
+    if args.normal.length != 1 || args.block || args.rest
+      raise "Illegal index reference"
+    end
     @f.Index(target, args.normal[0])
   end
 
@@ -73,7 +81,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_args_add_block(args, block)
-    args.block = block if block; args
+    args.block = fixup_block(block) if block; args
   end
   
   def on_args_add_star(args, rest)
@@ -98,7 +106,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_assoc_new(key, value)
-    @f.Binding(fixup_method_name(key), get_seq(value))
+    @f.Binding(key, get_seq(value))
   end
 
   def on_assoclist_from_args(args)
@@ -203,7 +211,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def split_meta(body)
-    #puts "META #{body}"
+    #puts "META #{body.flatten}"
     parts = body.flatten.partition {|x| is_meta(x)}
     parts = [ fixup_defs(parts[0]), fixup_defs(parts[1]) ]
     return parts
@@ -466,7 +474,6 @@ class DemoBuilder < Ripper::SexpBuilder
 
   def on_END(statements)
     raise "WHAT IS THIS??"
-    make_call(nil, "END", nil, statements)
   end
 
   def on_ensure(statements)
@@ -484,11 +491,11 @@ class DemoBuilder < Ripper::SexpBuilder
   alias_method :on_elsif, :on_if
 
   def on_ifop(condition, then_part, else_part)
-    @f.If(condition, then_part, else_part)
+    @f.If(get_seq(condition), get_seq(then_part), get_seq(else_part))
   end
 
   def on_if_mod(expression, statement)
-    @f.If(expression, statement)
+    @f.If(expression, get_seq(statement))
   end
 
   def on_fcall(identifier)
@@ -499,22 +506,17 @@ class DemoBuilder < Ripper::SexpBuilder
     make_call(target, identifier)
   end
   
-  def make_call(target, method, args = [], block = nil)
+  def make_call(target, method, args = [], rest = nil, block = nil)
     method = fixup_method_name(method)
     if method == "nil_P" && args.length == 1
       @f.EBinOp("==", args[0], "nil")
     else
-      @f.Call(target, method, args, nil, block)
+      call = @f.Call(target, method, args, nil, fixup_block(block))
     end
   end
 
   def make_call_formals(target, method, args)
-    method = fixup_method_name(method)
-    if method == "nil_P" && args.length == 1
-      @f.EBinOp("==", args[0], "nil")
-    else
-      @f.Call(target, method, args.normal, args.rest, args.block)
-    end
+    make_call(target, method, args.normal, args.rest, args.block)
   end
 
   def on_float(token)
@@ -523,7 +525,7 @@ class DemoBuilder < Ripper::SexpBuilder
 
   def on_for(variable, range, statements)
     block = make_fun([@f.Decl(variable.name)], nil, nil, [], get_seq(statements))
-    make_call(range, "each", [], block)
+    make_call(range, "each", [], nil, block)
   end
 
   def on_gvar(token)
@@ -569,14 +571,22 @@ class DemoBuilder < Ripper::SexpBuilder
         call.args << arg
       end
       raise "ARG PROBLEM" if args.rest && call.rest || args.block && call.block
-      call.rest = args.rest if args.rest
-      call.block = args.block if args.block
+      call.rest = get_seq(args.rest) if args.rest
+      call.block = get_seq(args.block) if args.block
     end
     call
   end
 
   def on_method_add_block(call, block)
     call.block = block; call
+  end
+  
+  def fixup_block(block)
+    if block && block.Lit?
+      make_fun([@f.Decl("x")], nil, nil, [], make_call(@f.Var("x"), block.value))
+    else
+      block
+    end
   end
 
   def on_mlhs_add(assignment, ref)
@@ -681,7 +691,6 @@ class DemoBuilder < Ripper::SexpBuilder
 
   def on_return(args)
     raise "Return statements are illegal"
-    # make_call(nil, "return", args)
   end
 
   def on_sclass(superclass, body)
@@ -696,19 +705,19 @@ class DemoBuilder < Ripper::SexpBuilder
     []
   end
 
-  def on_string_add(string, content)
-    #puts "STR #{string} #{content}"
-    if string.Lit? && string.value == ""
+  def on_string_add(base, content)
+    #puts "STR #{base} #{content}"
+    if base.Lit? && base.value == ""
       content
     elsif content.Lit? && content.value == ""
-      string
+      base
     else
       # create the "str" call to handle string interpolation
-      if !string.Call? || string.method != "S"
-        string = make_call(nil, "S", [string])
+      if !base.Call? || base.method != "S"
+        base = make_call(nil, "S", [base])
       end
-      string.args << content
-      string
+      base.args << content
+      base
     end
   end
 
@@ -829,6 +838,8 @@ class DemoBuilder < Ripper::SexpBuilder
     last = name[-1]
     if name == "<<"
        name = "push"
+    elsif name == "+"
+       name = "add"
     elsif last == "=" && name != "[]="
        name = "set_#{name[0..-2]}"
     elsif last == "!"
@@ -889,7 +900,7 @@ class DemoBuilder < Ripper::SexpBuilder
   end
 
   def on_yield(args)
-    undefined
+    raise "Yield not support... use an explicit block"
   end
 
   def on_yield0
@@ -906,8 +917,9 @@ if __FILE__ == $0 then
   name = ARGV[0]
 #  name = "applications/StateMachine/code/state_machine_basic.rb"
   
-  f = File.new(name, "r")
-  m = DemoBuilder.build(f)
+  pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
+  
+  m = CodeBuilder.build(File.new(name, "r"))
   g = Loader.load("code.grammar")
   #jj ToJSON::to_json(m)
    

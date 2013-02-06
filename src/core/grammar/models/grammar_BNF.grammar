@@ -1,0 +1,44 @@
+import path.grammar, expr.grammar
+
+  start Grammar
+
+  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule* @/2
+
+  Rule ::= [Rule] name:sym "::=" arg:Alt
+         | [Rule] "abstract" name:sym
+
+  Alt ::= [Alt] > alts:Create+@(/ "|") <
+
+  Create ::= [Create] arg:Sequence
+    | Sequence
+
+  Sequence ::= [Sequence] elements:Field*
+
+  Field ::= [Field] arg:Pattern
+    | Pattern
+  
+  Pattern ::= 
+      [Value] kind:"int"
+    | [Value] kind:"str"
+    | [Value] kind:"real"
+    | [Value] kind:"sym"
+    | [Value] kind:"atom"
+    | [Code] "{" expr:Expr "}"
+    | [Ref] "sym"
+    | [Lit] value:str
+    | [Call] rule:</rules[it]>
+    | [Regular] arg:Pattern."*" Sep? { (optional == true) and (many == true) }
+    | [Regular] arg:Pattern."?" { optional == true }
+    | [Regular] arg:Pattern."+" Sep? { many == true }
+    | [NoSpace]
+    | [Break] 
+    | [Indent] 
+    | "(".Alt.")"
+    
+  Sep ::= "@".sep:Pattern
+
+// extension of path.grammar
+abstract Path
+Key ::= [It] "it"
+
+abstract Expr

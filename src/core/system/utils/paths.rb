@@ -16,22 +16,30 @@ module Paths
     attr_reader :elts
 
     def self.parse(str)
-      if str.empty? or str=="/"
-        Path.new
-      elsif str =~ /^\.\/(.*)$/ then
-        Path.new(parse($1).elts)
-      elsif str =~ /^\/(.*)$/ then
-        Path.new([Root.new] + parse($1).elts)
-      elsif str =~ /^([a-zA-Z_0-9]+)\/?(.*)$/ then
-        Path.new([Field.new($1)] + parse($2).elts)
-      elsif str =~ /^\[([0-9]+)\]\/?(.*)$/ then
-        Path.new([Index.new($1.to_i)] + parse($2).elts)
-      elsif str =~ /^\[((((?=\\)[\[\]])|[^\[\]])+)\]\/?(.*)$/  then
-        rest = $4
-        s = $1.gsub('\\[', '[]').gsub('\\]',  ']')
-        Path.new([Key.new(s)] + parse(rest).elts)
+      original = str
+      str = str.gsub("\\", "")
+      if str[0] == "/"
+        str = str.slice(1,1000)
+        base = [Root.new]
       else
-        raise "Cannot parse path: '#{str}'"
+        base = []
+      end
+      elts = (base + scan(str)).flatten
+      #puts "PARSE '#{original}' #{elts}"
+      Path.new(elts)
+    end
+    
+    def self.scan(str)
+      str.split("/").map do |part|
+        if part == "."
+          []
+        elsif (n = part.index("[")) && part.slice(-1) == "]"
+          base = part.slice(0, n)
+          index = part.slice(n+1, part.length - n - 2)
+          [Field.new(base), Key.new(index)]
+        else
+          Field.new(part)
+        end
       end
     end
 
@@ -39,9 +47,9 @@ module Paths
       @elts = elts
     end
     
-    def ==(other)
-      to_s == other.to_s
-    end
+#    def ==(other)
+#      to_s == other.to_s
+#    end
 
     def reset!
       @elts = []
@@ -69,16 +77,15 @@ module Paths
         raise "cannot dereference #{elt} on #{scan}" if !scan
         scan = elt.deref(scan, root)
       end
-      return scan
+      scan
     end
 
     def search(root, base, target)
       #puts "SEARCH_START #{root} #{base} #{target}"
       searchElts(elts, base, root, {}) do |item, bindings|
-        #puts "SEARCH #{elts} ==> #{item} for #{target} with #{bindings}"
-        return bindings if target == item
+        #puts "SEARCH #{elts} ==> #{item} for #{target} with #{bindings} (#{target.equals(item)})"
+        bindings if target.equals(item)
       end
-      return nil
     end
 
     def searchElts(todo, scan, root, bindings, &action)
@@ -156,14 +163,14 @@ module Paths
       res=="" ? "/" : res
     end
 
-    private
+    #private
     
     def descend(elt)
       Path.new([*elts, elt])
     end
   end
 
-  ROOT = Path.new
+  ##ROOT = Path.new
 
 
   class Elt
@@ -187,7 +194,7 @@ module Paths
 
   class Field < Elt
     attr_reader :name
-    alias :value :name
+    #alias :value :name
 
     def initialize(name)
       @name = name
@@ -209,7 +216,7 @@ module Paths
 
   class Index < Elt
     attr_reader :index
-    alias :value :index
+    #alias :value :index
 
     def initialize(index)
       @index = index
@@ -222,8 +229,8 @@ module Paths
     def search(obj, root, bindings, &action)
       #puts "SEARCH_INDEX #{obj} root=#{root} binds=#{bindings}"
       if @index.is_a?(PathVar)
-        obj.each_with_index do |item, i|
-          action.call(item, { @index => i}.update(bindings))
+        obj.find_first_with_index do |item, i|
+          action.call(item, { it: i}.update(bindings))
         end
       else
         action.call(obj[@index], bindings)
@@ -238,7 +245,7 @@ module Paths
 
   class Key < Elt
     attr_reader :key
-    alias :value :key
+    #alias :value :key
 
     def initialize(key)
       @key = key
@@ -251,8 +258,8 @@ module Paths
     def search(obj, root, bindings, &action)
       if @key.is_a?(PathVar)
         #puts "SEARCH_KEY #{obj} root=#{root} binds=#{bindings}"
-        obj.each_pair do |k, item|
-          action.call(item, { @key => k}.update(bindings))
+        obj.find_first_pair do |k, item|
+          action.call(item, { it: k}.update(bindings))
         end
       else
         action.call(obj[@key], bindings)
@@ -263,7 +270,7 @@ module Paths
       "[#{escape(@key.to_s)}]"
     end
 
-    private
+    #private
 
     def escape(s)
       s.gsub(']', '\\]').gsub('[', '\\[')
@@ -279,39 +286,5 @@ module Paths
       @name
     end
   end
-end
-
-if __FILE__ == $0 then
-  def print(obj)
-    obj.schema_class.fields.each do |fld|
-      if fld.type.Primitive? then
-        puts "#{obj._path}.#{fld.name} = #{obj[fld.name].inspect}"
-      elsif fld.many then
-        obj[fld.name].each do |x|
-          puts "#{obj._path}.#{fld.name} = #{x._path}"
-        end
-      else
-        if obj[fld.name] then
-          puts "#{obj._path}.#{fld.name} = #{obj[fld.name]._path}"
-        else
-          puts "#{obj._path}.#{fld.name} = nil"
-        end
-      end
-      if !fld.many && fld.traversal && !fld.type.Primitive? then
-        print(obj[fld.name])
-      end
-      if fld.many && fld.traversal then
-        obj[fld.name].each do |x|
-          print(x)
-        end
-      end
-    end
-  end
-  
-  require 'core/system/load/load'
-  ss = Loader.load('schema.schema')
-  ss = Loader.load('grammar.grammar')
-  ss = Loader.load('test.todo')
-  print(ss)
 end
 

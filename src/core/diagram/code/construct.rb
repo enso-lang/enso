@@ -9,7 +9,7 @@ module EvalStencil
 
   def eval_InstanceOf(base, class_name)
     a = base.eval
-    a && Subclass?(a.schema_class, class_name)
+    a && Schema::subclass?(a.schema_class, class_name)
   end
 
   def eval_ETernOp(op1, op2, e1, e2, e3, dynamic)

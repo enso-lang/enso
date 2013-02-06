@@ -105,14 +105,16 @@ module Loading
     #  defined before getting to this point
     def patch_schema_pointers!(obj, schema)
       all_classes = []
-      map(obj) do |o|
+      Schema::map(obj) do |o|
         all_classes << o;
         o
       end
-      all_classes.each { |o| o.instance_eval { 
-        @schema_class = schema.types[@schema_class.name]
-        @factory.instance_eval { @schema = schema } 
-      } }
+      all_classes.each do |o| 
+        o.instance_eval do
+          @schema_class = schema.types[@schema_class.name]
+          @factory.instance_eval { @schema = schema } 
+        end
+      end
     end
 
     def load_with_models(name, grammar, schema, encoding = nil)

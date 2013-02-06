@@ -2,6 +2,7 @@ require 'core/system/load/load'
 require 'core/schema/code/factory'
 
 require 'core/grammar/render/layout'
+require 'pp'
 
 =begin
 
@@ -34,7 +35,7 @@ class CopyInto
   def build(a, b)
     return if a.nil?
     raise "Union of incompatible objects #{a} and #{b}" if a && b && a.schema_class.name != b.schema_class.name
-    @memo[a] = new = b || @factory[a.schema_class.name]
+    @memo[a._id] = new = b || @factory[a.schema_class.name]
     #puts "BUILD #{a} + #{b} ==> #{new}"
     new.schema_class.fields.each do |field|
       a_val = a[field.name]
@@ -60,9 +61,12 @@ class CopyInto
   # to go one stage past the spine, to relate linked objects.
   def link(traversal, a, b)
     return b if a.nil?
-    new = @memo[a]
+    new = @memo[a._id]
     #puts "LINK #{a} + #{b} ==> #{new}"
-    raise "Traversal did not visit every object a=#{a} b=#{b}" unless new
+    if !new
+      pp @memo
+      raise "Traversal did not visit every object a=#{a} b=#{b}" 
+    end
     return new if !traversal
     a.schema_class.fields.each do |field|
       a_val = a[field.name]

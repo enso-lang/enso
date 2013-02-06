@@ -9,48 +9,49 @@ module Boot
 
     attr_reader "_id"
 
+    attr_accessor "factory"
+
+    attr_accessor "_path"
+
+    attr_reader "file_path"
+
     def initialize(data, root)
       @_id = @@seq_no = @@seq_no + 1;
       @data = data;
       @root = root || self;
+      @factory = self;
+      @file_path = [];
+      @fields = {};
     end
 
     def schema_class
-      local :res
-      res = @root.types[@data["class"]];
-      self.define_singleton_method("schema_class") do
-        res;
-      end
-      res;
+      @root.types[@data["class"]];
     end
 
-    def _get(sym)
-      local :res
-      res = if sym[- 1] == "?" then
-        self.schema_class.name == sym.slice(0, sym.length - 1);
-      elsif @data.has_key_P(S(sym, "=")) then
-        @data[S(sym, "=")];
-      elsif @data.has_key_P(S(sym, "#")) then
-        Boot.make_field(@data[S(sym, "#")], @root, true);
-      elsif @data.has_key_P(sym.to_s) then
-        Boot.make_field(@data[sym.to_s], @root, false);
+    def [](sym)
+      local :val
+      val = @fields[sym];
+      if val then
+        val;
       else
-        System.raise(S("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
+        @fields[sym] = if sym[- 1] == "?" then
+          self.schema_class.name == sym.slice(0, sym.length - 1);
+        elsif @data.has_key_P(S(sym, "=")) then
+          @data[S(sym, "=")];
+        elsif @data.has_key_P(S(sym, "#")) then
+          Boot.make_field(@data[S(sym, "#")], @root, true);
+        elsif @data.has_key_P(sym.to_s) then
+          Boot.make_field(@data[sym.to_s], @root, false);
+        else
+          System.raise(S("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
+        end
       end
-      self.define_singleton_method(sym) do
-        res;
-      end
-      res;
-    end
-
-    def eql_P(other)
-      self._id == other._id;
     end
 
     def to_s
       @name || (
         @name = begin
-          S("<", @data["class"], " ", self.name, ">");
+          S("<", @data["class"], " ", self._id, " ", self.name, ">");
         rescue
           S("<", @data["class"], " ", self._id, ">");
         end

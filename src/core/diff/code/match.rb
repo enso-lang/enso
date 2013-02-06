@@ -30,7 +30,7 @@ class Match
         next unless f.traversal
         if not f.type.Primitive?  #FIXME: list of primitives require matching of some kind as well
           if f.many
-            if IsKeyed? f.type
+            if Schema::is_keyed?(f.type)
               list_matches = match_keyed_list(o1[f.name], o2[f.name])
             elsif o1[f.name].is_a? ManagedData::List
               list_matches = match_ordered_list(o1[f.name], o2[f.name])

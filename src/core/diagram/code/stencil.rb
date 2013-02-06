@@ -228,7 +228,7 @@ class StencilFrame < DiagramFrame
 	  else
       pop = Wx::Menu.new
       find_all_objects @data, address.field.type do |obj|
-        name = ObjectKey(obj)
+        name = Schema::object_key(obj)
     		add_menu2 pop, name, name do |e| 
     			address.value = obj
     			shape.string = name
@@ -431,7 +431,7 @@ class StencilFrame < DiagramFrame
 	  return nil if !scan
 	  puts "looking for #{type.name} as #{scan}"
           #block.call(scan) if scan._subtypeOf(scan.schema_class, type)
-          block.call(scan) if Subclass?(scan.schema_class, type)
+          block.call(scan) if Schema::subclass?(scan.schema_class, type)
           scan.schema_class.fields.each do |field|
             if field.traversal
               if field.many
@@ -640,7 +640,7 @@ class FindByTypeSelection
     @part = @diagram.find e do |shape| 
       obj = @diagram.lookup_shape(shape)
       #obj && obj._subtypeOf(obj.schema_class, @kind)
-      obj && Subclass?(obj.schema_class, @kind)
+      obj && Schema::subclass?(obj.schema_class, @kind)
     end
   end
   

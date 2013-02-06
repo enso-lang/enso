@@ -6,7 +6,7 @@ require 'core/schema/tools/copy'
 # TODO: use the builtin paths here.
 
 def paths(obj, path = [],  &block)
-  field = ClassKey(obj.schema_class)
+  field = Schema::class_key(obj.schema_class)
 
   current = path
   if field then
@@ -31,7 +31,7 @@ def paths(obj, path = [],  &block)
 end
 
 def map_names!(obj, &block)
-  field = ClassKey(obj.schema_class)
+  field = Schema::class_key(obj.schema_class)
 
   if field then
     key = obj[field.name]
@@ -69,7 +69,7 @@ end
 
 
 def rename!(obj, map)
-  field = ClassKey(obj.schema_class)
+  field = Schema::class_key(obj.schema_class)
 
   # first recompute the nested rename map since
   # nested paths depend on the old names
@@ -107,7 +107,7 @@ def rename_fields!(obj, map)
       obj[f.name].each do |elt|
         rename!(elt, map) 
       end
-      obj[f.name]._recompute_hash! if IsKeyed?(f.type)
+      obj[f.name]._recompute_hash! if Schema::is_keyed?(f.type)
     else
       rename!(obj[f.name], map) unless obj[f.name].nil? || f.type.Primitive?
     end

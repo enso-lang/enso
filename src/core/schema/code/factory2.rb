@@ -84,7 +84,7 @@ module SchemaEval
       if !value.respond_to?(:schema_class)
         raise "Expected managed object, not #{value}"
       end
-      if !Subclass?(value.schema_class, self) then
+      if !Schema::subclass?(value.schema_class, self) then
         raise "Incompatible class #{value.schema_class.name} with type #{name}"
       end
       if value._graph_id != schema then

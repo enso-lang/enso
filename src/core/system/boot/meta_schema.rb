@@ -16,38 +16,44 @@ The only requirements are:
 module Boot
   class MObject < EnsoProxyObject
     attr_reader :_id
+    attr_accessor :factory
+    attr_accessor :_path
+    attr_reader :file_path
     @@seq_no = 0
     def initialize(data, root)
       @_id = (@@seq_no = @@seq_no + 1)
       @data = data
       @root = root || self
+      @factory = self
+      @file_path = []
+      @fields = {}
     end
+
     def schema_class
-      #this assumes that the root is a schema and it has this thing called "types"
-      res = @root.types[@data["class"]]
-      define_singleton_method(:schema_class) { res }
-      res
+      @root.types[@data["class"]]
     end
-    def _get(sym)
-      res = if sym[-1] == "?"
-        schema_class.name == sym.slice(0, sym.length-1)
-      elsif @data.has_key?("#{sym}=")
-        @data["#{sym}="]
-      elsif @data.has_key?("#{sym}#")
-        Boot.make_field(@data["#{sym}#"], @root, true)
-      elsif @data.has_key?(sym.to_s)
-        Boot.make_field(@data[sym.to_s], @root, false)
+
+    def [](sym)
+      val = @fields[sym]
+      if val
+        val
       else
-        System.raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
+        @fields[sym] = if sym[-1] == "?"
+          schema_class.name == sym.slice(0, sym.length-1)
+        elsif @data.has_key?("#{sym}=")
+          @data["#{sym}="]
+        elsif @data.has_key?("#{sym}#")
+          Boot.make_field(@data["#{sym}#"], @root, true)
+        elsif @data.has_key?(sym.to_s)
+          Boot.make_field(@data[sym.to_s], @root, false)
+        else
+          System.raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
+        end
       end
-      define_singleton_method(sym) { res }
-      res
     end
-    def eql?(other)
-      _id==other._id
-    end
+    
     def to_s
-      @name || @name = begin; "<#{@data['class']} #{name}>"
+      @name || @name = begin; "<#{@data['class']} #{_id} #{name}>"
               rescue; "<#{@data['class']} #{_id}>"; end
     end
   end

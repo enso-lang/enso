@@ -62,7 +62,7 @@ module ManagedData
 
   end
 
-  class MObject
+  class MObject < EnsoProxyObject
     attr_accessor :_origin # source location
     attr_accessor :__shell # spine parent (e.g. Ref, Set or List)
     attr_reader :_id
@@ -84,16 +84,6 @@ module ManagedData
       __install(klass.all_fields)
     end
 
-    # TODO: get rid of this
-    def method_missing(sym, *args, &block)
-      # $stderr << "WARNING: method_missing #{sym}\n"
-      if sym[-1] == "?"
-        schema_class.name == sym.slice(0, sym.length-1)
-      else
-        super(sym, *args, &block)
-      end
-    end
-
     def _graph_id; @factory end
 
     def instance_of?(sym)
@@ -101,8 +91,13 @@ module ManagedData
     end
 
     def [](name)
-      check_field(name, true)
-      computed?(name) ? send(name) : __get(name).get
+      #puts "_GET #{name}"
+      if name[- 1] == "?" then
+        self.schema_class.name == name.slice(0, name.length - 1);
+      else
+        check_field(name, true)
+        computed?(name) ? send(name) : __get(name).get
+      end
     end
 
     def []=(name, x)
@@ -179,7 +174,7 @@ module ManagedData
     def hash; _id end
 
     def to_s
-      k = ClassKey(schema_class)
+      k = Schema::class_key(schema_class)
       if k then
         "<<#{schema_class.name} #{_id} '#{self[k.name]}'>>"
       else
@@ -215,7 +210,7 @@ module ManagedData
           ManagedData::Prim.new(klass, fld)
         elsif !fld.many then
           ManagedData::Ref.new(klass, fld)
-        elsif key = ClassKey(fld.type) then
+        elsif key = Schema::class_key(fld.type) then
           ManagedData::Set.new(klass, fld, key)
         else
           ManagedData::List.new(klass, fld)
@@ -276,15 +271,15 @@ module ManagedData
     end
 
     def __setter(name)
-      define_singleton_method("#{name}=") do |arg|
-        self[name] = arg
-      end
+#      define_singleton_method("#{name}=") do |arg|
+#        self[name] = arg
+#      end
     end
 
     def __getter(name)
-      define_singleton_method(name) do
-        self[name]
-      end
+#      define_singleton_method(name) do
+#        self[name]
+#      end
     end
   end
 
@@ -396,7 +391,7 @@ module ManagedData
         if mobj.nil? then
           raise "Cannot assign nil to non-optional field #{@field.name}"
         end
-        if !Subclass?(mobj.schema_class, @field.type) then
+        if !Schema::subclass?(mobj.schema_class, @field.type) then
           raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
         end
         if mobj._graph_id != @owner._graph_id then
@@ -504,6 +499,7 @@ module ManagedData
     def each(&block); __value.each_value(&block) end
 
     def each_pair(&block); __value.each_pair &block end
+    def find_first_pair(&block); __value.find_first_pair &block end
 
     def values; __value.values end
 

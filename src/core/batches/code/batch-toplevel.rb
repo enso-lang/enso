@@ -35,7 +35,7 @@ module Web::Eval
       path = eval(this.exp, env, errors).path
       root = env['root']
       obj = lookup_path(path.path, root.value, Store.new(root.value._graph_id))
-      key = ObjectKey(obj)
+      key = Schema::object_key(obj)
       field = path.to_s.split(".")[-1]
 
       #the path we want is: .type[key].field

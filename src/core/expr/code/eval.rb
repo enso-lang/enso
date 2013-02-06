@@ -45,7 +45,7 @@ module EvalExpr
   end
 
   def eval_EList(elems, for_field)
-    k = ClassKey(for_field.type)
+    k = Schema::class_key(for_field.type)
     #puts "KEY #{for_field}= #{k}"
     if k
       r = ManagedData::Set.new(nil, nil, k)

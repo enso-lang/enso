@@ -48,23 +48,28 @@ class Interpreter
   end
   
   def get_interp(obj, field=nil)
-    return @all_interps[obj] if @all_interps.has_key? obj
-    @all_interps[obj] = make_interp(obj, field)
+    if @all_interps.has_key? obj
+      @all_interps[obj] 
+    else
+      @all_interps[obj] = make_interp(obj, field)
+    end
   end
   
   def make_interp(obj, field=nil)
-    return nil if obj.nil?
-    return Interp.new(obj, self, @mods) if field.nil?
-    if !field.many
+    if obj.nil?
+      nil 
+    elsif field.nil?
+      Interp.new(obj, self, @mods)
+    elsif !field.many
       if field.type.Primitive?
         obj
       else
         Interp.new(obj, self, @mods)
       end
     else
-      if IsKeyed?(field.type)
+      if Schema::is_keyed?(field.type)
         newl = {}
-        obj.each {|val| newl[ObjectKey(val)] = make_interp(val)}
+        obj.each {|val| newl[Schema::object_key(val)] = make_interp(val)}
       else
         newl = [] 
         obj.each {|val| newl << make_interp(val)}
@@ -123,7 +128,7 @@ class Interp
     method_syms = mods.map{|m|m.operations}.flatten.uniq #2nd uniq because two mods can def same method
     method_syms.each do |method_sym|
 
-      m = Lookup(@this.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
+      m = Schema::lookup(@this.schema_class) {|o| m = "#{method_sym}_#{o.name}"; method(m.to_sym) if respond_to?(m) }
       if !m.nil?
         all_fields = @this.schema_class.all_fields
 
@@ -146,7 +151,10 @@ class Interp
 
         define_singleton_method("#{method_sym}!") do |args={}, &block|
           __call(m, args) do |nargs|
-            fields = Hash[*all_fields.map{|f|[f.name, @interpreter.get_interp(@this[f.name], f)]}.flatten(1)]
+            fields = Hash.new
+            all_fields.each do |f|
+              fields[f.name] = @interpreter.get_interp(@this[f.name], f)
+            end
             m.call(@this.schema_class, fields, nargs, &block)
           end
         end
@@ -170,8 +178,9 @@ class Interp
   end
 
   def [](key=nil)
-    return @this if key.nil?
-    if field = @this.schema_class.fields[key.to_s]
+    if key.nil?
+      @this
+    elsif field = @this.schema_class.fields[key.to_s]
       @interpreter.get_interp(@this[key.to_s], field)
     end
   end
@@ -187,7 +196,7 @@ class Interp
   def to_s; "Interp(#{@this})"; end
   def to_ary; end
 
-  private
+  #private
 
   #utility call method that does miscellaneous wiring
   # -error handling

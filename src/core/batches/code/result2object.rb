@@ -33,7 +33,7 @@ class Result2Object
 
   def r2o(resultset, query, prefix)
     #get key first to check if object already exists
-    keyfield = ClassKey(@factory.schema.types[query.classname])
+    keyfield = Schema::class_key(@factory.schema.types[query.classname])
     key = resultset.get(prefix+"_"+keyfield.name)
     obj = make_obj(query.classname, key)
     query.fields.each do |f|
@@ -61,7 +61,7 @@ class Result2Object
     tablename = tablename_from_name(@schema.root_class, classname)
     if @root[tablename][key].nil?
       obj = @factory[classname]
-      obj[ClassKey(obj.schema_class).name] = key
+      obj[Schema::class_key(obj.schema_class).name] = key
       @root[tablename] << obj
     else
       @root[tablename][key]

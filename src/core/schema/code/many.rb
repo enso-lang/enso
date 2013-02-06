@@ -12,15 +12,15 @@ module ManagedData
     def select(&block)
       result = Set.new(nil, @field, __key)
       each do |elt|
-        result << elt if yield elt
+        result << elt if block.call(elt)
       end
-      return result
+      result
     end
 
     def flat_map(&block)
       new = nil
       each do |x|
-        set = yield x
+        set = block.call(x)
         if new.nil? then
           key = set.__key
           new = Set.new(nil, @field, key)
@@ -36,15 +36,15 @@ module ManagedData
       new || Set.new(nil, @field, __key)
     end
       
-    def each_with_match(other)
+    def each_with_match(other, &block)
       empty = Set.new(nil, @field, __key)
       __outer_join(other || empty) do |sa, sb|
         if sa && sb && sa[__key.name] == sb[__key.name] 
-          yield sa, sb
+          block.call(sa, sb)
         elsif sa
-          yield sa, nil
+          block.call(sa, nil)
         elsif sb
-          yield nil, sb
+          block.call(nil, sb)
         end
       end
     end
@@ -53,20 +53,20 @@ module ManagedData
 
     def __keys; @value.keys end
 
-    def __outer_join(other)
-      keys = __keys | other.__keys
+    def __outer_join(other, &block)
+      keys = __keys.union( other.__keys )
       keys.each do |key|
-        yield self[key], other[key], key
-        # yield self.get_maybe(key), other.get_maybe(key), key   # allow non-defined fields to merge
+        block.call( self[key], other[key], key )
+        # block.call( self.get_maybe(key), other.get_maybe(key), key )   # allow non-defined fields to merge
       end
     end
   end
 
   module ListUtils
-    def each_with_match(other)
+    def each_with_match(other, &block)
       if !empty? then
         each do |item|
-          yield item, nil
+          block.call( item, nil )
         end
       end
     end

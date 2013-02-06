@@ -37,7 +37,7 @@ module Diff
       else
         i = 0
         root[f.name].each do |v|
-          res.update map_paths(v, IsKeyed?(f.type) ? currpath.field(f.name).key(ObjectKey(v)) : currpath.field(f.name).index(i))
+          res.update map_paths(v, Schema::is_keyed?(f.type) ? currpath.field(f.name).key(Schema::object_key(v)) : currpath.field(f.name).index(i))
           i+=1
         end
       end
@@ -159,7 +159,7 @@ Topological sort of the diff list
     difflist = []
     found = []
     o1.each do |i1|
-      fpath = path.key(ObjectKey(i1))
+      fpath = path.key(Schema::object_key(i1))
       i2 = matches[i1]
       if i2.nil? #match not found, i1 was deleted
         difflist.concat diff_all(i1, nil, fpath, matches, ref)
@@ -170,7 +170,7 @@ Topological sort of the diff list
     end
     o2.each do |i2|
       next if found.include? i2
-      fpath = path.key(ObjectKey(i2))
+      fpath = path.key(Schema::object_key(i2))
       difflist.concat diff_all(nil, i2, fpath, matches, ref)
     end
     difflist

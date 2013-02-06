@@ -24,7 +24,7 @@ module ToXML
       else 
         ef = Element.new(f.name)
         ef.attributes['many'] = f.many
-        ef.attributes['keyed'] = IsKeyed?(f.type)
+        ef.attributes['keyed'] = Schema::is_keyed?(f.type)
         if f.many then
           next if this[f.name].empty?
           if f.traversal then

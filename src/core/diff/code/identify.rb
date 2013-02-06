@@ -77,12 +77,12 @@ class Identify
     end
 
     the_class = nil
-    if Subclass?(o1.schema_class, o2.schema_class) &&
+    if Schema::subclass?(o1.schema_class, o2.schema_class) &&
         o1.schema_class.name != o2.schema_class.name then
       puts "1: replace #{path} with #{o2}"
       @mapped[o1] = o2
       the_class = o2.schema_class
-    elsif Subclass?(o2.schema_class, o1.schema_class) &&
+    elsif Schema::subclass?(o2.schema_class, o1.schema_class) &&
         o1.schema_class.name != o2.schema_class.name then
       @mapped[o1] = o2
       the_class = o1.schema_class
@@ -90,8 +90,8 @@ class Identify
     elsif o1.schema_class.name == o2.schema_class.name then
       @mapped[o1] = o2
       the_class = o1.schema_class
-    elsif ClassMinimum(o1.schema_class, o2.schema_class) then
-      the_class = ClassMinimum(o1.schema_class, o2.schema_class) 
+    elsif Schema::class_minimum((o1.schema_class, o2.schema_class) then
+      the_class = Schema::class_minimum((o1.schema_class, o2.schema_class) 
       @mapped[o1] = o2
       puts "3: replace #{path} with #{o2}"
     else
@@ -111,7 +111,7 @@ class Identify
     # Check whether not one list is sublist of the other
     # or vice versa, and then update the whole list.
     the_class.fields.each do |f|
-      if !f.type.Primitive? && f.traversal && f.many && !IsKeyed?(f.type) then
+      if !f.type.Primitive? && f.traversal && f.many && !Schema::is_keyed?(f.type) then
         i = 0
         while i < o1[f.name].length do
           break if i >= o2[f.name].length
@@ -130,8 +130,8 @@ class Identify
     end
     
     the_class.fields.each do |f|
-      if !f.type.Primitive? && f.traversal && f.many && IsKeyed?(f.type) then
-        key = ClassKey(f.type).name
+      if !f.type.Primitive? && f.traversal && f.many && Schema::is_keyed?(f.type) then
+        key = Schema::class_key(f.type).name
         o1[f.name].each do |x1|
           x2 = o2[f.name].find { |x| x[key] == x1[key] }
           if x2 then
@@ -162,16 +162,16 @@ class Identify
     return if o1.nil? || o2.nil?
 
     the_class = nil
-    if Subclass?(o1.schema_class, o2.schema_class) &&
+    if Schema::subclass?(o1.schema_class, o2.schema_class) &&
         o1.schema_class.name != o2.schema_class.name then
       the_class = o2.schema_class
-    elsif Subclass?(o2.schema_class, o1.schema_class) &&
+    elsif Schema::subclass?(o2.schema_class, o1.schema_class) &&
         o1.schema_class.name != o2.schema_class.name then
       the_class = o1.schema_class
     elsif o1.schema_class.name == o2.schema_class.name then
       the_class = o1.schema_class
-    elsif ClassMinimum(o1.schema_class, o2.schema_class) then
-      the_class = ClassMinimum(o1.schema_class, o2.schema_class) 
+    elsif Schema::class_minimum((o1.schema_class, o2.schema_class) then
+      the_class = Schema::class_minimum((o1.schema_class, o2.schema_class) 
     else
       raise "Incomparable: #{o1} and #{o2}"
     end
@@ -197,8 +197,8 @@ class Identify
     end
 
     the_class.fields.each do |f|
-      if !f.type.Primitive? && !f.traversal && f.many && IsKeyed?(f.type) then
-        key = ClassKey(f.type).name
+      if !f.type.Primitive? && !f.traversal && f.many && Schema::is_keyed?(f.type) then
+        key = Schema::class_key(f.type).name
         o1[f.name].each do |x1|
           x2 = o2[f.name].find { |x| x[key] == x1[key] }
           if x2 && !@mapped[x1] then
@@ -223,7 +223,7 @@ class Identify
 
     # many non-spine, non-keyed collections
     the_class.fields.each do |f|
-      if !f.type.Primitive? && !f.traversal && f.many && !IsKeyed?(f.type) then
+      if !f.type.Primitive? && !f.traversal && f.many && !Schema::is_keyed?(f.type) then
         i = 0
         while i < o1[f.name].length do
           break if i >= o2[f.name].length
@@ -261,8 +261,8 @@ class Identify
     end
 
     the_class.fields.each do |f|
-      if !f.type.Primitive? && f.traversal && f.many && IsKeyed?(f.type) then
-        key = ClassKey(f.type).name
+      if !f.type.Primitive? && f.traversal && f.many && Schema::is_keyed?(f.type) then
+        key = Schema::class_key(f.type).name
         o1[f.name].each do |x1|
           x2 = o2[f.name].find { |x| x[key] == x1[key] }
           if x2 then
@@ -280,7 +280,7 @@ class Identify
 
 
     the_class.fields.each do |f|
-      if !f.type.Primitive? && f.traversal && f.many && !IsKeyed?(f.type) then
+      if !f.type.Primitive? && f.traversal && f.many && !Schema::is_keyed?(f.type) then
         i = 0
         while i < o1[f.name].length do
           break if i >= o2[f.name].length

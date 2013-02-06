@@ -69,7 +69,7 @@ class RenderClass < Dispatch
       scan_alts(this, this.extra_instance_data)
       #puts "ALTS#{this.extra_instance_data}"
     end
-    this.extra_instance_data.any_value? do |info|
+    this.extra_instance_data.find_first do |info|
       pred = info[0]
       if !pred || pred.call(stream.current, @localEnv)
         recurse(info[1], stream.copy, container)
@@ -199,8 +199,8 @@ class RenderClass < Dispatch
       #puts "#{' '*@depth}RENDER #{path} REF /=#{@root} .=#{container}"
       bind = path.search(@root, container, obj)
       
-      #puts "#{' '*@depth}RENDER REF #{container}=#{v}"
-      output(bind[it]) if !bind.nil? # TODO: need "." keys
+      #puts "#{' '*@depth}RENDER REF '#{bind[:it]}' #{container}=#{bind}"
+      output(bind[:it]) if !bind.nil? # TODO: need "." keys
     end
   end
 
@@ -295,7 +295,7 @@ class PredicateAnalysis
     if this.alts.all? {|alt| alt.Field? && alt.arg.Lit? }
       fields = this.alts.map {|alt| alt.name }
       name = fields[0]
-      puts "ALT lits!! #{fields}"
+      #puts "ALT lits!! #{fields}"
       if fields.all? {|x| x == name}
         symbols = this.alts.map {|alt| alt.arg.value }
         lambda{|obj, env| symbols.include?(obj[name]) }

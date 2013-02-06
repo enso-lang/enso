@@ -64,13 +64,13 @@ class DeltaERB
   end
 
   def key_many_delta_ref(type)
-    many_delta_ref(ClassKey(type).type.name)
+    many_delta_ref(Schema::class_key(type).type.name)
   end
 
   def field_delta_type(f)
     return delta_name(f.type) if f.traversal || f.type.Primitive? 
     return delta_ref unless f.many
-    return key_many_delta_ref(f.type) if IsKeyed?(f.type)
+    return key_many_delta_ref(f.type) if Schema::is_keyed?(f.type)
     return many_delta_ref('int')
   end
 
@@ -83,11 +83,11 @@ class DeltaERB
   end
 
   def key_super(type)
-    IsKeyed?(type) ? keyed : many
+    Schema::is_keyed?(type) ? keyed : many
   end
 
   def pos_key(type)
-    IsKeyed?(type) ? ClassKey(type).type.name : 'int'
+    Schema::is_keyed?(type) ? Schema::class_key(type).type.name : 'int'
   end
 
 end
