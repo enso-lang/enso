@@ -27,15 +27,11 @@
     | Pattern
   
   Pattern ::= 
-      [Value] kind:"\verb~int~"
-    | [Value] kind:"\verb~str~"
-    | [Value] kind:"\verb~real~"
-    | [Value] kind:"\verb~sym~"
-    | [Value] kind:"\verb~atom~"
+      [Value] "\verb~".kind:sym."~"
     | [Code] "\verb~\{~" expr:Expr "\verb~\}~"
     | [Ref] "\verb~<~" path:Path "\verb~>~"
     | [Lit] value:Courier
-    | [Call] rule:</rules[it]>
+    | [Call] rule:([Rule]name:Italic)
     | [Regular] arg:Pattern "\verb~*~" Sep? { (optional == true) and (many == true) }
     | [Regular] arg:Pattern "\verb~?~" { optional == true }
     | [Regular] arg:Pattern "\verb~+~" Sep? { many == true }
@@ -50,8 +46,8 @@
 
 Expr ::= 
 
-Path ::= [Anchor] type:"\verb~.~"
-      |  [Anchor] type:"\verb~..~"
+Path ::= [Anchor] "\verb~".type:"."."~"
+      |  [Anchor] "\verb~".type:".."."~"
       |  [Sub] parent:Path? "\verb~/~" name:sym Subscript?
 
 Subscript ::= "\verb~[~" key:Key "\verb~]~"
