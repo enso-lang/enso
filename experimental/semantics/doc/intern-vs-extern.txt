@@ -1,0 +1,21 @@
+Internal vs External visitors
+-----------------------------
+I only list the *differences*. Tasks for which both are equally good (or bad) at, even if they are realized in different ways, are not listed.
+
+Internal
+- Cannot dispatch to different operators as they must be known beforehand
+- Delay mechanism do not work well for side-effect-ful operations
++ Enforces composability as visit methods cannot directly access value of children
++ Allow separation of object graph traversal from computation payload (the 'factory' algebra is a special case of this)
+- Poor at dealing with 'small' classes, eg the Operation class in Security used to simulate a many-valued string
+- When composing languages, all sub-languages must implement the same action, eg Expressions can eval, and when used in a Security language we need to check authorization, get privilege requirements, etc and all of them need to eval an expr
+- Exceptionally bad at computation that require global coordination, eg resolving a set of rules that may depend on each other. The interpreter pattern is generally poor at such things but the inability to control execution at global level only makes it worse.
+
+External
+- Cannot do higher-order composition (eg eval-and-print)
++ More natural to program with external visitors and definitely less boilerplating
+
+
+Both
++ Able to 'wrap' (inheritance composition) and compose horizontally (adding new types/operations)
+
