@@ -1,21 +1,34 @@
 
-class Def
-
-class Directive < Def
-  action: str
-  what! Expr
+class Module
+  name: str
+  requires! Require*
+  defs! Def*
   
-class Named < Def
-  name#   str?
+class Require
+  name# str
+  path: str
+  
+class Def
+  name#   str?  
 
-class Module < Named
-  meta!   Def*
-  defs!   Def*
+class Mixin < Def
+  meta!   LeafDef*
+  defs!   LeafDef*
+  includes! Ref*
 
-class Class < Module
+class Class < Mixin
   parent: str?
 
-class Binding < Named
+class Ref
+  module: str
+  name: str
+
+class LeafDef < Def
+
+class Attribute < LeafDef
+  kind: str  // attr_writer, attr_reader, attr_accessor
+
+class Binding < LeafDef
   value!  Expr
 
 class Expr

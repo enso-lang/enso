@@ -13,20 +13,26 @@ module FreeVarExpr
   include EvalExpr
   include LValueExpr
   
-  operation :depends
-
+  include Dispatcher    
+    
+  def depends(obj)
+    dispatch(:depends, obj.schema_class, obj)
+  end
+  
   def depends_EField(e, fname)
-    [*e.depends] 
+    [*depends(e)] 
   end
 
-  def depends_EVar(name, bound, env)
-    (bound.include?(name) || name == "self") ? [] : [Address.new(env, name)]
+  def depends_EVar(name)
+    (@_.bound.include?(name) || name == "self") ? [] : [Address.new(@_.env, name)]
   end
 
-  def depends_ELambda(body, formals, bound)
-    bound2 = bound.clone
-    formals.each{|f|bound2<<f.depends}
-    body.depends(bound: bound2)
+  def depends_ELambda(body, formals)
+    bound2 = @_.bound.clone
+    formals.each{|f|bound2<<depends(f)}
+    dynamic_bind bound: bound2 do
+      depends(body)
+    end
   end
   
   def depends_Formal(name)
@@ -39,9 +45,9 @@ module FreeVarExpr
       next if !f.traversal or f.type.Primitive?
       next if f.optional and fields[f.name].nil?
       if !f.many and !f.type.Primitive?
-        res += fields[f.name].depends
+        res += depends(fields[f.name])
       else
-        fields[f.name].each {|o| res += o.depends}
+        fields[f.name].each {|o| res += depends(o)}
       end
     end
     res
@@ -49,3 +55,8 @@ module FreeVarExpr
 end
 
 
+class FreeVarExprC
+  include FreeVarExpr  
+  def initialize
+  end
+end

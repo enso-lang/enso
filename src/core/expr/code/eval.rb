@@ -2,34 +2,38 @@ require 'core/schema/code/factory'
 require 'core/system/library/schema'
 
 module EvalExpr
+
+  include Dispatcher
   
-  operation :eval
+  def eval(obj)
+    dispatch(:eval, obj.schema_class, obj)
+  end
 
   def eval_ETernOp(op1, op2, e1, e2, e3)
-    e1.eval ? e2.eval : e3.eval
+    eval(e1) ? eval(e2) : eval(e3)
   end
 
   def eval_EBinOp(op, e1, e2)
     if op == "&"
-      e1.eval && e2.eval
+      eval(e1) && eval(e2)
     elsif op == "|"
-      e1.eval || e2.eval
+      eval(e1) || eval(e2)
     else
-      e1.eval.send(op.to_s, e2.eval)
+      eval(e1).send(op.to_s, eval(e2))
     end
   end
 
   def eval_EUnOp(op, e)
-    e.eval.send(op.to_s)
+    eval(e).send(op.to_s)
   end
 
-  def eval_EVar(name, env)
-    raise "ERROR: undefined variable #{name}" unless env.has_key?(name)
-    env[name]
+  def eval_EVar(name)
+    raise "ERROR: undefined variable #{name}" unless @_.env.has_key?(name)
+    @_.env[name]
   end
 
   def eval_ESubscript(e, sub)
-    e.eval[sub.eval]
+    eval(e)[eval(sub)]
   end
 
   def eval_EConst(val)
@@ -41,7 +45,9 @@ module EvalExpr
   end
 
   def eval_EFunCall(fun, params)
-    fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
+    dynamic_bind in_fc: true do 
+      eval(fun).call(*(params.map{|p|eval(p)}))
+    end
   end
 
   def eval_EList(elems, for_field)
@@ -53,17 +59,26 @@ module EvalExpr
       r = ManagedData::List.new(nil, nil)
     end
     elems.each do |elem|
-      #puts "ELEM #{elem}=#{elem.eval}"
-      r << elem.eval
+      #puts "ELEM #{elem}=#{eval(elem)}"
+      r << eval(elem)
     end
     r
   end
 
-  def eval_EField(e, fname, in_fc)
-    if in_fc
-      e.eval(in_fc: false).method(fname.to_sym)
+  def eval_EField(e, fname)
+    if @_.in_fc
+      dynamic_bind in_fc: false do
+        target = eval(e)
+        target.method(fname.to_sym)
+      end
     else
-      e.eval.send(fname)
+      eval(e).send(fname)
     end
+  end
+end
+
+class EvalExprC
+  include EvalExpr
+  def initialize
   end
 end

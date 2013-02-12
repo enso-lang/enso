@@ -9,7 +9,7 @@ CacheXML.clean('fibo.impl') #need to clean cache to get origin tracking
 fib = Loader.load('fibo.impl')
 Loader.find_model('fibo.impl') {|path| $file = IO.readlines(path)}
 
-#Interpreter(EvalCommand) is the non-debug version
+#EvalCommandC.new is the non-debug version
 # DebugMod is parameterized by the interpreter (ie EvalCommand),
 interp = Interpreter(Debug.wrap(EvalCommand))
 

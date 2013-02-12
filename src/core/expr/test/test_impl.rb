@@ -23,33 +23,41 @@ class CommandTest < Test::Unit::TestCase
 
   def test_impl1
     #test while loops, assignments
-    interp = Interpreter(EvalCommand)
+    interp = EvalCommandC.new
     impl1 = Loader.load("test1.impl")
 
-    assert_equal(20, interp.eval(impl1, env: {}))
+    interp.dynamic_bind env: {} do
+      assert_equal(20, interp.eval(impl1))
+    end
   end
 
   def test_impl2
     #test fun def and calls, external environment
-    interp = Interpreter(EvalCommand)
+    interp = EvalCommandC.new
     impl2 = Loader.load("test2.impl")
 
-    assert_equal(57, interp.eval(impl2, env: {'x'=>22, 'lst'=>[1,2,3,4,5]}))
+    interp.dynamic_bind env: {'x'=>22, 'lst'=>[1,2,3,4,5]} do
+      assert_equal(57, interp.eval(impl2))
+    end
   end
 
   def test_fib
     #test fun def and calls, if, recursion
-    interp = Interpreter(EvalCommand)
+    interp = EvalCommandC.new
     fib = Loader.load("fibo.impl")
 
-    assert_equal(34, interp.eval(fib, env: {'f'=>10}))
+    interp.dynamic_bind env: {'f'=>10} do
+      assert_equal(34, interp.eval(fib))
+    end
   end
   
   def test_piggyback
     #test the ability to piggyback on top of ruby's libraries, incl procs
-    interp = Interpreter(EvalCommand)
+    interp = EvalCommandC.new
     piggy = Loader.load("ruby_piggyback.impl")
 
-    assert_equal([2,3], interp.eval(piggy, env: {'s'=>[1,2,3]}))
+    interp.dynamic_bind env: {'s'=>[1,2,3]} do
+      assert_equal([2,3], interp.eval(piggy))
+    end
   end
 end

@@ -5,7 +5,11 @@ module EvalCommand
 
   include EvalExpr, LValueExpr
   
-  operation :eval
+  include Dispatcher    
+    
+  def eval(obj)
+    dispatch(:eval, obj.schema_class, obj)
+  end
 
   #note that the closure stores variable states only,
   #not interpreter state
@@ -25,13 +29,15 @@ module EvalCommand
     #params are the values used to call this function
     #args are used by the interpreter
     def call(*params)
+      #puts "CALL #{@formals} #{params}"
       nenv = HashEnv.new
       @formals.zip(params).each do |f,v|
         nenv[f.name] = v
       end
       nenv.set_parent(@env)
-      res = @body.eval(env: nenv)
-      res
+      @interp.dynamic_bind env: nenv do
+        @interp.eval(@body)
+      end
     end
 
     def to_s()
@@ -40,60 +46,71 @@ module EvalCommand
   end
 
   def eval_EWhile(cond, body)
-    while cond.eval
-      body.eval
+    while eval(cond)
+      eval(body)
     end
   end
 
-  def eval_EFor(var, list, body, env)
-    nenv = HashEnv.new.set_parent(env)
-    list.eval.each do |val|
+  def eval_EFor(var, list, body)
+    nenv = HashEnv.new.set_parent(@_.env)
+    eval(list).each do |val|
       nenv[var] = val
-      body.eval(env: nenv)
+      dynamic_bind env: nenv do
+        eval(body)
+      end
     end
   end
 
   def eval_EIf(cond, body, body2)
-    if cond.eval
-      body.eval
+    if eval(cond)
+      eval(body)
     elsif !body2.nil?
-      body2.eval
+      eval(body2)
     end
   end
 
   def eval_EBlock(body)
     res = nil
-    body.each do |c|
-      res = c.eval
+    dynamic_bind in_fc: false do
+      body.each do |c|
+        res = eval(c)
+      end
     end
     res
   end
   
-  def eval_EFunDef(name, formals, body, env)
-    res = Closure.new(body, formals.map{|f|f.eval}, env, self)
+  def eval_EFunDef(name, formals, body)
+    res = Closure.new(body, formals, @_.env, self)
     res.env[name] = res #hack to enable self-recursion
-    env[name] = res
+    @_.env[name] = res
     res
   end
   
-  def eval_ELambda(body, formals, env)
-    Proc.new { |*p| Closure.new(body, formals.map{|f|f.eval}, env, self).call(*p) }
+  def eval_ELambda(body, formals)
+    #puts "LAMBDA #{formals} #{body}"
+    Proc.new { |*p| Closure.new(body, formals, @_.env, self).call(*p) }
   end
   
-  def eval_Formal
-    @this
-  end
-
   def eval_EFunCall(fun, params, lambda)
-    if lambda.nil?
-      fun.eval(in_fc: true).call(*(params.map{|p|p.eval}))
-    else
-      p = lambda.eval
-      fun.eval(in_fc: true).call(*(params.map{|p|p.eval}), &p) 
+    dynamic_bind in_fc: true do 
+      if lambda.nil?
+        eval(fun).call(*(params.map{|p|eval(p)}))
+      else
+        p = eval(lambda)
+        f = eval(fun)
+        #puts "FunCall #{f}=#{f.class} #{p}"
+        f.call(*(params.map{|p|eval(p)}), &p) 
+      end
     end
   end
 
   def eval_EAssign(var, val)
-    var.lvalue.value = val.eval
+    lvalue(var).value = eval(val)
+  end
+end
+
+class EvalCommandC
+  include EvalCommand
+  def initialize
   end
 end

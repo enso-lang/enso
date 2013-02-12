@@ -252,17 +252,21 @@ module ManagedData
     def __computed(fld)
       name = fld.name
       exp = fld.computed
-      fvInterp = Interpreter(FreeVarExpr)
-      commInterp = Interpreter(EvalCommand)
+      fvInterp = FreeVarExprC.new
+      commInterp = EvalCommandC.new
       define_singleton_method(name) do
         if @memo[name] == nil
-          fvs = fvInterp.depends(exp, env: ObjEnv.new(self), bound: [])
+          fvs = fvInterp.dynamic_bind env: ObjEnv.new(self), bound: [] do
+            fvInterp.depends(exp)
+          end
           fvs.each do |fv|
             if fv.object  #should always be non-nil since computed fields have no external env
               fv.object.add_listener(fv.index) { @memo[name]=nil }
             end
           end
-          val = commInterp.eval(exp, env: ObjEnv.new(self), for_field: fld)
+          val = commInterp.dynamic_bind env: ObjEnv.new(self), for_field: fld do
+            commInterp.eval(exp)
+          end
           #puts "COMPUTED #{name}=#{val}"
           @memo[name] = val
         end

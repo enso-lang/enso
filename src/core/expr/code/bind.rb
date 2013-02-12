@@ -1,18 +1,23 @@
 module BindExpr
-  
-  operation :bind
 
-  def bind_EVar(name, args=nil)
-    env = args[:env]
+  include Dispatcher    
+    
+  def bind(obj)
+    dispatch(:bind, obj.schema_class, obj)
+  end
+
+ # args
+  def bind_EVar(name)
+    env = @_.args[:env]
     if env.keys.include? name
-      BindExpr.make_const(env[name], args[:factory])
+      BindExpr.make_const(env[name], @_.args[:factory])
     else
-      args[:self]
+      @_.args[:self]
     end
   end
 
-  def bind_?(op, e1, e2, args=nil)
-    args[:self]
+  def bind_?(op, e1, e2)
+    @_.args[:self]
   end
 
   def self.make_const(val, factory)
@@ -26,4 +31,8 @@ module BindExpr
       val
     end
   end
+end
+
+class BindExprC
+  include BindExpr
 end

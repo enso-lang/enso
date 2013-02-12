@@ -290,7 +290,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case Interpreter(RenderExpr).render(prop.loc)
+      case RenderExprC.new.render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -572,13 +572,17 @@ class StencilFrame < DiagramFrame
   #### expressions
 
   def eval(exp, env, dynamic = false)
-    @eval = Interpreter(EvalStencil) if @eval.nil?
-    @eval.eval(exp, env: env, dynamic: dynamic, factory: @factory)
+    @eval = EvalStencilC.new if @eval.nil?
+    @eval.dynamic_bind env: env, dynamic: dynamic, factory: @factory do
+      @eval.eval(exp)
+    end
   end
 
   def lvalue(exp, env)
-    @lval = Interpreter(LValueExpr) if @lval.nil?
-    @lval.lvalue(exp, env: env, factory: @factory)
+    @lval = LValueExprC.new if @lval.nil?
+    @lval.dynamic_bind env: env, factory: @factory do
+      @lval.lvalue(exp)
+    end
   end
 
 end

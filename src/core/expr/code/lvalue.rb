@@ -3,7 +3,11 @@ require 'core/expr/code/eval'
 module LValueExpr
   include EvalExpr
   
-  operation :lvalue
+  include Dispatcher    
+    
+  def lvalue(obj)
+    dispatch(:lvalue, obj.schema_class, obj)
+  end
 
   # An address class that simulates l-values (since Ruby does not have them)
   # Only two types of l-values are allowed: fields of schema objects and variables in the environment
@@ -52,14 +56,20 @@ module LValueExpr
   end
 
   def lvalue_EField(e, fname)
-    Address.new(ObjEnv.new(e.eval), fname)
+    Address.new(ObjEnv.new(eval(e)), fname)
   end
 
-  def lvalue_EVar(name, env)
-    Address.new(env, name)
+  def lvalue_EVar(name)
+    Address.new(@_.env, name)
   end
 
   def lvalue_?(type, fields, args)
     nil
+  end
+end
+
+class LValueExprC
+  include LValueExpr
+  def initialize
   end
 end
