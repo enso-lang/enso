@@ -4,16 +4,16 @@ module EvalStencil
   include EvalExpr
 
   def eval_Color(r, g, b, factory)
-    factory.Color(r.eval.round, g.eval.round, b.eval.round)
+    factory.Color(eval(r).round, eval(g).round, eval(b).round)
   end
 
   def eval_InstanceOf(base, class_name)
-    a = base.eval
+    a = eval(base)
     a && Schema::subclass?(a.schema_class, class_name)
   end
 
-  def eval_ETernOp(op1, op2, e1, e2, e3, dynamic)
-    if !dynamic
+  def eval_ETernOp(op1, op2, e1, e2, e3)
+    if !@_.dynamic
       super
     else
       v = e1.eval
@@ -24,8 +24,8 @@ module EvalStencil
     end
   end
 
-  def eval_EBinOp(op, e1, e2, dynamic)
-    if !dynamic
+  def eval_EBinOp(op, e1, e2)
+    if !@_.dynamic
       super op, e1, e2
     else
       r1 = e1.eval
@@ -36,8 +36,8 @@ module EvalStencil
     end
   end
 
-  def eval_EUnOp(op, e, dynamic)
-    if !dynamic
+  def eval_EUnOp(op, e)
+    if !@_.dynamic
       super op, e
     else
       r1 = e1.eval
@@ -46,11 +46,11 @@ module EvalStencil
     end
   end
 
-  def eval_EField(e, fname, in_fc, dynamic)
-    if in_fc or !dynamic
-      super e, fname, in_fc
+  def eval_EField(e, fname)
+    if @_.in_fc or !@_.dynamic
+      super e, fname
     else
-      r = e.eval
+      r = eval(e)
       if r.is_a? Variable
         r = r.value.dynamic_update
       else

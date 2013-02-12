@@ -119,7 +119,10 @@ class Build
   end
     
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    Interpreter(AssertExpr).assert(this.expr, env: ObjEnv.new(owner))
+    check = AssertExpr.new
+    check.dymamic_bind env: ObjEnv.new(owner) do
+      check.assert(this.expr)
+    end
   end
 
   private

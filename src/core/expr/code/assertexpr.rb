@@ -3,8 +3,12 @@ require 'core/expr/code/impl'
 
 module AssertExpr
   include EvalExpr, LValueExpr
-  
-  operation :assert
+
+  include Dispatcher  
+    
+  def assert(obj)
+    dispatch(:assert, obj.schema_class, obj)
+  end
 
   def assert_?(type, fields, args)
     raise "Invalid expression in grammar" unless eval
@@ -12,19 +16,19 @@ module AssertExpr
 
   def assert_EBinOp(op, e1, e2)
     if op == "eql?"
-      var = e1.lvalue
-      val = e2.eval
+      var = lvalue(e1)
+      val = eval(e2)
       if var.nil?  #try flip it around
-        var = e2.lvalue
-        val = e1.eval
+        var = lvalue(e2)
+        val = eval(e1)
       end
       if var.nil?
         raise "Invalid expression in grammar"
       end
       var.value = val
     elsif op == "&"
-      e1.assert
-      e2.assert
+      assert e1
+      assert e2
     else
       raise "Invalid expression in grammar"
     end
@@ -32,7 +36,7 @@ module AssertExpr
 
   def assert_EUnOp(op, e)
     if op == "!"
-      var = e.lvalue
+      var = lvalue(e)
       if var.nil?
         raise "Invalid expression in grammar"
       end
@@ -43,7 +47,7 @@ module AssertExpr
   end
 
   def assert_EVar(name)
-    var = e.lvalue
+    var = lvalue(e)
     if var.nil?
       raise "Invalid expression in grammar"
     end
@@ -51,7 +55,7 @@ module AssertExpr
   end
 
   def assert_EField(e, fname)
-    var = e.lvalue
+    var = lvalue(e)
     if var.nil?
       raise "Invalid expression in grammar"
     end
@@ -59,3 +63,6 @@ module AssertExpr
   end
 end
 
+class AssertExprC
+  include AssertExpr
+end

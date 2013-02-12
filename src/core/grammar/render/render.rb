@@ -221,7 +221,10 @@ class RenderClass < Dispatch
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
       obj.instance_eval(code)
     else
-      Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, @localEnv))
+      interp = EvalExprC.new
+      interp.dynamic_bind env: ObjEnv.new(obj, @localEnv) do
+        interp.eval(this.expr)
+      end
     end
   end
 
@@ -354,7 +357,12 @@ class PredicateAnalysis
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
       lambda{|obj, env| obj.instance_eval(code) }
     else
-      lambda{|obj, env| Interpreter(EvalExpr).eval(this.expr, env: ObjEnv.new(obj, env)) }
+      interp = EvalExprC.new
+      lambda do |obj, env| 
+        interp.dynamic_bind env: ObjEnv.new(obj, env) do
+          interp.eval(this.expr)
+        end
+      end
     end
   end
 
