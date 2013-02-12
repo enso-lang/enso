@@ -32,8 +32,19 @@ class Build
     end
   end
 
-  def kids(sppf, owner, accu, field, fixes, paths)
+  def handle_amb(sppf, owner, accu, field, fixes, paths)
     amb_error(sppf) if sppf.kids.length > 1
+  end
+  
+  def is_amb?(sppf)
+    sppf.kids.length > 1
+  end
+
+  def kids(sppf, owner, accu, field, fixes, paths)
+    if is_amb?(sppf) 
+      return handle_amb(sppf, owner, accu, field, fixes, paths)
+    end
+
     #puts "---> kids was empty (owner = #{owner})" if sppf.kids.empty?
     #puts "---> type #{sppf.type}" if sppf.kids.empty?
     return if sppf.kids.empty?
