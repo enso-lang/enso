@@ -11,8 +11,11 @@ class DynamicPropertyStack
     @current = {}
     @stack = []
   end
-  def method_missing(msg)
-    @current[msg]
+  def method_missing(name)
+    @current[name]
+  end
+  def [](name)
+    @current[name]
   end
   def _bind(field, value)
     old = @current[field]
@@ -62,7 +65,22 @@ module Dispatcher
       send(method, *params)
     end
   end
-  
+
+  def dispatch_obj(operation, obj)
+    type = obj.schema_class
+    method = "#{operation}_#{type.name}".to_s
+    if !respond_to?(method)
+      method = find(operation, type)  # slow path
+    end
+    if !method
+      method = "#{operation}_?".to_s
+      if !respond_to?(method)
+        raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
+      end
+    end
+    send(method, obj)
+  end
+    
   def find(operation, type)
     method = "#{operation}_#{type.name}".to_s
     if respond_to?(method)
