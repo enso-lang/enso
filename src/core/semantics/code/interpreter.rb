@@ -53,6 +53,9 @@ module Dispatcher
     end
     if !method
       method = "#{operation}_?".to_s
+      if !respond_to?(method)
+        raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
+      end
       send(method, type, obj, @_)
     else
       params = type.fields.map {|f| obj[f.name] }

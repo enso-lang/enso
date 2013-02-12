@@ -109,7 +109,7 @@ class Build
     
   def Code(this, sppf, owner, accu, field, fixes, paths)
     check = AssertExprC.new
-    check.dymamic_bind env: ObjEnv.new(owner) do
+    check.dynamic_bind env: ObjEnv.new(owner) do
       check.assert(this.expr)
     end
   end
