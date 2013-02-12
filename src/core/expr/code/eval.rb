@@ -6,7 +6,7 @@ module EvalExpr
   include Dispatcher
   
   def eval(obj)
-    dispatch(:eval, obj.schema_class, obj)
+    dispatch(:eval, obj)
   end
 
   def eval_ETernOp(op1, op2, e1, e2, e3)

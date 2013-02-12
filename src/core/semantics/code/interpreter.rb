@@ -49,7 +49,8 @@ module Dispatcher
     result
   end
   
-  def dispatch(operation, type, obj)
+  def dispatch(operation, obj)
+    type = obj.schema_class
     method = "#{operation}_#{type.name}".to_s
     if !respond_to?(method)
       method = find(operation, type)  # slow path

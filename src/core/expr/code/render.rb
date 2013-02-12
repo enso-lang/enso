@@ -4,7 +4,7 @@ module RenderExpr
   include Dispatcher    
     
   def render(obj)
-    dispatch(:render, obj.schema_class, obj)
+    dispatch(:render, obj)
   end
 
   def render_EBinOp(op, e1, e2)

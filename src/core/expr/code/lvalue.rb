@@ -6,7 +6,7 @@ module LValueExpr
   include Dispatcher    
     
   def lvalue(obj)
-    dispatch(:lvalue, obj.schema_class, obj)
+    dispatch(:lvalue, obj)
   end
 
   # An address class that simulates l-values (since Ruby does not have them)

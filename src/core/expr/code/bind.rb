@@ -3,7 +3,7 @@ module BindExpr
   include Dispatcher    
     
   def bind(obj)
-    dispatch(:bind, obj.schema_class, obj)
+    dispatch(:bind, obj)
   end
 
  # args
