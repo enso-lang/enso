@@ -8,7 +8,7 @@ module EvalCommand
   include Dispatcher    
     
   def eval(obj)
-    dispatch(:eval, obj.schema_class, obj)
+    dispatch(:eval, obj)
   end
 
   #note that the closure stores variable states only,

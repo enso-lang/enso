@@ -6,7 +6,7 @@ module EvalExpr
   include Dispatcher
   
   def eval(obj)
-    dispatch(:eval, obj.schema_class, obj)
+    dispatch(:eval, obj)
   end
 
   def eval_ETernOp(op1, op2, e1, e2, e3)
@@ -50,9 +50,9 @@ module EvalExpr
     end
   end
 
-  def eval_EList(elems, for_field)
-    k = Schema::class_key(for_field.type)
-    #puts "KEY #{for_field}= #{k}"
+  def eval_EList(elems)
+    k = Schema::class_key(@_.for_field.type)
+    #puts "KEY #{@_.for_field}= #{k}"
     if k
       r = ManagedData::Set.new(nil, nil, k)
     else

@@ -16,7 +16,7 @@ module FreeVarExpr
   include Dispatcher    
     
   def depends(obj)
-    dispatch(:depends, obj.schema_class, obj)
+    dispatch(:depends, obj)
   end
   
   def depends_EField(e, fname)

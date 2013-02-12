@@ -1,0 +1,20 @@
+Fields vs object style of parameters in visit methods
+-----------------------------------------------------
+
+Fields style:
+  def visit(field1, field2, args={}) ....
+
+Object style:
+  def visit(obj, args={}) ....
+
+
+Fields:
++ Not all fields need to be passed: Cleaner signature, Saves computation for internal
++ Functional. Original obj guaranteed unchanged
++ Facilitate checking of fields against schema
+- Internal signature different from external call (ie interp.eval(obj))
+
+Object:
++ Able to get object identity
+- Signature now different from internal visitors
+- Only objects can be passed to visits (not any collection of attributes)

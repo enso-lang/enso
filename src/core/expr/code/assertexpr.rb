@@ -7,7 +7,7 @@ module AssertExpr
   include Dispatcher  
     
   def assert(obj)
-    dispatch(:assert, obj.schema_class, obj)
+    dispatch(:assert, obj)
   end
 
   def assert_?(type, fields, args)

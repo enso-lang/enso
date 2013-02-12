@@ -9,7 +9,7 @@ require 'core/semantics/code/interpreter'
 class ExpTest < Test::Unit::TestCase
 
   def test_base
-    interp = Interpreter(Eval)
+    interp = Eval.new
 
     e = Loader.load("sample.exp")
     puts "--LOADING SIMPLE EXPRESSION---"

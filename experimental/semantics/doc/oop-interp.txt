@@ -1,0 +1,26 @@
+Arguments for (and against) an object-oriented style of semantics
+-----------------------------------------------------------------
+
+* Persistent state
+Some operations have persistent state that needs to be kept throughout the program. For instance, origin tracking requires each object store its own location. This must be manually managed with the visitor style (ie by making sure the right interpreter is used) but with the object oriented style this ancillary state can be conveniently rolled into interpreter in the object
+
+* Interpreter management
+Even 'stateless' interpreters have state as they need to keep track of which operations were included. Under the visitor style the the programmer must maintain explicit pointers to the right interpreter, but under the OO style management is trivial as the behavior is embedded into the object.
+
+* Multiple dispatch
+This is a weakness rather than an advantage. Multiple dispatch runs against the philosophy of visitors because they are dispatched according to type (and some issues with subtyping) and the OOP style reflects that.
+
+* Extensibility
+Under the visitor approach, when adding new types of objects their corresponding operators must be rolled into the interpreter. If this is not done the operation will fail at runtime. Under the OO style, each object is loaded with its own operational semantics and new types can be added transparently. However, conversely, under the OO style when a new operation is added it must be loaded into all existing objects.
+
+* Polysemantic
+Under the OO style, objects of the same type can have different behavior for the same action by loading a different interpreter. An example is mixing secure and non-secure objects in the same list. On the other hand, it is more difficult to use different interpreter on the same object as it has to be reloaded each time.
+
+* Delayed Execution
+If the operations are stored as part of the object, they can be execute at any time. However, if an external interpreter is evaluating an object, delay executions are much more difficult because either the interpreter must be kept within the object or the result of evaluation must be a closure.
+
+* Partial Evaluation
+An OO style is known to complicate partial evaluation because of dynamic dispatch. However, since the object in this case (ie the input DSL structure) is known statically, I am not sure if this is still true.
+
+* Easier to do dispatch (?)
+An OO style allows the direct creation of methods, eg "eval", without the name mangling, eg "eval_X".
