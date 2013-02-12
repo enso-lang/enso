@@ -108,7 +108,7 @@ class Build
   end
     
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    check = AssertExpr.new
+    check = AssertExprC.new
     check.dymamic_bind env: ObjEnv.new(owner) do
       check.assert(this.expr)
     end

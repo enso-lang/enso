@@ -65,4 +65,5 @@ end
 
 class AssertExprC
   include AssertExpr
+  def initialize; end
 end
