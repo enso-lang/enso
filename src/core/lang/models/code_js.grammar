@@ -1,26 +1,32 @@
 start Program
 
-Program ::= [Module] defs:Top*
-Top     ::=  Require | MainModule
-Require ::= [Directive] action:"require" "(" what:Expr ")" /
-MainModule ::= [Module] defs:Def* @/2 /2 "exports =" name:sym "=" "{"/> defs:Export* /2 meta:Binding* @(.","/2) /<"}"/
-Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr)
-  Function   ::= FunHeader FunBody
-Def     ::= Class | Module
-Export ::= [Directive] | [Class] ExportName | [Binding] ExportName | [Module] ExportName
+Program ::= [Module] "define(["/> requires:([Require] path:str)* @(.","/) </"]," /
+                     "function(". requires:([Require] name:sym)* @(.",") .") {">/2
+                     "var" name:sym ";"/
+                     defs:Def* @/2 /2
+                     name:sym "=" "{"/> defs:Export* /2 /<"};"/
+                     "return" name:sym .";"/
+                     <"})"/
+Def     ::= Class | Mixin | [Binding]
+Export ::= [Class] ExportName | [Mixin] ExportName | Binding
 ExportName ::= name:sym .":" name:sym ."," /
-
+Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) ","/2
+  Function ::= FunHeader FunBody
+  
 // class N < N 
 //   D* 
 // end
 // class 
 // D ::= def N 
 
-Module  ::= [Module] name:sym "= MakeModule({" Body "});"
-Class   ::= [Class] name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
-Body    ::= /> Meta? defs:DefB* @(.","/2) </
+Class   ::= [Class] "var" name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
+Mixin   ::= [Mixin] "var" name:sym "= MakeMixin({" Body "});"
+Body    ::= /> Includes? Meta? defs:DefB* @(.","/2) </
+Includes ::= "include: [" includes:Include+ @"," "]," /2
+  Include ::= [Include] (module:sym.".")? name:sym
+
 Meta    ::= "_class_:" "{"/> meta:DefB+ @(.","/2) </"}," /2
-DefB     ::= BindingB | Directive
+DefB     ::= Attribute | BindingB
 BindingB  ::= [Binding] MethodSym .":" (Method | value:Expr)
   MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
 Method   ::= value:FunHeader SuperBind value:FunBody
@@ -31,12 +37,9 @@ Method   ::= value:FunHeader SuperBind value:FunBody
   SuperBind ::= "var super$ = this.super$.". MethodSym .";" /
   FunBody ::= [Fun] body:SeqBodyR </"}"
    
-Directive ::= Attr | Include
-Include ::= [Directive] action:"include" .":" what:Expr
-Attr    ::= [Directive] ({ action=="attr_reader" } Reader | { action=="attr_accessor" } Reader .","/ Writer)
-Reader  ::= what:LitName .":" "function()" "{" "return" "this"."."."$".".". what:LitName "}"
-Writer  ::= "set_".what:LitName .":" "function(val)" "{" "this"."."."$".".". what:LitName " = val" "}"
-LitName ::= [Lit] value:sym
+Attribute ::= [Attribute] ({ kind=="attr_reader" } Reader | { kind=="attr_accessor" } Reader .","/ Writer)
+Reader  ::= name:sym .":" "function()" "{" "return" "this"."."."$".".". name:sym "}"
+Writer  ::= "set_".name:sym .":" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}"
 
 Seq     ::= "{"/> SeqBody </"}"
 SeqBody     ::= [Seq] statements:Statement* @/ | Statement

@@ -33,6 +33,14 @@ class MetaDef
   end
 end
 
+class ModuleDef
+  attr_accessor :name, :defs
+  def initialize(name, defs)
+    @name = name
+    @defs = defs
+  end
+end
+
 class CodeBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
     super
@@ -205,21 +213,26 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_class(const, superclass, body)
-    #puts "CLASS #{const} < #{superclass} : #{body}"
+    puts "CLASS #{const} < #{superclass} : #{body}"
     parts = split_meta(body)
-    @f.Class(const, parts[0], parts[1], superclass && superclass.name)
+    @f.Class(const, parts[0], parts[1], parts[2], superclass && superclass.name)
   end
 
+  # returns [metas, normal, includes/requires]
   def split_meta(body)
     #puts "META #{body.flatten}"
-    parts = body.flatten.partition {|x| is_meta(x)}
-    parts = [ fixup_defs(parts[0]), fixup_defs(parts[1]) ]
+    metas = body.flatten.partition {|x| is_meta(x)}
+    others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.Include? || x.Require?) }
+    parts = [ fixup_defs(metas[0]), fixup_defs(others[1]), others[0] ]
+    puts "PARTS #{parts}"
     return parts
   end
   
   def is_meta(d)
     if d.is_a? MetaDef
       return true
+    elsif d.is_a? ModuleDef
+      return false
     elsif d.Assign?
       #puts "DEF #{d.to.name} #{d.to.kind}"
       return d.to.kind == "@@"
@@ -232,6 +245,9 @@ class CodeBuilder < Ripper::SexpBuilder
     body.collect do |d|
       if d.is_a? MetaDef
         d.defn
+      elsif d.is_a? ModuleDef
+        parts = split_meta(d.defs)
+        @f.Mixin(d.name, *parts)
       elsif d.Assign?            
         @f.Binding(fixup_method_name(d.to.name), d.from)
       else
@@ -245,13 +261,31 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_command(name, args)
-    if name == "require" || name == "include"
-      #puts "CMD #{name} #{args}"
-      @f.Directive(name, args.normal[0])
+    if name == "require"
+      path = args.normal[0].value
+      mod = path.split("/")[-1]
+      mod = mod.split("_").map(&:capitalize).join
+      puts "REQUIRE #{mod} #{path}"
+      @f.Require(mod, path)
+    elsif name == "include"
+      path = args.normal[0]
+      if path.Lit?
+        base = nil
+        name = path.value
+      elsif path.Var?
+        base = nil
+        name = path.name
+      elsif path.Call? && path.target.Variable?
+        base =
+        name = path.method
+      else
+        raise "Invalid `include' #{args}"
+      end
+      @f.Include(base, name)
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
       #puts "CMD #{name} #{args}"
       args.normal.collect do |var|
-        @f.Directive(name, var)
+        @f.Attribute(var.value, name)
       end
     else
       make_call_formals(nil, name, args)
@@ -336,19 +370,19 @@ class CodeBuilder < Ripper::SexpBuilder
     @f.Fun(normal, block, rest, locals, body)
   end
   
-  def fixup_expr(o, env)
+  def fixup_expr(o, env=[])
     return nil if !o
     case o.schema_class.name
-    when "Class", "Module"
-      if @rootModule
-        @selfVar = "self"
-      elsif o.name != "$TOP$"
-        #puts "MAIN MODULE #{o.name}"
-        @selfVar = @rootModule = o.name
+    when "Module"
+      o.defs.each do |d| 
+        @selfVar = o.name
+        fixup_expr(d, env)
       end
+      
+    when "Class", "Mixin"
+      @selfVar = "self"
       o.defs.each { |d| fixup_expr(d, env) }
       o.meta.each { |d| fixup_expr(d, env) }
-      @selfVar = @rootModule
       
     when "Binding"
       if o.value.Fun?
@@ -602,9 +636,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_module(const, body)
-    #puts "MODULE #{const} #{body}"
-    parts = split_meta(body)
-    @f.Module(const, parts[0], parts[1])
+    ModuleDef.new(const, body)
   end
 
   def on_mrhs_add(assignment, ref)
@@ -641,8 +673,17 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_program(defs) # parser event
-    #puts "DEFS #{defs}"
-    fixup_expr(@f.Module("$TOP$", [], defs), [])
+    puts "DEFS #{defs}"
+    parts = defs.partition {|x| x.is_a?(ModuleDef) }
+    if parts[0].size != 1
+      raise "Each file must have a single top-level module"
+    end
+    requires = parts[1]
+    mod = parts[0][0]
+
+  # returns [metas, normal, includes/requires]
+    parts = split_meta(mod.defs)
+    fixup_expr(@f.Module(mod.name, requires, parts.flatten))
   end
     
   def on_qwords_add(array, word)

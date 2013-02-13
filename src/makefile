@@ -1,8 +1,8 @@
 .SUFFIXES: .rb .js .code
 
 main: \
-	core/system/boot/meta_schema.js \
 	core/schema/code/factory.js \
+  core/system/boot/meta_schema.js \
 	core/schema/code/many.js \
 	core/schema/code/dynamic.js \
 	core/system/utils/paths.js \
@@ -21,4 +21,4 @@ foo: \
 .code.js:
 	echo "GENERATING " $@
 	mkdir -p `dirname node_modules/$@`
-	ruby -I . core/grammar/render/trans.rb $< code_js > node_modules/$@
+	ruby -I . core/grammar/render/trans.rb $< code_js js/$@

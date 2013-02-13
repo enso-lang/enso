@@ -1,19 +1,18 @@
-start Program
+start Module
 
-Program ::= [Module] defs:Top* @/
-Top     ::=  Require | MainModule
-Require ::= [Directive] action:"require" what:Expr
-MainModule ::= [Module] /2 "module" name:sym /> defs:Def* @/2 /2 meta:Meta* @/2 </"end"
-Def     ::= "@" Binding | Class | Module
+Module ::= [Module] requires:Require* /2 "module" name:sym /> defs:Def* @/2 </"end"
+Require ::= [Require] "require" path:str "#" name:sym
+Def     ::= "@" Binding | Class | Mixin
 
-Module  ::= [Module] "module" name:sym Body
+Mixin   ::= [Mixin] "module" name:sym Body
 Class   ::= [Class] "class" name:sym ("<" parent:sym)? Body
-Body    ::= /> meta:Meta* @/2 /2 defs:Instance* @/2 </"end"/
-Meta    ::= "def" "self" .".". Method | "@@". Binding
-Instance ::= Require | Directive | "def" Method | "@" Binding
-Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
-Binding ::= [Binding] name:sym "=" value:Expr
-Directive ::= [Directive] (action:"attr_reader" | action:"attr_writer" | action:"attr_accessor" | action:"include") what:Expr
+Body    ::= /> includes:Include* @/ /2 meta:Meta* @/2 /2 defs:Instance* @/2 </"end"/
+  Include ::= [Include] "include" (module:sym.".")? name:sym /
+  Meta    ::= "def" "self" .".". Method | "@@". Binding
+  Instance ::= Require | Attribute | "def" Method | "@" Binding
+    Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
+    Binding ::= [Binding] name:sym "=" value:Expr
+    Attribute ::= [Attribute] (kind:"attr_reader" | kind:"attr_writer" | kind:"attr_accessor") ":".name:sym
 
 Fun     ::= [Fun] (."(".Params.")")? /> ("local" locals:Decl+ @"," /)? body:SeqA </ "end"
 Params  ::= args:Arg+ @(.",") (."," "*".rest:sym)? (."," "&".block:sym)?

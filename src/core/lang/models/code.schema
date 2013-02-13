@@ -14,13 +14,13 @@ class Def
 class Mixin < Def
   meta!   LeafDef*
   defs!   LeafDef*
-  includes! Ref*
+  includes! Include*
 
 class Class < Mixin
   parent: str?
 
-class Ref
-  module: str
+class Include
+  module: str?
   name: str
 
 class LeafDef < Def

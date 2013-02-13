@@ -1,54 +1,8 @@
 
-with (global) {
+define (function() {
 
   fs = require("fs");
     
-  MakeProxy = function(obj) {
-    var proxy = null;
-    var handler = {
-      get : function (proxy, prop) {
-         var x = obj[prop];
-        if (x) {
-         return x;
-        } else {
-         return function() { return obj._get(prop); }
-        }
-      },
-      set : function(proxy, name, val) {
-        return obj.set(name, val);
-      },
-      keys : function() {
-        return handler._get("keys");
-      }};
-    proxy = Proxy.create(handler);
-    return proxy;
-  }
-
-  makeArrayProxy = function(obj) {
-    var proxy = null;
-    var handler = {
-      get : function (proxy, prop) {
-         var x = obj[prop];
-         return x ? x : obj._get(prop);
-      },
-      set : function(proxy, name, val) {
-        return obj.set(name, val);
-      },
-      keys : function() {
-        return obj.keys;
-      }};
-    proxy = Proxy.create(handler);
-    return proxy;
-  }
-
-  /*
-  ProxyMixin = function(klass) {
-    return function() {
-      this.$ = {};
-      return ProxyWrapper(klass.apply(this, arguments));
-    }}
-  */
-  
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
     }
@@ -69,11 +23,7 @@ with (global) {
     }
   }
   
-  closure = function(obj, fun) {
-    return function () { 
-       return fun.apply(obj, arguments);
-     }
-  }
+  raise = function(msg) { throw msg }
   
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = Array.prototype.forEach
@@ -84,9 +34,9 @@ with (global) {
   Object.prototype.define_singleton_method = function(name, val) { this[name] = val }
   String.prototype.to_s = function() { return this }
   Object.prototype.to_s = function() { return "" + this }
-  raise = function(msg) { throw msg }
   Object.prototype._get = function(k) { return this[k] }
-
+  Object.prototype._set = function(k, v) { this[k] = v; return v; }
+  
   EnsoBaseClass = {
     finalize_object$: function(x) { return x },
     new: function() {}
@@ -162,9 +112,30 @@ with (global) {
 
   EnsoProxyObject = MakeClass({
     _class_: {
-      finalize_object$: MakeProxy
+      finalize_object$: function(obj) {
+        var proxy = null;
+        var handler = {
+          get : function (proxy, prop) {
+             var x = obj[prop];
+            if (x) {
+             return x;
+            } else {
+             return function() { return obj._get(prop); }
+            }
+          },
+          set : function(proxy, name, val) {
+            return obj.set(name, val);
+          },
+          keys : function() {
+            return handler._get("keys");
+          }};
+        proxy = Proxy.create(handler);
+        return proxy;
+      } 
     }
   });
   
+  MakeModule = MakeClass;
+  
 
-}
+})
