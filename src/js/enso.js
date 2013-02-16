@@ -82,10 +82,27 @@ define (function() {
       var parent_instance_proto = base_class.new.prototype;
       // connect this instance_spec bindings to inherit the parent's instance_spec 
       instance_spec.__proto__ = parent_instance_proto;
+      // if there are mixins, then a clone of the mixin's prototype is inserted between object and base
+      if (instance_spec.hasOwnProperty("include")) {
+		if (! instance_spec.hasOwnProperty("_eigen_")) {
+			instance_spec._eigen_ = Object.create({});
+  	    	instance_spec._eigen_.__proto__ = instance_spec.__proto__
+  	    	instance_spec.__proto__ = instance_spec._eigen_
+		}
+		for (var i=0,len=instance_spec.include.length; i<len; i++) {
+			var methods = instance_spec.include[i]._instance_spec_._methods_()
+			for (var m in methods) {
+				if (methods.hasOwnProperty(m))
+					instance_spec._eigen_[m] = methods[m] 
+			}
+	    }
+      }
       // make sure there is a class object 
       instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
       // connect this object's class data to the base class data 
       instance_spec._class_.__proto__ = base_class;
+      // remember the instance_spec for each class
+      instance_spec._class_._instance_spec_ = instance_spec;
       // make sure there is an initializer function
       instance_spec.initialize = instance_spec.initialize || function() {
           if (parent_instance_proto.hasOwnProperty("initialize")) {
@@ -136,6 +153,33 @@ define (function() {
   });
   
   MakeModule = MakeClass;
-  
+
+  MakeMixin = function(instance_spec) {
+
+      // make sure there is a class object 
+      instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
+      // remember the instance_spec for each class
+      instance_spec._class_._instance_spec_ = instance_spec;
+
+      // get all methods defined in this mixin and its parents
+      instance_spec._methods_ = function() {
+      	var methods = [];
+      	if (instance_spec.hasOwnProperty("include")) {
+  			for (var i=0,len=instance_spec.include.length; i<len; i++) {
+  				var incld = instance_spec.include[i]
+				methods = methods.concat(incld._instance_spec_._methods_())
+			}
+      	}
+      	for (var attr in instance_spec) {
+      		if (attr!="include" && attr.indexOf("_")!=0 && instance_spec.hasOwnProperty(attr)) { 
+      		  methods[attr] = instance_spec[attr]
+      		 }
+      	}
+      	return methods
+      }
+     
+      // return the new class
+      return instance_spec._class_;
+   }
 
 })
