@@ -102,7 +102,7 @@ IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </    // TODO: Pr
 
 Call     ::= SuperCallRest | SuperCall | CallRest | CallNorm
 CallRest  ::= [Call] target:Primary .".". method:sym ".call_rest_args$(".target:Primary ."," (Args.",")? rest:Expr ")"
-CallNorm  ::= [Call] (target:Primary .".".)? method:sym ."(". Args? .")"
+CallNorm  ::= [Call] (target:Primary .".".)? method:sym ({method=="length"} | ."(". Args? .")")
   Args    ::= (block:Fun .",")? args:Expr+ @(.",") 
             | block:Fun
 SuperCallRest ::= [Call] target:Super "super$.call_rest_args$(self," (Args.",")? rest:Expr ")"

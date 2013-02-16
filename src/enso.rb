@@ -71,6 +71,19 @@ class EnsoBaseClass
 end
 
 class EnsoProxyObject < EnsoBaseClass  
+  def [](name)
+    name = name.to_s
+    if respond_to?(name)
+      send name
+    else
+      raise "Unknown method '#{name}' for #{self}"
+    end
+  end
+  def define_singleton_value(name, value)
+    define_singleton_method name do
+      value
+    end
+  end
   def method_missing(msg, *args)
     #puts "MM #{msg} #{self.class}"
     if msg[-1] == "="

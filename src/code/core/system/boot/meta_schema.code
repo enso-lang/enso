@@ -13,50 +13,22 @@ module Boot
   @ load = (
     do |doc|
       ss0 = Boot.make_object(doc, nil);
+      ss0._complete;
       Copy(ManagedData.new(ss0), ss0);
     end
   )
 
   @ make_object = (
     do |data, root|
-      if data["class"] == "Schema" then
-        Schema.new(data, root);
-      elsif data["class"] == "Class" then
-        Class.new(data, root);
-      else
-        MObject.new(data, root);
+      if data != nil then
+        if data["class"] == "Schema" then
+          Schema.new(data, root);
+        elsif data["class"] == "Class" then
+          Class.new(data, root);
+        else
+          MObject.new(data, root);
+        end
       end
-    end
-  )
-
-  @ make_field = (
-    do |data, root, keyed|
-      if data.is_a_P(Array) then
-        Boot.make_many(data, root, keyed);
-      else
-        Boot.get_object(data, root);
-      end
-    end
-  )
-
-  @ get_object = (
-    do |data, root|
-      if ! data then
-        nil;
-      elsif data.is_a_P(String) then
-        Paths.parse(data).deref(root);
-      else
-        Boot.make_object(data, root);
-      end
-    end
-  )
-
-  @ make_many = (
-    do |data, root, keyed|
-      arr = data.map do |a|
-        Boot.get_object(a, root);
-      end
-      BootManyField.new(arr, root, keyed);
     end
   )
 
@@ -73,46 +45,82 @@ module Boot
     attr_reader :file_path
 
     def initialize(data, root)
+      local :has_name , :keyed , :name
       @_id = @@seq_no = @@seq_no + 1;
-      @data = data;
-      @root = root || self;
       @factory = self;
       @file_path = [];
-      @fields = {};
-    end
-
-    def schema_class
-      @root.types[@data["class"]];
-    end
-
-    def [](sym)
-      local :val
-      val = @fields[sym];
-      if val then
-        val;
-      else
-        @fields[sym] = if sym[- 1] == "?" then
-          self.schema_class.name == sym.slice(0, sym.length - 1);
-        elsif @data.has_key_P(S(sym, "=")) then
-          @data[S(sym, "=")];
-        elsif @data.has_key_P(S(sym, "#")) then
-          Boot.make_field(@data[S(sym, "#")], @root, true);
-        elsif @data.has_key_P(sym.to_s) then
-          Boot.make_field(@data[sym.to_s], @root, false);
-        else
-          System.raise(S("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
+      @root = root || self;
+      @data = data;
+      has_name = false;
+      data.each do |key, value|
+        if key == "class" then
+        elsif key[- 1] == "=" then
+          self.define_singleton_value(key.slice(0, key.length - 1), value);
+          if key == "name=" then
+            has_name = true;
+            self.define_singleton_value("to_s", S("<", data["class"], " ", self._id, " ", value, ">"));
+          end
+        elsif System.test_type(value, Array) then
+          keyed = key[- 1] == "#";
+          name = if keyed then
+            key.slice(0, key.length - 1);
+          else
+            key;
+          end
+          if value.length == 0 || ! System.test_type(value[0], String) then
+            self._create_many(name, (
+              value.map do |a|
+                Boot.make_object(a, @root);
+              end
+            ), keyed);
+          end
+        elsif ! System.test_type(value, String) then
+          self.define_singleton_value(key, Boot.make_object(value, @root));
         end
+      end
+      if ! has_name then
+        self.define_singleton_value("to_s", S("<", data["class"], " ", self._id, ">"));
       end
     end
 
-    def to_s
-      @name || (
-        @name = begin
-          S("<", @data["class"], " ", self._id, " ", self.name, ">");
-        rescue
-          S("<", @data["class"], " ", self._id, ">");
+    def _complete
+      local :keyed , :name
+      @data.each do |key, value|
+        if key == "class" then
+          self.define_singleton_value("schema_class", @root.types[value]);
+        elsif key[- 1] != "=" && value then
+          if System.test_type(value, Array) then
+            keyed = key[- 1] == "#";
+            name = if keyed then
+              key.slice(0, key.length - 1);
+            else
+              key;
+            end
+            if value.length > 0 && System.test_type(value[0], String) then
+              self._create_many(name, (
+                value.map do |a|
+                  Paths.parse(a).deref(@root);
+                end
+              ), keyed);
+            else
+              self[name].each do |obj|
+                obj._complete;
+              end
+            end
+          elsif System.test_type(value, String) then
+            self.define_singleton_value(key, Paths.parse(value).deref(@root));
+          else
+            self[key]._complete;
+          end
         end
-      );
+      end
+      @root.types.each do |cls|
+        self.define_singleton_value(S(cls.name, "?"), @data["class"] == cls.name);
+      end
+    end
+
+    def _create_many(name, arr, keyed)
+      self.define_singleton_value(name, BootManyField.new(arr, @root, keyed));
     end
   end
 

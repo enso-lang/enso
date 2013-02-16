@@ -5,6 +5,10 @@ require 'core/schema/tools/dumpjson.rb'
 require 'ripper'
 require 'pp'
 
+# problems:
+# - is_a? works on nil in Ruby but not JS
+
+
 class Formals
   attr_accessor :normal, :block, :rest, :parens
   def initialize(normal = [], block = nil, rest = nil)
@@ -349,7 +353,7 @@ class CodeBuilder < Ripper::SexpBuilder
   def make_def_binding(name, params, body)
     vars = reset_assigned_vars()
     #puts "DEF #{name} #{params} #{vars}"
-    raise "can't redefine ==" if name == "=="
+    raise "can't redefine #{name}" if ["==", "is_a?"].include?(name)
     name = fixup_method_name(name)
     @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
   end
@@ -542,10 +546,13 @@ class CodeBuilder < Ripper::SexpBuilder
   
   def make_call(target, method, args = [], rest = nil, block = nil)
     method = fixup_method_name(method)
-    if method == "nil_P" && args.length == 1
-      @f.EBinOp("==", args[0], "nil")
+    if method == "nil_P"
+      @f.EBinOp("==", target, "nil")
+    elsif method == "is_a_P"
+      args = [target]+args
+      @f.Call(@f.Var("System"), "test_type", args, nil, nil)
     else
-      call = @f.Call(target, method, args, nil, fixup_block(block))
+      @f.Call(target, method, args, nil, fixup_block(block))
     end
   end
 
@@ -817,7 +824,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_unary(operator, operand)
-    @f.EUnOp(fix_op(operator), operand)
+    @f.EUnOp(fix_op(operator), get_seq(operand))
   end
 
   def on_undef(args)

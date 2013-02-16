@@ -5,7 +5,7 @@ define (function() {
     
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
-    }
+  }
     
   puts = function(obj) {
     console.log("" + obj);
@@ -20,6 +20,9 @@ define (function() {
   System = {
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
+    },
+    test_type: function(obj, type) {
+      return obj != null && obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     }
   }
   
@@ -27,14 +30,23 @@ define (function() {
   
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = Array.prototype.forEach
+  Object.prototype.each = function (cmd) {
+    for (var i in this) {
+      if (this.hasOwnProperty(i)) {
+        var a = this[i];
+        cmd.call(a, i, a)
+      }
+    }
+  }
 
-  Object.prototype.find = function(pred) { for (i in this) if (pred(a = this[i])) return a; }
+  Object.prototype.find = function(pred) { for (i in this) { var a = this[i]; if (pred(a)) return a; } }
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[name] = function() { return val;} }
   Object.prototype.define_singleton_method = function(name, val) { this[name] = val }
   String.prototype.to_s = function() { return this }
   Object.prototype.to_s = function() { return "" + this }
   Object.prototype._get = function(k) { return this[k] }
+  String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Object.prototype._set = function(k, v) { this[k] = v; return v; }
   
   EnsoBaseClass = {
@@ -127,30 +139,7 @@ define (function() {
       return instance_spec._class_;
   }  
 
-  EnsoProxyObject = MakeClass({
-    _class_: {
-      finalize_object$: function(obj) {
-        var proxy = null;
-        var handler = {
-          get : function (proxy, prop) {
-             var x = obj[prop];
-            if (x) {
-             return x;
-            } else {
-             return function() { return obj._get(prop); }
-            }
-          },
-          set : function(proxy, name, val) {
-            return obj.set(name, val);
-          },
-          keys : function() {
-            return handler._get("keys");
-          }};
-        proxy = Proxy.create(handler);
-        return proxy;
-      } 
-    }
-  });
+  EnsoProxyObject = EnsoBaseClass;
   
   MakeModule = MakeClass;
 
