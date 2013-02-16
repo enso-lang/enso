@@ -1,9 +1,10 @@
 define([
   "core/system/utils/paths",
+  "core/schema/code/factory",
   "json",
   "enso"
 ],
-function(Paths, Json, Enso) {
+function(Paths, Factory, Json, Enso) {
 
   var Boot ;
 
@@ -177,7 +178,7 @@ function(Paths, Json, Enso) {
 
     load: function(doc) {
       ss0 = Boot.make_object(doc, null);
-      return ss0; return Copy(ManagedData.new(ss0), ss0);
+      return Copy(ManagedData.new(ss0), ss0);
     } ,
 
     make_object: function(data, root) {

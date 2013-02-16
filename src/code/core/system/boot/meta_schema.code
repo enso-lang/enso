@@ -1,0 +1,208 @@
+require "core/system/utils/paths" # Paths
+require "core/schema/code/factory" # Factory
+require "json" # Json
+require "enso" # Enso
+
+module Boot
+  @ load_path = (
+    do |path|
+      Boot.load(System.readJSON(path)["model"]);
+    end
+  )
+
+  @ load = (
+    do |doc|
+      ss0 = Boot.make_object(doc, nil);
+      Copy(ManagedData.new(ss0), ss0);
+    end
+  )
+
+  @ make_object = (
+    do |data, root|
+      if data["class"] == "Schema" then
+        Schema.new(data, root);
+      elsif data["class"] == "Class" then
+        Class.new(data, root);
+      else
+        MObject.new(data, root);
+      end
+    end
+  )
+
+  @ make_field = (
+    do |data, root, keyed|
+      if data.is_a_P(Array) then
+        Boot.make_many(data, root, keyed);
+      else
+        Boot.get_object(data, root);
+      end
+    end
+  )
+
+  @ get_object = (
+    do |data, root|
+      if ! data then
+        nil;
+      elsif data.is_a_P(String) then
+        Paths.parse(data).deref(root);
+      else
+        Boot.make_object(data, root);
+      end
+    end
+  )
+
+  @ make_many = (
+    do |data, root, keyed|
+      arr = data.map do |a|
+        Boot.get_object(a, root);
+      end
+      BootManyField.new(arr, root, keyed);
+    end
+  )
+
+  class MObject < EnsoProxyObject
+
+    @@seq_no = 0
+
+    attr_reader :_id
+
+    attr_accessor :factory
+
+    attr_accessor :_path
+
+    attr_reader :file_path
+
+    def initialize(data, root)
+      @_id = @@seq_no = @@seq_no + 1;
+      @data = data;
+      @root = root || self;
+      @factory = self;
+      @file_path = [];
+      @fields = {};
+    end
+
+    def schema_class
+      @root.types[@data["class"]];
+    end
+
+    def [](sym)
+      local :val
+      val = @fields[sym];
+      if val then
+        val;
+      else
+        @fields[sym] = if sym[- 1] == "?" then
+          self.schema_class.name == sym.slice(0, sym.length - 1);
+        elsif @data.has_key_P(S(sym, "=")) then
+          @data[S(sym, "=")];
+        elsif @data.has_key_P(S(sym, "#")) then
+          Boot.make_field(@data[S(sym, "#")], @root, true);
+        elsif @data.has_key_P(sym.to_s) then
+          Boot.make_field(@data[sym.to_s], @root, false);
+        else
+          System.raise(S("Trying to deref nonexistent field ", sym, " in ", @data.to_s.slice(0, 300)));
+        end
+      end
+    end
+
+    def to_s
+      @name || (
+        @name = begin
+          S("<", @data["class"], " ", self._id, " ", self.name, ">");
+        rescue
+          S("<", @data["class"], " ", self._id, ">");
+        end
+      );
+    end
+  end
+
+  class Schema < MObject
+
+    def classes
+      BootManyField.new((
+        self.types.select do |t|
+          t.Class_P;
+        end
+      ), @root, true);
+    end
+
+    def primitives
+      BootManyField.new((
+        self.types.select do |t|
+          t.Primitive_P;
+        end
+      ), @root, true);
+    end
+  end
+
+  class Class < MObject
+
+    def all_fields
+      BootManyField.new((
+        self.supers.flat_map do |s|
+          s.all_fields;
+        end
+      ) + self.defined_fields, @root, true);
+    end
+
+    def fields
+      BootManyField.new((
+        self.all_fields.select do |f|
+          ! f.computed;
+        end
+      ), @root, true);
+    end
+  end
+
+  class BootManyField < Array
+
+    def initialize(arr, root, keyed)
+      arr.each do |obj|
+        self.push(obj);
+      end
+      @root = root;
+      @keyed = keyed;
+    end
+
+    def [](key)
+      if @keyed then
+        self.find do |obj|
+          obj.name == key;
+        end
+      else
+        self.at(key);
+      end
+    end
+
+    def has_key_P(key)
+      self[key];
+    end
+
+    def each_with_match(other, &block)
+      local :other , :ks , :a , :b
+      if @keyed then
+        other = other || {};
+        ks = self.keys || other.keys;
+        ks.each do |k|
+          block.call(self[k], other[k]);
+        end
+      else
+        a = Array(self);
+        b = Array(other);
+        Range.new(0, [a.length, b.length].max - 1).each do |i|
+          block.call(a[i], b[i]);
+        end
+      end
+    end
+
+    def keys
+      if @keyed then
+        self.map do |o|
+          o.name;
+        end
+      else
+        nil;
+      end
+    end
+  end
+end

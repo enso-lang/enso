@@ -1,7 +1,7 @@
 start Module
 
 Module ::= [Module] requires:Require* /2 "module" name:sym /> defs:Def* @/2 </"end"
-Require ::= [Require] "require" path:str "#" name:sym
+Require ::= [Require] "require" path:str "#" name:sym /
 Def     ::= "@" Binding | Class | Mixin
 
 Mixin   ::= [Mixin] "module" name:sym Body

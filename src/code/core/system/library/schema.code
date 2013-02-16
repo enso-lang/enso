@@ -1,0 +1,94 @@
+
+
+module Schema
+  @ class_key = (
+    do |klass|
+      klass.fields.find do |f|
+        f.key && f.type.Primitive_P;
+      end
+    end
+  )
+
+  @ object_key = (
+    do |obj|
+      obj[self.class_key(obj.schema_class).name];
+    end
+  )
+
+  @ is_keyed_P = (
+    do |klass|
+      ! klass.Primitive_P && ! self.class_key(klass).nil_P;
+    end
+  )
+
+  @ lookup = (
+    do |obj, &block|
+      res = block.call(obj);
+      if res then
+        res;
+      elsif obj.supers.empty_P then
+        nil;
+      else
+        obj.supers.find_first do |o|
+          self.lookup(o, &block);
+        end
+      end
+    end
+  )
+
+  @ subclass_P = (
+    do |a, b|
+      if a.nil_P || b.nil_P then
+        false;
+      elsif a.name == if b.is_a_P(String) then
+        b;
+      else
+        b.name;
+      end then
+        true;
+      else
+        a.supers.any_P do |sup|
+          self.subclass_P(sup, b);
+        end
+      end
+    end
+  )
+
+  @ class_minimum = (
+    do |a, b|
+      if b.nil_P then
+        a;
+      elsif a.nil_P then
+        b;
+      elsif self.subclass_P(a, b) then
+        a;
+      elsif self.subclass_P(b, a) then
+        b;
+      else
+        nil;
+      end
+    end
+  )
+
+  @ map = (
+    do |obj, &block|
+      if obj.nil_P then
+        nil;
+      else
+        res = block.call(obj);
+        obj.schema_class.fields.each do |f|
+          if f.traversal && ! f.type.Primitive_P then
+            if ! f.many then
+              Schema.map(obj[f.name], &block);
+            else
+              res[f.name].keys.each do |k|
+                Schema.map(obj[f.name][k], &block);
+              end
+            end
+          end
+        end
+        res;
+      end
+    end
+  )
+end

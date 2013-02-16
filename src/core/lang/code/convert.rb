@@ -956,7 +956,7 @@ end
 
 if __FILE__ == $0 then
   name = ARGV[0]
-#  name = "applications/StateMachine/code/state_machine_basic.rb"
+  outname = ARGV[1]
   
   #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
@@ -964,7 +964,6 @@ if __FILE__ == $0 then
   g = Loader.load("code.grammar")
   #jj ToJSON::to_json(m)
    
-  outname = "#{name.chomp(".rb")}.code"
   out = File.new(outname, "w")
   $stdout << "## storing #{outname}\n"
   DisplayFormat.print(g, m, 80, out, false)
