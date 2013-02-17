@@ -12,7 +12,7 @@ end
 def load_petstore(file = 'applications/petstore/data/petstore.db')
   db = Sequel.sqlite(file)
 
-  ps = Loader.load('petstore.schema')
+  ps = Load::load('petstore.schema')
   fact = ManagedData.new(ps)
 
   cats = {}

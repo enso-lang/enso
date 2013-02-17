@@ -3,7 +3,7 @@ require 'core/semantics/interpreters/fmap'
 require 'core/semantics/interpreters/debug'
 
 CacheXML.clean('expr1.expr')
-expr = Loader.load('expr1.expr')
+expr = Load::load('expr1.expr')
 Print.print(expr)
 
 module PlusOne

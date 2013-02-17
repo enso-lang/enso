@@ -18,7 +18,7 @@ class Web::EnsoWeb
   def initialize(web, root, log)
     @web_name = web
     @log = log
-    @root = Loader.load(root)
+    @root = Load::load(root)
     @toplevel = Env.root(@root, DefaultActions)
     @eval = Render.new(Expr.new, log)
     load!
@@ -113,7 +113,7 @@ class Web::EnsoWeb
   end
     
   def load!
-    @web = Loader.load!(@web_name)
+    @web = Load::load!(@web_name)
     @last_change = last_change(@web_name)
     mod_eval = Mod.new(@toplevel, @log)
     mod_eval.eval(@web)

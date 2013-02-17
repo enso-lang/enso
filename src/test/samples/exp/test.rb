@@ -11,9 +11,9 @@ class ExpTest < Test::Unit::TestCase
   def test_base
     interp = Eval.new
 
-    e = Loader.load("sample.exp")
+    e = Load::load("sample.exp")
     puts "--LOADING SIMPLE EXPRESSION---"
-    e = Loader.load("sample.exp")
+    e = Load::load("sample.exp")
 
     puts "*EXP #{e}"
     puts "*Children #{e.subexpressions}"

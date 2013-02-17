@@ -3,7 +3,7 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/schema/tools/print'
   M = ManagedData
-  ss = Loader.load('schema.schema')
+  ss = Load::load('schema.schema')
   fact = M::Factory.new(ss)
   puts "Schema"
   s = fact.Schema

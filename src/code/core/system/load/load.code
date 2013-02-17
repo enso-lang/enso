@@ -1,0 +1,22 @@
+require "core/system/library/schema" # Schema
+require "core/system/boot/meta_schema" # MetaSchema
+require "core/grammar/parse/parse" # Parse
+require "core/schema/tools/union" # Union
+require "core/schema/tools/rename" # Rename
+require "core/system/load/cache" # Cache
+
+module Load
+  @ load = (
+    do |name|
+      Loader.load(name);
+    end
+  )
+
+  @ Load_text = (
+    do |type, factory, source, show = false|
+      Load.load_text(type, factory, source, show);
+    end
+  )
+
+  @ Loader = Loader.new
+end

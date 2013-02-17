@@ -55,8 +55,8 @@ if __FILE__ == $0 then
 
   require 'core/system/load/load'
   
-  gs = Loader.load('grammar.schema')
-  sg = Loader.load('schema.grammar')
+  gs = Load::load('grammar.schema')
+  sg = Load::load('schema.grammar')
 
   require 'core/schema/tools/print'
   

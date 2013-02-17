@@ -6,8 +6,8 @@ require 'core/semantics/interpreters/debug'
 # with two statements: the fun def and the fun call
 
 CacheXML.clean('fibo.impl') #need to clean cache to get origin tracking
-fib = Loader.load('fibo.impl')
-Loader.find_model('fibo.impl') {|path| $file = IO.readlines(path)}
+fib = Load::load('fibo.impl')
+Load::Loader.find_model('fibo.impl') {|path| $file = IO.readlines(path)}
 
 #EvalCommandC.new is the non-debug version
 # DebugMod is parameterized by the interpreter (ie EvalCommand),

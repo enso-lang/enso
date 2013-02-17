@@ -1,10 +1,10 @@
 
 require 'core/schema/tools/union'
 
-  gs = Loader.load('grammar.schema')
-  gg = Loader.load('grammar.grammar')
-  ss = Loader.load('schema.schema')
-  sg = Loader.load('schema.grammar')
+  gs = Load::load('grammar.schema')
+  gg = Load::load('grammar.grammar')
+  ss = Load::load('schema.schema')
+  sg = Load::load('schema.grammar')
   
   require 'core/schema/tools/print'
   

@@ -1,0 +1,65 @@
+--- 
+Schema: !ruby/object:EnsoPoint 
+  x: 38
+  y: 3
+Type: !ruby/object:EnsoPoint 
+  x: 98
+  y: 76
+Primitive: !ruby/object:EnsoPoint 
+  x: 40
+  y: 180
+Class: !ruby/object:EnsoPoint 
+  x: 160
+  y: 178
+Field: !ruby/object:EnsoPoint 
+  x: 253
+  y: 233
+Primitive.: 
+- !ruby/object:EnsoPoint 
+  x: 0.45367354150859496
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.48096940567073465
+  y: 1
+Class.: 
+- !ruby/object:EnsoPoint 
+  x: 0.4277136062748584
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+Schema.types: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0.374733913583747
+  y: 0
+Class.supers: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.8230764492692344
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.031489514857141465
+Class.defined_fields: 
+- !ruby/object:EnsoPoint 
+  x: 0.5
+  y: 1
+- !ruby/object:EnsoPoint 
+  x: 0
+  y: 0.4660362971359203
+Field.type: 
+- !ruby/object:EnsoPoint 
+  x: 0.7853838177075334
+  y: 0
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.422760921847222
+Field.inverse: 
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.6602495797819827
+- !ruby/object:EnsoPoint 
+  x: 1
+  y: 0.338929037546184

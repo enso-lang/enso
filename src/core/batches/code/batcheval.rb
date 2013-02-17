@@ -21,10 +21,10 @@ class BatchEval < Web::Eval::Render
 
   def self.batch(web, rootschema)
     schema = rootschema.schema
-    factory = ManagedData.new(Loader.load('batch.schema'))
+    factory = ManagedData.new(Load::load('batch.schema'))
     res = {}
     env = {}
-    prelude = Loader.load("prelude.web")
+    prelude = Load::load("prelude.web")
     prelude.toplevels.each do |top|
       if top.Def?
         env[top.name] = Web::Eval::Result.new(Web::Eval::Function.new(env, top))

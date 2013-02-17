@@ -109,7 +109,7 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/grammar/parse/nullable'
 
-  gg = Loader.load(ARGV[0])
+  gg = Load::load(ARGV[0])
   null = Nullable.new
   first = First.new(null)
   gg.rules.each do |rule|

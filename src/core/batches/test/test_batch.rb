@@ -13,7 +13,7 @@ class BatchTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @factory = ManagedData.new(Loader.load('batch.schema'))
+    @factory = ManagedData.new(Load::load('batch.schema'))
 
     #oracle for todo2
     @expected_todo2 = @factory.Query("Todos")
@@ -51,8 +51,8 @@ class BatchTest < Test::Unit::TestCase
   end
 
   def test_securebatch
-    todo = Loader.load('todo2.web')
-    schema = Loader.load('todo.schema')
+    todo = Load::load('todo2.web')
+    schema = Load::load('todo.schema')
     Print.print(todo)
     query = BatchEval.batch(todo, schema.types['Todos'])
     Print.print(query['index'])
@@ -68,22 +68,22 @@ class BatchTest < Test::Unit::TestCase
   end
 
   def test_batch_todo2
-    todo = Loader.load('todo2.web')
-    schema = Loader.load('todo.schema')
+    todo = Load::load('todo2.web')
+    schema = Load::load('todo.schema')
     res = BatchEval.batch(todo, schema.types['Todos'])
     assert(Equals.equals(res["index"], @expected_todo2))
   end
 
   def test_inlinecalls
-    todo = Loader.load('todo3.web')
-    schema = Loader.load('todo.schema')
+    todo = Load::load('todo3.web')
+    schema = Load::load('todo.schema')
     res = BatchEval.batch(todo, schema.types['Todos'])
     assert(Equals.equals(res["index"], @expected_todo3))
   end
 
   def test_tailcalls
-    todo = Loader.load('todo4.web')
-    schema = Loader.load('todo.schema')
+    todo = Load::load('todo4.web')
+    schema = Load::load('todo.schema')
     res = BatchEval.batch(todo, schema.types['Todos'])
     assert(Equals.equals(res["index"], @expected_todo4))
   end

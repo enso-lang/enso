@@ -221,8 +221,8 @@ class RenderClass < Dispatch
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
       obj.instance_eval(code)
     else
-      interp = EvalExprC.new
-      interp.dynamic_bind env: ObjEnv.new(obj, @localEnv) do
+      interp = Eval::EvalExprC.new
+      interp.dynamic_bind env: Env::ObjEnv.new(obj, @localEnv) do
         interp.eval(this.expr)
       end
     end
@@ -235,7 +235,7 @@ class RenderClass < Dispatch
     else
       if stream.length > 0 || this.optional
         oldEnv = @localEnv
-        @localEnv = HashEnv.new
+        @localEnv = Env::HashEnv.new
         @localEnv['_length'] = stream.length
         s = []
         i = 0
@@ -357,9 +357,9 @@ class PredicateAnalysis
       code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
       lambda{|obj, env| obj.instance_eval(code) }
     else
-      interp = EvalExprC.new
+      interp = Eval::EvalExprC.new
       lambda do |obj, env| 
-        interp.dynamic_bind env: ObjEnv.new(obj, env) do
+        interp.dynamic_bind env: Env::ObjEnv.new(obj, env) do
           interp.eval(this.expr)
         end
       end
@@ -437,10 +437,10 @@ if __FILE__ == $0 then
     exit!(1)
   end
   name = ARGV[0]
-  m = Loader.load(name)
+  m = Load::load(name)
   filename = name.split("/")[-1]
   type = filename.split(".")[-1]
-  g = Loader.load("#{type}.grammar")
+  g = Load::load("#{type}.grammar")
   $stderr << "## Printing #{ARGV[0]}...\n"
   DisplayFormat.print(g, m)
 end

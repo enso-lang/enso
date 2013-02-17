@@ -15,7 +15,7 @@ class Controller
     @piping = piping
     @control = control
     @current = Variable.new("curr", @control.initial.name)
-    @env = HashEnv.new(current_state: @current).set_parent ControlEnv.new(@piping).set_parent({})
+    @env = Env::HashEnv.new(current_state: @current).set_parent ControlEnv.new(@piping).set_parent({})
 
     @interp = Interpreter(ExecuteController)
     @interp.init(@control, env: @env)

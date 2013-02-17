@@ -9,8 +9,8 @@ ENSOSYNC_PORT = 20000
 
 
 def esync(server_host, name, rootpath)
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+  schema = Load::load('esync.schema')
+  grammar = Load::load('esync.grammar')
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 

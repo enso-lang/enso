@@ -6,10 +6,10 @@ if !ARGV[0] then
   exit!
 end
 
-Loader.load "expr.grammar"
-Loader.load "impl.grammar"
+Load::load "expr.grammar"
+Load::load "impl.grammar"
 
-qns = Loader.load(ARGV[0])
+qns = Load::load(ARGV[0])
 
 Print.print(qns)
 

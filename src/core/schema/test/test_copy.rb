@@ -10,9 +10,9 @@ require 'core/schema/tools/print'
 require 'core/diff/code/equals'
 
 class CopyTest < Test::Unit::TestCase
-  SS = Loader.load('schema.schema')
-  GS = Loader.load('grammar.schema')
-  GG = Loader.load('grammar.grammar')
+  SS = Load::load('schema.schema')
+  GS = Load::load('grammar.schema')
+  GG = Load::load('grammar.grammar')
   
   def test_SS
     s1 = SS

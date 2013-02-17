@@ -4,7 +4,7 @@ require 'digest/sha1'
 
 module Cache
 
-  def self.save_cache(name, model=Loader.load(name), out=find_json(name))
+  def self.save_cache(name, model=Load::load(name), out=find_json(name))
     res = add_metadata(name, model)
     res['model'] = ToJSON.to_json(model, true)
     File.open(out, 'w+') do |f| 
@@ -14,7 +14,7 @@ module Cache
 
   def self.load_cache(name, input=find_json(name))
     type = name.split('.')[-1]
-    factory = ManagedData::Factory.new(Loader.load("#{type}.schema"))
+    factory = ManagedData::Factory.new(Load::load("#{type}.schema"))
     json = System.readJSON(input)
     res = ToJSON.from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
@@ -69,7 +69,7 @@ module Cache
   
   def self.get_meta(name)
     e = {'filename' => name}
-    Loader.find_model(name) do |path|
+    Load::Loader.find_model(name) do |path|
       e['source'] = path
       e['date'] = File.ctime(path)
       e['checksum'] = readHash(path)
@@ -120,7 +120,7 @@ if __FILE__ == $0 then
     exit!
   end
 
-  orig = Loader.load(ARGV[0])
+  orig = Load::load(ARGV[0])
   loaded = Cache::load_cache(ARGV[0])
   raise "Error loading JSON!" unless Equals.equals(orig, loaded)
 

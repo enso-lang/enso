@@ -7,12 +7,17 @@ main: \
 	js/core/schema/code/dynamic.js \
 	js/core/system/utils/paths.js \
 	js/core/system/library/schema.js \
+  js/core/semantics/code/interpreter.js \
+  js/core/expr/code/impl.js \
+  js/core/expr/code/env.js \
+  js/core/expr/code/freevar.js \
+  js/core/system/load/load.js \
+  js/core/expr/code/eval.js \
+  js/core/expr/code/lvalue.js \
+
 
 foo: \
-	core/semantics/code/interpreter.js \
-	core/expr/code/impl.js \
-	core/expr/code/env.js \
-	core/expr/code/freevar.js \
+
 
 .SECONDARY:
 

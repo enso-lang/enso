@@ -15,7 +15,7 @@ puts "Test4: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.ty
 
 puts "Done loading new metaschema"
 
-realss = Loader.load('schema.schema')
+realss = Load::load('schema.schema')
 
 puts "Writing new metaschema"  
 ss_path = 'schema_schema2.json'

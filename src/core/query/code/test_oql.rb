@@ -7,18 +7,18 @@ require 'core/query/code/eval'
 
 if __FILE__ == $0 then
 
-  g = Loader.load('oql.grammar')
+  g = Load::load('oql.grammar')
   puts g.to_s
 
-  s = Loader.load('oql.schema')
+  s = Load::load('oql.schema')
   puts s.to_s
 
-  q = Loader.load('test.oql')
+  q = Load::load('test.oql')
   puts q.to_s
 
   Print.print(q)
 
-  ss = Loader.load('schema.schema')
+  ss = Load::load('schema.schema')
 
   eval = EvalOQL.new(Factory.new(s))
 

@@ -1,7 +1,7 @@
 
 module RenderExpr
   
-  include Dispatcher    
+  include Interpreter::Dispatcher    
     
   def render(obj)
     dispatch(:render, obj)

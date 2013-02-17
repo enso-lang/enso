@@ -251,7 +251,7 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/schema/tools/print'
  
-  x = Loader.load('grammar.grammar')
+  x = Load::load('grammar.grammar')
 
   x = Derivative.new("grammar").recurse(x)
   

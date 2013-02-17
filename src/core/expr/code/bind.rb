@@ -1,6 +1,6 @@
 module BindExpr
 
-  include Dispatcher    
+  include Interpreter::Dispatcher    
     
   def bind(obj)
     dispatch(:bind, obj)
@@ -8,16 +8,16 @@ module BindExpr
 
  # args
   def bind_EVar(name)
-    env = @_.args[:env]
+    env = @D[:args][:env]
     if env.keys.include? name
-      BindExpr.make_const(env[name], @_.args[:factory])
+      BindExpr.make_const(env[name], @D[:args][:factory])
     else
-      @_.args[:self]
+      @D[:args][:self]
     end
   end
 
   def bind_?(op, e1, e2)
-    @_.args[:self]
+    @D[:args][:self]
   end
 
   def self.make_const(val, factory)

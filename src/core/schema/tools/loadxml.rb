@@ -101,7 +101,7 @@ if __FILE__ == $0 then
   require 'rexml/document'
   include REXML
 
-  ss = Loader.load('schema.schema')
+  ss = Load::load('schema.schema')
   l = FromXML.new(ss)
 
   x = l.load(Document.new(File.read('core/system/boot/schema_schema.xml')))

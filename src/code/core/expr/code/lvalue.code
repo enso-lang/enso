@@ -1,0 +1,88 @@
+require "core/expr/code/eval" # Eval
+require "core/semantics/code/interpreter" # Interpreter
+
+module Lvalue
+  class Address
+
+    def initialize(array, index)
+      @array = array;
+      @index = index;
+      if ! @array.has_key_P(@index) then
+        @array[@index] = nil;
+      end
+    end
+
+    attr_reader :array
+
+    attr_reader :index
+
+    def set_value(val)
+      local :val
+      if self.type then
+        if self.type.name == "int" then
+          val = val.to_i;
+        elsif self.type.name == "str" then
+          val = val.to_s;
+        elsif self.type.name == "real" then
+          val = val.to_f;
+        end
+      end
+      begin
+        @array[@index] = val;
+      rescue
+      end
+    end
+
+    def value
+      @array[@index];
+    end
+
+    def to_str
+      S(@array, "[", @index, "]");
+    end
+
+    def type
+      if System.test_type(@array, Env.ObjEnv) then
+        @array.type(@index);
+      else
+        nil;
+      end
+    end
+
+    def object
+      if System.test_type(@array, Env.ObjEnv) then
+        @array.obj;
+      else
+        nil;
+      end
+    end
+  end
+
+  module LValueExpr
+    include Eval. EvalExpr
+    include Interpreter. Dispatcher
+
+    def lvalue(obj)
+      self.dispatch("lvalue", obj);
+    end
+
+    def lvalue_EField(e, fname)
+      Address.new(Env.ObjEnv.new(self.eval(e)), fname);
+    end
+
+    def lvalue_EVar(name)
+      Address.new(@D["env"], name);
+    end
+
+    def lvalue__P(type, fields, args)
+      nil;
+    end
+  end
+
+  class LValueExprC
+    include LValueExpr
+
+    def initialize
+    end
+  end
+end

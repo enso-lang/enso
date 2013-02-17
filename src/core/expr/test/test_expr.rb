@@ -7,9 +7,9 @@ require 'core/semantics/code/interpreter'
 class ExprTest < Test::Unit::TestCase
 
   def test_base
-    interp = EvalExprC.new
+    interp = Eval::EvalExprC.new
 
-    ex0 = Loader.load("expr1.expr")
+    ex0 = Load::load("expr1.expr")
     assert_equal(6, interp.eval(ex0))
   end
 
@@ -19,9 +19,9 @@ class ExprTest < Test::Unit::TestCase
   end
 
   def test_funct
-    interp = EvalExprC.new
+    interp = Eval::EvalExprC.new
 
-    ex0 = Loader.load("expr2.expr")
+    ex0 = Load::load("expr2.expr")
     a = A.new(2)
     x = 12
     interp.dynamic_bind env: {'a'=>a, 'x'=>x} do 

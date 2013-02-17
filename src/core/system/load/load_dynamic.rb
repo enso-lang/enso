@@ -52,7 +52,7 @@ module Loading
 end
 
 if __FILE__ == $0 then
-  dt1 = Loader.load_dynamic("diff-test1.diff-point")
+  dt1 = Load::load_dynamic("diff-test1.diff-point")
   gets
 
   #changing memory model

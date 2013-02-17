@@ -21,15 +21,15 @@ ENSOSYNC_PORT = 20000
 
 def esynchost(rootpath)
 
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+  schema = Load::load('esync.schema')
+  grammar = Load::load('esync.grammar')
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 
   begin
-    auth_schema = Loader.load("auth.schema")
+    auth_schema = Load::load("auth.schema")
     rules_str =  File.open("#{rootpath}/.rules.auth", "rb") { |f| f.read }
-    rules = Loader.load_text("auth", ManagedData.new(auth_schema), rules_str)
+    rules = Load::load_text("auth", ManagedData.new(auth_schema), rules_str)
     sec = Security.new(rules)
 
   #rescue

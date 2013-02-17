@@ -7,7 +7,7 @@ if ARGV.size > 2
 else
   out = $stdout
 end
-m = Loader.load(model)
-g = Loader.load("#{target}.grammar")
+m = Load::load(model)
+g = Load::load("#{target}.grammar")
 $stderr << "### translating to #{target}\n"
 DisplayFormat.print(g, m, 80, out, false)

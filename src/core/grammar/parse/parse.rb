@@ -34,7 +34,7 @@ class Parse
     data = load_raw(source, grammar, schema, ManagedData.new(schema), false, filename)
     imports.each do |imp|
       $stderr << "## importing #{imp}...\n" 
-      u = Loader.load(imp)
+      u = Load::load(imp)
       data = union(u, data)
       Loader.find_model(imp) {|p| data.factory.file_path << p}
     end
@@ -60,8 +60,8 @@ if __FILE__ == $0 then
   require 'core/schema/code/factory'
   require 'benchmark'
   require 'ruby-prof'
-  grammar = Loader.load('web.grammar')
-  ss = Loader.load('web.schema')
+  grammar = Load::load('web.grammar')
+  ss = Load::load('web.schema')
   factory = ManagedData.new(ss)
   path = 'core/web/models/prelude.web'
   source = File.read(path)

@@ -14,10 +14,10 @@ class PatchTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @point_schema = Loader.load('diff-point.schema')
-    @point_grammar = Loader.load('diff-point.grammar')
-    @p1 = Loader.load('diff-test1.diff-point')
-    @p2 = Loader.load('diff-test2.diff-point')
+    @point_schema = Load::load('diff-point.schema')
+    @point_grammar = Load::load('diff-point.grammar')
+    @p1 = Load::load('diff-test1.diff-point')
+    @p2 = Load::load('diff-test2.diff-point')
   end
 
   # test reversible

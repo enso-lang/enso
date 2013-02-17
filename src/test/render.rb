@@ -1,15 +1,15 @@
   require 'core/grammar/render/layout'
   
-  point_grammar = Loader.load('point.grammar')
-  point1 = Loader.load('point1.point')
+  point_grammar = Load::load('point.grammar')
+  point1 = Load::load('point1.point')
 
 #puts "----- POINT -----"
 #  DisplayFormat.print(point_grammar, point1)
   
-  schema_grammar = Loader.load('schema.grammar')
-  grammar_grammar = Loader.load('grammar.grammar')
-  grammar_schema = Loader.load('grammar.schema')
-  schema_schema = Loader.load('schema.schema')
+  schema_grammar = Load::load('schema.grammar')
+  grammar_grammar = Load::load('grammar.grammar')
+  grammar_schema = Load::load('grammar.schema')
+  schema_schema = Load::load('schema.schema')
 
 #puts "----- POINT GRAMMAR -----"
   DisplayFormat.print(grammar_grammar, point_grammar)
