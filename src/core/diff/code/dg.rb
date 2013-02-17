@@ -10,10 +10,10 @@ require 'core/system/library/schema'
 
 
 
-point_schema = Loader.load('diff-point.schema')
-point_grammar = Loader.load('diff-point.grammar')
-schema_grammar = Loader.load('schema.grammar')
-delta_point_grammar = Loader.load('delta-point.grammar')
+point_schema = Load::load('diff-point.schema')
+point_grammar = Load::load('diff-point.grammar')
+schema_grammar = Load::load('schema.grammar')
+delta_point_grammar = Load::load('delta-point.grammar')
 
 
 
@@ -22,10 +22,10 @@ File.open('delta-point.schema', 'w') do |f|
   DisplayFormat.print(schema_grammar, delta_point_schema, 80, f)
 end
 
-p1 = Loader.load('diff-test1.diff-point')
+p1 = Load::load('diff-test1.diff-point')
 DisplayFormat.print(point_grammar, p1)
 
-p2 = Loader.load('diff-test2.diff-point')
+p2 = Load::load('diff-test2.diff-point')
 DisplayFormat.print(point_grammar, p2)
 
 delta = diff(p1, p2)
@@ -38,7 +38,7 @@ File.open('flamingo.delta-point', 'w') do |f|
   DisplayFormat.print(delta_point_grammar, delta, 80, f)
 end
 
-x = Loader.load('flamingo.delta-point')
+x = Load::load('flamingo.delta-point')
 
 DisplayFormat.print(delta_point_grammar, x)
 

@@ -16,7 +16,7 @@ def run_state_machine(sm)
 end
 
 if __FILE__ == $0
-  sm = Loader.load(ARGV[0])
+  sm = Load::load(ARGV[0])
   run_state_machine(sm)
 end
 

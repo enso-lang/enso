@@ -1,9 +1,14 @@
 require 'core/system/load/load'
 require 'core/grammar/render/render.rb'
 require 'core/schema/tools/dumpjson.rb'
+require 'core/grammar/render/layout'
 
 require 'ripper'
 require 'pp'
+
+# problems:
+# - is_a? works on nil in Ruby but not JS
+
 
 class Formals
   attr_accessor :normal, :block, :rest, :parens
@@ -44,9 +49,9 @@ end
 class CodeBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
     super
-    schema = Loader.load('code.schema')
+    schema = Load::load('code.schema')
     @predefined = ["self", "nil", "true", "false"]
-    @f = ManagedData.new(schema)
+    @f = Factory::new(schema)
     @selfVar = "TOP_LEVEL"
     reset_assigned_vars()
   end
@@ -213,7 +218,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_class(const, superclass, body)
-    puts "CLASS #{const} < #{superclass} : #{body}"
+    #puts "CLASS #{const} < #{superclass} : #{body}"
     parts = split_meta(body)
     @f.Class(const, parts[0], parts[1], parts[2], superclass && superclass.name)
   end
@@ -224,7 +229,7 @@ class CodeBuilder < Ripper::SexpBuilder
     metas = body.flatten.partition {|x| is_meta(x)}
     others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.Include? || x.Require?) }
     parts = [ fixup_defs(metas[0]), fixup_defs(others[1]), others[0] ]
-    puts "PARTS #{parts}"
+    #puts "PARTS #{parts}"
     return parts
   end
   
@@ -265,7 +270,7 @@ class CodeBuilder < Ripper::SexpBuilder
       path = args.normal[0].value
       mod = path.split("/")[-1]
       mod = mod.split("_").map(&:capitalize).join
-      puts "REQUIRE #{mod} #{path}"
+      #puts "REQUIRE #{mod} #{path}"
       @f.Require(mod, path)
     elsif name == "include"
       path = args.normal[0]
@@ -275,12 +280,13 @@ class CodeBuilder < Ripper::SexpBuilder
       elsif path.Var?
         base = nil
         name = path.name
-      elsif path.Call? && path.target.Variable?
-        base =
+      elsif path.Call? && path.target.Var?
+        base = path.target.name
         name = path.method
       else
         raise "Invalid `include' #{args}"
       end
+      puts "INCLUDE #{base} #{name}"
       @f.Include(base, name)
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
       #puts "CMD #{name} #{args}"
@@ -349,7 +355,7 @@ class CodeBuilder < Ripper::SexpBuilder
   def make_def_binding(name, params, body)
     vars = reset_assigned_vars()
     #puts "DEF #{name} #{params} #{vars}"
-    raise "can't redefine ==" if name == "=="
+    raise "can't redefine #{name}" if ["==", "is_a?"].include?(name)
     name = fixup_method_name(name)
     @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
   end
@@ -409,6 +415,8 @@ class CodeBuilder < Ripper::SexpBuilder
       if o.target
         if o.target.Super?
           o.method = @currentMethod
+        elsif o.target.Var? && o.target.name[0] == "$"
+          o.target = @f.Call(@f.Var("System"), o.target.name.slice(1,1000))
         end
       else
         if !(o.method =~ /^[A-Z]/)
@@ -542,10 +550,13 @@ class CodeBuilder < Ripper::SexpBuilder
   
   def make_call(target, method, args = [], rest = nil, block = nil)
     method = fixup_method_name(method)
-    if method == "nil_P" && args.length == 1
-      @f.EBinOp("==", args[0], "nil")
+    if method == "nil_P"
+      @f.EBinOp("==", target, @f.Var("nil"))
+    elsif method == "is_a_P"
+      args = [target]+args
+      @f.Call(@f.Var("System"), "test_type", args, nil, nil)
     else
-      call = @f.Call(target, method, args, nil, fixup_block(block))
+      @f.Call(target, method, args, nil, fixup_block(block))
     end
   end
 
@@ -673,7 +684,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_program(defs) # parser event
-    puts "DEFS #{defs}"
+    #puts "DEFS #{defs}"
     parts = defs.partition {|x| x.is_a?(ModuleDef) }
     if parts[0].size != 1
       raise "Each file must have a single top-level module"
@@ -715,7 +726,7 @@ class CodeBuilder < Ripper::SexpBuilder
     if types && types.length != 1
       raise "Only one rescue type allowed"
     end
-    [@f.Handler(types && types[0], var, get_seq(statements))] + (block || [])
+    [@f.Handler(types && types[0].name, var && var.name, get_seq(statements))] + (block || [])
   end
 
   def on_rescue_mod(expression, statements)
@@ -817,7 +828,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_unary(operator, operand)
-    @f.EUnOp(fix_op(operator), operand)
+    @f.EUnOp(fix_op(operator), get_seq(operand))
   end
 
   def on_undef(args)
@@ -905,11 +916,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_while(expression, statements)
-    @f.While(expression[0], get_seq(statements))
+    @f.While(get_seq(expression), get_seq(statements))
   end
 
   def on_while_mod(expression, statement)
-    @f.While(expression[0], get_seq(statements))
+    @f.While(get_seq(expression), get_seq(statements))
   end
 
   def on_word_add(string, word)
@@ -956,15 +967,15 @@ end
 
 if __FILE__ == $0 then
   name = ARGV[0]
-#  name = "applications/StateMachine/code/state_machine_basic.rb"
+  outname = ARGV[1]
+  grammar = ARGV[2] || "code"
   
   #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
   m = CodeBuilder.build(File.new(name, "r"))
-  g = Loader.load("code.grammar")
+  g = Load::load("#{grammar}.grammar")
   #jj ToJSON::to_json(m)
    
-  outname = "#{name.chomp(".rb")}.code"
   out = File.new(outname, "w")
   $stdout << "## storing #{outname}\n"
   DisplayFormat.print(g, m, 80, out, false)

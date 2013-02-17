@@ -122,7 +122,7 @@ class StencilFrame < DiagramFrame
   end
   
   def on_save
-    grammar = Loader.load("#{@extension}.grammar")
+    grammar = Load::load("#{@extension}.grammar")
     File.open("#{@path}-NEW", "w") do |output|
       DisplayFormat.print(grammar, @data, 80, output)
     end
@@ -265,7 +265,7 @@ class StencilFrame < DiagramFrame
   end    
 
   def on_export
-    grammar = Loader.load("diagram.grammar")
+    grammar = Load::load("diagram.grammar")
     File.open("#{@path}-diagram", "w") do |output|
       DisplayFormat.print(grammar, @root, 80, output)
     end
@@ -579,7 +579,7 @@ class StencilFrame < DiagramFrame
   end
 
   def lvalue(exp, env)
-    @lval = LValueExprC.new if @lval.nil?
+    @lval = Lvalue::LValueExprC.new if @lval.nil?
     @lval.dynamic_bind env: env, factory: @factory do
       @lval.lvalue(exp)
     end

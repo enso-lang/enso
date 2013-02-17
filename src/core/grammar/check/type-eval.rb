@@ -46,8 +46,8 @@ if __FILE__ == $0 then
   require 'core/grammar/check/combine'
   require 'pp'
 
-  g = Loader.load(ARGV[0])
-  s = Loader.load(ARGV[1])
+  g = Load::load(ARGV[0])
+  s = Load::load(ARGV[1])
   start = ARGV[2]
 
   tbl = ReachEval.reachable_fields(g)

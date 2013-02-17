@@ -1,9 +1,11 @@
 define([
   "core/system/utils/paths",
+  "core/schema/code/factory",
+  "core/schema/tools/union",
   "json",
   "enso"
 ],
-function(Paths, Json, Enso) {
+function(Paths, Factory, Union, Json, Enso) {
 
   var Boot ;
 
@@ -24,52 +26,83 @@ function(Paths, Json, Enso) {
 
     initialize: function(data, root) {
       var self = this; 
+      var has_name, keyed, name;
       var super$ = this.super$.initialize;
       self.$._id = self._class_.seq_no = self._class_.seq_no + 1;
-      self.$.data = data;
-      self.$.root = root || self;
       self.$.factory = self;
       self.$.file_path = [];
-      return self.$.fields = new EnsoHash ( { } );
-    },
-
-    schema_class: function() {
-      var self = this; 
-      var super$ = this.super$.schema_class;
-      return self.$.root.types()._get(self.$.data._get("class"));
-    },
-
-    _get: function(sym) {
-      var self = this; 
-      var val;
-      var super$ = this.super$._get;
-      val = self.$.fields._get(sym);
-      if (val) {
-        return val;
-      } else {
-        return self.$.fields ._set( sym , sym._get(- 1) == "?"
-          ? self.schema_class().name() == sym.slice(0, sym.length() - 1)
-          : self.$.data.has_key_P(S(sym, "="))
-            ? self.$.data._get(S(sym, "="))
-            : self.$.data.has_key_P(S(sym, "#"))
-              ? Boot.make_field(self.$.data._get(S(sym, "#")), self.$.root, true)
-              : self.$.data.has_key_P(sym.to_s())
-                ? Boot.make_field(self.$.data._get(sym.to_s()), self.$.root, false)
-                : System.raise(S("Trying to deref nonexistent field ", sym, " in ", self.$.data.to_s().slice(0, 300)))
-        );
+      self.$.root = root || self;
+      self.$.data = data;
+      has_name = false;
+      data.each(function(key, value) {
+        if (key == "class") {
+        } else if (key._get(- 1) == "=") {
+          self.define_singleton_value(key.slice(0, key.length - 1), value);
+          if (key == "name=") {
+            has_name = true;
+            return self.define_singleton_value("to_s", S("<", data._get("class"), " ", self._id(), " ", value, ">"));
+          }
+        } else if (System.test_type(value, Array)) {
+          keyed = key._get(- 1) == "#";
+          name = keyed
+            ? key.slice(0, key.length - 1)
+            : key
+          ;
+          if (value.length == 0 || ! System.test_type(value._get(0), String)) {
+            return self._create_many(name, value.map(function(a) {
+              return Boot.make_object(a, self.$.root);
+            }), keyed);
+          }
+        } else if (! System.test_type(value, String)) {
+          return self.define_singleton_value(key, Boot.make_object(value, self.$.root));
+        }
+      });
+      if (! has_name) {
+        return self.define_singleton_value("to_s", S("<", data._get("class"), " ", self._id(), ">"));
       }
     },
 
-    to_s: function() {
+    _complete: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
-      return self.$.name || (self.$.name = ((function(){ {
-        try {
-          return S("<", self.$.data._get("class"), " ", self._id(), " ", self.name(), ">");
-        } catch ( DUMMY ) {
-          return S("<", self.$.data._get("class"), " ", self._id(), ">");
+      var keyed, name;
+      var super$ = this.super$._complete;
+      self.$.data.each(function(key, value) {
+        if (key == "class") {
+          return self.define_singleton_value("schema_class", self.$.root.types()._get(value));
+        } else if (key._get(- 1) != "=" && value) {
+          if (System.test_type(value, Array)) {
+            keyed = key._get(- 1) == "#";
+            name = keyed
+              ? key.slice(0, key.length - 1)
+              : key
+            ;
+            if (value.length > 0 && System.test_type(value._get(0), String)) {
+              return self._create_many(name, value.map(function(a) {
+                return Paths.parse(a).deref(self.$.root);
+              }), keyed);
+            } else {
+              return self._get(name).each(function(obj) {
+                console.log(" FOO " + obj);
+                return obj._complete();
+              });
+            }
+          } else if (System.test_type(value, String)) {
+            return self.define_singleton_value(key, Paths.parse(value).deref(self.$.root));
+          } else {
+            return self._get(key)._complete();
+          }
         }
-      } })()));
+      });
+      console.log("complete");
+      return self.$.root.types().each(function(cls) {
+        return self.define_singleton_value(S(cls.name(), "?"), self.$.data._get("class") == cls.name());
+      });
+    },
+
+    _create_many: function(name, arr, keyed) {
+      var self = this; 
+      var super$ = this.super$._create_many;
+      return self.define_singleton_value(name, BootManyField.new(arr, self.$.root, keyed));
     }
   });
 
@@ -151,7 +184,7 @@ function(Paths, Json, Enso) {
       } else {
         a = Array(self);
         b = Array(other);
-        return Range.new(0, [a.length(), b.length()].max() - 1).each(function(i) {
+        return Range.new(0, [a.length, b.length].max() - 1).each(function(i) {
           return block.call(a._get(i), b._get(i));
         });
       }
@@ -177,42 +210,20 @@ function(Paths, Json, Enso) {
 
     load: function(doc) {
       ss0 = Boot.make_object(doc, null);
-      return ss0; return Copy(ManagedData.new(ss0), ss0);
+      ss0._complete();
+      return Union.Copy(Factory.new(ss0), ss0);
     } ,
 
     make_object: function(data, root) {
-      if (data._get("class") == "Schema") {
-        return Schema.new(data, root);
-      } else if (data._get("class") == "Class") {
-        return Class.new(data, root);
-      } else {
-        return MObject.new(data, root);
+      if (data != null) {
+        if (data._get("class") == "Schema") {
+          return Schema.new(data, root);
+        } else if (data._get("class") == "Class") {
+          return Class.new(data, root);
+        } else {
+          return MObject.new(data, root);
+        }
       }
-    } ,
-
-    make_field: function(data, root, keyed) {
-      if (data.is_a_P(Array)) {
-        return Boot.make_many(data, root, keyed);
-      } else {
-        return Boot.get_object(data, root);
-      }
-    } ,
-
-    get_object: function(data, root) {
-      if (! data) {
-        return null;
-      } else if (data.is_a_P(String)) {
-        return Paths.parse(data).deref(root);
-      } else {
-        return Boot.make_object(data, root);
-      }
-    } ,
-
-    make_many: function(data, root, keyed) {
-      arr = data.map(function(a) {
-        return Boot.get_object(a, root);
-      });
-      return BootManyField.new(arr, root, keyed);
     } ,
 
     MObject: MObject,

@@ -9,10 +9,10 @@ class PipingSystem
   
   def initialize(name)
     @name = name
-    grammar = Loader.load('piping.grammar')
-    schema = Loader.load('piping-sim.schema')
-    @piping = Loader.load_with_models("#{name}.piping", grammar, schema)
-    @control = Loader.load_dynamic("#{name}.controller")
+    grammar = Load::load('piping.grammar')
+    schema = Load::load('piping-sim.schema')
+    @piping = Load::load_with_models("#{name}.piping", grammar, schema)
+    @control = Load::load_dynamic("#{name}.controller")
     @controller = Controller.new(@piping, @control)
     @sim = Simulator.new(@piping)
     @time = 0

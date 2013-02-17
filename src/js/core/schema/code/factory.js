@@ -1,5 +1,4 @@
 define([
-  "core/schema/code/many",
   "core/schema/code/dynamic",
   "core/system/utils/paths",
   "core/system/library/schema",
@@ -8,20 +7,27 @@ define([
   "core/expr/code/env",
   "core/expr/code/freevar"
 ],
-function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
+function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
-  var ManagedData ;
+  var Factory ;
 
-  var Factory = MakeClass( {
+  var SchemaFactory = MakeClass( {
     schema: function() { return this.$.schema },
+
+    file_path: function() { return this.$.file_path },
+    set_file_path: function(val) { this.$.file_path  = val },
 
     initialize: function(schema) {
       var self = this; 
       var super$ = this.super$.initialize;
       self.$.schema = schema;
       self.$.roots = [];
-      self.__constructor(schema.types());
-      return self.$.file_path = [];
+      self.$.file_path = [];
+      return schema.classes().each(function(klass) {
+        return self.define_singleton_method(function() {
+          return MObject.new .call_rest_args$(MObject, klass, self, args );
+        }, klass.name());
+      });
     },
 
     _get: function(name) {
@@ -33,28 +39,10 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     register: function(root) {
       var self = this; 
       var super$ = this.super$.register;
-      return self.$.roots.push(root);
-    },
-
-    delete_in_place: function(obj) {
-      var self = this; 
-      var super$ = this.super$.delete_in_place;
-      return self.$.roots.each(function(root) {
-        return root.__delete_obj(obj);
-      });
-    },
-
-    file_path: function() { return this.$.file_path },
-    set_file_path: function(val) { this.$.file_path  = val },
-
-    __constructor: function(klasses) {
-      var self = this; 
-      var super$ = this.super$.__constructor;
-      return klasses.each(function(klass) {
-        return self.define_singleton_method(function() {
-          return MObject.new .call_rest_args$(MObject, klass, self, args );
-        }, klass.name());
-      });
+      if (self.$.root) {
+        self.raise("Creating two roots");
+      }
+      return self.$.root = root;
     }
   });
 
@@ -73,8 +61,6 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
     factory: function() { return this.$.factory },
 
-    schema_class: function() { return this.$.schema_class },
-
     extra_instance_data: function() { return this.$.extra_instance_data },
     set_extra_instance_data: function(val) { this.$.extra_instance_data  = val },
 
@@ -83,14 +69,125 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var args = compute_rest_arguments(arguments, 2 );
       var super$ = this.super$.initialize;
       self.$._id = self._class_._id = self._class_._id + 1;
-      self.$.schema_class = klass;
-      self.$.factory = factory;
-      self.$.hash = new EnsoHash ( { } );
       self.$.listeners = new EnsoHash ( { } );
-      self.$.memo = new EnsoHash ( { } );
-      self.__setup(klass.all_fields());
-      self.__init(klass.fields(), args);
-      return self.__install(klass.all_fields());
+      self.$.props = new EnsoHash ( { } );
+      self.define_singleton_value("schema_class", klass);
+      self.$.factory = factory;
+      self.__is_a(klass);
+      self.__to_s(klass);
+      klass.all_fields().each(function(fld) {
+        return self.__setup(fld);
+      });
+      return klass.fields().each_with_index(function(fld, i) {
+        if (i < args.length) {
+          if (fld.many()) {
+            return args._get(i).each(function(value) {
+              return self._get(fld.name()).push(value);
+            });
+          } else {
+            return self ._set( fld.name() , args._get(i) );
+          }
+        }
+      });
+    },
+
+    __setup: function(fld) {
+      var self = this; 
+      var prop, key, collection;
+      var super$ = this.super$.__setup;
+      if (fld.computed()) {
+        return self.__computed(fld);
+      } else if (! fld.many()) {
+        if (fld.type().Primitive_P()) {
+          prop = Prim.new(self, fld);
+        } else {
+          prop = Ref.new(self, fld);
+        }
+        self.$.props ._set( fld.name() , prop );
+        self.define_getter(fld.name(), prop);
+        return self.define_setter(fld.name(), prop);
+      } else {
+        if (key = Schema.class_key(fld.type())) {
+          collection = Set.new(self, fld, key);
+        } else {
+          collection = List.new(self, fld);
+        }
+        self.$.props ._set( fld.name() , collection );
+        return self.define_singleton_value(fld.name(), collection);
+      }
+    },
+
+    __get: function(name) {
+      var self = this; 
+      var super$ = this.super$.__get;
+      return self.$.props._get(name);
+    },
+
+    __is_a: function(klass) {
+      var self = this; 
+      var val;
+      var super$ = this.super$.__is_a;
+      return klass.schema().classes().each(function(cls) {
+        val = Schema.subclass_P(klass, cls);
+        return self.define_singleton_value(S(cls.name(), "?"), val);
+      });
+    },
+
+    __to_s: function(cls) {
+      var self = this; 
+      var k;
+      var super$ = this.super$.__to_s;
+      k = Schema.class_key(cls);
+      if (k) {
+        return self.define_singleton_method(function() {
+          return S("<<", cls.name(), " ", self._id(), " '", self._get(k.name()), "'>>");
+        }, "to_s");
+      } else {
+        return self.define_singleton_value("to_s", S("<<", cls.name(), " ", self._id(), ">>"));
+      }
+    },
+
+    __computed: function(fld) {
+      var self = this; 
+      var c, base, name, exp, fvInterp, commInterp, val, fvs, var_V;
+      var super$ = this.super$.__computed;
+      if (fld.computed().EList_P() && (c = fld.owner().supers().find(function(c) {
+        return c.all_fields()._get(fld.name());
+      }))) {
+        base = c.all_fields()._get(fld.name());
+        if (base.inverse()) {
+          fld.computed().elems().each(function(var_V) {
+            if (! var_V.EVar_P()) {
+              self.raise(S("Field override ", fld.name(), " includes non-var ", var_V));
+            }
+            return self.__get(var_V.name())._set_inverse() = base.inverse();
+          });
+        }
+      }
+      name = fld.name();
+      exp = fld.computed();
+      fvInterp = FreeVar.FreeVarExprC().new();
+      commInterp = Impl.EvalCommandC().new();
+      val = null;
+      return self.define_singleton_method(function() {
+        if (val == null) {
+          fvs = fvInterp.dynamic_bind(function() {
+            return fvInterp.depends(exp);
+          }, new EnsoHash ( { } ));
+          fvs.each(function(fv) {
+            if (fv.object()) {
+              return fv.object().add_listener(function() {
+                return var_V = null;
+              }, fv.index());
+            }
+          });
+          val = commInterp.dynamic_bind(function() {
+            return commInterp.eval(exp);
+          }, new EnsoHash ( { } ));
+          var_V = val;
+        }
+        return val;
+      }, name);
     },
 
     _graph_id: function() {
@@ -103,28 +200,6 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var self = this; 
       var super$ = this.super$.instance_of_P;
       return self.schema_class().name() == sym.to_s();
-    },
-
-    _get: function(name) {
-      var self = this; 
-      var super$ = this.super$._get;
-      if (name._get(- 1) == "?") {
-        return self.schema_class().name() == name.slice(0, name.length() - 1);
-      } else {
-        self.check_field(name, true);
-        if (self.computed_P(name)) {
-          return self.send(name);
-        } else {
-          return self.__get(name).get();
-        }
-      }
-    },
-
-    _set: function(name, x) {
-      var self = this; 
-      var super$ = this.super$._set;
-      self.check_field(name, false);
-      return self.__get(name).set(x);
     },
 
     delete_in_place: function() {
@@ -202,7 +277,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var self = this; 
       var r;
       var super$ = this.super$._clone;
-      r = MObject.new(self.$.schema_class, self.$.factory);
+      r = MObject.new(self.schema_class(), self.$.factory);
       self.schema_class().fields().each(function(field) {
         if (field.many()) {
           return self._get(field.name()).each(function(o) {
@@ -215,18 +290,6 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       return r;
     },
 
-    __get: function(name) {
-      var self = this; 
-      var super$ = this.super$.__get;
-      return self.$.hash._get(name);
-    },
-
-    __set: function(name, fld) {
-      var self = this; 
-      var super$ = this.super$.__set;
-      return self.$.hash ._set( name , fld );
-    },
-
     eql_P: function(o) {
       var self = this; 
       var super$ = this.super$.eql_P;
@@ -236,25 +299,13 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     equals: function(o) {
       var self = this; 
       var super$ = this.super$.equals;
-      return (o && o.is_a_P(MObject)) && self._id() == o._id();
+      return (o && System.test_type(o, MObject)) && self._id() == o._id();
     },
 
     hash: function() {
       var self = this; 
       var super$ = this.super$.hash;
-      return self._id();
-    },
-
-    to_s: function() {
-      var self = this; 
-      var k;
-      var super$ = this.super$.to_s;
-      k = Schema.class_key(self.schema_class());
-      if (k) {
-        return S("<<", self.schema_class().name(), " ", self._id(), " '", self._get(k.name()), "'>>");
-      } else {
-        return S("<<", self.schema_class().name(), " ", self._id(), ">>");
-      }
+      return self.$._id;
     },
 
     finalize: function() {
@@ -262,134 +313,12 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var super$ = this.super$.finalize;
       self.factory().register(self);
       return self;
-    },
-
-    check_field: function(name, can_be_computed) {
-      var self = this; 
-      var super$ = this.super$.check_field;
-      if (! self.$.hash.include_P(name)) {
-        self.raise(S("Non-existing field '", name, "' for ", self));
-      }
-      if (! can_be_computed && self.computed_P(name)) {
-        return self.raise(S("Cannot assign to computed field '", name, "'"));
-      }
-    },
-
-    computed_P: function(name) {
-      var self = this; 
-      var super$ = this.super$.computed_P;
-      return self.__get(name) == "computed";
-    },
-
-    __setup: function(fields) {
-      var self = this; 
-      var klass, key, f;
-      var super$ = this.super$.__setup;
-      return fields.each(function(fld) {
-        klass = self;
-        f = fld.computed()
-          ? "computed"
-          : fld.type().Primitive_P()
-            ? ManagedData.Prim().new(klass, fld)
-            : ! fld.many()
-              ? ManagedData.Ref().new(klass, fld)
-              : key = Schema.class_key(fld.type())
-                ? ManagedData.Set().new(klass, fld, key)
-                : ManagedData.List().new(klass, fld)
-        ;
-        return self.__set(fld.name(), f);
-      });
-    },
-
-    __init: function(fields, args) {
-      var self = this; 
-      var super$ = this.super$.__init;
-      return fields.each_with_index(function(fld, i) {
-        if (i < args.length()) {
-          return self.__get(fld.name()).init(args._get(i));
-        }
-      });
-    },
-
-    __install: function(fields) {
-      var self = this; 
-      var c, base;
-      var super$ = this.super$.__install;
-      return fields.each(function(fld) {
-        if (fld.computed()) {
-          if (fld.computed().EList_P() && (c = fld.owner().supers().find(function(c) {
-            return c.all_fields()._get(fld.name());
-          }))) {
-            base = c.all_fields()._get(fld.name());
-            if (base.inverse()) {
-              fld.computed().elems().each(function(var_V) {
-                if (! var_V.EVar_P()) {
-                  self.raise(S("Field override ", fld.name(), " includes non-var ", var_V));
-                }
-                return self.__get(var_V.name())._set_inverse() = base.inverse();
-              });
-            }
-          }
-          return self.__computed(fld);
-        } else {
-          self.__setter(fld.name());
-          return self.__getter(fld.name());
-        }
-      });
-    },
-
-    __computed: function(fld) {
-      var self = this; 
-      var name, exp, fvInterp, commInterp, fvs, val;
-      var super$ = this.super$.__computed;
-      name = fld.name();
-      exp = fld.computed();
-      fvInterp = FreeVarExprC.new();
-      commInterp = EvalCommandC.new();
-      return self.define_singleton_method(function() {
-        if (self.$.memo._get(name) == null) {
-          fvs = fvInterp.dynamic_bind(function() {
-            return fvInterp.depends(exp);
-          }, new EnsoHash ( { } ));
-          fvs.each(function(fv) {
-            if (fv.object()) {
-              return fv.object().add_listener(function() {
-                return self.$.memo ._set( name , null );
-              }, fv.index());
-            }
-          });
-          val = commInterp.dynamic_bind(function() {
-            return commInterp.eval(exp);
-          }, new EnsoHash ( { } ));
-          self.$.memo ._set( name , val );
-        }
-        return self.$.memo._get(name);
-      }, name);
-    },
-
-    __setter: function(name) {
-      var self = this; 
-      var super$ = this.super$.__setter;
-    },
-
-    __getter: function(name) {
-      var self = this; 
-      var super$ = this.super$.__getter;
     }
   });
 
   var Field = MakeClass( {
     _origin: function() { return this.$._origin },
     set__origin: function(val) { this.$._origin  = val },
-
-    set__set_inverse: function(inv) {
-      var self = this; 
-      var super$ = this.super$.set__set_inverse;
-      if (self.$.inverse) {
-        self.raise(S("Overiding inverse of field '", inv.owner().name(), ".", self.invk().name(), "'"));
-      }
-      return self.$.inverse = inv;
-    },
 
     initialize: function(owner, field) {
       var self = this; 
@@ -399,6 +328,15 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       if (field) {
         return self.$.inverse = field.inverse();
       }
+    },
+
+    set__set_inverse: function(inv) {
+      var self = this; 
+      var super$ = this.super$.set__set_inverse;
+      if (self.$.inverse) {
+        self.raise(S("Overiding inverse of field '", inv.owner().name(), ".", self.invk().name(), "'"));
+      }
+      return self.$.inverse = inv;
     },
 
     __delete_obj: function(mobj) {
@@ -455,23 +393,23 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var super$ = this.super$.check;
       if (! self.$.field.optional() || value) {
         ok = self.$.field.type().name() == "str"
-          ? value.is_a_P(String)
+          ? System.test_type(value, String)
           : self.$.field.type().name() == "int"
-            ? value.is_a_P(Integer)
+            ? System.test_type(value, Integer)
             : self.$.field.type().name() == "bool"
-              ? value.is_a_P(TrueClass) || value.is_a_P(FalseClass)
+              ? System.test_type(value, TrueClass) || System.test_type(value, FalseClass)
               : self.$.field.type().name() == "real"
-                ? value.is_a_P(Numeric)
+                ? System.test_type(value, Numeric)
                 : self.$.field.type().name() == "datetime"
-                  ? value.is_a_P(DateTime)
+                  ? System.test_type(value, DateTime)
                   : ((function(){ {
                     if (self.$.field.type().name() == "atom") {
-                      return ((value.is_a_P(Numeric) || value.is_a_P(String)) || value.is_a_P(TrueClass)) || value.is_a_P(FalseClass);
+                      return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
                     }
                   } })())
         ;
         if (! ok) {
-          return self.raise(S("Invalid value for ", self.$.field.type().name(), ": ", value));
+          return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
         }
       }
     },
@@ -487,7 +425,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         } else if (self.$.field.type().name() == "bool") {
           return false;
         } else if (self.$.field.type().name() == "real") {
-          return 0;
+          return 0.0;
         } else if (self.$.field.type().name() == "datetime") {
           return DateTime.now();
         } else if (self.$.field.type().name() == "atom") {
@@ -495,6 +433,108 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         } else {
           return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
         }
+      }
+    }
+  });
+
+  var SetUtils = MakeMixin({
+    to_ary: function() {
+      var self = this; 
+      var super$ = this.super$.to_ary;
+      return self.$.values.values();
+    },
+
+    add: function(other) {
+      var self = this; 
+      var r;
+      var super$ = this.super$.add;
+      r = self.inject(function(x) {
+        return x.push();
+      }, Set.new(null, self.$.field, self.__key() || other.__key()));
+      return other.inject(function(x) {
+        return x.push();
+      }, r);
+    },
+
+    select: function(block) {
+      var self = this; 
+      var result;
+      var super$ = this.super$.select;
+      result = Set.new(null, self.$.field, self.__key());
+      self.each(function(elt) {
+        if (block.call(elt)) {
+          return result.push(elt);
+        }
+      });
+      return result;
+    },
+
+    flat_map: function(block) {
+      var self = this; 
+      var new_V, set, key;
+      var super$ = this.super$.flat_map;
+      new_V = null;
+      self.each(function(x) {
+        set = block.call(x);
+        if (new_V == null) {
+          key = set.__key();
+          new_V = Set.new(null, self.$.field, key);
+        } else {
+        }
+        return set.each(function(y) {
+          return new_V.push(y);
+        });
+      });
+      return new_V || Set.new(null, self.$.field, self.__key());
+    },
+
+    each_with_match: function(block, other) {
+      var self = this; 
+      var empty;
+      var super$ = this.super$.each_with_match;
+      empty = Set.new(null, self.$.field, self.__key());
+      return self.__outer_join(function(sa, sb) {
+        if ((sa && sb) && sa._get(self.__key().name()) == sb._get(self.__key().name())) {
+          return block.call(sa, sb);
+        } else if (sa) {
+          return block.call(sa, null);
+        } else if (sb) {
+          return block.call(null, sb);
+        }
+      }, other || empty);
+    },
+
+    __key: function() {
+      var self = this; 
+      var super$ = this.super$.__key;
+      return self.$.key;
+    },
+
+    __keys: function() {
+      var self = this; 
+      var super$ = this.super$.__keys;
+      return self.$.value.keys();
+    },
+
+    __outer_join: function(block, other) {
+      var self = this; 
+      var keys;
+      var super$ = this.super$.__outer_join;
+      keys = self.__keys().union(other.__keys());
+      return keys.each(function(key) {
+        return block.call(self._get(key), other._get(key), key);
+      });
+    }
+  });
+
+  var ListUtils = MakeMixin({
+    each_with_match: function(block, other) {
+      var self = this; 
+      var super$ = this.super$.each_with_match;
+      if (! self.empty_P()) {
+        return self.each(function(item) {
+          return block.call(item, null);
+        });
       }
     }
   });
@@ -529,7 +569,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var self = this; 
       var super$ = this.super$.check;
       if (mobj || ! self.$.field.optional()) {
-        if (mobj.nil_P()) {
+        if (mobj == null) {
           self.raise(S("Cannot assign nil to non-optional field ", self.$.field.name()));
         }
         if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
@@ -626,7 +666,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     length: function() {
       var self = this; 
       var super$ = this.super$.length;
-      return self.__value().length();
+      return self.__value().length;
     },
 
     to_s: function() {
@@ -839,7 +879,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       var super$ = this.super$.keys;
       return Array.new(function(i) {
         return i;
-      }, self.length());
+      }, self.length);
     },
 
     push: function(mobj) {
@@ -919,16 +959,18 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     }
   });
 
-  ManagedData = {
+  Factory = {
     new: function(schema) {
-      return Factory.new(schema);
+      return SchemaFactory.new(schema);
     } ,
 
-    Factory: Factory,
+    SchemaFactory: SchemaFactory,
     MObject: MObject,
     Field: Field,
     Single: Single,
     Prim: Prim,
+    SetUtils: SetUtils,
+    ListUtils: ListUtils,
     RefHelpers: RefHelpers,
     Ref: Ref,
     Many: Many,
@@ -936,5 +978,5 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     List: List,
 
   };
-  return ManagedData;
+  return Factory;
 })

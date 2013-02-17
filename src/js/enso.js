@@ -5,7 +5,7 @@ define (function() {
     
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
-    }
+  }
     
   puts = function(obj) {
     console.log("" + obj);
@@ -20,6 +20,9 @@ define (function() {
   System = {
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
+    },
+    test_type: function(obj, type) {
+      return obj != null && obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     }
   }
   
@@ -27,19 +30,65 @@ define (function() {
   
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = Array.prototype.forEach
+  Array.prototype.select = function(pred) { 
+    var x = []; 
+    this.each(function(obj) { 
+      if (pred(obj)) { 
+        x.push(obj)
+      }
+    }); 
+    return x; 
+  };
+  
+  Object.prototype.each = function (cmd) {
+    for (var i in this) {
+      if (this.hasOwnProperty(i)) {
+        var a = this[i];
+        cmd.call(a, i, a)
+      }
+    }
+  }
 
-  Object.prototype.find = function(pred) { for (i in this) if (pred(a = this[i])) return a; }
+  _fixup_method_name = function(name) { 
+    if (name.slice(-1) == "?") { 
+      name = name.slice(0,-1) + "_P";
+    } 
+    return name; 
+  }
+  Object.prototype.find = function(pred) { for (i in this) { var a = this[i]; if (pred(a)) return a; } }
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
-  Object.prototype.define_singleton_value = function(name, val) { this[name] = function() { return val;} }
-  Object.prototype.define_singleton_method = function(name, val) { this[name] = val }
+  Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
+  Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
   String.prototype.to_s = function() { return this }
   Object.prototype.to_s = function() { return "" + this }
   Object.prototype._get = function(k) { return this[k] }
+  String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Object.prototype._set = function(k, v) { this[k] = v; return v; }
+  String.prototype.gsub = String.prototype.replace;
+  String.prototype.index = String.prototype.indexOf;
+  string$split = String.prototype.split;
+  String.prototype.split = function(sep, lim) {
+    return string$split.call(this, sep, lim).filter(function(x) { return x != ""; });
+  }
+  string$slice = String.prototype.slice;
+  String.prototype.slice = function(start, len) {
+    if (len != undefined)
+      len = start + len;
+    return string$slice.call(this, start, len);
+  }
   
   EnsoBaseClass = {
-    finalize_object$: function(x) { return x },
     new: function() {}
+  }
+  // put enso global methods here
+  EnsoBaseClass.new.prototype = {
+    toString: function() { return this.to_s(); },
+    _get: function(k) { 
+      return this[k](); 
+    },
+    send: function(k) {
+      return this[k]();
+    }
   }
 
   MakeClass = function(base_class, instance_spec) {
@@ -84,18 +133,18 @@ define (function() {
       instance_spec.__proto__ = parent_instance_proto;
       // if there are mixins, then a clone of the mixin's prototype is inserted between object and base
       if (instance_spec.hasOwnProperty("include")) {
-		if (! instance_spec.hasOwnProperty("_eigen_")) {
-			instance_spec._eigen_ = Object.create({});
-  	    	instance_spec._eigen_.__proto__ = instance_spec.__proto__
-  	    	instance_spec.__proto__ = instance_spec._eigen_
-		}
-		for (var i=0,len=instance_spec.include.length; i<len; i++) {
-			var methods = instance_spec.include[i]._instance_spec_._methods_()
-			for (var m in methods) {
-				if (methods.hasOwnProperty(m))
-					instance_spec._eigen_[m] = methods[m] 
-			}
-	    }
+    		if (! instance_spec.hasOwnProperty("_eigen_")) {
+    			instance_spec._eigen_ = Object.create({});
+      	    	instance_spec._eigen_.__proto__ = instance_spec.__proto__
+      	    	instance_spec.__proto__ = instance_spec._eigen_
+    		}
+    		for (var i=0,len=instance_spec.include.length; i<len; i++) {
+    			var methods = instance_spec.include[i]._instance_spec_._methods_()
+    			for (var m in methods) {
+    				if (methods.hasOwnProperty(m))
+    					instance_spec._eigen_[m] = methods[m] 
+    			}
+  	    }
       }
       // make sure there is a class object 
       instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
@@ -116,41 +165,19 @@ define (function() {
          obj.$ = {};
          obj.super$ = parent_instance_proto;
          instance_spec.initialize.apply(obj, arguments);
-         return instance_spec._class_.finalize_object$(obj);
+         return obj;
       }
       // set its prototype, even thought it is not actually used view "new"
       // it is accessed above
       constructor.prototype = instance_spec;
       // fill in the "new" function of the class
       instance_spec._class_.new = constructor;
+      instance_spec._class_.super$ = base_class;
       // return the new class
       return instance_spec._class_;
   }  
 
-  EnsoProxyObject = MakeClass({
-    _class_: {
-      finalize_object$: function(obj) {
-        var proxy = null;
-        var handler = {
-          get : function (proxy, prop) {
-             var x = obj[prop];
-            if (x) {
-             return x;
-            } else {
-             return function() { return obj._get(prop); }
-            }
-          },
-          set : function(proxy, name, val) {
-            return obj.set(name, val);
-          },
-          keys : function() {
-            return handler._get("keys");
-          }};
-        proxy = Proxy.create(handler);
-        return proxy;
-      } 
-    }
-  });
+  EnsoProxyObject = EnsoBaseClass;
   
   MakeModule = MakeClass;
 
@@ -165,10 +192,10 @@ define (function() {
       instance_spec._methods_ = function() {
       	var methods = [];
       	if (instance_spec.hasOwnProperty("include")) {
-  			for (var i=0,len=instance_spec.include.length; i<len; i++) {
-  				var incld = instance_spec.include[i]
-				methods = methods.concat(incld._instance_spec_._methods_())
-			}
+    			for (var i=0,len=instance_spec.include.length; i<len; i++) {
+    				var incld = instance_spec.include[i]
+    				methods = methods.concat(incld._instance_spec_._methods_())
+    			}
       	}
       	for (var attr in instance_spec) {
       		if (attr!="include" && attr.indexOf("_")!=0 && instance_spec.hasOwnProperty(attr)) { 
@@ -181,5 +208,10 @@ define (function() {
       // return the new class
       return instance_spec._class_;
    }
+   
+   Enumerable = MakeMixin({
+     all_P: function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; },
+     any_P: function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; },
+   });
 
 })

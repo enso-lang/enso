@@ -3,7 +3,7 @@ define([
 ],
 function(Enso) {
 
-  var ManagedData ;
+  var Dynamic ;
   var DynamicUpdateProxy = MakeClass( EnsoProxyObject, {
     initialize: function(obj) {
       var self = this; 
@@ -19,7 +19,7 @@ function(Enso) {
       var_V = self.$.fields._get(name);
       if (var_V) {
         return var_V;
-      } else if (! name.is_a_P(Variable) && name.start_with_P("_")) {
+      } else if (! System.test_type(name, Variable) && name.start_with_P("_")) {
         return self.$.obj.send(name.to_sym());
       } else {
         field = self.$.obj.schema_class().all_fields()._get(name);
@@ -27,7 +27,7 @@ function(Enso) {
           return self.$.obj._get(name);
         } else {
           val = self.$.obj._get(name);
-          if (val.is_a_P(ManagedData.MObject())) {
+          if (System.test_type(val, Factory.MObject())) {
             val = val.dynamic_update();
           }
           self.$.fields ._set( name , var_V = Variable.new(S(self.$.obj, ".", name), val) );
@@ -64,9 +64,9 @@ function(Enso) {
     }
   });
 
-  ManagedData = {
+  Dynamic = {
     DynamicUpdateProxy: DynamicUpdateProxy,
 
   };
-  return ManagedData;
+  return Dynamic;
 })

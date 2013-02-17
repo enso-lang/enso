@@ -185,9 +185,9 @@ module SecureFactory
     res = super
     if !many
       res.extend SecureSingleMixin
-    elsif res.is_a? ManagedData::Set
+    elsif res.is_a? Factory::Set
       res.extend SecureSetMixin
-    elsif res.is_a? ManagedData::List
+    elsif res.is_a? Factory::List
       res.extend SecureListMixin
     end
     res

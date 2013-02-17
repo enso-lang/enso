@@ -32,7 +32,7 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'pp'
-  g = Loader.load(ARGV[0])
+  g = Load::load(ARGV[0])
   tbl = ReachEval.reachable_fields(g)
   tbl.each do |cr, fs|
     puts "#{cr.name}: #{fs.map(&:name).inspect}"

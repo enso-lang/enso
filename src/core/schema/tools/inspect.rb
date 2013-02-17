@@ -8,6 +8,6 @@ if __FILE__ == $0 then
     exit!(1)
   end
   model = ARGV[0]
-  m = Loader.load(model)
+  m = Load::load(model)
   Print.print(m)
 end

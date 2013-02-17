@@ -300,23 +300,23 @@ end
   
 
 require 'core/system/load/load'
-ss1 = Loader.load('schema.schema')
-ss2 = Loader.load('schema2.schema')
+ss1 = Load::load('schema.schema')
+ss2 = Load::load('schema2.schema')
 
 Identify.new.edits(ss1, ss2)
 
-gg1 = Loader.load('grammar.grammar')
-gg2 = Loader.load('grammar2.grammar')
+gg1 = Load::load('grammar.grammar')
+gg2 = Load::load('grammar2.grammar')
 
 Identify.new.edits(gg1, gg2)
 
-gg1 = Loader.load('grammar.grammar')
-gg2 = Loader.load('web.grammar')
+gg1 = Load::load('grammar.grammar')
+gg2 = Load::load('web.grammar')
 
 Identify.new.edits(gg1, gg2)
 
-gg1 = Loader.load('attr-schema.schema')
-gg2 = Loader.load('schema.schema')
+gg1 = Load::load('attr-schema.schema')
+gg2 = Load::load('schema.schema')
 
 Identify.new.edits(gg1, gg2)
 Identify.new.edits(gg2, gg1)

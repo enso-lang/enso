@@ -46,7 +46,7 @@ end
 
 
 def copy(obj)
-  f = ManagedData.new(obj._graph_id.schema)
+  f = Factory::new(obj._graph_id.schema)
   obj = Copy.new(f).copy(obj)
   obj.finalize
 end
@@ -55,12 +55,12 @@ if __FILE__ == $0 then
 
   require 'core/system/load/load'
   
-  gs = Loader.load('grammar.schema')
-  sg = Loader.load('schema.grammar')
+  gs = Load::load('grammar.schema')
+  sg = Load::load('schema.grammar')
 
   require 'core/schema/tools/print'
   
-  newSchema = Copy.new(Factory.new(gs)).copy(sg)
+  newSchema = Copy.new(Factory::new(gs)).copy(sg)
   newSchema.finalize()
   
   Print.print(newSchema)

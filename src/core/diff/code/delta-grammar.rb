@@ -13,8 +13,8 @@ class DeltaGrammar
   # TODO: pass in_field boolean to deal with field literals
 
   def self.delta(g)
-    gs = Loader.load('grammar.schema')
-    fact = ManagedData.new(gs)
+    gs = Load::load('grammar.schema')
+    fact = Factory::new(gs)
     g2 = fact.Grammar
     rules = []
     g2.start = DeltaGrammar.new(fact).delta(g, rules)
@@ -173,8 +173,8 @@ end
 if __FILE__ == $0 then
   require 'core/grammar/render/layout'
 
-  g = Loader.load('diff-point.grammar')
-  gg = Loader.load('grammar.grammar')
+  g = Load::load('diff-point.grammar')
+  gg = Load::load('grammar.grammar')
 
   g2 = DeltaGrammar.delta(g)
 

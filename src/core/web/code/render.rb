@@ -4,14 +4,14 @@ require 'core/web/code/dispatch'
 
 module Web::Eval
   class Render
-    include Dispatch
+    include Interpreter::Dispatch
 
     attr_reader :expr, :log
 
     def initialize(expr, log)      
       @expr = expr
       @log = log
-      @fact = ManagedData.new(Loader.load('xml.schema'))
+      @fact = Factory::new(Load::load('xml.schema'))
     end
 
     def For(this, env, out) 

@@ -225,10 +225,10 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
 
-  ss = Loader.load('schema.schema')
+  ss = Load::load('schema.schema')
   puts Schema2SQL.to_sql(ss).render
 
-  #gs = Loader.load('grammar.schema')
+  #gs = Load::load('grammar.schema')
   #puts Schema2SQL.to_sql(gs).render
   
 

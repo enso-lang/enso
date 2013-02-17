@@ -1,7 +1,7 @@
 require 'core/expr/code/eval'
 
 module EvalStencil
-  include EvalExpr
+  include Eval::EvalExpr
 
   def eval_Color(r, g, b, factory)
     factory.Color(eval(r).round, eval(g).round, eval(b).round)
@@ -13,7 +13,7 @@ module EvalStencil
   end
 
   def eval_ETernOp(op1, op2, e1, e2, e3)
-    if !@_.dynamic
+    if !@D[:dynamic]
       super
     else
       v = e1.eval
@@ -25,7 +25,7 @@ module EvalStencil
   end
 
   def eval_EBinOp(op, e1, e2)
-    if !@_.dynamic
+    if !@D[:dynamic]
       super op, e1, e2
     else
       r1 = e1.eval
@@ -37,7 +37,7 @@ module EvalStencil
   end
 
   def eval_EUnOp(op, e)
-    if !@_.dynamic
+    if !@D[:dynamic]
       super op, e
     else
       r1 = e1.eval
@@ -47,7 +47,7 @@ module EvalStencil
   end
 
   def eval_EField(e, fname)
-    if @_.in_fc or !@_.dynamic
+    if @D[:in_fc] or !@D[:dynamic]
       super e, fname
     else
       r = eval(e)

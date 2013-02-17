@@ -21,15 +21,15 @@ ENSOSYNC_PORT = 20000
 
 def esynchost(rootpath)
 
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+  schema = Load::load('esync.schema')
+  grammar = Load::load('esync.grammar')
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 
   begin
-    auth_schema = Loader.load("auth.schema")
+    auth_schema = Load::load("auth.schema")
     rules_str =  File.open("#{rootpath}/.rules.auth", "rb") { |f| f.read }
-    rules = Loader.load_text("auth", ManagedData.new(auth_schema), rules_str)
+    rules = Load::load_text("auth", Factory::new(auth_schema), rules_str)
     sec = Security.new(rules)
 
   #rescue
@@ -46,9 +46,9 @@ def esynchost(rootpath)
     #initiate contact
     login = client.gets[0..-2]
     puts "\n#{login} initiated sync..."
-#     sfactory = SecureFactory.new(schema, sec, true)
+#     sfactory = SecureFactory::new(schema, sec, true)
     sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, rules: rules, :fail_silent=>true)
-    factory = ManagedData.new(schema)
+    factory = Factory::new(schema)
 
 
       cbase_str = client.read(client.gets[0..-2].to_i)

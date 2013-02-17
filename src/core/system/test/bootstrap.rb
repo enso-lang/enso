@@ -38,7 +38,7 @@ class BootstrapTests < Test::Unit::TestCase
   
   def test_6
     ss = Boot.load_path("core/system/boot/schema_schema.json")
-    realss = Loader.load('schema.schema')
+    realss = Load::load('schema.schema')
     
     puts "Writing new metaschema"  
     ss_path = 'schema_schema2.json'

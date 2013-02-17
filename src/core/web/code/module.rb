@@ -7,7 +7,7 @@ require 'core/system/load/load'
 module Web::Eval
 
   class Mod
-    include Dispatch
+    include Interpreter::Dispatch
 
     PRELUDE = 'prelude'
 
@@ -39,7 +39,7 @@ module Web::Eval
 
     def import(mod)
       unless @imports[mod]
-        web = Loader.load("#{mod}.web")
+        web = Load::load("#{mod}.web")
         @imports[mod] = web
         eval(web)
       end

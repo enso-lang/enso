@@ -5,7 +5,7 @@ require 'core/web/code/result'
 
 module Web::Eval
   class Expr
-    include Dispatch
+    include Interpreter::Dispatch
 
     def EStrConst(this, env)
       Result.new(this.val)

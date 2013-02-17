@@ -202,14 +202,14 @@ if __FILE__ == $0 then
 
   require 'core/system/load/load'
 
-  schema = Loader.load(ARGV[1])
+  schema = Load::load(ARGV[1])
   start = ARGV[2]
   root = schema.classes[start]
   if !root then
     $stderr << "No such root class in schema: #{start}\n"
     exit!(1)
   end
-  grammar = Loader.load(ARGV[0])
+  grammar = Load::load(ARGV[0])
 
   errs = CheckGrammar.check(schema, root, grammar)
 

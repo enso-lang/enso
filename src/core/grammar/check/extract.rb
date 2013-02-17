@@ -10,8 +10,8 @@ require 'core/grammar/check/multiplicity'
 
 
 class ExtractSchema
-  def initialize(ss = Loader.load('schema.schema'))
-    @fact = ManagedData.new(ss)
+  def initialize(ss = Load::load('schema.schema'))
+    @fact = Factory::new(ss)
     @anon_counter = 0
   end
 
@@ -286,7 +286,7 @@ if __FILE__ == $0 then
   require 'core/schema/tools/print'
   require 'core/grammar/render/layout'
 
-  g = Loader.load(ARGV[0])
+  g = Load::load(ARGV[0])
   root = ARGV[1]
 
   ti = ExtractSchema.new
@@ -295,5 +295,5 @@ if __FILE__ == $0 then
   dump_inheritance_dot(ns, 'bla.dot')
   Print.print(ns)
 
-  DisplayFormat.print(Loader.load('schema-base.grammar'), ns)
+  DisplayFormat.print(Load::load('schema-base.grammar'), ns)
 end

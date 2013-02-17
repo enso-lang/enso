@@ -9,15 +9,15 @@ ENSOSYNC_PORT = 20000
 
 
 def esync(server_host, name, rootpath)
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+  schema = Load::load('esync.schema')
+  grammar = Load::load('esync.grammar')
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 
   sourcename = name
 
   domain_str =  File.open("#{rootpath}/.source.esync", "rb") { |f| f.read }
-  domain = Parse.load_raw(domain_str, grammar, schema, ManagedData.new(schema), false).finalize
+  domain = Parse.load_raw(domain_str, grammar, schema, Factory::new(schema), false).finalize
 
   s1 = domain.sources[sourcename]
   newbase = read_from_fs(rootpath, s1.path, s1.factory)

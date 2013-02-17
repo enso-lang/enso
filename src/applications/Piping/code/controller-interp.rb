@@ -1,7 +1,7 @@
 
 module ExecuteController
-  include LValueExpr
-  include EvalExpr
+  include Lvalue::LValueExpr
+  include Eval::EvalExpr
   
   operation :execute, :init, :isEVar
 
@@ -41,7 +41,7 @@ module ExecuteController
     end
     if !moved
       commands.each do |c|
-        env1 = HashEnv.new.set_parent(env)  #create a new blank env page
+        env1 = Env::HashEnv.new.set_parent(env)  #create a new blank env page
         c.eval(env: env1)
       end
     end

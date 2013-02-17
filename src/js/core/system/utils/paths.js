@@ -11,32 +11,34 @@ function() {
         var original, str, base, elts;
         var super$ = this.super$.parse;
         original = str;
-        str = str.gsub("\\\\\\\\", "");
+        str = str.gsub("\\\\", "");
         if (str._get(0) == "/") {
           str = str.slice(1, 1000);
           base = [Root.new()];
         } else {
           base = [];
         }
-        elts = (base + self.scan(str)).flatten();
+        elts = base.concat(self.scan(str));
+        puts("PARSE " + original + "=" + elts);
         return Path.new(elts);
       },
 
       scan: function(str) {
         var self = this; 
-        var n, base, index;
+        var result, n, base, index;
         var super$ = this.super$.scan;
-        return str.split("/").map(function(part) {
-          if (part == ".") {
-            return [];
-          } else if ((n = part.index("[")) && part.slice(- 1) == "]") {
+        result = [];
+        str.split("/").each(function(part) {
+          if ((n = part.index("[")) && part.slice(- 1) == "]") {
             base = part.slice(0, n);
-            index = part.slice(n + 1, (part.length() - n) - 2);
-            return [Field.new(base), Key.new(index)];
-          } else {
-            return Field.new(part);
+            index = part.slice(n + 1, (part.length - n) - 2);
+            result.push(Field.new(base));
+            return result.push(Key.new(index));
+          } else if (part != ".") {
+            return result.push(Field.new(part));
           }
         });
+        return result;
       }
     },
 
@@ -106,7 +108,7 @@ function() {
     searchElts: function(action, todo, scan, root, bindings) {
       var self = this; 
       var super$ = this.super$.searchElts;
-      if (todo.nil_P() || todo.first().nil_P()) {
+      if (todo == null || todo.first() == null) {
         return action.call(scan, bindings);
       } else {
         return todo.first().search(function(item, newBinds) {
@@ -142,7 +144,7 @@ function() {
     lvalue_P: function() {
       var self = this; 
       var super$ = this.super$.lvalue_P;
-      return ! self.root_P() && self.last().is_a_P(Field);
+      return ! self.root_P() && System.test_type(self.last(), Field);
     },
 
     assign: function(root, obj) {
@@ -264,7 +266,7 @@ function() {
     search: function(action, obj, root, bindings) {
       var self = this; 
       var super$ = this.super$.search;
-      if (! obj.nil_P() && obj.schema_class().all_fields()._get(self.$.name)) {
+      if (! (obj == null) && obj.schema_class().all_fields()._get(self.$.name)) {
         return action.call(obj._get(self.$.name), bindings);
       }
     },
@@ -294,7 +296,7 @@ function() {
     search: function(action, obj, root, bindings) {
       var self = this; 
       var super$ = this.super$.search;
-      if (self.$.index.is_a_P(PathVar)) {
+      if (System.test_type(self.$.index, PathVar)) {
         return obj.find_first_with_index(function(item, i) {
           return action.call(item, new EnsoHash ( { } ).update(bindings));
         });
@@ -328,7 +330,7 @@ function() {
     search: function(action, obj, root, bindings) {
       var self = this; 
       var super$ = this.super$.search;
-      if (self.$.key.is_a_P(PathVar)) {
+      if (System.test_type(self.$.key, PathVar)) {
         return obj.find_first_pair(function(k, item) {
           return action.call(item, new EnsoHash ( { } ).update(bindings));
         });
@@ -346,7 +348,7 @@ function() {
     escape: function(s) {
       var self = this; 
       var super$ = this.super$.escape;
-      return s.gsub("]", "\\\\\\\\]").gsub("[", "\\\\\\\\[");
+      return s.gsub("]", "\\\\]").gsub("[", "\\\\[");
     }
   });
 
