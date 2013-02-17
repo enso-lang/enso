@@ -26,19 +26,82 @@ define (function() {
     }
   }
   
-  raise = function(msg) { throw msg }
+  Object.prototype.raise = function(msg) { throw msg }
+  
+  compute_rest_arguments = function(args, num) { 
+    var x = new Array;
+    while (num < args.length)
+      x.push(args[num++]);
+    return x;
+  }
+
+  Function.prototype.call_rest_args$ = function(a) {
+    var len = arguments.length;
+    var newargs = [];
+    var i;
+    for (i = 1; i < len-2; i++) 
+      newargs.push(arguments[i]);
+    newargs = newargs.concat(arguments[len-1]); 
+    return this.apply(a, newargs);
+  }
   
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
-  Array.prototype.each = Array.prototype.forEach
-  Array.prototype.select = function(pred) { 
-    var x = []; 
+  Array.prototype.each = function(fun) {  // Array.prototype.forEach;
+    var i;
+    for (i = 0; i < this.length; i++) {
+      fun(this[i], i);
+    }
+  };
+  
+  Array.prototype.each_with_index = Array.prototype.each;
+  
+  Array.prototype.map = function(fun) {  // Array.prototype.forEach;
+    var i;
+    puts("MAP " + this);
+    var result = new Array;
+    for (i = 0; i < this.length; i++) {
+      result.push(fun(this[i]));
+    }
+    return result;
+  };
+  
+  Array.prototype.select =  function(fun) {  // Array.prototype.filter;
+    var i;
+    puts("SELECT " + this);
+    var result = new Array;
+    for (i = 0; i < this.length; i++) {
+      puts("  SELECT " + this[i]);
+      if (fun(this[i]))
+        result.push(this[i]);
+    }
+    return result;
+  };
+  Array.prototype.flat_map = function(fun) { 
+    var x = new Array; 
+    puts(" FLAT " + this);
     this.each(function(obj) { 
-      if (pred(obj)) { 
-        x.push(obj)
-      }
+      puts(" FLATS " + obj);
+      x = x.concat(fun(obj));
     }); 
+    puts("  = " + x);
     return x; 
   };
+  Array.prototype.concat = function(other) {
+    var x = new Array; 
+    puts(" CONCAT " + this);
+    this.each(function(obj) { 
+      puts(" FLATS " + obj);
+      x.push(obj);
+    }); 
+    other.each(function(obj) { 
+      puts(" FLATS " + obj);
+      x.push(obj);
+    }); 
+    puts("  = " + x);
+    return x; 
+  };
+    
+  
   
   Object.prototype.each = function (cmd) {
     for (var i in this) {
@@ -55,7 +118,13 @@ define (function() {
     } 
     return name; 
   }
-  Object.prototype.find = function(pred) { for (i in this) { var a = this[i]; if (pred(a)) return a; } }
+  Object.prototype.find = function(pred) { 
+    var result; 
+    this.each( function(a) {
+      if (pred(a)) result = a; 
+    });
+    return result;
+  }
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }

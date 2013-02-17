@@ -25,6 +25,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       self.$.file_path = [];
       return schema.classes().each(function(klass) {
         return self.define_singleton_method(function() {
+          var args = compute_rest_arguments(arguments, 0 );
           return MObject.new .call_rest_args$(MObject, klass, self, args );
         }, klass.name());
       });
@@ -166,8 +167,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       }
       name = fld.name();
       exp = fld.computed();
-      fvInterp = FreeVar.FreeVarExprC().new();
-      commInterp = Impl.EvalCommandC().new();
+      fvInterp = Freevar.FreeVarExprC.new();
+      commInterp = Impl.EvalCommandC.new();
       val = null;
       return self.define_singleton_method(function() {
         if (val == null) {
@@ -739,6 +740,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
     each: function(block) {
       var self = this; 
+      puts("EACH***");
       var super$ = this.super$.each;
       return self.__value().each_value();
     },
@@ -857,6 +859,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     each: function(block) {
       var self = this; 
       var super$ = this.super$.each;
+      puts("EACH***");
       return self.__value().each();
     },
 

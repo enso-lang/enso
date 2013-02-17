@@ -56,6 +56,7 @@ class Scan
     CollectKeywords.run(grammar)
   end
 
+  # TODO: remove dependency on CyclicCollectShy
   class CollectKeywords < CyclicCollectShy
     def Lit(this, accu)
       accu << this.value if this.value.match(SYMBOL)

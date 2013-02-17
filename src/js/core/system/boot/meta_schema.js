@@ -130,12 +130,14 @@ function(Paths, Factory, Union, Json, Enso) {
       var super$ = this.super$.all_fields;
       return BootManyField.new(self.supers().flat_map(function(s) {
         return s.all_fields();
-      }) + self.defined_fields(), self.$.root, true);
+      }).concat(self.defined_fields()), self.$.root, true);
     },
 
     fields: function() {
       var self = this; 
       var super$ = this.super$.fields;
+      //self.all_fields().each(function(x) { puts("FLSDS " + x) });
+      puts("KEYS " + self.all_fields().keys());
       return BootManyField.new(self.all_fields().select(function(f) {
         return ! f.computed();
       }), self.$.root, true);
@@ -146,9 +148,16 @@ function(Paths, Factory, Union, Json, Enso) {
     initialize: function(arr, root, keyed) {
       var self = this; 
       var super$ = this.super$.initialize;
+      if ("" + arr == "<Field 48 types>,<Field 49 classes>,<Field 61 primitives>" && arr.length == 1)
+        lkjaklsjdflsjkd();
       arr.each(function(obj) {
+        puts("   ITEM " + obj)
         return self.push(obj);
       });
+      puts("MANY " + arr);
+      puts("  XX " + typeof arr);
+      puts("  IS " + this);
+      puts("  NN " + this.length);
       self.$.root = root;
       return self.$.keyed = keyed;
     },

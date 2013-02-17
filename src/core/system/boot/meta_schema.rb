@@ -118,7 +118,7 @@ module Boot
     
   class Class < MObject
     def all_fields
-      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
+      BootManyField.new((supers.flat_map() {|s|s.all_fields}).concat(defined_fields), @root, true)
     end
     def fields
       BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)

@@ -10,7 +10,7 @@ Program ::= [Module] "define(["/> requires:([Require] path:str)* @(.","/) </"],"
 Def     ::= Class | Mixin | [Binding]
 Export ::= [Class] ExportName | [Mixin] ExportName | Binding
 ExportName ::= name:sym .":" name:sym ."," /
-Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) ","/2
+Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) .","/2
   Function ::= FunHeader FunBody
   
 // class N < N 
@@ -22,7 +22,7 @@ Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) ","/2
 Class   ::= [Class] "var" name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
 Mixin   ::= [Mixin] "var" name:sym "= MakeMixin({" Body "});"
 Body    ::= /> Includes? Meta? defs:DefB* @(.","/2) </
-Includes ::= "include: [" includes:Include+ @"," "]," /2
+Includes ::= "include: [" includes:Include+ @(.",") "]," /2
   Include ::= [Include] (module:sym.".")? name:sym
 
 Meta    ::= "_class_:" "{"/> meta:DefB+ @(.","/2) </"}," /2
@@ -61,7 +61,7 @@ TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)?
 HandlerR ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
 
 Expr ::= IndexAssign | Assign
-IndexAssign ::= [Assign] to:IndexTarget "._set(" to:IndexIndex "," from:Assign ")"
+IndexAssign ::= [Assign] to:IndexTarget ."._set(". to:IndexIndex ."," from:Assign .")"
 IndexTarget ::= [Index] base:Primary 
 IndexIndex ::= [Index] index:Expr
  
@@ -109,7 +109,7 @@ SuperCallRest ::= [Call] target:Super "super$.call_rest_args$(self," (Args.",")?
 SuperCall     ::= [Call] target:Super "super$.call(self" (."," Args)? .")"
   Super ::= [Super] 
   
-Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* body:SeqBodyR </"}"
+Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* VarArg? body:SeqBodyR </"}"
 Params  ::=  (block:sym .",")? args:Param+ @(.",")
           | block:sym?
 Param     ::= [Decl] name:sym

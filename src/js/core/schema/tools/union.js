@@ -59,7 +59,6 @@ function(Factory) {
       } else {
         new_V = self.$.memo._get(a._id());
         if (! new_V) {
-          self.pp(self.$.memo);
           self.raise(S("Traversal did not visit every object a=", a, " b=", b));
         }
         if (traversal) {

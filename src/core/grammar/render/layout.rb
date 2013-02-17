@@ -1,7 +1,4 @@
-
-require 'core/system/library/cyclicmap'
 require 'core/grammar/render/render'
-require 'pp'
 
 class DisplayFormat < Dispatch
   def initialize(output)
