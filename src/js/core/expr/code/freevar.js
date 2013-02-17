@@ -1,7 +1,9 @@
 define([
-  "core/expr/code/eval"
+  "core/expr/code/eval",
+  "core/expr/code/lvalue",
+  "core/semantics/code/interpreter"
 ],
-function(Eval) {
+function(Eval, Lvalue, Interpreter) {
 
   var FreeVar ;
   var FreeVarExpr = MakeMixin({

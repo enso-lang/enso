@@ -5,7 +5,7 @@ require 'core/schema/tools/print'
 require 'applications/StateMachine/code/state_machine'
 
 sm_schema = Load::load("state_machine.schema")
-factory = ManagedData.new(sm_schema)
+factory = Factory::new(sm_schema)
 sm = factory.Machine
 open = factory.State(sm, "Open")
 closed = factory.State(sm, "Closed")

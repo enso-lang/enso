@@ -1,6 +1,7 @@
 
 require 'core/system/utils/paths'
 require 'core/schema/code/factory'
+require 'core/schema/tools/union'
 require 'json'
 require 'enso'
 
@@ -21,7 +22,7 @@ module Boot
   def self.load(doc)
     ss0 = make_object(doc, nil)
     ss0._complete
-    Copy(ManagedData.new(ss0), ss0)
+    Union::Copy(Factory::new(ss0), ss0)
   end
 
   def self.make_object(data, root)
@@ -130,6 +131,7 @@ module Boot
       @root = root
       @keyed = keyed
     end
+    
     def [](key)
       if @keyed
         find {|obj| obj.name == key}
@@ -137,9 +139,11 @@ module Boot
         at(key)
       end
     end
+    
     def has_key?(key)
       self[key]
     end
+    
     def each_with_match(other, &block)
       if @keyed
         other = other || {}
@@ -153,6 +157,7 @@ module Boot
         end
       end
     end
+
     def keys
       if @keyed
         map {|o| o.name}

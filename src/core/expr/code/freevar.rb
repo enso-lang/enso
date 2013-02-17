@@ -1,4 +1,6 @@
 require 'core/expr/code/eval'
+require 'core/expr/code/lvalue'
+require 'core/semantics/code/interpreter'
 
 module FreeVar
   module FreeVarExpr

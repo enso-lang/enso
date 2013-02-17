@@ -86,9 +86,9 @@ function(Factory, Schema, Interpreter) {
       var super$ = this.super$.eval_EList;
       k = Schema.class_key(self.$.D._get("for_field").type());
       if (k) {
-        r = ManagedData.Set().new(null, null, k);
+        r = Factory.Set().new(null, null, k);
       } else {
-        r = ManagedData.List().new(null, null);
+        r = Factory.List().new(null, null);
       }
       elems.each(function(elem) {
         return r.push(self.eval(elem));

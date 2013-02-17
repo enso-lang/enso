@@ -1,6 +1,7 @@
 require 'core/system/load/load'
 require 'core/grammar/render/render.rb'
 require 'core/schema/tools/dumpjson.rb'
+require 'core/grammar/render/layout'
 
 require 'ripper'
 require 'pp'
@@ -50,7 +51,7 @@ class CodeBuilder < Ripper::SexpBuilder
     super
     schema = Load::load('code.schema')
     @predefined = ["self", "nil", "true", "false"]
-    @f = ManagedData.new(schema)
+    @f = Factory::new(schema)
     @selfVar = "TOP_LEVEL"
     reset_assigned_vars()
   end
@@ -414,6 +415,8 @@ class CodeBuilder < Ripper::SexpBuilder
       if o.target
         if o.target.Super?
           o.method = @currentMethod
+        elsif o.target.Var? && o.target.name[0] == "$"
+          o.target = @f.Call(@f.Var("System"), o.target.name.slice(1,1000))
         end
       else
         if !(o.method =~ /^[A-Z]/)
@@ -965,11 +968,12 @@ end
 if __FILE__ == $0 then
   name = ARGV[0]
   outname = ARGV[1]
+  grammar = ARGV[2] || "code"
   
   #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
   m = CodeBuilder.build(File.new(name, "r"))
-  g = Load::load("code.grammar")
+  g = Load::load("#{grammar}.grammar")
   #jj ToJSON::to_json(m)
    
   out = File.new(outname, "w")

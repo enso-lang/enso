@@ -81,7 +81,7 @@ class DiagramFrame < GUI::Window
     @mouse_down = false
     @select_color = GUI::Color.new(0, 255, 0)
     @DIST = 4
-    @factory = ManagedData.new(Load('diagram.schema'))
+    @factory = Factory::new(Load('diagram.schema'))
   end
   
   attr_accessor :listener

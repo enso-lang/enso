@@ -1,10 +1,11 @@
 define([
   "core/system/utils/paths",
   "core/schema/code/factory",
+  "core/schema/tools/union",
   "json",
   "enso"
 ],
-function(Paths, Factory, Json, Enso) {
+function(Paths, Factory, Union, Json, Enso) {
 
   var Boot ;
 
@@ -81,6 +82,7 @@ function(Paths, Factory, Json, Enso) {
               }), keyed);
             } else {
               return self._get(name).each(function(obj) {
+                console.log(" FOO " + obj);
                 return obj._complete();
               });
             }
@@ -91,6 +93,7 @@ function(Paths, Factory, Json, Enso) {
           }
         }
       });
+      console.log("complete");
       return self.$.root.types().each(function(cls) {
         return self.define_singleton_value(S(cls.name(), "?"), self.$.data._get("class") == cls.name());
       });
@@ -208,7 +211,7 @@ function(Paths, Factory, Json, Enso) {
     load: function(doc) {
       ss0 = Boot.make_object(doc, null);
       ss0._complete();
-      return Copy(ManagedData.new(ss0), ss0);
+      return Union.Copy(Factory.new(ss0), ss0);
     } ,
 
     make_object: function(data, root) {

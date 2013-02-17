@@ -125,7 +125,7 @@ if __FILE__ == $0 then
   
   schema = Load::load('schema.schema')
   json = JSON.parse(IO.readlines("core/system/boot/schema_schema.json").join("\n"))
-  ss2 = ToJSON.from_json(ManagedData::Factory.new(schema), json)
+  ss2 = ToJSON.from_json(Factory::new(schema), json)
   raise "Error loading schema_schema.json!" unless Diff.diff(schema, ss2).empty?
 
   if !ARGV[0] then

@@ -13,7 +13,7 @@ class BatchTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @factory = ManagedData.new(Load::load('batch.schema'))
+    @factory = Factory::new(Load::load('batch.schema'))
 
     #oracle for todo2
     @expected_todo2 = @factory.Query("Todos")

@@ -1,5 +1,4 @@
 define([
-  "core/schema/code/many",
   "core/schema/code/dynamic",
   "core/system/utils/paths",
   "core/system/library/schema",
@@ -8,11 +7,11 @@ define([
   "core/expr/code/env",
   "core/expr/code/freevar"
 ],
-function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
+function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
-  var ManagedData ;
+  var Factory ;
 
-  var Factory = MakeClass( {
+  var SchemaFactory = MakeClass( {
     schema: function() { return this.$.schema },
 
     file_path: function() { return this.$.file_path },
@@ -100,18 +99,18 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.__computed(fld);
       } else if (! fld.many()) {
         if (fld.type().Primitive_P()) {
-          prop = ManagedData.Prim().new(self, fld);
+          prop = Prim.new(self, fld);
         } else {
-          prop = ManagedData.Ref().new(self, fld);
+          prop = Ref.new(self, fld);
         }
         self.$.props ._set( fld.name() , prop );
         self.define_getter(fld.name(), prop);
         return self.define_setter(fld.name(), prop);
       } else {
         if (key = Schema.class_key(fld.type())) {
-          collection = ManagedData.Set().new(self, fld, key);
+          collection = Set.new(self, fld, key);
         } else {
-          collection = ManagedData.List().new(self, fld);
+          collection = List.new(self, fld);
         }
         self.$.props ._set( fld.name() , collection );
         return self.define_singleton_value(fld.name(), collection);
@@ -426,7 +425,7 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         } else if (self.$.field.type().name() == "bool") {
           return false;
         } else if (self.$.field.type().name() == "real") {
-          return 0;
+          return 0.0;
         } else if (self.$.field.type().name() == "datetime") {
           return DateTime.now();
         } else if (self.$.field.type().name() == "atom") {
@@ -434,6 +433,108 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         } else {
           return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
         }
+      }
+    }
+  });
+
+  var SetUtils = MakeMixin({
+    to_ary: function() {
+      var self = this; 
+      var super$ = this.super$.to_ary;
+      return self.$.values.values();
+    },
+
+    add: function(other) {
+      var self = this; 
+      var r;
+      var super$ = this.super$.add;
+      r = self.inject(function(x) {
+        return x.push();
+      }, Set.new(null, self.$.field, self.__key() || other.__key()));
+      return other.inject(function(x) {
+        return x.push();
+      }, r);
+    },
+
+    select: function(block) {
+      var self = this; 
+      var result;
+      var super$ = this.super$.select;
+      result = Set.new(null, self.$.field, self.__key());
+      self.each(function(elt) {
+        if (block.call(elt)) {
+          return result.push(elt);
+        }
+      });
+      return result;
+    },
+
+    flat_map: function(block) {
+      var self = this; 
+      var new_V, set, key;
+      var super$ = this.super$.flat_map;
+      new_V = null;
+      self.each(function(x) {
+        set = block.call(x);
+        if (new_V == null) {
+          key = set.__key();
+          new_V = Set.new(null, self.$.field, key);
+        } else {
+        }
+        return set.each(function(y) {
+          return new_V.push(y);
+        });
+      });
+      return new_V || Set.new(null, self.$.field, self.__key());
+    },
+
+    each_with_match: function(block, other) {
+      var self = this; 
+      var empty;
+      var super$ = this.super$.each_with_match;
+      empty = Set.new(null, self.$.field, self.__key());
+      return self.__outer_join(function(sa, sb) {
+        if ((sa && sb) && sa._get(self.__key().name()) == sb._get(self.__key().name())) {
+          return block.call(sa, sb);
+        } else if (sa) {
+          return block.call(sa, null);
+        } else if (sb) {
+          return block.call(null, sb);
+        }
+      }, other || empty);
+    },
+
+    __key: function() {
+      var self = this; 
+      var super$ = this.super$.__key;
+      return self.$.key;
+    },
+
+    __keys: function() {
+      var self = this; 
+      var super$ = this.super$.__keys;
+      return self.$.value.keys();
+    },
+
+    __outer_join: function(block, other) {
+      var self = this; 
+      var keys;
+      var super$ = this.super$.__outer_join;
+      keys = self.__keys().union(other.__keys());
+      return keys.each(function(key) {
+        return block.call(self._get(key), other._get(key), key);
+      });
+    }
+  });
+
+  var ListUtils = MakeMixin({
+    each_with_match: function(block, other) {
+      var self = this; 
+      var super$ = this.super$.each_with_match;
+      if (! self.empty_P()) {
+        return self.each(function(item) {
+          return block.call(item, null);
+        });
       }
     }
   });
@@ -858,16 +959,18 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     }
   });
 
-  ManagedData = {
+  Factory = {
     new: function(schema) {
-      return Factory.new(schema);
+      return SchemaFactory.new(schema);
     } ,
 
-    Factory: Factory,
+    SchemaFactory: SchemaFactory,
     MObject: MObject,
     Field: Field,
     Single: Single,
     Prim: Prim,
+    SetUtils: SetUtils,
+    ListUtils: ListUtils,
     RefHelpers: RefHelpers,
     Ref: Ref,
     Many: Many,
@@ -875,5 +978,5 @@ function(Many, Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     List: List,
 
   };
-  return ManagedData;
+  return Factory;
 })

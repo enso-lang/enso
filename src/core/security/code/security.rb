@@ -14,7 +14,7 @@ module CheckPrivileges
     obj = args[:obj]
 
     #verify that obj is part of root. if not, just return success
-    if not obj.is_a? ManagedData::MObject
+    if not obj.is_a? Factory::MObject
       [true, '']
 
     #find at least one allow rule that holds

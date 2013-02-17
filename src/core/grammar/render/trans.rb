@@ -1,4 +1,5 @@
 require 'core/system/load/load'
+require 'core/grammar/render/layout'
 
 model = ARGV[0]
 target = ARGV[1]

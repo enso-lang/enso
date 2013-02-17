@@ -83,7 +83,7 @@ class BatchWeb::EnsoWeb
     mod_eval = Mod.new(@env)
     mod_eval.eval(web)
 
-    @bfact = BatchFactory.new(web, schema, auth, database, dbuser, password)
+    @bfact = BatchFactory::new(web, schema, auth, database, dbuser, password)
   end
 
   def handle(req, out)

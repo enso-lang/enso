@@ -56,9 +56,9 @@ module Eval
       k = Schema::class_key(@D[:for_field].type)
       #puts "KEY #{@D[:for_field]}= #{k}"
       if k
-        r = ManagedData::Set.new(nil, nil, k)
+        r = Factory::Set.new(nil, nil, k)
       else
-        r = ManagedData::List.new(nil, nil)
+        r = Factory::List.new(nil, nil)
       end
       elems.each do |elem|
         #puts "ELEM #{elem}=#{eval(elem)}"

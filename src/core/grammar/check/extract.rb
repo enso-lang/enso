@@ -11,7 +11,7 @@ require 'core/grammar/check/multiplicity'
 
 class ExtractSchema
   def initialize(ss = Load::load('schema.schema'))
-    @fact = ManagedData.new(ss)
+    @fact = Factory::new(ss)
     @anon_counter = 0
   end
 

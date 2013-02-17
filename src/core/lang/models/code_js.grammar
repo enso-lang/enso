@@ -53,12 +53,12 @@ Basic   ::= If | While | TryCatch
 If      ::= [If] "if" "(". cond:Expr .")" sthen:Seq ("else" (selse:If | selse:Seq))?
 While   ::= [While] "while" "(". cond:Expr .")" body:Seq
 TryCatch ::= [Rescue] "try" base:Seq rescues:Handler* ("finally" ensure:Seq)? 
-Handler ::= [Handler] "catch" "(" (var:str | "DUMMY") ")" body:Seq // TODO: deal with kind:str!!!
+Handler ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:Seq // TODO: deal with kind:str!!!
 
 BasicR   ::= IfR | While | TryCatchR
 IfR      ::= [If] "if" "(". cond:Expr .")" sthen:SeqR ("else" (selse:IfR | selse:SeqR))?
 TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)? 
-HandlerR ::= [Handler] "catch" "(" (var:str | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
+HandlerR ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
 
 Expr ::= IndexAssign | Assign
 IndexAssign ::= [Assign] to:IndexTarget "._set(" to:IndexIndex "," from:Assign ")"

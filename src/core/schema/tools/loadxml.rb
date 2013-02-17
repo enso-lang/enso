@@ -11,7 +11,7 @@ class FromXML
 
   def initialize(schema)
     @schema = schema
-    @fact = ManagedData.new(schema)
+    @fact = Factory::new(schema)
   end
 
   def load(doc)

@@ -1,7 +1,7 @@
 
 require "enso"
 
-module ManagedData
+module Dynamic
   class DynamicUpdateProxy < EnsoProxyObject
     def initialize(obj)
       @obj = obj
@@ -29,7 +29,7 @@ module ManagedData
 #         return instance_eval(exp)
         else
           val = @obj[name]
-          val = val.dynamic_update if val.is_a?(ManagedData::MObject)
+          val = val.dynamic_update if val.is_a?(Factory::MObject)
           @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
           @obj.add_listener name do |val|
             var.value = val

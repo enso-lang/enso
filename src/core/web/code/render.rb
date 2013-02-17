@@ -11,7 +11,7 @@ module Web::Eval
     def initialize(expr, log)      
       @expr = expr
       @log = log
-      @fact = ManagedData.new(Load::load('xml.schema'))
+      @fact = Factory::new(Load::load('xml.schema'))
     end
 
     def For(this, env, out) 

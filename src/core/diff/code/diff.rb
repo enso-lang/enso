@@ -95,15 +95,15 @@ Topological sort of the diff list
   def self.diff_all(o1, o2, path, matches, ref=false)
     return [] if o1==o2
     type = o1 || o2
-    if type.is_a? ManagedData::MObject
+    if type.is_a? Factory::MObject
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
         diff_ref(o1, o2, path, matches, ref)
       end
-    elsif type.is_a? ManagedData::List
+    elsif type.is_a? Factory::List
       diff_array(o1, o2, path, matches, ref)
-    elsif type.is_a? ManagedData::Set
+    elsif type.is_a? Factory::Set
       diff_hash(o1, o2, path, matches, ref)
     else #primitive value
       diff_primitive(o1, o2, path, matches, ref)

@@ -86,7 +86,7 @@ class Variable
   end
   
   def method_missing(m, *args)
-    if value && (value.is_a?(ManagedData::MObject) || value.is_a?(ManagedData::DynamicUpdateProxy))
+    if value && (value.is_a?(Factory::MObject) || value.is_a?(Factory::DynamicUpdateProxy))
       if m.to_s =~  /^[^=]*=$/
         return value.send(m, *args)
       elsif args==[]

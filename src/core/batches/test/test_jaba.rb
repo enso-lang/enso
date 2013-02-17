@@ -33,7 +33,7 @@ class JabaTest < Test::Unit::TestCase
   # test setup
   def setup
     @schema = Load::load("northwind.dbschema")
-    @qfact = ManagedData.new(Load::load("batch.schema"))
+    @qfact = Factory::new(Load::load("batch.schema"))
   end
 
   def test_query2batch

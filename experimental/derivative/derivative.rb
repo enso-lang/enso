@@ -32,7 +32,7 @@ end
 
 class OptimizingGrammarFactory
   def initialize
-    @factory = ManagedData.new(GrammarSchema.schema)
+    @factory = Factory::new(GrammarSchema.schema)
     @epsilon = @factory.Sequence()
   end
 
@@ -128,7 +128,7 @@ class Derivative < CyclicMapNew
     super()
     @rule_num = 1
     @token = token
-    @factory = OptimizingGrammarFactory.new    
+    @factory = OptimizingGrammarFactory::new    
     @nullable = NullTest.new()
   end
 

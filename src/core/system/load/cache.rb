@@ -14,7 +14,7 @@ module Cache
 
   def self.load_cache(name, input=find_json(name))
     type = name.split('.')[-1]
-    factory = ManagedData::Factory.new(Load::load("#{type}.schema"))
+    factory = Factory::new(Load::load("#{type}.schema"))
     json = System.readJSON(input)
     res = ToJSON.from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']

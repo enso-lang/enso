@@ -9,7 +9,7 @@ require 'core/schema/tools/rename'
 require 'core/system/load/cache'
 
 module Load
-  class Loader
+  class LoaderClass
 
     # TODO: get rid of bootstrap models in memory
     GRAMMAR_GRAMMAR = 'grammar.grammar'
@@ -47,7 +47,7 @@ module Load
     #private
 
     def _load(name, type)
-      #first check if cached XML version is still valid
+      #first check if cached XML version is still valid 
       if Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
         Cache::load_cache(name)
@@ -180,8 +180,8 @@ module Load
     end
   end
   
-  # define a singleton instance
-  Loader = Loader.new
+  # define a singleton instance 
+  Loader = LoaderClass.new
   
   def self.load(name)
     Loader.load(name)
