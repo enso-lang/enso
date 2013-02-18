@@ -26,7 +26,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       return schema.classes().each(function(klass) {
         return self.define_singleton_method(function() {
           var args = compute_rest_arguments(arguments, 0 );
-          return MObject.new .call_rest_args$(MObject, klass, self, args );
+          return MObject.new.apply(MObject, [klass, self].concat(args) );
         }, klass.name());
       });
     },
@@ -356,8 +356,9 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     initialize: function(owner, field) {
       var self = this; 
       var super$ = this.super$.initialize;
-      super$.call(self, owner, field);
-      return self.$.value = self.default_V();
+      puts("MAKE nn " + super$);
+      if (super$) super$.call(self, owner, field);
+      return self.$.value = self.default();
     },
 
     set: function(value) {
@@ -733,14 +734,14 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     initialize: function(owner, field, key) {
       var self = this; 
       var super$ = this.super$.initialize;
-      super$.call(self, owner, field);
+      if (super$) super$.call(self, owner, field);
       self.$.value = new EnsoHash ( { } );
       return self.$.key = key;
     },
 
     each: function(block) {
       var self = this; 
-      puts("EACH***");
+      //puts("EACH***");
       var super$ = this.super$.each;
       return self.__value().each_value();
     },
@@ -859,7 +860,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     each: function(block) {
       var self = this; 
       var super$ = this.super$.each;
-      puts("EACH***");
+      //puts("EACH***");
       return self.__value().each();
     },
 

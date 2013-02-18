@@ -13,9 +13,18 @@ define (function() {
   
   EnsoHash = function(init) {
     var data = new Object();
-    this.has_key_P = function(key) { return data.hasOwnProperty(key); }
-    this._get = function(key) { return data[key]; }
+    this.has_key_P = function(key) { return data.hasOwnProperty(key); };
+    this._get = function(key) { return data[key]; };
+    this.keys = function() { 
+      var keys = [];
+      for (k in data) {
+        if (data.hasOwnProperty(k))
+          keys.push(k);
+      }
+      return keys;
+    }
   }
+  
   
   System = {
     readJSON: function(path) {
@@ -30,18 +39,21 @@ define (function() {
   
   compute_rest_arguments = function(args, num) { 
     var x = new Array;
+    puts("REST");
     while (num < args.length)
       x.push(args[num++]);
+    puts("REST  " + x);
     return x;
   }
 
-  Function.prototype.call_rest_args$ = function(a) {
+  Function.prototype.call_rest_args$ = function(obj, fun, args, rest) {
     var len = arguments.length;
     var newargs = [];
     var i;
     for (i = 1; i < len-2; i++) 
       newargs.push(arguments[i]);
     newargs = newargs.concat(arguments[len-1]); 
+    puts("CALL_REST " + a + ", " + newargs);
     return this.apply(a, newargs);
   }
   
@@ -57,7 +69,7 @@ define (function() {
   
   Array.prototype.map = function(fun) {  // Array.prototype.forEach;
     var i;
-    puts("MAP " + this);
+    //puts("MAP " + this);
     var result = new Array;
     for (i = 0; i < this.length; i++) {
       result.push(fun(this[i]));
@@ -67,10 +79,10 @@ define (function() {
   
   Array.prototype.select =  function(fun) {  // Array.prototype.filter;
     var i;
-    puts("SELECT " + this);
+    //puts("SELECT " + this);
     var result = new Array;
     for (i = 0; i < this.length; i++) {
-      puts("  SELECT " + this[i]);
+      //puts("  SELECT " + this[i]);
       if (fun(this[i]))
         result.push(this[i]);
     }
@@ -78,28 +90,34 @@ define (function() {
   };
   Array.prototype.flat_map = function(fun) { 
     var x = new Array; 
-    puts(" FLAT " + this);
     this.each(function(obj) { 
-      puts(" FLATS " + obj);
       x = x.concat(fun(obj));
     }); 
-    puts("  = " + x);
     return x; 
   };
   Array.prototype.concat = function(other) {
     var x = new Array; 
-    puts(" CONCAT " + this);
     this.each(function(obj) { 
-      puts(" FLATS " + obj);
       x.push(obj);
     }); 
     other.each(function(obj) { 
-      puts(" FLATS " + obj);
       x.push(obj);
     }); 
-    puts("  = " + x);
     return x; 
   };
+  Array.prototype.union = function(other) {
+    var x = new Array; 
+    this.each(function(obj) { 
+      x.push(obj);
+    }); 
+    other.each(function(obj) {
+      if (!x.contains(obj))
+        x.push(obj);
+    }); 
+    puts("UNION " + this + " +++ " + other + " = " + x);
+    return x; 
+  };
+  
     
   
   
@@ -119,9 +137,11 @@ define (function() {
     return name; 
   }
   Object.prototype.find = function(pred) { 
-    var result; 
+    var result = null;
     this.each( function(a) {
-      if (pred(a)) result = a; 
+      if (pred(a)) {
+        result = a; 
+      }
     });
     return result;
   }
@@ -156,6 +176,7 @@ define (function() {
       return this[k](); 
     },
     send: function(k) {
+      puts("SEND " + k + ": " + this[k]);
       return this[k]();
     }
   }
@@ -200,6 +221,8 @@ define (function() {
       var parent_instance_proto = base_class.new.prototype;
       // connect this instance_spec bindings to inherit the parent's instance_spec 
       instance_spec.__proto__ = parent_instance_proto;
+      instance_spec.super$ = {};
+      /*
       // if there are mixins, then a clone of the mixin's prototype is inserted between object and base
       if (instance_spec.hasOwnProperty("include")) {
     		if (! instance_spec.hasOwnProperty("_eigen_")) {
@@ -214,13 +237,11 @@ define (function() {
     					instance_spec._eigen_[m] = methods[m] 
     			}
   	    }
-      }
+      }*/
       // make sure there is a class object 
       instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
       // connect this object's class data to the base class data 
       instance_spec._class_.__proto__ = base_class;
-      // remember the instance_spec for each class
-      instance_spec._class_._instance_spec_ = instance_spec;
       // make sure there is an initializer function
       instance_spec.initialize = instance_spec.initialize || function() {
           if (parent_instance_proto.hasOwnProperty("initialize")) {
@@ -232,7 +253,6 @@ define (function() {
       var constructor = function() {
          var obj = Object.create(instance_spec);
          obj.$ = {};
-         obj.super$ = parent_instance_proto;
          instance_spec.initialize.apply(obj, arguments);
          return obj;
       }
@@ -254,8 +274,6 @@ define (function() {
 
       // make sure there is a class object 
       instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
-      // remember the instance_spec for each class
-      instance_spec._class_._instance_spec_ = instance_spec;
 
       // get all methods defined in this mixin and its parents
       instance_spec._methods_ = function() {

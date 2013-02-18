@@ -170,9 +170,10 @@ function(Json, Enso) {
       var self = this; 
       var other, ks, a, b;
       var super$ = this.super$.each_with_match;
+        console.log("  MATCH " + self.$.keyed + ": " + this + "--" + other);
       if (self.$.keyed) {
         other = other || new EnsoHash ( { } );
-        ks = self.keys() || other.keys();
+        ks = self.keys().union(other.keys());
         return ks.each(function(k) {
           return block.call(self._get(k), other._get(k));
         });

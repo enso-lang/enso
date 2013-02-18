@@ -19,7 +19,7 @@ function() {
           base = [];
         }
         elts = base.concat(self.scan(str));
-        puts("PARSE " + original + "=" + elts);
+        //puts("PARSE " + original + "=" + elts);
         return Path.new(elts);
       },
 

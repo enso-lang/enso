@@ -82,7 +82,6 @@ function(Paths, Factory, Union, Json, Enso) {
               }), keyed);
             } else {
               return self._get(name).each(function(obj) {
-                console.log(" FOO " + obj);
                 return obj._complete();
               });
             }
@@ -93,7 +92,6 @@ function(Paths, Factory, Union, Json, Enso) {
           }
         }
       });
-      console.log("complete");
       return self.$.root.types().each(function(cls) {
         return self.define_singleton_value(S(cls.name(), "?"), self.$.data._get("class") == cls.name());
       });
@@ -136,8 +134,6 @@ function(Paths, Factory, Union, Json, Enso) {
     fields: function() {
       var self = this; 
       var super$ = this.super$.fields;
-      //self.all_fields().each(function(x) { puts("FLSDS " + x) });
-      puts("KEYS " + self.all_fields().keys());
       return BootManyField.new(self.all_fields().select(function(f) {
         return ! f.computed();
       }), self.$.root, true);
@@ -151,13 +147,8 @@ function(Paths, Factory, Union, Json, Enso) {
       if ("" + arr == "<Field 48 types>,<Field 49 classes>,<Field 61 primitives>" && arr.length == 1)
         lkjaklsjdflsjkd();
       arr.each(function(obj) {
-        puts("   ITEM " + obj)
         return self.push(obj);
       });
-      puts("MANY " + arr);
-      puts("  XX " + typeof arr);
-      puts("  IS " + this);
-      puts("  NN " + this.length);
       self.$.root = root;
       return self.$.keyed = keyed;
     },
@@ -186,15 +177,16 @@ function(Paths, Factory, Union, Json, Enso) {
       var super$ = this.super$.each_with_match;
       if (self.$.keyed) {
         other = other || new EnsoHash ( { } );
-        ks = self.keys() || other.keys();
+        ks = self.keys().union(other.keys());
         return ks.each(function(k) {
-          return block.call(self._get(k), other._get(k));
+          puts("MATCH " + k + ": " + self._get(k));
+          return block(self._get(k), other._get(k));
         });
       } else {
         a = Array(self);
         b = Array(other);
         return Range.new(0, [a.length, b.length].max() - 1).each(function(i) {
-          return block.call(a._get(i), b._get(i));
+          return block(a._get(i), b._get(i));
         });
       }
     },
