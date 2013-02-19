@@ -84,7 +84,7 @@ module Load
       @cache[GRAMMAR_GRAMMAR] = gg = update_xml('grammar.grammar')
       @cache[SCHEMA_GRAMMAR] = sg = update_xml('schema.grammar')
     end
-    
+
     def update_xml(name)
       if Cache::check_dep(name)
         @cache[name]
@@ -95,7 +95,7 @@ module Load
           type = parts[1]
         end
         res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-        patch_schema_pointers!(res, load("#{type}.schema"))
+#        patch_schema_pointers!(res, load("#{type}.schema"))
         $stderr << "## caching #{name}...\n"
         Cache::save_cache(name, res)
         res
@@ -115,8 +115,9 @@ module Load
       end
       all_classes.each do |o| 
         o.instance_eval do
-          @schema_class = schema.types[@schema_class.name]
-          @factory.instance_eval { @schema = schema } 
+          sc = schema.types[o.schema_class.name]
+          define_singleton_value(:schema_class, sc)
+          @factory.instance_eval { @schema = schema }
         end
       end
     end
@@ -133,6 +134,7 @@ module Load
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
           result = Boot::load_path(path)
+#          patch_schema_pointers!(result, result)
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else

@@ -6,7 +6,7 @@ module Eval
   module EvalExpr
   
     include Interpreter::Dispatcher
-     
+
     def eval(obj)
       dispatch(:eval, obj)
     end
@@ -68,18 +68,24 @@ module Eval
       r
     end
   
+    #reason for in_fc is to disambiguate between the following 2 cases:
+    #  a.foo   -- (EField (Var 'a') (Str 'foo'))
+    #  a.foo() -- (EFunCall (EField (Var 'a') (Str 'foo')))
+    #In the former, EField should return the result of calling foo on a,
+    # in most cases, this is an accessor to get the value of field @foo
+    #In the latter, EField should return the method corresponding to foo
+    # itself to be called in the enclosing FunCall
+    #This distinction is particular to Ruby, since it wraps the first
+    # case as an implicit function call. In Javascript, the first case
+    # will (correctly) return the accessor method without calling it.
     def eval_EField(e, fname)
+      target = dynamic_bind in_fc: false do
+        eval(e)
+      end
       if @D[:in_fc]
-        dynamic_bind in_fc: false do
-          puts "e=#{e} fname=#{fname}"
-          Print.print(e)
-          target = eval(e)
-          puts "target=#{target}"
-          begin; Print.print(target); rescue; end
-          target.method(fname.to_sym)
-        end
+        target.method(fname.to_sym)
       else
-        eval(e).send(fname)
+        target.send(fname)
       end
     end
   end

@@ -99,7 +99,6 @@ module Impl
         eval(fun)
       end 
       if lambda.nil?
-        puts "params = #{params.map{|p|eval(p)}}"
         m.call(*(params.map{|p|eval(p)}))
       else
         p = eval(lambda)
