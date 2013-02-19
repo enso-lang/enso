@@ -43,7 +43,7 @@ module Factory
     end
     
     def register(root)
-      raise "Creating two roots" if @root
+#      raise "Creating two roots" if @root
       @root = root
     end
   end
@@ -54,6 +54,7 @@ module Factory
     attr_reader :_id
     attr_reader :factory
     attr_accessor :extra_instance_data
+    attr_reader :props
 
     @@_id = 0
 
@@ -187,7 +188,7 @@ module Factory
     end
 
     def dynamic_update
-      @dyn ||= DynamicUpdateProxy.new(self)
+      @dyn ||= Dynamic::DynamicUpdateProxy.new(self)
     end
 
     def add_listener(name, &block)

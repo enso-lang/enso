@@ -1,7 +1,6 @@
 diagram(system)
 
-def foo () {
-}
+require "applications/Questionaire/code/ql-stencil-defs.rb"
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
@@ -10,14 +9,54 @@ graph [font.size=12,fill.color=(255,255,255)] {
   for "Element" elem : system.elements {
     if elem is Group
         for "Element" elem : elem.elems
-		    if elem is Question
-		        horizontal {
-		          text elem.qn
-		        }
     if elem is Question
       box [line.color=(255,255,255)] {
         horizontal {
-          text elem.qn
+          text+ elem.qn
+          if elem.ans is CheckBox
+              vertical {
+                for "Choice" choice : elem.ans.choices {
+                  checkbox choice.to_str
+                }
+              } 
+          if elem.ans is MultiChoice
+              vertical {
+                radio elem.value elem.ans.choices
+              }
+          if elem.ans is TextBox
+            vertical {
+              text? elem.value
+              text? elem.value
+            }
+          if elem.ans is Computed
+            box {
+              text+ "xxx"
+            }
+        }
+      }
+    if elem is Question
+      box [line.color=(255,255,255)] {
+        horizontal {
+          text+ elem.qn
+          if elem.ans is CheckBox
+              vertical {
+                for "Choice" choice : elem.ans.choices {
+                  checkbox choice.to_str
+                }
+              } 
+          if elem.ans is MultiChoice
+              vertical {
+                radio elem.value elem.ans.choices
+//                radio elem.value elem.ans.choices
+              }
+          if elem.ans is TextBox
+            vertical {
+              text+ "xxxx"
+            }
+          if elem.ans is Computed
+            box {
+              text+ "     "
+            }
         }
       }
    }

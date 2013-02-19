@@ -47,9 +47,10 @@ module Eval
     end
   
     def eval_EFunCall(fun, params)
-      dynamic_bind in_fc: true do 
-        eval(fun).call(*(params.map{|p|eval(p)}))
+      m = dynamic_bind in_fc: true do 
+        eval(fun)
       end
+      m.call(*(params.map{|p|eval(p)}))
     end
   
     def eval_EList(elems)
@@ -70,7 +71,11 @@ module Eval
     def eval_EField(e, fname)
       if @D[:in_fc]
         dynamic_bind in_fc: false do
+          puts "e=#{e} fname=#{fname}"
+          Print.print(e)
           target = eval(e)
+          puts "target=#{target}"
+          begin; Print.print(target); rescue; end
           target.method(fname.to_sym)
         end
       else
