@@ -220,14 +220,23 @@ class CodeBuilder < Ripper::SexpBuilder
   def on_class(const, superclass, body)
     #puts "CLASS #{const} < #{superclass} : #{body}"
     parts = split_meta(body)
-    @f.Class(const, parts[0], parts[1], parts[2], superclass && superclass.name)
+    if superclass
+      if superclass.Var?
+        superclass = @f.Ref(nil, superclass.name)
+      elsif superclass.Call?
+        superclass = @f.Ref(superclass.target.name, superclass.method)
+      else
+        raise "Invalid superclass"
+      end
+    end
+    @f.Class(const, parts[0], parts[1], parts[2], superclass)
   end
 
   # returns [metas, normal, includes/requires]
   def split_meta(body)
     #puts "META #{body.flatten}"
     metas = body.flatten.partition {|x| is_meta(x)}
-    others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.Include? || x.Require?) }
+    others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.Ref? || x.Require?) }
     parts = [ fixup_defs(metas[0]), fixup_defs(others[1]), others[0] ]
     #puts "PARTS #{parts}"
     return parts
@@ -287,7 +296,7 @@ class CodeBuilder < Ripper::SexpBuilder
         raise "Invalid `include' #{args}"
       end
       puts "INCLUDE #{base} #{name}"
-      @f.Include(base, name)
+      @f.Ref(base, name)
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
       #puts "CMD #{name} #{args}"
       args.normal.collect do |var|
@@ -387,6 +396,9 @@ class CodeBuilder < Ripper::SexpBuilder
       
     when "Class", "Mixin"
       @selfVar = "self"
+      if o.schema_class.name == "Class"
+        @currentParent = o.parent
+      end
       o.defs.each { |d| fixup_expr(d, env) }
       o.meta.each { |d| fixup_expr(d, env) }
       

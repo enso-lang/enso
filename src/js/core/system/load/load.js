@@ -10,7 +10,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
 
   var Load ;
 
-  var LoaderClass = MakeClass( {
+  var LoaderClass = MakeClass( function(super$) { return {
     GRAMMAR_GRAMMAR: "grammar.grammar",
 
     SCHEMA_SCHEMA: "schema.schema",
@@ -23,7 +23,6 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
       var self = this; 
       if (type === undefined) type = null;
       var GRAMMAR_GRAMMAR, SCHEMA_SCHEMA, SCHEMA_GRAMMAR, GRAMMAR_SCHEMA;
-      var super$ = this.super$.load;
       if (self.$.cache == null) {
         self.setup();
       }
@@ -37,15 +36,13 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
     load_in_place: function(name, type) {
       var self = this; 
       if (type === undefined) type = null;
-      var super$ = this.super$.load_in_place;
-      return self.$.cache ._set( name , self._load(name, type) );
+      return self.$.cache._set(name, self._load(name, type));
     },
 
     load_text: function(type, factory, source, show) {
       var self = this; 
       if (show === undefined) show = false;
       var g, s, result;
-      var super$ = this.super$.load_text;
       g = self.load(S(type, ".grammar"));
       s = self.load(S(type, ".schema"));
       result = Parse.load_raw(source, g, s, factory, show);
@@ -54,15 +51,13 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
 
     load_cache: function(name, obj) {
       var self = this; 
-      var super$ = this.super$.load_cache;
       System.stderr().push(S("## caching ", name, "...\\n"));
-      return self.$.cache ._set( name , obj );
+      return self.$.cache._set(name, obj);
     },
 
     _load: function(name, type) {
       var self = this; 
       var filename, parts, model, type, g, s, res;
-      var super$ = this.super$._load;
       if (Cache.check_dep(name)) {
         System.stderr().push(S("## fetching ", name, "...\\n"));
         return Cache.load_cache(name);
@@ -85,23 +80,21 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
     setup: function() {
       var self = this; 
       var ss, gs, gg, sg;
-      var super$ = this.super$.setup;
       self.$.cache = new EnsoHash ( { } );
       System.stderr().push("Initializing...\\n");
-      self.$.cache ._set( SCHEMA_SCHEMA , ss = self.load_with_models("schema_schema.json", null, null) );
-      self.$.cache ._set( GRAMMAR_SCHEMA , gs = self.load_with_models("grammar_schema.json", null, ss) );
-      self.$.cache ._set( GRAMMAR_GRAMMAR , gg = self.load_with_models("grammar_grammar.json", null, gs) );
-      self.$.cache ._set( SCHEMA_GRAMMAR , sg = self.load_with_models("schema_grammar.json", null, gs) );
-      self.$.cache ._set( SCHEMA_SCHEMA , ss = self.update_xml("schema.schema") );
-      self.$.cache ._set( GRAMMAR_SCHEMA , gs = self.update_xml("grammar.schema") );
-      self.$.cache ._set( GRAMMAR_GRAMMAR , gg = self.update_xml("grammar.grammar") );
-      return self.$.cache ._set( SCHEMA_GRAMMAR , sg = self.update_xml("schema.grammar") );
+      self.$.cache._set(SCHEMA_SCHEMA, ss = self.load_with_models("schema_schema.json", null, null));
+      self.$.cache._set(GRAMMAR_SCHEMA, gs = self.load_with_models("grammar_schema.json", null, ss));
+      self.$.cache._set(GRAMMAR_GRAMMAR, gg = self.load_with_models("grammar_grammar.json", null, gs));
+      self.$.cache._set(SCHEMA_GRAMMAR, sg = self.load_with_models("schema_grammar.json", null, gs));
+      self.$.cache._set(SCHEMA_SCHEMA, ss = self.update_xml("schema.schema"));
+      self.$.cache._set(GRAMMAR_SCHEMA, gs = self.update_xml("grammar.schema"));
+      self.$.cache._set(GRAMMAR_GRAMMAR, gg = self.update_xml("grammar.grammar"));
+      return self.$.cache._set(SCHEMA_GRAMMAR, sg = self.update_xml("schema.grammar"));
     },
 
     update_xml: function(name) {
       var self = this; 
       var parts, model, type, res;
-      var super$ = this.super$.update_xml;
       if (Cache.check_dep(name)) {
         return self.$.cache._get(name);
       } else {
@@ -121,7 +114,6 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
     patch_schema_pointers_in_place: function(obj, schema) {
       var self = this; 
       var all_classes;
-      var super$ = this.super$.patch_schema_pointers_in_place;
       all_classes = [];
       Schema.map(function(o) {
         all_classes.push(o);
@@ -140,7 +132,6 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
     load_with_models: function(name, grammar, schema, encoding) {
       var self = this; 
       if (encoding === undefined) encoding = null;
-      var super$ = this.super$.load_with_models;
       return self.find_model(function(path) {
         return self.load_path(path, grammar, schema, encoding);
       }, name);
@@ -150,15 +141,14 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
       var self = this; 
       if (encoding === undefined) encoding = null;
       var result, name, header, str, a, fnames;
-      var super$ = this.super$.load_path;
       if (path.end_with_P(".xml") || path.end_with_P(".json")) {
         if (schema == null) {
           System.stderr().push(S("## booting ", path, "...\\n"));
           result = Boot.load_path(path);
-          result.factory().file_path() ._set( 0 , path );
+          result.factory().file_path()._set(0, path);
         } else {
           name = path.split("/")._get(- 1).split(".")._get(0);
-          name ._set( name.rindex("_") , "." );
+          name._set(name.rindex("_"), ".");
           result = Cache.load_cache(name);
         }
       } else {
@@ -174,13 +164,13 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
           System.stderr().push(S("## building ", path, "...\\n"));
           str = File.read(path);
           result = self.instance_eval(str);
-          result.factory().file_path() ._set( 0 , path );
+          result.factory().file_path()._set(0, path);
           a = str.split("\\\"").map(function(x) {
             return x.split("\\'");
           }).flatten();
-          fnames = a.values_at .call_rest_args$(a, a.each_index().select(function(i) {
+          fnames = a.values_at.apply(a, [].concat( a.each_index().select(function(i) {
             return i.odd_P();
-          }) );
+          }) ));
           fnames.each(function(fn) {
             return result.factory().file_path().push(fn);
           });
@@ -195,9 +185,8 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
     find_model: function(block, name) {
       var self = this; 
       var path;
-      var super$ = this.super$.find_model;
       if (File.exists_P(name)) {
-        return block.call(name);
+        return block(name);
       } else {
         path = Dir._get("**/*.*").find(function(p) {
           return File.basename(p) == name;
@@ -208,24 +197,24 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
           if (! path) {
             self.raise(EOFError, S("File not found ", name));
           }
-          return block.call(path);
+          return block(path);
         }
       }
     }
-  });
+  }});
 
   Load = {
     load: function(name) {
       return Loader.load(name);
-    } ,
+    },
 
     Load_text: function(type, factory, source, show) {
       if (show === undefined) show = false;
       return Load.load_text(type, factory, source, show);
-    } ,
+    },
 
     LoaderClass: LoaderClass,
-    Loader: LoaderClass.new() ,
+    Loader: LoaderClass.new(),
 
   };
   return Load;

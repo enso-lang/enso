@@ -5,17 +5,15 @@ function(Factory) {
 
   var Union ;
 
-  var CopyInto = MakeClass( {
+  var CopyInto = MakeClass( function(super$) { return {
     initialize: function(factory) {
       var self = this; 
-      var super$ = this.super$.initialize;
       self.$.memo = new EnsoHash ( { } );
       return self.$.factory = factory;
     },
 
     copy: function(a, b) {
       var self = this; 
-      var super$ = this.super$.copy;
       self.build(a, b);
       return self.link(true, a, b);
     },
@@ -23,12 +21,15 @@ function(Factory) {
     build: function(a, b) {
       var self = this; 
       var new_V, a_val, b_val;
-      var super$ = this.super$.build;
+      
       if (! (a == null)) {
         if ((a && b) && a.schema_class().name() != b.schema_class().name()) {
           self.raise(S("Union of incompatible objects ", a, " and ", b));
         }
-        self.$.memo ._set( a._id() , new_V = b || self.$.factory._get(a.schema_class().name()) );
+        new_V = b || self.$.factory._get(a.schema_class().name());
+      puts("BUILD " + a + " -- " + new_V);
+        self.$.memo._set(a._id(), new_V);
+        puts("CREATE " + a + " => " + new_V);
         return new_V.schema_class().fields().each(function(field) {
           a_val = a._get(field.name());
           b_val = b && b._get(field.name());
@@ -36,7 +37,8 @@ function(Factory) {
             if ((a && b) && a_val != b_val) {
               self.puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
             }
-            return new_V ._set( field.name() , a_val );
+            puts("COPYING " + new_V + "." + field.name());
+            return new_V._set(field.name(), a_val);
           } else if (field.traversal()) {
             if (! field.many()) {
               return self.build(a_val, b_val);
@@ -53,11 +55,11 @@ function(Factory) {
     link: function(traversal, a, b) {
       var self = this; 
       var new_V, a_val, b_val, val, item;
-      var super$ = this.super$.link;
       if (a == null) {
         return b;
       } else {
         new_V = self.$.memo._get(a._id());
+        puts("LOOKUP " + a + " => " + new_V);
         if (! new_V) {
           self.raise(S("Traversal did not visit every object a=", a, " b=", b));
         }
@@ -68,10 +70,11 @@ function(Factory) {
             if (! field.type().Primitive_P()) {
               if (! field.many()) {
                 val = self.link(field.traversal(), a_val, b_val);
-                return new_V ._set( field.name() , val );
+                return new_V._set(field.name(), val);
               } else {
                 return a_val.each_with_match(function(a_item, b_item) {
                   item = self.link(field.traversal(), a_item, b_item);
+                  puts("BIND " + new_V + "." + field.name() + "=" + item);
                   if (! new_V._get(field.name()).include_P(item)) {
                     return new_V._get(field.name()).push(item);
                   }
@@ -83,30 +86,31 @@ function(Factory) {
         return new_V;
       }
     }
-  });
+  }});
 
   Union = {
     Copy: function(factory, a) {
       return CopyInto.new(factory).copy(a, null).finalize();
-    } ,
+    },
 
     Clone: function(a) {
       return Copy(a.factory(), a);
-    } ,
+    },
 
     Union: function(factory) {
+      var parts = compute_rest_arguments(arguments, 1 );
       copier = CopyInto.new(factory);
       result = null;
       parts.each(function(part) {
         return result = copier.copy(part, result);
       });
       return result.finalize();
-    } ,
+    },
 
     union: function(a, b) {
       f = Factory.new(a._graph_id().schema());
       return Union(f, a, b);
-    } ,
+    },
 
     CopyInto: CopyInto,
 

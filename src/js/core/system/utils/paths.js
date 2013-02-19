@@ -4,12 +4,11 @@ function() {
 
   var Paths ;
 
-  var Path = MakeClass( {
+  var Path = MakeClass( function(super$) { return {
     _class_: {
       parse: function(str) {
         var self = this; 
         var original, str, base, elts;
-        var super$ = this.super$.parse;
         original = str;
         str = str.gsub("\\\\", "");
         if (str._get(0) == "/") {
@@ -19,14 +18,12 @@ function() {
           base = [];
         }
         elts = base.concat(self.scan(str));
-        //puts("PARSE " + original + "=" + elts);
         return Path.new(elts);
       },
 
       scan: function(str) {
         var self = this; 
         var result, n, base, index;
-        var super$ = this.super$.scan;
         result = [];
         str.split("/").each(function(part) {
           if ((n = part.index("[")) && part.slice(- 1) == "]") {
@@ -47,25 +44,21 @@ function() {
     initialize: function(elts) {
       var self = this; 
       if (elts === undefined) elts = [];
-      var super$ = this.super$.initialize;
       return self.$.elts = elts;
     },
 
     reset_in_place: function() {
       var self = this; 
-      var super$ = this.super$.reset_in_place;
       return self.$.elts = [];
     },
 
     prepend_in_place: function(path) {
       var self = this; 
-      var super$ = this.super$.prepend_in_place;
       return self.$.elts = path.elts() + self.$.elts;
     },
 
     extend: function(path) {
       var self = this; 
-      var super$ = this.super$.extend;
       return Path.new(self.elts() + path.elts());
     },
 
@@ -73,7 +66,6 @@ function() {
       var self = this; 
       if (root === undefined) root = scan;
       var root;
-      var super$ = this.super$.deref_P;
       try {
         return self.deref(scan, root = scan);
       } catch ( DUMMY ) {
@@ -85,7 +77,6 @@ function() {
       var self = this; 
       if (root === undefined) root = scan;
       var scan;
-      var super$ = this.super$.deref;
       self.elts().each(function(elt) {
         if (! scan) {
           self.raise(S("cannot dereference ", elt, " on ", scan));
@@ -97,7 +88,6 @@ function() {
 
     search: function(root, base, target) {
       var self = this; 
-      var super$ = this.super$.search;
       return self.searchElts(function(item, bindings) {
         if (target.equals(item)) {
           return bindings;
@@ -107,9 +97,8 @@ function() {
 
     searchElts: function(action, todo, scan, root, bindings) {
       var self = this; 
-      var super$ = this.super$.searchElts;
       if (todo == null || todo.first() == null) {
-        return action.call(scan, bindings);
+        return action(scan, bindings);
       } else {
         return todo.first().search(function(item, newBinds) {
           return self.searchElts(todo._get(Range.new(1, - 1)), item, root, newBinds);
@@ -119,47 +108,40 @@ function() {
 
     field: function(name) {
       var self = this; 
-      var super$ = this.super$.field;
       return self.descend(Field.new(name));
     },
 
     key: function(key) {
       var self = this; 
-      var super$ = this.super$.key;
       return self.descend(Key.new(key));
     },
 
     index: function(index) {
       var self = this; 
-      var super$ = this.super$.index;
       return self.descend(Index.new(index));
     },
 
     root_P: function() {
       var self = this; 
-      var super$ = this.super$.root_P;
       return self.elts().empty_P();
     },
 
     lvalue_P: function() {
       var self = this; 
-      var super$ = this.super$.lvalue_P;
       return ! self.root_P() && System.test_type(self.last(), Field);
     },
 
     assign: function(root, obj) {
       var self = this; 
-      var super$ = this.super$.assign;
       if (! self.lvalue_P()) {
         self.raise(S("Can only assign to lvalues not to ", self));
       }
-      return self.owner().deref(root) ._set( self.last().name() , obj );
+      return self.owner().deref(root)._set(self.last().name(), obj);
     },
 
     assign_and_coerce: function(root, value) {
       var self = this; 
       var obj, fld, value;
-      var super$ = this.super$.assign_and_coerce;
       if (! self.lvalue_P()) {
         self.raise(S("Can only assign to lvalues not to ", self));
       }
@@ -179,37 +161,32 @@ function() {
                 : self.raise(S("Unknown primitive type: ", fld.type().name()))
         ;
       }
-      return self.owner().deref(root) ._set( self.last().name() , value );
+      return self.owner().deref(root)._set(self.last().name(), value);
     },
 
     insert: function(root, obj) {
       var self = this; 
-      var super$ = this.super$.insert;
       return self.deref(root).push(obj);
     },
 
     insert_at: function(root, key, obj) {
       var self = this; 
-      var super$ = this.super$.insert_at;
-      return self.deref(root) ._set( key , obj );
+      return self.deref(root)._set(key, obj);
     },
 
     owner: function() {
       var self = this; 
-      var super$ = this.super$.owner;
       return Path.new(self.elts()._get(Range.new(0, - 2)));
     },
 
     last: function() {
       var self = this; 
-      var super$ = this.super$.last;
       return self.elts().last();
     },
 
     to_s: function() {
       var self = this; 
       var res;
-      var super$ = this.super$.to_s;
       res = self.elts().join();
       if (res == "") {
         return "/";
@@ -220,142 +197,124 @@ function() {
 
     descend: function(elt) {
       var self = this; 
-      var super$ = this.super$.descend;
       return Path.new([elt]);
     }
-  });
+  }});
 
-  var Elt = MakeClass( {
-  });
+  var Elt = MakeClass( function(super$) { return {
+  }});
 
-  var Root = MakeClass( Elt, {
+  var Root = MakeClass( Elt, function(super$) { return {
     deref: function(obj, root) {
       var self = this; 
-      var super$ = this.super$.deref;
       return root;
     },
 
     search: function(action, obj, root, bindings) {
       var self = this; 
-      var super$ = this.super$.search;
-      return action.call(root, bindings);
+      return action(root, bindings);
     },
 
     to_s: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
       return "ROOT";
     }
-  });
+  }});
 
-  var Field = MakeClass( Elt, {
+  var Field = MakeClass( Elt, function(super$) { return {
     name: function() { return this.$.name },
 
     initialize: function(name) {
       var self = this; 
-      var super$ = this.super$.initialize;
       return self.$.name = name;
     },
 
     deref: function(obj, root) {
       var self = this; 
-      var super$ = this.super$.deref;
       return obj._get(self.$.name);
     },
 
     search: function(action, obj, root, bindings) {
       var self = this; 
-      var super$ = this.super$.search;
       if (! (obj == null) && obj.schema_class().all_fields()._get(self.$.name)) {
-        return action.call(obj._get(self.$.name), bindings);
+        return action(obj._get(self.$.name), bindings);
       }
     },
 
     to_s: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
       return S("/", self.$.name);
     }
-  });
+  }});
 
-  var Index = MakeClass( Elt, {
+  var Index = MakeClass( Elt, function(super$) { return {
     index: function() { return this.$.index },
 
     initialize: function(index) {
       var self = this; 
-      var super$ = this.super$.initialize;
       return self.$.index = index;
     },
 
     deref: function(obj, root) {
       var self = this; 
-      var super$ = this.super$.deref;
       return obj._get(self.$.index);
     },
 
     search: function(action, obj, root, bindings) {
       var self = this; 
-      var super$ = this.super$.search;
       if (System.test_type(self.$.index, PathVar)) {
         return obj.find_first_with_index(function(item, i) {
-          return action.call(item, new EnsoHash ( { } ).update(bindings));
+          return action(item, new EnsoHash ( { } ).update(bindings));
         });
       } else {
-        return action.call(obj._get(self.$.index), bindings);
+        return action(obj._get(self.$.index), bindings);
       }
     },
 
     to_s: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
       return S("[", self.$.index, "]");
     }
-  });
+  }});
 
-  var Key = MakeClass( Elt, {
+  var Key = MakeClass( Elt, function(super$) { return {
     key: function() { return this.$.key },
 
     initialize: function(key) {
       var self = this; 
-      var super$ = this.super$.initialize;
       return self.$.key = key;
     },
 
     deref: function(obj, root) {
       var self = this; 
-      var super$ = this.super$.deref;
       return obj._get(self.$.key);
     },
 
     search: function(action, obj, root, bindings) {
       var self = this; 
-      var super$ = this.super$.search;
       if (System.test_type(self.$.key, PathVar)) {
         return obj.find_first_pair(function(k, item) {
-          return action.call(item, new EnsoHash ( { } ).update(bindings));
+          return action(item, new EnsoHash ( { } ).update(bindings));
         });
       } else {
-        return action.call(obj._get(self.$.key), bindings);
+        return action(obj._get(self.$.key), bindings);
       }
     },
 
     to_s: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
       return S("[", self.escape(self.$.key.to_s()), "]");
     },
 
     escape: function(s) {
       var self = this; 
-      var super$ = this.super$.escape;
       return s.gsub("]", "\\\\]").gsub("[", "\\\\[");
     }
-  });
+  }});
 
-  var PathVar = MakeClass( {
+  var PathVar = MakeClass( function(super$) { return {
     initialize: function(name) {
       var self = this; 
-      var super$ = this.super$.initialize;
       return self.$.name = name;
     },
 
@@ -363,21 +322,20 @@ function() {
 
     to_s: function() {
       var self = this; 
-      var super$ = this.super$.to_s;
       return self.$.name;
     }
-  });
+  }});
 
   Paths = {
     parse: function(str) {
       p = Path.parse(str);
       return p;
-    } ,
+    },
 
     new: function(elts) {
       if (elts === undefined) elts = [];
       return Path.new(elts);
-    } ,
+    },
 
     Path: Path,
     Elt: Elt,

@@ -8,10 +8,9 @@ define([
 function(Paths, Factory, Union, Json, Enso) {
 
   var Boot ;
-
-  var MObject = MakeClass( EnsoProxyObject, {
+  var seq_no = 0;
+  var MObject = MakeClass( EnsoProxyObject, function(super$) { return {
     _class_: {
-      seq_no: 0
     },
 
     _id: function() { return this.$._id },
@@ -27,8 +26,7 @@ function(Paths, Factory, Union, Json, Enso) {
     initialize: function(data, root) {
       var self = this; 
       var has_name, keyed, name;
-      var super$ = this.super$.initialize;
-      self.$._id = self._class_.seq_no = self._class_.seq_no + 1;
+      self.$._id = (seq_no = seq_no + 1);
       self.$.factory = self;
       self.$.file_path = [];
       self.$.root = root || self;
@@ -65,7 +63,6 @@ function(Paths, Factory, Union, Json, Enso) {
     _complete: function() {
       var self = this; 
       var keyed, name;
-      var super$ = this.super$._complete;
       self.$.data.each(function(key, value) {
         if (key == "class") {
           return self.define_singleton_value("schema_class", self.$.root.types()._get(value));
@@ -99,15 +96,13 @@ function(Paths, Factory, Union, Json, Enso) {
 
     _create_many: function(name, arr, keyed) {
       var self = this; 
-      var super$ = this.super$._create_many;
       return self.define_singleton_value(name, BootManyField.new(arr, self.$.root, keyed));
     }
-  });
+  }});
 
-  var Schema = MakeClass( MObject, {
+  var Schema = MakeClass( MObject, function(super$) { return {
     classes: function() {
       var self = this; 
-      var super$ = this.super$.classes;
       return BootManyField.new(self.types().select(function(t) {
         return t.Class_P();
       }), self.$.root, true);
@@ -115,37 +110,32 @@ function(Paths, Factory, Union, Json, Enso) {
 
     primitives: function() {
       var self = this; 
-      var super$ = this.super$.primitives;
       return BootManyField.new(self.types().select(function(t) {
         return t.Primitive_P();
       }), self.$.root, true);
     }
-  });
+  }});
 
-  var Class = MakeClass( MObject, {
+  var Class = MakeClass( MObject, function(super$) { return {
     all_fields: function() {
       var self = this; 
-      var super$ = this.super$.all_fields;
-      return BootManyField.new(self.supers().flat_map(function(s) {
+      var arr = self.supers().flat_map(function(s) {
         return s.all_fields();
-      }).concat(self.defined_fields()), self.$.root, true);
+      }).concat(self.defined_fields());
+      return BootManyField.new(arr, self.$.root, true);
     },
 
     fields: function() {
       var self = this; 
-      var super$ = this.super$.fields;
       return BootManyField.new(self.all_fields().select(function(f) {
         return ! f.computed();
       }), self.$.root, true);
     }
-  });
+  }});
 
-  var BootManyField = MakeClass( Array, {
+  var BootManyField = MakeClass( Array, function(super$) { return {
     initialize: function(arr, root, keyed) {
       var self = this; 
-      var super$ = this.super$.initialize;
-      if ("" + arr == "<Field 48 types>,<Field 49 classes>,<Field 61 primitives>" && arr.length == 1)
-        lkjaklsjdflsjkd();
       arr.each(function(obj) {
         return self.push(obj);
       });
@@ -155,7 +145,6 @@ function(Paths, Factory, Union, Json, Enso) {
 
     _get: function(key) {
       var self = this; 
-      var super$ = this.super$._get;
       if (self.$.keyed) {
         return self.find(function(obj) {
           return obj.name() == key;
@@ -167,19 +156,16 @@ function(Paths, Factory, Union, Json, Enso) {
 
     has_key_P: function(key) {
       var self = this; 
-      var super$ = this.super$.has_key_P;
       return self._get(key);
     },
 
     each_with_match: function(block, other) {
       var self = this; 
       var other, ks, a, b;
-      var super$ = this.super$.each_with_match;
       if (self.$.keyed) {
         other = other || new EnsoHash ( { } );
-        ks = self.keys().union(other.keys());
+        ks = self.keys() || other.keys();
         return ks.each(function(k) {
-          puts("MATCH " + k + ": " + self._get(k));
           return block(self._get(k), other._get(k));
         });
       } else {
@@ -193,7 +179,6 @@ function(Paths, Factory, Union, Json, Enso) {
 
     keys: function() {
       var self = this; 
-      var super$ = this.super$.keys;
       if (self.$.keyed) {
         return self.map(function(o) {
           return o.name();
@@ -202,18 +187,18 @@ function(Paths, Factory, Union, Json, Enso) {
         return null;
       }
     }
-  });
+  }});
 
   Boot = {
     load_path: function(path) {
       return Boot.load(System.readJSON(path)._get("model"));
-    } ,
+    },
 
     load: function(doc) {
       ss0 = Boot.make_object(doc, null);
       ss0._complete();
       return Union.Copy(Factory.new(ss0), ss0);
-    } ,
+    },
 
     make_object: function(data, root) {
       if (data != null) {
@@ -225,7 +210,7 @@ function(Paths, Factory, Union, Json, Enso) {
           return MObject.new(data, root);
         }
       }
-    } ,
+    },
 
     MObject: MObject,
     Schema: Schema,

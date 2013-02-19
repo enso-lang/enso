@@ -14,12 +14,12 @@ class Def
 class Mixin < Def
   meta!   LeafDef*
   defs!   LeafDef*
-  includes! Include*
+  includes! Ref*
 
 class Class < Mixin
-  parent: str?
+  parent: Ref?
 
-class Include
+class Ref
   module: str?
   name: str
 
@@ -58,8 +58,6 @@ class Call < Expr
   num_args: int = args.length + (block ? 1 : 0)
 
 class Super < Expr
-  method: str
-  info: Call?
 
 class Fun < Expr
   args! Decl*
