@@ -2,7 +2,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 
-module FreeVar
+module Freevar
   module FreeVarExpr
     #Determine the set of unbounded variables in this expr
     #that need to be supplied by the environment.
@@ -47,9 +47,9 @@ module FreeVar
       type.fields.each do |f|
         if f.traversal && !f.type.Primitive? && fields[f.name]
           if !f.many
-            res += depends(fields[f.name])
+            res = res.concat( depends(fields[f.name]) )
           else
-            fields[f.name].each {|o| res += depends(o)}
+            fields[f.name].each {|o| res = res.concat(depends(o)) }
           end
         end
       end

@@ -27,7 +27,8 @@ code/%.code: %.rb
 	mkdir -p `dirname $@`
 	ruby -I . core/lang/code/convert.rb $< $@
  
-js/%.js: %.rb
+ 
+js/%.js: %.rb core/lang/code/convert.rb core/lang/models/code_js.grammar
 	echo "GENERATING " $@
 	mkdir -p `dirname $@`
 	#ruby -I . core/grammar/render/trans.rb $< code_js $@

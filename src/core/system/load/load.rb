@@ -89,11 +89,9 @@ module Load
       if Cache::check_dep(name)
         @cache[name]
       else
-        if type.nil?
-          parts = name.split(".")
-          model = parts[0]
-          type = parts[1]
-        end
+        parts = name.split(".")
+        model = parts[0]
+        type = parts[1]
         res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
 #        patch_schema_pointers!(res, load("#{type}.schema"))
         $stderr << "## caching #{name}...\n"

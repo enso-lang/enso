@@ -9,18 +9,18 @@ function() {
       return klass.fields().find(function(f) {
         return f.key() && f.type().Primitive_P();
       });
-    } ,
+    },
 
     object_key: function(obj) {
       return obj._get(self.class_key(obj.schema_class()).name());
-    } ,
+    },
 
     is_keyed_P: function(klass) {
-      return ! klass.Primitive_P() && ! self.class_key(klass).nil_P();
-    } ,
+      return ! klass.Primitive_P() && ! (self.class_key(klass) == null);
+    },
 
     lookup: function(block, obj) {
-      res = block.call(obj);
+      res = block(obj);
       if (res) {
         return res;
       } else if (obj.supers().empty_P()) {
@@ -30,12 +30,12 @@ function() {
           return self.lookup(o);
         });
       }
-    } ,
+    },
 
     subclass_P: function(a, b) {
-      if (a.nil_P() || b.nil_P()) {
+      if (a == null || b == null) {
         return false;
-      } else if (a.name() == b.is_a_P(String)
+      } else if (a.name() == System.test_type(b, String)
         ? b
         : b.name()
       ) {
@@ -45,12 +45,12 @@ function() {
           return self.subclass_P(sup, b);
         });
       }
-    } ,
+    },
 
     class_minimum: function(a, b) {
-      if (b.nil_P()) {
+      if (b == null) {
         return a;
-      } else if (a.nil_P()) {
+      } else if (a == null) {
         return b;
       } else if (self.subclass_P(a, b)) {
         return a;
@@ -59,13 +59,13 @@ function() {
       } else {
         return null;
       }
-    } ,
+    },
 
     map: function(block, obj) {
-      if (obj.nil_P()) {
+      if (obj == null) {
         return null;
       } else {
-        res = block.call(obj);
+        res = block(obj);
         obj.schema_class().fields().each(function(f) {
           if (f.traversal() && ! f.type().Primitive_P()) {
             if (! f.many()) {
@@ -79,7 +79,7 @@ function() {
         });
         return res;
       }
-    } ,
+    },
 
   };
   return Schema;

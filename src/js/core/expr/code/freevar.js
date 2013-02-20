@@ -5,36 +5,30 @@ define([
 ],
 function(Eval, Lvalue, Interpreter) {
 
-  var FreeVar ;
-  var FreeVarExpr = MakeMixin({
-    include: [ Eval. EvalExpr , Lvalue. LValueExpr , Interpreter. Dispatcher ],
-
-    depends: function(obj) {
+  var Freevar ;
+  var FreeVarExpr = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
+    this.depends = function(obj) {
       var self = this; 
-      var super$ = this.super$.depends;
       return self.dispatch("depends", obj);
-    },
+    };
 
-    depends_EField: function(e, fname) {
+    this.depends_EField = function(e, fname) {
       var self = this; 
-      var super$ = this.super$.depends_EField;
       return [];
-    },
+    };
 
-    depends_EVar: function(name) {
+    this.depends_EVar = function(name) {
       var self = this; 
-      var super$ = this.super$.depends_EVar;
       if (self.$.D._get("bound").include_P(name) || name == "self") {
         return [];
       } else {
-        return [Lvalue.Address().new(self.$.D._get("env"), name)];
+        return [Lvalue.Address.new(self.$.D._get("env"), name)];
       }
-    },
+    };
 
-    depends_ELambda: function(body, formals) {
+    this.depends_ELambda = function(body, formals) {
       var self = this; 
       var bound2;
-      var super$ = this.super$.depends_ELambda;
       bound2 = self.$.D._get("bound").clone();
       formals.each(function(f) {
         return bound2.push(self.depends(f));
@@ -42,26 +36,24 @@ function(Eval, Lvalue, Interpreter) {
       return self.dynamic_bind(function() {
         return self.depends(body);
       }, new EnsoHash ( { } ));
-    },
+    };
 
-    depends_Formal: function(name) {
+    this.depends_Formal = function(name) {
       var self = this; 
-      var super$ = this.super$.depends_Formal;
       return name;
-    },
+    };
 
-    depends__P: function(type, fields, args) {
+    this.depends__P = function(type, fields, args) {
       var self = this; 
       var res;
-      var super$ = this.super$.depends__P;
       res = [];
       type.fields().each(function(f) {
         if ((f.traversal() && ! f.type().Primitive_P()) && fields._get(f.name())) {
           if (! f.many()) {
-            return res = res + self.depends(fields._get(f.name()));
+            return res = res.concat(self.depends(fields._get(f.name())));
           } else {
             return fields._get(f.name()).each(function(o) {
-              return res = res + self.depends(o);
+              return res = res.concat(self.depends(o));
             });
           }
         }
@@ -70,19 +62,19 @@ function(Eval, Lvalue, Interpreter) {
     }
   });
 
-  var FreeVarExprC = MakeClass( {
-    include: [ FreeVarExpr ],
+  var FreeVarExprC = MakeClass(null, [FreeVarExpr],
+    function() {
+    },
+    function(super$) {
+      this.initialize = function() {
+        var self = this; 
+      }
+    });
 
-    initialize: function() {
-      var self = this; 
-      var super$ = this.super$.initialize;
-    }
-  });
-
-  FreeVar = {
+  Freevar = {
     FreeVarExpr: FreeVarExpr,
     FreeVarExprC: FreeVarExprC,
 
   };
-  return FreeVar;
+  return Freevar;
 })

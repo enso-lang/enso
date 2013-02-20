@@ -10,7 +10,7 @@ Program ::= [Module] "define(["/> requires:([Require] path:str)* @(.","/) </"],"
 Def     ::= Class | Mixin | [Binding]
 Export ::= [Class] ExportName | [Mixin] ExportName | Binding
 ExportName ::= name:sym .":" name:sym ."," /
-Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) ","/2
+Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) .","/2
   Function ::= FunHeader FunBody
   
 // class N < N 
@@ -19,27 +19,28 @@ Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) ","/2
 // class 
 // D ::= def N 
 
-Class   ::= [Class] "var" name:sym "= MakeClass(" (parent:sym .",")? "{" Body "});"
-Mixin   ::= [Mixin] "var" name:sym "= MakeMixin({" Body "});"
-Body    ::= /> Includes? Meta? defs:DefB* @(.","/2) </
-Includes ::= "include: [" includes:Include+ @"," "]," /2
-  Include ::= [Include] (module:sym.".")? name:sym
+Class   ::= [Class] "var" name:sym "= MakeClass(">.
+      (parent:Ref | "null") ."," Includes .","/ Meta .","/ Instance .<");"
+Mixin   ::= [Mixin] "var" name:sym "= MakeMixin(". Includes ."," "function() {" Body "});"
+Body    ::= /> defs:DefB* @/2 </
+Includes ::= "[". includes:Ref* @(.",") ."]"
 
-Meta    ::= "_class_:" "{"/> meta:DefB+ @(.","/2) </"}," /2
-DefB     ::= Attribute | BindingB
-BindingB  ::= [Binding] MethodSym .":" (Method | value:Expr)
+Instance ::= "function(super$) {" Body "}"
+Meta    ::= "function() {"/> meta:DefB* @/2 </"}"
+DefB     ::= Attribute | BindingM | BindingB
+BindingM  ::= [Binding] "this.". MethodSym "=" Method .";"
+BindingB  ::= [Binding] "this.$.". name:sym "=" value:Expr .";"
   MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
-Method   ::= value:FunHeader SuperBind value:FunBody
+Method   ::= value:FunHeader value:FunBody
   FunHeader ::= [Fun] "function(". Params .") {" /> "var self = this; "/ args:Default* VarArg? Locals?
     VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
     Locals ::= "var" locals:Decl+ @(.",") .";" /
   Decl     ::= [Decl] name:sym ("=" default:Expr)?
-  SuperBind ::= "var super$ = this.super$.". MethodSym .";" /
   FunBody ::= [Fun] body:SeqBodyR </"}"
    
-Attribute ::= [Attribute] ({ kind=="attr_reader" } Reader | { kind=="attr_accessor" } Reader .","/ Writer)
-Reader  ::= name:sym .":" "function()" "{" "return" "this"."."."$".".". name:sym "}"
-Writer  ::= "set_".name:sym .":" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}"
+Attribute ::= [Attribute] ({ kind=="attr_reader" } Reader | { kind=="attr_accessor" } Reader / Writer)
+Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". name:sym "}" .";"
+Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
 
 Seq     ::= "{"/> SeqBody </"}"
 SeqBody     ::= [Seq] statements:Statement* @/ | Statement
@@ -60,10 +61,9 @@ IfR      ::= [If] "if" "(". cond:Expr .")" sthen:SeqR ("else" (selse:IfR | selse
 TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)? 
 HandlerR ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
 
-Expr ::= IndexAssign | Assign
-IndexAssign ::= [Assign] to:IndexTarget "._set(" to:IndexIndex "," from:Assign ")"
-IndexTarget ::= [Index] base:Primary 
-IndexIndex ::= [Index] index:Expr
+Expr ::= IndexAssign | CallAssign | Assign
+IndexAssign ::= [Assign] to:([Index] base:Primary) ."._set(". to:([Index] index:Expr) ."," from:Assign .")"
+CallAssign ::= [Assign] to:([Call] target:Primary) .".". to:([Call] method:sym) "=" from:Assign
  
 Assign  ::= [Assign] to:Primary "=" from:Assign
         | EOr
@@ -87,29 +87,32 @@ EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
          | Primary
 
 
-Primary ::= InstVar | ClassVar | Nil | Var | Super |  IfE | List | Index | Record | Fun | Call | Lit | "(". Expr .")" | 
+Primary ::= InstVar | ClassVar | Nil | Var | Ref | Super |  IfE | List | Index | Record | Fun | Call | Lit | "(". Expr .")" | 
              "((function(){" SeqR "})())"
+InstVar ::= [Var] "self.$.". name:sym { kind=="@" }
+ClassVar::= [Var] "self._class_.$.". name:sym { kind=="@@" }
 Nil     ::= [Var] "null" { name == "nil" }
 Var     ::= [Var] name:sym
-InstVar ::= [Var] "self"."."."$".".". name:sym { kind=="@" }
-ClassVar::= [Var] "self"."."."_class_".".". name:sym { kind=="@@" }
+Ref     ::= [Ref] (module:sym.".".)? name:sym
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Index   ::= [Index] base:Primary ."._get(". index:Expr .")"
 Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:atom
-IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </    // TODO: Precedence!!
+IfE      ::= [If] cond:Expr /> "?" sthen:Expr / ":" selse:Expr </     // TODO: Precedence!!
 
-Call     ::= SuperCallRest | SuperCall | CallRest | CallNorm
-CallRest  ::= [Call] target:Primary .".". method:sym ".call_rest_args$(".target:Primary ."," (Args.",")? rest:Expr ")"
-CallNorm  ::= [Call] (target:Primary .".".)? method:sym ({method=="length"} | ."(". Args? .")")
+Call     ::= SuperCall | CallRest | CallNorm
+CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(" rest:Expr "))"
+CallNorm  ::= [Call] Target ({method=="length"} | ."(". Args? .")")
+  Target ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
   Args    ::= (block:Fun .",")? args:Expr+ @(.",") 
             | block:Fun
-SuperCallRest ::= [Call] target:Super "super$.call_rest_args$(self," (Args.",")? rest:Expr ")"
-SuperCall     ::= [Call] target:Super "super$.call(self" (."," Args)? .")"
-  Super ::= [Super] 
+SuperCall     ::= [Call] target:Super .".". method:sym (SuperRestArgs | SuperInvoke)
+  SuperRestArgs ::= .".apply(self, [". Args? ."].concat(" rest:Expr "))"
+  SuperInvoke ::= .".call(self" (."," Args)? .")"
+  Super ::= [Super] "super$"
   
-Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* body:SeqBodyR </"}"
+Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* VarArg? body:SeqBodyR </"}"
 Params  ::=  (block:sym .",")? args:Param+ @(.",")
           | block:sym?
 Param     ::= [Decl] name:sym

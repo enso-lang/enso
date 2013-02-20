@@ -1,5 +1,6 @@
 require 'core/expr/code/eval'
 require 'core/semantics/code/interpreter'
+require 'core/expr/code/env'
 
 module Lvalue
   # An address class that simulates l-values (since Ruby does not have them)
@@ -35,7 +36,7 @@ module Lvalue
       @array[@index]
     end
 
-    def to_str
+    def to_s
       "#{@array}[#{@index}]"
     end
 

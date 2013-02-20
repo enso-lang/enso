@@ -43,7 +43,7 @@ module Factory
     end
     
     def register(root)
-#      raise "Creating two roots" if @root
+      #raise "Creating two roots" if @root
       @root = root
     end
   end
@@ -146,7 +146,7 @@ module Factory
       end
       name = fld.name
       exp = fld.computed
-      fvInterp = FreeVar::FreeVarExprC.new
+      fvInterp = Freevar::FreeVarExprC.new
       commInterp = Impl::EvalCommandC.new
       val = nil
       define_singleton_method(name) do
@@ -334,7 +334,7 @@ module Factory
   module SetUtils
     def to_ary; @values.values end
 
-    def +(other)
+    def union(other)
       # left-biased: field is from self
       r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
       other.inject(r, &:<<)
