@@ -40,9 +40,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.register = function(root) {
         var self = this; 
-        if (self.$.root) {
-          self.raise("Creating two roots");
-        }
         return self.$.root = root;
       };
     });
@@ -64,6 +61,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.extra_instance_data = function() { return this.$.extra_instance_data };
       this.set_extra_instance_data = function(val) { this.$.extra_instance_data  = val };
+
+      this.props = function() { return this.$.props };
 
       this.initialize = function(klass, factory) {
         var self = this; 
@@ -211,7 +210,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.dynamic_update = function() {
         var self = this; 
-        return self.$.dyn = self.$.dyn || DynamicUpdateProxy.new(self);
+        return self.$.dyn = self.$.dyn || Dynamic.DynamicUpdateProxy.new(self);
       };
 
       this.add_listener = function(block, name) {
@@ -420,7 +419,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       return self.$.values.values();
     };
 
-    this.add = function(other) {
+    this.union = function(other) {
       var self = this; 
       var r;
       r = self.inject(function(x) {
@@ -693,12 +692,12 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.each_pair = function(block) {
         var self = this; 
-        return self.__value().each_pair();
+        return self.__value().each_pair(block);
       };
 
       this.find_first_pair = function(block) {
         var self = this; 
-        return self.__value().find_first_pair();
+        return self.__value().find_first_pair(block);
       };
 
       this.values = function() {
@@ -792,7 +791,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.each = function(block) {
         var self = this; 
-        return self.__value().each();
+        return self.__value().each(block);
       };
 
       this.each_pair = function(block) {

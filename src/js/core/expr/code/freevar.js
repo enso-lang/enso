@@ -35,7 +35,7 @@ function(Eval, Lvalue, Interpreter) {
       });
       return self.dynamic_bind(function() {
         return self.depends(body);
-      }, new EnsoHash ( { } ));
+      }, new EnsoHash ( { bound: bound2 } ));
     };
 
     this.depends_Formal = function(name) {
@@ -59,7 +59,7 @@ function(Eval, Lvalue, Interpreter) {
         }
       });
       return res;
-    }
+    };
   });
 
   var FreeVarExprC = MakeClass(null, [FreeVarExpr],
@@ -68,7 +68,7 @@ function(Eval, Lvalue, Interpreter) {
     function(super$) {
       this.initialize = function() {
         var self = this; 
-      }
+      };
     });
 
   Freevar = {

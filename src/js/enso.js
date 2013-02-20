@@ -210,6 +210,7 @@ define (function() {
   Object.prototype._set = function(k, v) { this[k] = v; return v; }
   String.prototype.gsub = String.prototype.replace;
   String.prototype.index = String.prototype.indexOf;
+  String.prototype.to_sym = function() { return this; }
   string$split = String.prototype.split;
   String.prototype.split = function(sep, lim) {
     return string$split.call(this, sep, lim).filter(function(x) { return x != ""; });
@@ -230,8 +231,9 @@ define (function() {
     send: function(method) {
       var args = Array.prototype.slice.call(arguments, 1);
       puts("SEND " + method + "(" + Array.prototype.slice.call(arguments, 1) + ")");
-      if (method == "flat_map") raise("FOO");
-      return this[method.replace("?", "_P")].apply(this, args);
+      var val = this[method.replace("?", "_P")].apply(this, args);
+      puts("RESULT = " + val);
+      return val;
     },
     define_getter: function(name, prop) {
       this[name] = function() { return prop.get() }    // have to get "self" right
@@ -245,6 +247,9 @@ define (function() {
     _set: function(k, v) { 
       return this["set_" + k].call(this, v);
     },
+    method: function(m) { var self = this; 
+      puts("METHOD " + m + ":" + self[m]);
+      return function() { self[m].apply(self, arguments); }},
     respond_to_P: function(method) { return this[method.replace("?", "_P")]; },
   }
 

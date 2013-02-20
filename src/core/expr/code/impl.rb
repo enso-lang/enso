@@ -1,6 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
+require 'core/expr/code/env'
 
 module Impl
   #note that the closure stores variable states only,
@@ -11,16 +12,20 @@ module Impl
   class Closure
     attr_accessor :env #this is a hack to allow self-recursion
 
+    def self.make_closure(body, formals, env, interp)
+      Closure.new(body, formals, env, interp).method('call_closure')
+    end
+
     def initialize(body, formals, env, interp)
       @body = body
       @formals = formals
-      @env = env.clone
+      @env = env
       @interp = interp
     end
 
     #params are the values used to call this function
     #args are used by the interpreter
-    def call(*params)
+    def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
       nenv = Env::HashEnv.new
       @formals.zip(params).each do |f,v|
@@ -74,26 +79,26 @@ module Impl
   
     def eval_EBlock(body)
       res = nil
-      dynamic_bind in_fc: false do
+      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      dynamic_bind env: nenv, in_fc: false do
         body.each do |c|
           res = eval(c)
         end
       end
       res
     end
-    
+
     def eval_EFunDef(name, formals, body)
-      res = Impl::Closure.new(body, formals, @D[:env], self)
-      res.env[name] = res #hack to enable self-recursion
+      res = Impl::Closure.make_closure(body, formals, @D[:env], self)
       @D[:env][name] = res
       res
     end
-    
+
     def eval_ELambda(body, formals)
       #puts "LAMBDA #{formals} #{body}"
-      Proc.new { |*p| Impl::Closure.new(body, formals, @D[:env], self).call(*p) }
+      Proc.new { |*p| Impl::Closure.make_closure(body, formals, @D[:env], self).call(*p) }
     end
-    
+
     def eval_EFunCall(fun, params, lambda)
       m = dynamic_bind in_fc: true do
         eval(fun)

@@ -50,7 +50,7 @@ module Eval
       m = dynamic_bind in_fc: true do 
         eval(fun)
       end
-      m.call(*(params.map{|p|eval(p)}))
+      m.call_closure(*(params.map{|p|eval(p)}))
     end
   
     def eval_EList(elems)

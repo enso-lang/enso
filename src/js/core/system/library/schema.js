@@ -27,7 +27,7 @@ function() {
         return null;
       } else {
         return obj.supers().find_first(function(o) {
-          return self.lookup(o);
+          return self.lookup(block, o);
         });
       }
     },
@@ -69,10 +69,10 @@ function() {
         obj.schema_class().fields().each(function(f) {
           if (f.traversal() && ! f.type().Primitive_P()) {
             if (! f.many()) {
-              return Schema.map(obj._get(f.name()));
+              return Schema.map(block, obj._get(f.name()));
             } else {
               return res._get(f.name()).keys().each(function(k) {
-                return Schema.map(obj._get(f.name())._get(k));
+                return Schema.map(block, obj._get(f.name())._get(k));
               });
             }
           }

@@ -51,7 +51,7 @@ function() {
     this.clone = function() {
       var self = this; 
       return self;
-    }
+    };
   });
 
   var HashEnv = MakeClass(null, [BaseEnv],
@@ -98,7 +98,7 @@ function() {
         r = HashEnv.new(self.$.hash.clone());
         r.set_parent(self.$.parent);
         return r;
-      }
+      };
     });
 
   var ObjEnv = MakeClass(null, [BaseEnv],
@@ -150,7 +150,7 @@ function() {
       this.clone = function() {
         var self = this; 
         return self;
-      }
+      };
     });
 
   var LambdaEnv = MakeClass(null, [BaseEnv],
@@ -196,7 +196,7 @@ function() {
       this.clone = function() {
         var self = this; 
         return self;
-      }
+      };
     });
 
   Env = {

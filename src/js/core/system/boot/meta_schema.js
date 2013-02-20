@@ -9,9 +9,9 @@ function(Paths, Factory, Union, Json, Enso) {
 
   var Boot ;
 
-  var MObject = MakeClass(EnsoProxyObject, [ ],
+  var MObject = MakeClass(EnsoProxyObject, [],
     function() {
-      this.$.seq_no = 0
+      this.$.seq_no = 0;
     },
     function(super$) {
       this._id = function() { return this.$._id };
@@ -98,10 +98,10 @@ function(Paths, Factory, Union, Json, Enso) {
       this._create_many = function(name, arr, keyed) {
         var self = this; 
         return self.define_singleton_value(name, BootManyField.new(arr, self.$.root, keyed));
-      }
+      };
     });
 
-  var Schema = MakeClass(MObject, [ ],
+  var Schema = MakeClass(MObject, [],
     function() {
     },
     function(super$) {
@@ -117,10 +117,10 @@ function(Paths, Factory, Union, Json, Enso) {
         return BootManyField.new(self.types().select(function(t) {
           return t.Primitive_P();
         }), self.$.root, true);
-      }
+      };
     });
 
-  var Class = MakeClass(MObject, [ ],
+  var Class = MakeClass(MObject, [],
     function() {
     },
     function(super$) {
@@ -136,10 +136,10 @@ function(Paths, Factory, Union, Json, Enso) {
         return BootManyField.new(self.all_fields().select(function(f) {
           return ! f.computed();
         }), self.$.root, true);
-      }
+      };
     });
 
-  var BootManyField = MakeClass(Array, [ ],
+  var BootManyField = MakeClass(Array, [],
     function() {
     },
     function(super$) {
@@ -195,7 +195,7 @@ function(Paths, Factory, Union, Json, Enso) {
         } else {
           return null;
         }
-      }
+      };
     });
 
   Boot = {

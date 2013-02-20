@@ -979,7 +979,7 @@ if __FILE__ == $0 then
   outname = ARGV[1]
   grammar = ARGV[2] || "code"
   
-  pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
+  #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")

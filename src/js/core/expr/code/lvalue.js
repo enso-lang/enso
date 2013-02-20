@@ -1,7 +1,7 @@
 define([
   "core/expr/code/eval",
   "core/semantics/code/interpreter",
-    "core/expr/code/env",
+  "core/expr/code/env"
 ],
 function(Eval, Interpreter, Env) {
 
@@ -67,7 +67,7 @@ function(Eval, Interpreter, Env) {
         } else {
           return null;
         }
-      }
+      };
     });
 
   var LValueExpr = MakeMixin([Eval.EvalExpr, Interpreter.Dispatcher], function() {
@@ -89,7 +89,7 @@ function(Eval, Interpreter, Env) {
     this.lvalue__P = function(type, fields, args) {
       var self = this; 
       return null;
-    }
+    };
   });
 
   var LValueExprC = MakeClass(null, [LValueExpr],
@@ -98,7 +98,7 @@ function(Eval, Interpreter, Env) {
     function(super$) {
       this.initialize = function() {
         var self = this; 
-      }
+      };
     });
 
   Lvalue = {

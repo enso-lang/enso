@@ -1,9 +1,19 @@
 require 'core/expr/code/eval'
 
-module EvalStencil
-  include Interpreter::Dispatcher
+module Construct
+  
+  module ConstructStencil
+    include Interpreter::Dispatcher
+    include Impl::EvalCommand
+
+    def eval_Stencil
+      
+    end
+    
+  end
 
   module EvalExpr
+    include Interpreter::Dispatcher
     include Impl::EvalCommand
 
     def eval_Color(r, g, b)

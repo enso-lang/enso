@@ -1,40 +1,24 @@
+import diagram.schema
 import impl.schema
 
-class Command 
+class Command < Part
 class Expr 
-class EBlock
+class EAssign
 
 class Stencil
   title: str?
   root: str
   body! Command*
 
-class Part < Command
-  props! Assign*
+class Part < Expr
+  label: str
+  props! EAssign*
 
-// TEMPLATE STUFF
-
-class Label < Part
-  label! Expr
-  body! Command
-
-class Assign
-  loc! Expr
-  exp! Expr
-
-class InstanceOf < Expr
-  base! Expr
-  class_name: str
-
-class Color < Expr
-  r! Expr
-  g! Expr
-  b! Expr
 
 // DIAGRAMS
 
 class Container < Part
-  direction: int // 1=vert, 2=hoiz, 3=graph
+  direction: int // 1=vert, 2=hoiz, 3=graph, 4=paged
   items! Command*
 
 class Text < Part
@@ -45,14 +29,17 @@ class Shape < Part
   kind: str
   content! Command?
 
-class CheckBox < Part
+class Widget < Part
+
+class CheckBox < Widget
+  value! Expr
   string! Expr
 
-class RadioList < Part
+class RadioList < Widget
   value! Expr
   choices! Expr
 
-class TextBox < Part
+class TextBox < Widget
   value! Expr
 
 class Connector < Part
@@ -65,17 +52,23 @@ class ConnectorEnd
   other_label! Expr?
   part! Expr
 
-class EAssign
-  var!Expr
-  val!Expr
-  body!Command
 
-class EFor
-  index: str?
-  label: str?
+// Additional expr 
+
+class InstanceOf < Expr
+  base! Expr
+  class_name: str
+
+class Color < Expr
+  r! Expr
+  g! Expr
+  b! Expr
 
 class Eval < Expr
   expr! Expr
+  
+class Rule < Expr	//a rule is essentially a sugar-ed up function
+  
 
 primitive int
 primitive str
