@@ -12,20 +12,28 @@ define (function() {
   }
   
   EnsoHash = function(init) {
-    var data = new Object();
+    var data = init;
     this.has_key_P = function(key) { return data.hasOwnProperty(key); };
     this._get = function(key) { 
       return data[key]; 
     };
+    this.size = function() { 
+      var count = 0;
+      for (k in data) {
+        if (data.hasOwnProperty(k))
+          count++;
+      }
+      return count;
+    };
     this._set = function(key, value) {
       data[key] = value;
-    }
+    };
     this.each = function(fun) {
       for (k in data) {
         if (data.hasOwnProperty(k))
-          fun(data[k]);
+          fun(k, data[k]);
       }
-    },
+    };
     this.keys = function() { 
       var keys = [];
       for (k in data) {
@@ -82,7 +90,14 @@ define (function() {
     });
     return max; 
   };
-    
+  Array.prototype.clone = function(fun) {  // Array.prototype.forEach;
+    var i;
+    var result = new Array;
+    for (i = 0; i < this.length; i++) {
+      result.push(this[i]);
+    }
+    return result;
+  };
   
   Array.prototype.each_with_index = Array.prototype.each;
   
@@ -198,10 +213,11 @@ define (function() {
     new: function() {}
   }
   // put enso global methods here
-  EnsoBaseClass.new.prototype = {
+  EnsoBaseClass._instance_spec_ = {
     toString: function() { return this.to_s(); },
-    send: function(k) {
-      return this[k].apply(this, Array.prototype.slice.call(arguments, 1));
+    send: function(method) {
+      puts("SEND " + method);
+      return this[method.replace("?", "_P")].apply(this, Array.prototype.slice.call(arguments, 1));
     },
     define_getter: function(name, prop) {
       this[name] = function() { return prop.get() }    // have to get "self" right
@@ -215,10 +231,10 @@ define (function() {
     _set: function(k, v) { 
       return this["set_" + k].call(this, v);
     },
-    respond_to_P: function(method) { return this[method]; },
+    respond_to_P: function(method) { return this[method.replace("?", "_P")]; },
   }
 
-  MakeClass = function(base_class, instance_fun) {
+  MakeClass = function(base_class, includes, meta_fun, instance_fun) {
       // NewClass = MakeClass(ParentClass, function(super) { return { 
       //    _class_: { 
       //         class_var1: init-value,            // @@var
@@ -243,49 +259,55 @@ define (function() {
       // base_class is the *class* object of the base class
       // instance_fun returns the record containing fields for this object, given super
       //    which can contain a "_class_" field to specify its class data
-      if (!instance_fun) {
-        instance_fun = base_class;
-        base_class = EnsoBaseClass;
-      }
+
       // create a class structure if there isn't one (for example, when inheriting Array)
+      var parent_proto;
       if (typeof base_class === "function") {
+        parent_proto = base_class.prototype;
         var temp = new Object(EnsoBaseClass);
         temp.new = base_class;
         base_class = temp;
+      } else {
+        if (base_class == null)
+          base_class = EnsoBaseClass;
+        parent_proto = base_class._instance_spec_;
       }
 
       // get the prototype of the base constructor function      
-      var parent_instance_proto = base_class.new.prototype;
-      var instance_spec = instance_fun(parent_instance_proto);
       // if there are mixins, then a clone of the mixin's prototype is inserted between object and base
-      if (instance_spec.hasOwnProperty("include")) {
+      if (includes.length > 0) {
         var eigen = Object.create({});
-    		for (var i=0,len=instance_spec.include.length; i<len; i++) {
-    			var methods = instance_spec.include[i];
+    		for (var i = 0, len = includes.length; i < len; i++) {
+    			var methods = includes[i];
     			for (var m in methods) {
     				if (methods.hasOwnProperty(m)) {
     				  eigen[m] = methods[m] 
     			  }
     			}
   	    }
-        eigen.__proto__ = parent_instance_proto;
-  	    instance_spec = instance_fun(eigen);
-        instance_spec.__proto__ = eigen;
+        eigen.__proto__ = parent_proto;
+        parent_proto = eigen;
       }
       else {
         // connect this instance_spec bindings to inherit the parent's instance_spec 
-        instance_spec.__proto__ = parent_instance_proto;
       }
+
+      var instance_spec = new instance_fun(parent_proto);
+      instance_spec.__proto__ = parent_proto;
+
       // make sure there is a class object 
-      instance_spec._class_ = instance_spec.hasOwnProperty("_class_") ? instance_spec._class_ : Object.create({});
+      instance_spec._class_ = new Object({});
+      instance_spec._class_.$ = base_class.$ || new Object({});
+      meta_fun.call(instance_spec._class_);
+      
       // connect this object's class data to the base class data 
       instance_spec._class_.__proto__ = base_class;
       // remember the instance_spec for each class
       instance_spec._class_._instance_spec_ = instance_spec;
       // make sure there is an initializer function
       instance_spec.initialize = instance_spec.initialize || function() {
-          if (parent_instance_proto.hasOwnProperty("initialize")) {
-              parent_instance_proto.initialize.apply(this, arguments);
+          if (parent_proto.hasOwnProperty("initialize")) {
+              parent_proto.initialize.apply(this, arguments);
           }
       };
 
@@ -298,10 +320,8 @@ define (function() {
       }
       // set its prototype, even thought it is not actually used view "new"
       // it is accessed above
-      constructor.prototype = instance_spec;
       // fill in the "new" function of the class
       instance_spec._class_.new = constructor;
-      instance_spec._class_.super$ = base_class;
       // return the new class
       return instance_spec._class_;
   }  
@@ -310,29 +330,31 @@ define (function() {
   
   MakeModule = MakeClass;
 
-  MakeMixin = function(instance_spec) {
-
+  MakeMixin = function(includes, instance_fun) {
+      var instance_spec = new instance_fun();
       // get all methods defined in this mixin and its parents
       	var methods = {};
-      	if (instance_spec.hasOwnProperty("include")) {
-    			for (var i=0,len=instance_spec.include.length; i<len; i++) {
-    				var incld = instance_spec.include[i]
+      	if (includes.length > 0) {
+    			for (var i = 0, len = includes.length; i < len; i++) {
+    				var incld = includes[i];
             for (var attr in incld) {
-              if (attr!="include" && attr.indexOf("_")!=0 && incld.hasOwnProperty(attr)) { 
+              if (attr.indexOf("_") != 0 && incld.hasOwnProperty(attr)) { 
                 methods[attr] = incld[attr]
                }
             }
     			}
       	}
       	for (var attr in instance_spec) {
-      		if (attr!="include" && attr.indexOf("_")!=0 && instance_spec.hasOwnProperty(attr)) { 
+      		if (attr.indexOf("_") != 0 && instance_spec.hasOwnProperty(attr)) { 
       		  methods[attr] = instance_spec[attr]
       		 }
       	}
       	return methods
    }
 
-    Range = MakeClass(function(super$) { return {
+    Range = MakeClass(null, [], 
+    function() {},
+    function(super$) { return {
       intialize: function(a, b) {
         this.$.a = a;
         this.$.b = b;
@@ -343,9 +365,9 @@ define (function() {
           proc(i);
       }       
     }});   
-   Enumerable = MakeMixin({
-     all_P: function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; },
-     any_P: function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; },
+   Enumerable = MakeMixin([], function() {
+     this.all_P= function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; };
+     this.any_P= function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; };
    });
 
 })

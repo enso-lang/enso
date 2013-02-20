@@ -5,30 +5,28 @@ define([
 ],
 function(Eval, Lvalue, Interpreter) {
 
-  var FreeVar ;
-  var FreeVarExpr = MakeMixin({
-    include: [ Eval. EvalExpr, Lvalue. LValueExpr, Interpreter. Dispatcher ],
-
-    depends: function(obj) {
+  var Freevar ;
+  var FreeVarExpr = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
+    this.depends = function(obj) {
       var self = this; 
       return self.dispatch("depends", obj);
-    },
+    };
 
-    depends_EField: function(e, fname) {
+    this.depends_EField = function(e, fname) {
       var self = this; 
       return [];
-    },
+    };
 
-    depends_EVar: function(name) {
+    this.depends_EVar = function(name) {
       var self = this; 
       if (self.$.D._get("bound").include_P(name) || name == "self") {
         return [];
       } else {
-        return [Lvalue.Address().new(self.$.D._get("env"), name)];
+        return [Lvalue.Address.new(self.$.D._get("env"), name)];
       }
-    },
+    };
 
-    depends_ELambda: function(body, formals) {
+    this.depends_ELambda = function(body, formals) {
       var self = this; 
       var bound2;
       bound2 = self.$.D._get("bound").clone();
@@ -38,14 +36,14 @@ function(Eval, Lvalue, Interpreter) {
       return self.dynamic_bind(function() {
         return self.depends(body);
       }, new EnsoHash ( { } ));
-    },
+    };
 
-    depends_Formal: function(name) {
+    this.depends_Formal = function(name) {
       var self = this; 
       return name;
-    },
+    };
 
-    depends__P: function(type, fields, args) {
+    this.depends__P = function(type, fields, args) {
       var self = this; 
       var res;
       res = [];
@@ -64,18 +62,19 @@ function(Eval, Lvalue, Interpreter) {
     }
   });
 
-  var FreeVarExprC = MakeClass( function(super$) { return {
-    include: [ FreeVarExpr ],
+  var FreeVarExprC = MakeClass(null, [FreeVarExpr],
+    function() {
+    },
+    function(super$) {
+      this.initialize = function() {
+        var self = this; 
+      }
+    });
 
-    initialize: function() {
-      var self = this; 
-    }
-  }});
-
-  FreeVar = {
+  Freevar = {
     FreeVarExpr: FreeVarExpr,
     FreeVarExprC: FreeVarExprC,
 
   };
-  return FreeVar;
+  return Freevar;
 })

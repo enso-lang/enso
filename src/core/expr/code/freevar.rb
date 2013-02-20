@@ -2,7 +2,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 
-module FreeVar
+module Freevar
   module FreeVarExpr
     #Determine the set of unbounded variables in this expr
     #that need to be supplied by the environment.

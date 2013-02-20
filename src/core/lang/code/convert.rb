@@ -127,7 +127,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_bare_assoc_hash(assocs)
-    @f.Record
+    @f.Record(assocs)
   end
 
   def on_BEGIN(statements)
@@ -283,20 +283,11 @@ class CodeBuilder < Ripper::SexpBuilder
       @f.Require(mod, path)
     elsif name == "include"
       path = args.normal[0]
-      if path.Lit?
-        base = nil
-        name = path.value
-      elsif path.Var?
-        base = nil
-        name = path.name
-      elsif path.Call? && path.target.Var?
-        base = path.target.name
-        name = path.method
+      if path.Var?
+        @f.Ref(nil, path.name)
       else
-        raise "Invalid `include' #{args}"
+        path
       end
-      puts "INCLUDE #{base} #{name}"
-      @f.Ref(base, name)
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
       #puts "CMD #{name} #{args}"
       args.normal.collect do |var|
@@ -316,11 +307,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_const_path_field(namespace, const)
-    make_call(@f.Lit(namespace), const)
+    @f.Ref(namespace, const)
   end
 
   def on_const_path_ref(namespace, const)
-    make_call(namespace, const)
+    @f.Ref(namespace.name, const)
   end
 
   def on_const_ref(const)
@@ -378,10 +369,6 @@ class CodeBuilder < Ripper::SexpBuilder
   end
   
   def make_fun(normal, block, rest, locals, body)
-    normal.each{|decl| decl.name = fixup_var_name(decl.name) }
-    block = fixup_var_name(block)
-    rest = fixup_var_name(rest)
-    locals.each{|decl| decl.name = fixup_var_name(decl.name) }
     @f.Fun(normal, block, rest, locals, body)
   end
   
@@ -441,12 +428,19 @@ class CodeBuilder < Ripper::SexpBuilder
       o.block = fixup_expr(o.block, env)
 
     when "Fun"
+
       newvars = []
       o.args.each {|x| newvars << x.name}
       newvars << o.block if o.block
       newvars << o.rest if o.rest
       o.locals.each {|x| newvars << x.name}
       #puts "FUN #{newvars}"
+
+      o.args.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.block = fixup_var_name(o.block)
+      o.rest = fixup_var_name(o.rest)
+      o.locals.each{|decl| decl.name = fixup_var_name(decl.name) }
+
       o.body = fixup_expr(o.body, newvars + env)
 
     when "Decl"
@@ -476,6 +470,8 @@ class CodeBuilder < Ripper::SexpBuilder
     when "Var"
       if !(o.name =~ /^[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
         o = @f.Call(@f.Var(@selfVar), o.name)
+      else
+        o.name = fixup_var_name(o.name)
       end
 
     when "List"
@@ -488,6 +484,16 @@ class CodeBuilder < Ripper::SexpBuilder
     end 
     o
   end      
+  
+  @@jskeywords = ["catch", "continue", "debugger", "default", "delete", "finally", "function", "new", "in", "instanceof", "switch", "this", "throw", "try", "typeof", "var", "void", "with"]
+
+  def fixup_var_name(name)
+    if @@jskeywords.include? name
+      name = "#{name}_V"
+    end
+    return name
+  end
+  
   
   def fixup_list(list, env)
     list.each_with_index do |obj, i|
@@ -886,18 +892,9 @@ class CodeBuilder < Ripper::SexpBuilder
         kind = "@"
       end
     end
-    @f.Var(fixup_var_name(name), kind)
+    @f.Var(name, kind)
   end
 
-  @@jskeywords = ["catch", "continue", "debugger", "default", "delete", "finally", "function", "new", "in", "instanceof", "switch", "this", "throw", "try", "typeof", "var", "void", "with"]
-
-  def fixup_var_name(name)
-    if @@jskeywords.include? name
-      name = "#{name}_V"
-    end
-    return name
-  end
-  
   def fixup_method_name(name)
     last = name[-1]
     if name == "<<"
@@ -982,7 +979,7 @@ if __FILE__ == $0 then
   outname = ARGV[1]
   grammar = ARGV[2] || "code"
   
-  #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
+  pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")

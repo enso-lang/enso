@@ -145,7 +145,7 @@ module Factory
       end
       name = fld.name
       exp = fld.computed
-      fvInterp = FreeVar::FreeVarExprC.new
+      fvInterp = Freevar::FreeVarExprC.new
       commInterp = Impl::EvalCommandC.new
       val = nil
       define_singleton_method(name) do

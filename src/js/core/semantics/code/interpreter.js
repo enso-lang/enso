@@ -3,49 +3,53 @@ define([
 function() {
 
   var Interpreter ;
-  var DynamicPropertyStack = MakeClass( function(super$) { return {
-    initialize: function() {
-      var self = this; 
-      self.$.current = new EnsoHash ( { } );
-      return self.$.stack = [];
+  var DynamicPropertyStack = MakeClass(null, [],
+    function() {
     },
+    function(super$) {
+      this.initialize = function() {
+        var self = this; 
+        self.$.current = new EnsoHash ( { } );
+        return self.$.stack = [];
+      };
 
-    _get: function(name) {
-      var self = this; 
-      return self.$.current._get(name);
-    },
+      this._get = function(name) {
+        var self = this; 
+        puts("GETTING DYNAMIC " + name);
+        return self.$.current._get(name);
+      };
 
-    _bind: function(field, value) {
-      var self = this; 
-      var old;
-      old = self.$.current._get(field);
-      self.$.stack.push([field, old]);
-      puts("BINDING " + field + "=" + value);
-      return self.$.current._set(field, value);
-    },
+      this._bind = function(field, value) {
+        var self = this; 
+        var old;
+        old = self.$.current._get(field);
+        self.$.stack.push([field, old]);
+        puts("SETTING DYNAMIC " + field + "=" + value);
+        return self.$.current._set(field, value);
+      };
 
-    _pop: function(n) {
-      var self = this; 
-      if (n === undefined) n = 1;
-      var parts;
-      while (n > 0) {
-        parts = self.$.stack.pop();
-        self.$.current._set(parts._get(0), parts._get(1));
-        n = n - 1;
+      this._pop = function(n) {
+        var self = this; 
+        if (n === undefined) n = 1;
+        var parts;
+        while (n > 0) {
+          parts = self.$.stack.pop();
+          self.$.current._set(parts._get(0), parts._get(1));
+          n = n - 1;
+        }
+      };
+
+      this.to_s = function() {
+        var self = this; 
+        return self.$.current.to_s();
       }
-    },
+    });
 
-    to_s: function() {
-      var self = this; 
-      return self.$.current.to_s();
-    }
-  }});
+  var Dispatcher = MakeMixin([], function() {
+    this._ = function() { return this.$._ };
+    this.set__ = function(val) { this.$._  = val };
 
-  var Dispatcher = MakeMixin({
-    _: function() { return this.$._ },
-    set__: function(val) { this.$._  = val },
-
-    dynamic_bind: function(block, fields) {
+    this.dynamic_bind = function(block, fields) {
       var self = this; 
       var result;
       if (! self.$.D) {
@@ -57,9 +61,9 @@ function() {
       result = block();
       self.$.D._pop(fields.size());
       return result;
-    },
+    };
 
-    dispatch: function(operation, obj) {
+    this.dispatch = function(operation, obj) {
       var self = this; 
       var type, method, params;
       type = obj.schema_class();
@@ -68,8 +72,7 @@ function() {
         method = self.find(operation, type);
       }
       if (! method) {
-        method = S(operation, "__P").to_s();
-        puts("DEFAULT " + method + ":" + this[method]);
+        method = S(operation, "_?").to_s();
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
@@ -80,9 +83,9 @@ function() {
         });
         return self.send.apply(self, [method].concat( params ));
       }
-    },
+    };
 
-    dispatch_obj: function(operation, obj) {
+    this.dispatch_obj = function(operation, obj) {
       var self = this; 
       var type, method;
       type = obj.schema_class();
@@ -91,18 +94,17 @@ function() {
         method = self.find(operation, type);
       }
       if (! method) {
-        method = S(operation, "_P").to_s();
+        method = S(operation, "_?").to_s();
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
       return self.send(method, obj);
-    },
+    };
 
-    find: function(operation, type) {
+    this.find = function(operation, type) {
       var self = this; 
       var method;
-      puts("SEARCH " + type.name() + " for " + operation);
       method = S(operation, "_", type.name()).to_s();
       if (self.respond_to_P(method)) {
         return method;

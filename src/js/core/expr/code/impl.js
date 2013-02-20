@@ -6,77 +6,78 @@ define([
 function(Eval, Lvalue, Interpreter) {
 
   var Impl ;
-  var Closure = MakeClass( function(super$) { return {
-    env: function() { return this.$.env },
-    set_env: function(val) { this.$.env  = val },
-
-    initialize: function(body, formals, env, interp) {
-      var self = this; 
-      self.$.body = body;
-      self.$.formals = formals;
-      self.$.env = env.clone();
-      return self.$.interp = interp;
+  var Closure = MakeClass(null, [],
+    function() {
     },
+    function(super$) {
+      this.env = function() { return this.$.env };
+      this.set_env = function(val) { this.$.env  = val };
 
-    call: function() {
-      var self = this; 
-      var params = compute_rest_arguments(arguments, 0 );
-      var nenv;
-      nenv = Env.HashEnv().new();
-      self.$.formals.zip(params).each(function(f, v) {
-        return nenv._set(f.name(), v);
-      });
-      nenv.set_parent(self.$.env);
-      return self.$.interp.dynamic_bind(function() {
-        return self.$.interp.eval(self.$.body);
-      }, new EnsoHash ( { } ));
-    },
+      this.initialize = function(body, formals, env, interp) {
+        var self = this; 
+        self.$.body = body;
+        self.$.formals = formals;
+        self.$.env = env.clone();
+        return self.$.interp = interp;
+      };
 
-    to_s: function() {
-      var self = this; 
-      return S("#<Closure(", self.$.formals.map(function(f) {
-        return f.name();
-      }).join(", "), ") {", self.$.body, "}>");
-    }
-  }});
+      this.call = function() {
+        var self = this; 
+        var params = compute_rest_arguments(arguments, 0 );
+        var nenv;
+        nenv = Env.HashEnv.new();
+        self.$.formals.zip(params).each(function(f, v) {
+          return nenv._set(f.name(), v);
+        });
+        nenv.set_parent(self.$.env);
+        return self.$.interp.dynamic_bind(function() {
+          return self.$.interp.eval(self.$.body);
+        }, new EnsoHash ( { } ));
+      };
 
-  var EvalCommand = MakeMixin({
-    include: [ Eval. EvalExpr, Lvalue. LValueExpr, Interpreter. Dispatcher ],
+      this.to_s = function() {
+        var self = this; 
+        return S("#<Closure(", self.$.formals.map(function(f) {
+          return f.name();
+        }).join(", "), ") {", self.$.body, "}>");
+      }
+    });
 
-    eval: function(obj) {
+  var EvalCommand = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
+    this.eval = function(obj) {
       var self = this; 
       return self.dispatch("eval", obj);
-    },
+    };
 
-    eval_EWhile: function(cond, body) {
+    this.eval_EWhile = function(cond, body) {
       var self = this; 
       while (self.eval(cond)) {
         self.eval(body);
       }
-    },
+    };
 
-    eval_EFor: function(var_V, list, body) {
+    this.eval_EFor = function(var_V, list, body) {
       var self = this; 
       var nenv;
-      nenv = Env.HashEnv().new().set_parent(self.$.D._get("env"));
+      nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
       return self.eval(list).each(function(val) {
         nenv._set(var_V, val);
         return self.dynamic_bind(function() {
           return self.eval(body);
         }, new EnsoHash ( { } ));
       });
-    },
+    };
 
-    eval_EIf: function(cond, body, body2) {
+    this.eval_EIf = function(cond, body, body2) {
       var self = this; 
       if (self.eval(cond)) {
         return self.eval(body);
       } else if (! (body2 == null)) {
         return self.eval(body2);
       }
-    },
+    };
 
-    eval_EBlock: function(body) {
+    this.eval_EBlock = function(body) {
       var self = this; 
       var res;
       res = null;
@@ -86,26 +87,26 @@ function(Eval, Lvalue, Interpreter) {
         });
       }, new EnsoHash ( { } ));
       return res;
-    },
+    };
 
-    eval_EFunDef: function(name, formals, body) {
+    this.eval_EFunDef = function(name, formals, body) {
       var self = this; 
       var res;
-      res = Impl.Closure().new(body, formals, self.$.D._get("env"), self);
+      res = Impl.Closure.new(body, formals, self.$.D._get("env"), self);
       res.env()._set(name, res);
       self.$.D._get("env")._set(name, res);
       return res;
-    },
+    };
 
-    eval_ELambda: function(body, formals) {
+    this.eval_ELambda = function(body, formals) {
       var self = this; 
       return Proc.new(function() {
         var p = compute_rest_arguments(arguments, 0 );
-        return Impl.Closure().new(body, formals, self.$.D._get("env"), self).apply(Impl.Closure().new(body, formals, self.$.D._get("env"), self), [].concat( p ));
+        return Impl.Closure.new(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.new(body, formals, self.$.D._get("env"), self), [].concat( p ));
       });
-    },
+    };
 
-    eval_EFunCall: function(fun, params, lambda) {
+    this.eval_EFunCall = function(fun, params, lambda) {
       var self = this; 
       var p, f;
       return self.dynamic_bind(function() {
@@ -121,21 +122,22 @@ function(Eval, Lvalue, Interpreter) {
           }) ));
         }
       }, new EnsoHash ( { } ));
-    },
+    };
 
-    eval_EAssign: function(var_V, val) {
+    this.eval_EAssign = function(var_V, val) {
       var self = this; 
-      return self.lvalue(var_V).value() = self.eval(val);
+      return self.lvalue(var_V).value = self.eval(val);
     }
   });
 
-  var EvalCommandC = MakeClass( function(super$) { return {
-    include: [ EvalCommand ],
-
-    initialize: function() {
-      var self = this; 
-    }
-  }});
+  var EvalCommandC = MakeClass(null, [EvalCommand],
+    function() {
+    },
+    function(super$) {
+      this.initialize = function() {
+        var self = this; 
+      }
+    });
 
   Impl = {
     Closure: Closure,

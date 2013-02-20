@@ -19,10 +19,6 @@ class Mixin < Def
 class Class < Mixin
   parent: Ref?
 
-class Ref
-  module: str?
-  name: str
-
 class LeafDef < Def
 
 class Attribute < LeafDef
@@ -33,6 +29,10 @@ class Binding < LeafDef
 
 class Expr
   
+class Ref < Expr
+  module: str?
+  name: str
+
 class EBinOp < Expr
   op: str
   e1! Expr
