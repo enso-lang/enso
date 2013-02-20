@@ -53,7 +53,6 @@ define (function() {
   TrueClass = Boolean;
   FalseClass = Boolean;
   Proc = { new: function(p) { return p; } };
-  Array.prototype.any_P = Array.prototype.some;
   
   System = {
     readJSON: function(path) {
@@ -87,6 +86,7 @@ define (function() {
     return this.apply(a, newargs);
   }
   
+  Array.prototype.any_P = Array.prototype.some;
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
     var i;
@@ -107,6 +107,14 @@ define (function() {
     var result = new Array;
     for (i = 0; i < this.length; i++) {
       result.push(this[i]);
+    }
+    return result;
+  };
+  Array.prototype.zip = function(other) {  // Array.prototype.forEach;
+    var i;
+    var result = new Array;
+    for (i = 0; i < this.length; i++) {
+      result.push([this[i], other[i]]);
     }
     return result;
   };
@@ -223,16 +231,12 @@ define (function() {
   }
   
   EnsoBaseClass = {
-    new: function() {}
   }
   // put enso global methods here
-  EnsoBaseClass._instance_spec_ = {
-    toString: function() { return this.to_s(); },
+  EnsoBaseClass._instance_spec_ = {  
     send: function(method) {
       var args = Array.prototype.slice.call(arguments, 1);
-      puts("SEND " + method + "(" + Array.prototype.slice.call(arguments, 1) + ")");
       var val = this[method.replace("?", "_P")].apply(this, args);
-      puts("RESULT = " + val);
       return val;
     },
     define_getter: function(name, prop) {
@@ -248,12 +252,13 @@ define (function() {
       return this["set_" + k].call(this, v);
     },
     method: function(m) { var self = this; 
-      puts("METHOD " + m + ":" + self[m]);
-      return function() { self[m].apply(self, arguments); }},
+      return function() { 
+        return self[m].apply(self, arguments); 
+    }},
     respond_to_P: function(method) { return this[method.replace("?", "_P")]; },
   }
 
-  MakeClass = function(base_class, includes, meta_fun, instance_fun) {
+  MakeClass = function(name, base_class, includes, meta_fun, instance_fun) {
       // NewClass = MakeClass(ParentClass, function(super) { return { 
       //    _class_: { 
       //         class_var1: init-value,            // @@var
@@ -312,6 +317,7 @@ define (function() {
       }
 
       var instance_spec = new instance_fun(parent_proto);
+      instance_spec.__classname__ = name;
       instance_spec.__proto__ = parent_proto;
 
       // make sure there is a class object 
@@ -334,6 +340,20 @@ define (function() {
       var constructor = function() {
          var obj = Object.create(instance_spec);
          obj.$ = {};
+
+    obj.inspect = function() { 
+       var kind = this.__classname__;
+       if (this.schema_class)
+         kind = this.schema_class().name();
+       var info = "";
+       if (typeof this.name == "function")
+         info = this.name();
+       else if (this._id)
+         info = this._id();
+       return "<[" + kind + " " + info + "]>";
+    }
+    obj.toString = obj.inspect;
+    
          instance_spec.initialize.apply(obj, arguments);
          return obj;
       }
@@ -347,8 +367,6 @@ define (function() {
 
   EnsoProxyObject = EnsoBaseClass;
   
-  MakeModule = MakeClass;
-
   MakeMixin = function(includes, instance_fun) {
       var instance_spec = new instance_fun();
       // get all methods defined in this mixin and its parents
@@ -357,21 +375,21 @@ define (function() {
     			for (var i = 0, len = includes.length; i < len; i++) {
     				var incld = includes[i];
             for (var attr in incld) {
-              if (attr.indexOf("_") != 0 && incld.hasOwnProperty(attr)) { 
+              if (incld.hasOwnProperty(attr)) { 
                 methods[attr] = incld[attr]
                }
             }
     			}
       	}
       	for (var attr in instance_spec) {
-      		if (attr.indexOf("_") != 0 && instance_spec.hasOwnProperty(attr)) { 
+      		if (instance_spec.hasOwnProperty(attr)) { 
       		  methods[attr] = instance_spec[attr]
       		 }
       	}
       	return methods
    }
 
-    Range = MakeClass(null, [], 
+    Range = MakeClass("Range", null, [], 
     function() {},
     function(super$) { return {
       intialize: function(a, b) {

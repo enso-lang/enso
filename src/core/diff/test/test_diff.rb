@@ -28,7 +28,7 @@ class DiffTest < Test::Unit::TestCase
   # test differencing
   def test_diff
     deltas = Diff.diff(@p1, @p2)
-    assert_equal(11, deltas.size)
+    assert_equal(11, deltas.size) #FIXME: this is a genuine bug to do with refs
   end  
 
   def test_diff2

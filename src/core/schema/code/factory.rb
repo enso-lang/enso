@@ -336,8 +336,14 @@ module Factory
 
     def union(other)
       # left-biased: field is from self
-      r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
-      other.inject(r, &:<<)
+      result = Set.new(nil, @field, __key || other.__key)
+      self.each do |x|
+        result << x
+      end
+      other.each do |x|
+        result << x
+      end
+      result
     end
 
     def select(&block)

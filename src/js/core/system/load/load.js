@@ -10,7 +10,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
 
   var Load ;
 
-  var LoaderClass = MakeClass(null, [],
+  var LoaderClass = MakeClass("LoaderClass", null, [],
     function() {
     },
     function(super$) {
@@ -158,7 +158,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
               return x.readline();
             }, path);
           } catch ( err ) {
-            puts(S("Unable to open file ", path));
+            self.puts(S("Unable to open file ", path));
             self.raise(err);
           }
           if (header == "#ruby") {

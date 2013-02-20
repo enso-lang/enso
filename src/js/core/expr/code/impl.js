@@ -7,7 +7,7 @@ define([
 function(Eval, Lvalue, Interpreter, Env) {
 
   var Impl ;
-  var Closure = MakeClass(null, [],
+  var Closure = MakeClass("Closure", null, [],
     function() {
     },
     function(super$) {
@@ -27,8 +27,8 @@ function(Eval, Lvalue, Interpreter, Env) {
         var params = compute_rest_arguments(arguments, 0 );
         var nenv;
         nenv = Env.HashEnv.new();
-        self.$.formals.zip(params).each(function(f, v) {
-          return nenv._set(f.name(), v);
+        self.$.formals.each_with_index(function(f, i) {
+          return nenv._set(f.name(), params._get(i));
         });
         nenv.set_parent(self.$.env);
         return self.$.interp.dynamic_bind(function() {
@@ -114,9 +114,6 @@ function(Eval, Lvalue, Interpreter, Env) {
         return self.eval(fun);
       }, new EnsoHash ( { in_fc: true } ));
       if (lambda == null) {
-        puts(S("params = ", params.map(function(p) {
-          return self.eval(p);
-        })));
         return m.apply(m, [].concat( params.map(function(p) {
           return self.eval(p);
         }) ));
@@ -134,7 +131,7 @@ function(Eval, Lvalue, Interpreter, Env) {
     };
   });
 
-  var EvalCommandC = MakeClass(null, [EvalCommand],
+  var EvalCommandC = MakeClass("EvalCommandC", null, [EvalCommand],
     function() {
     },
     function(super$) {

@@ -28,8 +28,8 @@ module Impl
     def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
       nenv = Env::HashEnv.new
-      @formals.zip(params).each do |f,v|
-        nenv[f.name] = v
+      @formals.each_with_index do |f,i|
+        nenv[f.name] = params[i]
       end
       nenv.set_parent(@env)
       @interp.dynamic_bind env: nenv do

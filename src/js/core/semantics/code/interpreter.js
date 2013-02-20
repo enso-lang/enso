@@ -3,7 +3,7 @@ define([
 function() {
 
   var Interpreter ;
-  var DynamicPropertyStack = MakeClass(null, [],
+  var DynamicPropertyStack = MakeClass("DynamicPropertyStack", null, [],
     function() {
     },
     function(super$) {

@@ -9,7 +9,7 @@ function(Paths, Factory, Union, Json, Enso) {
 
   var Boot ;
 
-  var MObject = MakeClass(EnsoProxyObject, [],
+  var MObject = MakeClass("MObject", EnsoProxyObject, [],
     function() {
       this.$.seq_no = 0;
     },
@@ -101,7 +101,7 @@ function(Paths, Factory, Union, Json, Enso) {
       };
     });
 
-  var Schema = MakeClass(MObject, [],
+  var Schema = MakeClass("Schema", MObject, [],
     function() {
     },
     function(super$) {
@@ -120,7 +120,7 @@ function(Paths, Factory, Union, Json, Enso) {
       };
     });
 
-  var Class = MakeClass(MObject, [],
+  var Class = MakeClass("Class", MObject, [],
     function() {
     },
     function(super$) {
@@ -139,7 +139,7 @@ function(Paths, Factory, Union, Json, Enso) {
       };
     });
 
-  var BootManyField = MakeClass(Array, [],
+  var BootManyField = MakeClass("BootManyField", Array, [],
     function() {
     },
     function(super$) {
