@@ -62,7 +62,7 @@ function(Eval, Lvalue, Interpreter) {
     };
   });
 
-  var FreeVarExprC = MakeClass(null, [FreeVarExpr],
+  var FreeVarExprC = MakeClass("FreeVarExprC", null, [FreeVarExpr],
     function() {
     },
     function(super$) {

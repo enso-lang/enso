@@ -54,7 +54,7 @@ function() {
     };
   });
 
-  var HashEnv = MakeClass(null, [BaseEnv],
+  var HashEnv = MakeClass("HashEnv", null, [BaseEnv],
     function() {
     },
     function(super$) {
@@ -101,7 +101,7 @@ function() {
       };
     });
 
-  var ObjEnv = MakeClass(null, [BaseEnv],
+  var ObjEnv = MakeClass("ObjEnv", null, [BaseEnv],
     function() {
     },
     function(super$) {
@@ -153,7 +153,7 @@ function() {
       };
     });
 
-  var LambdaEnv = MakeClass(null, [BaseEnv],
+  var LambdaEnv = MakeClass("LambdaEnv", null, [BaseEnv],
     function() {
     },
     function(super$) {

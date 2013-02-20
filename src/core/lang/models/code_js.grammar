@@ -19,7 +19,7 @@ Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) .","/2
 // class 
 // D ::= def N 
 
-Class   ::= [Class] "var" name:sym "= MakeClass(">.
+Class   ::= [Class] "var" name:sym "= MakeClass(">. name:str .","
       (parent:Ref | "null") ."," Includes .","/ Meta .","/ Instance .<");"
 Mixin   ::= [Mixin] "var" name:sym "= MakeMixin(". Includes ."," "function() {" Body "});"
 Body    ::= /> defs:DefB* @/2 </

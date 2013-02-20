@@ -11,7 +11,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
   var Factory ;
 
-  var SchemaFactory = MakeClass(null, [],
+  var SchemaFactory = MakeClass("SchemaFactory", null, [],
     function() {
     },
     function(super$) {
@@ -44,7 +44,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var MObject = MakeClass(EnsoProxyObject, [],
+  var MObject = MakeClass("MObject", EnsoProxyObject, [],
     function() {
       this.$._id = 0;
     },
@@ -294,7 +294,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var Field = MakeClass(null, [],
+  var Field = MakeClass("Field", null, [],
     function() {
     },
     function(super$) {
@@ -328,7 +328,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var Single = MakeClass(Field, [],
+  var Single = MakeClass("Single", Field, [],
     function() {
     },
     function(super$) {
@@ -361,7 +361,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var Prim = MakeClass(Single, [],
+  var Prim = MakeClass("Prim", Single, [],
     function() {
     },
     function(super$) {
@@ -419,16 +419,16 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       return self.$.values.values();
     };
 
-    this.union = function(other) {
-      var self = this; 
-      var r;
-      r = self.inject(function(x) {
-        return x.push();
-      }, Set.new(null, self.$.field, self.__key() || other.__key()));
-      return other.inject(function(x) {
-        return x.push();
-      }, r);
-    };
+  this.union = function(other) {
+    var x = Set.new(null, this.$.field, this.__key() || other.__key())
+    this.each(function(obj) { 
+      x.push(obj);
+    }); 
+    other.each(function(obj) {
+        x.push(obj);
+    }); 
+    return x; 
+  };
 
     this.select = function(block) {
       var self = this; 
@@ -547,7 +547,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     };
   });
 
-  var Ref = MakeClass(Single, [RefHelpers],
+  var Ref = MakeClass("Ref", Single, [RefHelpers],
     function() {
     },
     function(super$) {
@@ -584,7 +584,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var Many = MakeClass(Field, [RefHelpers, Enumerable],
+  var Many = MakeClass("Many", Field, [RefHelpers, Enumerable],
     function() {
     },
     function(super$) {
@@ -674,7 +674,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var Set = MakeClass(Many, [SetUtils],
+  var Set = MakeClass("Set", Many, [SetUtils],
     function() {
     },
     function(super$) {
@@ -774,7 +774,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
     });
 
-  var List = MakeClass(Many, [ListUtils],
+  var List = MakeClass("List", Many, [ListUtils],
     function() {
     },
     function(super$) {

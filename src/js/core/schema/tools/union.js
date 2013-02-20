@@ -5,7 +5,7 @@ function(Factory) {
 
   var Union ;
 
-  var CopyInto = MakeClass(null, [],
+  var CopyInto = MakeClass("CopyInto", null, [],
     function() {
     },
     function(super$) {
@@ -34,7 +34,7 @@ function(Factory) {
             b_val = b && b._get(field.name());
             if (field.type().Primitive_P()) {
               if ((a && b) && a_val != b_val) {
-                puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
+                self.puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
               }
               return new_V._set(field.name(), a_val);
             } else if (field.traversal()) {

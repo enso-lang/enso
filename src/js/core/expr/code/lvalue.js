@@ -6,7 +6,7 @@ define([
 function(Eval, Interpreter, Env) {
 
   var Lvalue ;
-  var Address = MakeClass(null, [],
+  var Address = MakeClass("Address", null, [],
     function() {
     },
     function(super$) {
@@ -92,7 +92,7 @@ function(Eval, Interpreter, Env) {
     };
   });
 
-  var LValueExprC = MakeClass(null, [LValueExpr],
+  var LValueExprC = MakeClass("LValueExprC", null, [LValueExpr],
     function() {
     },
     function(super$) {

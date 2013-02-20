@@ -24,8 +24,8 @@ module Impl
     def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
       nenv = Env::HashEnv.new
-      @formals.zip(params).each do |f,v|
-        nenv[f.name] = v
+      @formals.each_with_index do |f,i|
+        nenv[f.name] = params[i]
       end
       nenv.set_parent(@env)
       @interp.dynamic_bind env: nenv do
@@ -92,7 +92,7 @@ module Impl
     
     def eval_ELambda(body, formals)
       #puts "LAMBDA #{formals} #{body}"
-      Proc.new { |*p| Impl::Closure.new(body, formals, @D[:env], self).call(*p) }
+      Proc.new { |*p| Impl::Closure.new(body, formals, @D[:env], self).call_closure(*p) }
     end
     
     def eval_EFunCall(fun, params, lambda)

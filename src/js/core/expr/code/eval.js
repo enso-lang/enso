@@ -66,7 +66,7 @@ function(Factory, Schema, Interpreter) {
       m = self.dynamic_bind(function() {
         return self.eval(fun);
       }, new EnsoHash ( { in_fc: true } ));
-      return m.apply(m, [].concat( params.map(function(p) {
+      return m.call_closure.apply(m, [].concat( params.map(function(p) {
         return self.eval(p);
       }) ));
     };
@@ -91,9 +91,11 @@ function(Factory, Schema, Interpreter) {
       var target;
       if (self.$.D._get("in_fc")) {
         return self.dynamic_bind(function() {
-          puts(S("e=", e, " fname=", fname));
           target = self.eval(e);
-          puts(S("target=", target));
+          try {
+            Print.print(target);
+          } catch ( DUMMY ) {
+          }
           return target.method(fname.to_sym());
         }, new EnsoHash ( { in_fc: false } ));
       } else {
@@ -102,7 +104,7 @@ function(Factory, Schema, Interpreter) {
     };
   });
 
-  var EvalExprC = MakeClass(null, [EvalExpr],
+  var EvalExprC = MakeClass("EvalExprC", null, [EvalExpr],
     function() {
     },
     function(super$) {

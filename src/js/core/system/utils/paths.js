@@ -4,7 +4,7 @@ function() {
 
   var Paths ;
 
-  var Path = MakeClass(null, [],
+  var Path = MakeClass("Path", null, [],
     function() {
       this.parse = function(str) {
         var self = this; 
@@ -201,13 +201,13 @@ function() {
       };
     });
 
-  var Elt = MakeClass(null, [],
+  var Elt = MakeClass("Elt", null, [],
     function() {
     },
     function(super$) {
     });
 
-  var Root = MakeClass(Elt, [],
+  var Root = MakeClass("Root", Elt, [],
     function() {
     },
     function(super$) {
@@ -227,7 +227,7 @@ function() {
       };
     });
 
-  var Field = MakeClass(Elt, [],
+  var Field = MakeClass("Field", Elt, [],
     function() {
     },
     function(super$) {
@@ -256,7 +256,7 @@ function() {
       };
     });
 
-  var Index = MakeClass(Elt, [],
+  var Index = MakeClass("Index", Elt, [],
     function() {
     },
     function(super$) {
@@ -289,7 +289,7 @@ function() {
       };
     });
 
-  var Key = MakeClass(Elt, [],
+  var Key = MakeClass("Key", Elt, [],
     function() {
     },
     function(super$) {
@@ -327,7 +327,7 @@ function() {
       };
     });
 
-  var PathVar = MakeClass(null, [],
+  var PathVar = MakeClass("PathVar", null, [],
     function() {
     },
     function(super$) {
