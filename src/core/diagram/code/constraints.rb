@@ -52,10 +52,6 @@ class Variable
     return value.to_s
   end
   
-  def to_str
-    return value.to_s
-  end
-
   def inspect
     return "<VAR #{@name}=#{@val}>"
   end

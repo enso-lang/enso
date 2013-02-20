@@ -47,9 +47,9 @@ module Freevar
       type.fields.each do |f|
         if f.traversal && !f.type.Primitive? && fields[f.name]
           if !f.many
-            res += depends(fields[f.name])
+            res = res.concat( depends(fields[f.name]) )
           else
-            fields[f.name].each {|o| res += depends(o)}
+            fields[f.name].each {|o| res = res.concat(depends(o)) }
           end
         end
       end

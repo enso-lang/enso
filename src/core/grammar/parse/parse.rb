@@ -35,8 +35,8 @@ class Parse
     imports.each do |imp|
       $stderr << "## importing #{imp}...\n" 
       u = Load::load(imp)
-      data = union(u, data)
-      Loader.find_model(imp) {|p| data.factory.file_path << p}
+      data = Union::union(u, data)
+      Load::Loader.find_model(imp) {|p| data.factory.file_path << p}
     end
     data.factory.file_path.unshift(filename)
     return data.finalize

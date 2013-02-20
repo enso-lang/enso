@@ -34,6 +34,12 @@ define (function() {
           fun(k, data[k]);
       }
     };
+    this.each_value = function(fun) {
+      for (k in data) {
+        if (data.hasOwnProperty(k))
+          fun(data[k]);
+      }
+    };
     this.keys = function() { 
       var keys = [];
       for (k in data) {
@@ -46,13 +52,19 @@ define (function() {
   
   TrueClass = Boolean;
   FalseClass = Boolean;
+  Proc = { new: function(p) { return p; } };
+  Array.prototype.any_P = Array.prototype.some;
   
   System = {
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
     },
     test_type: function(obj, type) {
-      return obj != null && obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
+      if (obj == null)
+        return false;
+      if (typeof type != "function")
+        type = type.new;
+      return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     }
   }
   
@@ -216,8 +228,10 @@ define (function() {
   EnsoBaseClass._instance_spec_ = {
     toString: function() { return this.to_s(); },
     send: function(method) {
-      puts("SEND " + method);
-      return this[method.replace("?", "_P")].apply(this, Array.prototype.slice.call(arguments, 1));
+      var args = Array.prototype.slice.call(arguments, 1);
+      puts("SEND " + method + "(" + Array.prototype.slice.call(arguments, 1) + ")");
+      if (method == "flat_map") raise("FOO");
+      return this[method.replace("?", "_P")].apply(this, args);
     },
     define_getter: function(name, prop) {
       this[name] = function() { return prop.get() }    // have to get "self" right

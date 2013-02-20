@@ -48,7 +48,8 @@ module Eval
   
     def eval_EFunCall(fun, params)
       dynamic_bind in_fc: true do 
-        eval(fun).call(*(params.map{|p|eval(p)}))
+        f = eval(fun)
+        f.call(*(params.map{|p|eval(p)}))
       end
     end
   

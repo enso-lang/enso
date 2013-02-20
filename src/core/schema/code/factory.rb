@@ -43,7 +43,7 @@ module Factory
     end
     
     def register(root)
-      raise "Creating two roots" if @root
+      #raise "Creating two roots" if @root
       @root = root
     end
   end
@@ -333,7 +333,7 @@ module Factory
   module SetUtils
     def to_ary; @values.values end
 
-    def +(other)
+    def union(other)
       # left-biased: field is from self
       r = self.inject(Set.new(nil, @field, __key || other.__key), &:<<)
       other.inject(r, &:<<)

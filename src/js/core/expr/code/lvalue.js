@@ -1,8 +1,9 @@
 define([
   "core/expr/code/eval",
-  "core/semantics/code/interpreter"
+  "core/semantics/code/interpreter",
+    "core/expr/code/env",
 ],
-function(Eval, Interpreter) {
+function(Eval, Interpreter, Env) {
 
   var Lvalue ;
   var Address = MakeClass(null, [],
@@ -45,7 +46,7 @@ function(Eval, Interpreter) {
         return self.$.array._get(self.$.index);
       };
 
-      this.to_str = function() {
+      this.to_s = function() {
         var self = this; 
         return S(self.$.array, "[", self.$.index, "]");
       };

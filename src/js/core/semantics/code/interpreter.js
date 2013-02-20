@@ -67,6 +67,7 @@ function() {
       var self = this; 
       var type, method, params;
       type = obj.schema_class();
+      puts("CALLING " + operation);
       method = S(operation, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
         method = self.find(operation, type);
@@ -76,13 +77,17 @@ function() {
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
-        return self.send(method, type, obj, self.$.D);
+        val = self.send(method, type, obj, self.$.D);
       } else {
         params = type.fields().map(function(f) {
           return obj._get(f.name());
         });
-        return self.send.apply(self, [method].concat( params ));
+        puts("FOO " + params);
+        val = self.send.apply(self, [method].concat( params ));
+        puts("BAR");
       }
+      puts("RETURNING " + operation + val);
+      return val;
     };
 
     this.dispatch_obj = function(operation, obj) {

@@ -688,7 +688,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.each = function(block) {
         var self = this; 
-        return self.__value().each_value();
+        return self.__value().each_value(block);
       };
 
       this.each_pair = function(block) {

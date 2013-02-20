@@ -50,10 +50,10 @@ function(Eval, Lvalue, Interpreter) {
       type.fields().each(function(f) {
         if ((f.traversal() && ! f.type().Primitive_P()) && fields._get(f.name())) {
           if (! f.many()) {
-            return res = res + self.depends(fields._get(f.name()));
+            return res = res.concat(self.depends(fields._get(f.name())));
           } else {
             return fields._get(f.name()).each(function(o) {
-              return res = res + self.depends(o);
+              return res = res.concat(self.depends(o));
             });
           }
         }
