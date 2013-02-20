@@ -4,14 +4,18 @@ define([
 function(Enso) {
 
   var Dynamic ;
-  var DynamicUpdateProxy = MakeClass(EnsoProxyObject, [ ],
+  var DynamicUpdateProxy = MakeClass(EnsoProxyObject, [],
     function() {
     },
     function(super$) {
       this.initialize = function(obj) {
         var self = this; 
         self.$.obj = obj;
-        return self.$.fields = new EnsoHash ( { } );
+        self.$.fields = new EnsoHash ( { } );
+        return self.$.obj.schema_class().fields().each(function(fld) {
+          self.define_getter(fld.name(), self.$.obj.props()._get(fld.name()));
+          return self.define_setter(fld.name(), self.$.obj.props()._get(fld.name()));
+        });
       };
 
       this._get = function(name) {
@@ -58,7 +62,7 @@ function(Enso) {
       this.schema_class = function() {
         var self = this; 
         return self.$.obj.schema_class();
-      }
+      };
     });
 
   Dynamic = {

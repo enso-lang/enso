@@ -105,8 +105,8 @@ Call     ::= SuperCall | CallRest | CallNorm
 CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(" rest:Expr "))"
 CallNorm  ::= [Call] Target ({method=="length"} | ."(". Args? .")")
   Target ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
-  Args    ::= (block:Fun .",")? args:Expr+ @(.",") 
-            | block:Fun
+  Args    ::= (block:Primary .",")? args:Expr+ @(.",") 
+            | block:Primary
 SuperCall     ::= [Call] target:Super .".". method:sym (SuperRestArgs | SuperInvoke)
   SuperRestArgs ::= .".apply(self, [". Args? ."].concat(" rest:Expr "))"
   SuperInvoke ::= .".call(self" (."," Args)? .")"

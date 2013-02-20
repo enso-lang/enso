@@ -101,11 +101,9 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
         if (Cache.check_dep(name)) {
           return self.$.cache._get(name);
         } else {
-          if (type == null) {
-            parts = name.split(".");
-            model = parts._get(0);
-            type = parts._get(1);
-          }
+          parts = name.split(".");
+          model = parts._get(0);
+          type = parts._get(1);
           res = self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema")));
           self.patch_schema_pointers_in_place(res, self.load(S(type, ".schema")));
           System.stderr().push(S("## caching ", name, "...\\n"));
@@ -124,7 +122,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
         }, obj);
         return all_classes.each(function(o) {
           return o.instance_eval(function() {
-            self.$.schema_class = schema.types()._get(self.$.schema_class.name());
+            self.$.schema_class = schema.types()._get(self.schema_class().name());
             return self.$.factory.instance_eval(function() {
               return self.$.schema = schema;
             });
@@ -160,7 +158,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
               return x.readline();
             }, path);
           } catch ( err ) {
-            self.puts(S("Unable to open file ", path));
+            puts(S("Unable to open file ", path));
             self.raise(err);
           }
           if (header == "#ruby") {
@@ -203,7 +201,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
             return block(path);
           }
         }
-      }
+      };
     });
 
   Load = {

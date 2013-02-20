@@ -4,7 +4,7 @@ function() {
 
   var Paths ;
 
-  var Path = MakeClass(null, [ ],
+  var Path = MakeClass(null, [],
     function() {
       this.parse = function(str) {
         var self = this; 
@@ -36,7 +36,7 @@ function() {
           }
         });
         return result;
-      }
+      };
     },
     function(super$) {
       this.elts = function() { return this.$.elts };
@@ -101,7 +101,7 @@ function() {
           return action(scan, bindings);
         } else {
           return todo.first().search(function(item, newBinds) {
-            return self.searchElts(todo._get(Range.new(1, - 1)), item, root, newBinds);
+            return self.searchElts(action, todo._get(Range.new(1, - 1)), item, root, newBinds);
           }, scan, root, bindings);
         }
       };
@@ -198,16 +198,16 @@ function() {
       this.descend = function(elt) {
         var self = this; 
         return Path.new([elt]);
-      }
+      };
     });
 
-  var Elt = MakeClass(null, [ ],
+  var Elt = MakeClass(null, [],
     function() {
     },
     function(super$) {
     });
 
-  var Root = MakeClass(Elt, [ ],
+  var Root = MakeClass(Elt, [],
     function() {
     },
     function(super$) {
@@ -224,10 +224,10 @@ function() {
       this.to_s = function() {
         var self = this; 
         return "ROOT";
-      }
+      };
     });
 
-  var Field = MakeClass(Elt, [ ],
+  var Field = MakeClass(Elt, [],
     function() {
     },
     function(super$) {
@@ -253,10 +253,10 @@ function() {
       this.to_s = function() {
         var self = this; 
         return S("/", self.$.name);
-      }
+      };
     });
 
-  var Index = MakeClass(Elt, [ ],
+  var Index = MakeClass(Elt, [],
     function() {
     },
     function(super$) {
@@ -286,10 +286,10 @@ function() {
       this.to_s = function() {
         var self = this; 
         return S("[", self.$.index, "]");
-      }
+      };
     });
 
-  var Key = MakeClass(Elt, [ ],
+  var Key = MakeClass(Elt, [],
     function() {
     },
     function(super$) {
@@ -324,10 +324,10 @@ function() {
       this.escape = function(s) {
         var self = this; 
         return s.gsub("]", "\\\\]").gsub("[", "\\\\[");
-      }
+      };
     });
 
-  var PathVar = MakeClass(null, [ ],
+  var PathVar = MakeClass(null, [],
     function() {
     },
     function(super$) {
@@ -341,7 +341,7 @@ function() {
       this.to_s = function() {
         var self = this; 
         return self.$.name;
-      }
+      };
     });
 
   Paths = {

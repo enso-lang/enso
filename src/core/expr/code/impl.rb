@@ -1,6 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
+require 'core/expr/code/env'
 
 module Impl
   #note that the closure stores variable states only,
@@ -20,7 +21,7 @@ module Impl
 
     #params are the values used to call this function
     #args are used by the interpreter
-    def call(*params)
+    def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
       nenv = Env::HashEnv.new
       @formals.zip(params).each do |f,v|

@@ -62,11 +62,13 @@ function(Factory, Schema, Interpreter) {
 
     this.eval_EFunCall = function(fun, params) {
       var self = this; 
-      return self.dynamic_bind(function() {
-        return self.eval(fun).apply(self.eval(fun), [].concat( params.map(function(p) {
-          return self.eval(p);
-        }) ));
+      var m;
+      m = self.dynamic_bind(function() {
+        return self.eval(fun);
       }, new EnsoHash ( { in_fc: true } ));
+      return m.apply(m, [].concat( params.map(function(p) {
+        return self.eval(p);
+      }) ));
     };
 
     this.eval_EList = function(elems) {
@@ -89,7 +91,9 @@ function(Factory, Schema, Interpreter) {
       var target;
       if (self.$.D._get("in_fc")) {
         return self.dynamic_bind(function() {
+          puts(S("e=", e, " fname=", fname));
           target = self.eval(e);
+          puts(S("target=", target));
           return target.method(fname.to_sym());
         }, new EnsoHash ( { in_fc: false } ));
       } else {
