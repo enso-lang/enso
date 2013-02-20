@@ -25,6 +25,10 @@ class RenderClass < Dispatch
         puts "-"*50
         Print.print(p[1], 2)
       end
+      puts "grammar=#{grammar} obj=#{obj}\n\n"
+      Print.print(grammar)
+      Print.print(obj)
+      raise RuntimeError, 'Message goes here'
       abort "No matches found"
     end
     r

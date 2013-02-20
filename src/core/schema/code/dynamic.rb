@@ -6,6 +6,10 @@ module Dynamic
     def initialize(obj)
       @obj = obj
       @fields = {}
+      @obj.schema_class.fields.each do |fld|
+        define_getter(fld.name, @obj.props[fld.name])
+        define_setter(fld.name, @obj.props[fld.name])
+      end
     end
     
     def _get(name)

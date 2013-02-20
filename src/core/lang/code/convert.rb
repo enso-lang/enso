@@ -709,7 +709,7 @@ class CodeBuilder < Ripper::SexpBuilder
     end
     requires = parts[1]
     mod = parts[0][0]
-
+    
   # returns [metas, normal, includes/requires]
     parts = split_meta(mod.defs)
     fixup_expr(@f.Module(mod.name, requires, parts.flatten))
@@ -929,7 +929,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_while_mod(expression, statement)
-    @f.While(expression, get_seq(statements))
+    @f.While(get_seq(expression), get_seq(statements))
   end
 
   def on_word_add(string, word)

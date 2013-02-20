@@ -2,6 +2,7 @@ import impl.schema
 
 class Command 
 class Expr 
+class EBlock
 
 class Stencil
   title: str?
@@ -9,13 +10,17 @@ class Stencil
   body! Command*
 
 class Part < Command
-  style: str?
+  props! Assign*
 
 // TEMPLATE STUFF
 
 class Label < Part
   label! Expr
   body! Command
+
+class Assign
+  loc! Expr
+  exp! Expr
 
 class InstanceOf < Expr
   base! Expr
@@ -40,6 +45,16 @@ class Shape < Part
   kind: str
   content! Command?
 
+class CheckBox < Part
+  string! Expr
+
+class RadioList < Part
+  value! Expr
+  choices! Expr
+
+class TextBox < Part
+  value! Expr
+
 class Connector < Part
   label! Expr?
   ends! ConnectorEnd*
@@ -58,6 +73,9 @@ class EAssign
 class EFor
   index: str?
   label: str?
+
+class Eval < Expr
+  expr! Expr
 
 primitive int
 primitive str

@@ -41,7 +41,6 @@ class Variable
     @vars = []
     @value = val
     @bounds = []
-    throw "NO name variable" if name.to_s == ""
   end
 
   def to_i
@@ -82,7 +81,7 @@ class Variable
   end
   
   def method_missing(m, *args)
-    if value && (value.is_a?(Factory::MObject) || value.is_a?(Factory::DynamicUpdateProxy))
+    if value && (value.is_a?(Factory::MObject) || value.is_a?(Dynamic::DynamicUpdateProxy))
       if m.to_s =~  /^[^=]*=$/
         return value.send(m, *args)
       elsif args==[]
@@ -123,11 +122,10 @@ class Variable
     if @block
       path << self
       vals = @vars.collect do |var|
-        if var.is_a?(Variable)
-          val = var.internal_evaluate(path)
-          throw "unbound variable #{var.inspect}" if val.nil?
-        else
-          val = var
+        val = var.is_a?(Variable) ? var.internal_evaluate(path) : var
+        if val.nil?
+          puts "WARNING: undefined variable '#{var}'"
+          val = 10
         end
         val
       end

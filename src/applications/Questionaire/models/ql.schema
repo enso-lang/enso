@@ -3,6 +3,7 @@ import expr.schema
 primitive str
 
 class Expr
+class EConst
 
 class Questionaire
   elements ! Element*
@@ -18,9 +19,12 @@ class Question < Element
   name # str
   qn : str
   ans : Answer
+  //dynamic
+  value ! EConst?
 
 class Answer
   name # str
+  type : str
 
 class CheckBox < Answer
   choices ! Label+
@@ -29,11 +33,10 @@ class MultiChoice < Answer
   choices ! Label+
 
 class TextBox < Answer
-  type : str
-  
+
 class Computed < Answer
   expr ! Expr
 
 class Label
-  label : str
+  to_str # str
 

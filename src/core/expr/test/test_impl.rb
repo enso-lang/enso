@@ -9,8 +9,8 @@ class CommandTest < Test::Unit::TestCase
     obj = Load::load("test1.impl")
     g = Load::load("impl.grammar")
     str = ""
-    DisplayFormat.print(g, obj, 80, str)
-    puts str
+#    DisplayFormat.print(g, obj, 80, str)
+#    puts str
 =begin
     assert_equal(str.squeeze(" "), "{
     x = 0 

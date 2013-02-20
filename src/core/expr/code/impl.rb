@@ -95,15 +95,15 @@ module Impl
     end
     
     def eval_EFunCall(fun, params, lambda)
-      dynamic_bind in_fc: true do 
-        if lambda.nil?
-          eval(fun).call(*(params.map{|p|eval(p)}))
-        else
-          p = eval(lambda)
-          f = eval(fun)
-          #puts "FunCall #{f}=#{f.class} #{p}"
-          f.call(*(params.map{|p|eval(p)}), &p) 
-        end
+      m = dynamic_bind in_fc: true do
+        eval(fun)
+      end 
+      if lambda.nil?
+        puts "params = #{params.map{|p|eval(p)}}"
+        m.call(*(params.map{|p|eval(p)}))
+      else
+        p = eval(lambda)
+        m.call(*(params.map{|p|eval(p)}), &p) 
       end
     end
   
