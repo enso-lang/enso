@@ -338,10 +338,10 @@ module Factory
       # left-biased: field is from self
       result = Set.new(nil, @field, __key || other.__key)
       self.each do |x|
-        result.push(x)
+        result << x
       end
       other.each do |x|
-        result.push(x)
+        result << x
       end
       result
     end
