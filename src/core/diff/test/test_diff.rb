@@ -2,10 +2,7 @@
 require 'test/unit'
 
 require 'core/system/load/load'
-require 'core/schema/tools/print'
-require 'core/diff/code/delta'
 require 'core/diff/code/diff'
-require 'core/schema/code/factory'
 
 class DiffTest < Test::Unit::TestCase
 
@@ -20,7 +17,7 @@ class DiffTest < Test::Unit::TestCase
   
   # test matching
   def test_match
-    res = Match.new.match(@p1, @p2)
+    res = Diff::Match.new.match(@p1, @p2)
     assert_equal(10, res.size)
   end
 
