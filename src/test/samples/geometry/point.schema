@@ -1,20 +1,25 @@
-primitive int
-primitive str
-primitive bool
+  primitive \str
+  primitive \int
+  primitive \bool
+  primitive \real
 
-class Canvas
-  drawings ! Drawing*
+class Point
+
+class Point2D < Point
+  x: int
+  y: int
+
+class Point3D < Point
+  x: int
+  y: int
+  z: int
+
+class Line
+   label# str
+  len: int?
+   pts! Point2D *
+  adj: Line?
 
 class Drawing
-   name # str
-  shapes ! Shape *
+   lines! Line *
 
-class Shape
-
-class Line < Shape
-  pts ! Point *
-  is_straight : bool = pts.length <= 2
-
-class Point < Shape
-  x : int
-  y : int

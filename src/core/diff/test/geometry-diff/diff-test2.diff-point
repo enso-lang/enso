@@ -1,4 +1,0 @@
-drawing
-line "Flamingo" point 1 1 point 2 2 point 20 20 point 21 21 point 3 3 point 4 4 point 22 22 point 23 23 adj Stork end
-line "Stork" point 1 1 point 10 10 adj Flamingo end
-end

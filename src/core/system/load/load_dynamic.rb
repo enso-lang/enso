@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'core/diff/code/diff'
+require 'core/schema/tools/diff'
 require 'core/diff/code/patch'
 
 module Loading

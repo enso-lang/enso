@@ -1,7 +1,7 @@
 require 'core/system/load/load'
 require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
-require 'core/diff/code/diff'
+require 'core/schema/tools/diff'
 require 'socket'
 require 'yaml'
 

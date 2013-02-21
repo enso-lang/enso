@@ -2,17 +2,17 @@
 require 'test/unit'
 
 require 'core/system/load/load'
-require 'core/diff/code/diff'
+require 'core/schema/tools/diff'
 
 class DiffTest < Test::Unit::TestCase
 
   # test setup
   def setup
-    @point_schema = Load::load('diff-point.schema')
-    @point_grammar = Load::load('diff-point.grammar')
+    @point_schema = Load::load('point.schema')
+    @point_grammar = Load::load('point.grammar')
     
-    @p1 = Load::load('diff-test1.diff-point')
-    @p2 = Load::load('diff-test2.diff-point')
+    @p1 = Load::load('point1.point')
+    @p2 = Load::load('point2.point')
   end
   
   # test matching

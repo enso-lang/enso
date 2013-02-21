@@ -1,10 +1,6 @@
-start Canvas
-Canvas ::= [Canvas] drawings:Drawing*
-
-Drawing ::= [Drawing] "drawing" name:sym
-			    shapes:Shape* @/ /
-			  "end"
-
-Shape ::= Line | Point
-Line ::= [Line] "line" pts:Point* "end"
-Point ::= [Point] "(" . x:int . "," y:int . ")"
+start Drawing
+Drawing ::= [Drawing] "drawing" lines:Line*@/ / "end"
+Line ::= [Line] "line" label:str len:int? pts:Point2D * Adj? "end"
+Adj ::= "adj" adj:</lines[it]>
+Point3D ::= [Point3D] "point" x:int y:int z:int
+Point2D ::= [Point2D] "point" x:int y:int

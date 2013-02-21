@@ -5,7 +5,7 @@ require 'test/unit'
 require 'core/grammar/parse/parse'
 require 'core/grammar/render/layout'
 
-require 'core/diff/code/diff'
+require 'core/schema/tools/diff'
 require 'core/schema/code/factory'
 
 class ParseTest < Test::Unit::TestCase
