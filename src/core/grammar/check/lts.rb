@@ -116,7 +116,7 @@ class LTS
       [t.from, t.to]
     end.uniq
     states.each_with_index do |s, i|
-      out << "n_#{i} [label=\"#{s.gsub('"', '\\"')}\"]\n"
+      out << "n_#{i} [label=\"#{s.to_s.gsub('"', '\\"')}\"]\n"
     end
     transitions.each do |tr|
       out << "n_#{states.index(tr.from)} -> n_#{states.index(tr.to)} [label=\"#{tr.label}\"]\n"

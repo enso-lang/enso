@@ -30,6 +30,10 @@ module GrammarTypes
     attr_reader :klass
     
     def initialize(klass)
+      #puts "MY KLASS = #{klass.inspect}"
+      if klass.nil? then
+        raise "BUG: klass argument is nil"
+      end
       @klass = klass
     end
 
@@ -38,8 +42,13 @@ module GrammarTypes
     end
 
     def subclass_of?(x)
+      #puts "X = #{x}"
+      #puts "X.klass = #{x.klass}"
+      #puts "KLASS = #{klass}"
       return true if klass == x.klass
+      #p klass.supers
       klass.supers.any? do |sup|
+        #puts "SUP = #{sup.inspect}"
         Klass.new(sup).subclass_of?(x)
       end
     end
@@ -165,6 +174,11 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
+  if !ARGV[0] then
+    puts "Usage: types.rb <schema>"
+    exit!(1)
+  end
+
 
   include GrammarTypes
   s = Loader.load(ARGV[0])

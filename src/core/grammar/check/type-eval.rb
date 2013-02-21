@@ -25,6 +25,7 @@ class TypeEval < GrammarFold
   end
 
   def Create(this, _)
+    #puts "Create: #{this.name}"
     Klass.new(@schema.classes[this.name])
   end
 
@@ -44,11 +45,15 @@ if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/grammar/check/reach-eval'
   require 'core/grammar/check/combine'
+  require 'core/schema/tools/print'
   require 'pp'
 
   g = Loader.load(ARGV[0])
   s = Loader.load(ARGV[1])
   start = ARGV[2]
+
+  #Print.print(s)
+
 
   tbl = ReachEval.reachable_fields(g)
 
