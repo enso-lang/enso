@@ -84,4 +84,8 @@ class EnsoProxyObject < EnsoBaseClass
       #_call(msg, *args)
     end
   end
+
+  def to_str
+    to_s
+  end
 end
