@@ -1,13 +1,5 @@
 
 
-class Dispatch
-  def recurse(obj, *args)
-    #puts "RENDER #{obj} #{arg}"
-    raise "**UNKNOWN #{obj.class} #{obj}" if !obj.schema_class.name
-    return send(obj.schema_class.name, obj, *args)
-  end
-end
-
 class MemoBase
   def initialize
     @memo = {}

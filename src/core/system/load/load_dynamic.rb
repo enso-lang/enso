@@ -39,7 +39,7 @@ module Loading
         g = load("#{type}.grammar")
         find_model(filename) do |path|
           File.open(path, "w") do |f|
-            DisplayFormat.print(g, @cache[name], 160, f)
+            Layout::DisplayFormat.print(g, @cache[name], f)
           end
         end
         @old_cache[name] = Clone(@cache[name])

@@ -14,5 +14,5 @@ Print.print(p)
 puts "-"*50
 
 p2 = Load::load('test.diff-point')
-DisplayFormat.print(point_grammar, p2)
+Layout::DisplayFormat.print(point_grammar, p2)
 

@@ -9,6 +9,10 @@ function(Eval, Lvalue, Interpreter, Env) {
   var Impl ;
   var Closure = MakeClass("Closure", null, [],
     function() {
+      this.make_closure = function(body, formals, env, interp) {
+        var self = this; 
+        return Closure.new(body, formals, env, interp).method("call_closure");
+      };
     },
     function(super$) {
       this.env = function() { return this.$.env };
@@ -18,7 +22,7 @@ function(Eval, Lvalue, Interpreter, Env) {
         var self = this; 
         self.$.body = body;
         self.$.formals = formals;
-        self.$.env = env.clone();
+        self.$.env = env;
         return self.$.interp = interp;
       };
 
@@ -80,21 +84,21 @@ function(Eval, Lvalue, Interpreter, Env) {
 
     this.eval_EBlock = function(body) {
       var self = this; 
-      var res;
+      var res, nenv;
       res = null;
+      nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
       self.dynamic_bind(function() {
         return body.each(function(c) {
           return res = self.eval(c);
         });
-      }, new EnsoHash ( { in_fc: false } ));
+      }, new EnsoHash ( { env: nenv, in_fc: false } ));
       return res;
     };
 
     this.eval_EFunDef = function(name, formals, body) {
       var self = this; 
       var res;
-      res = Impl.Closure.new(body, formals, self.$.D._get("env"), self);
-      res.env()._set(name, res);
+      res = Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self);
       self.$.D._get("env")._set(name, res);
       return res;
     };
@@ -103,7 +107,7 @@ function(Eval, Lvalue, Interpreter, Env) {
       var self = this; 
       return Proc.new(function() {
         var p = compute_rest_arguments(arguments, 0 );
-        return Impl.Closure.new(body, formals, self.$.D._get("env"), self).call_closure.apply(Impl.Closure.new(body, formals, self.$.D._get("env"), self), [].concat( p ));
+        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat( p ));
       });
     };
 

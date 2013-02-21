@@ -180,7 +180,7 @@ if __FILE__ == $0 then
 
   puts "Rendering"
 
-  DisplayFormat.print(gg, g2)
+  Layout::DisplayFormat.print(gg, g2)
 
 end
 

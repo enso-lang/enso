@@ -150,13 +150,13 @@ if __FILE__ == $0 then
   
   Print.print(sg_copy)
 
-  DisplayFormat.print(gg, sg_copy)
-  DisplayFormat.print(sg, ss_copy)
+  Layout::DisplayFormat.print(gg, sg_copy)
+  Layout::DisplayFormat.print(sg, ss_copy)
 
   prime!(sg_copy)
   
   puts "========= PRIMED ======="
-  DisplayFormat.print(gg, sg_copy)
+  Layout::DisplayFormat.print(gg, sg_copy)
 
   paths(ss_copy) do |path|
     p path

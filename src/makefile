@@ -14,10 +14,14 @@ main: \
 	js/core/expr/code/eval.js \
 	js/core/expr/code/lvalue.js \
 	js/core/schema/tools/union.js \
-
-
+	js/core/grammar/render/layout.js \
+	
+	
 foo: \
-	js/core/grammar/parse/parse.js \
+    js/core/grammar/parse/origins.js \
+    js/core/grammar/parse/gll.js \
+    js/core/grammar/parse/build.js \
+
 
 
 .SECONDARY:

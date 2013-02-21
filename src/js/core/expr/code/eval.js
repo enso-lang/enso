@@ -89,17 +89,13 @@ function(Factory, Schema, Interpreter) {
     this.eval_EField = function(e, fname) {
       var self = this; 
       var target;
+      target = self.dynamic_bind(function() {
+        return self.eval(e);
+      }, new EnsoHash ( { in_fc: false } ));
       if (self.$.D._get("in_fc")) {
-        return self.dynamic_bind(function() {
-          target = self.eval(e);
-          try {
-            Print.print(target);
-          } catch ( DUMMY ) {
-          }
-          return target.method(fname.to_sym());
-        }, new EnsoHash ( { in_fc: false } ));
+        return target.method(fname.to_sym());
       } else {
-        return self.eval(e).send(fname);
+        return target.send(fname);
       }
     };
   });

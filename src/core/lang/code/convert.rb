@@ -1,6 +1,5 @@
 require 'core/system/load/load'
-require 'core/grammar/render/render.rb'
-require 'core/schema/tools/dumpjson.rb'
+require 'core/schema/tools/dumpjson'
 require 'core/grammar/render/layout'
 
 require 'ripper'
@@ -818,7 +817,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_super(args)
-    if !args.parens && args.normal == [] && !args.rest && !args.block
+    if !args || !args.parens && args.normal == [] && !args.rest && !args.block
       raise "Super with no arguments not supported!"
     else
       make_call_formals(@f.Super, "UNKONWN", args)
@@ -987,7 +986,7 @@ if __FILE__ == $0 then
    
   out = File.new(outname, "w")
   $stdout << "## storing #{outname}\n"
-  DisplayFormat.print(g, m, 80, out, false)
+  Layout::DisplayFormat.print(g, m, out, false)
 end
 
 

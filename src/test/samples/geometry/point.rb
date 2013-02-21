@@ -26,17 +26,17 @@ puts "-"*50
 
 p1 = Load::load('point1.point')
 str = ""
-DisplayFormat.print(point_grammar, p1, 80, str)
+DisplayFormat.print(point_grammar, p1, str)
 puts str
 puts p1.drawings['Drawing1'].shapes[0].is_straight
 
 p2 = Load::load('point2.point')
 str = ""
-DisplayFormat.print(point_grammar, p2, 80, str)
+DisplayFormat.print(point_grammar, p2, str)
 puts str
 puts p2.drawings['Drawing2'].shapes[0].is_straight
 
 p12 = union(p1, p2)
 str = ""
-DisplayFormat.print(point_grammar, p12, 80, str)
+DisplayFormat.print(point_grammar, p12, str)
 puts str

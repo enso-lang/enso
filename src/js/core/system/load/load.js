@@ -105,7 +105,6 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
           model = parts._get(0);
           type = parts._get(1);
           res = self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema")));
-          self.patch_schema_pointers_in_place(res, self.load(S(type, ".schema")));
           System.stderr().push(S("## caching ", name, "...\\n"));
           Cache.save_cache(name, res);
           return res;
@@ -114,7 +113,7 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
 
       this.patch_schema_pointers_in_place = function(obj, schema) {
         var self = this; 
-        var all_classes;
+        var all_classes, sc;
         all_classes = [];
         Schema.map(function(o) {
           all_classes.push(o);
@@ -122,7 +121,8 @@ function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
         }, obj);
         return all_classes.each(function(o) {
           return o.instance_eval(function() {
-            self.$.schema_class = schema.types()._get(self.schema_class().name());
+            sc = schema.types()._get(o.schema_class().name());
+            self.define_singleton_value("schema_class", sc);
             return self.$.factory.instance_eval(function() {
               return self.$.schema = schema;
             });

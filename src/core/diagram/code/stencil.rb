@@ -124,7 +124,7 @@ class StencilFrame < DiagramFrame
   def on_save
     grammar = Loader.load("#{@extension}.grammar")
     File.open("#{@path}-NEW", "w") do |output|
-      DisplayFormat.print(grammar, @data, 80, output)
+      Layout::DisplayFormat.print(grammar, @data, output)
     end
 
     capture_positions    
@@ -270,7 +270,7 @@ class StencilFrame < DiagramFrame
   def on_export
     grammar = Loader.load("diagram.grammar")
     File.open("#{@path}-diagram", "w") do |output|
-      DisplayFormat.print(grammar, @root, 80, output)
+      Layout::DisplayFormat.print(grammar, @root, output)
     end
   end
 
@@ -293,7 +293,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case Render::RenderExprC.new.render(prop.loc)
+      case Layout::RenderExprC.new.render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font

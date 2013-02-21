@@ -36,9 +36,9 @@ puts Equals.new.equals2(p2, p3)
 =begin
 puts "Result of p3 = patch!(p1, diff(p1, p2))"
 puts "p1="
-DisplayFormat.print(point_grammar, p1)
+Layout::DisplayFormat.print(point_grammar, p1)
 puts "p2="
-DisplayFormat.print(point_grammar, p2)
+Layout::DisplayFormat.print(point_grammar, p2)
 puts "p3="
-DisplayFormat.print(point_grammar, p3)
+Layout::DisplayFormat.print(point_grammar, p3)
 =end

@@ -278,7 +278,7 @@ class EnsoSync
   #stupid method to get past the 
   def self.write_domain(domain)
     f= File.open(@@domainpath+@@domainfile, "w")
-    DisplayFormat.print(@grammar, domain, 80, f)
+    Layout::DisplayFormat.print(@grammar, domain, f)
     f.close
   end
 

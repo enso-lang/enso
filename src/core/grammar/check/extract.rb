@@ -295,5 +295,5 @@ if __FILE__ == $0 then
   dump_inheritance_dot(ns, 'bla.dot')
   Print.print(ns)
 
-  DisplayFormat.print(Load::load('schema-base.grammar'), ns)
+  Layout::DisplayFormat.print(Load::load('schema-base.grammar'), ns)
 end

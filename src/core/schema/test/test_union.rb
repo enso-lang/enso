@@ -10,9 +10,9 @@ require 'core/schema/tools/union'
   
   result = Union(Factory::new(ss), ss, gs)
   #Print.print(result)
-  DisplayFormat.print(sg, result)
+  Layout::DisplayFormat.print(sg, result)
   puts "-"*50
   
   result = Union(Factory::new(gs), sg, gg)
   #Print.print(result)
-  DisplayFormat.print(gg, result)
+  Layout::DisplayFormat.print(gg, result)
