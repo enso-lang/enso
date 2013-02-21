@@ -27,7 +27,7 @@ Assumptions:
 =end
 
 require 'core/diff/code/intersect'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 
 class Conflicts
 

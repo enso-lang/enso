@@ -5,7 +5,7 @@ require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
 require 'core/schema/code/factory'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 require 'apps/batches/code/batcheval'
 require 'apps/batches/code/securebatch'
 

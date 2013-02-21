@@ -1,7 +1,7 @@
 require 'core/system/boot/meta_schema'
 require 'core/system/load/load'
 require 'core/schema/tools/dumpjson'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 require 'test/unit'
 
 class BootstrapTests < Test::Unit::TestCase

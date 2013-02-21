@@ -3,7 +3,7 @@ require 'test/unit'
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/schema/tools/union'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 require 'apps/security/code/securefactory'
 
 class SecurityTest < Test::Unit::TestCase

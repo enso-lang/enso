@@ -1,7 +1,7 @@
 
 require 'core/diff/code/intersect'
 require 'core/diff/code/conflicts'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 
 what is this??
 
