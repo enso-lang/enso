@@ -2,7 +2,6 @@ define([
   "enso"
 ],
 function(Enso) {
-
   var Dynamic ;
   var DynamicUpdateProxy = MakeClass("DynamicUpdateProxy", EnsoProxyObject, [],
     function() {

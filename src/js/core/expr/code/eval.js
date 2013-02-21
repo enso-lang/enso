@@ -4,7 +4,6 @@ define([
   "core/semantics/code/interpreter"
 ],
 function(Factory, Schema, Interpreter) {
-
   var Eval ;
   var EvalExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.eval = function(obj) {

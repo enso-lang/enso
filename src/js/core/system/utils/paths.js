@@ -1,7 +1,6 @@
 define([
 ],
 function() {
-
   var Paths ;
 
   var Path = MakeClass("Path", null, [],

@@ -1,7 +1,6 @@
 define([
 ],
 function() {
-
   var Schema ;
 
   Schema = {

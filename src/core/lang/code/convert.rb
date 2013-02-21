@@ -51,7 +51,6 @@ class CodeBuilder < Ripper::SexpBuilder
     schema = Load::load('code.schema')
     @predefined = ["self", "nil", "true", "false"]
     @f = Factory::new(schema)
-    @selfVar = "TOP_LEVEL"
     reset_assigned_vars()
   end
   
@@ -413,11 +412,9 @@ class CodeBuilder < Ripper::SexpBuilder
       if o.target
         if o.target.Super?
           o.method = @currentMethod
-        elsif o.target.Var? && o.target.name[0] == "$"
-          o.target = @f.Call(@f.Var("System"), o.target.name.slice(1,1000))
         end
       else
-        if !(o.method =~ /^[A-Z]/)
+        if @selfVar && !(o.method =~ /^[A-Z]/)
           o.target = @f.Var(@selfVar)
         end
       end
@@ -467,7 +464,9 @@ class CodeBuilder < Ripper::SexpBuilder
       o.body = fixup_expr(o.body, [o.var] + env)
 
     when "Var"
-      if !(o.name =~ /^[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
+      if o.name[0] == "$"
+        o = @f.Call(@f.Var("System"), o.name.slice(1,1000))
+      elsif @selfVar && !(o.name =~ /^[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
         o = @f.Call(@f.Var(@selfVar), o.name)
       else
         o.name = fixup_var_name(o.name)
@@ -702,16 +701,27 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_program(defs) # parser event
     #puts "DEFS #{defs}"
-    parts = defs.partition {|x| x.is_a?(ModuleDef) }
-    if parts[0].size != 1
-      raise "Each file must have a single top-level module"
+    split = defs.partition {|x| x.is_a?(ModuleDef) }
+    if split[0].size == 0
+      mod = ModuleDef.new("MAIN", [])
+    elsif split[0].size == 1
+      mod = split[0][0]
+    else
+      raise "Only one top-level module allowed"
     end
-    requires = parts[1]
-    mod = parts[0][0]
+    split1 = split[1].partition {|x| x.Require? }
+    requires = split1[0] 
+    if split1[1].size > 0
+      puts "FOO #{split1[1]}"
+      @selfVar = nil
+      others = fixup_expr(@f.Seq(split1[1]))
+    else
+      others = nil
+    end
     
-  # returns [metas, normal, includes/requires]
+    # returns [metas, normal, includes/requires]
     parts = split_meta(mod.defs)
-    fixup_expr(@f.Module(mod.name, requires, parts.flatten))
+    fixup_expr(@f.Module(mod.name, requires, parts.flatten, others))
   end
     
   def on_qwords_add(array, word)

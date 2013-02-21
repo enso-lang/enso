@@ -15,6 +15,8 @@ main: \
 	js/core/expr/code/lvalue.js \
 	js/core/schema/tools/union.js \
 	js/core/grammar/render/layout.js \
+	js/core/grammar/render/render.js \
+	js/core/system/load/cache.js \
 	
 	
 foo: \

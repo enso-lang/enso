@@ -1,12 +1,19 @@
 start Program
 
-Program ::= [Module] "define(["/> requires:([Require] path:str)* @(.","/) </"]," /
-                     "function(". requires:([Require] name:sym)* @(.",") .") {">/2
-                     "var" name:sym ";"/
-                     defs:Def* @/2 /2
-                     name:sym "=" "{"/> defs:Export* /2 /<"};"/
-                     "return" name:sym .";"/
-                     <"})"/
+Program ::= Main | Module
+
+Main ::= [Module] "var requirejs = require('requirejs');" /
+                  "requirejs.config({ nodeRequire: require, baseUrl: 'js' });" /
+                  "requirejs(". Imports "{">/ main:SeqBody <"})"/
+                     
+Module ::= [Module] "define(". Imports "{">/
+                    "var" name:sym ";"/
+                    defs:Def* @/2 /2
+                    name:sym "=" "{"/> defs:Export* /2 /<"};"/
+                    "return" name:sym .";"/
+                    <"})"/
+Imports ::= "["/> requires:([Require] path:str)* @(.","/) </"]," /
+            "function(". requires:([Require] name:sym)* @(.",") .")"
 Def     ::= Class | Mixin | [Binding]
 Export ::= [Class] ExportName | [Mixin] ExportName | Binding
 ExportName ::= name:sym .":" name:sym ."," /
