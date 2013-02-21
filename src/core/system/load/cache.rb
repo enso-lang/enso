@@ -44,7 +44,13 @@ module Cache
   end
 
 
-  def self.cache_path; "core/system/load/cache/"; end
+  def self.cache_path
+    res = "core/system/load/cache/"
+    unless File.exists? res
+      Dir.mkdir res
+    end
+    res 
+  end
   
   def self.find_json(name)
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
