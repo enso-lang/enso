@@ -4,9 +4,9 @@ Transform a batch script query into a secure version with the help of a security
 
 =end
 
-require 'core/security/code/security'
-require 'core/security/code/bind'
-require 'core/batches/code/secureschema'
+require 'apps/security/code/security'
+require 'apps/security/code/bind'
+require 'apps/batches/code/secureschema'
 
 class SecureBatch
 

@@ -11,5 +11,5 @@ arch -i386 ruby core/diagram/code/stencil.rb applications/StateMachine/tests/doo
 
 ruby test/render.rb
 
-./core/web/scripts/ensoweb.sh todo.web test.todo
+./apps/web/scripts/ensoweb.sh todo.web test.todo
 open http://localhost:3000/index

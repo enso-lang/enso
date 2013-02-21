@@ -5,8 +5,8 @@ Create a structure of objects from a result set
 =end
 
 require 'core/schema/code/factory'
-require 'core/batches/code/utils'
-require 'core/batches/code/secureschema'
+require 'apps/batches/code/utils'
+require 'apps/batches/code/secureschema'
 
 class Result2Object
 

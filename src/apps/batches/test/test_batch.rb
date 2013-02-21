@@ -6,8 +6,8 @@ require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
 require 'core/schema/code/factory'
 require 'core/diff/code/equals'
-require 'core/batches/code/batcheval'
-require 'core/batches/code/securebatch'
+require 'apps/batches/code/batcheval'
+require 'apps/batches/code/securebatch'
 
 class BatchTest < Test::Unit::TestCase
 

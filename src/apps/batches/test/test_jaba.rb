@@ -10,9 +10,9 @@ require 'core/grammar/render/layout'
 require 'core/diff/code/delta'
 require 'core/schema/tools/diff'
 require 'core/schema/code/factory'
-require 'core/batches/code/query2batch'
-require 'core/batches/code/result2object'
-require 'core/batches/code/java_impl/schema'
+require 'apps/batches/code/query2batch'
+require 'apps/batches/code/result2object'
+require 'apps/batches/code/java_impl/schema'
 
 require "lib/runtime-1.0-SNAPSHOT.jar"
 require "lib/mysql-connector-java-5.1.10.jar"

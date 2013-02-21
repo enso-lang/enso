@@ -1,5 +1,5 @@
 
-require 'core/web/code/web'
+require 'apps/web/code/web'
 
 class DefaultActions
 

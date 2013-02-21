@@ -63,7 +63,7 @@ if __FILE__ == $0 then
   grammar = Load::load('web.grammar')
   ss = Load::load('web.schema')
   factory = Factory::new(ss)
-  path = 'core/web/models/prelude.web'
+  path = 'apps/web/models/prelude.web'
   source = File.read(path)
   org = Origins.new(source, path)
   

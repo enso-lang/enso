@@ -5,8 +5,8 @@ Sit in tight loop waiting for someone to call me
 
 require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
-require 'core/security/code/securefactory'
-require 'core/security/code/nullsecurity'
+require 'apps/security/code/securefactory'
+require 'apps/security/code/nullsecurity'
 require 'core/system/load/load'
 require 'socket'
 require 'yaml'

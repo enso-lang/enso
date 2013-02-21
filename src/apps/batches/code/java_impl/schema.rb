@@ -7,7 +7,7 @@ require "lib/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.ISchema
 
-require 'core/batches/code/java_impl/entitytype'
+require 'apps/batches/code/java_impl/entitytype'
 
 class Schema_Enso
   include ISchema

@@ -1,9 +1,9 @@
 
-require 'core/web/code/batchweb'
-require 'core/web/code/handlers.rb'
-require 'core/batches/code/batchfactory'
-require 'core/batches/code/batcheval'
-require 'core/batches/code/secureschema'
+require 'apps/web/code/batchweb'
+require 'apps/web/code/handlers.rb'
+require 'apps/batches/code/batchfactory'
+require 'apps/batches/code/batcheval'
+require 'apps/batches/code/secureschema'
 
 
 class Stream

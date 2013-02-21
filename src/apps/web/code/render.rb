@@ -1,6 +1,6 @@
 
 require 'core/system/load/load'
-require 'core/web/code/dispatch'
+require 'apps/web/code/dispatch'
 
 module Web::Eval
   class Render

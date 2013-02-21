@@ -23,7 +23,7 @@ List of all security checks:
 
 =end
 
-require 'core/security/code/security'
+require 'apps/security/code/security'
 
 module SecureFactory
 

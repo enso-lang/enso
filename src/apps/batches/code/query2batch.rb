@@ -9,7 +9,7 @@ include Java
 $CLASSPATH<<'lib/runtime-1.0-SNAPSHOT.jar'
 
 require "core/system/library/schema"
-require "core/batches/code/utils"
+require "apps/batches/code/utils"
 
 require "lib/runtime-1.0-SNAPSHOT.jar"
 

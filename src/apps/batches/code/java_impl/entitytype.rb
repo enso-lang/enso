@@ -7,9 +7,9 @@ require "lib/mysql-connector-java-5.1.10.jar"
 
 include_class Java::batch.sql.schema.IEntityType
 
-require 'core/batches/code/java_impl/attribute'
-require 'core/batches/code/java_impl/relationship'
-require 'core/batches/code/java_impl/member'
+require 'apps/batches/code/java_impl/attribute'
+require 'apps/batches/code/java_impl/relationship'
+require 'apps/batches/code/java_impl/member'
 
 class EntityType_Enso
   include IEntityType

@@ -4,8 +4,8 @@ Transform a schema into a secure schema by adding extra write permission fields
 
 =end
 
-require 'core/security/code/security'
-require 'core/security/code/bind'
+require 'apps/security/code/security'
+require 'apps/security/code/bind'
 
 class SecureSchema
 

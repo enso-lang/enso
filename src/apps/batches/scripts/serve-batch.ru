@@ -1,8 +1,8 @@
 # -*-ruby-*-
 
-# RUBYOPT="-I." thin start -V -D --stats . -R core/web/code/serve.ru
+# RUBYOPT="-I." thin start -V -D --stats . -R apps/web/code/serve.ru
 
-require 'core/web/code/batch-toplevel'
+require 'apps/web/code/batch-toplevel'
 require 'core/system/load/load'
 
 require 'logger'

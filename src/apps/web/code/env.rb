@@ -1,6 +1,6 @@
 
-require 'core/web/code/result'
-require 'core/web/code/web'
+require 'apps/web/code/result'
+require 'apps/web/code/web'
 
 module Web::Eval
   class Env

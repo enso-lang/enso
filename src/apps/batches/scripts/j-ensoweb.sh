@@ -3,7 +3,7 @@
 # Usage (from src dir) ensoweb.sh <app>.web <anymodel>
 # anymodel will be the "root" of the application.
 
-WEBSCRIPTS=core/web/scripts
+WEBSCRIPTS=apps/web/scripts
 
 export WEB=$1
 export SCHEMA=$2

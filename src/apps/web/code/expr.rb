@@ -1,7 +1,7 @@
 
 
-require 'core/web/code/dispatch'
-require 'core/web/code/result'
+require 'apps/web/code/dispatch'
+require 'apps/web/code/result'
 
 module Web::Eval
   class Expr

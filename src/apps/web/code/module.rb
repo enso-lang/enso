@@ -1,7 +1,7 @@
 
-require 'core/web/code/dispatch'
-require 'core/web/code/closure'
-require 'core/web/code/result'
+require 'apps/web/code/dispatch'
+require 'apps/web/code/closure'
+require 'apps/web/code/result'
 require 'core/system/load/load'
 
 module Web::Eval

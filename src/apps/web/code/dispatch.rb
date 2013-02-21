@@ -1,5 +1,5 @@
 
-require 'core/web/code/web'
+require 'apps/web/code/web'
 
 module Web::Eval
   module Dispatch

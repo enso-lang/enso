@@ -1,15 +1,15 @@
 
 
 require 'core/system/load/load'
-require 'core/web/code/dispatch'
-require 'core/web/code/web'
-require 'core/web/code/expr'
-require 'core/web/code/render'
-require 'core/web/code/module'
-require 'core/web/code/env'
-require 'core/web/code/actions'
-require 'core/web/code/form'
-require 'core/web/code/xhtml2txt'
+require 'apps/web/code/dispatch'
+require 'apps/web/code/web'
+require 'apps/web/code/expr'
+require 'apps/web/code/render'
+require 'apps/web/code/module'
+require 'apps/web/code/env'
+require 'apps/web/code/actions'
+require 'apps/web/code/form'
+require 'apps/web/code/xhtml2txt'
 
 
 require 'readline'
