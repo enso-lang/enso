@@ -2,8 +2,9 @@ import impl.grammar
 
 start Stencil
 
-abstract EBlock
 abstract Expr
+abstract Command
+abstract EAssign
 
 // To make text fields editable, add a "+" behind the name
 
@@ -13,26 +14,26 @@ Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Command*
 Command ::= Part
           | Command
 
-Part ::= [Label] "label" Style? label:Expr body:EBlock
-       | [Container] Dir Style? items:EBlock
-       | [Connector] "connector" Style? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
-       | [Text] "text" ("+" {editable==true} | {editable==false}) Style? string:Expr
-       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Style? content:EBlock
-       | [Require] "require" path:str
-Style ::= ":" style:sym
+Part ::= [Container] Dir Props? "{" items:Command+ "}"
+       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
+       | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
+       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Command?
+       | [CheckBox] "checkbox" string:Expr
+       | [RadioList] "radio" value:Expr choices:Expr
+       | [TextBox] "text?" value:Expr
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph"  {direction==3} | "do"  {direction==4}
 ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
 Index ::= "," index:sym
 
-
-EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
+Props ::= "[" props:EAssign* @"," "]"
+//Assign ::= [Assign] loc:Expr "=" exp:Expr
+//EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
 
 EBinOp1 ::= [InstanceOf] base:Expr "is" class_name:sym
           | EBinOp1
 
 EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
+         | [Eval] "[[" expr:Expr "]]"
          | EUnOp
-
-EAssign ::= [EAssign] "let" var:Expr "=" val:Expr "in" body:Command

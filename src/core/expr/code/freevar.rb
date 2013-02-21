@@ -1,62 +1,65 @@
 require 'core/expr/code/eval'
+require 'core/expr/code/lvalue'
+require 'core/semantics/code/interpreter'
 
-module FreeVarExpr
-  #Determine the set of unbounded variables in this expr
-  #that need to be supplied by the environment.
-  #There are no assumptions as to the type of EFields,
-  #so they can be MObjects or Ruby objects or even arrays
-
-  #Function calls do not work properly here since functions
-  #can be defined outside of the expression (they are ALWAYS
-  #defined externally if this is Expr without Impl)
-
-  include EvalExpr
-  include LValueExpr
+module Freevar
+  module FreeVarExpr
+    #Determine the set of unbounded variables in this expr
+    #that need to be supplied by the environment.
+    #There are no assumptions as to the type of EFields,
+    #so they can be MObjects or Ruby objects or even arrays
   
-  include Dispatcher    
+    #Function calls do not work properly here since functions
+    #can be defined outside of the expression (they are ALWAYS
+    #defined externally if this is Expr without Impl)
+  
+    include Eval::EvalExpr
+    include Lvalue::LValueExpr
     
-  def depends(obj)
-    dispatch(:depends, obj)
-  end
-  
-  def depends_EField(e, fname)
-    [*depends(e)] 
-  end
-
-  def depends_EVar(name)
-    (@_.bound.include?(name) || name == "self") ? [] : [Address.new(@_.env, name)]
-  end
-
-  def depends_ELambda(body, formals)
-    bound2 = @_.bound.clone
-    formals.each{|f|bound2<<depends(f)}
-    dynamic_bind bound: bound2 do
-      depends(body)
+    include Interpreter::Dispatcher    
+      
+    def depends(obj)
+      dispatch(:depends, obj)
     end
-  end
+    
+    def depends_EField(e, fname)
+      [*depends(e)] 
+    end
   
-  def depends_Formal(name)
-    name
-  end
-
-  def depends_?(type, fields, args)
-    res = []
-    type.fields.each do |f|
-      next if !f.traversal or f.type.Primitive?
-      next if f.optional and fields[f.name].nil?
-      if !f.many and !f.type.Primitive?
-        res += depends(fields[f.name])
-      else
-        fields[f.name].each {|o| res += depends(o)}
+    def depends_EVar(name)
+      (@D[:bound].include?(name) || name == "self") ? [] : [Lvalue::Address.new(@D[:env], name)]
+    end
+  
+    def depends_ELambda(body, formals)
+      bound2 = @D[:bound].clone
+      formals.each{|f|bound2<<depends(f)}
+      dynamic_bind bound: bound2 do
+        depends(body)
       end
     end
-    res
+    
+    def depends_Formal(name)
+      name
+    end
+  
+    def depends_?(type, fields, args)
+      res = []
+      type.fields.each do |f|
+        if f.traversal && !f.type.Primitive? && fields[f.name]
+          if !f.many
+            res = res.concat( depends(fields[f.name]) )
+          else
+            fields[f.name].each {|o| res = res.concat(depends(o)) }
+          end
+        end
+      end
+      res
+    end
   end
-end
-
-
-class FreeVarExprC
-  include FreeVarExpr  
-  def initialize
+  
+  class FreeVarExprC
+    include FreeVarExpr  
+    def initialize
+    end
   end
 end

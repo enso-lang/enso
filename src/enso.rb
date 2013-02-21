@@ -42,6 +42,12 @@ class Hash
   end
 end
 
+class String
+  def is_binary_data?
+    ( self.count( "^ -~", "^\r\n" ).fdiv(self.size) > 0.3 || self.index( "\x00" ) ) unless empty?
+  end
+end
+
 class Object
   def define_singleton_value(sym, val)
     self.define_singleton_method(sym) { val }
@@ -62,26 +68,35 @@ class EnsoBaseClass
     undef_method :lambda, :methods, :method
   rescue
   end
-  def type  # HACK for JRuby to work, because it defines :type
-    method_missing(:type)
-  end
   def to_ary
     nil
   end
 end
 
 class EnsoProxyObject < EnsoBaseClass  
-  def method_missing(msg, *args)
-    #puts "MM #{msg} #{self.class}"
-    if msg[-1] == "="
-      self[msg.to_s.chomp("=")] = args[0]
-    elsif msg == "[]" || args.length == 1
-      self[args[0]]
-    elsif args.length == 0
-      self[msg.to_s]
-    else
-      raise "Method missing only works for properties and []"
-      #_call(msg, *args)
+  def [](name)
+    send name
+  end
+  
+  def []=(name, val)
+    send "#{name}=", val
+  end
+  
+  def define_singleton_value(name, value)
+    define_singleton_method name do
+      value
+    end
+  end
+  
+  def define_getter(name, accessor)
+    define_singleton_method(name) do
+      accessor.get
+    end
+  end
+
+  def define_setter(name, accessor)
+    define_singleton_method("#{name}=") do |val|
+      accessor.set(val)
     end
   end
 

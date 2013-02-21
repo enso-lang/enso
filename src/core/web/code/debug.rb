@@ -117,11 +117,11 @@ module Web::Eval
     end
 
     def load(web, root)
-      @web = Loader.load(web)
+      @web = Load::load(web)
       @sources = {}
       @sources[web] = File.read(locate(web))
       @sources['prelude.web'] = File.read(locate('prelude.web'))
-      @root = Loader.load(root)
+      @root = Load::load(root)
       @toplevel = Env.root(@root, DefaultActions)
       mod_eval = Mod.new(@toplevel, @log)
       mod_eval.eval(@web)

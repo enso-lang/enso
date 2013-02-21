@@ -139,8 +139,8 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
 
-  g = Loader.load(ARGV[0])
-  s = Loader.load(ARGV[1])
+  g = Load::load(ARGV[0])
+  s = Load::load(ARGV[1])
   root = s.classes[ARGV[2]]
 
   glts = GrammarLTS.new(s, root)

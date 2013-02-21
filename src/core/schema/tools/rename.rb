@@ -129,10 +129,10 @@ if __FILE__ == $0 then
   require 'core/schema/code/factory'
   require 'core/schema/tools/print'
   require 'core/schema/tools/copy'
-  ss = Loader.load('schema.schema')
-  sg = Loader.load('schema.grammar')
-  gg = Loader.load('grammar.grammar')
-  gs = Loader.load('grammar.schema')
+  ss = Load::load('schema.schema')
+  sg = Load::load('schema.grammar')
+  gg = Load::load('grammar.grammar')
+  gs = Load::load('grammar.schema')
 
   ss_copy = copy(ss)
 
@@ -150,13 +150,13 @@ if __FILE__ == $0 then
   
   Print.print(sg_copy)
 
-  DisplayFormat.print(gg, sg_copy)
-  DisplayFormat.print(sg, ss_copy)
+  Layout::DisplayFormat.print(gg, sg_copy)
+  Layout::DisplayFormat.print(sg, ss_copy)
 
   prime!(sg_copy)
   
   puts "========= PRIMED ======="
-  DisplayFormat.print(gg, sg_copy)
+  Layout::DisplayFormat.print(gg, sg_copy)
 
   paths(ss_copy) do |path|
     p path

@@ -8,14 +8,8 @@ require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/system/load/cache'
 
-class String
-  def is_binary_data?
-    ( self.count( "^ -~", "^\r\n" ).fdiv(self.size) > 0.3 || self.index( "\x00" ) ) unless empty?
-  end
-end
-
-module Loading
-  class Loader
+module Load
+  class LoaderClass
 
     # TODO: get rid of bootstrap models in memory
     GRAMMAR_GRAMMAR = 'grammar.grammar'
@@ -26,8 +20,11 @@ module Loading
     def load(name, type = nil)
       setup() if @cache.nil?
       
-      return @cache[name] if @cache[name]
-      load!(name, type)
+      if @cache[name]
+        @cache[name]
+      else
+        load!(name, type)
+      end
     end
     
     def load!(name, type = nil)
@@ -39,7 +36,7 @@ module Loading
       g = load("#{type}.grammar")
       s = load("#{type}.schema")
       result = Parse.load_raw(source, g, s, factory, show)
-      return result.finalize
+      result.finalize
     end
 
     def load_cache(name, obj)
@@ -50,13 +47,17 @@ module Loading
     #private
 
     def _load(name, type)
-      #first check if cached XML version is still valid
+      #first check if cached XML version is still valid 
       if Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
         Cache::load_cache(name)
       else
-        filename = name.split(/\//)[-1]
-        model, type = filename.split(/\./) if type.nil?
+        filename = name.split("/")[-1]
+        if type.nil?
+          parts = filename.split(".")
+          model = parts[0]
+          type = parts[1]
+        end
         g = load("#{type}.grammar")
         s = load("#{type}.schema")
         res = load_with_models(name, g, s)
@@ -83,15 +84,20 @@ module Loading
       @cache[GRAMMAR_GRAMMAR] = gg = update_xml('grammar.grammar')
       @cache[SCHEMA_GRAMMAR] = sg = update_xml('schema.grammar')
     end
-    
+
     def update_xml(name)
-      return @cache[name] if Cache::check_dep(name)
-      model, type = name.split(/\./) if type.nil?
-      res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-      patch_schema_pointers!(res, load("#{type}.schema"))
-      $stderr << "## caching #{name}...\n"
-      Cache::save_cache(name, res)
-      res
+      if Cache::check_dep(name)
+        @cache[name]
+      else
+        parts = name.split(".")
+        model = parts[0]
+        type = parts[1]
+        res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
+#        patch_schema_pointers!(res, load("#{type}.schema"))
+        $stderr << "## caching #{name}...\n"
+        Cache::save_cache(name, res)
+        res
+      end
     end
 
     #Note: patch_schema_pointers! does not erase all traces of old schema class
@@ -107,8 +113,9 @@ module Loading
       end
       all_classes.each do |o| 
         o.instance_eval do
-          @schema_class = schema.types[@schema_class.name]
-          @factory.instance_eval { @schema = schema } 
+          sc = schema.types[o.schema_class.name]
+          define_singleton_value(:schema_class, sc)
+          @factory.instance_eval { @schema = schema }
         end
       end
     end
@@ -120,11 +127,12 @@ module Loading
     end
 
     def load_path(path, grammar, schema, encoding = nil)
-      if path =~ /\.xml$/ || path =~ /\.json$/ then
+      if path.end_with?(".xml") || path.end_with?(".json") then
         if schema.nil? then
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
           result = Boot::load_path(path)
+#          patch_schema_pointers!(result, result)
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
@@ -139,7 +147,7 @@ module Loading
           puts "Unable to open file #{path}"
           raise err
         end
-        if header =~ /#ruby/
+        if header == "#ruby"
           $stderr << "## building #{path}...\n"
           str = File.read(path)
           result = instance_eval(str)
@@ -152,12 +160,12 @@ module Loading
           result = Parse.load_file(path, grammar, schema, encoding)
         end
       end
-      return result
+      result
     end
 
-    def find_model(name) 
+    def find_model(name, &block) 
       if File.exists?(name)
-        yield name
+        block.call name
       else
         path = Dir['**/*.*'].find do |p|
           File.basename(p) == name
@@ -166,37 +174,21 @@ module Loading
           nil
         else
           raise EOFError, "File not found #{name}" unless path
-          yield path
+          block.call path
         end
       end
     end
-
   end
-
+  
+  # define a singleton instance 
+  Loader = LoaderClass.new
+  
+  def self.load(name)
+    Loader.load(name)
+  end
+  
+  def self.Load_text(type, factory, source, show = false)
+    Load::load_text(type, factory, source, show)
+  end
 end
 
-Loader = Loading::Loader.new
-
-def Load(name)
-  return Loader.load(name)
-end
-
-def Load_text(type, factory, source, show = false)
-  return Loader.load_text(type, factory, source, show)
-end
-
-if __FILE__ == $0 then
-  l = Loader
-
-  p l.load('grammar.grammar')
-  p l.load('schema.grammar')
-  p l.load('grammar.schema')
-  p l.load('schema.schema')
-  p l.load('layout.schema')
-  p l.load('value.schema')
-  p l.load('proto.schema')
-
-  p l.load('instance.schema')
-
-  #p l.load_parsetree('bla.pt')
-end

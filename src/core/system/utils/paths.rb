@@ -24,23 +24,24 @@ module Paths
       else
         base = []
       end
-      elts = (base + scan(str)).flatten
+      elts = base.concat(scan(str))
       #puts "PARSE '#{original}' #{elts}"
       Path.new(elts)
     end
     
     def self.scan(str)
-      str.split("/").map do |part|
-        if part == "."
-          []
-        elsif (n = part.index("[")) && part.slice(-1) == "]"
+      result = []
+      str.split("/").each do |part|
+        if (n = part.index("[")) && part.slice(-1) == "]"
           base = part.slice(0, n)
           index = part.slice(n+1, part.length - n - 2)
-          [Field.new(base), Key.new(index)]
-        else
-          Field.new(part)
+          result << Field.new(base)
+          result << Key.new(index)
+        elsif part != "."
+          result << Field.new(part)
         end
       end
+      result
     end
 
     def initialize(elts = [])

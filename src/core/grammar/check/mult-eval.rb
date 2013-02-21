@@ -68,7 +68,7 @@ if __FILE__ == $0 then
   require 'pp'
   require 'set'
 
-  g = Loader.load(ARGV[0])
+  g = Load::load(ARGV[0])
 
   # Perform reachability analysis:
   # obtain a table from Create's to

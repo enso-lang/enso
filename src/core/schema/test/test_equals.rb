@@ -8,9 +8,9 @@ require 'core/schema/tools/print'
 require 'core/diff/code/equals'
 
 class EqualityTest < Test::Unit::TestCase
-  SS = Loader.load('schema.schema')
-  GS = Loader.load('grammar.schema')
-  GG = Loader.load('grammar.grammar')
+  SS = Load::load('schema.schema')
+  GS = Load::load('grammar.schema')
+  GG = Load::load('grammar.grammar')
   
   def print_eq(s, x, y)
     s1 = ''
@@ -39,8 +39,8 @@ class EqualityTest < Test::Unit::TestCase
 
   def test_transitive
     s1 = SS
-    s2 = Copy.new(ManagedData.new(SS)).copy(s1)
-    s3 = Copy.new(ManagedData.new(SS)).copy(s2)
+    s2 = Copy.new(Factory::new(SS)).copy(s1)
+    s3 = Copy.new(Factory::new(SS)).copy(s2)
     assert(Equals.equals(s1, s3))
   end
 

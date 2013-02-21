@@ -1,5 +1,4 @@
 
-require 'core/schema/code/many'
 require 'core/schema/code/dynamic'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
@@ -19,47 +18,34 @@ Coding convention
 =end
 
 
-module ManagedData
+module Factory
   def self.new(schema)
-    Factory.new(schema)
+    SchemaFactory.new(schema)
   end
 
-  class Factory
+  class SchemaFactory
     attr_reader :schema
+    attr_accessor :file_path
 
     def initialize(schema)
       @schema = schema
       @roots = []
-      __constructor(schema.types)
       @file_path = []
-    end
-
-    def [](name); send(name) end
-
-    def register(root)
-      # perhaps raise exception if more than one?
-      # (NB any object will always be in the spine of 1 root anyway)
-      @roots << root
-    end
-
-    def delete!(obj)
-      @roots.each do |root|
-        root.__delete_obj(obj)
-      end
-    end
-
-    attr_accessor :file_path
-
-    #private
-
-    def __constructor(klasses)
-      klasses.each do |klass|
+      schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
-          MObject.new(klass, self, *args)
-        end
+         MObject.new(klass, self, *args)
+        end 
       end
     end
-
+    
+    def [](name)
+      send(name)
+    end
+    
+    def register(root)
+      #raise "Creating two roots" if @root
+      @root = root
+    end
   end
 
   class MObject < EnsoProxyObject
@@ -67,42 +53,126 @@ module ManagedData
     attr_accessor :__shell # spine parent (e.g. Ref, Set or List)
     attr_reader :_id
     attr_reader :factory
-    attr_reader :schema_class
     attr_accessor :extra_instance_data
+    attr_reader :props
 
     @@_id = 0
 
     def initialize(klass, factory, *args)
       @_id = @@_id += 1
-      @schema_class = klass
-      @factory = factory
-      @hash = {}
       @listeners = {}
-      @memo = {}
-      __setup(klass.all_fields)
-      __init(klass.fields, args)
-      __install(klass.all_fields)
+      @props = {}
+      
+      # define accessors and updators
+      define_singleton_value(:schema_class, klass)
+      # setup
+      @factory = factory
+      __is_a(klass)
+      __to_s(klass)
+      # create the fields
+      klass.all_fields.each do |fld|
+        __setup(fld)
+      end
+      # initialize    
+      klass.fields.each_with_index do |fld, i|
+        if i < args.length
+          if fld.many then
+            args[i].each do |value|
+              self[fld.name] << value
+            end
+          else
+            self[fld.name] = args[i]
+          end
+        end
+      end
+    end
+    
+    def __setup(fld)
+      if fld.computed then
+        __computed(fld)
+      elsif !fld.many then
+        if fld.type.Primitive?
+          prop = Prim.new(self, fld)
+        else
+          prop = Ref.new(self, fld)
+        end
+        @props[fld.name] = prop
+        define_getter(fld.name, prop)
+        define_setter(fld.name, prop)
+      else
+        if key = Schema::class_key(fld.type)
+          collection = Set.new(self, fld, key)
+        else
+          collection = List.new(self, fld)
+        end
+        @props[fld.name] = collection
+        define_singleton_value(fld.name, collection)
+      end
+    end
+
+    def __get(name)
+      @props[name]
+    end
+
+    def __is_a(klass)
+      klass.schema.classes.each do |cls|
+        val = Schema.subclass? klass, cls
+        define_singleton_value("#{cls.name}?", val)
+      end
+    end
+        
+    def __to_s(cls)
+      k = Schema::class_key(cls)
+      if k then
+        define_singleton_method :to_s do
+          "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
+        end
+      else
+        define_singleton_value(:to_s, "<<#{cls.name} #{self._id}>>")
+      end
+    end
+    
+    def __computed(fld)
+      # check if this is a computed override of a field
+      if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
+        #puts "LIST #{fld.name} overrides #{c.name}"
+        base = c.all_fields[fld.name]
+        if base.inverse
+          fld.computed.elems.each do |var|
+            raise "Field override #{fld.name} includes non-var #{var}" if !var.EVar?
+            __get(var.name)._set_inverse = base.inverse
+          end
+        end
+      end
+      name = fld.name
+      exp = fld.computed
+      fvInterp = Freevar::FreeVarExprC.new
+      commInterp = Impl::EvalCommandC.new
+      val = nil
+      define_singleton_method(name) do
+        if val.nil?
+          fvs = fvInterp.dynamic_bind env: Env::ObjEnv.new(self), bound: [] do
+            fvInterp.depends(exp)
+          end
+          fvs.each do |fv|
+            if fv.object  #should always be non-nil since computed fields have no external env
+              fv.object.add_listener(fv.index) { var = nil }
+            end
+          end
+          val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
+            commInterp.eval(exp)
+          end
+          #puts "COMPUTED #{name}=#{val}"
+          var = val
+        end
+        val
+      end
     end
 
     def _graph_id; @factory end
 
     def instance_of?(sym)
       schema_class.name == sym.to_s
-    end
-
-    def [](name)
-      #puts "_GET #{name}"
-      if name[- 1] == "?" then
-        self.schema_class.name == name.slice(0, name.length - 1);
-      else
-        check_field(name, true)
-        computed?(name) ? send(name) : __get(name).get
-      end
-    end
-
-    def []=(name, x)
-      check_field(name, false)
-      __get(name).set(x)
     end
 
     def delete!; factory.delete!(self) end
@@ -118,7 +188,7 @@ module ManagedData
     end
 
     def dynamic_update
-      @dyn ||= DynamicUpdateProxy.new(self)
+      @dyn ||= Dynamic::DynamicUpdateProxy.new(self)
     end
 
     def add_listener(name, &block)
@@ -148,7 +218,7 @@ module ManagedData
     end
 
     def _clone
-      r = MObject.new(@schema_class, @factory)
+      r = MObject.new(schema_class, @factory)
       schema_class.fields.each do |field|
         if field.many
           self[field.name].each do |o|
@@ -161,9 +231,6 @@ module ManagedData
       end
       r
     end
-    def __get(name); @hash[name] end
-
-    def __set(name, fld); @hash[name] = fld end
 
     def eql?(o); self == o end
 
@@ -171,16 +238,7 @@ module ManagedData
       o && o.is_a?(MObject) && _id == o._id
     end
 
-    def hash; _id end
-
-    def to_s
-      k = Schema::class_key(schema_class)
-      if k then
-        "<<#{schema_class.name} #{_id} '#{self[k.name]}'>>"
-      else
-        "<<#{schema_class.name} #{_id}>>"
-      end
-    end
+    def hash; @_id end
 
     def finalize
       # TODO: check required fields etc.
@@ -190,101 +248,6 @@ module ManagedData
 
     #private
 
-    def check_field(name, can_be_computed)
-      if !@hash.include?(name) then
-        raise "Non-existing field '#{name}' for #{self}"
-      end
-      if !can_be_computed && computed?(name) then
-        raise "Cannot assign to computed field '#{name}'"
-      end
-    end
-
-    def computed?(name); __get(name) == :computed end
-
-    def __setup(fields)
-      fields.each do |fld|
-        klass = self
-        f = if fld.computed then
-          :computed
-        elsif fld.type.Primitive? then
-          ManagedData::Prim.new(klass, fld)
-        elsif !fld.many then
-          ManagedData::Ref.new(klass, fld)
-        elsif key = Schema::class_key(fld.type) then
-          ManagedData::Set.new(klass, fld, key)
-        else
-          ManagedData::List.new(klass, fld)
-        end
-        __set(fld.name, f)
-      end
-    end
-
-    def __init(fields, args)
-      fields.each_with_index do |fld, i|
-        if i < args.length
-          __get(fld.name).init(args[i])
-        end
-      end
-    end
-
-    def __install(fields)
-      fields.each do |fld|
-        if fld.computed then
-          # check if this is a computed override of a field
-          if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
-            #puts "LIST #{fld.name} overrides #{c.name}"
-            base = c.all_fields[fld.name]
-            if base.inverse
-              fld.computed.elems.each do |var|
-                raise "Field override #{fld.name} includes non-var #{var}" if !var.EVar?
-                __get(var.name)._set_inverse = base.inverse
-              end
-            end
-          end
-          __computed(fld)
-        else
-          __setter(fld.name)
-          __getter(fld.name)
-        end
-      end
-    end
-
-    def __computed(fld)
-      name = fld.name
-      exp = fld.computed
-      fvInterp = FreeVarExprC.new
-      commInterp = EvalCommandC.new
-      define_singleton_method(name) do
-        if @memo[name] == nil
-          fvs = fvInterp.dynamic_bind env: ObjEnv.new(self), bound: [] do
-            fvInterp.depends(exp)
-          end
-          fvs.each do |fv|
-            if fv.object  #should always be non-nil since computed fields have no external env
-              fv.object.add_listener(fv.index) { @memo[name]=nil }
-            end
-          end
-          val = commInterp.dynamic_bind env: ObjEnv.new(self), for_field: fld do
-            commInterp.eval(exp)
-          end
-          #puts "COMPUTED #{name}=#{val}"
-          @memo[name] = val
-        end
-        @memo[name]
-      end
-    end
-
-    def __setter(name)
-#      define_singleton_method("#{name}=") do |arg|
-#        self[name] = arg
-#      end
-    end
-
-    def __getter(name)
-#      define_singleton_method(name) do
-#        self[name]
-#      end
-    end
   end
 
   class Field
@@ -294,15 +257,15 @@ module ManagedData
     # of the mobject pointed to.
     attr_accessor :_origin
 
-    def _set_inverse=(inv)
-      raise "Overiding inverse of field '#{inv.owner.name}.#{invk.name}'" if @inverse
-      @inverse = inv
-    end
-
     def initialize(owner, field)
       @owner = owner
       @field = field
       @inverse = field.inverse if field # might get overriden!!
+    end
+
+    def _set_inverse=(inv)
+      raise "Overiding inverse of field '#{inv.owner.name}.#{invk.name}'" if @inverse
+      @inverse = inv
     end
 
     def __delete_obj(mobj)
@@ -348,7 +311,7 @@ module ManagedData
         when 'atom'
           value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
         end
-        raise "Invalid value for #{@field.type.name}: #{value}" if !ok 
+        raise "Invalid value for #{@field.name}:#{@field.type.name} = #{value}" if !ok 
       end
     end
 
@@ -368,6 +331,84 @@ module ManagedData
     end
   end
 
+  module SetUtils
+    def to_ary; @values.values end
+
+    def union(other)
+      # left-biased: field is from self
+      result = Set.new(nil, @field, __key || other.__key)
+      self.each do |x|
+        result << x
+      end
+      other.each do |x|
+        result << x
+      end
+      result
+    end
+
+    def select(&block)
+      result = Set.new(nil, @field, __key)
+      each do |elt|
+        result << elt if block.call(elt)
+      end
+      result
+    end
+
+    def flat_map(&block)
+      new = nil
+      each do |x|
+        set = block.call(x)
+        if new.nil? then
+          key = set.__key
+          new = Set.new(nil, @field, key)
+        else
+         # if set.__key != key then
+         #   raise "Incompatible key fields: #{set.__key} vs #{key}"   
+         # end
+        end
+        set.each do |y|
+          new << y
+        end
+      end
+      new || Set.new(nil, @field, __key)
+    end
+      
+    def each_with_match(other, &block)
+      empty = Set.new(nil, @field, __key)
+      __outer_join(other || empty) do |sa, sb|
+        if sa && sb && sa[__key.name] == sb[__key.name] 
+          block.call(sa, sb)
+        elsif sa
+          block.call(sa, nil)
+        elsif sb
+          block.call(nil, sb)
+        end
+      end
+    end
+
+    def __key; @key end
+
+    def __keys; @value.keys end
+
+    def __outer_join(other, &block)
+      keys = __keys.union(other.__keys)
+      keys.each do |key|
+        block.call( self[key], other[key], key )
+        # block.call( self.get_maybe(key), other.get_maybe(key), key )   # allow non-defined fields to merge
+      end
+    end
+  end
+
+  module ListUtils
+    def each_with_match(other, &block)
+      if !empty? then
+        each do |item|
+          block.call( item, nil )
+        end
+      end
+    end
+  end
+  
   module RefHelpers
     def notify(old, new)
       if old != new

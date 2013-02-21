@@ -58,7 +58,7 @@ if __FILE__ == $0 then
     exit!
   end
 
-  mod = Loader.load(ARGV[0])
+  mod = Load::load(ARGV[0])
   pp = REXML::Formatters::Pretty.new
   pp.write(ToXML::to_doc(mod), $stdout)
 end

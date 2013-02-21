@@ -1,16 +1,9 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
+require 'core/semantics/code/interpreter'
+require 'core/expr/code/env'
 
-module EvalCommand
-
-  include EvalExpr, LValueExpr
-  
-  include Dispatcher    
-    
-  def eval(obj)
-    dispatch(:eval, obj)
-  end
-
+module Impl
   #note that the closure stores variable states only,
   #not interpreter state
   #so calling a closure may produce different behavior
@@ -19,20 +12,24 @@ module EvalCommand
   class Closure
     attr_accessor :env #this is a hack to allow self-recursion
 
+    def self.make_closure(body, formals, env, interp)
+      Closure.new(body, formals, env, interp).method('call_closure')
+    end
+
     def initialize(body, formals, env, interp)
       @body = body
       @formals = formals
-      @env = env.clone
+      @env = env
       @interp = interp
     end
 
     #params are the values used to call this function
     #args are used by the interpreter
-    def call(*params)
+    def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
-      nenv = HashEnv.new
-      @formals.zip(params).each do |f,v|
-        nenv[f.name] = v
+      nenv = Env::HashEnv.new
+      @formals.each_with_index do |f,i|
+        nenv[f.name] = params[i]
       end
       nenv.set_parent(@env)
       @interp.dynamic_bind env: nenv do
@@ -45,72 +42,83 @@ module EvalCommand
     end
   end
 
-  def eval_EWhile(cond, body)
-    while eval(cond)
-      eval(body)
+  module EvalCommand
+  
+    include Eval::EvalExpr
+    include Lvalue::LValueExpr
+    
+    include Interpreter::Dispatcher    
+      
+    def eval(obj)
+      dispatch(:eval, obj)
     end
-  end
-
-  def eval_EFor(var, list, body)
-    nenv = HashEnv.new.set_parent(@_.env)
-    eval(list).each do |val|
-      nenv[var] = val
-      dynamic_bind env: nenv do
+    
+    def eval_EWhile(cond, body)
+      while eval(cond)
         eval(body)
       end
     end
-  end
-
-  def eval_EIf(cond, body, body2)
-    if eval(cond)
-      eval(body)
-    elsif !body2.nil?
-      eval(body2)
-    end
-  end
-
-  def eval_EBlock(body)
-    res = nil
-    dynamic_bind in_fc: false do
-      body.each do |c|
-        res = eval(c)
+  
+    def eval_EFor(var, list, body)
+      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      eval(list).each do |val|
+        nenv[var] = val
+        dynamic_bind env: nenv do
+          eval(body)
+        end
       end
     end
-    res
-  end
   
-  def eval_EFunDef(name, formals, body)
-    res = Closure.new(body, formals, @_.env, self)
-    res.env[name] = res #hack to enable self-recursion
-    @_.env[name] = res
-    res
-  end
+    def eval_EIf(cond, body, body2)
+      if eval(cond)
+        eval(body)
+      elsif !body2.nil?
+        eval(body2)
+      end
+    end
   
-  def eval_ELambda(body, formals)
-    #puts "LAMBDA #{formals} #{body}"
-    Proc.new { |*p| Closure.new(body, formals, @_.env, self).call(*p) }
-  end
-  
-  def eval_EFunCall(fun, params, lambda)
-    dynamic_bind in_fc: true do 
+    def eval_EBlock(body)
+      res = nil
+      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      dynamic_bind env: nenv, in_fc: false do
+        body.each do |c|
+          res = eval(c)
+        end
+      end
+      res
+    end
+
+    def eval_EFunDef(name, formals, body)
+      res = Impl::Closure.make_closure(body, formals, @D[:env], self)
+      @D[:env][name] = res
+      res
+    end
+
+    def eval_ELambda(body, formals)
+      #puts "LAMBDA #{formals} #{body}"
+      Proc.new { |*p| Impl::Closure.make_closure(body, formals, @D[:env], self).call(*p) }
+    end
+
+    def eval_EFunCall(fun, params, lambda)
+      m = dynamic_bind in_fc: true do
+        eval(fun)
+      end 
       if lambda.nil?
-        eval(fun).call(*(params.map{|p|eval(p)}))
+        m.call(*(params.map{|p|eval(p)}))
       else
         p = eval(lambda)
-        f = eval(fun)
-        #puts "FunCall #{f}=#{f.class} #{p}"
-        f.call(*(params.map{|p|eval(p)}), &p) 
+        m.call(*(params.map{|p|eval(p)}), &p) 
       end
     end
+  
+    def eval_EAssign(var, val)
+      lvalue(var).value = eval(val)
+    end
   end
-
-  def eval_EAssign(var, val)
-    lvalue(var).value = eval(val)
-  end
-end
-
-class EvalCommandC
-  include EvalCommand
-  def initialize
+  
+  class EvalCommandC
+    include EvalCommand
+    def initialize
+    end
   end
 end

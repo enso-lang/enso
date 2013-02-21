@@ -17,9 +17,11 @@ Answer ::= CheckBox
          | TextBox
          | Computed
 
-CheckBox ::= [CheckBox] "Checkbox" name:sym "{" choices:Label+ "}"
-MultiChoice ::= [MultiChoice] "MultiChoice" name:sym "{" choices:Label+ "}"
-TextBox ::= [TextBox] "TextBox" name:sym ":" type:sym
-Computed ::= [Computed] "Computed" name:sym ":" expr:Expr
+CheckBox ::= [CheckBox] name:sym ":" type:Type "[" choices:Label+ "]"
+MultiChoice ::= [MultiChoice] name:sym ":" type:Type "(" choices:Label+ ")"
+TextBox ::= [TextBox] name:sym ":" type:Type
+Computed ::= [Computed] name:sym ":" type:Type "=" expr:Expr
 
-Label ::= [Label] label:str
+Type ::= "int" | "bool" | "str" | "real"
+
+Label ::= [Label] to_str:str

@@ -2,9 +2,10 @@
 require 'core/expr/code/impl'
 
 module AssertExpr
-  include EvalExpr, LValueExpr
+  include Eval::EvalExpr
+  include Lvalue::LValueExpr
 
-  include Dispatcher  
+  include Interpreter::Dispatcher  
     
   def assert(obj)
     dispatch(:assert, obj)

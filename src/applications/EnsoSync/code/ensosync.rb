@@ -17,9 +17,9 @@ class EnsoSync
 
   #create or update the domain file
   def self.setup
-    @schema = Loader.load('esync.schema')
-    @grammar = Loader.load('esync.grammar')
-    domain = Loader.load('domain.esync')
+    @schema = Load::load('esync.schema')
+    @grammar = Load::load('esync.grammar')
+    domain = Load::load('domain.esync')
     factory = domain.factory
 
     puts ""
@@ -206,7 +206,7 @@ class EnsoSync
 
   #print status of domain
   def self.info
-    domain = Loader.load('domain.esync')
+    domain = Load::load('domain.esync')
     puts ""
     puts "Domain file: #{@@domainpath}#{@@domainfile}"
     puts ""
@@ -260,9 +260,9 @@ class EnsoSync
 
   #execute all rules immediately
   def self.runonce
-    @schema = Loader.load('esync.schema')
-    @grammar = Loader.load('esync.grammar')
-    domain = Loader.load('domain.esync')
+    @schema = Load::load('esync.schema')
+    @grammar = Load::load('esync.grammar')
+    domain = Load::load('domain.esync')
     domain.rules.each do |rule|
       execrule(rule)
       write_domain(domain)
@@ -278,7 +278,7 @@ class EnsoSync
   #stupid method to get past the 
   def self.write_domain(domain)
     f= File.open(@@domainpath+@@domainfile, "w")
-    DisplayFormat.print(@grammar, domain, 80, f)
+    Layout::DisplayFormat.print(@grammar, domain, f)
     f.close
   end
 

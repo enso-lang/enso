@@ -1,14 +1,14 @@
 {
   "filename": "schema.schema",
   "source": "core/schema/models/schema.schema",
-  "date": "2012-12-10 18:07:32 -0600",
-  "checksum": "3f383aa7045b2eca06ccc8544aef6f47d4416300",
+  "date": "2013-02-20 10:13:55 -0600",
+  "checksum": "c1641f1907fc5643c80840284d71e24e1688c2fc",
   "depends": [
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2012-12-10 18:07:32 -0600",
-      "checksum": "3f383aa7045b2eca06ccc8544aef6f47d4416300"
+      "date": "2013-02-20 10:13:55 -0600",
+      "checksum": "c1641f1907fc5643c80840284d71e24e1688c2fc"
     },
     {
       "filename": "schema.grammar",
@@ -1296,48 +1296,54 @@
             "auto=": false,
             "inverse": null,
             "computed": {
-              "class": "EBinOp",
-              "op=": "+",
-              "e1": {
-                "class": "EFunCall",
-                "fun": {
-                  "class": "EField",
-                  "e": {
-                    "class": "EVar",
-                    "name=": "supers"
+              "class": "EFunCall",
+              "fun": {
+                "class": "EField",
+                "e": {
+                  "class": "EFunCall",
+                  "fun": {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "supers"
+                    },
+                    "fname=": "flat_map"
                   },
-                  "fname=": "flat_map"
-                },
-                "params": [
+                  "params": [
 
-                ],
-                "lambda": {
-                  "class": "ELambda",
-                  "body": {
-                    "class": "EBlock",
-                    "body": [
+                  ],
+                  "lambda": {
+                    "class": "ELambda",
+                    "body": {
+                      "class": "EBlock",
+                      "body": [
+                        {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "s"
+                          },
+                          "fname=": "all_fields"
+                        }
+                      ]
+                    },
+                    "formals": [
                       {
-                        "class": "EField",
-                        "e": {
-                          "class": "EVar",
-                          "name=": "s"
-                        },
-                        "fname=": "all_fields"
+                        "class": "Formal",
+                        "name=": "s"
                       }
                     ]
-                  },
-                  "formals": [
-                    {
-                      "class": "Formal",
-                      "name=": "s"
-                    }
-                  ]
-                }
+                  }
+                },
+                "fname=": "union"
               },
-              "e2": {
-                "class": "EVar",
-                "name=": "defined_fields"
-              }
+              "params": [
+                {
+                  "class": "EVar",
+                  "name=": "defined_fields"
+                }
+              ],
+              "lambda": null
             },
             "traversal=": false
           }

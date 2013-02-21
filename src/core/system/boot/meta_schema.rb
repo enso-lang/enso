@@ -1,6 +1,7 @@
 
 require 'core/system/utils/paths'
 require 'core/schema/code/factory'
+require 'core/schema/tools/union'
 require 'json'
 require 'enso'
 
@@ -14,47 +15,95 @@ The only requirements are:
 =end
 
 module Boot
+  def self.load_path(path)
+    load(System.readJSON(path)['model'])
+  end
+  
+  def self.load(doc)
+    ss0 = make_object(doc, nil)
+    ss0._complete
+    Union::Copy(Factory::new(ss0), ss0)
+  end
+
+  def self.make_object(data, root)
+    if data != nil
+      case data['class']
+      when "Schema"
+        Schema.new(data, root)
+      when "Class"  
+        Class.new(data, root)
+      else
+        MObject.new(data, root)
+      end
+    end
+  end
+
   class MObject < EnsoProxyObject
     attr_reader :_id
     attr_accessor :factory
     attr_accessor :_path
     attr_reader :file_path
     @@seq_no = 0
+    
     def initialize(data, root)
       @_id = (@@seq_no = @@seq_no + 1)
-      @data = data
-      @root = root || self
       @factory = self
       @file_path = []
-      @fields = {}
-    end
-
-    def schema_class
-      @root.types[@data["class"]]
-    end
-
-    def [](sym)
-      val = @fields[sym]
-      if val
-        val
-      else
-        @fields[sym] = if sym[-1] == "?"
-          schema_class.name == sym.slice(0, sym.length-1)
-        elsif @data.has_key?("#{sym}=")
-          @data["#{sym}="]
-        elsif @data.has_key?("#{sym}#")
-          Boot.make_field(@data["#{sym}#"], @root, true)
-        elsif @data.has_key?(sym.to_s)
-          Boot.make_field(@data[sym.to_s], @root, false)
-        else
-          System.raise "Trying to deref nonexistent field #{sym} in #{@data.to_s.slice(0, 300)}"
+      @root = root || self
+      @data = data
+      has_name = false
+      data.each do |key, value|
+        if key == "class"
+        elsif key[-1] == "="
+          define_singleton_value(key.slice(0, key.length-1), value)
+          if key == "name="
+            has_name = true
+            define_singleton_value("to_s", "<#{data['class']} #{_id} #{value}>")
+          end
+        elsif value.is_a?(Array)
+          keyed = (key[-1] == "#")
+          name = if keyed then key.slice(0, key.length-1) else key end
+          if value.length == 0 || !(value[0].is_a? String)
+            _create_many(name, value.map {|a| Boot.make_object(a, @root)}, keyed)
+          end
+        elsif !(value.is_a? String)
+          define_singleton_value(key, Boot.make_object(value, @root))
         end
+      end
+      if !has_name
+        define_singleton_value("to_s", "<#{data['class']} #{_id}>")
       end
     end
     
-    def to_s
-      @name || @name = begin; "<#{@data['class']} #{_id} #{name}>"
-              rescue; "<#{@data['class']} #{_id}>"; end
+    def _complete
+      @data.each do |key, value|
+        if key == "class"
+          define_singleton_value("schema_class", @root.types[value])
+        elsif key[-1] != "=" && value
+          if value.is_a?(Array) # why?
+            keyed = (key[-1] == "#")
+            name = if keyed then key.slice(0, key.length-1) else key end
+            if value.length > 0 && (value[0].is_a? String)
+              _create_many(name, value.map {|a| Paths.parse(a).deref(@root) }, keyed)
+            else
+              self[name].each do |obj|
+                obj._complete
+              end
+            end
+          elsif value.is_a? String
+            define_singleton_value(key, Paths.parse(value).deref(@root))
+          else
+            self[key]._complete
+          end
+        end
+      end
+      @root.types.each do |cls|
+        define_singleton_value("#{cls.name}?", @data['class'] == cls.name)
+      end
+    end
+    
+    def _create_many(name, arr, keyed)
+      define_singleton_value(name, BootManyField.new(arr, @root, keyed))
     end
   end
 
@@ -69,54 +118,11 @@ module Boot
     
   class Class < MObject
     def all_fields
-      BootManyField.new(supers.flat_map() {|s|s.all_fields} + defined_fields, @root, true)
+      BootManyField.new((supers.flat_map() {|s|s.all_fields}).concat(defined_fields), @root, true)
     end
     def fields
       BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
     end
-  end
-
-  def self.load_path(path)
-    load(System.readJSON(path)['model'])
-  end
-  
-  def self.load(doc)
-    ss0 = make_object(doc, nil)
-    Copy(ManagedData.new(ss0), ss0)
-  end
-
-  def self.make_object(data, root)
-    case data['class']
-    when "Schema" 
-      Schema.new(data, root)
-    when "Class"  
-      Class.new(data, root)
-    else
-      MObject.new(data, root)
-    end
-  end
-
-  def self.make_field(data, root, keyed)
-    if data.is_a?(Array)
-      make_many(data, root, keyed)
-    else
-      get_object(data, root)
-    end
-  end
-  
-  def self.get_object(data, root)
-    if !data
-      nil
-    elsif data.is_a?(String)
-      Paths.parse(data).deref(root)
-    else
-      make_object(data, root)
-    end
-  end
-  
-  def self.make_many(data, root, keyed)
-    arr = data.map {|a| get_object(a, root)}
-    BootManyField.new(arr, root, keyed)
   end
 
   class BootManyField < Array
@@ -125,6 +131,7 @@ module Boot
       @root = root
       @keyed = keyed
     end
+    
     def [](key)
       if @keyed
         find {|obj| obj.name == key}
@@ -132,9 +139,11 @@ module Boot
         at(key)
       end
     end
+    
     def has_key?(key)
       self[key]
     end
+    
     def each_with_match(other, &block)
       if @keyed
         other = other || {}
@@ -148,6 +157,7 @@ module Boot
         end
       end
     end
+
     def keys
       if @keyed
         map {|o| o.name}

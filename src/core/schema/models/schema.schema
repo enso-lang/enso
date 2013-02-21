@@ -1,10 +1,5 @@
 import impl.schema
 
-primitive str
-primitive int
-primitive bool
-primitive real
-
 class Schema
   types! Type*
   classes: Class* = types.select() { |t| return t.schema_class.name=="Class" }
@@ -21,7 +16,7 @@ class Class < Type
   subclasses: Class* / supers
   defined_fields! Field*
   fields: Field = all_fields.select() {|f| return not f.computed}
-  all_fields: Field* = supers.flat_map() {|s| return s.all_fields } + defined_fields
+  all_fields: Field* = (supers.flat_map() {|s| return s.all_fields }).union(defined_fields)
 
 class Field
   name# str
@@ -36,3 +31,8 @@ class Field
   traversal: bool
 
 class Expr
+
+primitive str
+primitive int
+primitive bool
+primitive real

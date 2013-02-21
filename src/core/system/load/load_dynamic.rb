@@ -39,7 +39,7 @@ module Loading
         g = load("#{type}.grammar")
         find_model(filename) do |path|
           File.open(path, "w") do |f|
-            DisplayFormat.print(g, @cache[name], 160, f)
+            Layout::DisplayFormat.print(g, @cache[name], f)
           end
         end
         @old_cache[name] = Clone(@cache[name])
@@ -52,7 +52,7 @@ module Loading
 end
 
 if __FILE__ == $0 then
-  dt1 = Loader.load_dynamic("diff-test1.diff-point")
+  dt1 = Load::load_dynamic("diff-test1.diff-point")
   gets
 
   #changing memory model

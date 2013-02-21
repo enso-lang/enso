@@ -1,3 +1,3 @@
 # bin/sh
 
-ruby -I . core/grammar/render/render.rb $1
+ruby -I . core/grammar/render/render.rb "$@"

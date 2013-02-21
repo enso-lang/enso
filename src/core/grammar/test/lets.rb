@@ -2,6 +2,6 @@
 
 require 'core/system/load/load'
 
-x = Loader.load('example.lets')
+x = Load::load('example.lets')
 
 puts x.to_s

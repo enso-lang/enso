@@ -181,7 +181,7 @@ if __FILE__ == $0 then
 
 
   include GrammarTypes
-  s = Loader.load(ARGV[0])
+  s = Load::load(ARGV[0])
   ts = s.classes.map do |c|
     Klass.new(c)
   end

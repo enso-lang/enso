@@ -73,7 +73,7 @@ look something like this:
 require 'core/system/load/load'
 require 'core/grammar/render/layout'
 
-LL = Loader.load('xuml.schema')
+LL = Load::load('xuml.schema')
 
-DisplayFormat.print(Loader.load('schema.grammar'), LL)
+DisplayFormat.print(Load::load('schema.grammar'), LL)
 

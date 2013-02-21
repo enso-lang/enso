@@ -7,8 +7,8 @@
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2012-12-10 18:07:32 -0600",
-      "checksum": "3f383aa7045b2eca06ccc8544aef6f47d4416300"
+      "date": "2013-02-20 10:13:55 -0600",
+      "checksum": "c1641f1907fc5643c80840284d71e24e1688c2fc"
     },
     {
       "filename": "schema.grammar",

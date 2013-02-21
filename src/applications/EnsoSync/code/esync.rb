@@ -9,15 +9,15 @@ ENSOSYNC_PORT = 20000
 
 
 def esync(server_host, name, rootpath)
-  schema = Loader.load('esync.schema')
-  grammar = Loader.load('esync.grammar')
+  schema = Load::load('esync.schema')
+  grammar = Load::load('esync.grammar')
   node_grammar = Clone(grammar)
   node_grammar.start=node_grammar.rules['Node']
 
   sourcename = name
 
   domain_str =  File.open("#{rootpath}/.source.esync", "rb") { |f| f.read }
-  domain = Parse.load_raw(domain_str, grammar, schema, ManagedData.new(schema), false).finalize
+  domain = Parse.load_raw(domain_str, grammar, schema, Factory::new(schema), false).finalize
 
   s1 = domain.sources[sourcename]
   newbase = read_from_fs(rootpath, s1.path, s1.factory)
@@ -28,10 +28,10 @@ def esync(server_host, name, rootpath)
 
   puts "\nConnecting to server at #{server_host}:#{ENSOSYNC_PORT}\n"
 
-  DisplayFormat.print(grammar, domain, 80, base_str="")
+  Layout::DisplayFormat.print(grammar, domain, base_str="")
   streamSock.puts(base_str.length.to_s)
   streamSock.send(base_str, 0)
-  DisplayFormat.print(node_grammar, newbase, 80, newbase_str="")
+  Layout::DisplayFormat.print(node_grammar, newbase, newbase_str="")
   streamSock.puts(newbase_str.length.to_s)
   streamSock.send(newbase_str, 0)
 
@@ -72,7 +72,7 @@ def esync(server_host, name, rootpath)
   #update base
   domain.sources[sourcename].basedir = read_from_fs(rootpath, s1.path, s1.factory)
   File.open("#{rootpath}/.source.esync", "w") { |f|
-    DisplayFormat.print(grammar, domain, 80, f)
+    Layout::DisplayFormat.print(grammar, domain, f)
   }
 
   puts "Sync successful\n"

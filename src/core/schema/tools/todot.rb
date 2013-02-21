@@ -99,8 +99,8 @@ end
 
 
 if __FILE__ == $0 then
-  #x = Loader.load('door.state_machine')
-  x = Loader.load(ARGV[0])
+  #x = Load::load('door.state_machine')
+  x = Load::load(ARGV[0])
   t = Todot.new
   t.todot(x, $stdout)
 end

@@ -1,14 +1,8 @@
 require 'core/expr/code/eval'
+require 'core/semantics/code/interpreter'
+require 'core/expr/code/env'
 
-module LValueExpr
-  include EvalExpr
-  
-  include Dispatcher    
-    
-  def lvalue(obj)
-    dispatch(:lvalue, obj)
-  end
-
+module Lvalue
   # An address class that simulates l-values (since Ruby does not have them)
   # Only two types of l-values are allowed: fields of schema objects and variables in the environment
   # coincidentally, both handled via the same syntax. Including other types may require subclassing
@@ -42,34 +36,44 @@ module LValueExpr
       @array[@index]
     end
 
-    def to_str
+    def to_s
       "#{@array}[#{@index}]"
     end
 
     def type
-      @array.is_a?(ObjEnv) ? @array.type(@index) : nil
+      @array.is_a?(Env::ObjEnv) ? @array.type(@index) : nil
     end
 
     def object
-      @array.is_a?(ObjEnv) ? @array.obj : nil
+      @array.is_a?(Env::ObjEnv) ? @array.obj : nil
     end
   end
 
-  def lvalue_EField(e, fname)
-    Address.new(ObjEnv.new(eval(e)), fname)
+  module LValueExpr
+    include Eval::EvalExpr
+    
+    include Interpreter::Dispatcher    
+      
+    def lvalue(obj)
+      dispatch(:lvalue, obj)
+    end
+    
+    def lvalue_EField(e, fname)
+      Address.new(Env::ObjEnv.new(eval(e)), fname)
+    end
+  
+    def lvalue_EVar(name)
+      Address.new(@D[:env], name)
+    end
+  
+    def lvalue_?(type, fields, args)
+      nil
+    end
   end
-
-  def lvalue_EVar(name)
-    Address.new(@_.env, name)
-  end
-
-  def lvalue_?(type, fields, args)
-    nil
-  end
-end
-
-class LValueExprC
-  include LValueExpr
-  def initialize
+  
+  class LValueExprC
+    include LValueExpr
+    def initialize
+    end
   end
 end

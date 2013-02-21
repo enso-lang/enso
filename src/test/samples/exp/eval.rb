@@ -1,7 +1,7 @@
 require 'core/semantics/code/interpreter'
 
 class Eval  
-  include Dispatcher
+  include Interpreter::Dispatcher
 
   def eval(exp)
     dispatch_obj(:eval, exp)
@@ -28,7 +28,7 @@ class Eval
   end
 
   def eval_Var(exp)
-    @_[exp.binding.var]
+    @D[:exp.binding.var]
   end
 end
 

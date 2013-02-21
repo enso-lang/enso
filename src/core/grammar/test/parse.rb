@@ -17,7 +17,7 @@ class ParseTest < Test::Unit::TestCase
     gs = Load('grammar.schema')
     grammar1 = Parse.load_file(GRAMMAR_GRAMMAR, gg, gs)
     s = ''
-    DisplayFormat.print(gg, grammar1, 80, s)
+    Layout::DisplayFormat.print(gg, grammar1, s)
     grammar2 = Parse.load(s, gg, gs)
     assert_equal(nil, diff(grammar1, grammar2))
   end

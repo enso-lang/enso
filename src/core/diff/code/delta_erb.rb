@@ -6,15 +6,14 @@ Re-implementation of delta tranformation using Ruby's ERB
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/render/layout'
 require 'core/system/library/schema'
 require 'erb'
 
 class DeltaERB
-  SCHEMA_SCHEMA = Loader.load('schema.schema')
+  SCHEMA_SCHEMA = Load::load('schema.schema')
   DELTA_ERB = File.join(File.dirname(__FILE__), 'delta.erb')
 
-  def self.delta(schema, factory = ManagedData.new(SCHEMA_SCHEMA))
+  def self.delta(schema, factory = Factory::new(SCHEMA_SCHEMA))
     self.new(schema, factory).delta
   end
     
@@ -25,7 +24,7 @@ class DeltaERB
 
   def delta
     ds = gen_delta_as_string(@schema)
-    Loader.load_text('schema', @factory, ds)
+    Load::load_text('schema', @factory, ds)
   end
 
   def gen_delta_as_string(schema)

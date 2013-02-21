@@ -3,7 +3,6 @@ require 'core/grammar/parse/scan'
 class GrammarEval
   attr_reader :start_pos, :start
 
-  # TODO: use method_missing installing concrete methods
   # based on _id for each grammar thing.
 
   def initialize(grammar, source, top)

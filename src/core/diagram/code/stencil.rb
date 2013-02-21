@@ -49,7 +49,7 @@ class StencilFrame < DiagramFrame
   
   def setup extension, data
     @extension = extension
-    @stencil = Load("#{@extension}.stencil")
+    @stencil = Load::load("#{@extension}.stencil")
     if !@stencil.title.nil?
       self.set_title(@stencil.title)
     end
@@ -124,7 +124,7 @@ class StencilFrame < DiagramFrame
   def on_save
     grammar = Loader.load("#{@extension}.grammar")
     File.open("#{@path}-NEW", "w") do |output|
-      DisplayFormat.print(grammar, @data, 80, output)
+      Layout::DisplayFormat.print(grammar, @data, output)
     end
 
     capture_positions    
@@ -185,7 +185,7 @@ class StencilFrame < DiagramFrame
       end
     end
   end
-    
+
   def do_constraints
     super
     return if !@position_map
@@ -209,26 +209,29 @@ class StencilFrame < DiagramFrame
     end
     generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 1
   end
- 
- 
-  
-    # ------- event handling -------  
+
+
+  # ------- event handling -------  
+
   def on_double_click(e)
     clear_selection
+    puts "finding ... e=#{e}"
     text = find e, &:Text?
     if text and text.editable
       address = @shapeToAddress[text]
       edit_address(address, text) if address
     end
+    thingy = find e
+    puts "thingy = #{thingy}:#{thingy.class}"
   end
-	
+
   def edit_address(address, shape)
     if address.type.Primitive?
 			@selection = TextEditSelection.new(self, shape, address)
 	  else
       pop = Wx::Menu.new
       find_all_objects @data, address.field.type do |obj|
-        name = Schema::object_key(obj)
+        name = ObjectKey(obj)
     		add_menu2 pop, name, name do |e| 
     			address.value = obj
     			shape.string = name
@@ -267,7 +270,7 @@ class StencilFrame < DiagramFrame
   def on_export
     grammar = Loader.load("diagram.grammar")
     File.open("#{@path}-diagram", "w") do |output|
-      DisplayFormat.print(grammar, @root, 80, output)
+      Layout::DisplayFormat.print(grammar, @root, output)
     end
   end
 
@@ -290,7 +293,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case RenderExprC.new.render(prop.loc)
+      case Layout::RenderExprC.new.render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font
@@ -418,7 +421,7 @@ class StencilFrame < DiagramFrame
 	    end
 	  end
 	end
-
+=begin
 	def find_default_object(scan, type)
 	  catch :FoundObject do 
 		  find_all_objects scan, type do |x|  
@@ -431,7 +434,7 @@ class StencilFrame < DiagramFrame
 	  return nil if !scan
 	  puts "looking for #{type.name} as #{scan}"
           #block.call(scan) if scan._subtypeOf(scan.schema_class, type)
-          block.call(scan) if Schema::subclass?(scan.schema_class, type)
+          block.call(scan) if Subclass?(scan.schema_class, type)
           scan.schema_class.fields.each do |field|
             if field.traversal
               if field.many
@@ -445,9 +448,16 @@ class StencilFrame < DiagramFrame
           end
           return nil
 	end
+=end
 
   def constructEIf(this, env, container, &block)
+    unless this.cond.InstanceOf?
+      Print.print(this.cond)
+    end
     test = eval(this.cond, env)
+    unless this.cond.InstanceOf?
+      puts "test = #{test}"
+    end
     if test
       construct(this.body, env, container, &block)
     elsif !this.body2.nil?
@@ -532,6 +542,88 @@ class StencilFrame < DiagramFrame
     make_styles(this, shape, env)
     block.call shape
   end
+  
+  def constructTextBox(this, env, container, &block)
+    part = @factory.TextBox
+    make_styles(this, part, env)
+    addr = lvalue(this.value, env)
+    evt_text(part.hash) do |ev|
+      if addr.value.nil? or "#{addr.value.val}"!=ev.get_string
+        addr.value = makeConst(addr.object.factory, addr.object.type, ev.get_string)
+      end
+    end
+    # addr.object.add_listener(addr.index, part.hash) {|val|
+      # p = find_window_by_id(part.hash)
+      # if "#{val.val}"!=p.get_value
+        # p.set_value("#{val.val}")
+      # end
+    # }
+    block.call part
+  end
+  
+  def makeConst(factory = @factory, type, strvalue)
+    case type
+    when "int"
+      factory.EIntConst(Integer(strvalue))
+    when "str"
+      factory.EStrConst(strvalue)
+    when "bool"
+      ["TRUE","YES"].include?(strvalue.capitalize) ? factory.EBoolConst(true) : factory.EBoolConst(false)
+    when "real"
+      factory.EIntConst(Float(strvalue))
+    else
+      nil
+    end
+  end
+
+  def constructCheckBox(this, env, container, &block)
+    cb = @factory.CheckBox
+    val = eval(this.string, env, true)
+    addr = lvalue(this.string, env)
+    if val.is_a? Variable
+      cb.string = val.new_var_method do |a, *other|
+        x = "#{a}"
+      end
+    else
+      cb.string = val.to_s
+    end
+    make_styles(this, cb, env)
+    block.call cb
+  end
+
+  def constructRadioList(this, env, container, &block)
+    part = @factory.RadioList
+    eval(this.choices, env, true).map{|l|Union::Copy(@factory, l)}.each do |choice|
+      part.choices << choice
+    end
+    make_styles(this, part, env)
+    addr = lvalue(this.value, env)
+
+    evt_radiobox(part.hash) do |ev|
+      puts "\nEv is #{ev}:#{ev.class} #{ev.methods}"
+      Print.print(this.value)
+      puts "addr = #{addr}\n\n\n"
+      if addr.value.nil? or "#{addr.value.val}"!=ev.get_string
+        addr.value = makeConst(addr.object.factory, addr.object.ans.type, ev.get_string)
+        puts "addr.object.ans.type=#{addr.object.ans.type}, ev.get_string=#{ev.get_string}, addr.value=#{addr.value}"
+        Print.print(addr.value)
+        Print.print(addr.object)
+        rebuild_diagram
+      end
+    end
+    # addr.object.add_listener(addr.index, part.hash) {|val|
+      # p = find_window_by_id(part.hash)
+      # puts "parts = #{p.get_string_selection}"
+      # Print.print(addr.object)
+      # if "#{val.val}"!=p.get_string_selection
+        # puts "\n\n\n\n\n\nSelecting string #{val.val} in widget"
+        # p.set_string_selection("#{val.val}")
+        # puts "#{p.get_string_selection} selected\n\n\n\n\n\n"
+      # end
+    # }
+
+    block.call part
+  end
 
   def makeLabel(exp, env)
     labelStr = eval(exp, env, true)
@@ -572,14 +664,15 @@ class StencilFrame < DiagramFrame
   #### expressions
 
   def eval(exp, env, dynamic = false)
-    @eval = EvalStencilC.new if @eval.nil?
+    @eval = EvalStencil::EvalExprC.new if @eval.nil?
     @eval.dynamic_bind env: env, dynamic: dynamic, factory: @factory do
       @eval.eval(exp)
     end
+#    @eval.eval(exp, env: env, dynamic: dynamic, factory: @factory)
   end
 
   def lvalue(exp, env)
-    @lval = LValueExprC.new if @lval.nil?
+    @lval = Lvalue::LValueExprC.new if @lval.nil?
     @lval.dynamic_bind env: env, factory: @factory do
       @lval.lvalue(exp)
     end
@@ -644,7 +737,7 @@ class FindByTypeSelection
     @part = @diagram.find e do |shape| 
       obj = @diagram.lookup_shape(shape)
       #obj && obj._subtypeOf(obj.schema_class, @kind)
-      obj && Schema::subclass?(obj.schema_class, @kind)
+      obj && Subclass?(obj.schema_class, @kind)
     end
   end
   

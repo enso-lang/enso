@@ -2,7 +2,7 @@ require 'core/system/load/load'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/grammar/tools/rename_binding'
-require 'core/feature/code/rename'
+#require 'core/feature/code/rename'
 require 'core/diff/code/equals'
 
 module BuildFeature
@@ -12,15 +12,15 @@ module BuildFeature
     f = Loader.build_feature('#{name}.feature')
     #if f.nil?
       f={}
-      begin f['schema'] = Loader.load("#{name}.schema"); rescue EOFError; end
-      begin f['grammar'] = Loader.load("#{name}.grammar"); rescue EOFError; end
+      begin f['schema'] = Load::load("#{name}.schema"); rescue EOFError; end
+      begin f['grammar'] = Load::load("#{name}.grammar"); rescue EOFError; end
     #end
     f
   end
 
   def self.cache_feature(name, feature)
     feature.each do |type,obj|
-      Loader.load_cache("#{name}.#{type}", obj)
+      Load::load_cache("#{name}.#{type}", obj)
     end
   end
 
@@ -52,11 +52,11 @@ module BuildFeature
   def build_File(path, as, args={})
     _ , type = path.split(".")
     obj = if !as.nil?
-      g = Loader.load("#{as}.grammar")
-      s = Loader.load("#{as}.schema")
-      Loader.load_with_models(path, g, s)
+      g = Load::load("#{as}.grammar")
+      s = Load::load("#{as}.schema")
+      Load::load_with_models(path, g, s)
     elsif type!="rb"
-      Loader.load(path)
+      Load::load(path)
     else
       #load code
     end

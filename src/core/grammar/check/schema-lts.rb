@@ -58,7 +58,7 @@ end
 if __FILE__ == $0 then
   require 'core/system/load/load'
 
-  s = Loader.load(ARGV[0])
+  s = Load::load(ARGV[0])
   r = s.classes[ARGV[1]]
   slts = SchemaLTS.new
 

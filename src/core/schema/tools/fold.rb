@@ -190,10 +190,10 @@ if __FILE__ == $0 then
 
 
   #fold = Fold.new(Schema)
-  #ss = Loader.load('state_machine.schema')
+  #ss = Load::load('state_machine.schema')
   fold = Fold.new(Grammar)
-  ss = Loader.load('path.grammar')
-  gs = Loader.load('grammar.schema')
+  ss = Load::load('path.grammar')
+  gs = Load::load('grammar.schema')
   
   folded = fold.fold(gs.classes['Grammar'], ss)
   YAML.dump(folded, x = '')

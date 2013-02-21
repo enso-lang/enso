@@ -1,7 +1,7 @@
 require 'wx'
 include Wx
 
-class Application < Wx::Frame
+class BaseWindow < Wx::Frame
   def initialize(title)
     super(nil, title: title)
     @menu_id = 100

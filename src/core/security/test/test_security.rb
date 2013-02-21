@@ -2,7 +2,6 @@ require 'test/unit'
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/grammar/render/layout'
 require 'core/schema/tools/union'
 require 'core/diff/code/equals'
 require 'core/security/code/securefactory'
@@ -11,9 +10,9 @@ class SecurityTest < Test::Unit::TestCase
 
   def setup
     interp = Interpreter(FactorySchema, SecureFactory)
-    schema = Loader.load('todo.schema')
-    sfact = interp.Make(schema, rules: Loader.load('todo.auth'), :fail_silent=>false)
-    @todo = sfact.make_secure(Loader.load('test.todo'))
+    schema = Load::load('todo.schema')
+    sfact = interp.Make(schema, rules: Load::load('todo.auth'), :fail_silent=>false)
+    @todo = sfact.make_secure(Load::load('test.todo'))
   end
 
   def test_read
@@ -66,7 +65,7 @@ class SecurityTest < Test::Unit::TestCase
   TODO: Interpreter model does not support constraints
 
   def test_constraints
-    fact = ManagedData.new(Loader.load("auth.schema"))
+    fact = Factory::new(Load::load("auth.schema"))
 
     alice_const = fact.EBoolConst(true)
     @todo.factory.user = 'Alice'

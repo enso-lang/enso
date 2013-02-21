@@ -1,13 +1,14 @@
 start Module
 
 Module ::= [Module] requires:Require* /2 "module" name:sym /> defs:Def* @/2 </"end"
-Require ::= [Require] "require" path:str "#" name:sym
+Require ::= [Require] "require" path:str "#" name:sym /
 Def     ::= "@" Binding | Class | Mixin
 
 Mixin   ::= [Mixin] "module" name:sym Body
-Class   ::= [Class] "class" name:sym ("<" parent:sym)? Body
+Class   ::= [Class] "class" name:sym ("<" parent:Ref)? Body
 Body    ::= /> includes:Include* @/ /2 meta:Meta* @/2 /2 defs:Instance* @/2 </"end"/
-  Include ::= [Include] "include" (module:sym.".")? name:sym /
+  Include ::= "include" Ref /
+  Ref     ::= [Ref] (module:sym.".")? name:sym
   Meta    ::= "def" "self" .".". Method | "@@". Binding
   Instance ::= Require | Attribute | "def" Method | "@" Binding
     Method  ::= [Binding] (name:sym | name:"[]" | name:"[]=") value:Fun
