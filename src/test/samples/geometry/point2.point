@@ -1,8 +1,0 @@
-drawing Drawing1
-  line (4,8) (7,2) end 
-  (7,8)
-end
-
-drawing Drawing2
-  line (1,3) (10,5) end
-end

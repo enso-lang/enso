@@ -32,7 +32,7 @@ end
 
 class OptimizingGrammarFactory
   def initialize
-    @factory = Factory::new(GrammarSchema.schema)
+    @factory = Factory::new(Load::load("grammar.schema"))
     @epsilon = @factory.Sequence()
   end
 

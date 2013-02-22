@@ -2,7 +2,6 @@ define([
   "core/schema/code/factory"
 ],
 function(Factory) {
-
   var Union ;
 
   var CopyInto = MakeClass("CopyInto", null, [],

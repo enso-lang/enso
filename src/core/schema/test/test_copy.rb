@@ -7,7 +7,7 @@ require 'core/schema/code/factory'
 
 require 'core/schema/tools/copy'
 require 'core/schema/tools/print'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 
 class CopyTest < Test::Unit::TestCase
   SS = Load::load('schema.schema')

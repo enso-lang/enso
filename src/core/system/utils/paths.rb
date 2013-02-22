@@ -195,11 +195,12 @@ module Paths
 
   class Field < Elt
     attr_reader :name
-    #alias :value :name
 
     def initialize(name)
       @name = name
     end
+    
+    def value; name end
 
     def deref(obj, root)
       obj[@name]
@@ -217,11 +218,12 @@ module Paths
 
   class Index < Elt
     attr_reader :index
-    #alias :value :index
 
     def initialize(index)
       @index = index
     end
+    
+    def value; index end
 
     def deref(obj, root)
       obj[@index]
@@ -246,11 +248,12 @@ module Paths
 
   class Key < Elt
     attr_reader :key
-    #alias :value :key
 
     def initialize(key)
       @key = key
     end
+    
+    def value; key end
 
     def deref(obj, root)
       obj[@key]

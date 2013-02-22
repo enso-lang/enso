@@ -3,6 +3,7 @@ class Module
   name: str
   requires! Require*
   defs! Def*
+  main! Seq?
   
 class Require
   name# str

@@ -6,7 +6,6 @@ define([
   "enso"
 ],
 function(Paths, Factory, Union, Json, Enso) {
-
   var Boot ;
 
   var MObject = MakeClass("MObject", EnsoProxyObject, [],

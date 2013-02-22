@@ -29,9 +29,7 @@ module Cache
 
       #check that the source file has not changed
       #check that none of the dependencies have changed
-      return false unless check_file(json)
-      json['depends'].each {|e| return false unless check_file(e)}
-      true
+      check_file(json) && json['depends'].all? {|e| check_file(e)}
     rescue Errno::ENOENT => e
       false
     end
@@ -45,9 +43,14 @@ module Cache
     end
   end
 
-  private
 
-  def self.cache_path; "core/system/load/cache/"; end
+  def self.cache_path
+    res = "core/system/load/cache/"
+    unless File.exists? res
+      Dir.mkdir res
+    end
+    res 
+  end
   
   def self.find_json(name)
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
@@ -68,7 +71,7 @@ module Cache
   end
   
   def self.get_meta(name)
-    e = {'filename' => name}
+    e = {filename: name}
     Load::Loader.find_model(name) do |path|
       e['source'] = path
       e['date'] = File.ctime(path)
@@ -79,7 +82,7 @@ module Cache
 
   def self.add_metadata(name, model)
     if name==nil
-      e = {'filename' =>'MetaData'}
+      e = {filename: 'MetaData'}
     else
       e = get_meta(name)
       type = name.split('.')[-1]
@@ -106,26 +109,8 @@ module Cache
         hashfun.update(readBuf)
       end
     end
-    return hashfun.to_s
+    hashfun.to_s
   end
 
-end
-
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  require 'core/diff/code/equals'
-
-  if !ARGV[0] then
-    $stderr << "Usage: #{$0} <model>\n"
-    exit!
-  end
-
-  orig = Load::load(ARGV[0])
-  loaded = Cache::load_cache(ARGV[0])
-  raise "Error loading JSON!" unless Equals.equals(orig, loaded)
-
-  Cache::save_cache(ARGV[0])
-  reloaded = Cache::load_cache(ARGV[0])
-  raise "Error re-loading JSON!" unless Equals.equals(loaded, reloaded)
 end
 

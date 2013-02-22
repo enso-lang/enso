@@ -11,6 +11,9 @@ bin
 # Rubymine noise
 .idea
 
+# Eclipse setup
+.project
+
 # Emacs noise
 *~
 \#*\#

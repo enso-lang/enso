@@ -1,6 +1,6 @@
 
 require 'strscan'
-require 'core/system/library/cyclicmap'
+require 'core/grammar/tools/cyclicmap'
 
 class Scan
   SYMBOL = "[\\\\]?[a-zA-Z_][a-zA-Z_0-9]*"

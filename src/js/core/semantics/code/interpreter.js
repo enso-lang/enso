@@ -1,7 +1,6 @@
 define([
 ],
 function() {
-
   var Interpreter ;
   var DynamicPropertyStack = MakeClass("DynamicPropertyStack", null, [],
     function() {

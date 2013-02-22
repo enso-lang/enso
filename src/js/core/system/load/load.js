@@ -1,26 +1,23 @@
 define([
   "core/system/library/schema",
   "core/system/boot/meta_schema",
-  "core/grammar/parse/parse",
   "core/schema/tools/union",
-  "core/schema/tools/rename",
   "core/system/load/cache"
 ],
-function(Schema, MetaSchema, Parse, Union, Rename, Cache) {
-
+function(Schema, MetaSchema, Union, Cache) {
   var Load ;
 
   var LoaderClass = MakeClass("LoaderClass", null, [],
     function() {
     },
     function(super$) {
-      this.$.GRAMMAR_GRAMMAR = "grammar.grammar";
+      GRAMMAR_GRAMMAR = "grammar.grammar";
 
-      this.$.SCHEMA_SCHEMA = "schema.schema";
+      SCHEMA_SCHEMA = "schema.schema";
 
-      this.$.SCHEMA_GRAMMAR = "schema.grammar";
+      SCHEMA_GRAMMAR = "schema.grammar";
 
-      this.$.GRAMMAR_SCHEMA = "grammar.schema";
+      GRAMMAR_SCHEMA = "grammar.schema";
 
       this.load = function(name, type) {
         var self = this; 

@@ -167,7 +167,7 @@ module Load
       if File.exists?(name)
         block.call name
       else
-        path = Dir['**/*.*'].find do |p|
+        path = Dir['../**/*.*'].find do |p|
           File.basename(p) == name
         end
         if path.nil?

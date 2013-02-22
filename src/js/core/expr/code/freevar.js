@@ -4,7 +4,6 @@ define([
   "core/semantics/code/interpreter"
 ],
 function(Eval, Lvalue, Interpreter) {
-
   var Freevar ;
   var FreeVarExpr = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
     this.depends = function(obj) {

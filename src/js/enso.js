@@ -2,7 +2,8 @@
 define (function() {
 
   fs = require("fs");
-    
+  ARGV = process.argv.slice(1);
+  
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
   }

@@ -5,7 +5,6 @@ define([
   "core/expr/code/env"
 ],
 function(Eval, Lvalue, Interpreter, Env) {
-
   var Impl ;
   var Closure = MakeClass("Closure", null, [],
     function() {

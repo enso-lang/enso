@@ -121,7 +121,7 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
-  require 'core/diff/code/diff'
+  require 'core/schema/tools/diff'
   
   schema = Load::load('schema.schema')
   json = JSON.parse(IO.readlines("core/system/boot/schema_schema.json").join("\n"))

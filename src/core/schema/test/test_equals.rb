@@ -5,7 +5,7 @@ require 'core/system/load/load'
 
 require 'core/schema/tools/copy'
 require 'core/schema/tools/print'
-require 'core/diff/code/equals'
+require 'core/schema/tools/equals'
 
 class EqualityTest < Test::Unit::TestCase
   SS = Load::load('schema.schema')

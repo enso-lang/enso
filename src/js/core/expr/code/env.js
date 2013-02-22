@@ -1,7 +1,6 @@
 define([
 ],
 function() {
-
   var Env ;
   var BaseEnv = MakeMixin([], function() {
     this.set_in_place = function(block, key) {
