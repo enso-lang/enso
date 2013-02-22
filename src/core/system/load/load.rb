@@ -7,6 +7,7 @@ require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/system/load/cache'
+require 'core/system/utils/find_model'
 
 module Load
   class LoaderClass
@@ -45,23 +46,18 @@ module Load
     end
 
     def _load(name, type)
+      type ||= name.split('.')[-1]
       #first check if cached XML version is still valid 
       if Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
-        Cache::load_cache(name)
+        Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
-        filename = name.split("/")[-1]
-        if type.nil?
-          parts = filename.split(".")
-          model = parts[0]
-          type = parts[1]
-        end
         g = load("#{type}.grammar")
         s = load("#{type}.schema")
         res = load_with_models(name, g, s)
         #dump it back to xml
         $stderr << "## caching #{name}...\n"
-        Cache::save_cache(filename, res)
+        Cache::save_cache(name, res)
         res
       end
     end
@@ -69,7 +65,6 @@ module Load
     def setup
       @cache = {}
       $stderr << "Initializing...\n"
-      @file_map = File.create_file_map(".")
       
       #check if XML is not out of date then just use it
       #else load XML first then reload
@@ -92,7 +87,7 @@ module Load
         model = parts[0]
         type = parts[1]
         res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-#        patch_schema_pointers!(res, load("#{type}.schema"))
+        patch_schema_pointers!(res, load("#{type}.schema"))
         $stderr << "## caching #{name}...\n"
         Cache::save_cache(name, res)
         res
@@ -120,13 +115,13 @@ module Load
     end
 
     def load_with_models(name, grammar, schema, encoding = nil)
-        find_model(name) do |path|
+        FindModel::FindModel.find_model(name) do |path|
           load_path(path, grammar, schema, encoding)
         end
     end
 
     def load_path(path, grammar, schema, encoding = nil)
-      if path.end_with?(".xml") || path.end_with?(".json") then
+      if path.end_with?(".json") then
         if schema.nil? then
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
@@ -137,7 +132,8 @@ module Load
         else
           name = path.split("/")[-1].split(".")[0]
           name[name.rindex("_")] = '.'
-          result = Cache::load_cache(name)
+          type = name.split('.')[-1]
+          result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
       else
         begin
@@ -162,15 +158,6 @@ module Load
       result
     end
 
-    def find_model(name, &block) 
-      if File.exists?(name)
-        block.call name
-      else
-        path = @file_map[name]
-        raise EOFError, "File not found #{name}" unless path
-        block.call path
-      end
-    end
   end
   
   # define a singleton instance 
