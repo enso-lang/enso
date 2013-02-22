@@ -11,18 +11,17 @@ function(Schema, MetaSchema, Union, Cache) {
     function() {
     },
     function(super$) {
-      GRAMMAR_GRAMMAR = "grammar.grammar";
+      var GRAMMAR_GRAMMAR = "grammar.grammar";
 
-      SCHEMA_SCHEMA = "schema.schema";
+      var SCHEMA_SCHEMA = "schema.schema";
 
-      SCHEMA_GRAMMAR = "schema.grammar";
+      var SCHEMA_GRAMMAR = "schema.grammar";
 
-      GRAMMAR_SCHEMA = "grammar.schema";
+      var GRAMMAR_SCHEMA = "grammar.schema";
 
       this.load = function(name, type) {
         var self = this; 
         if (type === undefined) type = null;
-        var GRAMMAR_GRAMMAR, SCHEMA_SCHEMA, SCHEMA_GRAMMAR, GRAMMAR_SCHEMA;
         if (self.$.cache == null) {
           self.setup();
         }
@@ -82,6 +81,7 @@ function(Schema, MetaSchema, Union, Cache) {
         var ss, gs, gg, sg;
         self.$.cache = new EnsoHash ( { } );
         System.stderr().push("Initializing...\\n");
+        self.$.file_map = File.create_file_map(".");
         self.$.cache._set(SCHEMA_SCHEMA, ss = self.load_with_models("schema_schema.json", null, null));
         self.$.cache._set(GRAMMAR_SCHEMA, gs = self.load_with_models("grammar_schema.json", null, ss));
         self.$.cache._set(GRAMMAR_GRAMMAR, gg = self.load_with_models("grammar_grammar.json", null, gs));
@@ -142,7 +142,7 @@ function(Schema, MetaSchema, Union, Cache) {
         if (path.end_with_P(".xml") || path.end_with_P(".json")) {
           if (schema == null) {
             System.stderr().push(S("## booting ", path, "...\\n"));
-            result = Boot.load_path(path);
+            result = MetaSchema.load_path(path);
             result.factory().file_path()._set(0, path);
           } else {
             name = path.split("/")._get(- 1).split(".")._get(0);
@@ -186,21 +186,16 @@ function(Schema, MetaSchema, Union, Cache) {
         if (File.exists_P(name)) {
           return block(name);
         } else {
-          path = Dir._get("**/*.*").find(function(p) {
-            return File.basename(p) == name;
-          });
-          if (path == null) {
-            return null;
-          } else {
-            if (! path) {
-              self.raise(EOFError, S("File not found ", name));
-            }
-            return block(path);
+          path = self.$.file_map._get(name);
+          if (! path) {
+            self.raise(EOFError, S("File not found ", name));
           }
+          return block(path);
         }
       };
     });
 
+  var Loader = LoaderClass.new();
   Load = {
     load: function(name) {
       return Loader.load(name);
@@ -212,7 +207,7 @@ function(Schema, MetaSchema, Union, Cache) {
     },
 
     LoaderClass: LoaderClass,
-    Loader: LoaderClass.new(),
+    Loader: Loader,
 
   };
   return Load;

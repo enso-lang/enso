@@ -1,4 +1,6 @@
 
+require 'core/schema/code/factory'
+require 'core/system/load/load'
 require 'core/schema/tools/dumpjson'
 require 'digest/sha1'
 

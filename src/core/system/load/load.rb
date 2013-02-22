@@ -44,8 +44,6 @@ module Load
       @cache[name] = obj
     end
 
-    #private
-
     def _load(name, type)
       #first check if cached XML version is still valid 
       if Cache::check_dep(name)
@@ -71,6 +69,7 @@ module Load
     def setup
       @cache = {}
       $stderr << "Initializing...\n"
+      @file_map = File.create_file_map(".")
       
       #check if XML is not out of date then just use it
       #else load XML first then reload
@@ -131,7 +130,7 @@ module Load
         if schema.nil? then
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
-          result = Boot::load_path(path)
+          result = MetaSchema::load_path(path)
 #          patch_schema_pointers!(result, result)
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
@@ -167,15 +166,9 @@ module Load
       if File.exists?(name)
         block.call name
       else
-        path = Dir['../**/*.*'].find do |p|
-          File.basename(p) == name
-        end
-        if path.nil?
-          nil
-        else
-          raise EOFError, "File not found #{name}" unless path
-          block.call path
-        end
+        path = @file_map[name]
+        raise EOFError, "File not found #{name}" unless path
+        block.call path
       end
     end
   end

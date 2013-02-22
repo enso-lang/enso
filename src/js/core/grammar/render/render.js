@@ -6,12 +6,13 @@ requirejs([
   "core/grammar/render/layout"
 ],
 function(Enso, Load, Layout) {
+  var outgrammar, outname;
   if (! ARGV._get(0)) {
     System.stderr().push("Usage: render.rb <model> [grammar] -o <output>");
     exit_in_place(1);
-  }
+  };
   name = ARGV._get(0);
-  if (ARGV.size() > 1) {
+  if (ARGV.length > 1) {
     if (ARGV._get(1) == "-o") {
       outname = ARGV._get(1);
     } else {

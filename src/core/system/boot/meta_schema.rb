@@ -14,7 +14,7 @@ The only requirements are:
 - Schema has field types 
 =end
 
-module Boot
+module MetaSchema
   def self.load_path(path)
     load(System.readJSON(path)['model'])
   end
@@ -64,10 +64,10 @@ module Boot
           keyed = (key[-1] == "#")
           name = if keyed then key.slice(0, key.length-1) else key end
           if value.length == 0 || !(value[0].is_a? String)
-            _create_many(name, value.map {|a| Boot.make_object(a, @root)}, keyed)
+            _create_many(name, value.map {|a| MetaSchema.make_object(a, @root)}, keyed)
           end
         elsif !(value.is_a? String)
-          define_singleton_value(key, Boot.make_object(value, @root))
+          define_singleton_value(key, MetaSchema.make_object(value, @root))
         end
       end
       if !has_name

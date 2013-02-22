@@ -1,8 +1,9 @@
 define([
   "core/expr/code/eval",
-  "core/expr/code/env"
+  "core/expr/code/env",
+  "core/system/utils/paths"
 ],
-function(Eval, Env) {
+function(Eval, Env, Paths) {
   var Layout ;
   var RenderClass = MakeClass("RenderClass", null, [Paths],
     function() {

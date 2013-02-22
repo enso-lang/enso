@@ -1,14 +1,12 @@
-define([
-  "core/schema/tools/dumpjson",
-  "digest/sha1"
+define(["core/schema/code/factory", "core/system/load/load"
 ],
-function(Dumpjson, Sha1) {
+function(Factory, Load) {
   var Cache ;
 
   Cache = {
     save_cache: function(name, model, out) {
       if (model === undefined) model = Load.load(name);
-      if (out === undefined) out = find_json(name);
+      if (out === undefined) out = Cache.find_json(name);
       res = Cache.add_metadata(name, model);
       res._set("model", ToJSON.to_json(model, true));
       return File.open(function(f) {
@@ -17,7 +15,7 @@ function(Dumpjson, Sha1) {
     },
 
     load_cache: function(name, input) {
-      if (input === undefined) input = find_json(name);
+      if (input === undefined) input = Cache.find_json(name);
       type = name.split(".")._get(- 1);
       factory = Factory.new(Load.load(S(type, ".schema")));
       json = System.readJSON(input);

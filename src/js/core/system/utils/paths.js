@@ -237,6 +237,11 @@ function() {
         return self.$.name = name;
       };
 
+      this.value = function() {
+        var self = this; 
+        return self.name();
+      };
+
       this.deref = function(obj, root) {
         var self = this; 
         return obj._get(self.$.name);
@@ -264,6 +269,11 @@ function() {
       this.initialize = function(index) {
         var self = this; 
         return self.$.index = index;
+      };
+
+      this.value = function() {
+        var self = this; 
+        return self.index();
       };
 
       this.deref = function(obj, root) {
@@ -297,6 +307,11 @@ function() {
       this.initialize = function(key) {
         var self = this; 
         return self.$.key = key;
+      };
+
+      this.value = function() {
+        var self = this; 
+        return self.key();
       };
 
       this.deref = function(obj, root) {
