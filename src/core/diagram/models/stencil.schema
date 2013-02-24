@@ -1,16 +1,14 @@
-import diagram.schema
-import impl.schema
+import impl.schema with Command as Part
 
-class Command < Part
 class Expr 
 class EAssign
 
 class Stencil
   title: str?
   root: str
-  body! Command*
+  body! Part*
 
-class Part < Expr
+class Part
   label: str
   props! EAssign*
 
@@ -19,7 +17,7 @@ class Part < Expr
 
 class Container < Part
   direction: int // 1=vert, 2=hoiz, 3=graph, 4=paged
-  items! Command*
+  items! Part*
 
 class Text < Part
   string! Expr
@@ -27,7 +25,7 @@ class Text < Part
 
 class Shape < Part
   kind: str
-  content! Command?
+  content! Part?
 
 class Widget < Part
 

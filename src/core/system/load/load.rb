@@ -81,6 +81,10 @@ module Load
 
     def update_xml(name)
       if Cache::check_dep(name)
+        parts = name.split(".")
+        model = parts[0]
+        type = parts[1]
+        patch_schema_pointers!(@cache[name], load("#{type}.schema"))
         @cache[name]
       else
         parts = name.split(".")
@@ -126,7 +130,6 @@ module Load
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
           result = MetaSchema::load_path(path)
-#          patch_schema_pointers!(result, result)
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
@@ -142,18 +145,8 @@ module Load
           puts "Unable to open file #{path}"
           raise err
         end
-        if header == "#ruby"
-          $stderr << "## building #{path}...\n"
-          str = File.read(path)
-          result = instance_eval(str)
-          result.factory.file_path[0] = path
-          a = str.split("\"").map{|x|x.split("\'")}.flatten
-          fnames = a.values_at(* a.each_index.select {|i| i.odd?})
-          fnames.each {|fn| result.factory.file_path << fn}
-        else
-          $stderr << "## loading #{path}...\n"
-          result = Parse.load_file(path, grammar, schema, encoding)
-        end
+        $stderr << "## loading #{path}...\n"
+        result = Parse.load_file(path, grammar, schema, encoding)
       end
       result
     end
