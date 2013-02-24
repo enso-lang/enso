@@ -1,9 +1,8 @@
-import impl.grammar
+import impl.grammar with Command as Part
 
 start Stencil
 
 abstract Expr
-abstract Command
 abstract EAssign
 
 // To make text fields editable, add a "+" behind the name
@@ -18,7 +17,6 @@ Part ::= [Container] Dir Props? "{" items:Part+ "}"
        | [CheckBox] "checkbox" string:Expr
        | [RadioList] "radio" value:Expr choices:Expr
        | [TextBox] "text?" value:Expr
-       | Command
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph"  {direction==3} | "do"  {direction==4}
 ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?

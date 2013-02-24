@@ -4,6 +4,7 @@ require 'core/grammar/parse/gll'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
+require 'core/grammar/tools/rename_binding'
 
 class Parse
 
@@ -37,10 +38,16 @@ class Parse
     imports.each do |imp,as|
       $stderr << "## importing #{imp}...\n" 
       u = Load::load(imp)
-      if as and imp.split('.')[1]=="schema" #we only know how to rename schemas right now
-        u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
-        as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
-          rename_schema!(u, from, to)
+      if as 
+        if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
+          u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
+          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+            rename_schema!(u, from, to)
+          end
+        elsif imp.split('.')[1]=="grammar"
+          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+            rename_binding!(u, {from=>to})
+          end
         end
       end
       data = Union::union(u, data)
