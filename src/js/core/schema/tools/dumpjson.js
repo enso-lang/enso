@@ -51,33 +51,16 @@ function(Paths, Schema, Json) {
         return res;
       };
 
-      this.make_primitive = function(str, type) {
-        var self = this; 
-        if (type === undefined) type = null;
-        if (type == "int") {
-          return str.to_i();
-        } else if (type == "str") {
-          return str.to_s();
-        } else if (type == "bool") {
-          return str.to_s().casecmp("True") == 0;
-        } else if (type == "real") {
-          return str.to_real();
-        } else if (type == null) {
-        }
-      };
-
       this.from_json = function(this_V) {
         var self = this; 
         var obj, fname;
         if (this_V == null) {
           return null;
         } else {
-          obj = self.$.factory._get(this_V._get("class"));
-          puts("JSON " + this_V["class"] + " " + this_V["name="]);
-          
+          obj = self.$.factory._get(this_V._get("class"));          
           obj.schema_class().fields().each(function(f) {
             if (f.type().Primitive_P()) {
-              return obj._set(f.name(), self.make_primitive(this_V._get(S(f.name(), "=")), f.type().name()));
+              return obj._set(f.name(), this_V._get(S(f.name(), "=")));
             } else if (! f.many()) {
               if (this_V._get(f.name()) == null) {
                 return obj._set(f.name(), null);
@@ -94,7 +77,6 @@ function(Paths, Schema, Json) {
               if (f.traversal()) {
                 return this_V._get(fname).each(function(o) {
                   var v = self.from_json(o);
-                  puts("ADDING " + fname + " << " + v);
                   return obj._get(f.name()).push(v);
                 });
               } else {

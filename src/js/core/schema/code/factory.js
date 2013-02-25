@@ -25,7 +25,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.roots = [];
         self.$.file_path = [];
         return schema.classes().each(function(klass) {
-          puts("DEFINE " + klass.name());
           return self.define_singleton_method(function() {
             var args = compute_rest_arguments(arguments, 0 );
             return MObject.new.apply(MObject, [klass, self].concat( args ));
@@ -132,7 +131,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.__to_s = function(cls) {
         var self = this; 
         var k;
-        k = Schema.class_key(cls);
+        k = Schema.class_key(cls) || cls.defined_fields()._get("name");
         if (k) {
           return self.define_singleton_method(function() {
             return S("<<", cls.name(), " ", self._id(), " '", self._get(k.name()), "'>>");
@@ -165,6 +164,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         val = null;
         return self.define_singleton_method(function() {
           if (val == null) {
+            //puts("COPMUTING " + name);
             fvs = fvInterp.dynamic_bind(function() {
               return fvInterp.depends(exp);
             }, new EnsoHash ( { env: Env.ObjEnv.new(self), bound: [] } ));
@@ -178,7 +178,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             val = commInterp.dynamic_bind(function() {
               return commInterp.eval(exp);
             }, new EnsoHash ( { env: Env.ObjEnv.new(self), for_field: fld } ));
-            puts("COMPUTED " + name + "=" + val);
+            //puts("COMPUTED " + this + "." + name + "=" + val);
           }
           return val;
         }, name);
@@ -425,7 +425,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       self.each(function(x) {
         return result.push(x);
       });
-      other && other.each(function(x) {
+      other.each(function(x) {
         return result.push(x);
       });
       return result;
@@ -446,19 +446,14 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     this.flat_map = function(block) {
       var self = this; 
       var new_V, set, key;
-      new_V = null;
+      new_V = Set.new(null, self.$.field, self.__key());
       self.each(function(x) {
         set = block(x);
-        if (new_V == null) {
-          key = set.__key();
-          new_V = Set.new(null, self.$.field, key);
-        } else {
-        }
         return set.each(function(y) {
           return new_V.push(y);
         });
       });
-      return new_V || Set.new(null, self.$.field, self.__key());
+      return new_V;
     };
 
     this.each_with_match = function(block, other) {

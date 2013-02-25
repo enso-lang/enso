@@ -87,7 +87,6 @@ function(Eval, Lvalue, Interpreter, Env) {
       res = null;
       nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
       self.dynamic_bind(function() {
-          puts("  BLOCK " + (typeof body.length == "function" ? body.length() : body.length));
         return body.each(function(c) {
           return res = self.eval(c);
         });
@@ -117,15 +116,15 @@ function(Eval, Lvalue, Interpreter, Env) {
       m = self.dynamic_bind(function() {
         return self.eval(fun);
       }, new EnsoHash ( { in_fc: true } ));
-      if (lambda == null) {
-        return m.apply(m, [].concat( params.map(function(p) {
+      var ps = params.map(function(p) {
           return self.eval(p);
-        }) ));
+        });
+      //puts("PARAMETERS: " + params + "=" + ps);
+      if (lambda == null) {
+        return m.apply(m, [].concat( ps ));
       } else {
         p = self.eval(lambda);
-        return m.apply(m, [p].concat( params.map(function(p) {
-          return self.eval(p);
-        }) ));
+        return m.apply(m, [p].concat( ps ));
       }
     };
 

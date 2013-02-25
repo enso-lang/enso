@@ -2,7 +2,7 @@
 define (function() {
 
   fs = require("fs");
-  ARGV = process.argv.slice(1);
+  ARGV = process.argv.slice(2);
   
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
@@ -85,12 +85,11 @@ define (function() {
         map._set(name, path);
       });
       return map; 
-    }
+    },        
   };
   
   System = {
     max: function(a, b) {
-      puts("MAX OF " + a + " and " + b);
       return a > b ? a : b;
     },  
     readJSON: function(path) {
@@ -153,11 +152,10 @@ define (function() {
   };
     
   Array.prototype.map = function(fun) {  // Array.prototype.forEach;
-    var i;
     var result = new Array;
-    for (i = 0; i < this.length; i++) {
-      result.push(fun(this[i]));
-    }
+    this.each(function(x) {
+      result.push(fun(x));
+    })
     return result;
   };
  
@@ -246,6 +244,8 @@ define (function() {
     return result;
   }
   
+  Integer = Number;
+  Numeric = Number;
   
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
@@ -253,7 +253,10 @@ define (function() {
   String.prototype.to_s = function() { return this }
   Object.prototype.to_s = function() { return "<SOMETHING>" }
   Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }
-  Object.prototype.casecmp = function(other) { return this.toUpperCase() === other.toUpperCase() }
+  String.prototype.casecmp = function(other) { 
+     puts("COMP " + this + "=" + other + " => " + this.toUpperCase() === other.toUpperCase());
+     return this.toUpperCase() === other.toUpperCase() 
+   }
   Object.prototype._get = function(k) { return this[k] }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
@@ -466,7 +469,6 @@ define (function() {
       },
       each: function(proc) {
         var i;
-        puts("RANGE each " + this.$.a + ".." + this.$.b);
         for (i = this.$.a; i <= this.$.b; i++)
           proc(i);
       }       

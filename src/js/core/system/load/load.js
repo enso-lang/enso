@@ -75,16 +75,16 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
         System.stderr().push("GOT SS...\n");
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
         System.stderr().push("GOT GS...\n");
-        puts("-------------------------------")
-        puts(gs.classes());
-        puts("-------------------------------")
+        puts(gs.classes()._get("Grammar").defined_fields());
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         System.stderr().push("GOT GG...\n");
+        /*
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
         self.$.cache._set("schema.schema", self.update_xml("schema.schema"));
         self.$.cache._set("grammar.schema", self.update_xml("grammar.schema"));
         self.$.cache._set("grammar.grammar", self.update_xml("grammar.grammar"));
         return self.$.cache._set("schema.grammar", self.update_xml("schema.grammar"));
+        */
       };
 
       this.update_xml = function(name) {

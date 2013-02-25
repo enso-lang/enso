@@ -79,7 +79,7 @@ module Union
               else
                 a_val.each_with_match(b_val) do |a_item, b_item|
                   item = link(field.traversal, a_item, b_item)
-                  new[field.name] << item unless new[field.name].include? item
+                  new[field.name] << item  # TODO: WHY WAS THIS HERE: unless new[field.name].include? item
                 end
               end
             end

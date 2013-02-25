@@ -64,6 +64,10 @@ function() {
       var self = this; 
       var type, method, params;
       type = obj.schema_class();
+//      for (var i = 0; i < self.$.indent; i++)
+//        System.stderr().push(' ');
+//      self.$.indent = (self.$.indent || 0) + 1;
+//      System.stderr().push("CALL " + obj + "." + operation + "\n");
       method = S(operation, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
         method = self.find(operation, type);
@@ -80,7 +84,10 @@ function() {
         });
         val = self.send.apply(self, [method].concat( params ));
       }
-      puts("CALL " + obj + "." + operation + "=" + val);
+//      for (var i = 0; i < self.$.indent; i++)
+//        System.stderr().push(' ');
+//      System.stderr().push("=" + val + "\n");
+//      self.$.indent = (self.$.indent || 0) - 1;
       return val;
     };
 

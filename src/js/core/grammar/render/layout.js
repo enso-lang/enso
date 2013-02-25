@@ -46,7 +46,9 @@ function(Eval, Env, Paths) {
       this.Grammar = function(this_V, stream, container) {
         var self = this; 
         self.$.root = stream.current();
-        self.$.literals = Scan.collect_keywords(this_V);
+        //self.$.literals = Scan.collect_keywords(this_V);
+        //for (var x in this_V) if (this_V.hasOwnProperty(x)) puts("FOO: "+ x);
+        puts(this_V.schema_class().defined_fields());
         this_V.rules().each(function(rule) {
           if (rule.arg().alts().length == 1) {
             return rule.arg = rule.arg().alts()._get(0);

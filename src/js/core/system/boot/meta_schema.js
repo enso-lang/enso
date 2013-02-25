@@ -166,7 +166,7 @@ function(Paths, Factory, Union, Json, Enso) {
         var self = this; 
         return self._get(key);
       };
-
+        
       this.each_with_match = function(block, other) {
         var self = this; 
         var other, ks, a, b;
@@ -178,10 +178,10 @@ function(Paths, Factory, Union, Json, Enso) {
           });
         } else {
           var i = 0;
-          puts("MATCH " + this);
           this.each(function(a_item) {
-            puts("fROB " + a_item);
-            return block(a_item, b && b._get(i++));
+            var r = block(a_item, b && b._get(i));
+            i = i + 1;
+            return r;
           });
         }
       };
