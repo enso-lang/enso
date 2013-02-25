@@ -5,11 +5,11 @@ module Schema
   end
   
   def self.object_key(obj)
-    obj[self.class_key(obj.schema_class).name]
+    obj[class_key(obj.schema_class).name]
   end
   
   def self.is_keyed?(klass)
-    not klass.Primitive? and not self.class_key(klass).nil?
+    not klass.Primitive? and not class_key(klass).nil?
   end
   
   #run DFS on obj's parent hierarchy and return first non-nil result
@@ -22,7 +22,7 @@ module Schema
       nil
     else
       obj.supers.find_first do |o|
-        self.lookup(o, &block)
+        lookup(o, &block)
       end
     end
   end
@@ -34,7 +34,7 @@ module Schema
       true
     else 
       a.supers.any? do |sup|
-        self.subclass?(sup, b)
+        subclass?(sup, b)
       end
     end
   end
@@ -44,9 +44,9 @@ module Schema
       a 
     elsif a.nil?
       b
-    elsif self.subclass?(a, b)
+    elsif subclass?(a, b)
       a
-    elsif self.subclass?(b, a)
+    elsif subclass?(b, a)
       b
     else
       nil

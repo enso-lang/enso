@@ -87,6 +87,7 @@ function(Eval, Lvalue, Interpreter, Env) {
       res = null;
       nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
       self.dynamic_bind(function() {
+          puts("  BLOCK " + (typeof body.length == "function" ? body.length() : body.length));
         return body.each(function(c) {
           return res = self.eval(c);
         });

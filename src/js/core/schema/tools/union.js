@@ -40,7 +40,9 @@ function(Factory) {
               if (! field.many()) {
                 return self.build(a_val, b_val);
               } else {
+                puts("UNION " + field.name() + ": " + a_val);
                 return a_val.each_with_match(function(a_item, b_item) {
+                   puts(" > " + a_item);
                   return self.build(a_item, b_item);
                 }, b_val);
               }

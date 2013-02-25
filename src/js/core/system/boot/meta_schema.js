@@ -177,10 +177,11 @@ function(Paths, Factory, Union, Json, Enso) {
             return block(self._get(k), other._get(k));
           });
         } else {
-          a = Array(self);
-          b = Array(other);
-          return Range.new(0, [a.length, b.length].max() - 1).each(function(i) {
-            return block(a._get(i), b._get(i));
+          var i = 0;
+          puts("MATCH " + this);
+          this.each(function(a_item) {
+            puts("fROB " + a_item);
+            return block(a_item, b && b._get(i++));
           });
         }
       };

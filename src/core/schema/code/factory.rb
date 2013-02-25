@@ -156,14 +156,13 @@ module Factory
           end
           fvs.each do |fv|
             if fv.object  #should always be non-nil since computed fields have no external env
-              fv.object.add_listener(fv.index) { var = nil }
+              fv.object.add_listener(fv.index) { val = nil }
             end
           end
           val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
             commInterp.eval(exp)
           end
           #puts "COMPUTED #{name}=#{val}"
-          var = val
         end
         val
       end
@@ -529,6 +528,10 @@ module Factory
       if connected? && @field.traversal then
         mobj.__shell = shell
       end
+    end
+    
+    def to_s
+      "<MANY #{map{|x| x.to_s}}>"
     end
   end
 

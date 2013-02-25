@@ -73,13 +73,15 @@ function() {
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
-        return self.send(method, type, obj, self.$.D);
+        val = self.send(method, type, obj, self.$.D);
       } else {
         params = type.fields().map(function(f) {
           return obj._get(f.name());
         });
-        return self.send.apply(self, [method].concat( params ));
+        val = self.send.apply(self, [method].concat( params ));
       }
+      puts("CALL " + obj + "." + operation + "=" + val);
+      return val;
     };
 
     this.dispatch_obj = function(operation, obj) {

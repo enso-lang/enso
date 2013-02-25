@@ -27,13 +27,25 @@ function(Factory, Schema, Interpreter) {
       } else if (op == "|") {
         return self.eval(e1) || self.eval(e2);
       } else {
-        return self.eval(e1).send(op.to_s(), self.eval(e2));
+        var a = self.eval(e1)
+        var b = self.eval(e2)
+        switch (op) {
+         case 'eql?': return a == b;
+         case '+': return a + b;
+        }
+        console.log("BIN " + a + " " + op + " " + b);
+        return a.send(op.to_s(), b);
       }
     };
 
     this.eval_EUnOp = function(op, e) {
       var self = this; 
-      return self.eval(e).send(op.to_s());
+        var a = self.eval(e)
+        switch (op) {
+         case '!': return !a;
+        }
+        console.log("UNOP " + op + " " + a);
+      return a.send(op.to_s());
     };
 
     this.eval_EVar = function(name) {

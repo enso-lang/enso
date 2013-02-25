@@ -1,25 +1,27 @@
-define(["core/schema/code/factory", "core/system/load/load"
+define([
+  "core/schema/code/factory",
+  "core/schema/tools/dumpjson",
+  "core/system/utils/find_model",
 ],
-function(Factory, Load) {
+function(Factory, Dumpjson, FindModel) {
   var Cache ;
 
   Cache = {
     save_cache: function(name, model, out) {
-      if (model === undefined) model = Load.load(name);
       if (out === undefined) out = Cache.find_json(name);
       res = Cache.add_metadata(name, model);
-      res._set("model", ToJSON.to_json(model, true));
+      res._set("model", Dumpjson.to_json(model, true));
       return File.open(function(f) {
         return f.write(JSON.pretty_generate(res, new EnsoHash ( { allow_nan: true, max_nesting: false } )));
       }, out, "w+");
     },
 
-    load_cache: function(name, input) {
+    load_cache: function(name, factory, input) {
       if (input === undefined) input = Cache.find_json(name);
+      puts("READING CACHE " + name + ": " + input);
       type = name.split(".")._get(- 1);
-      factory = Factory.new(Load.load(S(type, ".schema")));
       json = System.readJSON(input);
-      res = ToJSON.from_json(factory, json._get("model"));
+      res = Dumpjson.from_json(factory, json._get("model"));
       res.factory().file_path()._set(0, json._get("source"));
       json._get("depends").each(function(dep) {
         return res.factory().file_path().push(dep._get("filename"));
@@ -51,7 +53,11 @@ function(Factory, Load) {
     },
 
     cache_path: function() {
-      return "core/system/load/cache/";
+      res = "core/system/load/cache/";
+      if (! File.exists_P(res)) {
+        Dir.mkdir(res);
+      }
+      return res;
     },
 
     find_json: function(name) {
@@ -74,7 +80,7 @@ function(Factory, Load) {
 
     get_meta: function(name) {
       e = new EnsoHash ( { } );
-      Load.Loader.find_model(function(path) {
+      FindModel.FindModel.find_model(function(path) {
         e._set("source", path);
         e._set("date", File.ctime(path));
         return e._set("checksum", Cache.readHash(path));

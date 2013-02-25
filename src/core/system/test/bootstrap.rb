@@ -43,7 +43,7 @@ class BootstrapTests < Test::Unit::TestCase
     puts "Writing new metaschema"  
     ss_path = 'schema_schema2.json'
     File.open(ss_path, 'w+') do |f| 
-      f.write(JSON.pretty_generate(ToJSON.to_json(realss, true)))
+      f.write(JSON.pretty_generate(Dumpjson::to_json(realss, true)))
     end
     assert( Equals.equals(realss, ss) )
   end

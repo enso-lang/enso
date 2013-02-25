@@ -25,6 +25,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.roots = [];
         self.$.file_path = [];
         return schema.classes().each(function(klass) {
+          puts("DEFINE " + klass.name());
           return self.define_singleton_method(function() {
             var args = compute_rest_arguments(arguments, 0 );
             return MObject.new.apply(MObject, [klass, self].concat( args ));
@@ -143,7 +144,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.__computed = function(fld) {
         var self = this; 
-        var c, base, name, exp, fvInterp, commInterp, val, fvs, var_V;
+        var c, base, name, exp, fvInterp, commInterp, val, fvs;
         if (fld.computed().EList_P() && (c = fld.owner().supers().find(function(c) {
           return c.all_fields()._get(fld.name());
         }))) {
@@ -170,14 +171,14 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             fvs.each(function(fv) {
               if (fv.object()) {
                 return fv.object().add_listener(function() {
-                  return var_V = null;
+                  return val = null;
                 }, fv.index());
               }
             });
             val = commInterp.dynamic_bind(function() {
               return commInterp.eval(exp);
             }, new EnsoHash ( { env: Env.ObjEnv.new(self), for_field: fld } ));
-            var_V = val;
+            puts("COMPUTED " + name + "=" + val);
           }
           return val;
         }, name);
@@ -370,20 +371,19 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         if (! self.$.field.optional() || value) {
           ok = self.$.field.type().name() == "str"
             ? System.test_type(value, String)
-            : self.$.field.type().name() == "int"
+            : (self.$.field.type().name() == "int"
               ? System.test_type(value, Integer)
-              : self.$.field.type().name() == "bool"
+              : (self.$.field.type().name() == "bool"
                 ? System.test_type(value, TrueClass) || System.test_type(value, FalseClass)
-                : self.$.field.type().name() == "real"
+                : (self.$.field.type().name() == "real"
                   ? System.test_type(value, Numeric)
-                  : self.$.field.type().name() == "datetime"
+                  : (self.$.field.type().name() == "datetime"
                     ? System.test_type(value, DateTime)
                     : ((function(){ {
                       if (self.$.field.type().name() == "atom") {
                         return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
                       }
-                    } })())
-          ;
+                    } })())))));
           if (! ok) {
             return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
           }
@@ -425,7 +425,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       self.each(function(x) {
         return result.push(x);
       });
-      other.each(function(x) {
+      other && other.each(function(x) {
         return result.push(x);
       });
       return result;
@@ -626,11 +626,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.__value().length;
       };
 
-      this.to_s = function() {
-        var self = this; 
-        return self.__value().to_s();
-      };
-
       this.clear = function() {
         var self = this; 
         return self.__value().clear();
@@ -672,6 +667,15 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         if (self.connected_P() && self.$.field.traversal()) {
           return mobj.__shell = shell;
         }
+      };
+
+      this.to_s = function() {
+        var self = this; 
+        var foo = "";
+        self.each(function(x) {
+          foo = foo + ", " + x.to_s();
+        })
+        return S("<MANY ", foo, ">");
       };
     });
 
@@ -727,6 +731,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var key;
         self.check(mobj);
         key = mobj._get(self.$.key.name());
+        
         if (! key) {
           self.raise(S("Nil key when adding ", mobj, " to ", self));
         }
