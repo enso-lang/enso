@@ -81,20 +81,6 @@ module Dumpjson
       res
     end
   
-    def make_primitive(str, type=nil)
-      case type
-      when 'int'
-        str.to_i
-      when 'str'
-        str.to_s
-      when 'bool'
-        str.to_s.casecmp("True")==0
-      when 'real'
-        str.to_real
-      when nil  #ie. guess
-      end
-    end
-  
     def from_json(this)
       if this.nil?
         nil
@@ -102,7 +88,7 @@ module Dumpjson
         obj = @factory[this['class']]
         obj.schema_class.fields.each do |f|
           if f.type.Primitive?
-            obj[f.name] = make_primitive(this["#{f.name}="], f.type.name)
+            obj[f.name] = this["#{f.name}="]
           elsif !f.many
             if this[f.name].nil?
               obj[f.name] = nil

@@ -36,7 +36,7 @@ class DiffTest < Test::Unit::TestCase
     puts Diff.diff(ss, gs)
 
     #TODO: not sure how to check if this test is producing the right output
-    #Print.print(delta)
+    #Print::Print.print(delta)
 =end
   end
 end

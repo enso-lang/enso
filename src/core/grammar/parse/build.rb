@@ -1,6 +1,5 @@
 
 require 'core/grammar/parse/unparse'
-require 'core/grammar/parse/to-path'
 require 'core/grammar/tools/todot'
 require 'core/system/utils/location'
 require 'core/expr/code/assertexpr'
@@ -16,7 +15,7 @@ class Build
   end
 
   def build(sppf)
-    recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
+    recurse(sppf, nil, accu = {}, nil, fixes = [], paths = [])
     obj = accu.values.first
     fixup(obj, fixes)
     return obj
@@ -68,15 +67,17 @@ class Build
     # TODO: this check should be done if owner = Env
     # for new paths.
     raise "Object #{owner} has no field #{this.name} as required by grammar fixups" if !field
-    kids(sppf, owner, accu = {}, field, fixes, paths = {})
+    kids(sppf, owner, accu = {}, field, fixes, paths = [])
     accu.each do |org, value|
       # convert the value again, this time based on the field type
       # (if atom was used in the grammar this is needed)
       update(owner, field, convert_value(value, field.type))
       update_origin(owner, field, org)
     end
-    paths.each do |org, path|
-      fixes << Fix.new(path, owner, field, org)
+    paths.each do |fix|
+      raise "BAD" if fix.owner != owner || fix.field != field
+      fixes << fix
+      #fixes << Fix.new(path, owner, field, org)
     end
   end
 
@@ -90,7 +91,7 @@ class Build
   end
 
   def Ref(this, sppf, owner, accu, field, fixes, paths)
-    paths[origin(sppf)] = ToPath.to_path(this.path, sppf.value)
+    paths << Fix.new(this.path, owner, field, origin(sppf), sppf.value)
   end
 
   def Let(this, sppf, owner, accu, field, fixes, paths)
@@ -188,7 +189,8 @@ class Build
       later = []
       change = false
       fixes.each do |fix|
-        x = fix.path.deref(fix.obj, root)
+        helper = Paths.new(fix.path)
+        x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it { helper.eval }
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
           update_origin(fix.obj, fix.field, fix.origin)
@@ -224,12 +226,13 @@ class Build
   end
 
   class Fix
-    attr_reader :path, :obj, :field, :origin
-    def initialize(path, obj, field, origin)
+    attr_reader :path, :obj, :field, :origin, :it
+    def initialize(path, obj, field, origin, it)
       @path = path
       @obj = obj
       @field = field
       @origin = origin
+      @it = it
     end
     def inspect
       "#{obj}.#{field} = #{path}"

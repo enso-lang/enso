@@ -12,14 +12,17 @@ module Interpreter
       @current = {}
       @stack = []
     end
+    
     def [](name)
       @current[name]
     end
+    
     def _bind(field, value)
       old = @current[field]
       @stack << [field, old]
       @current[field] = value
     end
+    
     def _pop(n = 1)
       while (n > 0) do
         parts = @stack.pop
@@ -27,6 +30,7 @@ module Interpreter
         n -= 1
       end
     end
+    
     def to_s
       @current.to_s
     end
@@ -47,7 +51,17 @@ module Interpreter
       result
     end
     
+    def debug
+      @debug = true
+      @indent = 0 if !@indent
+    end
+    
     def dispatch(operation, obj)
+      @debug = false
+      if @debug
+        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
+        @indent = @indent + 1
+      end
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -58,14 +72,19 @@ module Interpreter
         if !respond_to?(method)
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
-        send(method, type, obj, @D)
+        result = send(method, type, obj, @D)
       else
         params = type.fields.map {|f| obj[f.name] }
-        send(method, *params)
+        result = send(method, *params)
       end
+      if @debug
+        @indent = @indent - 1
+        $stderr << "#{' '.repeat(@indent)}= #{result}\n"
+      end
+      result
     end
   
-    def dispatch_obj(operation, obj)
+    def dispatch_obj(operation, obj, *params)
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -77,7 +96,7 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
-      send(method, obj)
+      send(method, obj, *params)
     end
       
     def find(operation, type)

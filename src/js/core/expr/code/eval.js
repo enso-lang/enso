@@ -26,26 +26,28 @@ function(Factory, Schema, Interpreter) {
         return self.eval(e1) && self.eval(e2);
       } else if (op == "|") {
         return self.eval(e1) || self.eval(e2);
+      } else if (op == "eql?") {
+        return self.eval(e1) == self.eval(e2);
+      } else if (op == "+") {
+        return self.eval(e1) + self.eval(e2);
+      } else if (op == "*") {
+        return self.eval(e1) * self.eval(e2);
+      } else if (op == "-") {
+        return self.eval(e1) - self.eval(e2);
+      } else if (op == "/") {
+        return self.eval(e1) / self.eval(e2);
       } else {
-        var a = self.eval(e1)
-        var b = self.eval(e2)
-        switch (op) {
-         case 'eql?': return a == b;
-         case '+': return a + b;
-        }
-        console.log("BIN " + a + " " + op + " " + b);
-        return a.send(op.to_s(), b);
+        return self.raise(S("Unknown operator (", op, ")"));
       }
     };
 
     this.eval_EUnOp = function(op, e) {
       var self = this; 
-        var a = self.eval(e)
-        switch (op) {
-         case '!': return !a;
-        }
-        console.log("UNOP " + op + " " + a);
-      return a.send(op.to_s());
+      if (op == "!") {
+        return ! self.eval(e);
+      } else {
+        return self.raise(S("Unknown operator (", op, ")"));
+      }
     };
 
     this.eval_EVar = function(name) {

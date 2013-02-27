@@ -17,7 +17,7 @@ class Result2Object
   def initialize(schema)
     @schema = SecureSchema.secure_transform!(Clone(schema))
     puts "Schema is: "
-    Print.print(@schema)
+    Print::Print.print(@schema)
     @factory = Factory::new(@schema)
     @root = @factory[@schema.root]
   end
@@ -53,7 +53,7 @@ class Result2Object
         end
       end
     end
-    Print.print(obj)
+    Print::Print.print(obj)
     obj
   end
 

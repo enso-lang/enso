@@ -1,13 +1,13 @@
-
 require 'core/expr/code/eval'
 require 'core/expr/code/env'
+require 'core/schema/tools/print'
 require 'core/system/utils/paths'
+require 'core/system/library/schema'
 
 module Layout
   
   # render an object into a grammar, to create a parse tree
   class RenderClass
-    include Paths
   
     def initialize(slash_keywords = true)
       @depth = 0
@@ -29,15 +29,12 @@ module Layout
       if !r
         @create_stack.each_with_index do |p, i|
           puts "*****#{i + @success >= @create_stack.length ? 'SUCCESS' : 'FAIL'}*****"          
-          Print.print(p[0], 2)
+          Print::Print.print(p[0], 2)
           puts "-----------------"
-          Print.print(p[1], 2)
+          Print::Print.print(p[1], 2)
         end
         puts "grammar=#{grammar} obj=#{obj}\n\n"
-        Print.print(grammar)
-        Print.print(obj)
-        raise RuntimeError, 'Message goes here'
-        abort "No matches found"
+        raise "Can't render this object"
       end
       r
     end
@@ -203,13 +200,9 @@ module Layout
     def Ref(this, stream, container)
       obj = stream.current
       if !obj.nil?
-        it = PathVar.new("it")
-        path = ToPath.to_path(this.path, it)
-        #puts "#{' '*@depth}RENDER #{path} REF /=#{@root} .=#{container}"
-        bind = path.search(@root, container, obj)
-        
-        #puts "#{' '*@depth}RENDER REF '#{bind[:it]}' #{container}=#{bind}"
-        output(bind[:it]) if !bind.nil? # TODO: need "." keys
+        # TODO: this is complete cheating! we need to search the path
+        key_field = Schema::class_key(obj.schema_class)
+        output(obj[key_field.name()])
       end
     end
   

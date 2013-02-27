@@ -2,8 +2,9 @@ define([
   "core/schema/code/factory",
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
+  "digest/sha1"
 ],
-function(Factory, Dumpjson, FindModel) {
+function(Factory, Dumpjson, FindModel, Sha1) {
   var Cache ;
 
   Cache = {
@@ -18,7 +19,6 @@ function(Factory, Dumpjson, FindModel) {
 
     load_cache: function(name, factory, input) {
       if (input === undefined) input = Cache.find_json(name);
-      puts("READING CACHE " + name + ": " + input);
       type = name.split(".")._get(- 1);
       json = System.readJSON(input);
       res = Dumpjson.from_json(factory, json._get("model"));

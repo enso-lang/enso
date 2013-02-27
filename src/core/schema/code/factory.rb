@@ -122,7 +122,7 @@ module Factory
     end
         
     def __to_s(cls)
-      k = Schema::class_key(cls)
+      k = Schema::class_key(cls) || cls.fields.find{|f| f.type.Primitive? }
       if k then
         define_singleton_method :to_s do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
@@ -360,10 +360,6 @@ module Factory
         if new.nil? then
           key = set.__key
           new = Set.new(nil, @field, key)
-        else
-         # if set.__key != key then
-         #   raise "Incompatible key fields: #{set.__key} vs #{key}"   
-         # end
         end
         set.each do |y|
           new << y

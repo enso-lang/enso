@@ -57,7 +57,7 @@ function(Paths, Schema, Json) {
         if (this_V == null) {
           return null;
         } else {
-          obj = self.$.factory._get(this_V._get("class"));          
+          obj = self.$.factory._get(this_V._get("class"));
           obj.schema_class().fields().each(function(f) {
             if (f.type().Primitive_P()) {
               return obj._set(f.name(), this_V._get(S(f.name(), "=")));
@@ -72,12 +72,10 @@ function(Paths, Schema, Json) {
             } else {
               fname = Schema.is_keyed_P(f.type())
                 ? S(f.name(), "#")
-                : f.name()
-              ;
+                : f.name();
               if (f.traversal()) {
                 return this_V._get(fname).each(function(o) {
-                  var v = self.from_json(o);
-                  return obj._get(f.name()).push(v);
+                  return obj._get(f.name()).push(self.from_json(o));
                 });
               } else {
                 return self.$.fixups.push(Fixup.new(obj, f, this_V._get(fname)));

@@ -68,10 +68,12 @@ module Load
       @cache['grammar.grammar'] = load_with_models('grammar_grammar.json', nil, gs)
       @cache['schema.grammar'] = load_with_models('schema_grammar.json', nil, gs)
 
+=begin
       @cache['schema.schema'] = update_xml('schema.schema')
       @cache['grammar.schema'] = update_xml('grammar.schema')
       @cache['grammar.grammar'] = update_xml('grammar.grammar')
       @cache['schema.grammar'] = update_xml('schema.grammar')
+=end
     end
 
     def update_xml(name)
@@ -125,8 +127,7 @@ module Load
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
-          name = path.split("/")[-1].split(".")[0]
-          name[name.rindex("_")] = '.'
+          name = path.split("/")[-1].split(".")[0].gsub("_", ".")
           type = name.split('.')[-1]
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
@@ -134,7 +135,7 @@ module Load
         begin
           header = File.open(path, &:readline)
         rescue EOFError => err
-          puts "Unable to open file #{path}"
+          $stderr << "Unable to open file #{path}\n"
           raise err
         end
         if header == "#ruby"

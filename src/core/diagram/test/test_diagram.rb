@@ -26,6 +26,6 @@ s1 = f.Shape( nil, [bluepen], t1)
 s2 = f.Shape( nil, [redpen], t2)
 c1 = f.Container(nil, [font, brwhite], 1, [t2, t1])
 content = f.Shape(nil, [greenpen], c1)
-Print.print(content)
+Print::Print.print(content)
 
 RunDiagramApp(content)

@@ -442,6 +442,8 @@ class CodeBuilder < Ripper::SexpBuilder
     when "Decl"
       o.default = fixup_expr(o.default, env)
 
+    when "Ref", "Lit", "Attribute"
+
     when "Assign"
       o.to = fixup_expr(o.to, env)
       o.from = fixup_expr(o.from, env)
@@ -479,6 +481,7 @@ class CodeBuilder < Ripper::SexpBuilder
       o.fields.each {|x| fixup_expr(x, env) }
 
     else
+      raise "Unknown expression type #{o.schema_class.name}"
     end 
     o
   end      
@@ -850,6 +853,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
+    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
 
@@ -965,6 +969,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_xstring_literal(string)
+    token = eval("\"#{token}\"")
     @f.Lit(string)
   end
 

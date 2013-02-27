@@ -27,7 +27,7 @@ class SecureSchema
         cf.traversal = false
         c.defined_fields << cf
       end
-      Print.print(c)
+      Print::Print.print(c)
     end
     schema.finalize()
     schema

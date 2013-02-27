@@ -49,13 +49,13 @@ class BatchEval < Web::Eval::Render
 
   def eval(obj, *args)
     puts "Evaling"
-    Print.print(obj)
+    Print::Print.print(obj)
     send(obj.schema_class.name, obj, *args)
   end
 
   def eval_exp(obj, env, errors)
     puts "Evaling exp"
-    Print.print(obj)
+    Print::Print.print(obj)
     send("exp_"+obj.schema_class.name, obj, env, errors)
   end
 

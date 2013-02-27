@@ -1,11 +1,13 @@
 define([
   "core/expr/code/eval",
   "core/expr/code/env",
-  "core/system/utils/paths"
+  "core/schema/tools/print",
+  "core/system/utils/paths",
+  "core/system/library/schema"
 ],
-function(Eval, Env, Paths) {
+function(Eval, Env, Print, Paths, Schema) {
   var Layout ;
-  var RenderClass = MakeClass("RenderClass", null, [Paths],
+  var RenderClass = MakeClass("RenderClass", null, [],
     function() {
     },
     function(super$) {
@@ -28,17 +30,13 @@ function(Eval, Env, Paths) {
           self.$.create_stack.each_with_index(function(p, i) {
             self.puts(S("*****", i + self.$.success >= self.$.create_stack.length
               ? "SUCCESS"
-              : "FAIL"
-            , "*****"));
-            Print.print(p._get(0), 2);
+              : "FAIL", "*****"));
+            Print.Print.print(p._get(0), 2);
             self.puts("-----------------");
-            return Print.print(p._get(1), 2);
+            return Print.Print.print(p._get(1), 2);
           });
-          self.puts(S("grammar=", grammar, " obj=", obj, "\\n\\n"));
-          Print.print(grammar);
-          Print.print(obj);
-          self.raise(RuntimeError, "Message goes here");
-          self.abort("No matches found");
+          self.puts(S("grammar=", grammar, " obj=", obj, "\n\n"));
+          self.raise("Can't render this object");
         }
         return r;
       };
@@ -46,9 +44,7 @@ function(Eval, Env, Paths) {
       this.Grammar = function(this_V, stream, container) {
         var self = this; 
         self.$.root = stream.current();
-        //self.$.literals = Scan.collect_keywords(this_V);
-        //for (var x in this_V) if (this_V.hasOwnProperty(x)) puts("FOO: "+ x);
-        puts(this_V.schema_class().defined_fields());
+        self.$.literals = Scan.collect_keywords(this_V);
         this_V.rules().each(function(rule) {
           if (rule.arg().alts().length == 1) {
             return rule.arg = rule.arg().alts()._get(0);
@@ -189,7 +185,7 @@ function(Eval, Env, Paths) {
           } else if (self.this_V().kind() == "sym") {
             if (System.test_type(obj, String)) {
               if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
-                return self.output("\\\\" + obj);
+                return self.output("\\" + obj);
               } else {
                 return self.output(obj);
               }
@@ -216,15 +212,11 @@ function(Eval, Env, Paths) {
 
       this.Ref = function(this_V, stream, container) {
         var self = this; 
-        var obj, it, path, bind;
+        var obj, key_field;
         obj = stream.current();
         if (! (obj == null)) {
-          it = PathVar.new("it");
-          path = ToPath.to_path(this_V.path(), it);
-          bind = path.search(self.$.root, container, obj);
-          if (! (bind == null)) {
-            return self.output(bind._get("it"));
-          }
+          key_field = Schema.class_key(obj.schema_class());
+          return self.output(obj._get(key_field.name()));
         }
       };
 
@@ -514,8 +506,7 @@ function(Eval, Env, Paths) {
         if (index === undefined) index = 0;
         self.$.collection = System.test_type(collection, Array)
           ? collection
-          : collection.values()
-        ;
+          : collection.values();
         self.$.index = index;
         if (self.$.collection.include_P(false)) {
           return self.raise("not an object!!");
@@ -552,7 +543,7 @@ function(Eval, Env, Paths) {
         var layout;
         layout = RenderClass.new(slash_keywords).render(grammar, obj);
         DisplayFormat.new(output).print(layout);
-        return output.push("\\n");
+        return output.push("\n");
       };
     },
     function(super$) {
@@ -572,7 +563,7 @@ function(Eval, Env, Paths) {
           });
         } else if (System.test_type(obj, String)) {
           if (self.$.lines > 0) {
-            self.$.out.push("\\n" * self.$.lines);
+            self.$.out.push("\n" * self.$.lines);
             self.$.out.push(" " * self.$.indent);
             self.$.lines = 0;
           } else if (self.$.space) {

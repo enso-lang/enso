@@ -14,6 +14,6 @@ factory.Transition("open", closed, open)
 sm.start = open
 sm.finalize
 
-Print.print(sm)
+Print::Print.print(sm)
 
 run_state_machine(sm)
