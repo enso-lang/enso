@@ -7,6 +7,7 @@ require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/schema/tools/rename'
 require 'core/system/load/cache'
+require 'core/system/utils/find_model'
 
 module Load
   class LoaderClass
@@ -44,26 +45,19 @@ module Load
       @cache[name] = obj
     end
 
-    #private
-
     def _load(name, type)
+      type ||= name.split('.')[-1]
       #first check if cached XML version is still valid 
       if Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
-        Cache::load_cache(name)
+        Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
-        filename = name.split("/")[-1]
-        if type.nil?
-          parts = filename.split(".")
-          model = parts[0]
-          type = parts[1]
-        end
         g = load("#{type}.grammar")
         s = load("#{type}.schema")
         res = load_with_models(name, g, s)
         #dump it back to xml
         $stderr << "## caching #{name}...\n"
-        Cache::save_cache(filename, res)
+        Cache::save_cache(name, res)
         res
       end
     end
@@ -87,13 +81,17 @@ module Load
 
     def update_xml(name)
       if Cache::check_dep(name)
+        parts = name.split(".")
+        model = parts[0]
+        type = parts[1]
+        patch_schema_pointers!(@cache[name], load("#{type}.schema"))
         @cache[name]
       else
         parts = name.split(".")
         model = parts[0]
         type = parts[1]
         res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-#        patch_schema_pointers!(res, load("#{type}.schema"))
+        patch_schema_pointers!(res, load("#{type}.schema"))
         $stderr << "## caching #{name}...\n"
         Cache::save_cache(name, res)
         res
@@ -121,24 +119,24 @@ module Load
     end
 
     def load_with_models(name, grammar, schema, encoding = nil)
-        find_model(name) do |path|
+        FindModel::FindModel.find_model(name) do |path|
           load_path(path, grammar, schema, encoding)
         end
     end
 
     def load_path(path, grammar, schema, encoding = nil)
-      if path.end_with?(".xml") || path.end_with?(".json") then
+      if path.end_with?(".json") then
         if schema.nil? then
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
-          result = Boot::load_path(path)
-#          patch_schema_pointers!(result, result)
+          result = MetaSchema::load_path(path)
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
           name = path.split("/")[-1].split(".")[0]
           name[name.rindex("_")] = '.'
-          result = Cache::load_cache(name)
+          type = name.split('.')[-1]
+          result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
       else
         begin
@@ -147,37 +145,12 @@ module Load
           puts "Unable to open file #{path}"
           raise err
         end
-        if header == "#ruby"
-          $stderr << "## building #{path}...\n"
-          str = File.read(path)
-          result = instance_eval(str)
-          result.factory.file_path[0] = path
-          a = str.split("\"").map{|x|x.split("\'")}.flatten
-          fnames = a.values_at(* a.each_index.select {|i| i.odd?})
-          fnames.each {|fn| result.factory.file_path << fn}
-        else
-          $stderr << "## loading #{path}...\n"
-          result = Parse.load_file(path, grammar, schema, encoding)
-        end
+        $stderr << "## loading #{path}...\n"
+        result = Parse.load_file(path, grammar, schema, encoding)
       end
       result
     end
 
-    def find_model(name, &block) 
-      if File.exists?(name)
-        block.call name
-      else
-        path = Dir['../**/*.*'].find do |p|
-          File.basename(p) == name
-        end
-        if path.nil?
-          nil
-        else
-          raise EOFError, "File not found #{name}" unless path
-          block.call path
-        end
-      end
-    end
   end
   
   # define a singleton instance 

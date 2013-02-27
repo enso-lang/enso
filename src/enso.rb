@@ -11,6 +11,20 @@ module System
   end
 end
 
+class File
+  def self.create_file_map(base)
+    result = {}
+    Dir["#{base}/**/*.*"].each do |p|
+      ext = File.extname(p)
+      if ext != ".rb" && ext != ".js"
+        name = File.basename(p)
+        result[name] = p
+      end
+    end
+    result
+  end
+end
+
 module Enumerable
   def find_first
     each do |x|
@@ -61,6 +75,8 @@ class Array
   def union(a)
     return self | a
   end
+
+  alias :plus :+ 
 end
 
 class EnsoBaseClass

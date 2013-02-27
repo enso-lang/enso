@@ -55,6 +55,39 @@ define (function() {
   FalseClass = Boolean;
   Proc = { new: function(p) { return p; } };
   
+  CompatStream = function(s) {
+    this.push = function(d) {
+      process.stdout.write(d);
+    }
+  };
+
+  var walk = function(dir, block) {
+    var list = fs.readdirSync(dir);
+    for (var i = 0; i < list.length; i++) {
+      var name = list[i];
+      var path = dir + '/' + name;
+      var stat = fs.statSync(path);
+      if (stat && stat.isDirectory()) {
+        walk(path, block);
+      } else {
+        block(name, path);
+      }
+    }
+  };
+
+  File = {
+    exists_P: function(p) { 
+      return fs.existsSync(p);
+    },
+    create_file_map: function (base) {
+      map = new EnsoHash({});
+      walk(base, function(name, path) {
+        map._set(name, path);
+      });
+      return map; 
+    }
+  };
+  
   System = {
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
@@ -65,7 +98,9 @@ define (function() {
       if (typeof type != "function")
         type = type.new;
       return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
-    }
+    },
+    stdout: function() { return new CompatStream(process.stdout); },
+    stderr: function() { return new CompatStream(process.stderr); },
   }
   
   Object.prototype.raise = function(msg) { puts(msg); return ERROR; }
@@ -216,10 +251,19 @@ define (function() {
   Object.prototype.to_s = function() { return "" + this }
   Object.prototype._get = function(k) { return this[k] }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
+  Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Object.prototype._set = function(k, v) { this[k] = v; return v; }
   String.prototype.gsub = String.prototype.replace;
   String.prototype.index = String.prototype.indexOf;
   String.prototype.to_sym = function() { return this; }
+  String.prototype.start_with_P = function(prefix) {
+    return this.indexOf(prefix) === 0;
+  }
+  String.prototype.end_with_P = function(suffix) {
+      return this.match(suffix+"$") == suffix;
+  };
+  String.prototype.rindex = String.prototype.lastIndexOf;
+  
   string$split = String.prototype.split;
   String.prototype.split = function(sep, lim) {
     return string$split.call(this, sep, lim).filter(function(x) { return x != ""; });
@@ -342,19 +386,19 @@ define (function() {
          var obj = Object.create(instance_spec);
          obj.$ = {};
 
-    obj.inspect = function() { 
-       var kind = this.__classname__;
-       if (this.schema_class)
-         kind = this.schema_class().name();
-       var info = "";
-       if (typeof this.name == "function")
-         info = this.name();
-       else if (this._id)
-         info = this._id();
-       return "<[" + kind + " " + info + "]>";
-    }
-    obj.toString = obj.inspect;
-    
+          obj.inspect = function() { 
+             var kind = this.__classname__;
+             if (this.schema_class)
+               kind = this.schema_class().name();
+             var info = "";
+             if (typeof this.name == "function")
+               info = this.name();
+             else if (this._id)
+               info = this._id();
+             return "<[" + kind + " " + info + "]>";
+          }
+          obj.toString = obj.inspect;
+          
          instance_spec.initialize.apply(obj, arguments);
          return obj;
       }

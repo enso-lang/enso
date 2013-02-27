@@ -1,10 +1,12 @@
 
+require 'core/schema/code/factory'
 require 'core/schema/tools/dumpjson'
+require 'core/system/utils/find_model'
 require 'digest/sha1'
 
 module Cache
 
-  def self.save_cache(name, model=Load::load(name), out=find_json(name))
+  def self.save_cache(name, model, out=find_json(name))
     res = add_metadata(name, model)
     res['model'] = ToJSON.to_json(model, true)
     File.open(out, 'w+') do |f| 
@@ -12,9 +14,8 @@ module Cache
     end
   end
 
-  def self.load_cache(name, input=find_json(name))
+  def self.load_cache(name, factory, input=find_json(name))
     type = name.split('.')[-1]
-    factory = Factory::new(Load::load("#{type}.schema"))
     json = System.readJSON(input)
     res = ToJSON.from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
@@ -69,10 +70,10 @@ module Cache
       false
     end
   end
-  
+
   def self.get_meta(name)
     e = {filename: name}
-    Load::Loader.find_model(name) do |path|
+    FindModel::FindModel.find_model(name) do |path|
       e['source'] = path
       e['date'] = File.ctime(path)
       e['checksum'] = readHash(path)

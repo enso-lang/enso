@@ -6,7 +6,7 @@ define([
   "enso"
 ],
 function(Paths, Factory, Union, Json, Enso) {
-  var Boot ;
+  var MetaSchema ;
 
   var MObject = MakeClass("MObject", EnsoProxyObject, [],
     function() {
@@ -48,11 +48,11 @@ function(Paths, Factory, Union, Json, Enso) {
             ;
             if (value.length == 0 || ! System.test_type(value._get(0), String)) {
               return self._create_many(name, value.map(function(a) {
-                return Boot.make_object(a, self.$.root);
+                return MetaSchema.make_object(a, self.$.root);
               }), keyed);
             }
           } else if (! System.test_type(value, String)) {
-            return self.define_singleton_value(key, Boot.make_object(value, self.$.root));
+            return self.define_singleton_value(key, MetaSchema.make_object(value, self.$.root));
           }
         });
         if (! has_name) {
@@ -197,13 +197,13 @@ function(Paths, Factory, Union, Json, Enso) {
       };
     });
 
-  Boot = {
+  MetaSchema = {
     load_path: function(path) {
-      return Boot.load(System.readJSON(path)._get("model"));
+      return MetaSchema.load(System.readJSON(path)._get("model"));
     },
 
     load: function(doc) {
-      ss0 = Boot.make_object(doc, null);
+      ss0 = MetaSchema.make_object(doc, null);
       ss0._complete();
       return Union.Copy(Factory.new(ss0), ss0);
     },
@@ -226,5 +226,5 @@ function(Paths, Factory, Union, Json, Enso) {
     BootManyField: BootManyField,
 
   };
-  return Boot;
+  return MetaSchema;
 })

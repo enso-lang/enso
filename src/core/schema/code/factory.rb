@@ -36,6 +36,26 @@ module Factory
          MObject.new(klass, self, *args)
         end 
       end
+
+      #check that schema supers have no cyclic dependencies
+      # (this has led to difficult to debug errors in the past)
+      schema.classes.each do |c|
+        if check_cyclic_subtyping(c, [])
+          raise "Build factory failed: #{c} is its own superclass"
+        end 
+      end
+    end
+
+    def check_cyclic_subtyping(c, subs)
+      if subs.include? c
+        true
+      else
+        res = false
+        c.supers.each do |s|
+          res ||= check_cyclic_subtyping(s, subs.plus([c]))
+        end 
+        res
+      end
     end
     
     def [](name)
@@ -131,7 +151,6 @@ module Factory
         define_singleton_value(:to_s, "<<#{cls.name} #{self._id}>>")
       end
     end
-    
     def __computed(fld)
       # check if this is a computed override of a field
       if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
@@ -243,6 +262,7 @@ module Factory
     def finalize
       # TODO: check required fields etc.
       factory.register(self)
+
       self
     end
 
