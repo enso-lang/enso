@@ -43,11 +43,6 @@ module Layout
       # ugly, should be higher up
       @root = stream.current
       @literals = Scan.collect_keywords(this)
-      this.rules.each do |rule|
-        if rule.arg.alts.length == 1
-          rule.arg = rule.arg.alts[0]
-        end
-      end
       recurse(this.start.arg, SingletonStream.new(stream.current), container)
     end
   
@@ -70,6 +65,10 @@ module Layout
     end
   
     def Alt(this, stream, container)
+      this.alts.find_first do |pat|
+        recurse(pat, stream.copy, container)
+      end
+=begin      
       if !this.extra_instance_data
         this.extra_instance_data = []
         scan_alts(this, this.extra_instance_data)
@@ -81,6 +80,7 @@ module Layout
           recurse(info[1], stream.copy, container)
         end
       end
+=end
     end
     
     def scan_alts(this, alts)
