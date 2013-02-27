@@ -1,6 +1,5 @@
 
 require 'core/grammar/parse/unparse'
-require 'core/grammar/parse/to-path'
 require 'core/grammar/tools/todot'
 require 'core/system/utils/location'
 require 'core/expr/code/assertexpr'
@@ -23,6 +22,7 @@ class Build
   end
 
   def recurse(sppf, owner, accu, field, fixes, paths)
+   puts "BUILDING"
     type = sppf.type 
     sym = type.schema_class.name
     if respond_to?(sym)
@@ -75,8 +75,10 @@ class Build
       update(owner, field, convert_value(value, field.type))
       update_origin(owner, field, org)
     end
-    paths.each do |org, path|
-      fixes << Fix.new(path, owner, field, org)
+    paths.each do |org, fix|
+      raise "BAD" if fix.obj != owner || fix.field != field
+      fixes << fix
+      #fixes << Fix.new(path, owner, field, org)
     end
   end
 
@@ -90,7 +92,7 @@ class Build
   end
 
   def Ref(this, sppf, owner, accu, field, fixes, paths)
-    paths[origin(sppf)] = ToPath.to_path(this.path, sppf.value)
+    paths[origin(sppf)] = Fix.new(this.path, owner, field, origin(sppf), sppf.value)
   end
 
   def Let(this, sppf, owner, accu, field, fixes, paths)
@@ -188,7 +190,8 @@ class Build
       later = []
       change = false
       fixes.each do |fix|
-        x = fix.path.deref(fix.obj, root)
+        helper = Paths::new(fix.path)
+        x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it { helper.eval }
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
           update_origin(fix.obj, fix.field, fix.origin)
@@ -224,12 +227,13 @@ class Build
   end
 
   class Fix
-    attr_reader :path, :obj, :field, :origin
-    def initialize(path, obj, field, origin)
+    attr_reader :path, :obj, :field, :origin, :it
+    def initialize(path, obj, field, origin, it)
       @path = path
       @obj = obj
       @field = field
       @origin = origin
+      @it = it
     end
     def inspect
       "#{obj}.#{field} = #{path}"

@@ -1,69 +1,37 @@
 
+require 'core/semantics/code/interpreter'
 # TODO: error handling
 
 module Paths
-  def self.parse(str)
-    p = Path.parse(str)
-    #puts "PARSE #{str} #{p}"
-    p
-  end
-
-  def self.new(elts = [])
-    Path.new(elts)
+  def self.new(start = nil)
+    Path.new(start)
   end
 
   class Path
-    attr_reader :elts
-
-    def self.parse(str)
-      original = str
-      str = str.gsub("\\", "")
-      if str[0] == "/"
-        str = str.slice(1,1000)
-        base = [Root.new]
-      else
-        base = []
-      end
-      elts = base.concat(scan(str))
-      #puts "PARSE '#{original}' #{elts}"
-      Path.new(elts)
+    include Interpreter::Dispatcher
+    
+    def self.set_factory(factory)
+      @factory = factory
     end
     
-    def self.scan(str)
-      result = []
-      str.split("/").each do |part|
-        if (n = part.index("[")) && part.slice(-1) == "]"
-          base = part.slice(0, n)
-          index = part.slice(n+1, part.length - n - 2)
-          result << Field.new(base)
-          result << Key.new(index)
-        elsif part != "."
-          result << Field.new(part)
-        end
-      end
-      result
-    end
-
-    def initialize(elts = [])
-      @elts = elts
+    def initialize(path)
+      @path = path || @@factory.EVar("root")
     end
     
-#    def ==(other)
-#      to_s == other.to_s
-#    end
-
-    def reset!
-      @elts = []
+    def field(name)
+      @path = @@factory.EField(@path, name)
+      self
+    end
+    
+    def key(key)
+      index(key)
     end
 
-    def prepend!(path)
-      @elts = path.elts + @elts
+    def index(index)
+      @path = @@factory.ESubscript(@path, @@factory.EStrConst(index))
+      self
     end
-
-    def extend(path)
-      Path.new(elts + path.elts)
-    end
-
+        
     def deref?(scan, root = scan)
       begin
         deref(scan, root = scan)
@@ -71,53 +39,56 @@ module Paths
         false
       end
     end
-
-    def deref(scan, root = scan)
-      #puts "Deref element: #{elts}, scan = #{scan}, root=#{root}"
-      elts.each do |elt|
-        raise "cannot dereference #{elt} on #{scan}" if !scan
-        scan = elt.deref(scan, root)
-      end
-      scan
-    end
-
-    def search(root, base, target)
-      #puts "SEARCH_START #{root} #{base} #{target}"
-      searchElts(elts, base, root, {}) do |item, bindings|
-        #puts "SEARCH #{elts} ==> #{item} for #{target} with #{bindings} (#{target.equals(item)})"
-        bindings if target.equals(item)
-      end
-    end
-
-    def searchElts(todo, scan, root, bindings, &action)
-      #puts "SEARCH_ELTS #{todo} on #{scan} with #{bindings}"
-      if todo.nil? || todo.first.nil?
-        action.call(scan, bindings)
-      else
-        todo.first.search(scan, root, bindings) do |item, newBinds|
-          searchElts(todo[1..-1], item, root, newBinds, &action)
-        end
-      end
-    end
-
-    def field(name)
-      descend(Field.new(name))
+    
+    def to_s()
+      to_s_path(@path)
     end
     
-    def key(key)
-      descend(Key.new(key))
+    def to_s_path(path)
+      dispatch_obj(:to_s, path)
+    end
+    
+    def to_s_EVar(obj)
+      obj.name
     end
 
-    def index(index)
-      descend(Index.new(index))
+    def to_s_EConst(obj)
+      obj.val
+    end
+        
+    def to_s_EField(obj)
+      "#{to_s_path(obj.e)}.#{obj.fname}"
     end
 
-    def root?
-      elts.empty?
+    def to_s_ESubscript(obj)
+      "#{to_s_path(obj.e)}[#{to_s_path(obj.sub)}]"
     end
 
-    def lvalue?
-      !root? && last.is_a?(Field)
+    def deref(root)
+      dynamic_bind root: root do 
+        eval
+      end
+    end
+    
+    def eval(path = @path)
+      dispatch_obj(:eval, path)
+    end
+    
+    def eval_EVar(obj)
+      #puts "Dereffing 'this': obj = #{obj}; root = #{root}"
+      @D[obj.name.to_sym]
+    end
+
+    def eval_EConst(obj)
+      obj.val
+    end
+        
+    def eval_EField(obj)
+      eval(obj.e)[obj.fname]
+    end
+
+    def eval_ESubscript(obj)
+      eval(obj.e)[eval(obj.sub)]
     end
 
     def assign(root, obj)
@@ -143,152 +114,6 @@ module Paths
       owner.deref(root)[last.name] = value
     end
 
-    def insert(root, obj)
-      deref(root) << obj
-    end
-
-    def insert_at(root, key, obj)
-      deref(root)[key] = obj
-    end
-
-    def owner
-      Path.new(elts[0..-2])
-    end    
-    
-    def last
-      elts.last
-    end
-
-    def to_s
-      res = elts.join
-      res=="" ? "/" : res
-    end
-
-    #private
-    
-    def descend(elt)
-      Path.new([*elts, elt])
-    end
-  end
-
-  ##ROOT = Path.new
-
-
-  class Elt
-    # path element
-  end
-
-  class Root < Elt
-    def deref(obj, root)
-      #puts "Derreffing 'this': obj = #{obj}; root = #{root}"
-      root
-    end
-
-    def search(obj, root, bindings, &action)
-      action.call(root, bindings)
-    end
-
-    def to_s
-      'ROOT'
-    end
-  end
-
-  class Field < Elt
-    attr_reader :name
-
-    def initialize(name)
-      @name = name
-    end
-    
-    def value; name end
-
-    def deref(obj, root)
-      obj[@name]
-    end
-
-    def search(obj, root, bindings, &action)
-      #puts "SEARCH_FIELD #{obj}.#{@name} => #{obj[@name]}"
-      action.call(obj[@name], bindings) if !obj.nil? && obj.schema_class.all_fields[@name]
-    end
-
-    def to_s
-      "/#{@name}"
-    end
-  end
-
-  class Index < Elt
-    attr_reader :index
-
-    def initialize(index)
-      @index = index
-    end
-    
-    def value; index end
-
-    def deref(obj, root)
-      obj[@index]
-    end
-
-    def search(obj, root, bindings, &action)
-      #puts "SEARCH_INDEX #{obj} root=#{root} binds=#{bindings}"
-      if @index.is_a?(PathVar)
-        obj.find_first_with_index do |item, i|
-          action.call(item, { it: i}.update(bindings))
-        end
-      else
-        action.call(obj[@index], bindings)
-      end
-    end
-
-    def to_s
-      "[#{@index}]"
-    end
-  end
-
-
-  class Key < Elt
-    attr_reader :key
-
-    def initialize(key)
-      @key = key
-    end
-    
-    def value; key end
-
-    def deref(obj, root)
-      obj[@key]
-    end
-
-    def search(obj, root, bindings, &action)
-      if @key.is_a?(PathVar)
-        #puts "SEARCH_KEY #{obj} root=#{root} binds=#{bindings}"
-        obj.find_first_pair do |k, item|
-          action.call(item, { it: k}.update(bindings))
-        end
-      else
-        action.call(obj[@key], bindings)
-      end
-    end
-
-    def to_s
-      "[#{escape(@key.to_s)}]"
-    end
-
-    #private
-
-    def escape(s)
-      s.gsub(']', '\\]').gsub('[', '\\[')
-    end
-  end
-  
-  class PathVar
-    def initialize(name)
-      @name = name
-    end
-    attr_reader :name
-    def to_s
-      @name
-    end
   end
 end
 

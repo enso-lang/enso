@@ -26,8 +26,6 @@ end
 class StencilFrame < DiagramFrame
   attr_reader :selection
 
-  include Paths
-
   class FunDefs; end
 
   def initialize(path = nil)
@@ -101,7 +99,7 @@ class StencilFrame < DiagramFrame
 
     refresh()
     #puts "DONE"
-    #Print.print(@root)
+    #Print::Print.print(@root)
   end
 	
 	def lookup_shape(shape)
@@ -288,7 +286,7 @@ class StencilFrame < DiagramFrame
     font = nil
     pen = nil
     brush = nil
-    #Print.print(stencil)
+    #Print::Print.print(stencil)
     newEnv = env.clone
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
@@ -414,7 +412,7 @@ class StencilFrame < DiagramFrame
 #				    end
 #	      	else
 			      address.value << obj
-			      #Print.print(@data)
+			      #Print::Print.print(@data)
 	  				rebuild_diagram
 #	  		  end
 	      end
@@ -452,7 +450,7 @@ class StencilFrame < DiagramFrame
 
   def constructEIf(this, env, container, &block)
     unless this.cond.InstanceOf?
-      Print.print(this.cond)
+      Print::Print.print(this.cond)
     end
     test = eval(this.cond, env)
     unless this.cond.InstanceOf?
@@ -601,20 +599,20 @@ class StencilFrame < DiagramFrame
 
     evt_radiobox(part.hash) do |ev|
       puts "\nEv is #{ev}:#{ev.class} #{ev.methods}"
-      Print.print(this.value)
+      Print::Print.print(this.value)
       puts "addr = #{addr}\n\n\n"
       if addr.value.nil? or "#{addr.value.val}"!=ev.get_string
         addr.value = makeConst(addr.object.factory, addr.object.ans.type, ev.get_string)
         puts "addr.object.ans.type=#{addr.object.ans.type}, ev.get_string=#{ev.get_string}, addr.value=#{addr.value}"
-        Print.print(addr.value)
-        Print.print(addr.object)
+        Print::Print.print(addr.value)
+        Print::Print.print(addr.object)
         rebuild_diagram
       end
     end
     # addr.object.add_listener(addr.index, part.hash) {|val|
       # p = find_window_by_id(part.hash)
       # puts "parts = #{p.get_string_selection}"
-      # Print.print(addr.object)
+      # Print::Print.print(addr.object)
       # if "#{val.val}"!=p.get_string_selection
         # puts "\n\n\n\n\n\nSelecting string #{val.val} in widget"
         # p.set_string_selection("#{val.val}")

@@ -1,6 +1,7 @@
 
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
+require 'core/system/boot/meta_schema'
 require 'json'
 
 module Dumpjson
@@ -57,11 +58,11 @@ module Dumpjson
     
     def apply(root)
       if !@field.many
-        @obj[@field.name] = Paths::parse(@spec).deref(root)
+        @obj[@field.name] = MetaSchema::path_eval(@spec, root)
       else
         collection = @obj[@field.name]
         @spec.each do |path|
-          collection << Paths::parse(path).deref(root)
+          collection << MetaSchema::path_eval(path, root)
         end
       end
     end
@@ -81,20 +82,6 @@ module Dumpjson
       res
     end
   
-    def make_primitive(str, type=nil)
-      case type
-      when 'int'
-        str.to_i
-      when 'str'
-        str.to_s
-      when 'bool'
-        str.to_s.casecmp("True")==0
-      when 'real'
-        str.to_real
-      when nil  #ie. guess
-      end
-    end
-  
     def from_json(this)
       if this.nil?
         nil
@@ -102,7 +89,7 @@ module Dumpjson
         obj = @factory[this['class']]
         obj.schema_class.fields.each do |f|
           if f.type.Primitive?
-            obj[f.name] = make_primitive(this["#{f.name}="], f.type.name)
+            obj[f.name] = this["#{f.name}="]
           elsif !f.many
             if this[f.name].nil?
               obj[f.name] = nil

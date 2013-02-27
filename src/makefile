@@ -18,7 +18,9 @@ main: \
 	js/core/grammar/render/render.js \
 	js/core/system/load/cache.js \
 	js/core/system/utils/find_model.js \
-	js/core/schema/tools/dumpjson.js \
+  js/core/schema/tools/dumpjson.js \
+  js/core/schema/tools/print.js \
+  js/core/grammar/parse/topath.js \
 	
 	
 foo: \

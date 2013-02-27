@@ -51,7 +51,7 @@ class GLL
     # end
     return r if r
     loc = @origins.str(@ci)
-    #Print.print(@cu.item)
+    #Print::Print.print(@cu.item)
     raise "Parse error at #{loc}:\n'#{source[@ci,50]}...'" 
   end
   

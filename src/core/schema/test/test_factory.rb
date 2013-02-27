@@ -34,7 +34,7 @@ if __FILE__ == $0 then
     puts "OWNER: #{fld.owner}"
     puts "TYPE: #{fld.type}"
   end
-  Print.print(s)
+  Print::Print.print(s)
 
   ss.classes.each do |cls|
     puts cls._origin

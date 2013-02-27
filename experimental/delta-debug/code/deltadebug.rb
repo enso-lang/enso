@@ -87,8 +87,8 @@ class DeltaDebug
         res2[f.name] << vals[i]
       end
       #puts "results from CCC:"
-      #Print.print(res1)
-      #Print.print(res2)
+      #Print::Print.print(res1)
+      #Print::Print.print(res2)
       return res1, res2
     end
 

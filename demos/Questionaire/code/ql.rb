@@ -11,7 +11,7 @@ Load::Loader.load "impl.grammar"
 
 qns = Load::Loader.load(ARGV[0])
 
-Print.print(qns)
+Print::Print.print(qns)
 
 Wx::App.run do
   win = StencilFrame.new

@@ -2,10 +2,14 @@ define([
   "core/system/library/schema",
   "core/system/boot/meta_schema",
   "core/schema/code/factory",
+  "core/grammar/parse/parse",
+  "core/schema/tools/union",
+  "core/schema/tools/rename",
   "core/system/load/cache",
+  "core/system/utils/paths",
   "core/system/utils/find_model"
 ],
-function(Schema, MetaSchema, Factory, Cache, FindModel) {
+function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindModel) {
   var Load ;
 
   var LoaderClass = MakeClass("LoaderClass", null, [],
@@ -21,8 +25,6 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
         if (self.$.cache._get(name)) {
           return self.$.cache._get(name);
         } else {
-            System.stderr().push("REC " + name + "\n");
-            raise("WHY HERE")
           return self.load_in_place(name, type);
         }
       };
@@ -72,19 +74,10 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
         self.$.cache = new EnsoHash ( { } );
         System.stderr().push("Initializing...\n");
         self.$.cache._set("schema.schema", ss = self.load_with_models("schema_schema.json", null, null));
-        System.stderr().push("GOT SS...\n");
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
-        System.stderr().push("GOT GS...\n");
-        puts(gs.classes()._get("Grammar").defined_fields());
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
-        System.stderr().push("GOT GG...\n");
-        /*
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
-        self.$.cache._set("schema.schema", self.update_xml("schema.schema"));
-        self.$.cache._set("grammar.schema", self.update_xml("grammar.schema"));
-        self.$.cache._set("grammar.grammar", self.update_xml("grammar.grammar"));
-        return self.$.cache._set("schema.grammar", self.update_xml("schema.grammar"));
-        */
+        return Paths.Path.set_factory(Factory.new(ss));
       };
 
       this.update_xml = function(name) {
@@ -141,10 +134,9 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
             result = MetaSchema.load_path(path);
             result.factory().file_path()._set(0, path);
           } else {
-            name = path.split("/")._get(- 1).split(".")._get(0);
-            name = name.gsub("_", ".");
-            puts("\n GO FOR CACHE  " + name);
-            result = Cache.load_cache(name, Factory.new(schema));
+            name = path.split("/")._get(- 1).split(".")._get(0).gsub("_", ".");
+            type = name.split(".")._get(- 1);
+            result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
           }
         } else {
           try {
@@ -152,7 +144,7 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
               return x.readline();
             }, path);
           } catch ( err ) {
-            puts(S("Unable to open file ", path));
+            System.stderr().push(S("Unable to open file ", path, "\n"));
             self.raise(err);
           }
           if (header == "#ruby") {
@@ -160,8 +152,8 @@ function(Schema, MetaSchema, Factory, Cache, FindModel) {
             str = File.read(path);
             result = self.instance_eval(str);
             result.factory().file_path()._set(0, path);
-            a = str.split("\\\"").map(function(x) {
-              return x.split("\\'");
+            a = str.split("\"").map(function(x) {
+              return x.split("'");
             }).flatten();
             fnames = a.values_at.apply(a, [].concat( a.each_index().select(function(i) {
               return i.odd_P();

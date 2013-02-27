@@ -20,13 +20,27 @@ module Eval
         eval(e1) && eval(e2)
       elsif op == "|"
         eval(e1) || eval(e2)
+      elsif op == "eql?"
+        eval(e1) == eval(e2)
+      elsif op == "+"
+        eval(e1) + eval(e2)
+      elsif op == "*"
+        eval(e1) * eval(e2)
+      elsif op == "-"
+        eval(e1) - eval(e2)
+      elsif op == "/"
+        eval(e1) / eval(e2)
       else
-        eval(e1).send(op.to_s, eval(e2))
+        raise "Unknown operator (#{op})"
       end
     end
   
     def eval_EUnOp(op, e)
-      eval(e).send(op.to_s)
+      if op == "!"
+        !eval(e)
+      else
+        raise "Unknown operator (#{op})"
+      end
     end
   
     def eval_EVar(name)

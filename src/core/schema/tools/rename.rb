@@ -148,7 +148,7 @@ if __FILE__ == $0 then
   sg_copy = copy(sg)
   rename_binding!(sg_copy, map)
   
-  Print.print(sg_copy)
+  Print::Print.print(sg_copy)
 
   Layout::DisplayFormat.print(gg, sg_copy)
   Layout::DisplayFormat.print(sg, ss_copy)

@@ -16,7 +16,7 @@ if __FILE__ == $0 then
   q = Load::load('test.oql')
   puts q.to_s
 
-  Print.print(q)
+  Print::Print.print(q)
 
   ss = Load::load('schema.schema')
 

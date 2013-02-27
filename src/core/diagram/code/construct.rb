@@ -29,9 +29,9 @@ module Construct
 
     def eval_Eval(expr, env)
       puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
-      Print.print expr
+      Print::Print.print expr
       puts "expr.eval=#{expr.eval}"
-      Print.print eval(expr)
+      Print::Print.print eval(expr)
       @interpreter.eval(expr.eval, env: env)
     end
 
@@ -85,7 +85,7 @@ module Construct
         else
           r = r.dynamic_update
         end
-        Print.print(eval(e))
+        Print::Print.print(eval(e))
         puts @D[:env]
         r.send(fname)
       end

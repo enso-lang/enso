@@ -116,15 +116,15 @@ function(Eval, Lvalue, Interpreter, Env) {
       m = self.dynamic_bind(function() {
         return self.eval(fun);
       }, new EnsoHash ( { in_fc: true } ));
-      var ps = params.map(function(p) {
-          return self.eval(p);
-        });
-      //puts("PARAMETERS: " + params + "=" + ps);
       if (lambda == null) {
-        return m.apply(m, [].concat( ps ));
+        return m.apply(m, [].concat( params.map(function(p) {
+          return self.eval(p);
+        }) ));
       } else {
         p = self.eval(lambda);
-        return m.apply(m, [p].concat( ps ));
+        return m.apply(m, [p].concat( params.map(function(p) {
+          return self.eval(p);
+        }) ));
       }
     };
 

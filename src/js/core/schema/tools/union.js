@@ -41,7 +41,6 @@ function(Factory) {
                 return self.build(a_val, b_val);
               } else {
                 return a_val.each_with_match(function(a_item, b_item) {
-                   //puts("UNION " + field.name() + ":> " + a_item);
                   return self.build(a_item, b_item);
                 }, b_val);
               }
@@ -72,10 +71,7 @@ function(Factory) {
                 } else {
                   return a_val.each_with_match(function(a_item, b_item) {
                     item = self.link(field.traversal(), a_item, b_item);
-                   //puts("UNIONX " + field.name() + " > " + a_item + ":" + item);
-                    if (! new_V._get(field.name()).include_P(item)) {
-                      return new_V._get(field.name()).push(item);
-                    }
+                    return new_V._get(field.name()).push(item);
                   }, b_val);
                 }
               }

@@ -25,12 +25,12 @@
   ],
   "model": {
     "class": "Grammar",
-    "start": "/rules[Grammar]",
+    "start": "rules[Grammar]",
     "rules#": [
       {
         "class": "Rule",
         "name=": "Expr",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -39,7 +39,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[ETernOp]"
+                  "rule": "rules[ETernOp]"
                 }
               ]
             }
@@ -49,7 +49,7 @@
       {
         "class": "Rule",
         "name=": "ETernOp",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -64,7 +64,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[ETernOp]"
+                      "rule": "rules[ETernOp]"
                     }
                   },
                   {
@@ -80,7 +80,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EOr]"
+                      "rule": "rules[EOr]"
                     }
                   },
                   {
@@ -96,7 +96,7 @@
                     "name=": "e3",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EOr]"
+                      "rule": "rules[EOr]"
                     }
                   }
                 ]
@@ -107,7 +107,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EOr]"
+                  "rule": "rules[EOr]"
                 }
               ]
             }
@@ -117,7 +117,7 @@
       {
         "class": "Rule",
         "name=": "EOr",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -132,7 +132,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EOr]"
+                      "rule": "rules[EOr]"
                     }
                   },
                   {
@@ -144,7 +144,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EAnd]"
+                      "rule": "rules[EAnd]"
                     }
                   },
                   {
@@ -170,7 +170,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EAnd]"
+                  "rule": "rules[EAnd]"
                 }
               ]
             }
@@ -180,7 +180,7 @@
       {
         "class": "Rule",
         "name=": "EAnd",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -195,7 +195,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EAnd]"
+                      "rule": "rules[EAnd]"
                     }
                   },
                   {
@@ -207,7 +207,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp1]"
+                      "rule": "rules[EBinOp1]"
                     }
                   },
                   {
@@ -233,7 +233,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EBinOp1]"
+                  "rule": "rules[EBinOp1]"
                 }
               ]
             }
@@ -243,7 +243,7 @@
       {
         "class": "Rule",
         "name=": "EBinOp1",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -258,7 +258,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp1]"
+                      "rule": "rules[EBinOp1]"
                     }
                   },
                   {
@@ -360,7 +360,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp2]"
+                      "rule": "rules[EBinOp2]"
                     }
                   }
                 ]
@@ -371,7 +371,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EBinOp2]"
+                  "rule": "rules[EBinOp2]"
                 }
               ]
             }
@@ -381,7 +381,7 @@
       {
         "class": "Rule",
         "name=": "EBinOp2",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -396,7 +396,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp2]"
+                      "rule": "rules[EBinOp2]"
                     }
                   },
                   {
@@ -435,7 +435,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp3]"
+                      "rule": "rules[EBinOp3]"
                     }
                   }
                 ]
@@ -446,7 +446,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EBinOp3]"
+                  "rule": "rules[EBinOp3]"
                 }
               ]
             }
@@ -456,7 +456,7 @@
       {
         "class": "Rule",
         "name=": "EBinOp3",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -471,7 +471,7 @@
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBinOp3]"
+                      "rule": "rules[EBinOp3]"
                     }
                   },
                   {
@@ -498,7 +498,7 @@
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
-                              "value=": "/"
+                              "value=": ""
                             }
                           }
                         ]
@@ -523,7 +523,7 @@
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EUnOp]"
+                      "rule": "rules[EUnOp]"
                     }
                   }
                 ]
@@ -534,7 +534,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EUnOp]"
+                  "rule": "rules[EUnOp]"
                 }
               ]
             }
@@ -544,7 +544,7 @@
       {
         "class": "Rule",
         "name=": "EUnOp",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -563,7 +563,7 @@
                     "name=": "e",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   },
                   {
@@ -589,7 +589,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EFunCall]"
+                  "rule": "rules[EFunCall]"
                 }
               ]
             },
@@ -598,7 +598,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EListComp]"
+                  "rule": "rules[EListComp]"
                 }
               ]
             },
@@ -607,7 +607,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[Primary]"
+                  "rule": "rules[Primary]"
                 }
               ]
             }
@@ -617,7 +617,7 @@
       {
         "class": "Rule",
         "name=": "EFunCall",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -632,7 +632,7 @@
                     "name=": "fun",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EUnOp]"
+                      "rule": "rules[EUnOp]"
                     }
                   },
                   {
@@ -646,7 +646,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Expr]"
+                        "rule": "rules[Expr]"
                       },
                       "optional=": true,
                       "many=": true,
@@ -669,7 +669,7 @@
       {
         "class": "Rule",
         "name=": "Primary",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -678,7 +678,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EConst]"
+                  "rule": "rules[EConst]"
                 }
               ]
             },
@@ -693,7 +693,7 @@
                     "name=": "e",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Primary]"
+                      "rule": "rules[Primary]"
                     }
                   },
                   {
@@ -728,7 +728,7 @@
                     "name=": "e",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   },
                   {
@@ -740,7 +740,7 @@
                     "name=": "sub",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   },
                   {
@@ -784,7 +784,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Expr]"
+                        "rule": "rules[Expr]"
                       },
                       "optional=": true,
                       "many=": true,
@@ -810,7 +810,7 @@
                 },
                 {
                   "class": "Call",
-                  "rule": "/rules[Expr]"
+                  "rule": "rules[Expr]"
                 },
                 {
                   "class": "Lit",
@@ -824,7 +824,7 @@
       {
         "class": "Rule",
         "name=": "EListComp",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -882,7 +882,7 @@
                     "name=": "list",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   },
                   {
@@ -894,7 +894,7 @@
                     "name=": "e",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   }
                 ]
@@ -906,7 +906,7 @@
       {
         "class": "Rule",
         "name=": "EConst",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1036,7 +1036,7 @@
       {
         "class": "Rule",
         "name=": "Path",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1087,7 +1087,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Path]"
+                        "rule": "rules[Path]"
                       },
                       "optional=": true,
                       "many=": false,
@@ -1099,7 +1099,7 @@
                   },
                   {
                     "class": "Lit",
-                    "value=": "/"
+                    "value=": ""
                   },
                   {
                     "class": "NoSpace"
@@ -1119,7 +1119,7 @@
                     "class": "Regular",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Subscript]"
+                      "rule": "rules[Subscript]"
                     },
                     "optional=": true,
                     "many=": false,
@@ -1134,7 +1134,7 @@
       {
         "class": "Rule",
         "name=": "Subscript",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1153,7 +1153,7 @@
                   "name=": "key",
                   "arg": {
                     "class": "Call",
-                    "rule": "/rules[Key]"
+                    "rule": "rules[Key]"
                   }
                 },
                 {
@@ -1171,7 +1171,7 @@
       {
         "class": "Rule",
         "name=": "Key",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1197,7 +1197,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[Path]"
+                  "rule": "rules[Path]"
                 }
               ]
             },
@@ -1220,7 +1220,7 @@
       {
         "class": "Rule",
         "name=": "Grammar",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1256,7 +1256,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Rule]"
+                        "rule": "rules[Rule]"
                       },
                       "optional=": true,
                       "many=": true,
@@ -1275,7 +1275,7 @@
       {
         "class": "Rule",
         "name=": "Rule",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1302,7 +1302,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Alt]"
+                      "rule": "rules[Alt]"
                     }
                   }
                 ]
@@ -1335,7 +1335,7 @@
       {
         "class": "Rule",
         "name=": "Alt",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1356,7 +1356,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Create]"
+                        "rule": "rules[Create]"
                       },
                       "optional=": false,
                       "many=": true,
@@ -1393,7 +1393,7 @@
       {
         "class": "Rule",
         "name=": "Create",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1430,7 +1430,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Sequence]"
+                      "rule": "rules[Sequence]"
                     }
                   }
                 ]
@@ -1441,7 +1441,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[Sequence]"
+                  "rule": "rules[Sequence]"
                 }
               ]
             }
@@ -1451,7 +1451,7 @@
       {
         "class": "Rule",
         "name=": "Sequence",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1468,7 +1468,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "/rules[Field]"
+                        "rule": "rules[Field]"
                       },
                       "optional=": true,
                       "many=": true,
@@ -1484,7 +1484,7 @@
       {
         "class": "Rule",
         "name=": "Field",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1517,7 +1517,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Pattern]"
+                      "rule": "rules[Pattern]"
                     }
                   }
                 ]
@@ -1528,7 +1528,7 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[Pattern]"
+                  "rule": "rules[Pattern]"
                 }
               ]
             }
@@ -1538,7 +1538,7 @@
       {
         "class": "Rule",
         "name=": "Pattern",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -1642,7 +1642,7 @@
                     "name=": "expr",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Expr]"
+                      "rule": "rules[Expr]"
                     }
                   },
                   {
@@ -1670,7 +1670,7 @@
                     "name=": "path",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Path]"
+                      "rule": "rules[Path]"
                     }
                   },
                   {
@@ -1735,7 +1735,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Pattern]"
+                      "rule": "rules[Pattern]"
                     }
                   },
                   {
@@ -1749,7 +1749,7 @@
                     "class": "Regular",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Sep]"
+                      "rule": "rules[Sep]"
                     },
                     "optional=": true,
                     "many=": false,
@@ -1800,7 +1800,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Pattern]"
+                      "rule": "rules[Pattern]"
                     }
                   },
                   {
@@ -1839,7 +1839,7 @@
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Pattern]"
+                      "rule": "rules[Pattern]"
                     }
                   },
                   {
@@ -1853,7 +1853,7 @@
                     "class": "Regular",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[Sep]"
+                      "rule": "rules[Sep]"
                     },
                     "optional=": true,
                     "many=": false,
@@ -1904,7 +1904,7 @@
                 "elements": [
                   {
                     "class": "Lit",
-                    "value=": "/"
+                    "value=": ""
                   },
                   {
                     "class": "Alt",
@@ -2018,7 +2018,7 @@
                 },
                 {
                   "class": "Call",
-                  "rule": "/rules[Alt]"
+                  "rule": "rules[Alt]"
                 },
                 {
                   "class": "NoSpace"
@@ -2035,7 +2035,7 @@
       {
         "class": "Rule",
         "name=": "Sep",
-        "grammar": "/",
+        "grammar": "",
         "arg": {
           "class": "Alt",
           "alts": [
@@ -2054,7 +2054,7 @@
                   "name=": "sep",
                   "arg": {
                     "class": "Call",
-                    "rule": "/rules[Pattern]"
+                    "rule": "rules[Pattern]"
                   }
                 }
               ]

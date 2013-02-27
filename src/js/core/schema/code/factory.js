@@ -131,7 +131,9 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.__to_s = function(cls) {
         var self = this; 
         var k;
-        k = Schema.class_key(cls) || cls.defined_fields()._get("name");
+        k = Schema.class_key(cls) || cls.fields().find(function(f) {
+          return f.type().Primitive_P();
+        });
         if (k) {
           return self.define_singleton_method(function() {
             return S("<<", cls.name(), " ", self._id(), " '", self._get(k.name()), "'>>");
@@ -164,7 +166,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         val = null;
         return self.define_singleton_method(function() {
           if (val == null) {
-            //puts("COPMUTING " + name);
             fvs = fvInterp.dynamic_bind(function() {
               return fvInterp.depends(exp);
             }, new EnsoHash ( { env: Env.ObjEnv.new(self), bound: [] } ));
@@ -178,7 +179,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             val = commInterp.dynamic_bind(function() {
               return commInterp.eval(exp);
             }, new EnsoHash ( { env: Env.ObjEnv.new(self), for_field: fld } ));
-            //puts("COMPUTED " + this + "." + name + "=" + val);
           }
           return val;
         }, name);
@@ -218,7 +218,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var listeners;
         listeners = self.$.listeners._get(name);
         if (! listeners) {
-          listeners = self.$.listeners._get(name) = [];
+          listeners = self.$.listeners._set(name, []);
         }
         return listeners.push(block);
       };
@@ -446,14 +446,18 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
     this.flat_map = function(block) {
       var self = this; 
       var new_V, set, key;
-      new_V = Set.new(null, self.$.field, self.__key());
+      new_V = null;
       self.each(function(x) {
         set = block(x);
+        if (new_V == null) {
+          key = set.__key();
+          new_V = Set.new(null, self.$.field, key);
+        }
         return set.each(function(y) {
           return new_V.push(y);
         });
       });
-      return new_V;
+      return new_V || Set.new(null, self.$.field, self.__key());
     };
 
     this.each_with_match = function(block, other) {
@@ -558,10 +562,10 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         if (self.$.field.traversal()) {
           if (value) {
-            value.__shell = self;
+            value.set___shell(self);
           }
           if (self.get() && ! value) {
-            self.get().__shell = null;
+            self.get().set___shell(null);
           }
         }
         return self.$.value = value;
@@ -660,17 +664,15 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.connect = function(mobj, shell) {
         var self = this; 
         if (self.connected_P() && self.$.field.traversal()) {
-          return mobj.__shell = shell;
+          return mobj.set___shell(shell);
         }
       };
 
       this.to_s = function() {
         var self = this; 
-        var foo = "";
-        self.each(function(x) {
-          foo = foo + ", " + x.to_s();
-        })
-        return S("<MANY ", foo, ">");
+        return S("<MANY ", self.map(function(x) {
+          return x.to_s();
+        }), ">");
       };
     });
 
@@ -726,7 +728,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var key;
         self.check(mobj);
         key = mobj._get(self.$.key.name());
-        
         if (! key) {
           self.raise(S("Nil key when adding ", mobj, " to ", self));
         }

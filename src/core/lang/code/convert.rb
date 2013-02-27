@@ -432,15 +432,18 @@ class CodeBuilder < Ripper::SexpBuilder
       o.locals.each {|x| newvars << x.name}
       #puts "FUN #{newvars}"
 
-      o.args.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.args.each{|decl| fixup_expr(decl) }
       o.block = fixup_var_name(o.block)
       o.rest = fixup_var_name(o.rest)
-      o.locals.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.locals.each{|decl| fixup_expr(decl) }
 
       o.body = fixup_expr(o.body, newvars + env)
 
     when "Decl"
+      o.name = fixup_var_name(o.name)
       o.default = fixup_expr(o.default, env)
+
+    when "Ref", "Lit", "Attribute", "Super"
 
     when "Assign"
       o.to = fixup_expr(o.to, env)
@@ -479,6 +482,7 @@ class CodeBuilder < Ripper::SexpBuilder
       o.fields.each {|x| fixup_expr(x, env) }
 
     else
+      raise "Unknown expression type #{o.schema_class.name}"
     end 
     o
   end      
@@ -850,6 +854,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
+    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
 
@@ -965,6 +970,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_xstring_literal(string)
+    token = eval("\"#{token}\"")
     @f.Lit(string)
   end
 

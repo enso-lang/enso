@@ -9,10 +9,10 @@ require 'core/schema/tools/union'
   require 'core/schema/tools/print'
   
   result = Union(Factory::new(ss), ss, gs)
-  #Print.print(result)
+  #Print::Print.print(result)
   Layout::DisplayFormat.print(sg, result)
   puts "-"*50
   
   result = Union(Factory::new(gs), sg, gg)
-  #Print.print(result)
+  #Print::Print.print(result)
   Layout::DisplayFormat.print(gg, result)

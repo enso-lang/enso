@@ -4,7 +4,7 @@ require 'core/schema/tools/dumpjson'
 require 'core/schema/tools/equals'
 
 puts "Loading..."  
-ss = Boot.load_path("core/system/boot/schema_schema.json")
+ss = MetaSchema::load_path("core/system/boot/schema_schema.json")
 
 puts "Testing"
 puts "Test1: Type=#{ss.types['Field'].defined_fields['type'].type.name}"

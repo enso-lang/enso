@@ -70,7 +70,7 @@ HandlerR ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:SeqR // TODO: de
 
 Expr ::= IndexAssign | CallAssign | Assign
 IndexAssign ::= [Assign] to:([Index] base:Primary) ."._set(". to:([Index] index:Expr) ."," from:Assign .")"
-CallAssign ::= [Assign] to:([Call] target:Primary) .".". to:([Call] method:sym) "=" from:Assign
+CallAssign ::= [Assign] to:([Call] target:Primary) .".set_". to:([Call] method:sym) ."," from:Assign .")"
  
  
 Assign  ::= [Assign] to:Primary "=" from:Assign
@@ -112,7 +112,7 @@ Lit     ::= [Lit] value:atom
 
 Call     ::= SuperCall | CallRest | CallNorm
 CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(" rest:Expr "))"
-CallNorm  ::= [Call] Target ({method=="length"} | ."(". Args? .")")
+CallNorm  ::= [Call] Target."(". Args? .")"
   Target ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
   Args    ::= (block:Primary .",")? args:Expr+ @(.",") 
             | block:Primary

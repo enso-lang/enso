@@ -18,6 +18,10 @@ define (function() {
     this._get = function(key) { 
       return data[key]; 
     };
+    this.inspect = function() {
+      return "<HASH " + this.size() + ">";
+    }
+    this.toString = this.inspect;
     this.size = function() { 
       var count = 0;
       for (k in data) {
@@ -27,7 +31,7 @@ define (function() {
       return count;
     };
     this._set = function(key, value) {
-      data[key] = value;
+      return data[key] = value;
     };
     this.each = function(fun) {
       for (k in data) {
@@ -48,6 +52,13 @@ define (function() {
           keys.push(k);
       }
       return keys;
+    };
+    this.values = function() { 
+      var vals = [];
+      this.each_value(function(x) {
+        vals.push(x);
+      })
+      return vals;
     }
   }
   
@@ -87,6 +98,8 @@ define (function() {
       return map; 
     },        
   };
+  
+  exit_in_place = function(n) { raise("EXIT"); }
   
   System = {
     max: function(a, b) {
@@ -151,6 +164,16 @@ define (function() {
     return result;
   };
     
+  String.prototype.inspect = function() {
+     return this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0"); 
+  } 
+  String.prototype.repeat = function(n) {
+    result = "";
+    for (var i = 0; i < n; i++)
+      result = result + this;
+    return result;
+  }
+  Array.prototype.size = function () { return this.length }
   Array.prototype.map = function(fun) {  // Array.prototype.forEach;
     var result = new Array;
     this.each(function(x) {
@@ -251,12 +274,14 @@ define (function() {
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
   String.prototype.to_s = function() { return this }
+  Number.prototype.to_i = function() { return this }
   Object.prototype.to_s = function() { return "<SOMETHING>" }
   Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }
   String.prototype.casecmp = function(other) { 
      puts("COMP " + this + "=" + other + " => " + this.toUpperCase() === other.toUpperCase());
      return this.toUpperCase() === other.toUpperCase() 
    }
+  Array.prototype.first = function() { return this[0]; }
   Object.prototype._get = function(k) { return this[k] }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
@@ -419,6 +444,7 @@ define (function() {
       // set its prototype, even thought it is not actually used view "new"
       // it is accessed above
       // fill in the "new" function of the class
+      constructor.prototype = instance_spec;
       instance_spec._class_.new = constructor;
       // return the new class
       return instance_spec._class_;

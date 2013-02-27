@@ -293,7 +293,7 @@ if __FILE__ == $0 then
   ns = ti.extract(g, root)
 
   dump_inheritance_dot(ns, 'bla.dot')
-  Print.print(ns)
+  Print::Print.print(ns)
 
   Layout::DisplayFormat.print(Load::load('schema-base.grammar'), ns)
 end
