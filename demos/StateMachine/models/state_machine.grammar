@@ -1,7 +1,7 @@
 start M
 
-M ::= [Machine] "start" \start:</states[it]> states:S*
+M ::= [Machine] "start" \start:<root.states[it]> states:S*
 
 S ::= [State] /2 "state" name:sym /> out:T* <
 
-T ::= [Trans] "on" event:sym "go" to:</states[it]> /
+T ::= [Trans] "on" event:sym "go" to:<root.states[it]> /

@@ -9,7 +9,7 @@ Text ::= [Text] "text" Props string:str
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph" {direction==3} | "do" {direction==4}
 
-ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:</items[it]> (arrow:"<" | arrow:"*")? 
+ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:<root.items[it]> (arrow:"<" | arrow:"*")? 
 
 Props ::= styles:Style* Constraints?
 Style ::= 

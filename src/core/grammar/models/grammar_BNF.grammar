@@ -2,7 +2,7 @@ import path.grammar, expr.grammar
 
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule* @/2
+  Grammar ::= [Grammar] "start" \start:<root.rules[it]> rules:Rule* @/2
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
@@ -26,7 +26,7 @@ import path.grammar, expr.grammar
     | [Code] "{" expr:Expr "}"
     | [Ref] "sym"
     | [Lit] value:str
-    | [Call] rule:</rules[it]>
+    | [Call] rule:<root.rules[it]>
     | [Regular] arg:Pattern."*" Sep? { (optional == true) and (many == true) }
     | [Regular] arg:Pattern."?" { optional == true }
     | [Regular] arg:Pattern."+" Sep? { many == true }

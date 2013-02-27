@@ -129,6 +129,7 @@ module Load
           result.factory.file_path[0] = path
           #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
+          $stderr << "## fetching #{path}...\n"
           name = path.split("/")[-1].split(".")[0].gsub("_", ".")
           type = name.split('.')[-1]
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
