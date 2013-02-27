@@ -100,7 +100,7 @@ class Build
     # that we can reuse build to binding "fields" in this.arg.
     # The environment becomes the "owner". 
     env = Env.new
-    build(this.arg, sppf, env, accu = [], nil, fixes = [], paths = [])
+    build(this.arg, sppf, env, accu = [], nil, fixes = [], paths = {})
     # eval substitutes variables in the binding for the values
     # in env; so we get "ground" equations. They should be passed up
     # like paths, because they might use ./ paths which are local

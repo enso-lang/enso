@@ -58,6 +58,22 @@ function(Factory, Union, Json, Enso) {
         }
       };
 
+      this._lookup = function(str, obj) {
+        var self = this; 
+        var n, field, obj, index;
+        str.split(".").each(function(part) {
+          if ((n = part.index("[")) && part.slice(- 1) == "]") {
+            field = part.slice(0, n);
+            obj = obj._get(field);
+            index = part.slice(n + 1, (part.length - n) - 2);
+            return obj = obj._get(index);
+          } else {
+            return obj = obj._get(part);
+          }
+        });
+        return obj;
+      };
+
       this._complete = function() {
         var self = this; 
         var keyed, name;

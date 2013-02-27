@@ -77,7 +77,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           return self.__setup(fld);
         });
         return klass.fields().each_with_index(function(fld, i) {
-          if (i < args.length) {
+          if (i < args.size()) {
             if (fld.many()) {
               return args._get(i).each(function(value) {
                 return self._get(fld.name()).push(value);
@@ -620,9 +620,9 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.__value().empty_P();
       };
 
-      this.length = function() {
+      this.size = function() {
         var self = this; 
-        return self.__value().length;
+        return self.__value().size();
       };
 
       this.clear = function() {
@@ -812,7 +812,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         return Array.new(function(i) {
           return i;
-        }, self.length);
+        }, self.size());
       };
 
       this.push = function(mobj) {

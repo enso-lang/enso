@@ -90,6 +90,20 @@ module MetaSchema
       end
     end
     
+    def _lookup(str, obj)
+      str.split(".").each do |part|
+        if (n = part.index("[")) && part.slice(-1) == "]"
+          field = part.slice(0, n)
+          obj = obj[field]
+          index = part.slice(n+1, part.length - n - 2)
+          obj = obj[index]
+        else
+          obj = obj[part]
+        end
+      end
+      obj
+    end
+    
     def _complete
       @data.each do |key, value|
         if key == "class"
