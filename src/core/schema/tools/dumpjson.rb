@@ -29,7 +29,7 @@ module Dumpjson
                 end
               else
                 val.each do |fobj|
-                  ef << fobj._path.to_s
+                  ef << fixup_path(fobj)
                 end
               end
               e[name] = ef if do_all || ef.length > 0
@@ -38,7 +38,7 @@ module Dumpjson
                 if f.traversal then
                   e[name] = val && to_json(val, do_all)
                 else
-                  e[name] = val && val._path.to_s
+                  e[name] = val && fixup_path(val)
                 end
               end
             end
@@ -46,6 +46,15 @@ module Dumpjson
         end
       end
       e
+    end
+  end
+
+  def self.fixup_path obj
+    path = obj._path.to_s
+    if path == "root"
+      path = ""
+    else
+      path = path.slice(5,999)
     end
   end
   

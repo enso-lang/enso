@@ -1,25 +1,25 @@
 {
-  "filename": "grammar.schema",
-  "source": "core/grammar/models/grammar.schema",
-  "date": "2013-01-30 12:32:56 -0600",
-  "checksum": "82c9707fd22a8f291bd9b83ced1c2dd8270e4c6a",
+  "filename": "new_grammar.schema",
+  "source": "../src/upgrade/new_grammar.schema",
+  "date": "2013-02-27 13:25:02 -0600",
+  "checksum": "800b4354467592f80f16d958f699f11d71124873",
   "depends": [
     {
       "filename": "schema.schema",
-      "source": "core/schema/models/schema.schema",
-      "date": "2013-02-20 10:13:55 -0600",
+      "source": "../src/core/schema/models/schema.schema",
+      "date": "2013-02-27 11:17:54 -0600",
       "checksum": "c1641f1907fc5643c80840284d71e24e1688c2fc"
     },
     {
       "filename": "schema.grammar",
-      "source": "core/schema/models/schema.grammar",
-      "date": "2013-02-01 00:21:05 -0600",
+      "source": "../src/core/schema/models/schema.grammar",
+      "date": "2013-02-27 13:13:26 -0600",
       "checksum": "f03a99367d7e42305e4e9a479699be2826fed0fd"
     },
     {
       "filename": "expr.schema",
-      "source": "core/expr/models/expr.schema",
-      "date": "2012-12-10 18:07:32 -0600",
+      "source": "../src/core/expr/models/expr.schema",
+      "date": "2013-02-27 11:17:54 -0600",
       "checksum": "57d49e5cc388844fbef9d0306467f08cf28aeec5"
     }
   ],
@@ -597,163 +597,6 @@
         "schema": ""
       },
       {
-        "class": "Primitive",
-        "name=": "atom",
-        "schema": ""
-      },
-      {
-        "class": "Class",
-        "name=": "Key",
-        "schema": "",
-        "supers#": [
-
-        ],
-        "subclasses#": [
-          "types[Const]",
-          "types[Path]",
-          "types[It]",
-          "types[Var]"
-        ],
-        "defined_fields#": [
-
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Const",
-        "schema": "",
-        "supers#": [
-          "types[Key]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "value",
-            "owner": "types[Const]",
-            "type": "types[atom]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Path",
-        "schema": "",
-        "supers#": [
-          "types[Key]"
-        ],
-        "subclasses#": [
-          "types[Anchor]",
-          "types[Sub]"
-        ],
-        "defined_fields#": [
-
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Anchor",
-        "schema": "",
-        "supers#": [
-          "types[Path]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "type",
-            "owner": "types[Anchor]",
-            "type": "types[str]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Sub",
-        "schema": "",
-        "supers#": [
-          "types[Path]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "parent",
-            "owner": "types[Sub]",
-            "type": "types[Path]",
-            "optional=": true,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "name",
-            "owner": "types[Sub]",
-            "type": "types[str]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          },
-          {
-            "class": "Field",
-            "name=": "key",
-            "owner": "types[Sub]",
-            "type": "types[Key]",
-            "optional=": true,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "is_root",
-            "owner": "types[Sub]",
-            "type": "types[bool]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": {
-              "class": "EStrConst",
-              "val=": "@parent == nil"
-            },
-            "traversal=": false
-          }
-        ]
-      },
-      {
         "class": "Class",
         "name=": "Grammar",
         "schema": "",
@@ -786,7 +629,7 @@
             "many=": true,
             "key=": false,
             "auto=": false,
-            "inverse": "types[Rule].defined_fields[grammar]",
+            "inverse": "types[Rule]/defined_fields[grammar]",
             "computed": null,
             "traversal=": true
           }
@@ -825,7 +668,7 @@
             "many=": false,
             "key=": false,
             "auto=": false,
-            "inverse": "types[Grammar].defined_fields[rules]",
+            "inverse": "types[Grammar]/defined_fields[rules]",
             "computed": null,
             "traversal=": false
           },
@@ -1069,7 +912,7 @@
             "class": "Field",
             "name=": "path",
             "owner": "types[Ref]",
-            "type": "types[Path]",
+            "type": "types[Expr]",
             "optional=": false,
             "many=": false,
             "key=": false,
@@ -1279,20 +1122,6 @@
       },
       {
         "class": "Class",
-        "name=": "It",
-        "schema": "",
-        "supers#": [
-          "types[Key]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-
-        ]
-      },
-      {
-        "class": "Class",
         "name=": "Let",
         "schema": "",
         "supers#": [
@@ -1332,32 +1161,6 @@
       },
       {
         "class": "Class",
-        "name=": "Var",
-        "schema": "",
-        "supers#": [
-          "types[Key]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "name",
-            "owner": "types[Var]",
-            "type": "types[str]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          }
-        ]
-      },
-      {
-        "class": "Class",
         "name=": "Binding",
         "schema": "",
         "supers#": [
@@ -1371,7 +1174,7 @@
             "class": "Field",
             "name=": "target",
             "owner": "types[Binding]",
-            "type": "types[Path]",
+            "type": "types[Expr]",
             "optional=": false,
             "many=": false,
             "key=": false,
@@ -1384,7 +1187,7 @@
             "class": "Field",
             "name=": "value",
             "owner": "types[Binding]",
-            "type": "types[Path]",
+            "type": "types[Expr]",
             "optional=": false,
             "many=": false,
             "key=": false,

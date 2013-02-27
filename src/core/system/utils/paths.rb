@@ -11,7 +11,7 @@ module Paths
     include Interpreter::Dispatcher
     
     def self.set_factory(factory)
-      @factory = factory
+      @@factory = factory
     end
     
     def initialize(path)

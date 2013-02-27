@@ -22,7 +22,6 @@ class Build
   end
 
   def recurse(sppf, owner, accu, field, fixes, paths)
-   puts "BUILDING"
     type = sppf.type 
     sym = type.schema_class.name
     if respond_to?(sym)
@@ -76,7 +75,8 @@ class Build
       update_origin(owner, field, org)
     end
     paths.each do |org, fix|
-      raise "BAD" if fix.obj != owner || fix.field != field
+      fix.obj = owner
+      fix.field = field
       fixes << fix
       #fixes << Fix.new(path, owner, field, org)
     end
@@ -191,7 +191,9 @@ class Build
       change = false
       fixes.each do |fix|
         helper = Paths::new(fix.path)
-        x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it { helper.eval }
+        x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it do
+          helper.eval
+        end
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
           update_origin(fix.obj, fix.field, fix.origin)
@@ -227,7 +229,7 @@ class Build
   end
 
   class Fix
-    attr_reader :path, :obj, :field, :origin, :it
+    attr_accessor :path, :obj, :field, :origin, :it
     def initialize(path, obj, field, origin, it)
       @path = path
       @obj = obj
