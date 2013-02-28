@@ -269,6 +269,7 @@ define (function() {
   
   Integer = Number;
   Numeric = Number;
+  Fixnum = Number;
   
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
