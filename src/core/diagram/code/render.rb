@@ -59,4 +59,15 @@ module Render
     def initialize
     end
   end
+
+  def self.render(obj, *args)
+    interp = RenderStencilC.new
+    if args.empty?
+      interp.render(obj)
+    else
+      interp.dynamic_bind *args do
+        interp.render(obj)
+      end
+    end
+  end
 end

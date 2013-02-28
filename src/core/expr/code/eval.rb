@@ -96,6 +96,17 @@ module Eval
     end
   end
 
+  def self.eval(obj, *args)
+    interp = EvalExprC
+    if args.empty?
+      interp.eval(obj)
+    else
+      interp.dynamic_bind *args do
+        interp.eval(obj)
+      end
+    end
+  end
+
   def self.make_const(factory, val)
     if val.is_a?(String)
       factory.EStrConst(val)

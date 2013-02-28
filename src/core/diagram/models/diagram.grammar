@@ -1,30 +1,36 @@
-start Part
+import expr.grammar
 
-Part ::= [Container] Dir Props "{" items:Part* "}"
-      | [Connector] "connector" Props "(" ends:{ConnectorEnd "--"}+ ")" "path" path:Point*
-      | Text
-      | [Shape] "box" "#" _id:int Location? Props "{" content:Part? "}"
-Location ::= location:Point
-Text ::= [Text] "text" Props string:str
+start Stencil
 
-Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph" {direction==3} | "do" {direction==4}
+abstract Expr
+abstract EAssign
 
-ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:</items[it]> (arrow:"<" | arrow:"*")? 
+// To make text fields editable, add a "+" behind the name
 
-Props ::= styles:Style* Constraints?
-Style ::= 
-    [Pen] "pen" width:int style:sym color:Color
-  | [Brush] "brush" color:Color
-  | [Font] "font" name:sym style:sym size:int "pt" weight:int color:Color
+// diagrams
+Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Part*
 
-Constraints ::= [SizeConstraints] Width? Height?
-Width ::= "width" width:Constraint
-Height ::= "height" height:Constraint
-Constraint ::= [Constraint] Var? Min?
-Var ::= "=" var:sym
-Min ::= ">" min:int
+Part ::= [Container] Dir Props? "{" items:Part+ "}"
+       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
+       | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
+       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part
+       | [CheckBox] "checkbox" string:Expr
+       | [RadioList] "radio" value:Expr choices:Expr
+       | [TextBox] "text?" value:Expr
 
-Color ::= [Color] "(" r:int "," g:int "," b:int ")"
+Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph"  {direction==3} | "do"  {direction==4}
+ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?
+ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
+Index ::= "," index:sym
 
-Point ::= [Point] "(" x:int "," y:int ")"      
+Props ::= "[" props:Prop* @"," "]"
+Prop ::= [Prop] var:Expr "=" val:Expr
 
+// Extra expressions
+
+EBinOp1 ::= [InstanceOf] base:Expr "is" class_name:sym
+          | EBinOp1
+
+EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
+         | [Eval] "[[" expr:Expr "]]"
+         | EUnOp

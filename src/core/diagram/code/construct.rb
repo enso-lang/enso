@@ -8,7 +8,7 @@ module Construct
     include Impl::EvalCommand
 
     def eval_Stencil(title, root, body)
-      factory = Factory::SchemaFactory.new(Load::load('stencil.schema'))
+      factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       res = factory.Stencil(title, root)
       dynamic_bind env: {"data"=>@D[:data]}, 
       			   factory: factory,
@@ -29,7 +29,7 @@ module Construct
       nprops = @D[:props].clone
       props.each do |p|
         p1 = eval(p)
-		nprops[Render::RenderExprC.new.render(p1.var)] = p1
+		nprops[Render::render(p1.var)] = p1
       end
       nprops
     end
@@ -74,69 +74,7 @@ module Construct
       end
       res
     end
-=begin
-    def eval_Container(label, props, direction, items)
-      factory = @D[:factory]
-      res = factory.Container
-      res.direction = direction
-      nprops = handle_props(props)
-      nprops.values.each {|p| res.props << p }
-      items.each do |item|
-        dynamic_bind props: nprops do
-          ev = eval(item)
-          if ev.is_a? Array    # flatten arrays
-            ev.flatten.each {|e| res.items << e}
-          elsif not ev.nil?
-            res.items << ev
-          end 
-        end
-      end
-      unless label.nil?
-        @D[:env][label] = res
-      end
-      res
-    end
 
-    def eval_Shape(label, props, kind, content)
-      factory = @D[:factory]
-      res = factory.Shape
-      res.kind = kind
-      nprops = handle_props(props)
-      nprops.values.each {|p| res.props << p }
-      dynamic_bind props: nprops do
-        res.content = eval(content)
-      end
-      unless label.nil?
-        @D[:env][label] = res
-      end
-      res
-    end
-
-    def eval_TextBox(label, props, value)
-      factory = @D[:factory]
-      res = factory.TextBox
-      res.value = Eval::make_const(factory, eval(value).to_s)
-      nprops = handle_props(props)
-      nprops.values.each {|p| res.props << p }
-      unless label.nil?
-        @D[:env][label] = res
-      end
-      res
-    end
-
-    def eval_Text(label, props, string, editable)
-      factory = @D[:factory]
-      res = factory.Text
-      res.string = Eval::make_const(factory, eval(string).to_s)
-      res.editable = editable
-      nprops = handle_props(props)
-      nprops.values.each {|p| res.props << p }
-      unless label.nil?
-        @D[:env][label] = res
-      end
-      res
-    end
-=end
     def eval_Prop(var, val)
       factory = @D[:factory]
       res = factory.Prop
@@ -244,13 +182,13 @@ module Construct
     end
   end
 
-  def eval(*args)
-    interp = Construct::EvalStencilC.new
+  def self.eval(obj, *args)
+    interp = EvalStencilC.new
     if args.empty?
-      interp.eval(stencil)
+      interp.eval(obj)
     else
-      interp.dynamic_bind data: data do
-        interp.eval(stencil)
+      interp.dynamic_bind *args do
+        interp.eval(obj)
       end
     end
   end
