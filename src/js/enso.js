@@ -165,7 +165,7 @@ define (function() {
   };
     
   String.prototype.inspect = function() {
-     return this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0"); 
+     return "\"" + this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
   } 
   String.prototype.repeat = function(n) {
     result = "";
