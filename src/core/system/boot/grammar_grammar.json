@@ -1787,7 +1787,7 @@
                 "elements": [
                   {
                     "class": "Lit",
-                    "value=": ""
+                    "value=": "/"
                   },
                   {
                     "class": "Alt",

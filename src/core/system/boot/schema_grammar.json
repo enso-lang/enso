@@ -2301,7 +2301,7 @@
               "elements": [
                 {
                   "class": "Lit",
-                  "value=": ""
+                  "value=": "/"
                 },
                 {
                   "class": "Field",
