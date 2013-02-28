@@ -6,9 +6,9 @@ class Expr
 class EConst
 
 class Questionaire
-  elements ! Element*
+  elems ! Element*
   answers ! Answer*
-  
+
 class Element
 
 class Group < Element

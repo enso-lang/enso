@@ -16,13 +16,13 @@ class ConstraintSystem
     @vars = {}
     @number = 0
   end
-  
+
   def var(name = "v#{@number}", value = nil)
     @number += 1
     #puts "#{name} = #{value}"
     return Variable.new(name, value)
   end
-  
+
   def value(n)
     var("(#{n})", n)
   end

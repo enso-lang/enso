@@ -30,7 +30,7 @@ module Eval
     end
   
     def eval_EVar(name)
-      raise "ERROR: undefined variable #{name}" unless @D[:env].has_key?(name)
+      raise "ERROR: undefined variable #{name} in #{@D[:env]}" unless @D[:env].has_key?(name)
       @D[:env][name]
     end
   
@@ -95,4 +95,21 @@ module Eval
     def initialize
     end
   end
+
+  def self.make_const(factory, val)
+    if val.is_a?(String)
+      factory.EStrConst(val)
+    elsif val.is_a?(Integer)
+      factory.EIntConst(val)
+    elsif val.is_a?(TrueClass) or val.is_a?(FalseClass)
+      factory.EBoolConst(val)
+    elsif val.nil?
+      factory.ENil
+    elsif val.is_a? Factory::MObject
+      val
+    else
+      raise "Trying to make constant using an invalid #{val.class} object" 
+    end
+  end
+
 end

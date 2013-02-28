@@ -454,7 +454,7 @@ module Factory
     def check(mobj)
       if mobj || !@field.optional
         if mobj.nil? then
-          raise "Cannot assign nil to non-optional field #{@field.name}"
+          raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
         end
         if !Schema::subclass?(mobj.schema_class, @field.type) then
           raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"

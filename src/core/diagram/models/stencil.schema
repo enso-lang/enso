@@ -1,7 +1,6 @@
 import impl.schema with Command as Part
 
 class Expr 
-class EAssign
 
 class Stencil
   title: str?
@@ -9,36 +8,50 @@ class Stencil
   body! Part*
 
 class Part
-  label: str
-  props! EAssign*
 
+class Prop
+  var! Expr
+  val! Expr
 
 // DIAGRAMS
 
 class Container < Part
-  direction: int // 1=vert, 2=hoiz, 3=graph, 4=paged
+  label: str?
+  props! Prop*
+  direction: int // 1=vert, 2=hoiz, 3=graph
   items! Part*
 
-class Text < Part
-  string! Expr
-  editable: bool
+class Page < Part
+  label: str?
+  props! Prop*
+  items! Part*
 
 class Shape < Part
+  label: str?
+  props! Prop*
   kind: str
   content! Part?
 
+class Text < Part
+  label: str?
+  props! Prop*
+  string! Expr
+  editable: bool
+
 class Widget < Part
+  label: str?
+  props! Prop*
 
 class CheckBox < Widget
-  value! Expr
+  value! Expr?
   string! Expr
 
 class RadioList < Widget
-  value! Expr
+  value! Expr?
   choices! Expr
 
 class TextBox < Widget
-  value! Expr
+  value! Expr?
 
 class Connector < Part
   label! Expr?

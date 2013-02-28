@@ -13,7 +13,7 @@ Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Part*
 Part ::= [Container] Dir Props? "{" items:Part+ "}"
        | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
        | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
-       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part?
+       | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part
        | [CheckBox] "checkbox" string:Expr
        | [RadioList] "radio" value:Expr choices:Expr
        | [TextBox] "text?" value:Expr
@@ -23,7 +23,8 @@ ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
 Index ::= "," index:sym
 
-Props ::= "[" props:EAssign* @"," "]"
+Props ::= "[" props:Prop* @"," "]"
+Prop ::= [Prop] var:Expr "=" val:Expr
 
 // Extra expressions
 
