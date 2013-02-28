@@ -31,7 +31,12 @@ def drawQuestion(elem) {
   }
 }
 
-  // create the nodes (one for each class)
-  for elem : data.elems {
-    drawElem(elem)
+// create the nodes (one for each class)
+pages(0) {
+  vertical {
+    for elem : data.elems {
+      drawElem(elem)
+    }
   }
+  --
+}

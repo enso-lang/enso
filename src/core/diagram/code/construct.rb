@@ -46,7 +46,7 @@ module Construct
           res[f.name] = obj[f.name]
         elsif f.type.name=="Expr"
           if obj[f.name].nil?
-            res[f.name] = Eval::make_const(factory, nil)
+            res[f.name] = nil
           else
             res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
           end

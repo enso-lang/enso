@@ -48,6 +48,16 @@ module Render
     def render_TextBox(label, props, value)
       %/<input type="text" name="" value="#{render(value)}">/
     end
+    
+    def render_Pages(label, props, items, current)
+      index = if current and current.val.is_a? Integer
+        current.val
+      else
+        0
+      end
+      raise "Trying to render an out of bounds page" if index >= items.length
+      render(items[index])
+    end
 
     def render_?(fields, type, args)
       ""

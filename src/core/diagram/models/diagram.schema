@@ -21,10 +21,15 @@ class Container < Part
   direction: int // 1=vert, 2=hoiz, 3=graph
   items! Part*
 
-class Page < Part
+class Pages < Part
   label: str?
   props! Prop*
   items! Part*
+  current! Expr?
+
+class Space < Part
+  label: str?
+  props! Prop*
 
 class Shape < Part
   label: str?
@@ -79,7 +84,6 @@ class Eval < Expr
   expr! Expr
   
 class Rule < Expr	//a rule is essentially a sugar-ed up function
-  
 
 primitive int
 primitive str

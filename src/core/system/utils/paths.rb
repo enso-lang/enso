@@ -152,9 +152,21 @@ module Paths
     end
 
     def owner
-      Path.new(elts[0..-2])
-    end    
+      if last.is_a?(Field)
+        Path.new(elts[0..-2])
+      else
+        Path.new(elts[0..-3])
+      end
+    end
     
+    def field
+      if last.is_a?(Field)
+        last.value
+      else
+        elts[-2].value
+      end
+    end
+
     def last
       elts.last
     end
