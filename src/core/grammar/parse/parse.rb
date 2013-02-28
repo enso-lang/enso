@@ -35,6 +35,7 @@ class Parse
     end
     source = s[i..-1].join("\n")
     data = load_raw(source, grammar, schema, Factory::new(schema), false, filename)
+    deps = [filename] 
     imports.each do |imp,as|
       $stderr << "## importing #{imp}...\n" 
       u = Load::load(imp)
@@ -51,9 +52,9 @@ class Parse
         end
       end
       data = Union::union(u, data)
-      FindModel::FindModel.find_model(imp) {|p| data.factory.file_path << p}
+      FindModel::FindModel.find_model(imp) {|p| deps << p}
     end
-    data.factory.file_path.unshift(filename)
+    deps.each {|p| data.factory.file_path << p}
     return data.finalize
   end
 
