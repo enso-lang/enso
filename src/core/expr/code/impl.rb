@@ -91,7 +91,7 @@ module Impl
     def eval_EFunDef(name, formals, body)
       res = Impl::Closure.make_closure(body, formals, @D[:env], self)
       @D[:env][name] = res
-      res
+      nil
     end
 
     def eval_ELambda(body, formals)
