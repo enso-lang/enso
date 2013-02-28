@@ -45,13 +45,6 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         self.$.root = stream.current();
        // self.$.literals = Scan.collect_keywords(this_V);
-        self.$.literals = Scan.collect_keywords(this_V);
-        this_V.rules().each(function(rule) {
-          if (rule.arg().alts().length == 1) {
-            return rule.arg = rule.arg().alts()._get(0);
-          }
-        });
->>>>>>> fd80f375aa2b7b1191c4c6dfa46a07f2046562af
         return self.recurse(this_V.start().arg(), SingletonStream.new(stream.current()), container);
       };
 
