@@ -57,17 +57,17 @@ module Factory
         res
       end
     end
-    
+
     def unsafe?
       !@unsafe.nil? and @unsafe>0
     end
-      
+
     def unsafe_mode
       @unsafe = @unsafe ? @unsafe+1 : 1
       yield
       @unsafe -= 1
     end
-    
+
     def [](name)
       send(name)
     end

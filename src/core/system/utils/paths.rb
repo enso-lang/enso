@@ -152,6 +152,10 @@ module Paths
     end
 
     def owner
+      Path.new(elts[0..-2])
+    end
+
+    def object
       if last.is_a?(Field)
         Path.new(elts[0..-2])
       else

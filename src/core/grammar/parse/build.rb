@@ -6,7 +6,7 @@ require 'core/system/utils/location'
 require 'core/expr/code/assertexpr'
 
 class Build
-  def self.build(sppf, factory, origins, imports)
+  def self.build(sppf, factory, origins, imports=[])
     Build.new(factory, origins).build(sppf, imports)
   end
 
@@ -18,9 +18,9 @@ class Build
   def build(sppf, imports)
     recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
     obj = accu.values.first
-    if !imports.nil?
+    imports.each do |import|
       obj._graph_id.unsafe_mode {
-        obj = Union::Union(obj.factory, obj, imports)
+        obj = Union::CopyInto(obj.factory, import, obj)
       }
     end
     fixup(obj, fixes)
