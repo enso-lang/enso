@@ -101,7 +101,7 @@ module Union
   def self.Clone(a)
     Copy(a.factory, a)
   end
-      
+
   def self.Union(factory, *parts)
     copier = CopyInto.new(factory)
     result = nil

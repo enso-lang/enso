@@ -4,8 +4,9 @@ def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-    for elem : elem.elems
-      drawElem(elem)
+    //if [[elem.guard]]
+      for elem : elem.elems
+        drawElem(elem)
 }
 
 def drawQuestion(elem) {

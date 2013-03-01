@@ -6,8 +6,8 @@ require 'core/system/utils/location'
 require 'core/expr/code/assertexpr'
 
 class Build
-  def self.build(sppf, factory, origins)
-    Build.new(factory, origins).build(sppf)
+  def self.build(sppf, factory, origins, imports)
+    Build.new(factory, origins).build(sppf, imports)
   end
 
   def initialize(factory, origins)
@@ -15,9 +15,14 @@ class Build
     @origins = origins
   end
 
-  def build(sppf)
+  def build(sppf, imports)
     recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
     obj = accu.values.first
+    if !imports.nil?
+      obj._graph_id.unsafe_mode {
+        obj = Union::Union(obj.factory, obj, imports)
+      }
+    end
     fixup(obj, fixes)
     return obj
   end

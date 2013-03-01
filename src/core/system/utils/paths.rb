@@ -159,7 +159,7 @@ module Paths
       end
     end
     
-    def field
+    def fieldname
       if last.is_a?(Field)
         last.value
       else

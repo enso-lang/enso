@@ -1,3 +1,4 @@
+import prelude.ql
 
 hasSoldHouse: "Did you sell a house in 2010?" money
 hasBoughtHouse: "Did you buy a house in 2010?" money
@@ -11,7 +12,5 @@ if (not hasSoldHouse) {
 
 answers
 
-boolean : bool ( "Yes" "No" )
 locations : str [ "Austin" "Amsterdam" "Cambridge" ]
-money : int 
 value : int = (sellingPrice - privateDebt)

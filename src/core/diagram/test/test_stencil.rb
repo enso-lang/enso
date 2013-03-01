@@ -45,7 +45,7 @@ while true
         print "New value? "
         val = $stdin.gets.chomp
         obj = path.owner.deref(model)
-        field = obj.schema_class.fields[path.field]
+        field = obj.schema_class.fields[path.fieldname]
         puts "obj=#{obj} field=#{field}"
         if field.type.Primitive?
           puts "primitive val"

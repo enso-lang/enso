@@ -58,6 +58,16 @@ module Factory
       end
     end
     
+    def unsafe?
+      !@unsafe.nil? and @unsafe>0
+    end
+      
+    def unsafe_mode
+      @unsafe = @unsafe ? @unsafe+1 : 1
+      yield
+      @unsafe -= 1
+    end
+    
     def [](name)
       send(name)
     end
@@ -452,15 +462,17 @@ module Factory
     end
 
     def check(mobj)
-      if mobj || !@field.optional
-        if mobj.nil? then
-          raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
-        end
-        if !Schema::subclass?(mobj.schema_class, @field.type) then
-          raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
-        end
-        if mobj._graph_id != @owner._graph_id then
-          raise "Inserting object #{mobj} into the wrong model"
+      if !@owner._graph_id.unsafe?
+        if mobj || !@field.optional
+          if mobj.nil? then
+            raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
+          end
+          if !Schema::subclass?(mobj.schema_class, @field.type) then
+            raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
+          end
+          if mobj._graph_id != @owner._graph_id then
+            raise "Inserting object #{mobj} into the wrong model"
+          end
         end
       end
     end

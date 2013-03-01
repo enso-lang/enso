@@ -1,5 +1,4 @@
-
-
 answers
 
-MultiChoice boolean { "Yes" "No" }
+boolean : bool ( "Yes" "No" )
+money : int 
