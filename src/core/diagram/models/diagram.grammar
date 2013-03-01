@@ -2,9 +2,6 @@ import expr.grammar
 
 start Stencil
 
-abstract Expr
-abstract EAssign
-
 // To make text fields editable, add a "+" behind the name
 
 // diagrams

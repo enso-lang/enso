@@ -2,9 +2,6 @@ import expr.schema
 
 primitive str
 
-class Expr
-class EConst
-
 class Questionaire
   elems ! Element*
   answers ! Answer*

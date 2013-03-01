@@ -1,7 +1,5 @@
 import expr.schema
 
-class Expr 
-
 class Stencil
   title: str?
   root: str

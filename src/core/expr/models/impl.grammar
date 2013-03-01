@@ -31,5 +31,3 @@ EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")" lambda:ELambda
 
 ELambda ::= [ELambda] "{" "|" formals:Formal* @"," "|" body:EBlock_nocurl "}"
 
-abstract EUnOp
-abstract Expr
