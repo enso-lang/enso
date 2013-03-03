@@ -1,10 +1,13 @@
-diagram(data)
+import currency.stencil
+
+diagram(data) {
 
 def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-    //if [[elem.guard]]
+//    if [[ elem.guard ]]<data.all_elems>
+//    if [[elem.guard]]
       for elem : elem.elems
         drawElem(elem)
 }
@@ -23,6 +26,10 @@ def drawQuestion(elem) {
 	    vertical {
 	      text? elem.value
 	      text? elem.value
+	      if elem.ans.name=="money" 
+	        text? convert(100)
+	      else 
+	        text? elem.ans.name
 	    }
 	  if elem.ans is Computed
 	    box {
@@ -40,4 +47,5 @@ pages(0) {
     }
   }
   --
+}
 }

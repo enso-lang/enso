@@ -3,7 +3,7 @@ import expr.schema
 class Stencil
   title: str?
   root: str
-  body! Part*
+  body! Part
 
 class Part
 
@@ -80,7 +80,7 @@ class Color < Expr
 
 class Eval < Expr
   expr! Expr
-  
+
 class Rule < Expr	//a rule is essentially a sugar-ed up function
 
 primitive int

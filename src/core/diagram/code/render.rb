@@ -16,7 +16,7 @@ module Render
 <title>} + title.to_s + %{</title>
 </head>
 <body>
-      } + body.inject(""){|memo, obj|memo+render(obj)} + %{
+      } + render(body) + %{
 </body>
 </html>
       }

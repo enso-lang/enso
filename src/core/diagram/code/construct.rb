@@ -13,14 +13,7 @@ module Construct
       dynamic_bind env: {"data"=>@D[:data]}, 
       			   factory: factory,
       			   props: {} do
-        body.each do |c|
-          ev = eval(c)
-          if ev.is_a? Array    # flatten arrays
-            ev.flatten.each {|e| res.body << e}
-          elsif not ev.nil?
-            res.body << ev
-          end 
-        end
+        res.body = eval(body)
       end
       res
     end
@@ -112,12 +105,15 @@ module Construct
       a && Schema.subclass?(a.schema_class, class_name)
     end
 
-    def eval_Eval(expr, env)
-      puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
-      Print.print expr
-      puts "expr.eval=#{expr.eval}"
-      Print.print eval(expr)
-      @interpreter.eval(expr.eval, env: env)
+    def eval_Eval(expr)
+      expr1 = eval(expr)
+      Print.print(expr1)
+      Eval::eval(expr1, env: {'data'=> @D[:data]})
+      # puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
+      # Print.print expr
+      # puts "expr.eval=#{expr.eval}"
+      # Print.print eval(expr)
+      # @interpreter.eval(expr.eval, env: env)
     end
 
     def eval_ETernOp(op1, op2, e1, e2, e3)
