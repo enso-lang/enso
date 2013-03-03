@@ -45,7 +45,7 @@ module Env
       self
     end
   end
-  
+
   class HashEnv
     include BaseEnv
     def initialize(hash={})
@@ -59,7 +59,7 @@ module Env
         @parent && @parent[key]
       end
     end
-    
+
     def []=(key, value)
       if @parent and @parent.has_key? key
         @parent[key] = value
@@ -71,15 +71,17 @@ module Env
     def has_key?(key)
       @hash.has_key?(key) || (@parent && @parent.has_key?(key))
     end
+    
+    def keys
+      (@hash.keys + (@parent.nil? ? [] : @parent.keys)).uniq
+    end
       
     def to_s
       @hash.to_s
     end
     
     def clone
-      r = HashEnv.new(@hash.clone)
-      r.set_parent(@parent)
-      r
+      HashEnv.new(@hash.clone).set_parent(@parent)
     end
   end
   
@@ -89,9 +91,8 @@ module Env
   
     attr_reader :obj
   
-    def initialize(obj, parent = nil)
+    def initialize(obj)
       @obj = obj
-      @parent = parent
     end
     
     def [](key)
@@ -111,14 +112,14 @@ module Env
     
     def has_key?(key)
       key == "self" ||
-        @obj.schema_class.all_fields.any?{|f|f.name == key} ||
+        @obj.schema_class.all_fields[key] ||
         (@parent && @parent.has_key?(key))
     end
-    
-    def has_key?(key)
-      @obj.schema_class.all_fields[key] || (@parent && @parent.has_key?(key))
+        
+    def keys
+      (@obj.schema_class.all_fields.keys + (@parent.nil? ? [] : @parent.keys)).uniq
     end
-    
+      
     def to_s
       @obj.to_s
     end
@@ -128,7 +129,7 @@ module Env
     end
     
     def clone
-      self #there can only be one env for the object
+      ObjEnv.new(@obj).set_parent(@parent)
     end
   end
   
@@ -162,13 +163,27 @@ module Env
     def has_key?(key)
       @label == key || (@parent && @parent.has_key?(key))
     end
+
+    def keys
+      ([@label] + (@parent.nil? ? [] : @parent.keys)).uniq
+    end
      
     def to_s
       @block.to_s
     end
     
     def clone
-      self #there can only be one env for the object
+      LambdaEnv.new(@label, @block).set_parent(@parent)
     end
   end
+
+  def self.deepclone(env)
+    c = env.clone
+    if !@parent.nil? and @parent.is_a? BaseEnv
+      c.set_parent(deepclone(@parent))
+    else
+      c #this line is necessary else the IF will return nil.
+    end
+  end
+
 end

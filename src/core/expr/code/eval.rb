@@ -97,7 +97,7 @@ module Eval
   end
 
   def self.eval(obj, *args)
-    interp = EvalExprC
+    interp = EvalExprC.new
     if args.empty?
       interp.eval(obj)
     else
