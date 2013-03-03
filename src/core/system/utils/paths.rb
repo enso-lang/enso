@@ -75,7 +75,8 @@ module Paths
     end
     
     def eval_EVar(obj)
-      #puts "Dereffing 'this': obj = #{obj}; root = #{root}"
+      raise "undefined variable #{obj.name}" if !@D.include?(obj.name.to_sym)
+      #puts("VAR #{obj.name} => #{@D[obj.name.to_sym]}")
       @D[obj.name.to_sym]
     end
 

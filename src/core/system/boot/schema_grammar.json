@@ -2316,7 +2316,7 @@
                           "class": "EField",
                           "e": {
                             "class": "EVar",
-                            "name=": "current"
+                            "name=": "this"
                           },
                           "fname=": "type"
                         },
