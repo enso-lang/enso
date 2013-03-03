@@ -54,18 +54,10 @@ module Eval
     end
   
     def eval_EList(elems)
-      k = Schema::class_key(@D[:for_field].type)
-      #puts "KEY #{@D[:for_field]}= #{k}"
-      if k
-        r = Factory::Set.new(nil, nil, k)
-      else
-        r = Factory::List.new(nil, nil)
-      end
-      elems.each do |elem|
+      elems.map do |elem|
         #puts "ELEM #{elem}=#{eval(elem)}"
-        r << eval(elem)
+        eval(elem)
       end
-      r
     end
   
     #reason for in_fc is to disambiguate between the following 2 cases:

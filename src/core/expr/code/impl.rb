@@ -123,8 +123,8 @@ module Impl
       if lambda.nil?
         m.call(*(params.map{|p|eval(p)}))
       else
-        p = eval(lambda)
-        m.call(*(params.map{|p|eval(p)}), &p) 
+        b = eval(lambda)
+        m.call(*(params.map{|p|eval(p)}), &b) 
       end
     end
 
@@ -136,6 +136,17 @@ module Impl
   class EvalCommandC
     include EvalCommand
     def initialize
+    end
+  end
+
+  def self.eval(obj, *args)
+    interp = EvalCommandC.new
+    if args.empty?
+      interp.eval(obj)
+    else
+      interp.dynamic_bind *args do
+        interp.eval(obj)
+      end
     end
   end
 end

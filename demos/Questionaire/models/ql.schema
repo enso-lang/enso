@@ -20,7 +20,7 @@ class Question < Element
   ans : Answer
   //dynamic
   value ! EConst?
-  all_elems : Question* = self
+  all_elems : Question* = [self]
 
 class Answer
   name # str

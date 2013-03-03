@@ -176,7 +176,6 @@ module Factory
       name = fld.name
       exp = fld.computed
       fvInterp = Freevar::FreeVarExprC.new
-      commInterp = Impl::EvalCommandC.new
       val = nil
       define_singleton_method(name) do
         if val.nil?
@@ -188,11 +187,17 @@ module Factory
               fv.object.add_listener(fv.index) { var = nil }
             end
           end
-          val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
-            commInterp.eval(exp)
+          val = Impl::eval(exp, env: Env::ObjEnv.new(self))
+          if fld.many and !val.is_a? Many
+            if key = Schema::class_key(fld.type)
+              collection = Set.new(self, fld, key)
+            else
+              collection = List.new(self, fld)
+            end
+            val.each {|v|collection<<v}
+            val = collection
           end
-          #puts "COMPUTED #{name}=#{val}"
-          var = val
+          val
         end
         val
       end
@@ -362,7 +367,7 @@ module Factory
   end
 
   module SetUtils
-    def to_ary; @values.values end
+    def to_ary; @value.values end
 
     def union(other)
       # left-biased: field is from self
