@@ -31,5 +31,5 @@ EBinOp1 ::= [InstanceOf] base:Expr "is" class_name:sym
           | EBinOp1
 
 EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
-         | [Eval] "[[" expr:Expr "]]"
+         | [Eval] "[[" expr:Expr ("|" envs:Expr+ @",")? "]]"
          | EUnOp

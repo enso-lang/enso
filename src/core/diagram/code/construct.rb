@@ -53,7 +53,7 @@ module Construct
               dynamic_bind props: nprops do
                 ev = eval(item)
                 if ev.is_a? Array    # flatten arrays
-                  ev.flatten.each {|e| res.items << e}
+                  ev.flatten.each {|e| if not e.nil?; res.items << e; end}
                 elsif not ev.nil?
                   res.items << ev
                 end 
@@ -105,15 +105,15 @@ module Construct
       a && Schema.subclass?(a.schema_class, class_name)
     end
 
-    def eval_Eval(expr)
+    def eval_Eval(expr, envs)
+      env1 = Env::HashEnv.new
+      envs.map{|e| eval(e)}.each do |env|
+        env.each_pair do |k,v|
+          env1[k] = v
+        end
+      end
       expr1 = eval(expr)
-      Print.print(expr1)
-      Eval::eval(expr1, env: {'data'=> @D[:data]})
-      # puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
-      # Print.print expr
-      # puts "expr.eval=#{expr.eval}"
-      # Print.print eval(expr)
-      # @interpreter.eval(expr.eval, env: env)
+      Eval::eval(expr1, env: env1)
     end
 
     def eval_ETernOp(op1, op2, e1, e2, e3)

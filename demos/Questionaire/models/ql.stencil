@@ -6,8 +6,7 @@ def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-//    if [[ elem.guard ]]<data.all_elems>
-//    if [[elem.guard]]
+    if [[elem.guard | data.all_elems]]
       for elem : elem.elems
         drawElem(elem)
 }
