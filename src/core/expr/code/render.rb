@@ -27,6 +27,10 @@ module Render
     def render_EConst(val)
       "#{val}"
     end
+    
+    def render_ENil
+      ""
+    end
   end
   
   class RenderExprC

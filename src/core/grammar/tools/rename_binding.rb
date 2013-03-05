@@ -38,10 +38,18 @@ class RenameBinding
     if map[this.name] then
       this.name = map[this.name]
     end
-    rename(this.arg, old)
+    rename(this.arg, map)
   end
 
   def Field(this, map)
+    if map[this.name] then
+      this.name = map[this.name]
+    end
+    rename(this.arg, map)
+  end
+
+  def Rule(this, map)
+    old = this.name
     if map[this.name] then
       this.name = map[this.name]
     end

@@ -36,8 +36,38 @@ module Factory
          MObject.new(klass, self, *args)
         end 
       end
+
+      #check that schema supers have no cyclic dependencies
+      # (this has led to difficult to debug errors in the past)
+      schema.classes.each do |c|
+        if check_cyclic_subtyping(c, [])
+          raise "Build factory failed: #{c} is its own superclass"
+        end 
+      end
     end
-    
+
+    def check_cyclic_subtyping(c, subs)
+      if subs.include? c
+        true
+      else
+        res = false
+        c.supers.each do |s|
+          res ||= check_cyclic_subtyping(s, subs.union([c]))
+        end 
+        res
+      end
+    end
+
+    def unsafe?
+      !@unsafe.nil? and @unsafe>0
+    end
+
+    def unsafe_mode &body
+      @unsafe = @unsafe ? @unsafe+1 : 1
+      body.call
+      @unsafe -= 1
+    end
+
     def [](name)
       send(name)
     end
@@ -131,7 +161,6 @@ module Factory
         define_singleton_value(:to_s, "<<#{cls.name} #{self._id}>>")
       end
     end
-    
     def __computed(fld)
       # check if this is a computed override of a field
       if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
@@ -147,7 +176,6 @@ module Factory
       name = fld.name
       exp = fld.computed
       fvInterp = Freevar::FreeVarExprC.new
-      commInterp = Impl::EvalCommandC.new
       val = nil
       define_singleton_method(name) do
         if val.nil?
@@ -159,10 +187,17 @@ module Factory
               fv.object.add_listener(fv.index) { val = nil }
             end
           end
-          val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
-            commInterp.eval(exp)
+          val = Impl::eval(exp, env: Env::ObjEnv.new(self))
+          if fld.many and !val.is_a? Many
+            if key = Schema::class_key(fld.type)
+              collection = Set.new(self, fld, key)
+            else
+              collection = List.new(self, fld)
+            end
+            val.each {|v|collection<<v}
+            val = collection
           end
-          #puts "COMPUTED #{name}=#{val}"
+          val
         end
         val
       end
@@ -242,6 +277,7 @@ module Factory
     def finalize
       # TODO: check required fields etc.
       factory.register(self)
+
       self
     end
 
@@ -331,7 +367,7 @@ module Factory
   end
 
   module SetUtils
-    def to_ary; @values.values end
+    def to_ary; @value.values end
 
     def union(other)
       # left-biased: field is from self
@@ -428,15 +464,17 @@ module Factory
     end
 
     def check(mobj)
-      if mobj || !@field.optional
-        if mobj.nil? then
-          raise "Cannot assign nil to non-optional field #{@field.name}"
-        end
-        if !Schema::subclass?(mobj.schema_class, @field.type) then
-          raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
-        end
-        if mobj._graph_id != @owner._graph_id then
-          raise "Inserting object #{mobj} into the wrong model"
+      if !@owner._graph_id.unsafe?
+        if mobj || !@field.optional
+          if mobj.nil? then
+            raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
+          end
+          if !Schema::subclass?(mobj.schema_class, @field.type) then
+            raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
+          end
+          if mobj._graph_id != @owner._graph_id then
+            raise "Inserting object #{mobj} into the wrong model"
+          end
         end
       end
     end

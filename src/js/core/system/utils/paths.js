@@ -128,7 +128,7 @@ function(Interpreter) {
         obj = self.owner().deref(root);
         fld = obj.schema_class().fields()._get(self.last().name());
         if (fld.type().Primitive_P()) {
-          value = ((function(){ {
+          value = ((function() {
             switch (fld.type().name()) {
               case "str":
                 return value.to_s();
@@ -142,9 +142,10 @@ function(Interpreter) {
                 }
               case "real":
                 return value.to_f();
-              default: return self.raise(S("Unknown primitive type: ", fld.type().name()));
+              default:
+                return self.raise(S("Unknown primitive type: ", fld.type().name()));
             }
-          } })());
+          })());
         }
         return self.owner().deref(root)._set(self.last().name(), value);
       };

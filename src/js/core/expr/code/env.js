@@ -2,6 +2,7 @@ define([
 ],
 function() {
   var Env ;
+
   var BaseEnv = MakeMixin([], function() {
     this.set_in_place = function(block, key) {
       var self = this; 
@@ -86,6 +87,13 @@ function() {
         return self.$.hash.has_key_P(key) || self.$.parent && self.$.parent.has_key_P(key);
       };
 
+      this.keys = function() {
+        var self = this; 
+        return (self.$.hash.keys() + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
+      };
+
       this.to_s = function() {
         var self = this; 
         return self.$.hash.to_s();
@@ -93,10 +101,7 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        var r;
-        r = HashEnv.new(self.$.hash.clone());
-        r.set_parent(self.$.parent);
-        return r;
+        return HashEnv.new(self.$.hash.clone()).set_parent(self.$.parent);
       };
     });
 
@@ -133,7 +138,14 @@ function() {
 
       this.has_key_P = function(key) {
         var self = this; 
-        return self.$.obj.schema_class().all_fields()._get(key) || self.$.parent && self.$.parent.has_key_P(key);
+        return (key == "self" || self.$.obj.schema_class().all_fields()._get(key)) || self.$.parent && self.$.parent.has_key_P(key);
+      };
+
+      this.keys = function() {
+        var self = this; 
+        return (self.$.obj.schema_class().all_fields().keys() + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
       };
 
       this.to_s = function() {
@@ -148,7 +160,7 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        return self;
+        return ObjEnv.new(self.$.obj).set_parent(self.$.parent);
       };
     });
 
@@ -187,6 +199,13 @@ function() {
         return self.$.label == key || self.$.parent && self.$.parent.has_key_P(key);
       };
 
+      this.keys = function() {
+        var self = this; 
+        return ([self.$.label] + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
+      };
+
       this.to_s = function() {
         var self = this; 
         return self.$.block.to_s();
@@ -194,11 +213,15 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        return self;
+        return LambdaEnv.new(self.$.label, self.$.block).set_parent(self.$.parent);
       };
     });
 
   Env = {
+    deepclone: function(env) {
+      return env;
+    },
+
     BaseEnv: BaseEnv,
     HashEnv: HashEnv,
     ObjEnv: ObjEnv,

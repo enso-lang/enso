@@ -5,8 +5,10 @@ define([
 ],
 function(Factory, Schema, Interpreter) {
   var Eval ;
+
   var EvalExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.eval = function(obj) {
+      self.debug();
       var self = this; 
       return self.dispatch("eval", obj);
     };
@@ -22,22 +24,31 @@ function(Factory, Schema, Interpreter) {
 
     this.eval_EBinOp = function(op, e1, e2) {
       var self = this; 
-      if (op == "&") {
-        return self.eval(e1) && self.eval(e2);
-      } else if (op == "|") {
-        return self.eval(e1) || self.eval(e2);
-      } else if (op == "eql?") {
-        return self.eval(e1) == self.eval(e2);
-      } else if (op == "+") {
-        return self.eval(e1) + self.eval(e2);
-      } else if (op == "*") {
-        return self.eval(e1) * self.eval(e2);
-      } else if (op == "-") {
-        return self.eval(e1) - self.eval(e2);
-      } else if (op == "/") {
-        return self.eval(e1) / self.eval(e2);
-      } else {
-        return self.raise(S("Unknown operator (", op, ")"));
+      switch (op) {
+        case "&":
+          return self.eval(e1) && self.eval(e2);
+        case "|":
+          return self.eval(e1) || self.eval(e2);
+        case "eql?":
+          return self.eval(e1) == self.eval(e2);
+        case "+":
+          return self.eval(e1) + self.eval(e2);
+        case "*":
+          return self.eval(e1) * self.eval(e2);
+        case "-":
+          return self.eval(e1) - self.eval(e2);
+        case "/":
+          return self.eval(e1) / self.eval(e2);
+        case "<":
+          return self.eval(e1) < self.eval(e2);
+        case ">":
+          return self.eval(e1) > self.eval(e2);
+        case "<=":
+          return self.eval(e1) <= self.eval(e2);
+        case ">=":
+          return self.eval(e1) >= self.eval(e2);
+        default:
+          return self.raise(S("Unknown operator (", op, ")"));
       }
     };
 
@@ -53,7 +64,7 @@ function(Factory, Schema, Interpreter) {
     this.eval_EVar = function(name) {
       var self = this; 
       if (! self.$.D._get("env").has_key_P(name)) {
-        self.raise(S("ERROR: undefined variable ", name));
+        self.raise(S("ERROR: undefined variable ", name, " in ", self.$.D._get("env")));
       }
       return self.$.D._get("env")._get(name);
     };
@@ -86,17 +97,9 @@ function(Factory, Schema, Interpreter) {
 
     this.eval_EList = function(elems) {
       var self = this; 
-      var k, r;
-      k = Schema.class_key(self.$.D._get("for_field").type());
-      if (k) {
-        r = Factory.Set.new(null, null, k);
-      } else {
-        r = Factory.List.new(null, null);
-      }
-      elems.each(function(elem) {
-        return r.push(self.eval(elem));
+      return elems.map(function(elem) {
+        return self.eval(elem);
       });
-      return r;
     };
 
     this.eval_EField = function(e, fname) {
@@ -123,6 +126,37 @@ function(Factory, Schema, Interpreter) {
     });
 
   Eval = {
+    eval: function(obj) {
+      var self = this; 
+      var args = compute_rest_arguments(arguments, 1);
+      var interp;
+      interp = EvalExprC.new();
+      if (args.empty_P()) {
+        return interp.eval(obj);
+      } else {
+        return interp.dynamic_bind(function() {
+          return interp.eval(obj);
+        });
+      }
+    },
+
+    make_const: function(factory, val) {
+      var self = this; 
+      if (System.test_type(val, String)) {
+        return factory.EStrConst(val);
+      } else if (System.test_type(val, Integer)) {
+        return factory.EIntConst(val);
+      } else if (System.test_type(val, TrueClass) || System.test_type(val, FalseClass)) {
+        return factory.EBoolConst(val);
+      } else if (val == null) {
+        return factory.ENil();
+      } else if (System.test_type(val, Factory.MObject)) {
+        return val;
+      } else {
+        return Eval.raise(S("Trying to make constant using an invalid ", val.class(), " object"));
+      }
+    },
+
     EvalExpr: EvalExpr,
     EvalExprC: EvalExprC,
 

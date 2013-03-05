@@ -6,6 +6,7 @@ define([
 ],
 function(Eval, Lvalue, Interpreter, Env) {
   var Impl ;
+
   var Closure = MakeClass("Closure", null, [],
     function() {
       this.make_closure = function(body, formals, env, interp) {
@@ -83,23 +84,34 @@ function(Eval, Lvalue, Interpreter, Env) {
 
     this.eval_EBlock = function(body) {
       var self = this; 
-      var res, nenv;
+      var res, env1, defs, defenv, others;
       res = null;
-      nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
+      env1 = Env.HashEnv.new(self.$.D._get("env"));
+      defs = body.select(function(c) {
+        return c.EFunDef_P();
+      });
+      defenv = Env.deepclone(self.$.D._get("env"));
       self.dynamic_bind(function() {
-        return body.each(function(c) {
+        return defs.each(function(c) {
+          self.eval(c);
+          return env1._set(c.name(), defenv._get(c.name()));
+        });
+      }, new EnsoHash ({ in_fc: false, env: defenv }));
+      others = body.select(function(c) {
+        return ! c.EFunDef_P();
+      });
+      self.dynamic_bind(function() {
+        return others.each(function(c) {
           return res = self.eval(c);
         });
-      }, new EnsoHash ({ env: nenv, in_fc: false }));
+      }, new EnsoHash ({ in_fc: false, env: env1 }));
       return res;
     };
 
     this.eval_EFunDef = function(name, formals, body) {
       var self = this; 
-      var res;
-      res = Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self);
-      self.$.D._get("env")._set(name, res);
-      return res;
+      self.$.D._get("env")._set(name, Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self));
+      return null;
     };
 
     this.eval_ELambda = function(body, formals) {
@@ -112,7 +124,7 @@ function(Eval, Lvalue, Interpreter, Env) {
 
     this.eval_EFunCall = function(fun, params, lambda) {
       var self = this; 
-      var m, p;
+      var m, b;
       m = self.dynamic_bind(function() {
         return self.eval(fun);
       }, new EnsoHash ({ in_fc: true }));
@@ -121,8 +133,8 @@ function(Eval, Lvalue, Interpreter, Env) {
           return self.eval(p);
         })));
       } else {
-        p = self.eval(lambda);
-        return m.apply(m, [p].concat(params.map(function(p) {
+        b = self.eval(lambda);
+        return m.apply(m, [b].concat(params.map(function(p) {
           return self.eval(p);
         })));
       }
@@ -144,6 +156,21 @@ function(Eval, Lvalue, Interpreter, Env) {
     });
 
   Impl = {
+    eval: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = EvalCommandC.new();
+      interp.debug();
+      if (args.empty_P()) {
+        return interp.eval(obj);
+      } else {
+        return interp.dynamic_bind(function() {
+          return interp.eval(obj);
+        }, args);
+      }
+    },
+
     Closure: Closure,
     EvalCommand: EvalCommand,
     EvalCommandC: EvalCommandC,

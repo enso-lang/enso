@@ -53,7 +53,7 @@ module Eval
     end
   
     def eval_EVar(name)
-      raise "ERROR: undefined variable #{name}" unless @D[:env].has_key?(name)
+      raise "ERROR: undefined variable #{name} in #{@D[:env]}" unless @D[:env].has_key?(name)
       @D[:env][name]
     end
   
@@ -77,18 +77,10 @@ module Eval
     end
   
     def eval_EList(elems)
-      k = Schema::class_key(@D[:for_field].type)
-      #puts "KEY #{@D[:for_field]}= #{k}"
-      if k
-        r = Factory::Set.new(nil, nil, k)
-      else
-        r = Factory::List.new(nil, nil)
-      end
-      elems.each do |elem|
+      elems.map do |elem|
         #puts "ELEM #{elem}=#{eval(elem)}"
-        r << eval(elem)
+        eval(elem)
       end
-      r
     end
   
     #reason for in_fc is to disambiguate between the following 2 cases:
@@ -118,4 +110,32 @@ module Eval
     def initialize
     end
   end
+
+  def self.eval(obj, *args)
+    interp = EvalExprC.new
+    if args.empty?
+      interp.eval(obj)
+    else
+      interp.dynamic_bind *args do
+        interp.eval(obj)
+      end
+    end
+  end
+
+  def self.make_const(factory, val)
+    if val.is_a?(String)
+      factory.EStrConst(val)
+    elsif val.is_a?(Integer)
+      factory.EIntConst(val)
+    elsif val.is_a?(TrueClass) or val.is_a?(FalseClass)
+      factory.EBoolConst(val)
+    elsif val.nil?
+      factory.ENil
+    elsif val.is_a? Factory::MObject
+      val
+    else
+      raise "Trying to make constant using an invalid #{val.class} object" 
+    end
+  end
+
 end

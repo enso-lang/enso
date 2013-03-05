@@ -76,12 +76,30 @@ module Impl
         eval(body2)
       end
     end
-  
+
     def eval_EBlock(body)
       res = nil
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
-      dynamic_bind env: nenv, in_fc: false do
-        body.each do |c|
+      env1= Env::HashEnv.new(@D[:env])
+      #do all function definitions first regardless of sequence
+      # use a new env that is a clone of everything up to this point
+      # -all closures created using the same env (but have their own when evaluated)
+      # -subsequent changes to current env does not affect created closures
+      defs = body.select{|c| c.EFunDef?}
+      defenv = Env::deepclone(@D[:env])
+      dynamic_bind in_fc: false, env: defenv do
+        defs.each do |c|
+          eval(c)
+          env1[c.name] = defenv[c.name]
+        end
+      end
+      #do everything else non-fundef
+      # use a new env binding for this block
+      # -modifications to bindings defined outside the block are externally visible
+      # -new bindings created inside the block (ie never existed before) are not
+      # -fundefs created earlier are visible only in this block
+      others = body.select{|c| not c.EFunDef?}
+      dynamic_bind in_fc: false, env: env1 do
+        others.each do |c|
           res = eval(c)
         end
       end
@@ -89,9 +107,8 @@ module Impl
     end
 
     def eval_EFunDef(name, formals, body)
-      res = Impl::Closure.make_closure(body, formals, @D[:env], self)
-      @D[:env][name] = res
-      res
+      @D[:env][name] = Impl::Closure.make_closure(body, formals, @D[:env], self)
+      nil
     end
 
     def eval_ELambda(body, formals)
@@ -102,15 +119,15 @@ module Impl
     def eval_EFunCall(fun, params, lambda)
       m = dynamic_bind in_fc: true do
         eval(fun)
-      end 
+      end
       if lambda.nil?
         m.call(*(params.map{|p|eval(p)}))
       else
-        p = eval(lambda)
-        m.call(*(params.map{|p|eval(p)}), &p) 
+        b = eval(lambda)
+        m.call(*(params.map{|p|eval(p)}), &b) 
       end
     end
-  
+
     def eval_EAssign(var, val)
       lvalue(var).value = eval(val)
     end
@@ -119,6 +136,17 @@ module Impl
   class EvalCommandC
     include EvalCommand
     def initialize
+    end
+  end
+
+  def self.eval(obj, args = {})
+    interp = EvalCommandC.new
+    if args.empty?
+      interp.eval(obj)
+    else
+      interp.dynamic_bind args do
+        interp.eval(obj)
+      end
     end
   end
 end

@@ -24,12 +24,45 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.schema = schema;
         self.$.roots = [];
         self.$.file_path = [];
-        return schema.classes().each(function(klass) {
+        schema.classes().each(function(klass) {
           return self.define_singleton_method(function() {
             var args = compute_rest_arguments(arguments, 0);
             return MObject.new.apply(MObject, [klass, self].concat(args));
           }, klass.name());
         });
+        return schema.classes().each(function(c) {
+          if (self.check_cyclic_subtyping(c, [])) {
+            return self.raise(S("Build factory failed: ", c, " is its own superclass"));
+          }
+        });
+      };
+
+      this.check_cyclic_subtyping = function(c, subs) {
+        var self = this; 
+        var res;
+        if (subs.include_P(c)) {
+          return true;
+        } else {
+          res = false;
+          c.supers().each(function(s) {
+            return res = res || self.check_cyclic_subtyping(s, subs.union([c]));
+          });
+          return res;
+        }
+      };
+
+      this.unsafe_P = function() {
+        var self = this; 
+        return ! (self.$.unsafe == null) && self.$.unsafe > 0;
+      };
+
+      this.unsafe_mode = function(body) {
+        var self = this; 
+        self.$.unsafe = self.$.unsafe
+          ? self.$.unsafe + 1
+          : 1;
+        body();
+        return self.$.unsafe = self.$.unsafe - 1;
       };
 
       this._get = function(name) {
@@ -145,7 +178,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.__computed = function(fld) {
         var self = this; 
-        var c, base, name, exp, fvInterp, commInterp, val, fvs;
+        var c, base, name, exp, fvInterp, val, fvs, key, collection;
         if (fld.computed().EList_P() && (c = fld.owner().supers().find(function(c) {
           return c.all_fields()._get(fld.name());
         }))) {
@@ -162,7 +195,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         name = fld.name();
         exp = fld.computed();
         fvInterp = Freevar.FreeVarExprC.new();
-        commInterp = Impl.EvalCommandC.new();
         val = null;
         return self.define_singleton_method(function() {
           if (val == null) {
@@ -176,9 +208,19 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
                 }, fv.index());
               }
             });
-            val = commInterp.dynamic_bind(function() {
-              return commInterp.eval(exp);
-            }, new EnsoHash ({ env: Env.ObjEnv.new(self), for_field: fld }));
+            val = Impl.eval(exp, new EnsoHash ({ env: Env.ObjEnv.new(self) }));
+            if (fld.many() && ! System.test_type(val, Many)) {
+              if (key = Schema.class_key(fld.type())) {
+                collection = Set.new(self, fld, key);
+              } else {
+                collection = List.new(self, fld);
+              }
+              val.each(function(v) {
+                return collection.push(v);
+              });
+              val = collection;
+            }
+            val;
           }
           return val;
         }, name);
@@ -218,7 +260,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var listeners;
         listeners = self.$.listeners._get(name);
         if (! listeners) {
-          listeners = self.$.listeners._set(name, []);
+          listeners = self.$.listeners._get(name) = [];
         }
         return listeners.push(block);
       };
@@ -369,7 +411,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         var ok;
         if (! self.$.field.optional() || value) {
-          ok = ((function(){ {
+          ok = ((function() {
             switch (self.$.field.type().name()) {
               case "str":
                 return System.test_type(value, String);
@@ -384,7 +426,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
               case "atom":
                 return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
             }
-          } })());
+          })());
           if (! ok) {
             return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
           }
@@ -407,7 +449,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
               return DateTime.now();
             case "atom":
               return null;
-            default: return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
+            default:
+              return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
           }
         }
       };
@@ -416,7 +459,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
   var SetUtils = MakeMixin([], function() {
     this.to_ary = function() {
       var self = this; 
-      return self.$.values.values();
+      return self.$.value.values();
     };
 
     this.union = function(other) {
@@ -534,15 +577,17 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
     this.check = function(mobj) {
       var self = this; 
-      if (mobj || ! self.$.field.optional()) {
-        if (mobj == null) {
-          self.raise(S("Cannot assign nil to non-optional field ", self.$.field.name()));
-        }
-        if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
-          self.raise(S("Invalid value for '", self.$.field.owner().name(), ".", self.$.field.name(), "': ", mobj, " : ", mobj.schema_class().name()));
-        }
-        if (mobj._graph_id() != self.$.owner._graph_id()) {
-          return self.raise(S("Inserting object ", mobj, " into the wrong model"));
+      if (! self.$.owner._graph_id().unsafe_P()) {
+        if (mobj || ! self.$.field.optional()) {
+          if (mobj == null) {
+            self.raise(S("Cannot assign nil to non-optional field '", self.$.field.owner().name(), ".", self.$.field.name(), "'"));
+          }
+          if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
+            self.raise(S("Invalid value for '", self.$.field.owner().name(), ".", self.$.field.name(), "': ", mobj, " : ", mobj.schema_class().name()));
+          }
+          if (mobj._graph_id() != self.$.owner._graph_id()) {
+            return self.raise(S("Inserting object ", mobj, " into the wrong model"));
+          }
         }
       }
     };

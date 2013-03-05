@@ -1,107 +1,90 @@
-// what are the position/size operators
-// x/y: fixed | computed
-// height/width: 
-    // fixed: "300"
-    // variable: "x"
-    
-// every part has a container and an actual location
-//      minComputedWidth < wCONSTRAINT < actual.w
-//      minSpecWidth < wCONSTRAINT < actual.w
+import expr.schema
 
-class Part 
-  constraints: SizeConstraints?
-  styles! Style*
+class Stencil
+  title: str?
+  root: str
+  body! Part
+
+class Part
+
+class Prop
+  var! Expr
+  val! Expr
+
+// DIAGRAMS
 
 class Container < Part
-  direction: int
+  label: str?
+  props! Prop*
+  direction: int // 1=vert, 2=hoiz, 3=graph
   items! Part*
 
-class Text < Part
-  string: str
-  editable: bool
+class Pages < Part
+  label: str?
+  props! Prop*
+  items! Part*
+  current! Expr?
+
+class Space < Part
+  label: str?
+  props! Prop*
 
 class Shape < Part
-  content! Part?
+  label: str?
+  props! Prop*
   kind: str
-  location: Point?  // only used for graph shapes
-  connectors: ConnectorEnd*
+  content! Part?
 
-class Widget  
+class Text < Part
+  label: str?
+  props! Prop*
+  string! Expr
+  editable: bool
+
+class Widget < Part
+  label: str?
+  props! Prop*
+
 class CheckBox < Widget
-  string: str
-  
+  value! Expr?
+  string! Expr
+
 class RadioList < Widget
-  choices: Label+
+  value! Expr?
+  choices! Expr
 
 class TextBox < Widget
-  type: str
-
-class Label
-  to_str : str
+  value! Expr?
 
 class Connector < Part
-  label: Text?
+  label! Expr?
   ends! ConnectorEnd*
-  path: Point*
 
 class ConnectorEnd
   arrow: str?
-  label! Text?
-  other_label! Text?
-  to: Shape / connectors
-  attach: EdgePos
-  minOut: int
-  minLeft: int
-  minRight: int
-  owner: Connector / ends
+  label! Expr?
+  other_label! Expr?
+  part! Expr
 
-class EdgePos
-  // x==1 or x==0 or y==1 or y==0
-  x: real
-  y: real
 
-// styles
-class Style 
+// Additional expr 
 
-class Pen < Style
-  width: int
-  style: str
-  color! Color
+class InstanceOf < Expr
+  base! Expr
+  class_name: str
 
-class Brush < Style
-  color! Color
+class Color < Expr
+  r! Expr
+  g! Expr
+  b! Expr
 
-class Font < Style
-  name: str
-  size: int
-  style: str
-  weight: int  // 400 is normal
-  color! Color
+class Eval < Expr
+  expr! Expr
+  envs! Expr*
 
-class Color
-  r: int
-  g: int
-  b: int
+class Rule < Expr	//a rule is essentially a sugar-ed up function
 
-// basics
-  
-class Point
-  x: int
-  y: int
-
-class Rect < Point
-  w: int
-  h: int
-
-class SizeConstraints
-  width: Constraint
-  height: Constraint
-
-class Constraint
-  min: int?
-  var: str?
-
-primitive real
 primitive int
 primitive str
 primitive bool
+primitive atom

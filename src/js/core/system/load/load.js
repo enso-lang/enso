@@ -77,6 +77,13 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
+        if (self.$.update_core_models) {
+          Paths.Path.set_factory(Factory.new(ss));
+          self.$.cache._set("schema.schema", ss = self.update_xml("schema.schema"));
+          self.$.cache._set("grammar.schema", gs = self.update_xml("grammar.schema"));
+          self.$.cache._set("grammar.grammar", self.update_xml("grammar.grammar"));
+          self.$.cache._set("schema.grammar", self.update_xml("schema.grammar"));
+        }
         return Paths.Path.set_factory(Factory.new(ss));
       };
 
@@ -84,6 +91,10 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         var self = this; 
         var parts, model, type, res;
         if (Cache.check_dep(name)) {
+          parts = name.split(".");
+          model = parts._get(0);
+          type = parts._get(1);
+          self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
           return self.$.cache._get(name);
         } else {
           parts = name.split(".");
@@ -127,7 +138,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
       this.load_path = function(path, grammar, schema, encoding) {
         var self = this; 
         if (encoding === undefined) encoding = null;
-        var result, name, type, header, str, a, fnames;
+        var result, name, type, header;
         if (path.end_with_P(".json")) {
           if (schema == null) {
             System.stderr().push(S("## booting ", path, "...\n"));
@@ -148,24 +159,8 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             System.stderr().push(S("Unable to open file ", path, "\n"));
             self.raise(err);
           }
-          if (header == "#ruby") {
-            System.stderr().push(S("## building ", path, "...\n"));
-            str = File.read(path);
-            result = self.instance_eval(str);
-            result.factory().file_path()._set(0, path);
-            a = str.split("\"").map(function(x) {
-              return x.split("'");
-            }).flatten();
-            fnames = a.values_at.apply(a, [].concat(a.each_index().select(function(i) {
-              return i.odd_P();
-            })));
-            fnames.each(function(fn) {
-              return result.factory().file_path().push(fn);
-            });
-          } else {
-            System.stderr().push(S("## loading ", path, "...\n"));
-            result = Parse.load_file(path, grammar, schema, encoding);
-          }
+          System.stderr().push(S("## loading ", path, "...\n"));
+          result = Parse.load_file(path, grammar, schema, encoding);
         }
         return result;
       };

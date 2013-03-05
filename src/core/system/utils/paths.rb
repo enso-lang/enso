@@ -114,7 +114,6 @@ module Paths
       end
       owner.deref(root)[last.name] = value
     end
-
   end
 end
 

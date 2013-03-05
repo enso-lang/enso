@@ -2,18 +2,17 @@ import expr.schema
 
 primitive str
 
-class Expr
-class EConst
-
 class Questionaire
-  elements ! Element*
+  elems ! Element*
   answers ! Answer*
-  
+  all_elems : Question* = elems.flat_map() {|e| return e.all_elems}
+
 class Element
 
 class Group < Element
   elems ! Element*
   guard ! Expr?
+  all_elems : Question* = elems.flat_map() {|e| return e.all_elems}
 
 class Question < Element
   name # str
@@ -21,6 +20,7 @@ class Question < Element
   ans : Answer
   //dynamic
   value ! EConst?
+  all_elems : Question* = [self]
 
 class Answer
   name # str

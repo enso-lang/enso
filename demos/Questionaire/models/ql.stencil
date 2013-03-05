@@ -1,65 +1,50 @@
-diagram(system)
+import currency.stencil
 
-require "applications/Questionaire/code/ql-stencil-defs.rb"
+diagram(data) {
 
-graph [font.size=12,fill.color=(255,255,255)] {
-  // create the nodes (one for each class)
-  box {
+def drawElem(elem) {
+  if elem is Question
+    drawQuestion(elem)
+  else if elem is Group
+    if [[elem.guard | data.all_elems]]
+      for elem : elem.elems
+        drawElem(elem)
+}
+
+def drawQuestion(elem) {
+  box [line.color=(255,255,255)] {
+    horizontal {
+      text+ elem.qn
+      if elem.ans is CheckBox
+        for choice : elem.ans.choices {
+          checkbox choice.to_str
+        }
+	  if elem.ans is MultiChoice
+        radio elem.value elem.ans.choices
+	  if elem.ans is TextBox
+	    vertical {
+	      text? elem.value
+	      text? elem.value
+	      if elem.ans.name=="money" 
+	        text? convert(100)
+	      else 
+	        text? elem.ans.name
+	    }
+	  if elem.ans is Computed
+	    box {
+	      text+ "xxx"
+	    }
+    }
+  }
+}
+
+// create the nodes (one for each class)
+pages(0) {
   vertical {
-  for "Element" elem : system.elements {
-    if elem is Group
-        for "Element" elem : elem.elems
-    if elem is Question
-      box [line.color=(255,255,255)] {
-        horizontal {
-          text+ elem.qn
-          if elem.ans is CheckBox
-              vertical {
-                for "Choice" choice : elem.ans.choices {
-                  checkbox choice.to_str
-                }
-              } 
-          if elem.ans is MultiChoice
-              vertical {
-                radio elem.value elem.ans.choices
-              }
-          if elem.ans is TextBox
-            vertical {
-              text? elem.value
-              text? elem.value
-            }
-          if elem.ans is Computed
-            box {
-              text+ "xxx"
-            }
-        }
-      }
-    if elem is Question
-      box [line.color=(255,255,255)] {
-        horizontal {
-          text+ elem.qn
-          if elem.ans is CheckBox
-              vertical {
-                for "Choice" choice : elem.ans.choices {
-                  checkbox choice.to_str
-                }
-              } 
-          if elem.ans is MultiChoice
-              vertical {
-                radio elem.value elem.ans.choices
-//                radio elem.value elem.ans.choices
-              }
-          if elem.ans is TextBox
-            vertical {
-              text+ "xxxx"
-            }
-          if elem.ans is Computed
-            box {
-              text+ "     "
-            }
-        }
-      }
-   }
-   }
-   }
+    for elem : data.elems {
+      drawElem(elem)
+    }
+  }
+  --
+}
 }

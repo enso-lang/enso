@@ -19,38 +19,43 @@ define (function() {
       return data[key]; 
     };
     this.inspect = function() {
-      return "<HASH " + this.size() + ">";
-    }
+      return "<*HASH " + this.size() + ">";
+    };
+    this.empty_P = function () { 
+      for (k in data) {
+        return false;
+      }
+      return true;
+    };
     this.toString = this.inspect;
     this.size = function() { 
       var count = 0;
       for (k in data) {
-        if (data.hasOwnProperty(k))
-          count++;
+        count++;
       }
       return count;
     };
     this._set = function(key, value) {
       return data[key] = value;
     };
+    this.clone = function () {
+      var n = new EnsoHash({});
+      for (k in data)
+        n._set(k, data[k]);
+      return n;
+    };
     this.each = function(fun) {
-      for (k in data) {
-        if (data.hasOwnProperty(k))
-          fun(k, data[k]);
-      }
+      for (k in data)
+        fun(k, data[k]);
     };
     this.each_value = function(fun) {
-      for (k in data) {
-        if (data.hasOwnProperty(k))
-          fun(data[k]);
-      }
+      for (k in data)
+        fun(data[k]);
     };
     this.keys = function() { 
       var keys = [];
-      for (k in data) {
-        if (data.hasOwnProperty(k))
-          keys.push(k);
-      }
+      for (k in data)
+        keys.push(k);
       return keys;
     };
     this.values = function() { 
@@ -139,6 +144,7 @@ define (function() {
   }
   
   Array.prototype.any_P = Array.prototype.some;
+  Array.prototype.empty_P = function () { return this.size() == 0 }
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
     var i;
@@ -225,7 +231,7 @@ define (function() {
       x.push(obj);
     }); 
     other.each(function(obj) {
-      if (!x.contains(obj))
+      if (!x.indexOf(obj))
         x.push(obj);
     }); 
     return x; 

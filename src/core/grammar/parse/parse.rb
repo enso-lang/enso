@@ -4,6 +4,7 @@ require 'core/grammar/parse/gll'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
+require 'core/grammar/tools/rename_binding'
 
 class Parse
 
@@ -19,34 +20,72 @@ class Parse
   end
   
   def self.load(source, grammar, schema, filename = '-')
-    #TODO: need a better way to parse imports
-    imports = []
     s = source.split("\n")+[""] #this is to ensure i is correct for 'empty' files with only imports
-    for i in 0..s.size-1
-      next if s[i].strip.size==0
-      break unless s[i].strip.start_with? 'import'
-      files = s[i].gsub(' ','')[6..-1].split(',')
-      files.each do |f|
-        imports << f
+    deps = [filename]
+    imports = []
+    for i in 0..s.length-1
+      next if s[i].lstrip.empty?
+      if s[i] =~ /import (?<file>\w+.\w+)( with(?<as>( \w+ as \w+)+))?/
+        imp = $1; as = $2
+        $stderr << "## importing #{imp}...\n" 
+        u = Load::load(imp)
+        if as 
+          if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
+            u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
+            as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+              rename_schema!(u, from, to)
+            end
+          elsif imp.split('.')[1]=="grammar"
+            as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+              rename_binding!(u, {from=>to})
+            end
+          end
+        end
+        imports.unshift(u)
+        FindModel::FindModel.find_model(imp) {|p| deps << p}
+      else
+        break;
       end
     end
     source = s[i..-1].join("\n")
-    data = load_raw(source, grammar, schema, Factory::new(schema), false, filename)
-    imports.each do |imp|
+    data = load_raw(source, grammar, schema, Factory::new(schema), imports, false, filename)
+
+=begin
+    imports.each do |imp,as|
       $stderr << "## importing #{imp}...\n" 
       u = Load::load(imp)
+      if as 
+        if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
+          u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
+          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+            rename_schema!(u, from, to)
+          end
+        elsif imp.split('.')[1]=="grammar"
+          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
+            rename_binding!(u, {from=>to})
+          end
+        end
+      end
       data = Union::union(u, data)
-      FindModel::FindModel.find_model(imp) {|p| data.factory.file_path << p}
+      FindModel::FindModel.find_model(imp) {|p| deps << p}
     end
-    data.factory.file_path.unshift(filename)
+=end
+
+    deps.each {|p| data.factory.file_path << p}
     return data.finalize
   end
-  
-  def self.load_raw(source, grammar, schema, factory, show = false, filename = '-')
+
+  def self.rename_schema!(schema, from, to)
+    x = schema.types[from]
+    x.name = to
+    schema.types._recompute_hash!
+  end
+
+  def self.load_raw(source, grammar, schema, factory, imports = [], show = false, filename = '-')
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
-    Print::Print.print(inst) if show
-    Build.build(tree, factory, org)
+    Print.print(inst) if show
+    Build.build(tree, factory, org, imports)
   end
 
   def self.parse(source, grammar, org)

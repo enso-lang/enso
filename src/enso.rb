@@ -82,6 +82,8 @@ class Array
   def union(a)
     return self | a
   end
+
+  alias :plus :+ 
 end
 
 class EnsoBaseClass

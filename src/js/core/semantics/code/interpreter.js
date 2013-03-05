@@ -68,6 +68,7 @@ function() {
     this.debug = function() {
       var self = this; 
       self.$.debug = true;
+      console.log("DEBUG");
       if (! self.$.indent) {
         return self.$.indent = 0;
       }
@@ -76,7 +77,7 @@ function() {
     this.dispatch = function(operation, obj) {
       var self = this; 
       var type, method, result, params;
-      self.$.debug = false;
+      console.log("DEBUG? " + self.$.debug);
       if (self.$.debug) {
         System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\n"));
         self.$.indent = self.$.indent + 1;
