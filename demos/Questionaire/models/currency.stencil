@@ -1,4 +1,4 @@
-diagram(data1) {
+diagram(data) {
 
 def convert(usd) {
   return usd / 130

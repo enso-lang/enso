@@ -7,6 +7,7 @@ This file stores various types of environments
 
 module Env
   module BaseEnv
+
     def set!(key, &block)
       self[key] = block.call(self[key])
     end
@@ -30,26 +31,21 @@ module Env
       end
     end
     
-    def +(env)
-      set_parent(env)
-      self
-    end
-    
     def to_s
       r = []
       each {|k,v| r << "#{k}=>#{v}"}
       "{ #{r.join(", ")} }"
     end
-    
-    def clone
-      self
-    end
   end
 
   class HashEnv
     include BaseEnv
-    def initialize(hash={})
+    def initialize(hash={}, parent=nil)
+      if hash.is_a? BaseEnv
+        parent = hash; hash = {}
+      end
       @hash=hash
+      @parent=parent
     end
     
     def [](key)
@@ -79,20 +75,17 @@ module Env
     def to_s
       @hash.to_s
     end
-    
-    def clone
-      HashEnv.new(@hash.clone).set_parent(@parent)
-    end
   end
-  
+
   #Env that simulates an MObject
   class ObjEnv
     include BaseEnv
   
     attr_reader :obj
   
-    def initialize(obj)
+    def initialize(obj, parent=nil)
       @obj = obj
+      @parent=parent
     end
     
     def [](key)
@@ -127,10 +120,6 @@ module Env
     def type(fname)
       @obj.schema_class.all_fields[fname].type
     end
-    
-    def clone
-      ObjEnv.new(@obj).set_parent(@parent)
-    end
   end
   
   #Env that simulates the result of a lambda
@@ -138,9 +127,10 @@ module Env
   class LambdaEnv
     include BaseEnv
     
-    def initialize(label, &block)
+    def initialize(label, parent=nil &block)
       @label = label
       @block = block
+      @parent=parent
     end
     
     def [](key)
@@ -170,19 +160,6 @@ module Env
      
     def to_s
       @block.to_s
-    end
-    
-    def clone
-      LambdaEnv.new(@label, @block).set_parent(@parent)
-    end
-  end
-
-  def self.deepclone(env)
-    c = env.clone
-    if !@parent.nil? and @parent.is_a? BaseEnv
-      c.set_parent(deepclone(@parent))
-    else
-      c #this line is necessary else the IF will return nil.
     end
   end
 

@@ -79,19 +79,16 @@ module Impl
 
     def eval_EBlock(body)
       res = nil
-      env1= Env::HashEnv.new(@D[:env])
       #do all function definitions first regardless of sequence
-      # use a new env that is a clone of everything up to this point
       # -all closures created using the same env (but have their own when evaluated)
-      # -subsequent changes to current env does not affect created closures
       defs = body.select{|c| c.EFunDef?}
-      defenv = Env::deepclone(@D[:env])
+      defenv = Env::HashEnv.new.set_parent(@D[:env])
       dynamic_bind in_fc: false, env: defenv do
         defs.each do |c|
           eval(c)
-          env1[c.name] = defenv[c.name]
         end
       end
+      env1 = Env::HashEnv.new.set_parent(defenv)
       #do everything else non-fundef
       # use a new env binding for this block
       # -modifications to bindings defined outside the block are externally visible
