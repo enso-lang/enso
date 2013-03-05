@@ -629,7 +629,7 @@
             "many=": true,
             "key=": false,
             "auto=": false,
-            "inverse": "types[Rule]/defined_fields[grammar]",
+            "inverse": "types[Rule].defined_fields[grammar]",
             "computed": null,
             "traversal=": true
           }
@@ -668,7 +668,7 @@
             "many=": false,
             "key=": false,
             "auto=": false,
-            "inverse": "types[Grammar]/defined_fields[rules]",
+            "inverse": "types[Grammar].defined_fields[rules]",
             "computed": null,
             "traversal=": false
           },

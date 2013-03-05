@@ -78,10 +78,10 @@ function(Factory, Schema, Interpreter) {
       var m;
       m = self.dynamic_bind(function() {
         return self.eval(fun);
-      }, new EnsoHash ( { in_fc: true } ));
-      return m.call_closure.apply(m, [].concat( params.map(function(p) {
+      }, new EnsoHash ({ in_fc: true }));
+      return m.call_closure.apply(m, [].concat(params.map(function(p) {
         return self.eval(p);
-      }) ));
+      })));
     };
 
     this.eval_EList = function(elems) {
@@ -104,7 +104,7 @@ function(Factory, Schema, Interpreter) {
       var target;
       target = self.dynamic_bind(function() {
         return self.eval(e);
-      }, new EnsoHash ( { in_fc: false } ));
+      }, new EnsoHash ({ in_fc: false }));
       if (self.$.D._get("in_fc")) {
         return target.method(fname.to_sym());
       } else {

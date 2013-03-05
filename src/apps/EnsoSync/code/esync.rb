@@ -29,10 +29,10 @@ def esync(server_host, name, rootpath)
   puts "\nConnecting to server at #{server_host}:#{ENSOSYNC_PORT}\n"
 
   Layout::DisplayFormat.print(grammar, domain, base_str="")
-  streamSock.puts(base_str.length.to_s)
+  streamSock.puts(base_str.size.to_s)
   streamSock.send(base_str, 0)
   Layout::DisplayFormat.print(node_grammar, newbase, newbase_str="")
-  streamSock.puts(newbase_str.length.to_s)
+  streamSock.puts(newbase_str.size.to_s)
   streamSock.send(newbase_str, 0)
 
   #receive diffs
@@ -47,7 +47,7 @@ def esync(server_host, name, rootpath)
     v[2] = File.open("#{rootpath}/#{k}", "rb").read
   end
   c2s_str = YAML::dump(c2s)
-  streamSock.puts(c2s_str.length.to_s)
+  streamSock.puts(c2s_str.size.to_s)
   streamSock.send(c2s_str, 0)
 
   #apply s2c contents

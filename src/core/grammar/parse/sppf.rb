@@ -33,7 +33,7 @@ class BaseNode
   end
 
   def build_kids(owner, accu, field, fixes, paths, fact, orgs)
-    raise Ambiguity.new(self) if kids.length > 1
+    raise Ambiguity.new(self) if kids.size > 1
     return if kids.empty?
     kids.first.build(owner, accu, field, fixes, paths, fact, orgs)
   end
@@ -45,12 +45,12 @@ class BaseNode
   def origin(orgs)
     path = orgs.path
     offset = orgs.offset(starts)
-    length = ends - starts
+    size = ends - starts
     start_line = orgs.line(starts)
     start_column = orgs.column(starts)
     end_line = orgs.line(ends)
     end_column = orgs.column(ends)
-    Location.new(path, offset, length, start_line, 
+    Location.new(path, offset, size, start_line, 
                  start_column, end_line, end_column)
   end
 end
@@ -91,7 +91,7 @@ class Leaf < BaseNode
 
   def ends
     # TODO: this messes up error messages.
-    super + ws.length
+    super + ws.size
   end
 
   def to_s
@@ -104,11 +104,11 @@ class Node < BaseNode
   attr_reader :kids
 
   def self.new(item, z, w)
-    if item.dot == 1 && item.elements.length > 1 then
+    if item.dot == 1 && item.elements.size > 1 then
       return w
     end
     t = item
-    if item.dot == item.elements.length then
+    if item.dot == item.elements.size then
       t = item.expression
     end
     x = w.type

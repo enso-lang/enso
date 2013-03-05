@@ -32,11 +32,11 @@ class Build
   end
 
   def handle_amb(sppf, owner, accu, field, fixes, paths)
-    amb_error(sppf) if sppf.kids.length > 1
+    amb_error(sppf) if sppf.kids.size > 1
   end
   
   def is_amb?(sppf)
-    sppf.kids.length > 1
+    sppf.kids.size > 1
   end
 
   def kids(sppf, owner, accu, field, fixes, paths)
@@ -141,12 +141,12 @@ class Build
   def origin(sppf)
     path = @origins.path
     offset = @origins.offset(sppf.starts)
-    length = sppf.ends - sppf.starts
+    size = sppf.ends - sppf.starts
     start_line = @origins.line(sppf.starts)
     start_column = @origins.column(sppf.starts)
     end_line = @origins.line(sppf.ends)
     end_column = @origins.column(sppf.ends)
-    Location.new(path, offset, length, start_line, 
+    Location.new(path, offset, size, start_line, 
                  start_column, end_line, end_column)
   end
 

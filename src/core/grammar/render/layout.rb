@@ -28,7 +28,7 @@ module Layout
       r = recurse(grammar, SingletonStream.new(obj))
       if !r
         @create_stack.each_with_index do |p, i|
-          puts "*****#{i + @success >= @create_stack.length ? 'SUCCESS' : 'FAIL'}*****"          
+          puts "*****#{i + @success >= @create_stack.size ? 'SUCCESS' : 'FAIL'}*****"          
           Print::Print.print(p[0], 2)
           puts "-----------------"
           Print::Print.print(p[1], 2)
@@ -65,24 +65,25 @@ module Layout
     end
   
     def Alt(this, stream, container)
-      this.alts.find_first do |pat|
-        recurse(pat, stream.copy, container)
-      end
-=begin      
-      if !this.extra_instance_data
-        this.extra_instance_data = []
-        scan_alts(this, this.extra_instance_data)
-        #puts "ALTS#{this.extra_instance_data}"
-      end
-      this.extra_instance_data.find_first do |info|
-        pred = info[0]
-        if !pred || pred.call(stream.current, @localEnv)
-          recurse(info[1], stream.copy, container)
+      if @avoid_optimization
+        this.alts.find_first do |pat|
+          recurse(pat, stream.copy, container)
+        end
+      else
+        if !this.extra_instance_data
+          this.extra_instance_data = []
+          scan_alts(this, this.extra_instance_data)
+          #puts "ALTS#{this.extra_instance_data}"
+        end
+        this.extra_instance_data.find_first do |info|
+          pred = info[0]
+          if !pred || pred.call(stream.current, @localEnv)
+            recurse(info[1], stream.copy, container)
+          end
         end
       end
-=end
     end
-    
+        
     def scan_alts(this, alts)
       this.alts.each do |pat|
         if pat.Alt?
@@ -235,17 +236,17 @@ module Layout
         # optional
         recurse(this.arg, stream, container) || true
       else
-        if stream.length > 0 || this.optional
+        if stream.size > 0 || this.optional
           oldEnv = @localEnv
           @localEnv = Env::HashEnv.new
-          @localEnv['_length'] = stream.length
+          @localEnv['_size'] = stream.size
           s = []
           i = 0
           ok = true
-          while ok && stream.length > 0
+          while ok && stream.size > 0
             @localEnv['_index'] = i
             @localEnv['_first'] = (i == 0)
-            @localEnv['_last'] = (stream.length == 1)
+            @localEnv['_last'] = (stream.size == 1)
             if i > 0 && this.sep
               v = recurse(this.sep, stream, container)
               if v
@@ -255,11 +256,11 @@ module Layout
               end
             end
             if ok
-              pos = stream.length
+              pos = stream.size
               v = recurse(this.arg, stream, container)
               if v
                 s << v
-                stream.next if stream.length == pos
+                stream.next if stream.size == pos
                 i = i + 1
               else
                 ok = false
@@ -267,7 +268,7 @@ module Layout
             end
           end
           @localEnv = oldEnv
-          s if ok && (stream.length == 0)
+          s if ok && (stream.size == 0)
         end
       end
     end
@@ -370,7 +371,7 @@ module Layout
   
     def Regular(this)
       if this.many && !this.optional
-        lambda{|obj, env| obj.length > 0 }
+        lambda{|obj, env| obj.size > 0 }
       end
     end
     
@@ -389,7 +390,7 @@ module Layout
       @data = data
       @used = used
     end
-    def length
+    def size
       @used ? 0 : 1
     end
     def current
@@ -411,11 +412,11 @@ module Layout
         raise "not an object!!"
       end
     end
-    def length
-      @collection.length - @index
+    def size
+      @collection.size - @index
     end
     def current
-      (@index < @collection.length) && @collection[@index]
+      (@index < @collection.size) && @collection[@index]
     end
     def next
       @index = @index + 1

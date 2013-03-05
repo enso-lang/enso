@@ -75,7 +75,7 @@ module Factory
       end
       # initialize    
       klass.fields.each_with_index do |fld, i|
-        if i < args.length
+        if i < args.size
           if fld.many then
             args[i].each do |value|
               self[fld.name] << value
@@ -406,6 +406,7 @@ module Factory
   
   module RefHelpers
     def notify(old, new)
+      #puts "NOTIFY #{new} / #{@inverse}" if @inverse  # @field.name == "rules"
       if old != new
         @owner.notify(@field.name, new)
         if @inverse
@@ -492,7 +493,7 @@ module Factory
 
     def empty?; __value.empty? end
 
-    def length; __value.length end
+    def size; __value.size end
 
     def to_s; __value.to_s end
 
@@ -622,7 +623,7 @@ module Factory
 
     def values; __value end
 
-    def keys; Array.new(length){|i|i} end
+    def keys; Array.new(size){|i|i} end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj

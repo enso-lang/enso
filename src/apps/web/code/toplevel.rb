@@ -95,7 +95,7 @@ class Web::EnsoWeb
   def response(status, str, opts = {})
     [status, {      
        'Content-Type' => 'text/html',
-       'Content-Length' => str.length.to_s,
+       'Content-Length' => str.size.to_s,
      }.update(opts), str]
   end
 

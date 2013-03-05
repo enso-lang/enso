@@ -26,8 +26,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.file_path = [];
         return schema.classes().each(function(klass) {
           return self.define_singleton_method(function() {
-            var args = compute_rest_arguments(arguments, 0 );
-            return MObject.new.apply(MObject, [klass, self].concat( args ));
+            var args = compute_rest_arguments(arguments, 0);
+            return MObject.new.apply(MObject, [klass, self].concat(args));
           }, klass.name());
         });
       };
@@ -65,10 +65,10 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.initialize = function(klass, factory) {
         var self = this; 
-        var args = compute_rest_arguments(arguments, 2 );
+        var args = compute_rest_arguments(arguments, 2);
         self.$._id = self._class_.$._id = self._class_.$._id + 1;
-        self.$.listeners = new EnsoHash ( { } );
-        self.$.props = new EnsoHash ( { } );
+        self.$.listeners = new EnsoHash ({ });
+        self.$.props = new EnsoHash ({ });
         self.define_singleton_value("schema_class", klass);
         self.$.factory = factory;
         self.__is_a(klass);
@@ -155,7 +155,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
               if (! var_V.EVar_P()) {
                 self.raise(S("Field override ", fld.name(), " includes non-var ", var_V));
               }
-              return self.__get(var_V.name())._set_inverse = base.inverse();
+              return self.__get(var_V.name()).set__set_inverse(base.inverse());
             });
           }
         }
@@ -168,7 +168,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           if (val == null) {
             fvs = fvInterp.dynamic_bind(function() {
               return fvInterp.depends(exp);
-            }, new EnsoHash ( { env: Env.ObjEnv.new(self), bound: [] } ));
+            }, new EnsoHash ({ env: Env.ObjEnv.new(self), bound: [] }));
             fvs.each(function(fv) {
               if (fv.object()) {
                 return fv.object().add_listener(function() {
@@ -178,7 +178,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             });
             val = commInterp.dynamic_bind(function() {
               return commInterp.eval(exp);
-            }, new EnsoHash ( { env: Env.ObjEnv.new(self), for_field: fld } ));
+            }, new EnsoHash ({ env: Env.ObjEnv.new(self), for_field: fld }));
           }
           return val;
         }, name);
@@ -239,7 +239,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this._set_origin_of = function(name, org) {
         var self = this; 
-        return self.__get(name)._origin = org;
+        return self.__get(name).set__origin(org);
       };
 
       this._path_of = function(name) {
@@ -369,21 +369,22 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         var ok;
         if (! self.$.field.optional() || value) {
-          ok = self.$.field.type().name() == "str"
-            ? System.test_type(value, String)
-            : (self.$.field.type().name() == "int"
-              ? System.test_type(value, Integer)
-              : (self.$.field.type().name() == "bool"
-                ? System.test_type(value, TrueClass) || System.test_type(value, FalseClass)
-                : (self.$.field.type().name() == "real"
-                  ? System.test_type(value, Numeric)
-                  : (self.$.field.type().name() == "datetime"
-                    ? System.test_type(value, DateTime)
-                    : ((function(){ {
-                      if (self.$.field.type().name() == "atom") {
-                        return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
-                      }
-                    } })())))));
+          ok = ((function(){ {
+            switch (self.$.field.type().name()) {
+              case "str":
+                return System.test_type(value, String);
+              case "int":
+                return System.test_type(value, Integer);
+              case "bool":
+                return System.test_type(value, TrueClass) || System.test_type(value, FalseClass);
+              case "real":
+                return System.test_type(value, Numeric);
+              case "datetime":
+                return System.test_type(value, DateTime);
+              case "atom":
+                return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
+            }
+          } })());
           if (! ok) {
             return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
           }
@@ -393,20 +394,20 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.default = function() {
         var self = this; 
         if (! self.$.field.optional()) {
-          if (self.$.field.type().name() == "str") {
-            return "";
-          } else if (self.$.field.type().name() == "int") {
-            return 0;
-          } else if (self.$.field.type().name() == "bool") {
-            return false;
-          } else if (self.$.field.type().name() == "real") {
-            return 0.0;
-          } else if (self.$.field.type().name() == "datetime") {
-            return DateTime.now();
-          } else if (self.$.field.type().name() == "atom") {
-            return null;
-          } else {
-            return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
+          switch (self.$.field.type().name()) {
+            case "str":
+              return "";
+            case "int":
+              return 0;
+            case "bool":
+              return false;
+            case "real":
+              return 0.0;
+            case "datetime":
+              return DateTime.now();
+            case "atom":
+              return null;
+            default: return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
           }
         }
       };
@@ -683,7 +684,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.initialize = function(owner, field, key) {
         var self = this; 
         super$.initialize.call(self, owner, field);
-        self.$.value = new EnsoHash ( { } );
+        self.$.value = new EnsoHash ({ });
         return self.$.key = key;
       };
 
@@ -715,7 +716,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this._recompute_hash_in_place = function() {
         var self = this; 
         var nval;
-        nval = new EnsoHash ( { } );
+        nval = new EnsoHash ({ });
         self.$.value.each(function(k, v) {
           return nval._set(v._get(self.$.key.name()), v);
         });
@@ -887,6 +888,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
   Factory = {
     new: function(schema) {
+      var self = this; 
       return SchemaFactory.new(schema);
     },
 

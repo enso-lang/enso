@@ -14,8 +14,8 @@ def read_from_fs(root, path, factory)
   delim = PATH_DELIM
   #strip ending PATH_DELIM
   mypath = "#{root}#{delim}#{path}"
-  mypath = mypath[0..mypath.length-2] if mypath.end_with?(delim)
-  fname = path.include?(delim) ? path[path.rindex(delim)+1..path.length-1] : path
+  mypath = mypath[0..mypath.size-2] if mypath.end_with?(delim)
+  fname = path.include?(delim) ? path[path.rindex(delim)+1..path.size-1] : path
   if File::directory?(mypath)
     d = factory["Dir"]
     d.name = fname

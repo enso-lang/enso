@@ -41,7 +41,7 @@ class Length
   
   def Nil(sup)
     Class.new(sup) do
-      def length
+      def size
         0
       end
     end
@@ -49,8 +49,8 @@ class Length
 
   def Cons(sup)
     Class.new(sup) do 
-      def length
-        1 + tail.length
+      def size
+        1 + tail.size
       end
     end
   end
@@ -92,7 +92,7 @@ class Avg
   def Cons(sup)
     Class.new(sup) do 
       def avg
-        sum / length
+        sum / size
       end
     end
   end
@@ -124,7 +124,7 @@ class LengthSum
 
   def Nil(sup)
     Class.new(sup) do
-      def length_sum
+      def size_sum
         [0, 0.0]
       end
     end
@@ -132,8 +132,8 @@ class LengthSum
 
   def Cons(sup)
     Class.new(sup) do 
-      def length_sum
-        l, s = tail.length_sum
+      def size_sum
+        l, s = tail.size_sum
         [l + 1, s + head]
       end
     end
@@ -145,7 +145,7 @@ class LengthSumAvg
 
   def Nil(sup)
     Class.new(sup) do
-      def length_sum
+      def size_sum
         [0, 0.0, lambda { |avg| Nil.new }]
       end
     end
@@ -153,8 +153,8 @@ class LengthSumAvg
 
   def Cons(sup)
     Class.new(sup) do 
-      def length_sum
-        l, s, rs = tail.length_sum
+      def size_sum
+        l, s, rs = tail.size_sum
         [l + 1, s + head, lambda { |avg| Cons.new(head - avg, rs.call(avg)) } ]
       end
     end
@@ -188,7 +188,7 @@ if __FILE__ == $0 then
   diff = Extend.new(Diff.new, Extend.new(Avg.new, 
                                          Extend.new(Sum.new, Length.new)))
 
-  diff = Extend.new(Count.new([:diff, :length, :avg, :sum]), diff)
+  diff = Extend.new(Count.new([:diff, :size, :avg, :sum]), diff)
 
   evlst = FFold.new(diff).fold(lst)
 
@@ -205,15 +205,15 @@ if __FILE__ == $0 then
   puts "### Lengthsum"
 
   evlst = FFold.new(LengthSum.new).fold(lst)
-  puts evlst.length_sum
+  puts evlst.size_sum
 
   puts "### Lengthsum avg"
 
-  evlst = FFold.new(Extend.new(Count.new([:length_sum]), 
+  evlst = FFold.new(Extend.new(Count.new([:size_sum]), 
                                LengthSumAvg.new)).fold(lst)
   puts evlst.count.clear
 
-  l, s, rs = evlst.length_sum
+  l, s, rs = evlst.size_sum
   puts "Length: #{l}"
   puts "Sum: #{s}"
   puts "Avg: #{rs}"

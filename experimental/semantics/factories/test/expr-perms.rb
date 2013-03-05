@@ -6,10 +6,10 @@ require 'core/semantics/factories/test/ext-expr'
 def test_permutations(base, evals, term, load)
   errs = []
   count = 0
-  (1..evals.length).each do |n|
+  (1..evals.size).each do |n|
     begin
       evals.permutation(n) do |perm|
-        perm.length.times do |i|
+        perm.size.times do |i|
           # insert base separately; should always be there
           lst = perm.clone
           lst.insert(i, base)
@@ -28,7 +28,7 @@ def test_permutations(base, evals, term, load)
       end
     end
   end
-  puts "#{errs.length} exceptions in #{count} permutations of #{evals} with #{base}"
+  puts "#{errs.size} exceptions in #{count} permutations of #{evals} with #{base}"
   ecs = []
   errs.each do |e|
     ecs |= [e.class]

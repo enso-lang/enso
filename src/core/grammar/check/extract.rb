@@ -54,7 +54,7 @@ class ExtractSchema
   end
 
   def Sequence(this, in_field)
-    if this.elements.length == 1 then
+    if this.elements.size == 1 then
       eval(this.elements[0], in_field)
     else
       this.elements.inject(nil) do |cur, elt|
@@ -233,7 +233,7 @@ class ExtractSchema
     del = []
     schema.classes.each do |c|
       next unless anon?(c)
-      next unless c.supers.length == 1
+      next unless c.supers.size == 1
       c.subclasses.each do |sub|
         sub.supers.delete(c)
         # use each because no positinos in keyed colls.

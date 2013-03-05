@@ -22,8 +22,8 @@ class Parse
     #TODO: need a better way to parse imports
     imports = []
     s = source.split("\n")+[""] #this is to ensure i is correct for 'empty' files with only imports
-    for i in 0..s.length-1
-      next if s[i].strip.length==0
+    for i in 0..s.size-1
+      next if s[i].strip.size==0
       break unless s[i].strip.start_with? 'import'
       files = s[i].gsub(' ','')[6..-1].split(',')
       files.each do |f|

@@ -10,7 +10,7 @@ function(Factory) {
     function(super$) {
       this.initialize = function(factory) {
         var self = this; 
-        self.$.memo = new EnsoHash ( { } );
+        self.$.memo = new EnsoHash ({ });
         return self.$.factory = factory;
       };
 
@@ -33,7 +33,7 @@ function(Factory) {
             b_val = b && b._get(field.name());
             if (field.type().Primitive_P()) {
               if ((a && b) && a_val != b_val) {
-                self.puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
+                puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
               }
               return new_V._set(field.name(), a_val);
             } else if (field.traversal()) {
@@ -84,15 +84,19 @@ function(Factory) {
 
   Union = {
     Copy: function(factory, a) {
+      var self = this; 
       return CopyInto.new(factory).copy(a, null).finalize();
     },
 
     Clone: function(a) {
+      var self = this; 
       return Copy(a.factory(), a);
     },
 
     Union: function(factory) {
-      var parts = compute_rest_arguments(arguments, 1 );
+      var self = this; 
+      var parts = compute_rest_arguments(arguments, 1);
+      var copier, result;
       copier = CopyInto.new(factory);
       result = null;
       parts.each(function(part) {
@@ -102,6 +106,8 @@ function(Factory) {
     },
 
     union: function(a, b) {
+      var self = this; 
+      var f;
       f = Factory.new(a._graph_id().schema());
       return Union(f, a, b);
     },

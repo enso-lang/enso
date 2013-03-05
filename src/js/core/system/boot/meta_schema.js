@@ -34,7 +34,7 @@ function(Factory, Union, Json, Enso) {
         data.each(function(key, value) {
           if (key == "class") {
           } else if (key._get(- 1) == "=") {
-            self.define_singleton_value(key.slice(0, key.length - 1), value);
+            self.define_singleton_value(key.slice(0, key.size() - 1), value);
             if (key == "name=") {
               has_name = true;
               return self.define_singleton_value("to_s", S("<", data._get("class"), " ", self._id(), " ", value, ">"));
@@ -42,9 +42,9 @@ function(Factory, Union, Json, Enso) {
           } else if (System.test_type(value, Array)) {
             keyed = key._get(- 1) == "#";
             name = keyed
-              ? key.slice(0, key.length - 1)
+              ? key.slice(0, key.size() - 1)
               : key;
-            if (value.length == 0 || ! System.test_type(value._get(0), String)) {
+            if (value.size() == 0 || ! System.test_type(value._get(0), String)) {
               return self._create_many(name, value.map(function(a) {
                 return MetaSchema.make_object(a, self.$.root);
               }), keyed);
@@ -65,7 +65,7 @@ function(Factory, Union, Json, Enso) {
           if ((n = part.index("[")) && part.slice(- 1) == "]") {
             field = part.slice(0, n);
             obj = obj._get(field);
-            index = part.slice(n + 1, (part.length - n) - 2);
+            index = part.slice(n + 1, (part.size() - n) - 2);
             return obj = obj._get(index);
           } else {
             return obj = obj._get(part);
@@ -84,9 +84,9 @@ function(Factory, Union, Json, Enso) {
             if (System.test_type(value, Array)) {
               keyed = key._get(- 1) == "#";
               name = keyed
-                ? key.slice(0, key.length - 1)
+                ? key.slice(0, key.size() - 1)
                 : key;
-              if (value.length > 0 && System.test_type(value._get(0), String)) {
+              if (value.size() > 0 && System.test_type(value._get(0), String)) {
                 return self._create_many(name, value.map(function(a) {
                   return MetaSchema.path_eval(a, self.$.root);
                 }), keyed);
@@ -184,7 +184,7 @@ function(Factory, Union, Json, Enso) {
         var self = this; 
         var other, ks, i;
         if (self.$.keyed) {
-          other = other || new EnsoHash ( { } );
+          other = other || new EnsoHash ({ });
           ks = self.keys() || other.keys();
           return ks.each(function(k) {
             return block(self._get(k), other._get(k));
@@ -212,33 +212,39 @@ function(Factory, Union, Json, Enso) {
 
   MetaSchema = {
     load_path: function(path) {
+      var self = this; 
       return MetaSchema.load(System.readJSON(path)._get("model"));
     },
 
     load: function(doc) {
+      var self = this; 
+      var ss0;
       ss0 = MetaSchema.make_object(doc, null);
       ss0._complete();
       return Union.Copy(Factory.new(ss0), ss0);
     },
 
     make_object: function(data, root) {
+      var self = this; 
       if (data != null) {
-        if (data._get("class") == "Schema") {
-          return Schema.new(data, root);
-        } else if (data._get("class") == "Class") {
-          return Class.new(data, root);
-        } else {
-          return MObject.new(data, root);
+        switch (data._get("class")) {
+          case "Schema":
+            return Schema.new(data, root);
+          case "Class":
+            return Class.new(data, root);
+          default: return MObject.new(data, root);
         }
       }
     },
 
     path_eval: function(str, obj) {
+      var self = this; 
+      var n, field, obj, index;
       str.split(".").each(function(part) {
         if ((n = part.index("[")) && part.slice(- 1) == "]") {
           field = part.slice(0, n);
           obj = obj._get(field);
-          index = part.slice(n + 1, (part.length - n) - 2);
+          index = part.slice(n + 1, (part.size() - n) - 2);
           return obj = obj._get(index);
         } else {
           return obj = obj._get(part);

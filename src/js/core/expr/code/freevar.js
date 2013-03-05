@@ -34,7 +34,7 @@ function(Eval, Lvalue, Interpreter) {
       });
       return self.dynamic_bind(function() {
         return self.depends(body);
-      }, new EnsoHash ( { bound: bound2 } ));
+      }, new EnsoHash ({ bound: bound2 }));
     };
 
     this.depends_Formal = function(name) {

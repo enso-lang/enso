@@ -24,7 +24,7 @@ Multiplicity ::= ."*" { (many == true) and (optional == true) }
 	       | ."?" { optional == true } 
 	       | ."+" { many == true }
 
-Annot ::= "/" inverse:<current.type.fields[it]>
+Annot ::= "/" inverse:<this.type.fields[it]>
         | "=" computed:Expr
 
 abstract Expr

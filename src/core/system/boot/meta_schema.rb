@@ -42,7 +42,7 @@ module MetaSchema
       if (n = part.index("[")) && part.slice(-1) == "]"
         field = part.slice(0, n)
         obj = obj[field]
-        index = part.slice(n+1, part.length - n - 2)
+        index = part.slice(n+1, part.size - n - 2)
         obj = obj[index]
       else
         obj = obj[part]
@@ -70,15 +70,15 @@ module MetaSchema
       data.each do |key, value|
         if key == "class"
         elsif key[-1] == "="
-          define_singleton_value(key.slice(0, key.length-1), value)
+          define_singleton_value(key.slice(0, key.size-1), value)
           if key == "name="
             has_name = true
             define_singleton_value("to_s", "<#{data['class']} #{_id} #{value}>")
           end
         elsif value.is_a?(Array)
           keyed = (key[-1] == "#")
-          name = if keyed then key.slice(0, key.length-1) else key end
-          if value.length == 0 || !(value[0].is_a? String)
+          name = if keyed then key.slice(0, key.size-1) else key end
+          if value.size == 0 || !(value[0].is_a? String)
             _create_many(name, value.map {|a| MetaSchema.make_object(a, @root)}, keyed)
           end
         elsif !(value.is_a? String)
@@ -95,7 +95,7 @@ module MetaSchema
         if (n = part.index("[")) && part.slice(-1) == "]"
           field = part.slice(0, n)
           obj = obj[field]
-          index = part.slice(n+1, part.length - n - 2)
+          index = part.slice(n+1, part.size - n - 2)
           obj = obj[index]
         else
           obj = obj[part]
@@ -111,8 +111,8 @@ module MetaSchema
         elsif key[-1] != "=" && value != nil
           if value.is_a?(Array) # why?
             keyed = (key[-1] == "#")
-            name = if keyed then key.slice(0, key.length-1) else key end
-            if value.length > 0 && (value[0].is_a? String)
+            name = if keyed then key.slice(0, key.size-1) else key end
+            if value.size > 0 && (value[0].is_a? String)
               _create_many(name, value.map {|a| MetaSchema::path_eval(a, @root) }, keyed)
             else
               self[name].each do |obj|

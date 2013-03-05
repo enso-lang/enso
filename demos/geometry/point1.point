@@ -1,4 +1,4 @@
 drawing
   line "Flamingo" point 1 1 point 2 2 point 10 10 point 20 20 point 3 3 point 4 4
   line "Stork" point 1 1 point 10 10 adj Flamingo
-end
+

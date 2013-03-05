@@ -44,7 +44,7 @@ class Equals
   end
 
   def equals_list(l1, l2)
-    return false if l1.length!=l2.length
+    return false if l1.size!=l2.size
     l1.keys.each do |i|
       return false if !equals(l1[i], l2[i])
     end
@@ -52,7 +52,7 @@ class Equals
   end
 
   def equals_set(l1, l2) #like equals list but ignores order
-    return false if l1.length!=l2.length
+    return false if l1.size!=l2.size
     l1.keys.each do |i|
       return false if !equals(l1[i], l2[i])
     end

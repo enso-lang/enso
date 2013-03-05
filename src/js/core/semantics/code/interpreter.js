@@ -8,13 +8,18 @@ function() {
     function(super$) {
       this.initialize = function() {
         var self = this; 
-        self.$.current = new EnsoHash ( { } );
+        self.$.current = new EnsoHash ({ });
         return self.$.stack = [];
       };
 
       this._get = function(name) {
         var self = this; 
         return self.$.current._get(name);
+      };
+
+      this.include_P = function(name) {
+        var self = this; 
+        return self.$.current.include_P(name);
       };
 
       this._bind = function(field, value) {
@@ -91,7 +96,7 @@ function() {
         params = type.fields().map(function(f) {
           return obj._get(f.name());
         });
-        result = self.send.apply(self, [method].concat( params ));
+        result = self.send.apply(self, [method].concat(params));
       }
       if (self.$.debug) {
         self.$.indent = self.$.indent - 1;
@@ -102,7 +107,7 @@ function() {
 
     this.dispatch_obj = function(operation, obj) {
       var self = this; 
-      var params = compute_rest_arguments(arguments, 2 );
+      var params = compute_rest_arguments(arguments, 2);
       var type, method;
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
@@ -115,7 +120,7 @@ function() {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
-      return self.send.apply(self, [method, obj].concat( params ));
+      return self.send.apply(self, [method, obj].concat(params));
     };
 
     this.find = function(operation, type) {

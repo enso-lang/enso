@@ -24,7 +24,7 @@ function() {
 
     this.set_grandparent = function(env) {
       var self = this; 
-      if (self.$.parent == null || self.$.parent == new EnsoHash ( { } )) {
+      if (self.$.parent == null || self.$.parent == new EnsoHash ({ })) {
         return self.set_parent(env);
       } else {
         return self.$.parent.set_grandparent(env);
@@ -59,7 +59,7 @@ function() {
     function(super$) {
       this.initialize = function(hash) {
         var self = this; 
-        if (hash === undefined) hash = new EnsoHash ( { } );
+        if (hash === undefined) hash = new EnsoHash ({ });
         return self.$.hash = hash;
       };
 

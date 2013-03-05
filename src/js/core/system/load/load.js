@@ -71,7 +71,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
       this.setup = function() {
         var self = this; 
         var ss, gs;
-        self.$.cache = new EnsoHash ( { } );
+        self.$.cache = new EnsoHash ({ });
         System.stderr().push("Initializing...\n");
         self.$.cache._set("schema.schema", ss = self.load_with_models("schema_schema.json", null, null));
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
@@ -134,6 +134,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             result = MetaSchema.load_path(path);
             result.factory().file_path()._set(0, path);
           } else {
+            System.stderr().push(S("## fetching ", path, "...\n"));
             name = path.split("/")._get(- 1).split(".")._get(0).gsub("_", ".");
             type = name.split(".")._get(- 1);
             result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
@@ -143,7 +144,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             header = File.open(function(x) {
               return x.readline();
             }, path);
-          } catch ( err ) {
+          } catch (err) {
             System.stderr().push(S("Unable to open file ", path, "\n"));
             self.raise(err);
           }
@@ -155,9 +156,9 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             a = str.split("\"").map(function(x) {
               return x.split("'");
             }).flatten();
-            fnames = a.values_at.apply(a, [].concat( a.each_index().select(function(i) {
+            fnames = a.values_at.apply(a, [].concat(a.each_index().select(function(i) {
               return i.odd_P();
-            }) ));
+            })));
             fnames.each(function(fn) {
               return result.factory().file_path().push(fn);
             });
@@ -172,10 +173,13 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
 
   Load = {
     load: function(name) {
+      var self = this; 
+      var Loader;
       return Load.Loader.load(name);
     },
 
     Load_text: function(type, factory, source, show) {
+      var self = this; 
       if (show === undefined) show = false;
       return Load.load_text(type, factory, source, show);
     },

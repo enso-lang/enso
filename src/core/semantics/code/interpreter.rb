@@ -17,6 +17,10 @@ module Interpreter
       @current[name]
     end
     
+    def include?(name)
+      @current.include?(name)
+    end
+    
     def _bind(field, value)
       old = @current[field]
       @stack << [field, old]

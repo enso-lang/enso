@@ -36,11 +36,11 @@ function(Interpreter) {
 
       this.deref_P = function(scan, root) {
         var self = this; 
-        if (root === undefined) root = self.scan();
+        if (root === undefined) root = scan;
         var root;
         try {
           return self.deref(scan, root = scan);
-        } catch ( DUMMY ) {
+        } catch (DUMMY) {
           return false;
         }
       };
@@ -79,7 +79,7 @@ function(Interpreter) {
         var self = this; 
         return self.dynamic_bind(function() {
           return self.eval();
-        }, new EnsoHash ( { root: root } ));
+        }, new EnsoHash ({ root: root }));
       };
 
       this.eval = function(path) {
@@ -90,6 +90,9 @@ function(Interpreter) {
 
       this.eval_EVar = function(obj) {
         var self = this; 
+        if (! self.$.D.include_P(obj.name().to_sym())) {
+          self.raise(S("undefined variable ", obj.name()));
+        }
         return self.$.D._get(obj.name().to_sym());
       };
 
@@ -125,17 +128,23 @@ function(Interpreter) {
         obj = self.owner().deref(root);
         fld = obj.schema_class().fields()._get(self.last().name());
         if (fld.type().Primitive_P()) {
-          value = fld.type().name() == "str"
-            ? value.to_s()
-            : (fld.type().name() == "int"
-              ? value.to_i()
-              : (fld.type().name() == "bool"
-                ? (value.to_s() == "true"
-                  ? true
-                  : false)
-                : (fld.type().name() == "real"
-                  ? value.to_f()
-                  : self.raise(S("Unknown primitive type: ", fld.type().name())))));
+          value = ((function(){ {
+            switch (fld.type().name()) {
+              case "str":
+                return value.to_s();
+              case "int":
+                return value.to_i();
+              case "bool":
+                if (value.to_s() == "true") {
+                  return true;
+                } else {
+                  return false;
+                }
+              case "real":
+                return value.to_f();
+              default: return self.raise(S("Unknown primitive type: ", fld.type().name()));
+            }
+          } })());
         }
         return self.owner().deref(root)._set(self.last().name(), value);
       };
@@ -143,6 +152,7 @@ function(Interpreter) {
 
   Paths = {
     new: function(start) {
+      var self = this; 
       if (start === undefined) start = null;
       return Path.new(start);
     },

@@ -9,16 +9,20 @@ function(Factory, Dumpjson, FindModel, Sha1) {
 
   Cache = {
     save_cache: function(name, model, out) {
+      var self = this; 
       if (out === undefined) out = Cache.find_json(name);
+      var res;
       res = Cache.add_metadata(name, model);
       res._set("model", Dumpjson.to_json(model, true));
       return File.open(function(f) {
-        return f.write(JSON.pretty_generate(res, new EnsoHash ( { allow_nan: true, max_nesting: false } )));
+        return f.write(JSON.pretty_generate(res, new EnsoHash ({ allow_nan: true, max_nesting: false })));
       }, out, "w+");
     },
 
     load_cache: function(name, factory, input) {
+      var self = this; 
       if (input === undefined) input = Cache.find_json(name);
+      var type, json, res;
       type = name.split(".")._get(- 1);
       json = System.readJSON(input);
       res = Dumpjson.from_json(factory, json._get("model"));
@@ -30,18 +34,21 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     check_dep: function(name) {
+      var self = this; 
+      var path, json;
       try {
         path = Cache.find_json(name);
         json = System.readJSON(path);
         return Cache.check_file(json) && json._get("depends").all_P(function(e) {
           return Cache.check_file(e);
         });
-      } catch ( e ) {
+      } catch (e) {
         return false;
       }
     },
 
     clean: function(name) {
+      var self = this; 
       if (name === undefined) name = null;
       if (name == null) {
         if (File.exists_P(S(Cache.cache_path(), "*"))) {
@@ -53,6 +60,8 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     cache_path: function() {
+      var self = this; 
+      var res;
       res = "core/system/load/cache/";
       if (! File.exists_P(res)) {
         Dir.mkdir(res);
@@ -61,6 +70,7 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     find_json: function(name) {
+      var self = this; 
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
@@ -69,17 +79,21 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     check_file: function(element) {
+      var self = this; 
+      var path, checksum;
       path = element._get("source");
       checksum = element._get("checksum");
       try {
         return Cache.readHash(path) == checksum;
-      } catch ( DUMMY ) {
+      } catch (DUMMY) {
         return false;
       }
     },
 
     get_meta: function(name) {
-      e = new EnsoHash ( { } );
+      var self = this; 
+      var e;
+      e = new EnsoHash ({ });
       FindModel.FindModel.find_model(function(path) {
         e._set("source", path);
         e._set("date", File.ctime(path));
@@ -89,8 +103,10 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     add_metadata: function(name, model) {
+      var self = this; 
+      var e, type, deps;
       if (name == null) {
-        e = new EnsoHash ( { } );
+        e = new EnsoHash ({ });
       } else {
         e = Cache.get_meta(name);
         type = name.split(".")._get(- 1);
@@ -106,6 +122,8 @@ function(Factory, Dumpjson, FindModel, Sha1) {
     },
 
     readHash: function(path) {
+      var self = this; 
+      var hashfun, fullfilename, readBuf;
       hashfun = Digest.SHA1.new();
       fullfilename = path;
       Cache.open(function(io) {

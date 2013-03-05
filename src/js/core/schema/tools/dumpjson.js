@@ -90,11 +90,13 @@ function(Paths, Schema, MetaSchema, Json) {
 
   Dumpjson = {
     to_json: function(this_V, do_all) {
+      var self = this; 
       if (do_all === undefined) do_all = false;
+      var e, name, val, ef;
       if (this_V == null) {
         return null;
       } else {
-        e = new EnsoHash ( { } );
+        e = new EnsoHash ({ });
         e._set("class", this_V.schema_class().name());
         this_V.schema_class().fields().each(function(f) {
           name = f.name();
@@ -113,17 +115,17 @@ function(Paths, Schema, MetaSchema, Json) {
                 });
               } else {
                 val.each(function(fobj) {
-                  return ef.push(fobj._path().to_s());
+                  return ef.push(Dumpjson.fixup_path(fobj));
                 });
               }
-              if (do_all || ef.length > 0) {
+              if (do_all || ef.size() > 0) {
                 return e._set(name, ef);
               }
             } else if (do_all || val) {
               if (f.traversal()) {
                 return e._set(name, val && Dumpjson.to_json(val, do_all));
               } else {
-                return e._set(name, val && val._path().to_s());
+                return e._set(name, val && Dumpjson.fixup_path(val));
               }
             }
           }
@@ -132,15 +134,29 @@ function(Paths, Schema, MetaSchema, Json) {
       }
     },
 
+    fixup_path: function(obj) {
+      var self = this; 
+      var path;
+      path = obj._path().to_s();
+      if (path == "root") {
+        return path = "";
+      } else {
+        return path = path.slice(5, 999);
+      }
+    },
+
     from_json: function(factory, this_V) {
+      var self = this; 
       return FromJSON.new(factory).parse(this_V);
     },
 
     to_json_string: function(this_V) {
+      var self = this; 
       return JSON.pretty_generate(Dumpjson.to_json(this_V, true));
     },
 
     from_json_string: function(str) {
+      var self = this; 
       return Dumpjson.from_json(JSON.parse(str));
     },
 

@@ -274,9 +274,10 @@ define (function() {
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
+  String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
   Number.prototype.to_i = function() { return this }
-  Object.prototype.to_s = function() { return "<SOMETHING>" }
+  Number.prototype.to_s = function() { return this.toString(); }
   Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }
   String.prototype.casecmp = function(other) { 
      puts("COMP " + this + "=" + other + " => " + this.toUpperCase() === other.toUpperCase());

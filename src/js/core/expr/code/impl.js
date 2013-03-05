@@ -27,7 +27,7 @@ function(Eval, Lvalue, Interpreter, Env) {
 
       this.call_closure = function() {
         var self = this; 
-        var params = compute_rest_arguments(arguments, 0 );
+        var params = compute_rest_arguments(arguments, 0);
         var nenv;
         nenv = Env.HashEnv.new();
         self.$.formals.each_with_index(function(f, i) {
@@ -36,7 +36,7 @@ function(Eval, Lvalue, Interpreter, Env) {
         nenv.set_parent(self.$.env);
         return self.$.interp.dynamic_bind(function() {
           return self.$.interp.eval(self.$.body);
-        }, new EnsoHash ( { env: nenv } ));
+        }, new EnsoHash ({ env: nenv }));
       };
 
       this.to_s = function() {
@@ -68,7 +68,7 @@ function(Eval, Lvalue, Interpreter, Env) {
         nenv._set(var_V, val);
         return self.dynamic_bind(function() {
           return self.eval(body);
-        }, new EnsoHash ( { env: nenv } ));
+        }, new EnsoHash ({ env: nenv }));
       });
     };
 
@@ -90,7 +90,7 @@ function(Eval, Lvalue, Interpreter, Env) {
         return body.each(function(c) {
           return res = self.eval(c);
         });
-      }, new EnsoHash ( { env: nenv, in_fc: false } ));
+      }, new EnsoHash ({ env: nenv, in_fc: false }));
       return res;
     };
 
@@ -105,8 +105,8 @@ function(Eval, Lvalue, Interpreter, Env) {
     this.eval_ELambda = function(body, formals) {
       var self = this; 
       return Proc.new(function() {
-        var p = compute_rest_arguments(arguments, 0 );
-        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat( p ));
+        var p = compute_rest_arguments(arguments, 0);
+        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat(p));
       });
     };
 
@@ -115,22 +115,22 @@ function(Eval, Lvalue, Interpreter, Env) {
       var m, p;
       m = self.dynamic_bind(function() {
         return self.eval(fun);
-      }, new EnsoHash ( { in_fc: true } ));
+      }, new EnsoHash ({ in_fc: true }));
       if (lambda == null) {
-        return m.apply(m, [].concat( params.map(function(p) {
+        return m.apply(m, [].concat(params.map(function(p) {
           return self.eval(p);
-        }) ));
+        })));
       } else {
         p = self.eval(lambda);
-        return m.apply(m, [p].concat( params.map(function(p) {
+        return m.apply(m, [p].concat(params.map(function(p) {
           return self.eval(p);
-        }) ));
+        })));
       }
     };
 
     this.eval_EAssign = function(var_V, val) {
       var self = this; 
-      return self.lvalue(var_V).value = self.eval(val);
+      return self.lvalue(var_V).set_value(self.eval(val));
     };
   });
 

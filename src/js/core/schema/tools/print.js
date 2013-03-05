@@ -22,7 +22,7 @@ function() {
     function(super$) {
       this.initialize = function(output, depth) {
         var self = this; 
-        if (output === undefined) output = $stdout;
+        if (output === undefined) output = System.stdout();
         if (depth === undefined) depth = null;
         self.$.output = output;
         return self.$.depth = depth;
@@ -56,7 +56,7 @@ function() {
                 } else {
                   return self.print1(field.traversal(), sub, indent, field.inverse());
                 }
-              } else if (true) { // ! obj._get(field.name()).empty_P()) {
+              } else if (! obj._get(field.name()).empty_P()) {
                 self.$.output.push(S(" ".repeat(indent), field.name()));
                 subindent = indent + 2;
                 if (self.$.depth && indent > self.$.depth * 2) {

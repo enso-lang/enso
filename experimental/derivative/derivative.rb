@@ -167,7 +167,7 @@ class Derivative < CyclicMapNew
 
   # Dc(p;q)  ==>  if p.nullable then  Dc(p);q | Dc(q)  else  Dc(p);q
   def Sequence(from)
-    n = from.elements.length
+    n = from.elements.size
     alt = @factory.Alt()
     for i in 0...n
       first = recurse(from.elements[i])

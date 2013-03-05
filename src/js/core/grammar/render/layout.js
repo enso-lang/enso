@@ -19,7 +19,8 @@ function(Eval, Env, Print, Paths, Schema) {
         self.$.indent_amount = 2;
         self.$.slash_keywords = slash_keywords;
         self.$.create_stack = [];
-        return self.$.need_pop = 0;
+        self.$.avoid_optimization = true;
+        return self.$.need_pop = 0;        
       };
 
       this.render = function(grammar, obj) {
@@ -44,7 +45,7 @@ function(Eval, Env, Print, Paths, Schema) {
       this.Grammar = function(this_V, stream, container) {
         var self = this; 
         self.$.root = stream.current();
-       // self.$.literals = Scan.collect_keywords(this_V);
+        //self.$.literals = Scan.collect_keywords(this_V);
         return self.recurse(this_V.start().arg(), SingletonStream.new(stream.current()), container);
       };
 
@@ -71,20 +72,22 @@ function(Eval, Env, Print, Paths, Schema) {
       this.Alt = function(this_V, stream, container) {
         var self = this; 
         var pred;
-        return this_V.alts().find_first(function(pat) {
-          return self.recurse(pat, stream.copy(), container);
-        });
-        /*
-        if (! this_V.extra_instance_data()) {
-          this_V.extra_instance_data = [];
-          self.scan_alts(this_V, this_V.extra_instance_data());
-        }
-        return this_V.extra_instance_data().find_first(function(info) {
-          pred = info._get(0);
-          if (! pred || pred(stream.current(), self.$.localEnv)) {
-            return self.recurse(info._get(1), stream.copy(), container);
+        if (self.$.avoid_optimization) {
+          return this_V.alts().find_first(function(pat) {
+            return self.recurse(pat, stream.copy(), container);
+          });
+        } else {
+          if (! this_V.extra_instance_data()) {
+            this_V.set_extra_instance_data([]);
+            self.scan_alts(this_V, this_V.extra_instance_data());
           }
-        });*/
+          return this_V.extra_instance_data().find_first(function(info) {
+            pred = info._get(0);
+            if (! pred || pred(stream.current(), self.$.localEnv)) {
+              return self.recurse(info._get(1), stream.copy(), container);
+            }
+          });
+        }
       };
 
       this.scan_alts = function(this_V, alts) {
@@ -177,34 +180,34 @@ function(Eval, Env, Print, Paths, Schema) {
           if (! ((System.test_type(obj, String) || System.test_type(obj, Fixnum)) || System.test_type(obj, Float))) {
             self.raise(S("Data is not literal ", obj));
           }
-          if (this_V.kind() == "str") {
-            if (System.test_type(obj, String)) {
-              return self.output(obj.inspect());
-            }
-          } else if (this_V.kind() == "sym") {
-            if (System.test_type(obj, String)) {
-              if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
-                return self.output("\\" + obj);
-              } else {
-                return self.output(obj);
+          switch (this_V.kind()) {
+            case "str":
+              if (System.test_type(obj, String)) {
+                return self.output(obj.inspect());
               }
-            }
-          } else if (this_V.kind() == "int") {
-            if (System.test_type(obj, Fixnum)) {
-              return self.output(obj.to_s());
-            }
-          } else if (this_V.kind() == "real") {
-            if (System.test_type(obj, Float)) {
-              return self.output(obj.to_s());
-            }
-          } else if (this_V.kind() == "atom") {
-            if (System.test_type(obj, String)) {
-              return self.output(obj.inspect());
-            } else {
-              return self.output(obj.to_s());
-            }
-          } else {
-            return self.raise(S("Unknown type ", this_V.kind()));
+            case "sym":
+              if (System.test_type(obj, String)) {
+                if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
+                  return self.output("\\" + obj);
+                } else {
+                  return self.output(obj);
+                }
+              }
+            case "int":
+              if (System.test_type(obj, Fixnum)) {
+                return self.output(obj.to_s());
+              }
+            case "real":
+              if (System.test_type(obj, Float)) {
+                return self.output(obj.to_s());
+              }
+            case "atom":
+              if (System.test_type(obj, String)) {
+                return self.output(obj.inspect());
+              } else {
+                return self.output(obj.to_s());
+              }
+            default: return self.raise(S("Unknown type ", this_V.kind()));
           }
         }
       };
@@ -244,7 +247,7 @@ function(Eval, Env, Print, Paths, Schema) {
           interp = Eval.EvalExprC.new();
           return interp.dynamic_bind(function() {
             return interp.eval(this_V.expr());
-          }, new EnsoHash ( { env: Env.ObjEnv.new(obj, self.$.localEnv) } ));
+          }, new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
         }
       };
 
@@ -256,7 +259,7 @@ function(Eval, Env, Print, Paths, Schema) {
         } else if (stream.size() > 0 || this_V.optional()) {
           oldEnv = self.$.localEnv;
           self.$.localEnv = Env.HashEnv.new();
-          self.$.localEnv._set("_length", stream.size());
+          self.$.localEnv._set("_size", stream.size());
           s = [];
           i = 0;
           ok = true;
@@ -426,7 +429,7 @@ function(Eval, Env, Print, Paths, Schema) {
           return self.lambda(function(obj, env) {
             return interp.dynamic_bind(function() {
               return interp.eval(this_V.expr());
-            }, new EnsoHash ( { env: Env.ObjEnv.new(obj, env) } ));
+            }, new EnsoHash ({ env: Env.ObjEnv.new(obj, env) }));
           });
         }
       };
@@ -461,7 +464,7 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         if (used === undefined) used = false;
         self.$.data = data;
-        self.$.used = used;
+        return self.$.used = used;
       };
 
       this.size = function() {

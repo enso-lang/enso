@@ -122,7 +122,7 @@ module CalcHeatFlow
 
   #transfer some amount of water from s1 to s2 based on connecting area and flow (based on pressure)
   def set_pipe_flow(p, flowconst)
-    p.flow = ((p.in_pressure - p.out_pressure) / p.length * flowconst).sigfig(3)
+    p.flow = ((p.in_pressure - p.out_pressure) / p.size * flowconst).sigfig(3)
   end
 
   def transfer_heat(pipe, flow, temperature)
@@ -153,8 +153,8 @@ module CalcPressure
     input = fields['input'].CalcPressure
     output = fields['output'].CalcPressure
     #compute the pressure at this component based on the pressure at the other two ends of the two pipes
-    num = input[:in]/fields['input'].length + output[:out]/fields['output'].length
-    dem = 1.0/fields['input'].length + 1.0/fields['output'].length
+    num = input[:in]/fields['input'].size + output[:out]/fields['output'].size
+    dem = 1.0/fields['input'].size + 1.0/fields['output'].size
     new_pressure = (num / dem).round(1)
     {in: new_pressure, out: new_pressure}
   end
@@ -166,8 +166,8 @@ module CalcPressure
 
   def CalcPressure_Joint(inputs, output)
     outp = output.CalcPressure
-    num = inputs.inject(outp[:out]/output.length) {|memo, p| memo + p.CalcPressure[:in]/p.length}
-    dem = inputs.inject(1.0/output.length) {|memo, p| memo + 1.0/p.length}
+    num = inputs.inject(outp[:out]/output.size) {|memo, p| memo + p.CalcPressure[:in]/p.size}
+    dem = inputs.inject(1.0/output.size) {|memo, p| memo + 1.0/p.size}
     new_pressure = (num / dem).round(1)
     {in: new_pressure, out: new_pressure}
   end
@@ -178,21 +178,21 @@ module CalcPressure
       blocked_pipes << right
       blocked_pipes.delete(left)
       leftp = left.CalcPressure
-      num = inp[:in]/input.length + leftp[:out]/left.length
-      dem = 1.0/input.length + 1.0/left.length
+      num = inp[:in]/input.size + leftp[:out]/left.size
+      dem = 1.0/input.size + 1.0/left.size
       new_pressure = (num / dem).round(1)
     elsif position == 1
       blocked_pipes << left
       blocked_pipes.delete(right)
       rightp = left.CalcPressure
-      num = inp[:in]/input.length + rightp[:out]/right.length
-      dem = 1.0/input.length + 1.0/right.length
+      num = inp[:in]/input.size + rightp[:out]/right.size
+      dem = 1.0/input.size + 1.0/right.size
       new_pressure = (num / dem).round(1)
     elsif position == 0.5
       leftp = left.CalcPressure
       rightp = left.CalcPressure
-      num = inp[:in]/input.length + leftp[:out]/left.length + rightp[:out]/right.length
-      dem = 1.0/input.length + 1.0/left.length + 1.0/right.length
+      num = inp[:in]/input.size + leftp[:out]/left.size + rightp[:out]/right.size
+      dem = 1.0/input.size + 1.0/left.size + 1.0/right.size
       new_pressure = (num / dem).round(1)
     end
     {in: new_pressure, out: new_pressure}
@@ -222,7 +222,7 @@ module Init
   def Init_Pipe
     p = @this
     p.diameter = 0.1 if p.diameter == 0
-    p.length = 10 if p.length == 0
+    p.size = 10 if p.size == 0
     p.temperature = ROOM_TEMP
     p.in_pressure = 0
     p.out_pressure = 0
@@ -279,7 +279,7 @@ class Simulator
     if !pumps.empty?
       Interpreter(AttrGrammar.traverse(CalcPressure)).CalcPressure(pumps[0].output)
       p = pumps[0].output
-      flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.length)
+      flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.size)
       oldpipe = Clone(@piping)
       @piping.elements.each {|e| CalcHeatFlow(e, oldpipe: oldpipe, flowconst: flowconst, radiator: @piping.elements['Radiator'])}
     end

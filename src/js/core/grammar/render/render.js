@@ -6,7 +6,7 @@ requirejs([
   "core/grammar/render/layout"
 ],
 function(Enso, Load, Layout) {
-  var outgrammar, outname;
+  var outname, outgrammar;
   if (! ARGV._get(0)) {
     System.stderr().push("Usage: render.rb <model> [grammar] -o <output>");
     exit_in_place(1);
@@ -33,5 +33,5 @@ function(Enso, Load, Layout) {
   }
   m = Load.load(name);
   g = Load.load(S(outgrammar, ".grammar"));
-  System.stderr().push(S("## Printing ", ARGV._get(0), "...\\n"));
+  System.stderr().push(S("## Printing ", ARGV._get(0), "...\n"));
   Layout.DisplayFormat.print(g, m, out, false); })

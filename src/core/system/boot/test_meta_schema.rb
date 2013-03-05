@@ -10,7 +10,7 @@ puts "Testing"
 puts "Test1: Type=#{ss.types['Field'].defined_fields['type'].type.name}"
 puts "Test2: Class=#{ss.types['Field'].schema_class.name}"
 puts "Test2: Primitive=#{ss.types['int'].schema_class.name}"
-puts "Test3: 5=#{ss.types['Class'].defined_fields.length}"
+puts "Test3: 5=#{ss.types['Class'].defined_fields.size}"
 puts "Test4: " + (ss.types['Class'].defined_fields['defined_fields'].type==ss.types['Field'] ? "OK" : "Fail!")
 
 puts "Done loading new metaschema"

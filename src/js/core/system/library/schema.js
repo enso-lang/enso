@@ -5,20 +5,25 @@ function() {
 
   Schema = {
     class_key: function(klass) {
+      var self = this; 
       return klass.fields().find(function(f) {
         return f.key() && f.type().Primitive_P();
       });
     },
 
     object_key: function(obj) {
+      var self = this; 
       return obj._get(Schema.class_key(obj.schema_class()).name());
     },
 
     is_keyed_P: function(klass) {
+      var self = this; 
       return ! klass.Primitive_P() && ! (Schema.class_key(klass) == null);
     },
 
     lookup: function(block, obj) {
+      var self = this; 
+      var res;
       res = block(obj);
       if (res) {
         return res;
@@ -32,6 +37,7 @@ function() {
     },
 
     subclass_P: function(a, b) {
+      var self = this; 
       if (a == null || b == null) {
         return false;
       } else if (a.name() == (System.test_type(b, String)
@@ -46,6 +52,7 @@ function() {
     },
 
     class_minimum: function(a, b) {
+      var self = this; 
       if (b == null) {
         return a;
       } else if (a == null) {
@@ -60,6 +67,8 @@ function() {
     },
 
     map: function(block, obj) {
+      var self = this; 
+      var res;
       if (obj == null) {
         return null;
       } else {

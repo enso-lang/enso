@@ -16,20 +16,29 @@ module Eval
     end
   
     def eval_EBinOp(op, e1, e2)
-      if op == "&"
+      case op
+      when "&"
         eval(e1) && eval(e2)
-      elsif op == "|"
+      when "|"
         eval(e1) || eval(e2)
-      elsif op == "eql?"
+      when "eql?"
         eval(e1) == eval(e2)
-      elsif op == "+"
+      when "+"
         eval(e1) + eval(e2)
-      elsif op == "*"
+      when "*"
         eval(e1) * eval(e2)
-      elsif op == "-"
+      when "-"
         eval(e1) - eval(e2)
-      elsif op == "/"
+      when "/"
         eval(e1) / eval(e2)
+      when "<"
+        eval(e1) < eval(e2)
+      when ">"
+        eval(e1) > eval(e2)
+      when "<=" 
+        eval(e1) <= eval(e2)
+      when ">=" 
+        eval(e1) >= eval(e2)
       else
         raise "Unknown operator (#{op})"
       end

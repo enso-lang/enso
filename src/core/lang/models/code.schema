@@ -56,7 +56,7 @@ class Call < Expr
   args!   Expr*
   rest!   Expr?
   block!  Expr?
-  num_args: int = args.length + (block ? 1 : 0)
+  num_args: int = args.size + (block ? 1 : 0)
 
 class Super < Expr
 
@@ -66,7 +66,7 @@ class Fun < Expr
   rest: str?      // Decl
   locals! Decl*
   body! Expr
-  num_args: int = args.length + (block ? 1 : 0)
+  num_args: int = args.size + (block ? 1 : 0)
 
 class Decl
   name: str
@@ -81,6 +81,14 @@ class If < Expr
   sthen! Expr
   selse! Expr?
 
+class Switch < Expr
+  subject! Expr
+  cases! Case*
+  
+class Case 
+  values! Lit*
+  body! Expr
+  
 class While < Expr
   cond! Expr
   body! Expr
