@@ -26,6 +26,7 @@ class EIf < Command
 //
 
 class EBlock < Command
+  fundefs!EFunDef*
   body!Command*
 
 class EFunCall < Expr, Command

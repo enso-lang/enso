@@ -73,28 +73,26 @@ module Load
       @cache[GRAMMAR_GRAMMAR] = gg = load_with_models('grammar_grammar.json', nil, gs)
       @cache[SCHEMA_GRAMMAR] = sg = load_with_models('schema_grammar.json', nil, gs)
 
-      @cache[SCHEMA_SCHEMA] = ss = update_xml('schema.schema')
-      @cache[GRAMMAR_SCHEMA] = gs = update_xml('grammar.schema')
-      @cache[GRAMMAR_GRAMMAR] = gg = update_xml('grammar.grammar')
-      @cache[SCHEMA_GRAMMAR] = sg = update_xml('schema.grammar')
+      update_json('schema.schema')
+      update_json('grammar.schema')
+      update_json('grammar.grammar')
+      update_json('schema.grammar')
     end
 
-    def update_xml(name)
+    def update_json(name)
+      model, type = name.split(".")
       if Cache::check_dep(name)
-        parts = name.split(".")
-        model = parts[0]
-        type = parts[1]
         patch_schema_pointers!(@cache[name], load("#{type}.schema"))
-        @cache[name]
       else
-        parts = name.split(".")
-        model = parts[0]
-        type = parts[1]
-        res = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-        patch_schema_pointers!(res, load("#{type}.schema"))
-        $stderr << "## caching #{name}...\n"
-        Cache::save_cache(name, res)
-        res
+        #if file has been updated, reload file using current models
+        new = @cache[name] = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
+        #now reload file with itself -- this ensures its schema information is correct
+        @cache[name] = Union::Copy(Factory::new(load("#{type}.schema")), new)
+        #patch schema pointers 
+        #patch_schema_pointers!(@cache[name], load("#{type}.schema"))
+        #save to json
+        @cache[name].factory.file_path = new.factory.file_path
+        Cache::save_cache(name, @cache[name])
       end
     end
 
@@ -104,14 +102,13 @@ module Load
     #  to the expression from the old schema class because the method was already
     #  defined before getting to this point
     def patch_schema_pointers!(obj, schema)
-      all_classes = []
+      all_classes = {}
       Schema::map(obj) do |o|
-        all_classes << o;
+        all_classes[o] = schema.types[o.schema_class.name]
         o
       end
-      all_classes.each do |o| 
+      all_classes.each do |o, sc|
         o.instance_eval do
-          sc = schema.types[o.schema_class.name]
           define_singleton_value(:schema_class, sc)
           @factory.instance_eval { @schema = schema }
         end
@@ -130,8 +127,6 @@ module Load
           $stderr << "## booting #{path}...\n"
           # this means we are loading schema_schema.xml for the first time.
           result = MetaSchema::load_path(path)
-          result.factory.file_path[0] = path
-          #note this may be a bug?? should file_path point to XML or to original schema.schema? 
         else
           name = path.split("/")[-1].split(".")[0]
           name[name.rindex("_")] = '.'

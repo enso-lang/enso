@@ -22,6 +22,7 @@ class Parse
   def self.load(source, grammar, schema, filename = '-')
     s = source.split("\n")+[""] #this is to ensure i is correct for 'empty' files with only imports
     deps = [filename]
+    schema.factory.file_path.each  {|p| deps << p}
     imports = []
     for i in 0..s.length-1
       next if s[i].lstrip.empty?
@@ -29,6 +30,7 @@ class Parse
         imp = $1; as = $2
         $stderr << "## importing #{imp}...\n" 
         u = Load::load(imp)
+        u.factory.file_path.each  {|p| deps << p}
         if as 
           if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
             u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
@@ -42,36 +44,13 @@ class Parse
           end
         end
         imports.unshift(u)
-        FindModel::FindModel.find_model(imp) {|p| deps << p}
       else
         break;
       end
     end
     source = s[i..-1].join("\n")
     data = load_raw(source, grammar, schema, Factory::new(schema), imports, false, filename)
-
-=begin
-    imports.each do |imp,as|
-      $stderr << "## importing #{imp}...\n" 
-      u = Load::load(imp)
-      if as 
-        if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
-          u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
-          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
-            rename_schema!(u, from, to)
-          end
-        elsif imp.split('.')[1]=="grammar"
-          as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
-            rename_binding!(u, {from=>to})
-          end
-        end
-      end
-      data = Union::union(u, data)
-      FindModel::FindModel.find_model(imp) {|p| deps << p}
-    end
-=end
-
-    deps.each {|p| data.factory.file_path << p}
+    deps.uniq.each {|p| data.factory.file_path << p}
     return data.finalize
   end
 

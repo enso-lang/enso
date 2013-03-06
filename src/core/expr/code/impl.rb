@@ -77,7 +77,7 @@ module Impl
       end
     end
 
-    def eval_EBlock(body)
+    def eval_EBlock(fundefs, body)
       res = nil
       #do all function definitions first regardless of sequence
       # -all closures created using the same env (but have their own when evaluated)

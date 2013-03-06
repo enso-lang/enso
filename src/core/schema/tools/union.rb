@@ -36,20 +36,26 @@ module Union
         @memo[a._id] = new = b || @factory[a.schema_class.name]
         #puts "BUILD #{a} + #{b} ==> #{new}"
         new.schema_class.fields.each do |field|
-          a_val = a[field.name]
-          b_val = b && b[field.name]
-          if field.type.Primitive?
-            if a && b && a_val != b_val then
-              puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" 
-            end
-            new[field.name] = a_val
-          elsif field.traversal
-            if !field.many
-              build(a_val, b_val)
-            else
-              a_val.each_with_match(b_val) do |a_item, b_item|
-                build(a_item, b_item)
+          a_val = begin a[field.name]; rescue; nil end
+          b_val = begin b[field.name]; rescue; nil end
+          if !a_val.nil? or !b_val.nil?
+            if field.type.Primitive?
+              if a && b && a_val != b_val then
+                puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" 
               end
+              new[field.name] = a_val
+            elsif field.traversal
+              if !field.many
+                build(a_val, b_val)
+              else
+                a_val.each_with_match(b_val) do |a_item, b_item|
+                  build(a_item, b_item)
+                end
+              end
+            end
+          else
+            if !new[field.name].nil?
+              puts "skipping #{new}.#{field.name} as #{new[field.name]}"
             end
           end
         end
@@ -65,7 +71,7 @@ module Union
         new = @memo[a._id]
         #puts "LINK #{a} + #{b} ==> #{new}"
         if !new
-          pp @memo
+          p @memo
           raise "Traversal did not visit every object a=#{a} b=#{b}" 
         end
         if traversal

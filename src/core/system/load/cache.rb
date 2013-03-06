@@ -1,4 +1,4 @@
-
+\
 require 'core/schema/code/factory'
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
@@ -90,7 +90,6 @@ module Cache
 
       #vertical deps up the metamodel stack
       deps = []
-      deps << get_meta("#{type}.schema")
       deps << get_meta("#{type}.grammar")
 
       #analyze horizontal dep
