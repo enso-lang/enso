@@ -79,24 +79,17 @@ module Impl
 
     def eval_EBlock(fundefs, body)
       res = nil
-      #do all function definitions first regardless of sequence
-      # -all closures created using the same env (but have their own when evaluated)
-      defs = body.select{|c| c.EFunDef?}
+      #fundefs are able to see each other but not any other variable created in the block
       defenv = Env::HashEnv.new.set_parent(@D[:env])
       dynamic_bind in_fc: false, env: defenv do
-        defs.each do |c|
+        fundefs.each do |c|
           eval(c)
         end
       end
+      #rest of body can see fundefs
       env1 = Env::HashEnv.new.set_parent(defenv)
-      #do everything else non-fundef
-      # use a new env binding for this block
-      # -modifications to bindings defined outside the block are externally visible
-      # -new bindings created inside the block (ie never existed before) are not
-      # -fundefs created earlier are visible only in this block
-      others = body.select{|c| not c.EFunDef?}
       dynamic_bind in_fc: false, env: env1 do
-        others.each do |c|
+        body.each do |c|
           res = eval(c)
         end
       end

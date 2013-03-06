@@ -1,14 +1,50 @@
 {
   "filename": "schema.grammar",
   "source": "../src/core/schema/models/schema.grammar",
-  "date": "2013-03-01 00:43:48 -0600",
+  "date": "2013-03-01 00:50:07 -0600",
   "checksum": "f03a99367d7e42305e4e9a479699be2826fed0fd",
   "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "../src/core/grammar/models/grammar.grammar",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "8b52c06689e0da8e83e7054ebfa1b41ac70d53b7"
+    },
     {
       "filename": "grammar.schema",
       "source": "../src/core/grammar/models/grammar.schema",
       "date": "2013-03-01 00:07:25 -0600",
       "checksum": "82c9707fd22a8f291bd9b83ced1c2dd8270e4c6a"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "../src/core/schema/models/schema.schema",
+      "date": "2013-03-01 00:52:39 -0600",
+      "checksum": "c1641f1907fc5643c80840284d71e24e1688c2fc"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "../src/core/schema/models/schema.grammar",
+      "date": "2013-03-01 00:50:07 -0600",
+      "checksum": "f03a99367d7e42305e4e9a479699be2826fed0fd"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "../src/core/expr/models/expr.schema",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "57d49e5cc388844fbef9d0306467f08cf28aeec5"
+    },
+    {
+      "filename": "impl.grammar",
+      "source": "../src/core/expr/models/impl.grammar",
+      "date": "2013-03-05 20:27:48 -0600",
+      "checksum": "4ec189318b40f59362434f3ef70f31330fbc6506"
+    },
+    {
+      "filename": "expr.grammar",
+      "source": "../src/core/expr/models/expr.grammar",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "1a3b10fb6ed587bfd6e98bc61850f0e64afbf30b"
     },
     {
       "filename": "grammar.grammar",
@@ -17,10 +53,10 @@
       "checksum": "8b52c06689e0da8e83e7054ebfa1b41ac70d53b7"
     },
     {
-      "filename": "impl.grammar",
-      "source": "../src/core/expr/models/impl.grammar",
-      "date": "2013-03-01 00:44:04 -0600",
-      "checksum": "a7f53213239972a0c413a9b6e7cbf3be1e8bd5b1"
+      "filename": "grammar.schema",
+      "source": "../src/core/grammar/models/grammar.schema",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "82c9707fd22a8f291bd9b83ced1c2dd8270e4c6a"
     }
   ],
   "model": {
@@ -695,15 +731,6 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "/rules[EFunDef]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
                   "rule": "/rules[EAssign]"
                 }
               ]
@@ -1118,42 +1145,28 @@
           "class": "Alt",
           "alts": [
             {
-              "class": "Create",
-              "name=": "EBlock",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "{"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "/rules[Command]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": null
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "}"
-                  }
-                ]
-              }
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "{"
+                },
+                {
+                  "class": "Call",
+                  "rule": "/rules[EBlock_nocurly]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "}"
+                }
+              ]
             }
           ]
         }
       },
       {
         "class": "Rule",
-        "name=": "EBlock_nocurl",
+        "name=": "EBlock_nocurly",
         "grammar": "/",
         "arg": {
           "class": "Alt",
@@ -1164,6 +1177,20 @@
               "arg": {
                 "class": "Sequence",
                 "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "fundefs",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "/rules[EFunDef]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": null
+                    }
+                  },
                   {
                     "class": "Field",
                     "name=": "body",
@@ -1304,36 +1331,52 @@
                     "value=": "{"
                   },
                   {
-                    "class": "Lit",
-                    "value=": "|"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "formals",
+                    "class": "Regular",
                     "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "/rules[Formal]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Lit",
-                        "value=": ","
-                      }
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "|"
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            },
+                            {
+                              "class": "Field",
+                              "name=": "formals",
+                              "arg": {
+                                "class": "Regular",
+                                "arg": {
+                                  "class": "Call",
+                                  "rule": "/rules[Formal]"
+                                },
+                                "optional=": false,
+                                "many=": true,
+                                "sep": {
+                                  "class": "Lit",
+                                  "value=": ","
+                                }
+                              }
+                            },
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "optional=": true,
+                    "many=": false,
+                    "sep": null
                   },
                   {
                     "class": "Field",
                     "name=": "body",
                     "arg": {
                       "class": "Call",
-                      "rule": "/rules[EBlock_nocurl]"
+                      "rule": "/rules[EBlock_nocurly]"
                     }
                   },
                   {

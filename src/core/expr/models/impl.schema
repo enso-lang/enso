@@ -38,7 +38,7 @@ class ELambda
   body!Command
   formals!Formal*
 
-class EFunDef < Command
+class EFunDef
   name:str
   formals!Formal*
   body!Command

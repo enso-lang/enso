@@ -1,13 +1,12 @@
 import expr.grammar
 
-start EBlock_nocurl
+start EBlock_nocurly
 
 Command ::= EWhile
           | EFor
           | EIf
           | ESwitch
           | EFunCall
-          | EFunDef
           | EAssign
           | EImport
           | EBlock
@@ -24,10 +23,10 @@ EReturn ::= "return" Expr
 
 Formal ::= [Formal] name:sym
 
-EBlock ::= [EBlock] "{" body:Command* "}"
-EBlock_nocurl ::= [EBlock] body:Command* 
+EBlock ::= "{" EBlock_nocurly "}"
+EBlock_nocurly ::= [EBlock] fundefs:EFunDef* body:Command* 
 
 EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")" lambda:ELambda
 
-ELambda ::= [ELambda] "{" "|" formals:Formal* @"," "|" body:EBlock_nocurl "}"
+ELambda ::= [ELambda] "{" ("|" formals:Formal+ @"," "|")? body:EBlock_nocurly "}"
 

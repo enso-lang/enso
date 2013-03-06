@@ -13,20 +13,20 @@
     {
       "filename": "impl.schema",
       "source": "../src/core/expr/models/impl.schema",
-      "date": "2013-03-05 17:59:21 -0600",
-      "checksum": "00e919cf594823ae514983f366d599e59700ce54"
-    },
-    {
-      "filename": "schema.grammar",
-      "source": "../src/core/schema/models/schema.grammar",
-      "date": "2013-03-01 00:50:07 -0600",
-      "checksum": "f03a99367d7e42305e4e9a479699be2826fed0fd"
+      "date": "2013-03-05 20:22:54 -0600",
+      "checksum": "e99aa95f05fdf5f6db162f382bce796600231d8a"
     },
     {
       "filename": "expr.schema",
       "source": "../src/core/expr/models/expr.schema",
       "date": "2013-03-01 00:07:25 -0600",
       "checksum": "57d49e5cc388844fbef9d0306467f08cf28aeec5"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "../src/core/schema/models/schema.grammar",
+      "date": "2013-03-01 00:50:07 -0600",
+      "checksum": "f03a99367d7e42305e4e9a479699be2826fed0fd"
     }
   ],
   "model": {
@@ -611,7 +611,6 @@
           "/types[EIf]",
           "/types[EBlock]",
           "/types[EFunCall]",
-          "/types[EFunDef]",
           "/types[EAssign]",
           "/types[EImport]"
         ],
@@ -898,7 +897,7 @@
         "name=": "EFunDef",
         "schema": "/",
         "supers#": [
-          "/types[Command]"
+
         ],
         "subclasses#": [
 
