@@ -25,33 +25,14 @@ module Diff
     end
   end
 
-  def self.map_paths(root, currpath = Path.new)
-    res = {root => currpath}
-    root.schema_class.fields.each do |f|
-      next unless !f.Primitive? and f.traversal
-      if !f.many
-        res.update map_paths(root[f.name], currpath.field(f.name)) if root[f.name]
-      else
-        i = 0
-        root[f.name].each do |v|
-          res.update map_paths(v, Schema::is_keyed?(f.type) ? currpath.field(f.name).key(Schema::object_key(v)) : currpath.field(f.name).index(i))
-          i+=1
-        end
-      end
-    end
-    res
-  end
-
   #given two objects, return a list of operations that
   #DO NOT use custom schema to do delta-ing
   # problem with subtyping, eg computed : Expr
   # will be compared based the schema for Expr
   # rather than the schema class the objects actually are 
   def self.diff(o1, o2)
-    @path_map1 = map_paths(o1)
-    @path_map2 = map_paths(o2)
     matches = Match.new.match(o1, o2)
-    diff_all(o1, o2, Path.new, matches)
+    diff_all(o1, o2, Paths::Path.new, matches)
   end
 
 =begin
@@ -204,10 +185,10 @@ Topological sort of the diff list
   end
 
   def self.get_path1(obj)
-    @path_map1[obj]
+    obj._path
   end
   def self.get_path2(obj)
-    @path_map2[obj]
+    obj._path
   end
 
 

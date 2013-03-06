@@ -14,8 +14,8 @@ module Paths
       @@factory = factory
     end
     
-    def initialize(path)
-      @path = path || @@factory.EVar("root")
+    def initialize(path = @@factory.EVar("root"))
+      @path = path
     end
     
     def field(name)

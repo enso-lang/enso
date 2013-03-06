@@ -181,11 +181,6 @@ module Env
   end
 
   def self.deepclone(env)
-    c = env.clone
-    if !env.parent.nil?
-      c.set_parent(deepclone(env.parent))
-    else
-      c #this line is necessary else the IF will return nil.
-    end
+    env
   end
 end
