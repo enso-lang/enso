@@ -50,11 +50,15 @@ module Layout
       pair = [pat, data.current]
       if !@stack.include?(pair)
         @stack << pair 
-        #puts "#{' '.repeat(@depth)}#{pat} #{data.current}"
-        @depth = @depth + 1
+        if @debug
+          puts "#{' '.repeat(@depth)}#{pat} #{data.current}"
+          @depth = @depth + 1
+        end
         val = send(pat.schema_class.name, pat, data, container)
-        @depth = @depth - 1
-        #puts "#{' '.repeat(@depth)}#{pat} #{data.current} ==> #{val}"
+        if @debug
+          @depth = @depth - 1
+          puts "#{' '.repeat(@depth)}#{pat} #{data.current} ==> #{val}"
+        end
         @stack.pop
         val
       end

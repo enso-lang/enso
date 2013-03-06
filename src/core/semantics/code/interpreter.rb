@@ -61,7 +61,6 @@ module Interpreter
     end
     
     def dispatch(operation, obj)
-      @debug = false
       if @debug
         $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
         @indent = @indent + 1

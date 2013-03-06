@@ -4,6 +4,9 @@ function() {
   var Env ;
 
   var BaseEnv = MakeMixin([], function() {
+    this.parent = function() { return this.$.parent };
+    this.set_parent = function(val) { this.$.parent  = val };
+
     this.set_in_place = function(block, key) {
       var self = this; 
       return self._set(key, block(self._get(key)));
@@ -219,7 +222,14 @@ function() {
 
   Env = {
     deepclone: function(env) {
-      return env;
+      var self = this; 
+      var c;
+      c = env.clone();
+      if (! (env.parent() == null)) {
+        return c.set_parent(Env.deepclone(env.parent()));
+      } else {
+        return c;
+      }
     },
 
     BaseEnv: BaseEnv,

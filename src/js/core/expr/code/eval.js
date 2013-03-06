@@ -8,7 +8,6 @@ function(Factory, Schema, Interpreter) {
 
   var EvalExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.eval = function(obj) {
-      self.debug();
       var self = this; 
       return self.dispatch("eval", obj);
     };

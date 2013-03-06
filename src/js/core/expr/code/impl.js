@@ -161,7 +161,6 @@ function(Eval, Lvalue, Interpreter, Env) {
       if (args === undefined) args = new EnsoHash ({ });
       var interp;
       interp = EvalCommandC.new();
-      interp.debug();
       if (args.empty_P()) {
         return interp.eval(obj);
       } else {

@@ -31,7 +31,8 @@ define (function() {
     this.size = function() { 
       var count = 0;
       for (k in data) {
-        count++;
+        if (data.hasOwnProperty(k))
+          count++;
       }
       return count;
     };
@@ -41,21 +42,25 @@ define (function() {
     this.clone = function () {
       var n = new EnsoHash({});
       for (k in data)
-        n._set(k, data[k]);
+        if (data.hasOwnProperty(k))
+          n._set(k, data[k]);
       return n;
     };
     this.each = function(fun) {
       for (k in data)
-        fun(k, data[k]);
+        if (data.hasOwnProperty(k))
+          fun(k, data[k]);
     };
     this.each_value = function(fun) {
       for (k in data)
-        fun(data[k]);
+        if (data.hasOwnProperty(k))
+          fun(data[k]);
     };
     this.keys = function() { 
       var keys = [];
       for (k in data)
-        keys.push(k);
+        if (data.hasOwnProperty(k))
+          keys.push(k);
       return keys;
     };
     this.values = function() { 
@@ -188,10 +193,10 @@ define (function() {
     return result;
   };
  
-  Object.prototype.include_P =  function(obj) {  // Array.prototype.filter;
+  Array.prototype.include_P =  function(obj) {  // Array.prototype.filter;
     var i;
     for (i = 0; i < this.length; i++) {
-      if (this[i] == obj)
+      if (this[i] === obj)
         return true;
     }
     return false;
@@ -280,6 +285,7 @@ define (function() {
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
+  Object.prototype.to_s = function() { return "<SOMETHING>" }
   String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
   Number.prototype.to_i = function() { return this }
@@ -485,6 +491,14 @@ define (function() {
      this.all_P= function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; };
      this.any_P= function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; };
      this.map = Array.prototype.map;
+     this.select = function(fun) {
+        var result = new Array;
+        this.each(function(elem) {
+          if (fun(elem))
+            result.push(elem);
+        });
+        return result;
+      };
      this.each_with_index = function(cmd) {
        var i = 0; 
        this.each(function(obj) { 

@@ -7,6 +7,8 @@ This file stores various types of environments
 
 module Env
   module BaseEnv
+    attr_accessor :parent
+    
     def set!(key, &block)
       self[key] = block.call(self[key])
     end
@@ -180,11 +182,10 @@ module Env
 
   def self.deepclone(env)
     c = env.clone
-    if !@parent.nil? and @parent.is_a? BaseEnv
-      c.set_parent(deepclone(@parent))
+    if !env.parent.nil?
+      c.set_parent(deepclone(env.parent))
     else
       c #this line is necessary else the IF will return nil.
     end
   end
-
 end

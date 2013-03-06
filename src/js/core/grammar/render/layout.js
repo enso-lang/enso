@@ -20,7 +20,8 @@ function(Eval, Env, Print, Paths, Schema) {
         self.$.slash_keywords = slash_keywords;
         self.$.create_stack = [];
         self.$.avoid_optimization = true;
-        return self.$.need_pop = 0;        
+        self.$.debug = false;
+        return self.$.need_pop = 0;
       };
 
       this.render = function(grammar, obj) {
@@ -53,12 +54,18 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         if (container === undefined) container = null;
         var pair, val;
-        pair = [pat, data.current()];
+        pair = S(pat, data.current());
         if (! self.$.stack.include_P(pair)) {
           self.$.stack.push(pair);
-          self.$.depth = self.$.depth + 1;
+          if (self.$.debug) {
+            puts(S(" ".repeat(self.$.depth), pat, " ", data.current()));
+            self.$.depth = self.$.depth + 1;
+          }
           val = self.send(pat.schema_class().name(), pat, data, container);
-          self.$.depth = self.$.depth - 1;
+          if (self.$.debug) {
+            self.$.depth = self.$.depth - 1;
+            puts(S(" ".repeat(self.$.depth), pat, " ", data.current(), " ==> ", val));
+          }
           self.$.stack.pop();
           return val;
         }
@@ -162,10 +169,12 @@ function(Eval, Env, Print, Paths, Schema) {
             if (! fld) {
               self.raise(S("Unknown field ", obj.schema_class().name(), ".", this_V.name()));
             }
+            var v = obj._get(this_V.name());
+            if (v === undefined) v = null; // raise("RALLY BAD!" + obj + "." + this_V + "=" + obj[this_V.name()]);
             if (fld.many()) {
-              data = ManyStream.new(obj._get(this_V.name()));
+              data = ManyStream.new(v);
             } else {
-              data = SingletonStream.new(obj._get(this_V.name()));
+              data = SingletonStream.new(v);
             }
           }
           return self.recurse(this_V.arg(), data, container);
@@ -207,7 +216,8 @@ function(Eval, Env, Print, Paths, Schema) {
               } else {
                 return self.output(obj.to_s());
               }
-            default: return self.raise(S("Unknown type ", this_V.kind()));
+            default:
+              return self.raise(S("Unknown type ", this_V.kind()));
           }
         }
       };
@@ -464,6 +474,7 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         if (used === undefined) used = false;
         self.$.data = data;
+        if (data === undefined) raise("BAD!");
         return self.$.used = used;
       };
 
@@ -519,7 +530,9 @@ function(Eval, Env, Print, Paths, Schema) {
 
       this.current = function() {
         var self = this; 
-        return self.$.index < self.$.collection.size() && self.$.collection._get(self.$.index);
+        var v = self.$.index < self.$.collection.size() && self.$.collection._get(self.$.index);
+        if (v === undefined) raise("BAD!");
+        return v;
       };
 
       this.next = function() {
