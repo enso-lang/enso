@@ -1,8 +1,9 @@
 
 
 require 'core/grammar/check/typeof'
+require 'core/grammar/check/infer'
 
-class FS
+class FSClasses
   attr_reader :tbl
 
   def initialize(tbl = {})
@@ -90,12 +91,83 @@ class FS
   
 end
 
+class FS
+  attr_reader :tbl
+
+  def initialize(tbl = {})
+    @tbl = tbl
+  end
+
+  def ==(o)
+    tbl == o.tbl
+  end
+
+  def eql?(o)
+    self == o
+  end
+
+  def hashcode
+    tbl.hashcode
+  end
+
+  def to_s
+    tbl.to_s
+  end
+
+  def +(o)
+    merge(o, :+)
+  end
+
+  def *(o)
+    merge(o, :*)
+  end
+
+  def opt
+    regularize(:opt)
+  end
+
+  def plus
+    regularize(:plus)
+  end
+  
+  def star
+    regularize(:star)
+  end
+  
+  def regularize(op)
+    new_tbl = {}
+    tbl.each do |name, tm|
+      new_tbl[name] = TM.new(tm.type, tm.mult.send(op))
+    end
+    FS.new(new_tbl)
+  end
+  
+  private
+
+  def merge(o, op)
+    shared = tbl.keys & o.tbl.keys
+    new_tbl = {}
+    bottom = TM.new(GrammarTypes::VOID, Multiplicity::ZERO)
+    shared.each do |k|
+      new_tbl[k] = tbl[k].send(op, o.tbl[k])
+    end
+    (tbl.keys - o.tbl.keys).each do |k|
+      new_tbl[k] = tbl[k].send(op, bottom)
+    end    
+    (o.tbl.keys - tbl.keys).each do |k|
+      new_tbl[k] = o.tbl[k].send(op, bottom)
+    end
+    FS.new(new_tbl)
+  end
+end
+
+
 class FieldsOf
   BOT = FS.new
 
-  def initialize(schema)
+  def initialize(schema, root)
     @schema = schema
-    @typeof = TypeOf.new(schema)
+    @typeof = TypeOf.new(schema, root)
     @memo = {}
   end
 
@@ -124,14 +196,14 @@ class FieldsOf
   end
 
   def Call(this, klass)
-    if @memo[this.rule.name]
-      return @memo[this.rule.name]
+    if @memo[this]
+      return @memo[this]
     end
 
-    @memo[this.rule.name] = BOT
+    @memo[this] = BOT
     x = fields_of(this.rule, klass)
-    while x != @memo[this.rule.name]
-      @memo[this.rule.name] = x
+    while x != @memo[this]
+      @memo[this] = x
       x = fields_of(this.rule, klass)
     end
     return x
@@ -149,17 +221,16 @@ class FieldsOf
     return x
   end
 
-  # todo: Code
-
   def Code(this, klass)
+    ts = Infer.new(@schema).infer(this.expr, klass)
     fs = {}
-    yield_objects(this.expr) do |x|
-      next if x.nil?
-      if x.EVar? then
-        # buggy, need to really use klass
-        fs[x.name] = TM.new(GrammarTypes::Primitive.new(@schema.types['bool']), 
-                            Multiplicity::ONE)
-        # GrammarTypes::Primitive.new(klass.fields[x.name].type)
+    ts.each do |fn, t|
+      if t.Primitive? then
+        fs[fn] = TM.new(GrammarTypes::Primitive.new(t), Multiplicity::ONE)
+      elsif t.Class? then
+        fs[fn] = TM.new(GrammarTypes::Klass.new(t), Multiplicity::ONE)
+      else
+        raise "Inconsistent type: #{t}"
       end
     end
     FS.new(fs)
@@ -171,15 +242,15 @@ class FieldsOf
 
 
   def Field(this, klass)
-    FS.new({klass.name => {this.name => @typeof.type_of(this.arg, klass, true, :*)}})
+    FS.new({this.name => @typeof.type_of(this.arg, klass, true, :*)})
   end
 
   def Regular(this, klass)
     fs = fields_of(this.arg, klass)
     if this.optional then
-      this.many ? fs.star(klass.name) : fs.opt(klass.name)
+      this.many ? fs.star : fs.opt
     elsif this.many
-      fs.mult(klass.name)
+      fs.plus
     else
       raise "Invalid regular: #{this}" 
     end
@@ -221,7 +292,7 @@ if __FILE__ == $0 then
 
   root_class = s.classes[start]
 
-  to = FieldsOf.new(s)
+  to = FieldsOf.new(s, root_class)
 
   yield_objects(g) do |x|
     next if x.nil?

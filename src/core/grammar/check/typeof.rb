@@ -2,7 +2,7 @@
 
 require 'core/grammar/check/multiplicity'
 require 'core/grammar/check/types'
-require 'core/grammar/check/deref-type'
+require 'core/grammar/check/deref-schema'
 
 
 
@@ -48,8 +48,9 @@ class TypeOf
 
   #BOT = TM.new(VOID, ZERO)
 
-  def initialize(schema)
+  def initialize(schema, root)
     @schema = schema
+    @root = root
     @errors = {}
     @memo = {}
   end
@@ -79,17 +80,8 @@ class TypeOf
 
   def Call(this, klass, in_field, comb)
     if @memo[this]
-      #puts "RETURNING MEMO: #{@memo[this]}"
       return @memo[this]
     end
-
-    # if comb == :+ then
-    #   @memo[this] = TM.new(VOID, ONE)
-    # elsif comb == :* then
-    #   @memo[this] = TM.new(VOID, ZERO)
-    # else
-    #   raise "Wrong comb: #{comb}"
-    # end
 
     @memo[this] = unit(comb)
 
@@ -130,10 +122,15 @@ class TypeOf
   end
 
   def Ref(this, klass, in_field, comb)
-    # TODO!!!
-    #TM.new(Klass.new(DerefType.deref(@schema, @root_class, @ctx, this.path)), ONE)
-    unit(comb) #TM.new(VOID, ZERO)
-    #BOT
+    t = DerefSchema.new(@schema, @root).deref(this.path, klass)
+    return unit(comb) if t.nil?
+    if t.Class? then
+      TM.new(Klass.new(t), ONE)
+    elsif t.Primitive? then
+      TM.new(Primitive.new(t), ONE)
+    else
+      raise "Inconsistent type: #{t}"
+    end
   end
 
   def Lit(this, klass, in_field, comb)
@@ -196,7 +193,7 @@ if __FILE__ == $0 then
 
   root_class = s.classes[start]
 
-  to = TypeOf.new(s)
+  to = TypeOf.new(s, root_class)
 
   test_class = s.classes["Regular"]
   puts to.type_of(g.start, test_class , true, :*)
@@ -204,13 +201,16 @@ if __FILE__ == $0 then
 
   g.rules.each do |rule|
     puts "RULE #{rule.name}: #{to.type_of(rule, test_class, true, :*)}"
-    rule.arg.alts.each do |alt|
-      puts "\tALT: #{to.type_of(alt, test_class, true, :*)}"
-      if alt.Sequence? then
-        alt.elements.each do |elt|
-          puts "\t\tELT: #{to.type_of(elt, test_class, true, :*)}"
-        end
-      end
-    end
+    # rule.arg.alts.each do |alt|
+    #   puts "\tALT: #{to.type_of(alt, test_class, true, :*)}"
+    #   if alt.Sequence? then
+    #     alt.elements.each do |elt|
+    #       puts "\t\tELT: #{to.type_of(elt, test_class, true, :*)}"
+    #     end
+    #   end
+    #   if alt.Create? && alt.arg.elements[0].Field? then
+    #     puts "\t\tFIELD: #{to.type_of(alt.arg.elements[0].arg, test_class, true, :*)}"
+    #   end
+    # end
   end
 end

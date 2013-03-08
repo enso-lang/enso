@@ -83,6 +83,18 @@ module GrammarTypes
     def lub_with_primitive(p)
       if self == p then
         self
+      elsif p == VOID then
+        self
+      else
+        UNDEF
+      end
+    end
+
+    def cat_with_primitive(p)
+      if self == p then
+        self
+      elsif p == VOID then
+        self
       else
         UNDEF
       end
