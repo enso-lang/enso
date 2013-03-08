@@ -3,99 +3,15 @@
 require 'core/grammar/check/typeof'
 require 'core/grammar/check/infer'
 
-class FSClasses
-  attr_reader :tbl
-
-  def initialize(tbl = {})
-    @tbl = tbl
-  end
-
-  def ==(o)
-    tbl == o.tbl
-  end
-
-  def eql?(o)
-    self == o
-  end
-
-  def hashcode
-    tbl.hashcode
-  end
-
-  def to_s
-    tbl.to_s
-  end
-
-  def +(o)
-    merge(o, :+)
-  end
-
-  def *(o)
-    merge(o, :*)
-  end
-
-  def opt(klass)
-    regularize(klass, :opt)
-  end
-
-  def plus(klass)
-    regularize(klass, :plus)
-  end
-
-  def star(klass)
-    regularize(klass, :star)
-  end
-  
-  def regularize(klass, op)
-    new_fields = {}
-    tbl[klass].each do |name, tm|
-      new_fields[name] = TM.new(tm.type, tm.mult.send(op))
-    end
-    new_tbl = tbl.clone
-    new_tbl[klass] = new_fields
-    FS.new(new_tbl)
-  end
-  
-  private
-  def merge(o, op)
-    #puts "MERGING #{op} \n - #{self}\n - #{o}"
-    shared_classes = tbl.keys & o.tbl.keys
-    new_tbl = {}
-    shared_classes.each do |kls|
-      new_tbl[kls] = {}
-      shared = tbl[kls].keys & o.tbl[kls].keys
-      new_fields = {}
-      bottom = TM.new(GrammarTypes::VOID, Multiplicity::ZERO)
-      shared.each do |k|
-        new_fields[k] = tbl[kls][k].send(op, o.tbl[kls][k])
-      end
-      (tbl[kls].keys - o.tbl[kls].keys).each do |k|
-        new_fields[k] = tbl[kls][k].send(op, bottom)
-      end    
-      (o.tbl[kls].keys - tbl[kls].keys).each do |k|
-        new_fields[k] = o.tbl[kls][k].send(op, bottom)
-      end
-      new_tbl[kls] = new_fields
-    end
-    (tbl.keys - o.tbl.keys).each do |kls|
-      new_tbl[kls] = tbl[kls]
-    end
-    (o.tbl.keys - tbl.keys).each do |kls|
-      new_tbl[kls] = o.tbl[kls]
-    end
-    r = FS.new(new_tbl)
-    #puts "INTO ---> #{r}"
-    r
-  end
-
-  
-end
-
 class FS
   attr_reader :tbl
 
   def initialize(tbl = {})
     @tbl = tbl
+  end
+
+  def each(&block)
+    tbl.each(&block)
   end
 
   def ==(o)
@@ -165,9 +81,9 @@ end
 class FieldsOf
   BOT = FS.new
 
-  def initialize(schema, root)
+  def initialize(schema, root, typeof = TypeOf.new(schema, root))
     @schema = schema
-    @typeof = TypeOf.new(schema, root)
+    @typeof = typeof
     @memo = {}
   end
 
