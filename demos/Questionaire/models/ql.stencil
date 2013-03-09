@@ -6,9 +6,10 @@ def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-    if [[elem.guard | data.all_elems]]
+    pages([[elem.guard | data.all_elems]]) {
       for elem : elem.elems
         drawElem(elem)
+    }
 }
 
 def drawQuestion(elem) {
@@ -39,13 +40,10 @@ def drawQuestion(elem) {
 }
 
 // create the nodes (one for each class)
-pages(true ? 0 : 1) {
   vertical {
     for elem : data.elems {
       drawElem(elem)
     }
   }
-  --
-}
 
 }

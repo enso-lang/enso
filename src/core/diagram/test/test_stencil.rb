@@ -12,19 +12,19 @@ stencil = Load::load(stencil_file)
 data = Load::load(data_file)
 model = Construct::eval(stencil, data: data)
 
-def render(diagram)
-  html = Render::render(diagram)
+def render(diagram, data)
+  html = Render::render(diagram, data: data)
   #puts html
   
   File.open('stencil.html', 'w+') do |file|
     file.syswrite(html)
   end
 end
-render(model)
+render(model, data)
 
 require 'test/repl.rb'
 
 Repl.run(data) do
-  render(model)
+  render(model, data)
   puts "Re-rendered page"
 end

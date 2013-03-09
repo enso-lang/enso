@@ -57,9 +57,11 @@ module Env
     end
 
     def []=(key, value)
-      if @parent and @parent.has_key? key
+      if @hash.has_key? key #if defined in current env
+        @hash[key] = value
+      elsif @parent && @parent.has_key?(key) #if defined in parent env
         @parent[key] = value
-      else
+      else #new variable goes into current env
         @hash[key] = value
       end
     end
@@ -73,7 +75,7 @@ module Env
     end
       
     def to_s
-      @hash.to_s
+      "#{@hash.to_s}-#{@parent}"
     end
   end
 
@@ -100,7 +102,11 @@ module Env
     end
     
     def []=(key, value)
-      @obj[key] = value
+      begin
+        @obj[key] = value
+      rescue
+        @parent && @parent[key] = value
+      end
     end
     
     def has_key?(key)
@@ -114,7 +120,7 @@ module Env
     end
       
     def to_s
-      @obj.to_s
+      "#{@obj.to_s}-#{@parent}"
     end
     
     def type(fname)
@@ -135,8 +141,7 @@ module Env
     
     def [](key)
       if @label==key
-        res = @block.call
-        res
+        @block.call
       else
         @parent && @parent[key]
       end
@@ -159,7 +164,7 @@ module Env
     end
      
     def to_s
-      @block.to_s
+      "#{@block.to_s}-#{@parent}"
     end
   end
 

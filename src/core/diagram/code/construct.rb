@@ -53,9 +53,9 @@ module Construct
               dynamic_bind props: nprops do
                 ev = eval(item)
                 if ev.is_a? Array    # flatten arrays
-                  ev.flatten.each {|e| if not e.nil?; res.items << e; end}
+                  ev.flatten.each {|e| if not e.nil?; res[f.name] << e; end}
                 elsif not ev.nil?
-                  res.items << ev
+                  res[f.name] << ev
                 end 
               end
             end
@@ -77,13 +77,35 @@ module Construct
     end
 
     def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
       eval(list).map do |val|  #returns list of results instead of only last result
         nenv[var] = val
         dynamic_bind env: nenv do
           eval(body)
         end
       end
+    end
+
+    def eval_Pages(label, props, items, current)
+      factory = @D[:factory]
+      res = factory.Pages
+      nprops = handle_props(props)
+      nprops.values.each {|p| res.props << p }
+      items.each do |item|
+        dynamic_bind props: nprops do
+          ev = eval(item)
+          if ev.is_a? Array    # flatten arrays
+            ev.flatten.each {|e| if not e.nil?; res.items << e; end}
+          elsif not ev.nil?
+            res.items << ev
+          end
+        end
+      end
+      res.current = Union::Copy(factory, current)
+      unless label.nil?
+        @D[:env][label] = res
+      end
+      res
     end
     
   end
@@ -156,7 +178,7 @@ module Construct
     def eval_EField(e, fname)
       in_fc = @D[:in_fc]
       dynamic = @D[:dynamic]
-    
+
       if in_fc or !dynamic
         super e, fname
       else

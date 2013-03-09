@@ -27,11 +27,11 @@ module Impl
     #args are used by the interpreter
     def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
-      nenv = Env::HashEnv.new
+      nv = {}
       @formals.each_with_index do |f,i|
-        nenv[f.name] = params[i]
+        nv[f.name] = params[i]
       end
-      nenv.set_parent(@env)
+      nenv = Env::HashEnv.new(nv, @env)
       @interp.dynamic_bind env: nenv do
         @interp.eval(@body)
       end
@@ -58,9 +58,9 @@ module Impl
         eval(body)
       end
     end
-  
+
     def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
       eval(list).each do |val|
         nenv[var] = val
         dynamic_bind env: nenv do
@@ -80,14 +80,14 @@ module Impl
     def eval_EBlock(fundefs, body)
       res = nil
       #fundefs are able to see each other but not any other variable created in the block
-      defenv = Env::HashEnv.new.set_parent(@D[:env])
+      defenv = Env::HashEnv.new(@D[:env])
       dynamic_bind in_fc: false, env: defenv do
         fundefs.each do |c|
           eval(c)
         end
       end
       #rest of body can see fundefs
-      env1 = Env::HashEnv.new.set_parent(defenv)
+      env1 = Env::HashEnv.new(defenv)
       dynamic_bind in_fc: false, env: env1 do
         body.each do |c|
           res = eval(c)
