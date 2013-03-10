@@ -81,11 +81,13 @@ module Impl
       res = nil
       #fundefs are able to see each other but not any other variable created in the block
       defenv = Env::HashEnv.new(@D[:env])
+#=begin
       dynamic_bind in_fc: false, env: defenv do
         fundefs.each do |c|
           eval(c)
         end
       end
+#=end
       #rest of body can see fundefs
       env1 = Env::HashEnv.new(defenv)
       dynamic_bind in_fc: false, env: env1 do
@@ -129,12 +131,12 @@ module Impl
     end
   end
 
-  def self.eval(obj, *args)
+  def self.eval(obj, args = {})
     interp = EvalCommandC.new
     if args.empty?
       interp.eval(obj)
     else
-      interp.dynamic_bind *args do
+      interp.dynamic_bind args do
         interp.eval(obj)
       end
     end

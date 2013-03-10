@@ -85,7 +85,7 @@ start _Grammar
     | [Code] "@" code:str
     | [Ref] name:sym "^"
     | [Lit] value:str
-    | [Call] rule:</rules[it]>
+    | [Call] rule:<root.rules[it]>
     | [Regular] arg:Pattern "*"       @"@optional = true; @many = true; @sep = nil"
     | [Regular] arg:Pattern "?"			@"@optional = true; @sep = nil"
     | [Regular] arg:Pattern "+"  			@"@many = true; @sep = nil"

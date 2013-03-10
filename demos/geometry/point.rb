@@ -4,18 +4,18 @@ require 'core/grammar/render/layout'
 require 'core/schema/tools/copy'
 =begin
 puts "\n\n\n\nss\n--------------------------"
-Print.print(Load::load('schema.schema'))
+Print::Print.print(Load::load('schema.schema'))
 puts "\n\n\n\nsg\n--------------------------"
-Print.print(Load::load('schema.grammar'))
+Print::Print.print(Load::load('schema.grammar'))
 puts "\n\n\n\ngs\n--------------------------"
-Print.print(Load::load('grammar.schema'))
+Print::Print.print(Load::load('grammar.schema'))
 puts "\n\n\n\ngg\n--------------------------"
-Print.print(Load::load('grammar.grammar'))
+Print::Print.print(Load::load('grammar.grammar'))
 =end
 point_schema = Load::load('point.schema')
 point_grammar = Load::load('point.grammar')
 
-Print.print Load::load('schema.schema')
+Print::Print.print Load::load('schema.schema')
 
 puts "-"*50
 

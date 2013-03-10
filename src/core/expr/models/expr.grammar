@@ -17,14 +17,14 @@ EUnOp ::= [EUnOp] "not" e:Expr {op == "!"}
         | EFunCall
         | EListComp
         | Primary
-EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")"
+EFunCall ::= [EFunCall] fun:EUnOp "(". params:Expr* @(.",") .")"
 
 Primary ::= EConst
-          | [EField] e:Primary . "." . fname:sym
-          | [ESubscript] e:Expr "[" sub:Expr "]"
+          | [EField] e:Primary .".". fname:sym
+          | [ESubscript] e:Expr ."[". sub:Expr ."]"
           | [EVar] name:sym
-          | [EList] "[" elems:Expr* @"," "]"
-          | "(" Expr ")"
+          | [EList] "[". elems:Expr* @(.",") ."]"
+          | "(". Expr .")"
 EListComp ::= [EListComp] (op:"all?" | op:"any?") var:sym "in" list:Expr ":" e:Expr
 EConst ::= [EStrConst] val:str
          | [EIntConst] val:int

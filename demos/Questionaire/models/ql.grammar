@@ -8,7 +8,7 @@ Elem ::= Group | Question
 
 Group ::= [Group] ("if" guard:Expr)? "{" elems:Elem*@/ "}"
 
-Question ::= [Question] name:sym ":" qn:str ans:</answers[it]>
+Question ::= [Question] name:sym ":" qn:str ans:<root.answers[it]>
 
 Answer ::= CheckBox
          | MultiChoice

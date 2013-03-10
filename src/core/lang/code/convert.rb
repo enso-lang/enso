@@ -49,7 +49,7 @@ class CodeBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
     super
     schema = Load::load('code.schema')
-    @predefined = ["self", "nil", "true", "false"]
+    @predefined = ["self", "nil", "true", "false", "raise", "puts"]
     @f = Factory::new(schema)
     reset_assigned_vars()
   end
@@ -67,12 +67,12 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_alias(new_name, old_name)
-    Undefined
+    raise "Variable aliases not supported"
   end
 
   def on_aref(target, args)
     #puts "AREF #{target} #{args}"
-    if args.normal.length != 1 || args.block || args.rest
+    if args.normal.size != 1 || args.block || args.rest
       raise "Illegal index reference"
     end
     @f.Index(target, args.normal[0])
@@ -195,20 +195,19 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_case(test, when_block)
     #puts "CASE #{test} #{when_block}"
-    #raise "Only one value for case" if test.length != 1
-    if when_block.nil?
-      nil
-    elsif when_block.is_a?(When)
-      tests = when_block.expressions.normal
-      if tests.length == 1
-        cond = @f.EBinOp("==", test, tests[0])
+    #raise "Only one value for case" if test.size != 1
+    switch = @f.Switch(test)
+    scan = when_block
+    while !scan.nil?
+      if scan.is_a?(When)
+        switch.cases << @f.Case(scan.expressions.normal, get_seq(scan.statements))
+        scan = scan.next_block
       else
-        cond = make_call(@f.List(tests), "contains", [test])
+        switch.cases << @f.Case([], get_seq(scan))
+        break
       end
-      @f.If(cond, when_block.statements, on_case(test, when_block.next_block))
-    else
-      get_seq(when_block)  # it's an else
     end
+    switch
   end
 
   def on_CHAR(token)
@@ -414,33 +413,37 @@ class CodeBuilder < Ripper::SexpBuilder
           o.method = @currentMethod
         end
       else
-        if @selfVar && !(o.method =~ /^[A-Z]/)
+        if @selfVar && !(o.method =~ /^[A-Z]/) && (o.method != "puts") 
           o.target = @f.Var(@selfVar)
         end
       end
+      raise "Cannot use 'length'.. use 'size' instead" if o.method == "length"
       o.target = fixup_expr(o.target, env)
       fixup_list(o.args, env)
       o.rest = fixup_expr(o.rest, env)
       o.block = fixup_expr(o.block, env)
 
     when "Fun"
-
       newvars = []
       o.args.each {|x| newvars << x.name}
       newvars << o.block if o.block
       newvars << o.rest if o.rest
       o.locals.each {|x| newvars << x.name}
       #puts "FUN #{newvars}"
-
-      o.args.each{|decl| decl.name = fixup_var_name(decl.name) }
+      
+      newEnv = newvars + env
+      o.args.each{|decl| fixup_expr(decl, newEnv) }
       o.block = fixup_var_name(o.block)
       o.rest = fixup_var_name(o.rest)
-      o.locals.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.locals.each{|decl| fixup_expr(decl, newEnv) }
 
-      o.body = fixup_expr(o.body, newvars + env)
+      o.body = fixup_expr(o.body, newEnv)
 
     when "Decl"
+      o.name = fixup_var_name(o.name)
       o.default = fixup_expr(o.default, env)
+
+    when "Ref", "Lit", "Attribute", "Super"
 
     when "Assign"
       o.to = fixup_expr(o.to, env)
@@ -459,7 +462,11 @@ class CodeBuilder < Ripper::SexpBuilder
       o.base = fixup_expr(o.base, env)
       o.rescues.each {|x| fixup_expr(x, env) }
       o.ensure = fixup_expr(o.ensure, env)
- 
+    
+    when "Switch"
+      o.subject = fixup_expr(o.subject, env)
+      o.cases.each {|x| fixup_expr(x.body, env) }
+
     when "Handler"
       o.body = fixup_expr(o.body, [o.var] + env)
 
@@ -479,6 +486,7 @@ class CodeBuilder < Ripper::SexpBuilder
       o.fields.each {|x| fixup_expr(x, env) }
 
     else
+      raise "Unknown expression type #{o.schema_class.name}"
     end 
     o
   end      
@@ -519,7 +527,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_dot3(min, max)
-    undefined
+    raise "Three dots ... not supported"
   end
 
   def on_dyna_symbol(symbol)
@@ -618,11 +626,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_lambda(params, statements)
-    undefined
+    raise "Explicit lambda not supported (use blocks?)"
   end
 
   def on_massign(lvalue, rvalue)
-    undefined
+    raise "Whatever 'massign' is, we don't currently support it"
   end
 
   def on_method_add_arg(call, args)
@@ -651,15 +659,15 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_mlhs_add(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mlhs_add_star(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mlhs_new
-    []
+    raise "Multiple assignments not supported"
   end
 
   def on_module(const, body)
@@ -667,11 +675,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_mrhs_add(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mrhs_new_from_args(args)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_next(args)
@@ -712,7 +720,6 @@ class CodeBuilder < Ripper::SexpBuilder
     split1 = split[1].partition {|x| x.Require? }
     requires = split1[0] 
     if split1[1].size > 0
-      puts "FOO #{split1[1]}"
       @selfVar = nil
       others = fixup_expr(@f.Seq(split1[1]))
     else
@@ -750,7 +757,7 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_rescue(types, var, statements, block)
     #puts "RESCUE #{types} #{var} #{block}"
-    if types && types.length != 1
+    if types && types.size != 1
       raise "Only one rescue type allowed"
     end
     [@f.Handler(types && types[0].name, var && var.name, get_seq(statements))] + (block || [])
@@ -801,7 +808,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_string_concat(*strings)
-    if strings.length == 0
+    if strings.size == 0
       return @f.Lit("")
     else
       on_string_add(strings[0], on_string_concat(*strings[1..-1]))
@@ -851,6 +858,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
+    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
 
@@ -879,7 +887,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_var_alias(new_name, old_name)
-    undefined
+    raise "Variable aliases not supported"
   end
 
   def on_var_field(name)
@@ -966,6 +974,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_xstring_literal(string)
+    token = eval("\"#{token}\"")
     @f.Lit(string)
   end
 
@@ -974,7 +983,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_yield0
-    undefined
+    raise "Yield not support... use an explicit block"
   end
 
   def on_zsuper(*)
@@ -992,7 +1001,7 @@ if __FILE__ == $0 then
   
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")
-  #jj ToJSON::to_json(m)
+  #jj Dumpjson::to_json(m)
    
   out = File.new(outname, "w")
   $stdout << "## storing #{outname}\n"

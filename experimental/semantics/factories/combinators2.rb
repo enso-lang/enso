@@ -226,10 +226,10 @@ class Morph < Generic
     }
     new_cls = @fact.lookup(cls, above)
     below = Class.new(new_cls)
-    arity = @from.length + 1
+    arity = @from.size + 1
     below.class_eval %Q{
       def #{@op}(*args, &block)
-        x = #{arity} - args.length
+        x = #{arity} - args.size
         if x > 0 then
           extra = []
           keys = #{(@from + [@with]).reverse}

@@ -11,14 +11,14 @@ class Draw
 
   def self.plot(x, y, res)
     return res if x<0||y<0
-    if y>=res.length
-      for i in res.length..y
+    if y>=res.size
+      for i in res.size..y
         res << []
       end
     end
     row = res[y]
-    if x>=row.length
-      for i in row.length..x
+    if x>=row.size
+      for i in row.size..x
         row << 0
       end
     end
@@ -37,7 +37,7 @@ class Draw
   end
 
   def self.draw_Line(d, res)
-    for i in (0..d.pts.length-2)
+    for i in (0..d.pts.size-2)
       p1 = d.pts[i]; p2 = d.pts[i+1]
       segment(p1, p2, res)
     end
@@ -70,9 +70,9 @@ class Draw
   end
 
   def self.render(res)
-    for i in (0..res.length-1).to_a.reverse
+    for i in (0..res.size-1).to_a.reverse
       row = res[i]
-      for j in 0..row.length-1
+      for j in 0..row.size-1
         if row[j] == 1
           print "x"
         else

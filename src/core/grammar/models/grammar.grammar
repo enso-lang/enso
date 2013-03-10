@@ -1,8 +1,8 @@
-import path.grammar, expr.grammar
+import expr.grammar
 
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:</rules[it]> rules:Rule* @/2
+  Grammar ::= [Grammar] "start" \start:<root.rules[it]> rules:Rule* @/2
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym
@@ -24,9 +24,9 @@ import path.grammar, expr.grammar
     | [Value] kind:"sym"
     | [Value] kind:"atom"
     | [Code] "{" expr:Expr "}"
-    | [Ref] "<".path:Path.">"
+    | [Ref] "<".path:Expr.">"
     | [Lit] value:str
-    | [Call] rule:</rules[it]>
+    | [Call] rule:<root.rules[it]>
     | [Regular] arg:Pattern."*" Sep? { (optional == true) and (many == true) }
     | [Regular] arg:Pattern."?" { optional == true }
     | [Regular] arg:Pattern."+" Sep? { many == true }
@@ -37,9 +37,5 @@ import path.grammar, expr.grammar
     | "(".Alt.")"
     
   Sep ::= "@".sep:Pattern
-
-// extension of path.grammar
-abstract Path
-Key ::= [It] "it"
 
 abstract Expr

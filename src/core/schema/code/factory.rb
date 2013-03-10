@@ -52,7 +52,7 @@ module Factory
       else
         res = false
         c.supers.each do |s|
-          res ||= check_cyclic_subtyping(s, subs.plus([c]))
+          res ||= check_cyclic_subtyping(s, subs.union([c]))
         end 
         res
       end
@@ -62,9 +62,9 @@ module Factory
       !@unsafe.nil? and @unsafe>0
     end
 
-    def unsafe_mode
+    def unsafe_mode &body
       @unsafe = @unsafe ? @unsafe+1 : 1
-      yield
+      body.call
       @unsafe -= 1
     end
 
@@ -105,7 +105,7 @@ module Factory
       end
       # initialize    
       klass.fields.each_with_index do |fld, i|
-        if i < args.length
+        if i < args.size
           if fld.many then
             args[i].each do |value|
               self[fld.name] << value
@@ -152,7 +152,7 @@ module Factory
     end
         
     def __to_s(cls)
-      k = Schema::class_key(cls)
+      k = Schema::class_key(cls) || cls.fields.find{|f| f.type.Primitive? }
       if k then
         define_singleton_method :to_s do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
@@ -184,7 +184,7 @@ module Factory
           end
           fvs.each do |fv|
             if fv.object  #should always be non-nil since computed fields have no external env
-              fv.object.add_listener(fv.index) { var = nil }
+              fv.object.add_listener(fv.index) { val = nil }
             end
           end
           val = Impl::eval(exp, env: Env::ObjEnv.new(self))
@@ -248,7 +248,7 @@ module Factory
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths.new
+      __shell ? __shell._path(self) : Paths::Path.new
     end
 
     def _clone
@@ -396,10 +396,6 @@ module Factory
         if new.nil? then
           key = set.__key
           new = Set.new(nil, @field, key)
-        else
-         # if set.__key != key then
-         #   raise "Incompatible key fields: #{set.__key} vs #{key}"   
-         # end
         end
         set.each do |y|
           new << y
@@ -446,6 +442,7 @@ module Factory
   
   module RefHelpers
     def notify(old, new)
+      #puts "NOTIFY #{new} / #{@inverse}" if @inverse  # @field.name == "rules"
       if old != new
         @owner.notify(@field.name, new)
         if @inverse
@@ -534,7 +531,7 @@ module Factory
 
     def empty?; __value.empty? end
 
-    def length; __value.length end
+    def size; __value.size end
 
     def to_s; __value.to_s end
 
@@ -566,6 +563,10 @@ module Factory
       if connected? && @field.traversal then
         mobj.__shell = shell
       end
+    end
+    
+    def to_s
+      "<MANY #{map{|x| x.to_s}}>"
     end
   end
 
@@ -660,7 +661,7 @@ module Factory
 
     def values; __value end
 
-    def keys; Array.new(length){|i|i} end
+    def keys; Array.new(size){|i|i} end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj

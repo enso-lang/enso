@@ -10,7 +10,7 @@ ddtreemenu.createTree=function(treeid, enablepersist, persistdays){
 var ultags=document.getElementById(treeid).getElementsByTagName("ul")
 if (typeof persisteduls[treeid]=="undefined")
 persisteduls[treeid]=(enablepersist==true && ddtreemenu.getCookie(treeid)!="")? ddtreemenu.getCookie(treeid).split(",") : ""
-for (var i=0; i<ultags.length; i++)
+for (var i=0; i<ultags.size; i++)
 ddtreemenu.buildSubTree(treeid, ultags[i], i)
 if (enablepersist==true){ //if enable persist feature
 var durationdays=(typeof persistdays=="undefined")? 1 : parseInt(persistdays)
@@ -69,7 +69,7 @@ currentnode=currentnode.parentNode
 
 ddtreemenu.flatten=function(treeid, action){ //expand or contract all UL elements
 var ultags=document.getElementById(treeid).getElementsByTagName("ul")
-for (var i=0; i<ultags.length; i++){
+for (var i=0; i<ultags.size; i++){
 ultags[i].style.display=(action=="expand")? "block" : "none"
 var relvalue=(action=="expand")? "open" : "closed"
 ultags[i].setAttribute("rel", relvalue)
@@ -80,11 +80,11 @@ ultags[i].parentNode.style.backgroundImage=(action=="expand")? "url("+ddtreemenu
 ddtreemenu.rememberstate=function(treeid, durationdays){ //store index of opened ULs relative to other ULs in Tree into cookie
 var ultags=document.getElementById(treeid).getElementsByTagName("ul")
 var openuls=new Array()
-for (var i=0; i<ultags.length; i++){
+for (var i=0; i<ultags.size; i++){
 if (ultags[i].getAttribute("rel")=="open")
-openuls[openuls.length]=i //save the index of the opened UL (relative to the entire list of ULs) as an array element
+openuls[openuls.size]=i //save the index of the opened UL (relative to the entire list of ULs) as an array element
 }
-if (openuls.length==0) //if there are no opened ULs to save/persist
+if (openuls.size==0) //if there are no opened ULs to save/persist
 openuls[0]="none open" //set array value to string to simply indicate all ULs should persist with state being closed
 ddtreemenu.setCookie(treeid, openuls.join(","), durationdays) //populate cookie with value treeid=1,2,3 etc (where 1,2... are the indexes of the opened ULs)
 }
@@ -107,7 +107,7 @@ document.cookie = name+"="+value+"; expires="+expireDate.toGMTString()+"; path=/
 
 ddtreemenu.searcharray=function(thearray, value){ //searches an array for the entered value. If found, delete value from array
 var isfound=false
-for (var i=0; i<thearray.length; i++){
+for (var i=0; i<thearray.size; i++){
 if (thearray[i]==value){
 isfound=true
 thearray.shift() //delete this element from array for efficiency sake

@@ -24,6 +24,7 @@ class DiffTest < Test::Unit::TestCase
   # test differencing
   def test_diff
     deltas = Diff.diff(@p1, @p2)
+    puts deltas
     assert_equal(11, deltas.size) #FIXME: this is a genuine bug to do with refs
   end  
 
@@ -36,7 +37,7 @@ class DiffTest < Test::Unit::TestCase
     puts Diff.diff(ss, gs)
 
     #TODO: not sure how to check if this test is producing the right output
-    #Print.print(delta)
+    #Print::Print.print(delta)
 =end
   end
 end

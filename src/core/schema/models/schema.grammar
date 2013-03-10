@@ -7,13 +7,13 @@ Schema ::= [Schema] types:TypeDef* @/2
 TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
-
+  
 Class ::= [Class] "class" name:sym ClassAnnot /> defined_fields:Field* @/ </
 ClassAnnot ::= Parent?
 Parent ::= "<" supers:Super+ @","
-Super ::= </classes[it]>
+Super ::= <root.classes[it]>
 
-Field ::= [Field] name:sym.Kind type:</types[it]> Multiplicity? Annot?
+Field ::= [Field] name:sym.Kind type:<root.types[it]> Multiplicity? Annot?
 
 Kind ::= "#" { key == true }
       |  "##" { (key == true) and (auto == true) }
@@ -24,7 +24,7 @@ Multiplicity ::= ."*" { (many == true) and (optional == true) }
 	       | ."?" { optional == true } 
 	       | ."+" { many == true }
 
-Annot ::= "/" inverse:<./type/fields[it]>
+Annot ::= "/" inverse:<this.type.fields[it]>
         | "=" computed:Expr
 
 abstract Expr

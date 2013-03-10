@@ -226,7 +226,7 @@ class DiagramFrame < BaseWindow
       end
     end
     from = nil
-    #puts "FindCon #{part.path.length}"
+    #puts "FindCon #{part.path.size}"
     part.path.each do |to|
       if !from.nil?
 	      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
@@ -278,7 +278,7 @@ class DiagramFrame < BaseWindow
     part.items.each_with_index do |item, i|
       w, h = constrain(item, x, y)
       next if w.nil?
-      #puts "ITEM #{i}/#{part.items.length}"
+      #puts "ITEM #{i}/#{part.items.size}"
       case part.direction
       when 1 then #vertical
         pos = pos + h
@@ -455,7 +455,7 @@ class DiagramFrame < BaseWindow
 	    r = boundary(part)
 	    @dc.draw_rectangle(r.x, r.y, r.w, r.h)
 	  end
-    (part.items.length-1).downto(0).each do |i|
+    (part.items.size-1).downto(0).each do |i|
       draw(part.items[i])
     end
   end  

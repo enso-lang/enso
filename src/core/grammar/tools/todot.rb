@@ -74,7 +74,7 @@ class ToDot
     if n.is_a?(Leaf) then
       'plaintext'
     elsif n.is_a?(Node) then
-      if n.kids.length > 1 then
+      if n.kids.size > 1 then
         'diamond'
       else
         'box'

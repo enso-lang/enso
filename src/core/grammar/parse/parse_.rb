@@ -22,7 +22,7 @@ class Parse
     end
     
     def parse(gll, nxt)
-      if dot == elements.length then
+      if dot == elements.size then
         gll.pop
       else
         nxt = Item.new(expression, elements, dot + 1)

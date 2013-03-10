@@ -7,7 +7,6 @@ This file stores various types of environments
 
 module Env
   module BaseEnv
-
     def set!(key, &block)
       self[key] = block.call(self[key])
     end
@@ -84,10 +83,10 @@ module Env
     include BaseEnv
   
     attr_reader :obj
-  
-    def initialize(obj, parent=nil)
+
+    def initialize(obj, parent = nil)
       @obj = obj
-      @parent=parent
+      @parent = parent
     end
     
     def [](key)
@@ -167,5 +166,4 @@ module Env
       "#{@block.to_s}-#{@parent}"
     end
   end
-
 end

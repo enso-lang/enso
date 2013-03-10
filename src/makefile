@@ -17,6 +17,10 @@ main: \
 	js/core/grammar/render/layout.js \
 	js/core/grammar/render/render.js \
 	js/core/system/load/cache.js \
+	js/core/system/utils/find_model.js \
+  js/core/schema/tools/dumpjson.js \
+  js/core/schema/tools/print.js \
+  js/core/grammar/parse/topath.js \
 	
 	
 foo: \
@@ -34,7 +38,7 @@ code/%.code: %.rb
 	ruby -I . core/lang/code/convert.rb $< $@
  
  
-js/%.js: %.rb core/lang/code/convert.rb core/lang/models/code_js.grammar
+js/%.js: %.rb core/lang/models/code_js.grammar
 	echo "GENERATING " $@
 	mkdir -p `dirname $@`
 	#ruby -I . core/grammar/render/trans.rb $< code_js $@

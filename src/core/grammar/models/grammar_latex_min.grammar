@@ -5,7 +5,7 @@
                         "\begin{document}" /
                         "\begin{tabbing}" /
                         "\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\=\quad\= \\" /
-                         "\verb~start~" \start:</rules[it]> "\\" / 
+                         "\verb~start~" \start:<root.rules[it]> "\\" / 
                          rules:Rule* @(/ "\\ \\") /
                          "\end{tabbing}" /
                          "\end{document}" 

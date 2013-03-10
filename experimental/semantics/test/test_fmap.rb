@@ -4,7 +4,7 @@ require 'core/semantics/interpreters/debug'
 
 CacheXML.clean('expr1.expr')
 expr = Load::load('expr1.expr')
-Print.print(expr)
+Print::Print.print(expr)
 
 module PlusOne
   operation :p1
@@ -17,4 +17,4 @@ end
 interp = Interpreter(Fmap.traverse(PlusOne))
 interp.p1(expr)
 
-Print.print(expr)
+Print::Print.print(expr)

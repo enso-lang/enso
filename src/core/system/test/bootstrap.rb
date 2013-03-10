@@ -28,7 +28,7 @@ class BootstrapTests < Test::Unit::TestCase
   
   def test_4
     ss = Boot.load_path("core/system/boot/schema_schema.json")
-    assert(5 == ss.types['Class'].defined_fields.length)
+    assert(5 == ss.types['Class'].defined_fields.size)
   end
   
   def test_5
@@ -43,7 +43,7 @@ class BootstrapTests < Test::Unit::TestCase
     puts "Writing new metaschema"  
     ss_path = 'schema_schema2.json'
     File.open(ss_path, 'w+') do |f| 
-      f.write(JSON.pretty_generate(ToJSON.to_json(realss, true)))
+      f.write(JSON.pretty_generate(Dumpjson::to_json(realss, true)))
     end
     assert( Equals.equals(realss, ss) )
   end

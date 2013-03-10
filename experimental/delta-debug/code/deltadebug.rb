@@ -48,13 +48,13 @@ class DeltaDebug
     end
 
     #if this is a leaf we are done
-    if fields.length == 0
+    if fields.size == 0
       return d, d
     end
 
     #if there are 2+ fields, split them field-wise
-    if fields.length > 1
-      for i in 0..fields.length/2-1
+    if fields.size > 1
+      for i in 0..fields.size/2-1
         if !fields[i].many
           res1[fields[i].name] = d[fields[i].name]
         else
@@ -63,7 +63,7 @@ class DeltaDebug
           end
         end
       end
-      for i in fields.length/2..fields.length-1
+      for i in fields.size/2..fields.size-1
         if !fields[i].many
           res2[fields[i].name] = d[fields[i].name]
         else
@@ -77,18 +77,18 @@ class DeltaDebug
 
     #if exactly one field and it is a many field (with many objects), split it
     f = fields[0]
-    return d if f.many and d[f.name].length == 0
-    if f.many and d[f.name].length > 1
+    return d if f.many and d[f.name].size == 0
+    if f.many and d[f.name].size > 1
       vals = d[f.name].values
-      for i in 0..vals.length/2-1
+      for i in 0..vals.size/2-1
         res1[f.name] << vals[i]
       end
-      for i in vals.length/2..vals.length-1
+      for i in vals.size/2..vals.size-1
         res2[f.name] << vals[i]
       end
       #puts "results from CCC:"
-      #Print.print(res1)
-      #Print.print(res2)
+      #Print::Print.print(res1)
+      #Print::Print.print(res2)
       return res1, res2
     end
 

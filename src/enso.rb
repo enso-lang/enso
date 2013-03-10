@@ -9,6 +9,9 @@ module System
   def raise(error)
     raise error
   end
+  def self.max(a, b)
+    if a > b then a else b end
+  end
 end
 
 class File
@@ -59,6 +62,10 @@ end
 class String
   def is_binary_data?
     ( self.count( "^ -~", "^\r\n" ).fdiv(self.size) > 0.3 || self.index( "\x00" ) ) unless empty?
+  end
+  
+  def repeat n
+    self * n
   end
 end
 

@@ -1,4 +1,5 @@
-import path.schema, expr.schema
+import path.schema 
+import expr.schema
 
 primitive str 
 primitive int 
@@ -36,7 +37,7 @@ class Value < Pattern
   kind: str 
  
 class Ref < Pattern
-   path! Path
+   path! Expr
 
 class Lit < Pattern 
   value: str
