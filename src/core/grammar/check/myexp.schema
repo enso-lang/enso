@@ -1,0 +1,18 @@
+
+
+
+class Exp
+
+class Bin < Exp
+  lhs! Exp
+  rhs! Exp
+  op: str?
+
+class Var < Exp
+  name: str
+
+class Lst < Exp
+  elts! Exp*
+  
+
+primitive str

@@ -21,7 +21,7 @@ class TM
   end
 
   def *(x)
-    TM.new(type * x.type, mult * x.mult)
+    TM.new(type + x.type, mult * x.mult)
   end
 
   def to_s
@@ -94,7 +94,11 @@ class TypeOf
   end
 
   def Rule(this, klass, in_field, comb)
-    type_of(this.arg, klass, in_field, comb)
+    if this.arg then
+      type_of(this.arg, klass, in_field, comb) 
+    else
+      TM.new(VOID, ONE) # hack, we should not support abstract rules.
+    end
   end
 
   def Alt(this, klass, in_field, comb)
@@ -176,8 +180,29 @@ class TypeOf
   end
 end
 
+module Bla
+  def yield_objects(model, &block)
+    return if model.nil?
+    model.schema_class.fields.each do |fld|
+      next if fld.type.Primitive? || !fld.traversal 
+      if fld.many then
+        model[fld.name].each do |x|
+          yield x
+          yield_objects(x, &block)
+        end
+      else
+        x = model[fld.name]
+        yield x
+        yield_objects(x, &block)
+      end
+    end
+  end
+end
+
 
 if __FILE__ == $0 then
+  include Bla
+
   if !ARGV[0] || !ARGV[1] || !ARGV[2] then
     puts "use typeof.rb <name>.grammar <name>.schema <rootclass>"
     exit!(1)
@@ -185,6 +210,8 @@ if __FILE__ == $0 then
 
 
   require 'core/system/load/load'
+  require 'core/grammar/render/layout'
+
   require 'pp'
 
   g = Load::load(ARGV[0])
@@ -198,6 +225,19 @@ if __FILE__ == $0 then
   test_class = s.classes["Regular"]
   puts to.type_of(g.start, test_class , true, :*)
 
+  gg = Load::load('grammar.grammar')
+
+  yield_objects(g) do |x|
+    next if x.nil?
+    next if x.Lit?
+    next if x.Call?
+    tm = to.type_of(x, test_class, true, :*)
+    if tm.type != GrammarTypes::VOID then
+      puts "#{x}: #{tm}"
+    end
+  end
+
+  exit!
 
   g.rules.each do |rule|
     puts "RULE #{rule.name}: #{to.type_of(rule, test_class, true, :*)}"

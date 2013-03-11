@@ -14,6 +14,10 @@ class FS
     tbl.each(&block)
   end
 
+  def [](o)
+    tbl[o]
+  end
+
   def ==(o)
     tbl == o.tbl
   end

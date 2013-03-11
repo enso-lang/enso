@@ -15,7 +15,7 @@ class Buildable
     puts "ERROR: #{msg}"
   end
 
-  def check_fields(fs, klass)
+  def check_fields(fs, klass, create)
     fields = klass.fields
     fs.each do |fn, tm|
       #puts "Checking #{fn}: #{tm} against #{fields[fn]}"
@@ -28,6 +28,15 @@ class Buildable
         error("Type #{tm.type.primitive} not compatible to  #{fields[fn].type} of #{fn} in #{klass.name}")
       elsif !(tm.mult <= mult_of(fields[fn])) then
         error("Multiplicity #{tm.mult} not sub #{mult_of(fields[fn])} of #{fn} in #{klass.name}")
+      end
+    end
+  end
+
+  def check_absent_fields(fs, klass, create)
+    # NB: this does not deal with inverses...
+    klass.fields.each do |f|
+      if fs[f.name].nil? && !f.optional then
+        error("Required field #{f.name} is not assigned at #{create}")
       end
     end
   end
@@ -75,7 +84,7 @@ class Buildable
   end
 
   def Rule(this)
-    check(this.arg)
+    check(this.arg) if this.arg
   end
 
   def Create(this)
@@ -84,7 +93,8 @@ class Buildable
       error("No class for create #{this}") 
     else
       fs = @fields_of.fields_of(this.arg, klass)
-      check_fields(fs, klass)
+      check_fields(fs, klass, this)
+      check_absent_fields(fs, klass, this)
     end
     check(this.arg)
   end
