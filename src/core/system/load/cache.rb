@@ -8,7 +8,7 @@ module Cache
 
   def self.save_cache(name, model, out=find_json(name))
     res = add_metadata(name, model)
-    res['model'] = ToJSON.to_json(model, true)
+    res['model'] = Dumpjson::to_json(model, true)
     File.open(out, 'w+') do |f| 
       f.write(JSON.pretty_generate(res, allow_nan: true, max_nesting: false))
     end
@@ -17,7 +17,7 @@ module Cache
   def self.load_cache(name, factory, input=find_json(name))
     type = name.split('.')[-1]
     json = System.readJSON(input)
-    res = ToJSON.from_json(factory, json['model'])
+    res = Dumpjson::from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
     json['depends'].each {|dep| res.factory.file_path << dep['filename']}
     res

@@ -63,5 +63,5 @@ if __FILE__ == $0 then
   newSchema = Copy.new(Factory::new(gs)).copy(sg)
   newSchema.finalize()
   
-  Print.print(newSchema)
+  Print::Print.print(newSchema)
 end

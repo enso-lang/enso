@@ -27,7 +27,7 @@ class SecureBatch
     #-----------------
     #what do i need to read this class?
     read_obj = Copy(queryfact,securityobj.get_allow_constraints("OpRead", classname))
-    Print.print(read_obj)
+    Print::Print.print(read_obj)
     #what do i need to read these fields?
     read_fields = query.fields.reduce(nil) do |conj, f|
       exp = Copy(queryfact,securityobj.get_allow_constraints("OpRead", classname, f.name))

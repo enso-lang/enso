@@ -24,12 +24,12 @@ end
 puts "\nComparing dd1 and dd2..."
 res = DeltaDebug.new(proc).dd(Load::load('dd1.point'), Load::load('dd2.point'))
 puts "Failure-inducing change:"
-Print.print(res)
+Print::Print.print(res)
 
 puts "\nComparing dd0 and dd2..."
 factory = Factory::new(Load::load('point.schema'))
 null = factory.Canvas
 res = DeltaDebug.new(proc).dd(null, Load::load('dd2.point'))
 puts "Failure-inducing change:"
-Print.print(res)
+Print::Print.print(res)
 

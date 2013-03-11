@@ -1,13 +1,13 @@
-
 require 'core/expr/code/eval'
 require 'core/expr/code/env'
+require 'core/schema/tools/print'
 require 'core/system/utils/paths'
+require 'core/system/library/schema'
 
 module Layout
   
   # render an object into a grammar, to create a parse tree
   class RenderClass
-    include Paths
   
     def initialize(slash_keywords = true)
       @depth = 0
@@ -29,15 +29,12 @@ module Layout
       if !r
         @create_stack.each_with_index do |p, i|
           puts "*****#{i + @success >= @create_stack.length ? 'SUCCESS' : 'FAIL'}*****"          
-          Print.print(p[0], 2)
+          Print::Print.print(p[0], 2)
           puts "-----------------"
-          Print.print(p[1], 2)
+          Print::Print.print(p[1], 2)
         end
         puts "grammar=#{grammar} obj=#{obj}\n\n"
-        Print.print(grammar)
-        Print.print(obj)
-        raise RuntimeError, 'Message goes here'
-        abort "No matches found"
+        raise "Can't render this object"
       end
       r
     end
@@ -46,11 +43,6 @@ module Layout
       # ugly, should be higher up
       @root = stream.current
       @literals = Scan.collect_keywords(this)
-      this.rules.each do |rule|
-        if rule.arg.alts.length == 1
-          rule.arg = rule.arg.alts[0]
-        end
-      end
       recurse(this.start.arg, SingletonStream.new(stream.current), container)
     end
   
@@ -58,11 +50,11 @@ module Layout
       pair = [pat, data.current]
       if !@stack.include?(pair)
         @stack << pair 
-        #puts "#{' '*@depth}#{pat} #{data.current}"
+        #puts "#{' '.repeat(@depth)}#{pat} #{data.current}"
         @depth = @depth + 1
         val = send(pat.schema_class.name, pat, data, container)
         @depth = @depth - 1
-        #puts "#{' '*@depth}#{pat} #{data.current} ==> #{val}"
+        #puts "#{' '.repeat(@depth)}#{pat} #{data.current} ==> #{val}"
         @stack.pop
         val
       end
@@ -73,6 +65,10 @@ module Layout
     end
   
     def Alt(this, stream, container)
+      this.alts.find_first do |pat|
+        recurse(pat, stream.copy, container)
+      end
+=begin      
       if !this.extra_instance_data
         this.extra_instance_data = []
         scan_alts(this, this.extra_instance_data)
@@ -84,6 +80,7 @@ module Layout
           recurse(info[1], stream.copy, container)
         end
       end
+=end
     end
     
     def scan_alts(this, alts)
@@ -120,7 +117,7 @@ module Layout
   
     def Create(this, stream, container)
       obj = stream.current
-      #puts "#{' '*@depth}[#{this.name}] #{obj}"
+      #puts "#{' '.repeat(@depth)}[#{this.name}] #{obj}"
       if !obj.nil? && obj.schema_class.name == this.name
         stream.next
         @create_stack.pop(@need_pop)
@@ -145,7 +142,7 @@ module Layout
           this.arg.value
         end
       else
-        #puts "#{' '*@depth}FIELD #{this.name}"
+        #puts "#{' '.repeat(@depth)}FIELD #{this.name}"
         if this.name == "_id"
           data = SingletonStream.new(obj._id)
         else
@@ -203,19 +200,15 @@ module Layout
     def Ref(this, stream, container)
       obj = stream.current
       if !obj.nil?
-        it = PathVar.new("it")
-        path = ToPath.to_path(this.path, it)
-        #puts "#{' '*@depth}RENDER #{path} REF /=#{@root} .=#{container}"
-        bind = path.search(@root, container, obj)
-        
-        #puts "#{' '*@depth}RENDER REF '#{bind[:it]}' #{container}=#{bind}"
-        output(bind[:it]) if !bind.nil? # TODO: need "." keys
+        # TODO: this is complete cheating! we need to search the path
+        key_field = Schema::class_key(obj.schema_class)
+        output(obj[key_field.name()])
       end
     end
   
     def Lit(this, stream, container)
       obj = stream.current
-      #puts "#{' '*@depth}Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
+      #puts "#{' '.repeat(@depth)}Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
       output(this.value)
     end
   
@@ -395,9 +388,6 @@ module Layout
     def initialize(data, used = false)
       @data = data
       @used = used
-      if @data == false
-        raise "not an object!!"
-      end
     end
     def length
       @used ? 0 : 1
@@ -460,8 +450,8 @@ module Layout
         obj.each {|x| print x}
       elsif obj.is_a?(String)
         if @lines > 0
-          @out << ("\n" * @lines)
-          @out << (" " * @indent)
+          @out << ("\n".repeat(@lines))
+          @out << (" ".repeat(@indent))
           @lines = 0
         else
           @out << " " if @space
@@ -473,7 +463,7 @@ module Layout
       elsif obj.Indent?
         @indent += 2 * obj.indent
       elsif obj.Break?
-        @lines = [@lines, obj.lines].max
+        @lines = System.max(@lines, obj.lines)
       else
         raise "Unknown format #{obj}"
       end

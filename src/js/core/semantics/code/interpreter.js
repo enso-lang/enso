@@ -60,9 +60,22 @@ function() {
       return result;
     };
 
+    this.debug = function() {
+      var self = this; 
+      self.$.debug = true;
+      if (! self.$.indent) {
+        return self.$.indent = 0;
+      }
+    };
+
     this.dispatch = function(operation, obj) {
       var self = this; 
-      var type, method, params;
+      var type, method, result, params;
+      self.$.debug = false;
+      if (self.$.debug) {
+        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\n"));
+        self.$.indent = self.$.indent + 1;
+      }
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
@@ -73,17 +86,23 @@ function() {
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
-        return self.send(method, type, obj, self.$.D);
+        result = self.send(method, type, obj, self.$.D);
       } else {
         params = type.fields().map(function(f) {
           return obj._get(f.name());
         });
-        return self.send.apply(self, [method].concat( params ));
+        result = self.send.apply(self, [method].concat( params ));
       }
+      if (self.$.debug) {
+        self.$.indent = self.$.indent - 1;
+        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\n"));
+      }
+      return result;
     };
 
     this.dispatch_obj = function(operation, obj) {
       var self = this; 
+      var params = compute_rest_arguments(arguments, 2 );
       var type, method;
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
@@ -96,7 +115,7 @@ function() {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
-      return self.send(method, obj);
+      return self.send.apply(self, [method, obj].concat( params ));
     };
 
     this.find = function(operation, type) {

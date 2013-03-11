@@ -142,7 +142,7 @@ module Factory
     end
         
     def __to_s(cls)
-      k = Schema::class_key(cls)
+      k = Schema::class_key(cls) || cls.fields.find{|f| f.type.Primitive? }
       if k then
         define_singleton_method :to_s do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
@@ -175,14 +175,13 @@ module Factory
           end
           fvs.each do |fv|
             if fv.object  #should always be non-nil since computed fields have no external env
-              fv.object.add_listener(fv.index) { var = nil }
+              fv.object.add_listener(fv.index) { val = nil }
             end
           end
           val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
             commInterp.eval(exp)
           end
           #puts "COMPUTED #{name}=#{val}"
-          var = val
         end
         val
       end
@@ -233,7 +232,7 @@ module Factory
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths.new
+      __shell ? __shell._path(self) : Paths::new
     end
 
     def _clone
@@ -381,10 +380,6 @@ module Factory
         if new.nil? then
           key = set.__key
           new = Set.new(nil, @field, key)
-        else
-         # if set.__key != key then
-         #   raise "Incompatible key fields: #{set.__key} vs #{key}"   
-         # end
         end
         set.each do |y|
           new << y
@@ -549,6 +544,10 @@ module Factory
       if connected? && @field.traversal then
         mobj.__shell = shell
       end
+    end
+    
+    def to_s
+      "<MANY #{map{|x| x.to_s}}>"
     end
   end
 

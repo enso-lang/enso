@@ -3,4 +3,4 @@ E ::= [Let] "var" var:sym "=" val:T .";"/ body:E | T
 T ::= [Add] left:T "+" right:M  | M
 M ::= [Mul] left:M "*" right:P  | P
 P ::= [Num] val:int             | "(" E ")"  
-    | [Var] binding:<./bindings[it]>
+    | [Var] binding:<this.bindings[it]>

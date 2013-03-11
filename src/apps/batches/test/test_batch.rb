@@ -53,9 +53,9 @@ class BatchTest < Test::Unit::TestCase
   def test_securebatch
     todo = Load::load('todo2.web')
     schema = Load::load('todo.schema')
-    Print.print(todo)
+    Print::Print.print(todo)
     query = BatchEval.batch(todo, schema.types['Todos'])
-    Print.print(query['index'])
+    Print::Print.print(query['index'])
 
     # Emily can only read todos that are not done
     rules = Security.new('todo.auth')
@@ -64,7 +64,7 @@ class BatchTest < Test::Unit::TestCase
       q2 = SecureBatch.secure_transform!(q, rules)
     end
 
-    Print.print(query['index'])
+    Print::Print.print(query['index'])
   end
 
   def test_batch_todo2

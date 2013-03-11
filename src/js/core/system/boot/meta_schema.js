@@ -1,11 +1,10 @@
 define([
-  "core/system/utils/paths",
   "core/schema/code/factory",
   "core/schema/tools/union",
   "json",
   "enso"
 ],
-function(Paths, Factory, Union, Json, Enso) {
+function(Factory, Union, Json, Enso) {
   var MetaSchema ;
 
   var MObject = MakeClass("MObject", EnsoProxyObject, [],
@@ -44,8 +43,7 @@ function(Paths, Factory, Union, Json, Enso) {
             keyed = key._get(- 1) == "#";
             name = keyed
               ? key.slice(0, key.length - 1)
-              : key
-            ;
+              : key;
             if (value.length == 0 || ! System.test_type(value._get(0), String)) {
               return self._create_many(name, value.map(function(a) {
                 return MetaSchema.make_object(a, self.$.root);
@@ -60,22 +58,37 @@ function(Paths, Factory, Union, Json, Enso) {
         }
       };
 
+      this._lookup = function(str, obj) {
+        var self = this; 
+        var n, field, obj, index;
+        str.split(".").each(function(part) {
+          if ((n = part.index("[")) && part.slice(- 1) == "]") {
+            field = part.slice(0, n);
+            obj = obj._get(field);
+            index = part.slice(n + 1, (part.length - n) - 2);
+            return obj = obj._get(index);
+          } else {
+            return obj = obj._get(part);
+          }
+        });
+        return obj;
+      };
+
       this._complete = function() {
         var self = this; 
         var keyed, name;
         self.$.data.each(function(key, value) {
           if (key == "class") {
             return self.define_singleton_value("schema_class", self.$.root.types()._get(value));
-          } else if (key._get(- 1) != "=" && value) {
+          } else if (key._get(- 1) != "=" && value != null) {
             if (System.test_type(value, Array)) {
               keyed = key._get(- 1) == "#";
               name = keyed
                 ? key.slice(0, key.length - 1)
-                : key
-              ;
+                : key;
               if (value.length > 0 && System.test_type(value._get(0), String)) {
                 return self._create_many(name, value.map(function(a) {
-                  return Paths.parse(a).deref(self.$.root);
+                  return MetaSchema.path_eval(a, self.$.root);
                 }), keyed);
               } else {
                 return self._get(name).each(function(obj) {
@@ -83,7 +96,7 @@ function(Paths, Factory, Union, Json, Enso) {
                 });
               }
             } else if (System.test_type(value, String)) {
-              return self.define_singleton_value(key, Paths.parse(value).deref(self.$.root));
+              return self.define_singleton_value(key, MetaSchema.path_eval(value, self.$.root));
             } else {
               return self._get(key)._complete();
             }
@@ -169,7 +182,7 @@ function(Paths, Factory, Union, Json, Enso) {
 
       this.each_with_match = function(block, other) {
         var self = this; 
-        var other, ks, a, b;
+        var other, ks, i;
         if (self.$.keyed) {
           other = other || new EnsoHash ( { } );
           ks = self.keys() || other.keys();
@@ -177,10 +190,10 @@ function(Paths, Factory, Union, Json, Enso) {
             return block(self._get(k), other._get(k));
           });
         } else {
-          a = Array(self);
-          b = Array(other);
-          return Range.new(0, [a.length, b.length].max() - 1).each(function(i) {
-            return block(a._get(i), b._get(i));
+          i = 0;
+          return self.each(function(a) {
+            block(a, other && other._get(i));
+            return i = i + 1;
           });
         }
       };
@@ -218,6 +231,20 @@ function(Paths, Factory, Union, Json, Enso) {
           return MObject.new(data, root);
         }
       }
+    },
+
+    path_eval: function(str, obj) {
+      str.split(".").each(function(part) {
+        if ((n = part.index("[")) && part.slice(- 1) == "]") {
+          field = part.slice(0, n);
+          obj = obj._get(field);
+          index = part.slice(n + 1, (part.length - n) - 2);
+          return obj = obj._get(index);
+        } else {
+          return obj = obj._get(part);
+        }
+      });
+      return obj;
     },
 
     MObject: MObject,

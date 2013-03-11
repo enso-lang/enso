@@ -298,7 +298,7 @@ if __FILE__ == $0 then
   ns = ti.extract(g, root, true)
 
   dump_inheritance_dot(ns, 'bla.dot')
-  Print.print(ns)
+  Print::Print.print(ns)
 
   DisplayFormat.print(Loader.load('schema.grammar'), ns)
 

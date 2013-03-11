@@ -2,8 +2,6 @@ require 'core/system/utils/paths'
 
 module Diff
 
-  include Paths
-
   #Values can be: classes, primitives, paths, or nil
   def self.add; :add; end #add a new object
   def self.del; :del; end #del an object

@@ -1,5 +1,8 @@
 
+require 'core/grammar/parse/sppf'
+
 class ToDot
+  include SPPF
 
   def self.to_dot(sppf, out = $stdout)
     ToDot.new(sppf, out).to_dot

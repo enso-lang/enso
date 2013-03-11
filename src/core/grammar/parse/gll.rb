@@ -6,6 +6,8 @@ require 'core/grammar/parse/eval'
 require 'core/schema/tools/print'
 
 class GLL
+  include SPPF
+  include GSS
   attr_reader :ci
 
   def self.parse(source, grammar, top, org)
@@ -49,21 +51,27 @@ class GLL
     #     ToDot.to_dot(r, f)
     #   end
     # end
-    return r if r
-    loc = @origins.str(@ci)
-    #Print.print(@cu.item)
-    raise "Parse error at #{loc}:\n'#{source[@ci,50]}...'" 
+    if r then
+      r
+    else
+    #return r if r
+      loc = @origins.str(@ci)
+      #Print::Print.print(@cu.item)
+      raise "Parse error at #{loc}:\n'#{source[@ci,50]}...'" 
+    end
   end
   
   def top_node?(node, source, top)
     node.is_a?(Node) &&
       node.starts == @start_pos && 
       node.ends == source.length  &&
-      node.type == top
+      node.type.equals(top)
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
-    @done[i] ||= {}
+    if !@done.has_key?(i) then
+      @done[i] = {}
+    end
     conf = [parser, u, w]
     unless @done[i][conf]
       @done[i][conf] = true
@@ -72,14 +80,23 @@ class GLL
   end
 
   def pop
-    return if @cu == @start
-    @toPop[@cu] ||= {}
-    @toPop[@cu][@cn] ||= @cn
-    cnt = @cu.item
-    @cu.edges.each do |w, gs|
-      gs.each do |u|
-        x = Node.new(cnt, w, @cn)
-        add(cnt, u, @ci, x)
+    if @cu.equals(@start) then
+      nil
+    else
+      if !@toPop.has_key?(@cu) then
+        @toPop[@cu] = {}
+      end
+      if !@toPop[@cu].has_key?(@cn) then
+        @toPop[@cu][@cn] = @cn
+      end
+      # @toPop[@cu] ||= {}
+      # @toPop[@cu][@cn] ||= @cn
+      cnt = @cu.item
+      @cu.edges.each do |w, gs|
+        gs.each do |u|
+          x = Node.new(cnt, w, @cn)
+          add(cnt, u, @ci, x)
+        end
       end
     end
   end
@@ -113,7 +130,7 @@ class GLL
     # so subtract the length of ws from pos.
     cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
     @ci = pos
-    return cr
+    cr
   end
 end
 

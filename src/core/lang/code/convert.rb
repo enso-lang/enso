@@ -67,7 +67,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_alias(new_name, old_name)
-    Undefined
+    raise "Variable aliases not supported"
   end
 
   def on_aref(target, args)
@@ -432,15 +432,18 @@ class CodeBuilder < Ripper::SexpBuilder
       o.locals.each {|x| newvars << x.name}
       #puts "FUN #{newvars}"
 
-      o.args.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.args.each{|decl| fixup_expr(decl) }
       o.block = fixup_var_name(o.block)
       o.rest = fixup_var_name(o.rest)
-      o.locals.each{|decl| decl.name = fixup_var_name(decl.name) }
+      o.locals.each{|decl| fixup_expr(decl) }
 
       o.body = fixup_expr(o.body, newvars + env)
 
     when "Decl"
+      o.name = fixup_var_name(o.name)
       o.default = fixup_expr(o.default, env)
+
+    when "Ref", "Lit", "Attribute", "Super"
 
     when "Assign"
       o.to = fixup_expr(o.to, env)
@@ -479,6 +482,7 @@ class CodeBuilder < Ripper::SexpBuilder
       o.fields.each {|x| fixup_expr(x, env) }
 
     else
+      raise "Unknown expression type #{o.schema_class.name}"
     end 
     o
   end      
@@ -519,7 +523,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_dot3(min, max)
-    undefined
+    raise "Three dots ... not supported"
   end
 
   def on_dyna_symbol(symbol)
@@ -618,11 +622,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_lambda(params, statements)
-    undefined
+    raise "Explicit lambda not supported (use blocks?)"
   end
 
   def on_massign(lvalue, rvalue)
-    undefined
+    raise "Whatever 'massign' is, we don't currently support it"
   end
 
   def on_method_add_arg(call, args)
@@ -651,15 +655,15 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_mlhs_add(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mlhs_add_star(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mlhs_new
-    []
+    raise "Multiple assignments not supported"
   end
 
   def on_module(const, body)
@@ -667,11 +671,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_mrhs_add(assignment, ref)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_mrhs_new_from_args(args)
-    undefined
+    raise "Multiple assignments not supported"
   end
 
   def on_next(args)
@@ -712,7 +716,6 @@ class CodeBuilder < Ripper::SexpBuilder
     split1 = split[1].partition {|x| x.Require? }
     requires = split1[0] 
     if split1[1].size > 0
-      puts "FOO #{split1[1]}"
       @selfVar = nil
       others = fixup_expr(@f.Seq(split1[1]))
     else
@@ -851,6 +854,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
+    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
 
@@ -879,7 +883,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_var_alias(new_name, old_name)
-    undefined
+    raise "Variable aliases not supported"
   end
 
   def on_var_field(name)
@@ -966,6 +970,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_xstring_literal(string)
+    token = eval("\"#{token}\"")
     @f.Lit(string)
   end
 
@@ -974,7 +979,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_yield0
-    undefined
+    raise "Yield not support... use an explicit block"
   end
 
   def on_zsuper(*)
@@ -992,7 +997,7 @@ if __FILE__ == $0 then
   
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")
-  #jj ToJSON::to_json(m)
+  #jj Dumpjson::to_json(m)
    
   out = File.new(outname, "w")
   $stdout << "## storing #{outname}\n"

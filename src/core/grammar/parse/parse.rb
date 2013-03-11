@@ -66,7 +66,7 @@ class Parse
   def self.load_raw(source, grammar, schema, factory, show = false, filename = '-')
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
-    Print.print(inst) if show
+    Print::Print.print(inst) if show
     Build.build(tree, factory, org)
   end
 

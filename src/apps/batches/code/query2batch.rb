@@ -98,13 +98,13 @@ class Query2Batch
   end
 
   def e2b_EBinOp(expr, env)
-    Print.print(expr)
+    Print::Print.print(expr)
     args = [e2b(expr.e1, env), e2b(expr.e2, env)]
     @factory.Prim(@opmap[expr.op], args)
   end
 
   def e2b_EUnOp(expr, env)
-    Print.print(expr)
+    Print::Print.print(expr)
     args = [e2b(expr.e, env)]
     @factory.Prim(@opmap[expr.op], args)
   end

@@ -1,5 +1,4 @@
 
-require 'core/system/utils/paths'
 require 'core/schema/code/factory'
 require 'core/schema/tools/union'
 require 'json'
@@ -37,6 +36,22 @@ module MetaSchema
       end
     end
   end
+  
+  def self.path_eval(str, obj)
+    str.split(".").each do |part|
+      if (n = part.index("[")) && part.slice(-1) == "]"
+        field = part.slice(0, n)
+        obj = obj[field]
+        index = part.slice(n+1, part.length - n - 2)
+        obj = obj[index]
+      else
+        obj = obj[part]
+      end
+    end
+    obj
+  end
+  
+
 
   class MObject < EnsoProxyObject
     attr_reader :_id
@@ -75,23 +90,37 @@ module MetaSchema
       end
     end
     
+    def _lookup(str, obj)
+      str.split(".").each do |part|
+        if (n = part.index("[")) && part.slice(-1) == "]"
+          field = part.slice(0, n)
+          obj = obj[field]
+          index = part.slice(n+1, part.length - n - 2)
+          obj = obj[index]
+        else
+          obj = obj[part]
+        end
+      end
+      obj
+    end
+    
     def _complete
       @data.each do |key, value|
         if key == "class"
           define_singleton_value("schema_class", @root.types[value])
-        elsif key[-1] != "=" && value
+        elsif key[-1] != "=" && value != nil
           if value.is_a?(Array) # why?
             keyed = (key[-1] == "#")
             name = if keyed then key.slice(0, key.length-1) else key end
             if value.length > 0 && (value[0].is_a? String)
-              _create_many(name, value.map {|a| Paths.parse(a).deref(@root) }, keyed)
+              _create_many(name, value.map {|a| MetaSchema::path_eval(a, @root) }, keyed)
             else
               self[name].each do |obj|
                 obj._complete
               end
             end
           elsif value.is_a? String
-            define_singleton_value(key, Paths.parse(value).deref(@root))
+            define_singleton_value(key, MetaSchema::path_eval(value, @root))
           else
             self[key]._complete
           end
@@ -150,10 +179,10 @@ module MetaSchema
         ks = keys || other.keys
         ks.each {|k| block.call self[k], other[k]}
       else
-        a = Array(self)
-        b = Array(other)
-        for i in 0..[a.length,b.length].max-1
-          block.call a[i], b[i]
+        i = 0
+        each do |a|
+          block.call a, other && other[i] 
+          i = i + 1
         end
       end
     end

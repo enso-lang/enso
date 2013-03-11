@@ -5,7 +5,7 @@ def Eval(expr, elems)
   env = {}
   elems.each {|e| env += get_env(e)}
   puts "env=#{env}"
-  Print.print(expr)
+  Print::Print.print(expr)
   res = Interpreter(EvalStencil).eval(expr, env: env)
   puts "res = #{res}\n\n\n"
   res

@@ -1,24 +1,21 @@
 define([
   "core/system/library/schema",
   "core/system/boot/meta_schema",
+  "core/schema/code/factory",
+  "core/grammar/parse/parse",
   "core/schema/tools/union",
-  "core/system/load/cache"
+  "core/schema/tools/rename",
+  "core/system/load/cache",
+  "core/system/utils/paths",
+  "core/system/utils/find_model"
 ],
-function(Schema, MetaSchema, Union, Cache) {
+function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindModel) {
   var Load ;
 
   var LoaderClass = MakeClass("LoaderClass", null, [],
     function() {
     },
     function(super$) {
-      var GRAMMAR_GRAMMAR = "grammar.grammar";
-
-      var SCHEMA_SCHEMA = "schema.schema";
-
-      var SCHEMA_GRAMMAR = "schema.grammar";
-
-      var GRAMMAR_SCHEMA = "grammar.schema";
-
       this.load = function(name, type) {
         var self = this; 
         if (type === undefined) type = null;
@@ -50,46 +47,37 @@ function(Schema, MetaSchema, Union, Cache) {
 
       this.load_cache = function(name, obj) {
         var self = this; 
-        System.stderr().push(S("## caching ", name, "...\\n"));
+        System.stderr().push(S("## caching ", name, "...\n"));
         return self.$.cache._set(name, obj);
       };
 
       this._load = function(name, type) {
         var self = this; 
-        var filename, parts, model, type, g, s, res;
+        var g, s, res;
+        type = type || name.split(".")._get(- 1);
         if (Cache.check_dep(name)) {
-          System.stderr().push(S("## fetching ", name, "...\\n"));
-          return Cache.load_cache(name);
+          System.stderr().push(S("## fetching ", name, "...\n"));
+          return Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
         } else {
-          filename = name.split("/")._get(- 1);
-          if (type == null) {
-            parts = filename.split(".");
-            model = parts._get(0);
-            type = parts._get(1);
-          }
           g = self.load(S(type, ".grammar"));
           s = self.load(S(type, ".schema"));
           res = self.load_with_models(name, g, s);
-          System.stderr().push(S("## caching ", name, "...\\n"));
-          Cache.save_cache(filename, res);
+          System.stderr().push(S("## caching ", name, "...\n"));
+          Cache.save_cache(name, res);
           return res;
         }
       };
 
       this.setup = function() {
         var self = this; 
-        var ss, gs, gg, sg;
+        var ss, gs;
         self.$.cache = new EnsoHash ( { } );
-        System.stderr().push("Initializing...\\n");
-        self.$.file_map = File.create_file_map(".");
-        self.$.cache._set(SCHEMA_SCHEMA, ss = self.load_with_models("schema_schema.json", null, null));
-        self.$.cache._set(GRAMMAR_SCHEMA, gs = self.load_with_models("grammar_schema.json", null, ss));
-        self.$.cache._set(GRAMMAR_GRAMMAR, gg = self.load_with_models("grammar_grammar.json", null, gs));
-        self.$.cache._set(SCHEMA_GRAMMAR, sg = self.load_with_models("schema_grammar.json", null, gs));
-        self.$.cache._set(SCHEMA_SCHEMA, ss = self.update_xml("schema.schema"));
-        self.$.cache._set(GRAMMAR_SCHEMA, gs = self.update_xml("grammar.schema"));
-        self.$.cache._set(GRAMMAR_GRAMMAR, gg = self.update_xml("grammar.grammar"));
-        return self.$.cache._set(SCHEMA_GRAMMAR, sg = self.update_xml("schema.grammar"));
+        System.stderr().push("Initializing...\n");
+        self.$.cache._set("schema.schema", ss = self.load_with_models("schema_schema.json", null, null));
+        self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
+        self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
+        self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
+        return Paths.Path.set_factory(Factory.new(ss));
       };
 
       this.update_xml = function(name) {
@@ -102,7 +90,8 @@ function(Schema, MetaSchema, Union, Cache) {
           model = parts._get(0);
           type = parts._get(1);
           res = self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema")));
-          System.stderr().push(S("## caching ", name, "...\\n"));
+          self.patch_schema_pointers_in_place(res, self.load(S(type, ".schema")));
+          System.stderr().push(S("## caching ", name, "...\n"));
           Cache.save_cache(name, res);
           return res;
         }
@@ -130,7 +119,7 @@ function(Schema, MetaSchema, Union, Cache) {
       this.load_with_models = function(name, grammar, schema, encoding) {
         var self = this; 
         if (encoding === undefined) encoding = null;
-        return self.find_model(function(path) {
+        return FindModel.FindModel.find_model(function(path) {
           return self.load_path(path, grammar, schema, encoding);
         }, name);
       };
@@ -138,16 +127,16 @@ function(Schema, MetaSchema, Union, Cache) {
       this.load_path = function(path, grammar, schema, encoding) {
         var self = this; 
         if (encoding === undefined) encoding = null;
-        var result, name, header, str, a, fnames;
-        if (path.end_with_P(".xml") || path.end_with_P(".json")) {
+        var result, name, type, header, str, a, fnames;
+        if (path.end_with_P(".json")) {
           if (schema == null) {
-            System.stderr().push(S("## booting ", path, "...\\n"));
+            System.stderr().push(S("## booting ", path, "...\n"));
             result = MetaSchema.load_path(path);
             result.factory().file_path()._set(0, path);
           } else {
-            name = path.split("/")._get(- 1).split(".")._get(0);
-            name._set(name.rindex("_"), ".");
-            result = Cache.load_cache(name);
+            name = path.split("/")._get(- 1).split(".")._get(0).gsub("_", ".");
+            type = name.split(".")._get(- 1);
+            result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
           }
         } else {
           try {
@@ -155,16 +144,16 @@ function(Schema, MetaSchema, Union, Cache) {
               return x.readline();
             }, path);
           } catch ( err ) {
-            self.puts(S("Unable to open file ", path));
+            System.stderr().push(S("Unable to open file ", path, "\n"));
             self.raise(err);
           }
           if (header == "#ruby") {
-            System.stderr().push(S("## building ", path, "...\\n"));
+            System.stderr().push(S("## building ", path, "...\n"));
             str = File.read(path);
             result = self.instance_eval(str);
             result.factory().file_path()._set(0, path);
-            a = str.split("\\\"").map(function(x) {
-              return x.split("\\'");
+            a = str.split("\"").map(function(x) {
+              return x.split("'");
             }).flatten();
             fnames = a.values_at.apply(a, [].concat( a.each_index().select(function(i) {
               return i.odd_P();
@@ -173,32 +162,17 @@ function(Schema, MetaSchema, Union, Cache) {
               return result.factory().file_path().push(fn);
             });
           } else {
-            System.stderr().push(S("## loading ", path, "...\\n"));
+            System.stderr().push(S("## loading ", path, "...\n"));
             result = Parse.load_file(path, grammar, schema, encoding);
           }
         }
         return result;
       };
-
-      this.find_model = function(block, name) {
-        var self = this; 
-        var path;
-        if (File.exists_P(name)) {
-          return block(name);
-        } else {
-          path = self.$.file_map._get(name);
-          if (! path) {
-            self.raise(EOFError, S("File not found ", name));
-          }
-          return block(path);
-        }
-      };
     });
 
-  var Loader = LoaderClass.new();
   Load = {
     load: function(name) {
-      return Loader.load(name);
+      return Load.Loader.load(name);
     },
 
     Load_text: function(type, factory, source, show) {
@@ -207,7 +181,7 @@ function(Schema, MetaSchema, Union, Cache) {
     },
 
     LoaderClass: LoaderClass,
-    Loader: Loader,
+    Loader: LoaderClass.new(),
 
   };
   return Load;

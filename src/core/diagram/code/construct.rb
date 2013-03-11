@@ -114,9 +114,9 @@ module Construct
 
     def eval_Eval(expr, env)
       puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
-      Print.print expr
+      Print::Print.print expr
       puts "expr.eval=#{expr.eval}"
-      Print.print eval(expr)
+      Print::Print.print eval(expr)
       @interpreter.eval(expr.eval, env: env)
     end
 

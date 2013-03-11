@@ -5,7 +5,7 @@ start Stencil
 abstract Expr
 abstract EAssign
 
-// To make text fields editable, add a "+" behind the name
+ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:<root.items[it]> (arrow:"<" | arrow:"*")? 
 
 // diagrams
 Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Part*
