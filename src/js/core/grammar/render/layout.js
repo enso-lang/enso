@@ -1,13 +1,11 @@
 define([
   "core/expr/code/eval",
   "core/expr/code/env",
-  "core/schema/tools/print",
-  "core/system/utils/paths",
-  "core/system/library/schema"
+  "core/system/utils/paths"
 ],
-function(Eval, Env, Print, Paths, Schema) {
+function(Eval, Env, Paths) {
   var Layout ;
-  var RenderClass = MakeClass("RenderClass", null, [],
+  var RenderClass = MakeClass("RenderClass", null, [Paths],
     function() {
     },
     function(super$) {
@@ -28,15 +26,19 @@ function(Eval, Env, Print, Paths, Schema) {
         r = self.recurse(grammar, SingletonStream.new(obj));
         if (! r) {
           self.$.create_stack.each_with_index(function(p, i) {
-            puts(S("*****", i + self.$.success >= self.$.create_stack.size()
+            self.puts(S("*****", i + self.$.success >= self.$.create_stack.length
               ? "SUCCESS"
-              : "FAIL", "*****"));
-            Print.Print.print(p._get(0), 2);
-            puts("-----------------");
-            return Print.Print.print(p._get(1), 2);
+              : "FAIL"
+            , "*****"));
+            Print.print(p._get(0), 2);
+            self.puts("-----------------");
+            return Print.print(p._get(1), 2);
           });
-          puts(S("grammar=", grammar, " obj=", obj, "\n\n"));
-          self.raise("Can't render this object");
+          self.puts(S("grammar=", grammar, " obj=", obj, "\\n\\n"));
+          Print.print(grammar);
+          Print.print(obj);
+          self.raise(RuntimeError, "Message goes here");
+          self.abort("No matches found");
         }
         return r;
       };
@@ -44,7 +46,12 @@ function(Eval, Env, Print, Paths, Schema) {
       this.Grammar = function(this_V, stream, container) {
         var self = this; 
         self.$.root = stream.current();
-       // self.$.literals = Scan.collect_keywords(this_V);
+        self.$.literals = Scan.collect_keywords(this_V);
+        this_V.rules().each(function(rule) {
+          if (rule.arg().alts().length == 1) {
+            return rule.arg = rule.arg().alts()._get(0);
+          }
+        });
         return self.recurse(this_V.start().arg(), SingletonStream.new(stream.current()), container);
       };
 
@@ -71,10 +78,6 @@ function(Eval, Env, Print, Paths, Schema) {
       this.Alt = function(this_V, stream, container) {
         var self = this; 
         var pred;
-        return this_V.alts().find_first(function(pat) {
-          return self.recurse(pat, stream.copy(), container);
-        });
-        /*
         if (! this_V.extra_instance_data()) {
           this_V.extra_instance_data = [];
           self.scan_alts(this_V, this_V.extra_instance_data());
@@ -84,7 +87,7 @@ function(Eval, Env, Print, Paths, Schema) {
           if (! pred || pred(stream.current(), self.$.localEnv)) {
             return self.recurse(info._get(1), stream.copy(), container);
           }
-        });*/
+        });
       };
 
       this.scan_alts = function(this_V, alts) {
@@ -177,27 +180,27 @@ function(Eval, Env, Print, Paths, Schema) {
           if (! ((System.test_type(obj, String) || System.test_type(obj, Fixnum)) || System.test_type(obj, Float))) {
             self.raise(S("Data is not literal ", obj));
           }
-          if (this_V.kind() == "str") {
+          if (self.this_V().kind() == "str") {
             if (System.test_type(obj, String)) {
               return self.output(obj.inspect());
             }
-          } else if (this_V.kind() == "sym") {
+          } else if (self.this_V().kind() == "sym") {
             if (System.test_type(obj, String)) {
               if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
-                return self.output("\\" + obj);
+                return self.output("\\\\" + obj);
               } else {
                 return self.output(obj);
               }
             }
-          } else if (this_V.kind() == "int") {
+          } else if (self.this_V().kind() == "int") {
             if (System.test_type(obj, Fixnum)) {
               return self.output(obj.to_s());
             }
-          } else if (this_V.kind() == "real") {
+          } else if (self.this_V().kind() == "real") {
             if (System.test_type(obj, Float)) {
               return self.output(obj.to_s());
             }
-          } else if (this_V.kind() == "atom") {
+          } else if (self.this_V().kind() == "atom") {
             if (System.test_type(obj, String)) {
               return self.output(obj.inspect());
             } else {
@@ -211,11 +214,15 @@ function(Eval, Env, Print, Paths, Schema) {
 
       this.Ref = function(this_V, stream, container) {
         var self = this; 
-        var obj, key_field;
+        var obj, it, path, bind;
         obj = stream.current();
         if (! (obj == null)) {
-          key_field = Schema.class_key(obj.schema_class());
-          return self.output(obj._get(key_field.name()));
+          it = PathVar.new("it");
+          path = ToPath.to_path(this_V.path(), it);
+          bind = path.search(self.$.root, container, obj);
+          if (! (bind == null)) {
+            return self.output(bind._get("it"));
+          }
         }
       };
 
@@ -253,17 +260,17 @@ function(Eval, Env, Print, Paths, Schema) {
         var oldEnv, s, i, ok, v, pos;
         if (! this_V.many()) {
           return self.recurse(this_V.arg(), stream, container) || true;
-        } else if (stream.size() > 0 || this_V.optional()) {
+        } else if (stream.length > 0 || this_V.optional()) {
           oldEnv = self.$.localEnv;
           self.$.localEnv = Env.HashEnv.new();
-          self.$.localEnv._set("_length", stream.size());
+          self.$.localEnv._set("_length", stream.length);
           s = [];
           i = 0;
           ok = true;
-          while (ok && stream.size() > 0) {
+          while (ok && stream.length > 0) {
             self.$.localEnv._set("_index", i);
             self.$.localEnv._set("_first", i == 0);
-            self.$.localEnv._set("_last", stream.size() == 1);
+            self.$.localEnv._set("_last", stream.length == 1);
             if (i > 0 && this_V.sep()) {
               v = self.recurse(this_V.sep(), stream, container);
               if (v) {
@@ -273,11 +280,11 @@ function(Eval, Env, Print, Paths, Schema) {
               }
             }
             if (ok) {
-              pos = stream.size();
+              pos = stream.length;
               v = self.recurse(this_V.arg(), stream, container);
               if (v) {
                 s.push(v);
-                if (stream.size() == pos) {
+                if (stream.length == pos) {
                   stream.next();
                 }
                 i = i + 1;
@@ -287,7 +294,7 @@ function(Eval, Env, Print, Paths, Schema) {
             }
           }
           self.$.localEnv = oldEnv;
-          if (ok && stream.size() == 0) {
+          if (ok && stream.length == 0) {
             return s;
           }
         }
@@ -435,7 +442,7 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         if (this_V.many() && ! this_V.optional()) {
           return self.lambda(function(obj, env) {
-            return obj.size() > 0;
+            return obj.length > 0;
           });
         }
       };
@@ -462,9 +469,12 @@ function(Eval, Env, Print, Paths, Schema) {
         if (used === undefined) used = false;
         self.$.data = data;
         self.$.used = used;
+        if (self.$.data == false) {
+          return self.raise("not an object!!");
+        }
       };
 
-      this.size = function() {
+      this.length = function() {
         var self = this; 
         if (self.$.used) {
           return 0;
@@ -502,21 +512,22 @@ function(Eval, Env, Print, Paths, Schema) {
         if (index === undefined) index = 0;
         self.$.collection = System.test_type(collection, Array)
           ? collection
-          : collection.values();
+          : collection.values()
+        ;
         self.$.index = index;
         if (self.$.collection.include_P(false)) {
           return self.raise("not an object!!");
         }
       };
 
-      this.size = function() {
+      this.length = function() {
         var self = this; 
-        return self.$.collection.size() - self.$.index;
+        return self.$.collection.length - self.$.index;
       };
 
       this.current = function() {
         var self = this; 
-        return self.$.index < self.$.collection.size() && self.$.collection._get(self.$.index);
+        return self.$.index < self.$.collection.length && self.$.collection._get(self.$.index);
       };
 
       this.next = function() {
@@ -534,12 +545,12 @@ function(Eval, Env, Print, Paths, Schema) {
     function() {
       this.print = function(grammar, obj, output, slash_keywords) {
         var self = this; 
-        if (output === undefined) output = System.stdout();
+        if (output === undefined) output = $stdout;
         if (slash_keywords === undefined) slash_keywords = true;
         var layout;
         layout = RenderClass.new(slash_keywords).render(grammar, obj);
         DisplayFormat.new(output).print(layout);
-        return output.push("\n");
+        return output.push("\\n");
       };
     },
     function(super$) {
@@ -559,8 +570,8 @@ function(Eval, Env, Print, Paths, Schema) {
           });
         } else if (System.test_type(obj, String)) {
           if (self.$.lines > 0) {
-            self.$.out.push("\n".repeat(self.$.lines));
-            self.$.out.push(" ".repeat(self.$.indent));
+            self.$.out.push("\\n" * self.$.lines);
+            self.$.out.push(" " * self.$.indent);
             self.$.lines = 0;
           } else if (self.$.space) {
             self.$.out.push(" ");
@@ -572,7 +583,7 @@ function(Eval, Env, Print, Paths, Schema) {
         } else if (obj.Indent_P()) {
           return self.$.indent = self.$.indent + 2 * obj.indent();
         } else if (obj.Break_P()) {
-          return self.$.lines = System.max(self.$.lines, obj.lines());
+          return self.$.lines = [self.$.lines, obj.lines()].max();
         } else {
           return self.raise(S("Unknown format ", obj));
         }

@@ -39,7 +39,7 @@ class StencilFrame < DiagramFrame
   
   def path=(path)
     ext = File.extname(path)
-    raise "File has no extension" if ext.length < 2
+    raise "File has no extension" if ext.size < 2
     @path = path
     set_title path
     setup ext[1..-1], Load(@path)

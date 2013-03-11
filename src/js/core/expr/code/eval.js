@@ -26,28 +26,14 @@ function(Factory, Schema, Interpreter) {
         return self.eval(e1) && self.eval(e2);
       } else if (op == "|") {
         return self.eval(e1) || self.eval(e2);
-      } else if (op == "eql?") {
-        return self.eval(e1) == self.eval(e2);
-      } else if (op == "+") {
-        return self.eval(e1) + self.eval(e2);
-      } else if (op == "*") {
-        return self.eval(e1) * self.eval(e2);
-      } else if (op == "-") {
-        return self.eval(e1) - self.eval(e2);
-      } else if (op == "/") {
-        return self.eval(e1) / self.eval(e2);
       } else {
-        return self.raise(S("Unknown operator (", op, ")"));
+        return self.eval(e1).send(op.to_s(), self.eval(e2));
       }
     };
 
     this.eval_EUnOp = function(op, e) {
       var self = this; 
-      if (op == "!") {
-        return ! self.eval(e);
-      } else {
-        return self.raise(S("Unknown operator (", op, ")"));
-      }
+      return self.eval(e).send(op.to_s());
     };
 
     this.eval_EVar = function(name) {

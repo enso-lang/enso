@@ -25,33 +25,14 @@ module Diff
     end
   end
 
-  def self.map_paths(root, currpath = Path.new)
-    res = {root => currpath}
-    root.schema_class.fields.each do |f|
-      next unless !f.Primitive? and f.traversal
-      if !f.many
-        res.update map_paths(root[f.name], currpath.field(f.name)) if root[f.name]
-      else
-        i = 0
-        root[f.name].each do |v|
-          res.update map_paths(v, Schema::is_keyed?(f.type) ? currpath.field(f.name).key(Schema::object_key(v)) : currpath.field(f.name).index(i))
-          i+=1
-        end
-      end
-    end
-    res
-  end
-
   #given two objects, return a list of operations that
   #DO NOT use custom schema to do delta-ing
   # problem with subtyping, eg computed : Expr
   # will be compared based the schema for Expr
   # rather than the schema class the objects actually are 
   def self.diff(o1, o2)
-    @path_map1 = map_paths(o1)
-    @path_map2 = map_paths(o2)
     matches = Match.new.match(o1, o2)
-    diff_all(o1, o2, Path.new, matches)
+    diff_all(o1, o2, Paths::Path.new, matches)
   end
 
 =begin
@@ -96,6 +77,7 @@ Topological sort of the diff list
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
+        puts "diffing ref: o1=#{o1} o2=#{o2}"
         diff_ref(o1, o2, path, matches, ref)
       end
     elsif type.is_a? Factory::List
@@ -143,10 +125,12 @@ Topological sort of the diff list
   end
 
   def self.diff_ref(o1, o2, path, matches, ref)
-    if get_path1(o1)==get_path2(o2)
+    if o1==o2
+      []
+    elsif !o1.nil? and !o2.nil? and o1._path==o2._path
       []
     else
-      [Op.new(mod, path, o2.nil? ? nil : get_path2(o2))]
+      [Op.new(mod, path, o2.nil? ? nil : o2._path)]
     end
   end
 
@@ -185,7 +169,7 @@ Topological sort of the diff list
     o2 = [] if o2.nil?
     difflist = []
     i=j=0
-    while i<o1.length and j<o2.length
+    while i<o1.size and j<o2.size
       if matches[o1[i]]==nil
         difflist.unshift *diff_all(o1[i], nil, path.index(i), matches, ref)
         i+=1
@@ -197,17 +181,10 @@ Topological sort of the diff list
         j+=1
       end
     end
-    for n in j..o2.length-1
+    for n in j..o2.size-1
       difflist.unshift *diff_all(nil, o2[n], path.index(i), matches, ref)
     end
     difflist
-  end
-
-  def self.get_path1(obj)
-    @path_map1[obj]
-  end
-  def self.get_path2(obj)
-    @path_map2[obj]
   end
 
 
@@ -289,18 +266,18 @@ class Match
   end
 
   def lcm (l1, l2, i1, i2, memo, eq)
-    key = i1*l2.length()+i2
+    key = i1*l2.size()+i2
     if not memo[key].nil?
       return memo[key]
     end
-    if i1<l1.length and i2<l2.length
+    if i1<l1.size and i2<l2.size
       if eq.call(l1[i1], l2[i2])
         res = lcm(l1, l2, i1+1, i2+1, memo, eq)
         res[i1] = i2
       else
         r1 = lcm(l1, l2, i1+1, i2, memo, eq) 
         r2 = lcm(l1, l2, i1, i2+1, memo, eq)
-        if (r2.length > r1.length)  
+        if (r2.size > r1.size)  
           return r2
         else 
           return r1 

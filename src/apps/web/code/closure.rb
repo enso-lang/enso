@@ -96,7 +96,7 @@ module Web::Eval
     end
 
     def to_s
-      "FUNCTION(#{name}/#{@abs.formals.length})"
+      "FUNCTION(#{name}/#{@abs.formals.size})"
     end
 
     def inspect

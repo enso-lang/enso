@@ -1,13 +1,15 @@
 require 'core/expr/code/render'
+require 'core/diagram/code/construct'
 
 module Render
 
   module RenderStencil
     include Interpreter::Dispatcher
     include Render::RenderExpr
+    include Construct::EvalExpr
 
     def render_Stencil(title, root, body)
-      %{
+      pre = %{
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,10 +18,15 @@ module Render
 <title>} + title.to_s + %{</title>
 </head>
 <body>
-      } + body.inject(""){|memo, obj|memo+render(obj)} + %{
+      } 
+      post = %{
 </body>
 </html>
       }
+      body = dynamic_bind env: {"data"=>@D[:data]} do 
+        render(body) 
+      end
+      pre + body + post
     end
 
     def render_Container(label, props, direction, items)
@@ -47,6 +54,12 @@ module Render
 
     def render_TextBox(label, props, value)
       %/<input type="text" name="" value="#{render(value)}">/
+    end
+    
+    def render_Pages(label, props, items, current)
+      index = Construct::eval(current, env: @D[:env])
+      raise "Trying to render an out of bounds page" if index >= items.length
+      render(items[index])
     end
 
     def render_?(fields, type, args)

@@ -39,7 +39,7 @@ class DerefType
           end
         end
       end
-      if candidates.length > 1 then
+      if candidates.size > 1 then
         # TODO: should be error message
         raise AmbiguousParent.new(candidates)
       end

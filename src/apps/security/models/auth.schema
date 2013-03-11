@@ -34,5 +34,3 @@ class OpCreate < Operation
 class OpRead   < Operation 
 class OpUpdate < Operation 
 class OpDelete < Operation 
-
-class Expr 

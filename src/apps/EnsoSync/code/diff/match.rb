@@ -94,18 +94,18 @@ class Match
   end
 
   def lcm (l1, l2, i1, i2, memo, eq)
-    key = i1*l2.length()+i2
+    key = i1*l2.size()+i2
     if not memo[key].nil?
       return memo[key]
     end
-    if i1<l1.length and i2<l2.length
+    if i1<l1.size and i2<l2.size
       if eq.call(l1[i1], l2[i2])
         res = lcm(l1, l2, i1+1, i2+1, memo, eq)
         res[i1] = i2
       else
         r1 = lcm(l1, l2, i1+1, i2, memo, eq) 
         r2 = lcm(l1, l2, i1, i2+1, memo, eq)
-        if (r2.length > r1.length)  
+        if (r2.size > r1.size)  
           return r2
         else 
           return r1 

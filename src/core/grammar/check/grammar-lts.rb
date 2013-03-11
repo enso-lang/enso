@@ -29,11 +29,11 @@ class GrammarLTS
 
   def Sequence(this, state, label)
     # special case??
-    if this.elements.length == 1 then
+    if this.elements.size == 1 then
       return eval(this.elements[0], state, label)
     end
 
-#     if label && this.elements.length == 0 then
+#     if label && this.elements.size == 0 then
 #       return LTS.new(Transition.new(state, label, 'EMPTY'))
 #     end
 

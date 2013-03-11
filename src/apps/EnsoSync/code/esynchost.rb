@@ -66,10 +66,10 @@ def esynchost(rootpath)
       s2c = collate_diffs(d1u, rootpath, path)
       c2s = collate_diffs(d2u, "", path)
       s2c_str = YAML::dump(s2c)
-      client.puts(s2c_str.length.to_s)
+      client.puts(s2c_str.size.to_s)
       client.send(s2c_str, 0)
       c2s_str = YAML::dump(c2s)
-      client.puts(c2s_str.length.to_s)
+      client.puts(c2s_str.size.to_s)
       client.send(c2s_str, 0)
 
       #receive new contents from client

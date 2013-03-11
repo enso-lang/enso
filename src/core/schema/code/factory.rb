@@ -52,12 +52,22 @@ module Factory
       else
         res = false
         c.supers.each do |s|
-          res ||= check_cyclic_subtyping(s, subs.plus([c]))
+          res ||= check_cyclic_subtyping(s, subs.union([c]))
         end 
         res
       end
     end
-    
+
+    def unsafe?
+      !@unsafe.nil? and @unsafe>0
+    end
+
+    def unsafe_mode &body
+      @unsafe = @unsafe ? @unsafe+1 : 1
+      body.call
+      @unsafe -= 1
+    end
+
     def [](name)
       send(name)
     end
@@ -95,7 +105,7 @@ module Factory
       end
       # initialize    
       klass.fields.each_with_index do |fld, i|
-        if i < args.length
+        if i < args.size
           if fld.many then
             args[i].each do |value|
               self[fld.name] << value
@@ -166,7 +176,6 @@ module Factory
       name = fld.name
       exp = fld.computed
       fvInterp = Freevar::FreeVarExprC.new
-      commInterp = Impl::EvalCommandC.new
       val = nil
       define_singleton_method(name) do
         if val.nil?
@@ -178,10 +187,17 @@ module Factory
               fv.object.add_listener(fv.index) { val = nil }
             end
           end
-          val = commInterp.dynamic_bind env: Env::ObjEnv.new(self), for_field: fld do
-            commInterp.eval(exp)
+          val = Impl::eval(exp, env: Env::ObjEnv.new(self))
+          if fld.many and !val.is_a? Many
+            if key = Schema::class_key(fld.type)
+              collection = Set.new(self, fld, key)
+            else
+              collection = List.new(self, fld)
+            end
+            val.each {|v|collection<<v}
+            val = collection
           end
-          #puts "COMPUTED #{name}=#{val}"
+          val
         end
         val
       end
@@ -232,7 +248,7 @@ module Factory
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths::new
+      __shell ? __shell._path(self) : Paths::Path.new
     end
 
     def _clone
@@ -351,7 +367,7 @@ module Factory
   end
 
   module SetUtils
-    def to_ary; @values.values end
+    def to_ary; @value.values end
 
     def union(other)
       # left-biased: field is from self
@@ -426,6 +442,7 @@ module Factory
   
   module RefHelpers
     def notify(old, new)
+      #puts "NOTIFY #{new} / #{@inverse}" if @inverse  # @field.name == "rules"
       if old != new
         @owner.notify(@field.name, new)
         if @inverse
@@ -447,15 +464,17 @@ module Factory
     end
 
     def check(mobj)
-      if mobj || !@field.optional
-        if mobj.nil? then
-          raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
-        end
-        if !Schema::subclass?(mobj.schema_class, @field.type) then
-          raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
-        end
-        if mobj._graph_id != @owner._graph_id then
-          raise "Inserting object #{mobj} into the wrong model"
+      if !@owner._graph_id.unsafe?
+        if mobj || !@field.optional
+          if mobj.nil? then
+            raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
+          end
+          if !Schema::subclass?(mobj.schema_class, @field.type) then
+            raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
+          end
+          if mobj._graph_id != @owner._graph_id then
+            raise "Inserting object #{mobj} into the wrong model"
+          end
         end
       end
     end
@@ -512,7 +531,7 @@ module Factory
 
     def empty?; __value.empty? end
 
-    def length; __value.length end
+    def size; __value.size end
 
     def to_s; __value.to_s end
 
@@ -642,7 +661,7 @@ module Factory
 
     def values; __value end
 
-    def keys; Array.new(length){|i|i} end
+    def keys; Array.new(size){|i|i} end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj

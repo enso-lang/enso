@@ -85,9 +85,9 @@ class JabaTest < Test::Unit::TestCase
     result_t = connection_t.execute(query_test, Jaba::Forest.new())
 
     root_obj = Result2Object.result2object(result_t, q, @schema)
-    assert(root_obj.Suppliers.length == 29)
+    assert(root_obj.Suppliers.size == 29)
     assert(root_obj.Suppliers[3].CompanyName == "Grandma Kelly's Homestead")
-    assert(root_obj.Suppliers[3].Products.length == 3)
+    assert(root_obj.Suppliers[3].Products.size == 3)
     assert(root_obj.Suppliers[27].Products[58].ProductName == "Escargots de Bourgogne")
   end
 

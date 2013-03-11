@@ -27,11 +27,11 @@ module Impl
     #args are used by the interpreter
     def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
-      nenv = Env::HashEnv.new
+      nv = {}
       @formals.each_with_index do |f,i|
-        nenv[f.name] = params[i]
+        nv[f.name] = params[i]
       end
-      nenv.set_parent(@env)
+      nenv = Env::HashEnv.new(nv, @env)
       @interp.dynamic_bind env: nenv do
         @interp.eval(@body)
       end
@@ -58,9 +58,9 @@ module Impl
         eval(body)
       end
     end
-  
+
     def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
       eval(list).each do |val|
         nenv[var] = val
         dynamic_bind env: nenv do
@@ -76,11 +76,21 @@ module Impl
         eval(body2)
       end
     end
-  
-    def eval_EBlock(body)
+
+    def eval_EBlock(fundefs, body)
       res = nil
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
-      dynamic_bind env: nenv, in_fc: false do
+      #fundefs are able to see each other but not any other variable created in the block
+      defenv = Env::HashEnv.new(@D[:env])
+#=begin
+      dynamic_bind in_fc: false, env: defenv do
+        fundefs.each do |c|
+          eval(c)
+        end
+      end
+#=end
+      #rest of body can see fundefs
+      env1 = Env::HashEnv.new(defenv)
+      dynamic_bind in_fc: false, env: env1 do
         body.each do |c|
           res = eval(c)
         end
@@ -89,8 +99,7 @@ module Impl
     end
 
     def eval_EFunDef(name, formals, body)
-      res = Impl::Closure.make_closure(body, formals, @D[:env], self)
-      @D[:env][name] = res
+      @D[:env][name] = Impl::Closure.make_closure(body, formals, @D[:env], self)
       nil
     end
 
@@ -102,15 +111,15 @@ module Impl
     def eval_EFunCall(fun, params, lambda)
       m = dynamic_bind in_fc: true do
         eval(fun)
-      end 
+      end
       if lambda.nil?
         m.call(*(params.map{|p|eval(p)}))
       else
-        p = eval(lambda)
-        m.call(*(params.map{|p|eval(p)}), &p) 
+        b = eval(lambda)
+        m.call(*(params.map{|p|eval(p)}), &b) 
       end
     end
-  
+
     def eval_EAssign(var, val)
       lvalue(var).value = eval(val)
     end
@@ -119,6 +128,17 @@ module Impl
   class EvalCommandC
     include EvalCommand
     def initialize
+    end
+  end
+
+  def self.eval(obj, args = {})
+    interp = EvalCommandC.new
+    if args.empty?
+      interp.eval(obj)
+    else
+      interp.dynamic_bind args do
+        interp.eval(obj)
+      end
     end
   end
 end

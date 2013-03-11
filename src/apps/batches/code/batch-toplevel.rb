@@ -7,11 +7,11 @@ require 'apps/batches/code/secureschema'
 
 
 class Stream
-  attr_reader :length, :strings
+  attr_reader :size, :strings
 
   def initialize
     @strings = []
-    @length = 0;
+    @size = 0;
   end
 
   def each(&block)
@@ -20,7 +20,7 @@ class Stream
 
   def <<(s)
     @strings << s
-    @length += s.length
+    @size += s.size
   end
 end
 
@@ -123,9 +123,9 @@ class BatchWeb::EnsoWeb
 #    store = Store.new(root._graph_id)
     form.each do |k, v|
       k.to_s =~ /^(.*)\[(.*)\](.*)$/
-      typ = $1[1..$1.length]
+      typ = $1[1..$1.size]
       key = $2
-      field = $3[1..$3.length]
+      field = $3[1..$3.size]
       @bfact.update(typ, key, field, v.value(nil,nil))
     end
   end
@@ -148,7 +148,7 @@ class BatchWeb::EnsoWeb
   def not_found(msg)
     [404, {
      'Content-type' => 'text/html',
-     'Content-Length' => msg.length.to_s
+     'Content-Length' => msg.size.to_s
      }, msg]
   end
 
@@ -164,7 +164,7 @@ class BatchWeb::EnsoWeb
     [200, {
       'Content-Type' => 'text/html',
        # ugh
-      'Content-Length' => stream.length.to_s,
+      'Content-Length' => stream.size.to_s,
      }, stream]
   end
 

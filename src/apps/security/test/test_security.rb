@@ -17,10 +17,10 @@ class SecurityTest < Test::Unit::TestCase
 
   def test_read
     @todo.factory.user = 'Alice'
-    assert(@todo.todos.length == 2)
+    assert(@todo.todos.size == 2)
 
     @todo.factory.user = 'Bob'
-    assert(@todo.todos.length == 1)
+    assert(@todo.todos.size == 1)
   end
 
   def test_write
@@ -39,7 +39,7 @@ class SecurityTest < Test::Unit::TestCase
     @todo.factory.user = 'Alice'
     newtodo = @todo.factory["Todo"]
     @todo.todos << newtodo
-    assert(@todo.todos.length == 3)
+    assert(@todo.todos.size == 3)
 
     assert_raise(SecurityError) {
       @todo.factory.user = 'Cathy'
@@ -52,13 +52,13 @@ class SecurityTest < Test::Unit::TestCase
     @todo.factory.user = 'Alice'
     newtodo = @todo.factory["Todo"]
     @todo.todos.delete(@todo.todos[0])
-    assert(@todo.todos.length == 1)
+    assert(@todo.todos.size == 1)
 
     @todo.factory.user = 'Dave'
     assert_raise(SecurityError) {
       @todo.todos.delete(@todo.todos[0])
     }
-    assert(@todo.todos.length == 1)
+    assert(@todo.todos.size == 1)
   end
 
 =begin

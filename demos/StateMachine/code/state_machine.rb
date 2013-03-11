@@ -10,15 +10,7 @@ def run_state_machine(sm)
     current = sm.start
     puts "#{current.name}"
     while $stdin.gets
-    
-    win_piping = StencilFrame.new
-    win_piping.setup 'state_machine', sm
-    win_piping.show
-  
-    Wx::Timer.every(1000) do
-      win_piping.refresh
-  
-      $stdin.gets
+
       input = $_.strip
       trans = current.out.find do |trans|
         trans.event == input
@@ -33,4 +25,3 @@ if __FILE__ == $0
   sm = Load::load(ARGV[0])
   run_state_machine(sm)
 end
-

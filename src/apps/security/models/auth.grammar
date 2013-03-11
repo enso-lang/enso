@@ -20,5 +20,3 @@ OpRead   ::= [OpRead]   "read"
 OpUpdate ::= [OpUpdate] "update"
 OpDelete ::= [OpDelete] "delete"
 Field ::= [Field] name:sym
-
-abstract Expr

@@ -71,10 +71,10 @@ class Union
           d2mod = m2[k].find {|x| DeltaTransform.isModifyChange?(x)}
 
           if !d1ins.empty? and !d2ins.empty?
-            for i in 0..[d1ins.length,d2ins.length].max-1
-              if i>=d1ins.length
+            for i in 0..[d1ins.size,d2ins.size].max-1
+              if i>=d1ins.size
                 res[f.name] << d2ins[i]
-              elsif i>=d2ins.length
+              elsif i>=d2ins.size
                 res[f.name] << d1ins[i]
               else
                 res[f.name] << union(d1ins[i], d2ins[i], factory, resolver)

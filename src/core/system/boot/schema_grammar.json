@@ -1,1747 +1,50 @@
 {
-  "filename": "schema.new_grammar",
-  "source": "../src/upgrade/schema.new_grammar",
-  "date": "2013-02-27 13:33:55 -0600",
-  "checksum": "95288fd58cba3d4def04c876f9eecacccb0924d7",
+  "filename": "schema.grammar",
+  "source": "../src/core/schema/models/schema.grammar",
+  "date": "2013-03-09 16:59:31 -0600",
+  "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9",
   "depends": [
     {
-      "filename": "new_grammar.schema",
-      "source": "../src/upgrade/new_grammar.schema",
-      "date": "2013-02-27 13:25:02 -0600",
-      "checksum": "800b4354467592f80f16d958f699f11d71124873"
+      "filename": "grammar.grammar",
+      "source": "../src/core/grammar/models/grammar.grammar",
+      "date": "2013-03-09 15:51:28 -0600",
+      "checksum": "e417586bf29cf4c07a4ea048b2a336846edabcf3"
     },
     {
-      "filename": "new_grammar.grammar",
-      "source": "../src/upgrade/new_grammar.grammar",
-      "date": "2013-02-27 13:14:09 -0600",
-      "checksum": "539a559ae7fbab1d634d5194340a7bf3e86c8af1"
+      "filename": "grammar.schema",
+      "source": "../src/core/grammar/models/grammar.schema",
+      "date": "2013-03-10 16:13:31 -0500",
+      "checksum": "829f51cc56589142d031100d5c9b5de60d0fe769"
     },
     {
-      "filename": "impl.new_grammar",
-      "source": "../src/upgrade/impl.new_grammar",
-      "date": "2013-02-27 13:35:18 -0600",
-      "checksum": "48f32a9efa7e9897f6fe6d16f8527fc8ea1f83f8"
+      "filename": "path.schema",
+      "source": "../src/core/grammar/models/path.schema",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "fec1660891f127df0bda3c4431d9e05d48ad19cc"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "../src/core/expr/models/expr.schema",
+      "date": "2013-03-01 00:07:25 -0600",
+      "checksum": "57d49e5cc388844fbef9d0306467f08cf28aeec5"
+    },
+    {
+      "filename": "impl.grammar",
+      "source": "../src/core/expr/models/impl.grammar",
+      "date": "2013-03-05 20:27:48 -0600",
+      "checksum": "4ec189318b40f59362434f3ef70f31330fbc6506"
+    },
+    {
+      "filename": "expr.grammar",
+      "source": "../src/core/expr/models/expr.grammar",
+      "date": "2013-03-09 15:51:28 -0600",
+      "checksum": "1e2c67e718f6ffe354870e24816185c96bbbc4f4"
     }
   ],
   "model": {
     "class": "Grammar",
     "start": "rules[Schema]",
     "rules#": [
-      {
-        "class": "Rule",
-        "name=": "Expr",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[ETernOp]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "ETernOp",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "ETernOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[ETernOp]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "op1",
-                    "arg": {
-                      "class": "Lit",
-                      "value=": "?"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EOr]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "op2",
-                    "arg": {
-                      "class": "Lit",
-                      "value=": ":"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e3",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EOr]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EOr]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EOr",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBinOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EOr]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "or"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EAnd]"
-                    }
-                  },
-                  {
-                    "class": "Code",
-                    "expr": {
-                      "class": "EBinOp",
-                      "op=": "eql?",
-                      "e1": {
-                        "class": "EVar",
-                        "name=": "op"
-                      },
-                      "e2": {
-                        "class": "EStrConst",
-                        "val=": "|"
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EAnd]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EAnd",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBinOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EAnd]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "and"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp1]"
-                    }
-                  },
-                  {
-                    "class": "Code",
-                    "expr": {
-                      "class": "EBinOp",
-                      "op=": "eql?",
-                      "e1": {
-                        "class": "EVar",
-                        "name=": "op"
-                      },
-                      "e2": {
-                        "class": "EStrConst",
-                        "val=": "&"
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EBinOp1]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EBinOp1",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBinOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp1]"
-                    }
-                  },
-                  {
-                    "class": "Alt",
-                    "alts": [
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Lit",
-                            "value=": "=="
-                          },
-                          {
-                            "class": "Code",
-                            "expr": {
-                              "class": "EBinOp",
-                              "op=": "eql?",
-                              "e1": {
-                                "class": "EVar",
-                                "name=": "op"
-                              },
-                              "e2": {
-                                "class": "EStrConst",
-                                "val=": "eql?"
-                              }
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "!="
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": ">"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "<"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": ">="
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "<="
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp2]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EBinOp2]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EBinOp2",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBinOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp2]"
-                    }
-                  },
-                  {
-                    "class": "Alt",
-                    "alts": [
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "+"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "-"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp3]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EBinOp3]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EBinOp3",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBinOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e1",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBinOp3]"
-                    }
-                  },
-                  {
-                    "class": "Alt",
-                    "alts": [
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "*"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": ""
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "%"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e2",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EUnOp]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EUnOp]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EUnOp",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EUnOp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "not"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Code",
-                    "expr": {
-                      "class": "EBinOp",
-                      "op=": "eql?",
-                      "e1": {
-                        "class": "EVar",
-                        "name=": "op"
-                      },
-                      "e2": {
-                        "class": "EStrConst",
-                        "val=": "!"
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EFunCall]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EListComp]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[Primary]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EFunCall",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EFunCall",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "fun",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EUnOp]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "params",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Expr]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Alt",
-                        "alts": [
-                          {
-                            "class": "Sequence",
-                            "elements": [
-                              {
-                                "class": "NoSpace"
-                              },
-                              {
-                                "class": "Lit",
-                                "value=": ","
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EFunCall",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "fun",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EUnOp]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "params",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Expr]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Lit",
-                        "value=": ","
-                      }
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "lambda",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[ELambda]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "Primary",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EConst]"
-                }
-              ]
-            },
-            {
-              "class": "Create",
-              "name=": "EField",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Primary]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "."
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "fname",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "ESubscript",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "e",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "["
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "sub",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "]"
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EVar",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "name",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EList",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "["
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "elems",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Expr]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Alt",
-                        "alts": [
-                          {
-                            "class": "Sequence",
-                            "elements": [
-                              {
-                                "class": "NoSpace"
-                              },
-                              {
-                                "class": "Lit",
-                                "value=": ","
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "]"
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Lit",
-                  "value=": "("
-                },
-                {
-                  "class": "NoSpace"
-                },
-                {
-                  "class": "Call",
-                  "rule": "rules[Expr]"
-                },
-                {
-                  "class": "NoSpace"
-                },
-                {
-                  "class": "Lit",
-                  "value=": ")"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EListComp",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EListComp",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Alt",
-                    "alts": [
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "all?"
-                            }
-                          }
-                        ]
-                      },
-                      {
-                        "class": "Sequence",
-                        "elements": [
-                          {
-                            "class": "Field",
-                            "name=": "op",
-                            "arg": {
-                              "class": "Lit",
-                              "value=": "any?"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "var",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "in"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "list",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ":"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EConst",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EStrConst",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "val",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "str"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EIntConst",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "val",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "int"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EBoolConst",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "true"
-                  },
-                  {
-                    "class": "Code",
-                    "expr": {
-                      "class": "EBinOp",
-                      "op=": "eql?",
-                      "e1": {
-                        "class": "EVar",
-                        "name=": "val"
-                      },
-                      "e2": {
-                        "class": "EBoolConst",
-                        "val=": true
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EBoolConst",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "false"
-                  },
-                  {
-                    "class": "Code",
-                    "expr": {
-                      "class": "EBinOp",
-                      "op=": "eql?",
-                      "e1": {
-                        "class": "EVar",
-                        "name=": "val"
-                      },
-                      "e2": {
-                        "class": "EBoolConst",
-                        "val=": false
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "ERealConst",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "val",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "real"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "ENil",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "nil"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "Command",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EWhile]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EFor]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EIf]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[ESwitch]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EFunCall]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EFunDef]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EAssign]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EImport]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EBlock]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[EReturn]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EWhile",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EWhile",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "while"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "cond",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Command]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EFor",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EFor",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "for"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "var",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ":"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "list",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Command]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EIf",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EIf",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "if"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "cond",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Command]"
-                    }
-                  },
-                  {
-                    "class": "Regular",
-                    "arg": {
-                      "class": "Alt",
-                      "alts": [
-                        {
-                          "class": "Sequence",
-                          "elements": [
-                            {
-                              "class": "Lit",
-                              "value=": "else"
-                            },
-                            {
-                              "class": "Field",
-                              "name=": "body2",
-                              "arg": {
-                                "class": "Call",
-                                "rule": "rules[Command]"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "optional=": true,
-                    "many=": false,
-                    "sep": null
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "ESwitch",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "ESwitch",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "switch"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "e",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EFunDef",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EFunDef",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "def"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "name",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "formals",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Formal]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Lit",
-                        "value=": ","
-                      }
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Command]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EAssign",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EAssign",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "var",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "="
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "val",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Expr]"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EImport",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EImport",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "require"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "path",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "str"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EReturn",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Lit",
-                  "value=": "return"
-                },
-                {
-                  "class": "Call",
-                  "rule": "rules[Expr]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "Formal",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "Formal",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "name",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EBlock",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBlock",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "{"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Command]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": null
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "}"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EBlock_nocurl",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EBlock",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Command]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": null
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "ELambda",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "ELambda",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "{"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "|"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "formals",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Formal]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Lit",
-                        "value=": ","
-                      }
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "|"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBlock_nocurl]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "}"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
       {
         "class": "Rule",
         "name=": "Schema",
@@ -2316,7 +619,7 @@
                           "class": "EField",
                           "e": {
                             "class": "EVar",
-                            "name=": "current"
+                            "name=": "this"
                           },
                           "fname=": "type"
                         },
@@ -2347,6 +650,1728 @@
                   }
                 }
               ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Expr",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[ETernOp]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Command",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EWhile]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EFor]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EIf]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[ESwitch]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EFunCall]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EAssign]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EImport]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EBlock]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EReturn]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EWhile",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EWhile",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "while"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "cond",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Command]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EFor",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EFor",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "for"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "var",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ":"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "list",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Command]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EIf",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EIf",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "if"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "cond",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Command]"
+                    }
+                  },
+                  {
+                    "class": "Regular",
+                    "arg": {
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "Lit",
+                              "value=": "else"
+                            },
+                            {
+                              "class": "Field",
+                              "name=": "body2",
+                              "arg": {
+                                "class": "Call",
+                                "rule": "rules[Command]"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "optional=": true,
+                    "many=": false,
+                    "sep": null
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "ESwitch",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "ESwitch",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "switch"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EFunDef",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EFunDef",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "def"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "formals",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Formal]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Lit",
+                        "value=": ","
+                      }
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Command]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EAssign",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EAssign",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "var",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "="
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "val",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EImport",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EImport",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "require"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "path",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EReturn",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "return"
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Expr]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Formal",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Formal",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EBlock",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "{"
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[EBlock_nocurly]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EBlock_nocurly",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBlock",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "fundefs",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[EFunDef]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": null
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Command]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": null
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EFunCall",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EFunCall",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "fun",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EUnOp]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "params",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Expr]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Lit",
+                        "value=": ","
+                      }
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "lambda",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[ELambda]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EFunCall",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "fun",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EUnOp]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "params",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Expr]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Alt",
+                        "alts": [
+                          {
+                            "class": "Sequence",
+                            "elements": [
+                              {
+                                "class": "NoSpace"
+                              },
+                              {
+                                "class": "Lit",
+                                "value=": ","
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "ELambda",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "ELambda",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "{"
+                  },
+                  {
+                    "class": "Regular",
+                    "arg": {
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            },
+                            {
+                              "class": "Field",
+                              "name=": "formals",
+                              "arg": {
+                                "class": "Regular",
+                                "arg": {
+                                  "class": "Call",
+                                  "rule": "rules[Formal]"
+                                },
+                                "optional=": false,
+                                "many=": true,
+                                "sep": {
+                                  "class": "Lit",
+                                  "value=": ","
+                                }
+                              }
+                            },
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "optional=": true,
+                    "many=": false,
+                    "sep": null
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBlock_nocurly]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "}"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "ETernOp",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "ETernOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[ETernOp]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "op1",
+                    "arg": {
+                      "class": "Lit",
+                      "value=": "?"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EOr]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "op2",
+                    "arg": {
+                      "class": "Lit",
+                      "value=": ":"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e3",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EOr]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EOr]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EOr",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBinOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EOr]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "or"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EAnd]"
+                    }
+                  },
+                  {
+                    "class": "Code",
+                    "expr": {
+                      "class": "EBinOp",
+                      "op=": "eql?",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "op"
+                      },
+                      "e2": {
+                        "class": "EStrConst",
+                        "val=": "|"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EAnd]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EAnd",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBinOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EAnd]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "and"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp1]"
+                    }
+                  },
+                  {
+                    "class": "Code",
+                    "expr": {
+                      "class": "EBinOp",
+                      "op=": "eql?",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "op"
+                      },
+                      "e2": {
+                        "class": "EStrConst",
+                        "val=": "&"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EBinOp1]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EBinOp1",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBinOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp1]"
+                    }
+                  },
+                  {
+                    "class": "Alt",
+                    "alts": [
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Lit",
+                            "value=": "=="
+                          },
+                          {
+                            "class": "Code",
+                            "expr": {
+                              "class": "EBinOp",
+                              "op=": "eql?",
+                              "e1": {
+                                "class": "EVar",
+                                "name=": "op"
+                              },
+                              "e2": {
+                                "class": "EStrConst",
+                                "val=": "eql?"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "!="
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": ">"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "<"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": ">="
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "<="
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp2]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EBinOp2]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EBinOp2",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBinOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp2]"
+                    }
+                  },
+                  {
+                    "class": "Alt",
+                    "alts": [
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "+"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "-"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp3]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EBinOp3]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EBinOp3",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EBinOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e1",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EBinOp3]"
+                    }
+                  },
+                  {
+                    "class": "Alt",
+                    "alts": [
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "*"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "/"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "%"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e2",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EUnOp]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EUnOp]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EUnOp",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EUnOp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "not"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Code",
+                    "expr": {
+                      "class": "EBinOp",
+                      "op=": "eql?",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "op"
+                      },
+                      "e2": {
+                        "class": "EStrConst",
+                        "val=": "!"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EFunCall]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EListComp]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[Primary]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Primary",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EConst]"
+                }
+              ]
+            },
+            {
+              "class": "Create",
+              "name=": "EField",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Primary]"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "."
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "fname",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "ESubscript",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "e",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "["
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "sub",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "]"
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EVar",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EList",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "["
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "elems",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Expr]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Alt",
+                        "alts": [
+                          {
+                            "class": "Sequence",
+                            "elements": [
+                              {
+                                "class": "NoSpace"
+                              },
+                              {
+                                "class": "Lit",
+                                "value=": ","
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "]"
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "("
+                },
+                {
+                  "class": "NoSpace"
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Expr]"
+                },
+                {
+                  "class": "NoSpace"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ")"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EListComp",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EListComp",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Alt",
+                    "alts": [
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "all?"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Field",
+                            "name=": "op",
+                            "arg": {
+                              "class": "Lit",
+                              "value=": "any?"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "var",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "in"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "list",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ":"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "e",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EConst",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EStrConst",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "val",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EIntConst",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "val",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "int"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EBoolConst",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "true"
+                  },
+                  {
+                    "class": "Code",
+                    "expr": {
+                      "class": "EBinOp",
+                      "op=": "eql?",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "val"
+                      },
+                      "e2": {
+                        "class": "EBoolConst",
+                        "val=": true
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "EBoolConst",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "false"
+                  },
+                  {
+                    "class": "Code",
+                    "expr": {
+                      "class": "EBinOp",
+                      "op=": "eql?",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "val"
+                      },
+                      "e2": {
+                        "class": "EBoolConst",
+                        "val=": false
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "ERealConst",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "val",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "ENil",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "nil"
+                  }
+                ]
+              }
             }
           ]
         }

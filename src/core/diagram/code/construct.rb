@@ -13,14 +13,7 @@ module Construct
       dynamic_bind env: {"data"=>@D[:data]}, 
       			   factory: factory,
       			   props: {} do
-        body.each do |c|
-          ev = eval(c)
-          if ev.is_a? Array    # flatten arrays
-            ev.flatten.each {|e| res.body << e}
-          elsif not ev.nil?
-            res.body << ev
-          end 
-        end
+        res.body = eval(body)
       end
       res
     end
@@ -46,7 +39,7 @@ module Construct
           res[f.name] = obj[f.name]
         elsif f.type.name=="Expr"
           if obj[f.name].nil?
-            res[f.name] = Eval::make_const(factory, nil)
+            res[f.name] = nil
           else
             res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
           end
@@ -60,9 +53,9 @@ module Construct
               dynamic_bind props: nprops do
                 ev = eval(item)
                 if ev.is_a? Array    # flatten arrays
-                  ev.flatten.each {|e| res.items << e}
+                  ev.flatten.each {|e| if not e.nil?; res[f.name] << e; end}
                 elsif not ev.nil?
-                  res.items << ev
+                  res[f.name] << ev
                 end 
               end
             end
@@ -84,13 +77,35 @@ module Construct
     end
 
     def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
       eval(list).map do |val|  #returns list of results instead of only last result
         nenv[var] = val
         dynamic_bind env: nenv do
           eval(body)
         end
       end
+    end
+
+    def eval_Pages(label, props, items, current)
+      factory = @D[:factory]
+      res = factory.Pages
+      nprops = handle_props(props)
+      nprops.values.each {|p| res.props << p }
+      items.each do |item|
+        dynamic_bind props: nprops do
+          ev = eval(item)
+          if ev.is_a? Array    # flatten arrays
+            ev.flatten.each {|e| if not e.nil?; res.items << e; end}
+          elsif not ev.nil?
+            res.items << ev
+          end
+        end
+      end
+      res.current = Union::Copy(factory, current)
+      unless label.nil?
+        @D[:env][label] = res
+      end
+      res
     end
     
   end
@@ -112,12 +127,15 @@ module Construct
       a && Schema.subclass?(a.schema_class, class_name)
     end
 
-    def eval_Eval(expr, env)
-      puts "\n\n\n\@interpreter=#{@interpreter}:#{@interpreter.class}"
-      Print::Print.print expr
-      puts "expr.eval=#{expr.eval}"
-      Print::Print.print eval(expr)
-      @interpreter.eval(expr.eval, env: env)
+    def eval_Eval(expr, envs)
+      env1 = Env::HashEnv.new
+      envs.map{|e| eval(e)}.each do |env|
+        env.each_pair do |k,v|
+          env1[k] = v
+        end
+      end
+      expr1 = eval(expr)
+      Eval::eval(expr1, env: env1)
     end
 
     def eval_ETernOp(op1, op2, e1, e2, e3)
@@ -160,7 +178,7 @@ module Construct
     def eval_EField(e, fname)
       in_fc = @D[:in_fc]
       dynamic = @D[:dynamic]
-    
+
       if in_fc or !dynamic
         super e, fname
       else

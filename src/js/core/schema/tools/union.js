@@ -71,7 +71,9 @@ function(Factory) {
                 } else {
                   return a_val.each_with_match(function(a_item, b_item) {
                     item = self.link(field.traversal(), a_item, b_item);
-                    return new_V._get(field.name()).push(item);
+                    if (! new_V._get(field.name()).include_P(item)) {
+                      return new_V._get(field.name()).push(item);
+                    }
                   }, b_val);
                 }
               }

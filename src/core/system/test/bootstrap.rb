@@ -28,7 +28,7 @@ class BootstrapTests < Test::Unit::TestCase
   
   def test_4
     ss = Boot.load_path("core/system/boot/schema_schema.json")
-    assert(5 == ss.types['Class'].defined_fields.length)
+    assert(5 == ss.types['Class'].defined_fields.size)
   end
   
   def test_5

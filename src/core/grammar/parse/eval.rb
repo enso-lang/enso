@@ -51,7 +51,7 @@ class GrammarEval
   end
 
   def eval_item(this, gll, _)
-    if this.dot == this.elements.length then
+    if this.dot == this.elements.size then
       gll.pop
     else
       nxt = item(this.expression, this.elements, this.dot + 1)

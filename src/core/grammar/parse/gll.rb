@@ -64,8 +64,8 @@ class GLL
   def top_node?(node, source, top)
     node.is_a?(Node) &&
       node.starts == @start_pos && 
-      node.ends == source.length  &&
-      node.type.equals(top)
+      node.ends == source.size  &&
+      node.type == top
   end
   
   def add(parser, u = @cu, i = @ci, w = nil) 
@@ -127,8 +127,8 @@ class GLL
 
   def leaf_node(pos, type, value, ws)
     # NB: pos includes the ws that has been matched
-    # so subtract the length of ws from pos.
-    cr = Leaf.new(@ci, pos - ws.length, type, value, ws)
+    # so subtract the size of ws from pos.
+    cr = Leaf.new(@ci, pos - ws.size, type, value, ws)
     @ci = pos
     cr
   end

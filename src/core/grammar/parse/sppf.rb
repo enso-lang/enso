@@ -33,37 +33,34 @@ module SPPF
       @hash = 29 * self.class.to_s.hash + 37 * starts + 17 * ends
     end
 
-    
     def build(owner, accu, field, fixes, paths, fact, orgs)
       type.build_spine(self, owner, accu, field, fixes, paths, fact, orgs)
     end
 
     def build_kids(owner, accu, field, fixes, paths, fact, orgs)
-      raise Ambiguity.new(self) if kids.length > 1
-      if !kids.empty? then
-        kids.first.build(owner, accu, field, fixes, paths, fact, orgs)
-      end
-      nil
+      raise Ambiguity.new(self) if kids.size > 1
+      return if kids.empty?
+      kids.first.build(owner, accu, field, fixes, paths, fact, orgs)
     end
 
     def hash
       @hash
     end
 
-    def eql?(o)
-      equals(o)
-    end
-
     def origin(orgs)
       path = orgs.path
       offset = orgs.offset(starts)
-      length = ends - starts
+      size = ends - starts
       start_line = orgs.line(starts)
       start_column = orgs.column(starts)
       end_line = orgs.line(ends)
       end_column = orgs.column(ends)
-      Location.new(path, offset, length, start_line, 
+      Location.new(path, offset, size, start_line, 
                    start_column, end_line, end_column)
+    end
+
+    def eql?(o)
+      equals(o)
     end
   end
 
@@ -100,6 +97,12 @@ module SPPF
       @hash += 13 * value.hash
     end
 
+
+    def ends
+      # TODO: this messes up error messages.
+      super + ws.size
+    end
+
     def equals(x)
       if !x.is_a?(Leaf)
         false
@@ -111,43 +114,37 @@ module SPPF
       #super(x) && value == x.value
     end
 
-    def ends
-      # TODO: this messes up error messages.
-      super + ws.length
-    end
-
     def to_s
       "T('#{value}', ws = '#{ws}')"
     end
-
   end
+
 
   class Node < BaseNode
     attr_reader :kids
 
     def self.new(item, z, w)
-      if item.dot == 1 && item.elements.length > 1 then
-        w
-      else
-        t = item
-        if item.dot == item.elements.length then
-          t = item.expression
-        end
-        x = w.type
-        k = w.starts
-        i = w.ends
-        if z != nil then
-          s = z.type
-          j = z.starts
-          # assert k == z.ends
-          y = super(j, i, t)
-          y.add_kid(Pack.new(item, k, z, w))
-        else
-          y = super(k, i, t)
-          y.add_kid(Pack.new(item, k, nil, w))
-        end
-        y
+      if item.dot == 1 && item.elements.size > 1 then
+        return w
       end
+      t = item
+      if item.dot == item.elements.size then
+        t = item.expression
+      end
+      x = w.type
+      k = w.starts
+      i = w.ends
+      if z != nil then
+        s = z.type
+        j = z.starts
+        # assert k == z.ends
+        y = super(j, i, t)
+        y.add_kid(Pack.new(item, k, z, w))
+      else
+        y = super(k, i, t)
+        y.add_kid(Pack.new(item, k, nil, w))
+      end
+      return y
     end
 
     def initialize(starts, ends, type)
@@ -222,5 +219,5 @@ module SPPF
       end
     end
   end
-
+  
 end

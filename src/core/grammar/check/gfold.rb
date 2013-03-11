@@ -37,7 +37,7 @@ class GrammarFold
   end
 
   def Sequence(this, in_field)
-    if this.elements.length == 1 then
+    if this.elements.size == 1 then
       eval(this.elements[0], in_field)
     else
       this.elements.inject(@unit_of_meet) do |cur, elt|
@@ -49,7 +49,7 @@ class GrammarFold
   def Alt(this, in_field)
     # NB: alts is never empty
     x = eval(this.alts[0], in_field)
-    1.upto(this.alts.length - 1) do |i|
+    1.upto(this.alts.size - 1) do |i|
       x = x.send(@join, eval(this.alts[i], in_field))
     end
     return x

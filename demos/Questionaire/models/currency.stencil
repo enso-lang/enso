@@ -1,0 +1,6 @@
+diagram(data) {
+
+def convert(usd) {
+  return usd / 130
+}
+}

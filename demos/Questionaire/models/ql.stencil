@@ -1,11 +1,15 @@
-diagram(data)
+import currency.stencil
+
+diagram(data) {
 
 def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-    for elem : elem.elems
-      drawElem(elem)
+    pages([[elem.guard | data.all_elems]]) {
+      for elem : elem.elems
+        drawElem(elem)
+    }
 }
 
 def drawQuestion(elem) {
@@ -22,6 +26,10 @@ def drawQuestion(elem) {
 	    vertical {
 	      text? elem.value
 	      text? elem.value
+	      if elem.ans.name=="money" 
+	        text? convert(100)
+	      else 
+	        text? elem.ans.name
 	    }
 	  if elem.ans is Computed
 	    box {
@@ -31,7 +39,11 @@ def drawQuestion(elem) {
   }
 }
 
-  // create the nodes (one for each class)
-  for elem : data.elems {
-    drawElem(elem)
+// create the nodes (one for each class)
+  vertical {
+    for elem : data.elems {
+      drawElem(elem)
+    }
   }
+
+}

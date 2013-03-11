@@ -26,6 +26,7 @@ class EIf < Command
 //
 
 class EBlock < Command
+  fundefs!EFunDef*
   body!Command*
 
 class EFunCall < Expr, Command
@@ -37,7 +38,7 @@ class ELambda
   body!Command
   formals!Formal*
 
-class EFunDef < Command
+class EFunDef
   name:str
   formals!Formal*
   body!Command

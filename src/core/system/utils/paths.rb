@@ -14,8 +14,8 @@ module Paths
       @@factory = factory
     end
     
-    def initialize(path)
-      @path = path || @@factory.EVar("root")
+    def initialize(path = @@factory.EVar("root"))
+      @path = path ? path : @@factory.EVar("root")
     end
     
     def field(name)
@@ -24,14 +24,15 @@ module Paths
     end
     
     def key(key)
-      index(key)
+      @path = @@factory.ESubscript(@path, @@factory.EStrConst(key))
+      self
     end
 
     def index(index)
-      @path = @@factory.ESubscript(@path, @@factory.EStrConst(index))
+      @path = @@factory.ESubscript(@path, @@factory.EIntConst(index))
       self
     end
-        
+    
     def deref?(scan, root = scan)
       begin
         deref(scan, root = scan)
@@ -65,17 +66,19 @@ module Paths
     end
 
     def deref(root)
+      Is deref ever used?
       dynamic_bind root: root do 
         eval
       end
     end
-    
+
     def eval(path = @path)
       dispatch_obj(:eval, path)
     end
-    
+
     def eval_EVar(obj)
-      #puts "Dereffing 'this': obj = #{obj}; root = #{root}"
+      raise "undefined variable #{obj.name}" if !@D.include?(obj.name.to_sym)
+      #puts("VAR #{obj.name} => #{@D[obj.name.to_sym]}")
       @D[obj.name.to_sym]
     end
 
@@ -113,7 +116,6 @@ module Paths
       end
       owner.deref(root)[last.name] = value
     end
-
   end
 end
 

@@ -54,7 +54,7 @@ class ExtractSchema
   end
 
   def Sequence(this, in_field)
-    if this.elements.length == 1 then
+    if this.elements.size == 1 then
       eval(this.elements[0], in_field)
     else
       this.elements.inject(nil) do |cur, elt|

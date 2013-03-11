@@ -91,7 +91,7 @@ module Web::Eval
       obj, @current_env, x = @fiber.resume
       org = obj._origin
       puts org
-      region = @sources[File.basename(org.path)][org.offset - 1..org.offset - 1 + org.length - 1]
+      region = @sources[File.basename(org.path)][org.offset - 1..org.offset - 1 + org.size - 1]
       puts region.red
       puts "---> #{x.inspect}"
     end

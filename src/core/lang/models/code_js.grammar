@@ -20,12 +20,6 @@ ExportName ::= name:sym .":" name:sym ."," /
 Binding  ::= [Binding] name:sym .":" (value:Function | value:Expr) .","/2
   Function ::= FunHeader FunBody
   
-// class N < N 
-//   D* 
-// end
-// class 
-// D ::= def N 
-
 Class   ::= [Class] "var" name:sym "= MakeClass(">. name:str .","
       (parent:Ref | "null") ."," Includes .","/ Meta .","/ Instance .<");"
 Mixin   ::= [Mixin] "var" name:sym "= MakeMixin(". Includes ."," "function() {" Body "});"
@@ -40,7 +34,7 @@ BindingB  ::= [Binding] "this.$.". name:sym "=" value:Expr .";"
   MethodSym ::= {name=="[]"} "_get" | {name=="[]="} "_set" | name:sym
 Method   ::= value:FunHeader value:FunBody
   FunHeader ::= [Fun] "function(". Params .") {" /> "var self = this; "/ args:Default* VarArg? Locals?
-    VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int ");" /
+    VarArg ::= "var" rest:sym "= compute_rest_arguments(arguments," num_args:int .");" /
     Locals ::= "var" locals:Decl+ @(.",") .";" /
   Decl     ::= [Decl] name:sym ("=" default:Expr)?
   FunBody ::= [Fun] body:SeqBodyR </"}"
@@ -57,21 +51,25 @@ SeqBodyR     ::= [Seq] statements:StatementLR* @/ | StatementR
 Statement ::= Basic | Expr .";"
 StatementR ::= BasicR | "return" Expr .";"
 StatementLR ::= {_last} StatementR | Statement
-Basic   ::= If | While | TryCatch
+Basic   ::= If | While | TryCatch | Switch
 If      ::= [If] "if" "(". cond:Expr .")" sthen:Seq ("else" (selse:If | selse:Seq))?
 While   ::= [While] "while" "(". cond:Expr .")" body:Seq
+Switch  ::= [Switch] "switch" "(". subject:Expr .")" "{"/> cases:Case* </"}"
+  Case ::= [Case] Options > body:SeqBody / "break;" /<
+  Options ::= values:("case" Lit .":" /)+ | "default:" /
 TryCatch ::= [Rescue] "try" base:Seq rescues:Handler* ("finally" ensure:Seq)? 
-Handler ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:Seq // TODO: deal with kind:str!!!
+Handler ::= [Handler] "catch" "(". (var:sym | "DUMMY") .")" body:Seq // TODO: deal with kind:str!!!
 
-BasicR   ::= IfR | While | TryCatchR
+BasicR   ::= IfR | While | TryCatchR | SwitchR
 IfR      ::= [If] "if" "(". cond:Expr .")" sthen:SeqR ("else" (selse:IfR | selse:SeqR))?
+SwitchR  ::= [Switch] "switch" "(". subject:Expr .")" "{"/> cases:CaseR* </"}"
+  CaseR ::= [Case] Options > body:SeqBodyR /<
 TryCatchR ::= [Rescue] "try" base:SeqR rescues:HandlerR* ("finally" ensure:Seq)? 
-HandlerR ::= [Handler] "catch" "(" (var:sym | "DUMMY") ")" body:SeqR // TODO: deal with kind:str!!!
+HandlerR ::= [Handler] "catch" "(". (var:sym | "DUMMY") .")" body:SeqR // TODO: deal with kind:str!!!
 
 Expr ::= IndexAssign | CallAssign | Assign
 IndexAssign ::= [Assign] to:([Index] base:Primary) ."._set(". to:([Index] index:Expr) ."," from:Assign .")"
-CallAssign ::= [Assign] to:([Call] target:Primary) .".set_". to:([Call] method:sym) ."," from:Assign .")"
- 
+CallAssign ::= [Assign] to:([Call] target:Primary) .".set_". to:([Call] method:sym) ."(". from:Assign .")"
  
 Assign  ::= [Assign] to:Primary "=" from:Assign
         | IfE
@@ -98,7 +96,7 @@ EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
 
 
 Primary ::= InstVar | ClassVar | Nil | Var | Ref | Super |  List | Index | Record | Fun | Call | Lit | "(". Expr .")" | 
-             "((function(){" SeqR "})())"
+             "((function()" SeqR .")())"
 InstVar ::= [Var] "self.$.". name:sym { kind=="@" }
 ClassVar::= [Var] "self._class_.$.". name:sym { kind=="@@" }
 Nil     ::= [Var] "null" { name == "nil" }
@@ -106,18 +104,18 @@ Var     ::= [Var] name:sym
 Ref     ::= [Ref] (module:sym.".".)? name:sym
 List    ::= [List] "[". items:Expr* @(.",") ."]"
 Index   ::= [Index] base:Primary ."._get(". index:Expr .")"
-Record  ::= [Record] "new" "EnsoHash" "(" "{" fields:Field* @(.",") "}" ")"
+Record  ::= [Record] "new" "EnsoHash" "("."{" fields:Field* @(.",") "}".")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:atom
 
 Call     ::= SuperCall | CallRest | CallNorm
-CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(" rest:Expr "))"
+CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(". rest:Expr ."))"
 CallNorm  ::= [Call] Target."(". Args? .")"
   Target ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
   Args    ::= (block:Primary .",")? args:Expr+ @(.",") 
             | block:Primary
 SuperCall     ::= [Call] target:Super .".". method:sym (SuperRestArgs | SuperInvoke)
-  SuperRestArgs ::= .".apply(self, [". Args? ."].concat(" rest:Expr "))"
+  SuperRestArgs ::= .".apply(self, [". Args? ."].concat(". rest:Expr ."))"
   SuperInvoke ::= .".call(self" (."," Args)? .")"
   Super ::= [Super] "super$"
   

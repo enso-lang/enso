@@ -32,7 +32,7 @@ module Dumpjson
                   ef << fixup_path(fobj)
                 end
               end
-              e[name] = ef if do_all || ef.length > 0
+              e[name] = ef if do_all || ef.size > 0
             else
               if do_all || val
                 if f.traversal then

@@ -65,7 +65,7 @@ class EnsoSync
           s.basedir = read_from_fs(spath, factory) if update
           domain.sources << s
         when "2"
-          if domain.sources.length == 0
+          if domain.sources.size == 0
             puts "No sources currently defined!"
             next
           end
@@ -86,7 +86,7 @@ class EnsoSync
             puts "Base not updated"
           end
         when "3"
-          if domain.sources.length == 0
+          if domain.sources.size == 0
             puts "No sources currently defined!"
             next
           end
@@ -109,7 +109,7 @@ class EnsoSync
         sel2 = $stdin.gets.strip
         case sel2
         when "1"
-          if domain.sources.length == 0
+          if domain.sources.size == 0
             puts "No sources currently defined! Add sources before creating rules"
             next
           end
@@ -129,11 +129,11 @@ class EnsoSync
           r.resolver = ""
           domain.rules << r
         when "2"
-          if domain.rules.length == 0
+          if domain.rules.size == 0
             puts "No rules currently defined!"
             next
           end
-          if domain.sources.length == 0
+          if domain.sources.size == 0
             puts "No sources currently defined! Add sources before creating rules"
             next
           end
@@ -147,7 +147,7 @@ class EnsoSync
           puts "Select second source:"
           s2 = selector(domain.sources)
         when "3"
-          if domain.rules.length == 0
+          if domain.rules.size == 0
             puts "No rules currently defined!"
             next
           end
@@ -210,7 +210,7 @@ class EnsoSync
     puts ""
     puts "Domain file: #{@@domainpath}#{@@domainfile}"
     puts ""
-    if domain.sources.length == 0
+    if domain.sources.size == 0
       puts "No sources defined!"
     else 
       puts "Sources:"
@@ -219,7 +219,7 @@ class EnsoSync
       end
     end
     puts ""
-    if domain.rules.length == 0
+    if domain.rules.size == 0
       puts "No rules defined!"
     else
       puts "Rules:"

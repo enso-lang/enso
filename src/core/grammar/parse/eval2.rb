@@ -39,7 +39,7 @@ module GrammarInterpreter
 
     def eval(gll, nxt)
       #puts "EVAL ITEM: #{expression} (dot = #{dot})"
-      if dot == elements.length then
+      if dot == elements.size then
         gll.pop
       else
         nxt = Item.new(expression, elements, dot + 1)

@@ -8,7 +8,7 @@ class Schema
 class Type
   name# str
   schema: Schema / types
-
+  
 class Primitive < Type
   
 class Class < Type
