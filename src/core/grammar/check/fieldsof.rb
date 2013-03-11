@@ -102,13 +102,13 @@ class FieldsOf
   end
 
   def Sequence(this, klass)
-    if this.elements.length == 0 then
+    if this.elements.size == 0 then
       BOT
-    elsif this.elements.length == 1 then
+    elsif this.elements.size == 1 then
       fields_of(this.elements.first, klass)
     else
       x = fields_of(this.elements[0], klass)
-      1.upto(this.elements.length - 1) do |i|
+      1.upto(this.elements.size - 1) do |i|
         x *= fields_of(this.elements[i], klass)
       end
       return x
@@ -135,7 +135,7 @@ class FieldsOf
 
   def Alt(this, klass)
     x = fields_of(this.alts[0], klass)
-    1.upto(this.alts.length - 1) do |i|
+    1.upto(this.alts.size - 1) do |i|
       x += fields_of(this.alts[i], klass)
     end
     return x

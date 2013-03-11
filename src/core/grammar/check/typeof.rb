@@ -65,13 +65,13 @@ class TypeOf
   end
 
   def Sequence(this, klass, in_field, comb)
-    if this.elements.length == 0 then
+    if this.elements.size == 0 then
       unit(comb)
-    elsif this.elements.length == 1 then
+    elsif this.elements.size == 1 then
       type_of(this.elements.first, klass, in_field, comb)
     else
       x = type_of(this.elements[0], klass, false, :*)
-      1.upto(this.elements.length - 1) do |i|
+      1.upto(this.elements.size - 1) do |i|
         x *= type_of(this.elements[i], klass, false, :*)
       end
       return x
@@ -103,7 +103,7 @@ class TypeOf
 
   def Alt(this, klass, in_field, comb)
     x = type_of(this.alts[0], klass, in_field, :+)
-    1.upto(this.alts.length - 1) do |i|
+    1.upto(this.alts.size - 1) do |i|
       x += type_of(this.alts[i], klass, in_field, :+)
     end
     return x
