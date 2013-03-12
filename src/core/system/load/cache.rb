@@ -1,5 +1,4 @@
-\
-require 'core/schema/code/factory'
+
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'

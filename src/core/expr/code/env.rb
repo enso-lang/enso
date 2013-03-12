@@ -40,9 +40,6 @@ module Env
   class HashEnv
     include BaseEnv
     def initialize(hash={}, parent=nil)
-      if hash.is_a? BaseEnv
-        parent = hash; hash = {}
-      end
       @hash=hash
       @parent=parent
     end

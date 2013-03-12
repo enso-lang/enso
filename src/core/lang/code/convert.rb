@@ -999,6 +999,7 @@ if __FILE__ == $0 then
   
   #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
   
+  puts "Converting to JS: #{name}"
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")
   #jj Dumpjson::to_json(m)

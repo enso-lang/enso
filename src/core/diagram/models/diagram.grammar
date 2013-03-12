@@ -2,11 +2,6 @@ import expr.grammar
 
 start Stencil
 
-abstract Expr
-abstract EAssign
-
-ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:<root.items[it]> (arrow:"<" | arrow:"*")? 
-
 // To make text fields editable, add a "+" behind the name
 
 // diagrams
