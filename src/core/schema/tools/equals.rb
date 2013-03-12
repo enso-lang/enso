@@ -7,6 +7,7 @@ Deep equality based on object tree structure and primitive values
 
 =end
 
+module Equals
 class Equals 
 
   def initialize()
@@ -60,6 +61,8 @@ class Equals
   end
 end
 
-def equals(a,b)
+def self.equals(a,b)
   Equals.equals(a, b)
+end
+
 end

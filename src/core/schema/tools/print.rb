@@ -5,6 +5,11 @@
 # indent: amount of indent
 
 module Print
+  
+  def self.print(obj)
+    Print.print(obj)
+  end
+
   class Print
     def initialize(output = $stdout, depth = nil)
       @output = output

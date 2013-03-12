@@ -1,5 +1,6 @@
 
 require 'core/semantics/code/interpreter'
+require 'core/schema/tools/equals'
 # TODO: error handling
 
 module Paths
@@ -10,29 +11,32 @@ module Paths
   class Path
     include Interpreter::Dispatcher
     
+    attr_reader :path
+
     def self.set_factory(factory)
       @@factory = factory
     end
-    
+
     def initialize(path = @@factory.EVar("root"))
       @path = path ? path : @@factory.EVar("root")
     end
-    
+
     def field(name)
-      @path = @@factory.EField(@path, name)
-      self
+      Path.new(@@factory.EField(@path, name))
     end
     
     def key(key)
-      @path = @@factory.ESubscript(@path, @@factory.EStrConst(key))
-      self
+      Path.new(@@factory.ESubscript(@path, @@factory.EStrConst(key)))
     end
 
     def index(index)
-      @path = @@factory.ESubscript(@path, @@factory.EIntConst(index))
-      self
+      Path.new(@@factory.ESubscript(@path, @@factory.EIntConst(index)))
     end
-    
+
+    def ==(other)
+      Equals::equals(@path, other.path)
+    end
+
     def deref?(scan, root = scan)
       begin
         deref(scan, root = scan)
