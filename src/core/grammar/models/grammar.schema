@@ -1,4 +1,4 @@
-import path.schema, expr.schema
+import expr.schema
 
 primitive str 
 primitive int 
@@ -58,12 +58,6 @@ class Indent < Pattern
  
 class Epsilon < Pattern
 
-// extensions to path.schema
-
-class Key 
-class It < Key 
-class Path 
-
 // let bindings
 
 class Let < Pattern
@@ -74,7 +68,7 @@ class Var < Key
   name: str
 
 class Binding
-  target: Path
-  value: Path
+  target: Expr
+  value: Expr
 
 class Expr
