@@ -66,7 +66,7 @@ function(Paths, Factory, Union, Json, Enso) {
         self.$.data.each(function(key, value) {
           if (key == "class") {
             return self.define_singleton_value("schema_class", self.$.root.types()._get(value));
-          } else if (key._get(- 1) != "=" && value) {
+          } else if (key._get(- 1) != "=" && value != null) {
             if (System.test_type(value, Array)) {
               keyed = key._get(- 1) == "#";
               name = keyed
