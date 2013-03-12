@@ -80,5 +80,3 @@ class InferSchema
   end    
 end
 
-
-end

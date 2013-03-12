@@ -64,7 +64,6 @@ module Load
     
       #check if XML is not out of date then just use it
       #else load XML first then reload
-#<<<<<<< HEAD
       @cache['schema.schema'] = ss = load_with_models('schema_schema.json', nil, nil)
       @cache['grammar.schema'] = gs = load_with_models('grammar_schema.json', nil, ss)
       @cache['grammar.grammar'] = load_with_models('grammar_grammar.json', nil, gs)
@@ -76,22 +75,6 @@ module Load
       update_json('grammar.schema')
       update_json('grammar.grammar')
       update_json('schema.grammar')
-=begin
-      @cache['schema.schema'] = ss = load_with_models('schema_schema.json', nil, nil)
-      @cache['grammar.schema'] = gs = load_with_models('grammar_schema.json', nil, ss)
-      @cache['grammar.grammar'] = load_with_models('grammar_grammar.json', nil, gs)
-      @cache['schema.grammar'] = load_with_models('schema_grammar.json', nil, gs)
-
-      if @update_core_models
-        Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
-        @cache['schema.schema'] = ss = update_xml('schema.schema')
-        @cache['grammar.schema'] = gs = update_xml('grammar.schema')
-        @cache['grammar.grammar'] = update_xml('grammar.grammar')
-        @cache['schema.grammar'] = update_xml('schema.grammar')
-      end
-      Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
->>>>>>> c8580b5e748745f54b6670c14f0b861cbcdf49d5
-=end
     end
 
     def update_json(name)

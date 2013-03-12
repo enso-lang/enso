@@ -37,5 +37,3 @@ import expr.grammar
     | "(".Alt.")"
     
   Sep ::= "@".sep:Pattern
-
-abstract Expr
