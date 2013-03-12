@@ -13,17 +13,24 @@ module SharingFactory
     def initialize(schema, shares)
       super(schema)
       @shares = shares
+      @objects = {}
+      shares.each do |klass|
+        @objects[klass] = []
+      end
       @memo = {}
     end
 
     def __install_methods(schema)
       schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
-          if @shares.any? { |x| Schema::subclass?(klass, x) } then
+          cat = @shares.find { |x| Schema::subclass?(klass, x) }
+          if cat then
             if @memo.has_key?(args) then
               @memo[args]
             else
-              @memo[args] = MObject.new(klass, self, *args)
+              obj = MObject.new(klass, self, *args)
+              @objects[cat] << obj
+              @memo[args] = obj
             end
           else
             MObject.new(klass, self, *args)
@@ -31,7 +38,13 @@ module SharingFactory
         end 
       end
     end
+
+    def _objects_for(klass)
+      @objects[klass]
+    end
+
   end
+  
 end
 
 if __FILE__ == $0 then

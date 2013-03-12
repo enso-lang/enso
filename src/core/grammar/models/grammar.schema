@@ -1,4 +1,4 @@
-import path.schema 
+
 import expr.schema
 
 primitive str 
@@ -59,23 +59,51 @@ class Indent < Pattern
  
 class Epsilon < Pattern
 
-// extensions to path.schema
-
-class Key 
-class It < Key 
-class Path 
-
-// let bindings
-
-class Let < Pattern
-  arg: Pattern
-  binding: Binding
-
-class Var < Key
-  name: str
-
-class Binding
-  target: Path
-  value: Path
-
 class Expr
+
+class Item < Pattern
+  expression: Pattern
+  elements: Pattern*
+  dot: int
+
+class Base
+  starts: int
+  ends: int
+  type: Pattern
+  origin! Location?
+
+class Empty < Base
+
+class Leaf < Base
+  value: str
+  ws: str
+
+class Node < Base
+  kids: Pack*
+
+class Pack
+  parent: Node / kids
+  type: Item
+  pivot: int
+  left: Base?
+  right: Base
+
+
+
+class GSS
+  item! Item
+  pos: int
+  edges: Edge*
+
+class Edge
+  sppf: Base
+  target: GSS
+
+class Location
+  path: str
+  offset: int
+  size: int
+  start_line: int
+  start_column: int
+  end_line: int
+  end_column: int

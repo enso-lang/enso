@@ -94,10 +94,18 @@ class GrammarEval
   end
 
   def Call(this, gll, nxt)
-    eval(this.rule, gll, nxt)
+    gll.create(nxt) if nxt
+    #TODO: arg is always Alt per the grammar
+    #but this is not reflected in the schema
+    this.rule.arg.alts.each do |alt|
+     gll.add(alt)
+    end
+    #eval(this.rule, gll, nxt)
   end
 
   def Rule(this, gll, nxt)
+    # TODO: this is still there because of
+    # the start symbol (which is a rule).
     chain(this, gll, nxt)
   end
 

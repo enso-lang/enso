@@ -1,6 +1,7 @@
 
 require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
+require 'core/grammar/parse/enso-gll'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
@@ -68,7 +69,11 @@ class Parse
   end
 
   def self.parse(source, grammar, org)
-    GLL.parse(source, grammar, grammar.start, org)
+    if ENV['GLL'] == 'enso' then
+      EnsoGLL.parse(source, grammar, org)
+    else
+      GLL.parse(source, grammar, grammar.start, org)
+    end
   end
   
 end

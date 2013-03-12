@@ -5,7 +5,7 @@ primitive int
 primitive str
 
 
-class Config
+class GLL
   nodes! Base*
   packs! Pack*
   root: Base
