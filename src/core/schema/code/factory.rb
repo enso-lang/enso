@@ -248,7 +248,7 @@ module Factory
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths::new
+      __shell ? __shell._path(self) : Paths::Path.new
     end
 
     def _clone

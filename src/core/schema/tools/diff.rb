@@ -77,6 +77,7 @@ Topological sort of the diff list
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
+        puts "diffing ref: o1=#{o1} o2=#{o2}"
         diff_ref(o1, o2, path, matches, ref)
       end
     elsif type.is_a? Factory::List
@@ -124,10 +125,12 @@ Topological sort of the diff list
   end
 
   def self.diff_ref(o1, o2, path, matches, ref)
-    if get_path1(o1)==get_path2(o2)
+    if o1==o2
+      []
+    elsif !o1.nil? and !o2.nil? and o1._path==o2._path
       []
     else
-      [Op.new(mod, path, o2.nil? ? nil : get_path2(o2))]
+      [Op.new(mod, path, o2.nil? ? nil : o2._path)]
     end
   end
 
@@ -182,13 +185,6 @@ Topological sort of the diff list
       difflist.unshift *diff_all(nil, o2[n], path.index(i), matches, ref)
     end
     difflist
-  end
-
-  def self.get_path1(obj)
-    obj._path
-  end
-  def self.get_path2(obj)
-    obj._path
   end
 
 

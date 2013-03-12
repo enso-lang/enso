@@ -16,7 +16,7 @@ class ExtractSchema
   end
 
   def log(str)
-    $stderr << "LOG: #{str}\n"
+    # $stderr << "LOG: #{str}\n"
   end
 
   def extract(grammar, root, collapse = true)
@@ -233,9 +233,11 @@ class ExtractSchema
     del = []
     schema.classes.each do |c|
       next unless anon?(c)
-      next unless c.supers.size == 1
+      next unless c.supers.length == 1
+      to_del = []
       c.subclasses.each do |sub|
         sub.supers.delete(c)
+        to_del << c
         # use each because no positinos in keyed colls.
         c.supers.each do |sup|
           sub.supers << sup
@@ -279,21 +281,81 @@ end
 
 if __FILE__ == $0 then
   if !ARGV[0] || !ARGV[1] then
-    puts "use type-eval.rb <name>.grammar <rootclass>"
+    puts "use extract.rb <name>.grammar <rootclass> [<goal>.schema]"
     exit!(1)
   end
 
   require 'core/schema/tools/print'
+  require 'core/grammar/check/match'
+  require 'core/grammar/check/bisim'
+  require 'core/grammar/check/schema-lts'
   require 'core/grammar/render/layout'
 
   g = Load::load(ARGV[0])
   root = ARGV[1]
 
   ti = ExtractSchema.new
-  ns = ti.extract(g, root)
+  ns = ti.extract(g, root, true)
 
   dump_inheritance_dot(ns, 'bla.dot')
   Print::Print.print(ns)
 
-  Layout::DisplayFormat.print(Load::load('schema-base.grammar'), ns)
+  DisplayFormat.print(Loader.load('schema.grammar'), ns)
+
+  goal = ARGV[2]
+  if goal then
+    goal_s = Loader.load(goal);
+
+    lts = LTS.new
+    goal_s.classes.each do |kls|
+      kls.supers.each do |sup|
+        lts.transitions << Transition.new(kls, "<:", sup)
+      end
+      kls.fields.each do |fld|
+        if !fld.computed && !fld.type.Primitive? then
+          lts.transitions << Transition.new(kls, fld.name, fld.type)
+        end
+        if fld.type.Primitive? then
+          lts.transitions << Transition.new(kls, fld.name + ":" + fld.type.name, kls)
+        end
+      end
+    end
+
+    ns.classes.each do |kls|
+      kls.supers.each do |sup|
+        a = goal_s.classes[kls.name] || kls
+        b = goal_s.classes[sup.name] || sup
+        lts.transitions << Transition.new(a, "<:", b)
+      end
+      kls.fields.each do |fld|
+        if !fld.computed && !fld.type.Primitive? then
+          a = goal_s.classes[kls.name] || kls
+          b = goal_s.classes[fld.type.name] || fld.type
+          lts.transitions << Transition.new(a, fld.name, b)
+        end
+        if fld.type.Primitive? then
+          a = goal_s.classes[kls.name] || kls
+          lts.transitions << Transition.new(a, fld.name + ":" + fld.type.name, a)
+        end
+      end
+    end      
+
+
+    puts "LTS"
+    lts.transitions.each do |tr|
+      puts tr
+    end
+
+    part = bisim(lts)
+
+    puts "PARTITION RESULT: "
+    part.each do |set|
+      puts "\t#{set.to_a.join(', ')}"
+    end
+
+
+
+    #DisplayFormat.print(Loader.load('diff.grammar'), p)
+  end
+  
 end

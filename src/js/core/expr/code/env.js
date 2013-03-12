@@ -2,11 +2,7 @@ define([
 ],
 function() {
   var Env ;
-
   var BaseEnv = MakeMixin([], function() {
-    this.parent = function() { return this.$.parent };
-    this.set_parent = function(val) { this.$.parent  = val };
-
     this.set_in_place = function(block, key) {
       var self = this; 
       return self._set(key, block(self._get(key)));
@@ -28,7 +24,7 @@ function() {
 
     this.set_grandparent = function(env) {
       var self = this; 
-      if (self.$.parent == null || self.$.parent == new EnsoHash ({ })) {
+      if (self.$.parent == null || self.$.parent == new EnsoHash ( { } )) {
         return self.set_parent(env);
       } else {
         return self.$.parent.set_grandparent(env);
@@ -63,7 +59,7 @@ function() {
     function(super$) {
       this.initialize = function(hash) {
         var self = this; 
-        if (hash === undefined) hash = new EnsoHash ({ });
+        if (hash === undefined) hash = new EnsoHash ( { } );
         return self.$.hash = hash;
       };
 
@@ -90,13 +86,6 @@ function() {
         return self.$.hash.has_key_P(key) || self.$.parent && self.$.parent.has_key_P(key);
       };
 
-      this.keys = function() {
-        var self = this; 
-        return (self.$.hash.keys() + (self.$.parent == null
-          ? []
-          : self.$.parent.keys())).uniq();
-      };
-
       this.to_s = function() {
         var self = this; 
         return self.$.hash.to_s();
@@ -104,7 +93,10 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        return HashEnv.new(self.$.hash.clone()).set_parent(self.$.parent);
+        var r;
+        r = HashEnv.new(self.$.hash.clone());
+        r.set_parent(self.$.parent);
+        return r;
       };
     });
 
@@ -141,14 +133,7 @@ function() {
 
       this.has_key_P = function(key) {
         var self = this; 
-        return (key == "self" || self.$.obj.schema_class().all_fields()._get(key)) || self.$.parent && self.$.parent.has_key_P(key);
-      };
-
-      this.keys = function() {
-        var self = this; 
-        return (self.$.obj.schema_class().all_fields().keys() + (self.$.parent == null
-          ? []
-          : self.$.parent.keys())).uniq();
+        return self.$.obj.schema_class().all_fields()._get(key) || self.$.parent && self.$.parent.has_key_P(key);
       };
 
       this.to_s = function() {
@@ -163,7 +148,7 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        return ObjEnv.new(self.$.obj).set_parent(self.$.parent);
+        return self;
       };
     });
 
@@ -202,13 +187,6 @@ function() {
         return self.$.label == key || self.$.parent && self.$.parent.has_key_P(key);
       };
 
-      this.keys = function() {
-        var self = this; 
-        return ([self.$.label] + (self.$.parent == null
-          ? []
-          : self.$.parent.keys())).uniq();
-      };
-
       this.to_s = function() {
         var self = this; 
         return self.$.block.to_s();
@@ -216,22 +194,11 @@ function() {
 
       this.clone = function() {
         var self = this; 
-        return LambdaEnv.new(self.$.label, self.$.block).set_parent(self.$.parent);
+        return self;
       };
     });
 
   Env = {
-    deepclone: function(env) {
-      var self = this; 
-      var c;
-      c = env.clone();
-      if (! (env.parent() == null)) {
-        return c.set_parent(Env.deepclone(env.parent()));
-      } else {
-        return c;
-      }
-    },
-
     BaseEnv: BaseEnv,
     HashEnv: HashEnv,
     ObjEnv: ObjEnv,

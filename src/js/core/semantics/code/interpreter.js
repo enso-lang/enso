@@ -8,18 +8,13 @@ function() {
     function(super$) {
       this.initialize = function() {
         var self = this; 
-        self.$.current = new EnsoHash ({ });
+        self.$.current = new EnsoHash ( { } );
         return self.$.stack = [];
       };
 
       this._get = function(name) {
         var self = this; 
         return self.$.current._get(name);
-      };
-
-      this.include_P = function(name) {
-        var self = this; 
-        return self.$.current.include_P(name);
       };
 
       this._bind = function(field, value) {
@@ -65,23 +60,9 @@ function() {
       return result;
     };
 
-    this.debug = function() {
-      var self = this; 
-      self.$.debug = true;
-      console.log("DEBUG");
-      if (! self.$.indent) {
-        return self.$.indent = 0;
-      }
-    };
-
     this.dispatch = function(operation, obj) {
       var self = this; 
-      var type, method, result, params;
-      console.log("DEBUG? " + self.$.debug);
-      if (self.$.debug) {
-        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\n"));
-        self.$.indent = self.$.indent + 1;
-      }
+      var type, method, params;
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
@@ -92,23 +73,17 @@ function() {
         if (! self.respond_to_P(method)) {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
-        result = self.send(method, type, obj, self.$.D);
+        return self.send(method, type, obj, self.$.D);
       } else {
         params = type.fields().map(function(f) {
           return obj._get(f.name());
         });
-        result = self.send.apply(self, [method].concat(params));
+        return self.send.apply(self, [method].concat( params ));
       }
-      if (self.$.debug) {
-        self.$.indent = self.$.indent - 1;
-        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\n"));
-      }
-      return result;
     };
 
     this.dispatch_obj = function(operation, obj) {
       var self = this; 
-      var params = compute_rest_arguments(arguments, 2);
       var type, method;
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
@@ -121,7 +96,7 @@ function() {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
-      return self.send.apply(self, [method, obj].concat(params));
+      return self.send(method, obj);
     };
 
     this.find = function(operation, type) {

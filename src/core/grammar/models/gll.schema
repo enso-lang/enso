@@ -1,0 +1,55 @@
+
+import grammar.schema
+
+primitive int
+primitive str
+
+
+class Config
+  nodes! Base*
+  packs! Pack*
+  root: Base
+  stack! GSS*
+  top: GSS
+
+class Item < Pattern
+  expression! Pattern
+  elements! Pattern*
+  dot: int
+
+class Base
+  starts: int
+  ends: int
+  type: Pattern
+  origin! Location
+
+class Leaf < Base
+  value: str
+  ws: str
+
+class Node < Base
+  kids: Pack*
+
+class Pack
+  pivot: int
+  left: Node?
+  right: Node
+
+
+class GSS
+  item! Item
+  pos: int
+  edges: GSS*
+
+class Edge
+  sppf: Base
+  target: GSS
+
+class Location
+  path: str
+  offset: int
+  size: int
+  start_line: int
+  start_column: int
+  end_line: int
+  end_column: int

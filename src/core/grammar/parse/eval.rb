@@ -34,6 +34,11 @@ class GrammarEval
     def schema_class
       self.class
     end
+
+    def equals(o)
+      self == o
+    end
+
   end
 
 

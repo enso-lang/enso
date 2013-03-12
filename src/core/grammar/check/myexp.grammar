@@ -1,0 +1,12 @@
+
+
+start Exp
+
+Exp ::= [Bin] lhs:Exp op:"+" rhs:Exp
+     |  [Bin] lhs:Exp op:"*" rhs:Exp
+     |  [Bin] lhs:Exp rhs:Exp
+     |  [Var] name:sym
+     |  [Lst] "[" Elts? "]"
+Elts ::= elts:Exp "," Elts
+      |  elts:Exp
+

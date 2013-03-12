@@ -16,25 +16,29 @@ class SchemaLTS
       return @memo[this]
     end
     if label then
-      @memo[this] = LTS.new(Transition.new(state, label, this.name)) 
+      @memo[this] = LTS.new(Transition.new(state, label, this)) 
       # also make edges to subclasses
-      this.subclasses.each do |c|
-        @memo[this].transitions << Transition.new(state, label, c.name)
-      end
+      #this.subclasses.each do |c|
+      #  @memo[this].transitions << Transition.new(state, label, c)
+      #end
     else
       @memo[this] = LTS.new
     end
     this.fields.each do |f|
-      @memo[this] += eval(f, this.name, nil) unless f.computed
+      if !f.computed && !f.type.Primitive? then
+        @memo[this] += eval(f, this, nil) 
+      end
     end
     this.subclasses.each do |c|
-      @memo[this] += eval(c, nil, nil)
+     @memo[this].transitions << Transition.new(this, "", c) #eval(c, nil, nil)
     end
     return @memo[this]
   end
 
   def Primitive(this, state, label)
-    LTS.new(Transition.new(state, label, this.name))
+    LTS.new
+    #LTS.new(Transition.new(state, label, this)) +
+    #  LTS.new(Transition.new(this, "", this))
   end
 
   def Field(this, state, _)

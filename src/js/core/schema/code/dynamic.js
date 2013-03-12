@@ -10,7 +10,7 @@ function(Enso) {
       this.initialize = function(obj) {
         var self = this; 
         self.$.obj = obj;
-        self.$.fields = new EnsoHash ({ });
+        self.$.fields = new EnsoHash ( { } );
         return self.$.obj.schema_class().fields().each(function(fld) {
           self.define_getter(fld.name(), self.$.obj.props()._get(fld.name()));
           return self.define_setter(fld.name(), self.$.obj.props()._get(fld.name()));
@@ -36,7 +36,7 @@ function(Enso) {
             }
             self.$.fields._set(name, var_V = Variable.new(S(self.$.obj, ".", name), val));
             self.$.obj.add_listener(function(val) {
-              return var_V.set_value(val);
+              return var_V.value = val;
             }, name);
             return var_V;
           }

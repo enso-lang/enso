@@ -13,11 +13,18 @@ module GrammarTypes
       false
     end
 
-    def lub_with_class(c); UNDEF end
+    def lub_with_class(c); 
+      puts "TYPE (#{self.class}): #{self} with #{c}"
+      
+      UNDEF
+    end
     def lub_with_primitive(p); UNDEF end
     #def lub_with_atom(a); UNDEF end
 
-    def cat_with_class(t); UNDEF end
+    def cat_with_class(t);
+      puts "CAT type (#{self.class}): #{self} with #{t}"
+      UNDEF
+    end
     def cat_with_primitive(t); UNDEF end
     #def cat_with_atom(t); UNDEF end
 
@@ -30,6 +37,10 @@ module GrammarTypes
     attr_reader :klass
     
     def initialize(klass)
+      #puts "MY KLASS = #{klass.inspect}"
+      if klass.nil? then
+        raise "BUG: klass argument is nil"
+      end
       @klass = klass
     end
 
@@ -38,14 +49,21 @@ module GrammarTypes
     end
 
     def subclass_of?(x)
+      #puts "X = #{x}"
+      #puts "X.klass = #{x.klass}"
+      #puts "KLASS = #{klass}"
       return true if klass == x.klass
+      #p klass.supers
       klass.supers.any? do |sup|
+        #puts "SUP = #{sup.inspect}"
         Klass.new(sup).subclass_of?(x)
       end
     end
         
     def lub_with_class(y)
       x = self
+      #puts "LUBBING: #{x} with #{y}"
+      return x if y == VOID
       return x if x == y
       return y if x.subclass_of?(y)
       return x if y.subclass_of?(x)
@@ -82,6 +100,18 @@ module GrammarTypes
 
     def lub_with_primitive(p)
       if self == p then
+        self
+      elsif p == VOID then
+        self
+      else
+        UNDEF
+      end
+    end
+
+    def cat_with_primitive(p)
+      if self == p then
+        self
+      elsif p == VOID then
         self
       else
         UNDEF
@@ -126,7 +156,10 @@ module GrammarTypes
   end
 
   class Void < Type
-    def lub_with_class(c); c end
+    def lub_with_class(c); 
+      # puts "VOID: #{self} with #{c}"
+      c 
+    end
     def lub_with_primitive(p); p end
     #def lub_with_atom(a); a end
 
@@ -165,6 +198,11 @@ end
 
 if __FILE__ == $0 then
   require 'core/system/load/load'
+  if !ARGV[0] then
+    puts "Usage: types.rb <schema>"
+    exit!(1)
+  end
+
 
   include GrammarTypes
   s = Load::load(ARGV[0])

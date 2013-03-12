@@ -7,7 +7,7 @@ Schema ::= [Schema] types:TypeDef* @/2
 TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
-
+  
 Class ::= [Class] "class" name:sym ClassAnnot /> defined_fields:Field* @/ </
 ClassAnnot ::= Parent?
 Parent ::= "<" supers:Super+ @","

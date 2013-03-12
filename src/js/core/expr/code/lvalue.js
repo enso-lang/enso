@@ -26,21 +26,17 @@ function(Eval, Interpreter, Env) {
         var self = this; 
         var val;
         if (self.type()) {
-          switch (self.type().name()) {
-            case "int":
-              val = val.to_i();
-              break;
-            case "str":
-              val = val.to_s();
-              break;
-            case "real":
-              val = val.to_f();
-              break;
+          if (self.type().name() == "int") {
+            val = val.to_i();
+          } else if (self.type().name() == "str") {
+            val = val.to_s();
+          } else if (self.type().name() == "real") {
+            val = val.to_f();
           }
         }
         try {
           return self.$.array._set(self.$.index, val);
-        } catch (DUMMY) {
+        } catch ( DUMMY ) {
         }
       };
 

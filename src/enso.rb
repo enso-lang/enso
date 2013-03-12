@@ -122,4 +122,8 @@ class EnsoProxyObject < EnsoBaseClass
       accessor.set(val)
     end
   end
+
+  def to_str
+    to_s
+  end
 end

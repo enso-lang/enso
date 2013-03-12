@@ -5,8 +5,8 @@ require 'core/system/utils/location'
 require 'core/expr/code/assertexpr'
 
 class Build
-  def self.build(sppf, factory, origins, imports=[])
-    Build.new(factory, origins).build(sppf, imports)
+  def self.build(sppf, factory, origins)
+    Build.new(factory, origins).build(sppf)
   end
 
   def initialize(factory, origins)
@@ -14,34 +14,32 @@ class Build
     @origins = origins
   end
 
-  def build(sppf, imports)
+  def build(sppf)
     recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
     obj = accu.values.first
-    imports.each do |import|
-      obj._graph_id.unsafe_mode {
-        obj = Union::CopyInto(obj.factory, import, obj)
-      }
-    end
     fixup(obj, fixes)
     return obj
   end
 
   def recurse(sppf, owner, accu, field, fixes, paths)
+    puts "BUILDING"
     type = sppf.type 
     sym = type.schema_class.name
     if respond_to?(sym)
+      puts "SYM = #{sym}"
       send(sym, type, sppf, owner, accu, field, fixes, paths)
     else
       kids(sppf, owner, accu, nil, fixes, paths)
     end
   end
 
+
   def handle_amb(sppf, owner, accu, field, fixes, paths)
-    amb_error(sppf) if sppf.kids.size > 1
+    amb_error(sppf) if sppf.kids.length > 1
   end
   
   def is_amb?(sppf)
-    sppf.kids.size > 1
+    sppf.kids.length > 1
   end
 
   def kids(sppf, owner, accu, field, fixes, paths)
@@ -57,6 +55,28 @@ class Build
     recurse(pack.right, owner, accu, field, fixes, paths)
   end
 
+
+  def Sequence(this, sppf, owner, accu, field, fixes, paths)
+    puts "SEQUENCE!!!!"
+    if this.elements.length == 1 then
+      puts "SINGLETON"
+      kids(sppf, owner, accu, field, fixes, paths)
+    else
+      kids(sppf, owner, accu, nil, fixes, paths)
+    end
+  end
+
+  def Alt(this, sppf, owner, accu, field, fixes, paths)
+    kids(sppf, owner, accu, field, fixes, paths)
+  end
+
+  def Rule(this, sppf, owner, accu, field, fixes, paths)
+    kids(sppf, owner, accu, field, fixes, paths)
+  end
+
+  def Regular(this, sppf, owner, accu, field, fixes, paths)
+    kids(sppf, owner, accu, field, fixes, paths)
+  end
 
   def Create(this, sppf, owner, accu, field, fixes, paths)
     current = @factory[this.name]
@@ -80,8 +100,12 @@ class Build
       update_origin(owner, field, org)
     end
     paths.each do |org, fix|
-      fix.obj = owner
-      fix.field = field
+      if fix.field != field
+        puts "FIX.field: #{fix.field}"
+        puts "FIELD: #{field}"
+        raise "BAD field" 
+      end
+      raise "BAD owner" if fix.obj != owner 
       fixes << fix
       #fixes << Fix.new(path, owner, field, org)
     end
@@ -136,9 +160,9 @@ class Build
 
   def amb_error(sppf)
     Unparse.unparse(sppf, s = '')
-    File.open('amb.dot', 'w') do |f|
-     ToDot.to_dot(sppf, f)
-    end
+    #File.open('amb.dot', 'w') do |f|
+    #  ToDot.to_dot(sppf, f)
+    #end
     raise "Ambiguity: >>>#{s}<<<" 
     
   end
@@ -146,12 +170,12 @@ class Build
   def origin(sppf)
     path = @origins.path
     offset = @origins.offset(sppf.starts)
-    size = sppf.ends - sppf.starts
+    length = sppf.ends - sppf.starts
     start_line = @origins.line(sppf.starts)
     start_column = @origins.column(sppf.starts)
     end_line = @origins.line(sppf.ends)
     end_column = @origins.column(sppf.ends)
-    Location.new(path, offset, size, start_line, 
+    Location.new(path, offset, length, start_line, 
                  start_column, end_line, end_column)
   end
 
@@ -196,8 +220,8 @@ class Build
       change = false
       fixes.each do |fix|
         helper = Paths::new(fix.path)
-        x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it do
-          helper.eval
+        x = helper.dynamic_bind(root: root, this: fix.obj, it: fix.it) do 
+          helper.eval 
         end
         if x then # the path can resolved
           update(fix.obj, fix.field, x)
@@ -234,7 +258,7 @@ class Build
   end
 
   class Fix
-    attr_accessor :path, :obj, :field, :origin, :it
+    attr_reader :path, :obj, :field, :origin, :it
     def initialize(path, obj, field, origin, it)
       @path = path
       @obj = obj

@@ -27,11 +27,11 @@ module Impl
     #args are used by the interpreter
     def call_closure(*params)
       #puts "CALL #{@formals} #{params}"
-      nenv = Env::HashEnv.new
+      nv = {}
       @formals.each_with_index do |f,i|
-        nenv[f.name] = params[i]
+        nv[f.name] = params[i]
       end
-      nenv.set_parent(@env)
+      nenv = Env::HashEnv.new(nv, @env)
       @interp.dynamic_bind env: nenv do
         @interp.eval(@body)
       end
@@ -58,9 +58,9 @@ module Impl
         eval(body)
       end
     end
-  
+
     def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new.set_parent(@D[:env])
+      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
       eval(list).each do |val|
         nenv[var] = val
         dynamic_bind env: nenv do
@@ -77,29 +77,21 @@ module Impl
       end
     end
 
-    def eval_EBlock(body)
+    def eval_EBlock(fundefs, body)
       res = nil
-      env1= Env::HashEnv.new(@D[:env])
-      #do all function definitions first regardless of sequence
-      # use a new env that is a clone of everything up to this point
-      # -all closures created using the same env (but have their own when evaluated)
-      # -subsequent changes to current env does not affect created closures
-      defs = body.select{|c| c.EFunDef?}
-      defenv = Env::deepclone(@D[:env])
+      #fundefs are able to see each other but not any other variable created in the block
+      defenv = Env::HashEnv.new(@D[:env])
+#=begin
       dynamic_bind in_fc: false, env: defenv do
-        defs.each do |c|
+        fundefs.each do |c|
           eval(c)
-          env1[c.name] = defenv[c.name]
         end
       end
-      #do everything else non-fundef
-      # use a new env binding for this block
-      # -modifications to bindings defined outside the block are externally visible
-      # -new bindings created inside the block (ie never existed before) are not
-      # -fundefs created earlier are visible only in this block
-      others = body.select{|c| not c.EFunDef?}
+#=end
+      #rest of body can see fundefs
+      env1 = Env::HashEnv.new(defenv)
       dynamic_bind in_fc: false, env: env1 do
-        others.each do |c|
+        body.each do |c|
           res = eval(c)
         end
       end
