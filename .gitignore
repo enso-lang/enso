@@ -24,8 +24,6 @@ src/sppf.dot
 # Cache
 src/core/system/load/cache/*
 
-# JS
-src/js
 
 # -NEWs
 *-NEW
