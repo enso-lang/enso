@@ -31,28 +31,35 @@ module Factory
       @schema = schema
       @roots = []
       @file_path = []
+      __install_methods(@schema)
+      __check_cylic_inheritance(@schema)
+    end
+
+    def __install_methods(schema)
       schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
-         MObject.new(klass, self, *args)
+          MObject.new(klass, self, *args)
         end 
       end
+    end
 
+    def __check_cylic_inheritance(schema)
       #check that schema supers have no cyclic dependencies
       # (this has led to difficult to debug errors in the past)
       schema.classes.each do |c|
-        if check_cyclic_subtyping(c, [])
+        if __check_cyclic_subtyping(c, [])
           raise "Build factory failed: #{c} is its own superclass"
         end 
       end
     end
 
-    def check_cyclic_subtyping(c, subs)
+    def __check_cyclic_subtyping(c, subs)
       if subs.include? c
         true
       else
         res = false
         c.supers.each do |s|
-          res ||= check_cyclic_subtyping(s, subs.union([c]))
+          res ||= __check_cyclic_subtyping(s, subs.union([c]))
         end 
         res
       end
