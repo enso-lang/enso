@@ -26,6 +26,10 @@ class File
     end
     result
   end
+  
+  def self.read_header(path)
+    File.open(path, &:readline)
+  end
 end
 
 module Enumerable

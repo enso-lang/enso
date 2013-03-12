@@ -78,10 +78,12 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
         Paths.Path.set_factory(Factory.new(ss));
+/*
         self.update_json("schema.schema");
         self.update_json("grammar.schema");
         self.update_json("grammar.grammar");
         return self.update_json("schema.grammar");
+*/
       };
 
       this.update_json = function(name) {
@@ -93,7 +95,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         if (Cache.check_dep(name)) {
           return self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
         } else {
-          new_V = self.$.cache._get(name) = self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema")));
+          new_V = self.$.cache._set(name, self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema"))));
           self.$.cache._set(name, Union.Copy(Factory.new(self.load(S(type, ".schema"))), new_V));
           self.$.cache._get(name).factory().set_file_path(new_V.factory().file_path());
           return Cache.save_cache(name, self.$.cache._get(name));
@@ -141,14 +143,6 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
           }
         } else {
-          try {
-            header = File.open(function(x) {
-              return x.readline();
-            }, path);
-          } catch (err) {
-            System.stderr().push(S("Unable to open file ", path, "\n"));
-            self.raise(err);
-          }
           System.stderr().push(S("## loading ", path, "...\n"));
           result = Parse.load_file(path, grammar, schema, encoding);
         }

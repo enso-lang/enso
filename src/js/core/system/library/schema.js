@@ -5,20 +5,25 @@ function() {
 
   Schema = {
     class_key: function(klass) {
+      var self = this; 
       return klass.fields().find(function(f) {
         return f.key() && f.type().Primitive_P();
       });
     },
 
     object_key: function(obj) {
-      return obj._get(self.class_key(obj.schema_class()).name());
+      var self = this; 
+      return obj._get(Schema.class_key(obj.schema_class()).name());
     },
 
     is_keyed_P: function(klass) {
-      return ! klass.Primitive_P() && ! (self.class_key(klass) == null);
+      var self = this; 
+      return ! klass.Primitive_P() && ! (Schema.class_key(klass) == null);
     },
 
     lookup: function(block, obj) {
+      var self = this; 
+      var res;
       res = block(obj);
       if (res) {
         return res;
@@ -26,34 +31,35 @@ function() {
         return null;
       } else {
         return obj.supers().find_first(function(o) {
-          return self.lookup(block, o);
+          return Schema.lookup(block, o);
         });
       }
     },
 
     subclass_P: function(a, b) {
+      var self = this; 
       if (a == null || b == null) {
         return false;
-      } else if (a.name() == System.test_type(b, String)
+      } else if (a.name() == (System.test_type(b, String)
         ? b
-        : b.name()
-      ) {
+        : b.name())) {
         return true;
       } else {
         return a.supers().any_P(function(sup) {
-          return self.subclass_P(sup, b);
+          return Schema.subclass_P(sup, b);
         });
       }
     },
 
     class_minimum: function(a, b) {
+      var self = this; 
       if (b == null) {
         return a;
       } else if (a == null) {
         return b;
-      } else if (self.subclass_P(a, b)) {
+      } else if (Schema.subclass_P(a, b)) {
         return a;
-      } else if (self.subclass_P(b, a)) {
+      } else if (Schema.subclass_P(b, a)) {
         return b;
       } else {
         return null;
@@ -61,6 +67,8 @@ function() {
     },
 
     map: function(block, obj) {
+      var self = this; 
+      var res;
       if (obj == null) {
         return null;
       } else {

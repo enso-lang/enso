@@ -22,7 +22,7 @@ main: \
 	js/core/system/utils/find_model.js \
   js/core/schema/tools/dumpjson.js \
   js/core/schema/tools/print.js \
-  js/core/grammar/parse/topath.js \
+
 
 foo: \
     js/core/grammar/parse/origins.js \

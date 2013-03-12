@@ -64,7 +64,6 @@ module Load
     
       #check if XML is not out of date then just use it
       #else load XML first then reload
-#<<<<<<< HEAD
       @cache['schema.schema'] = ss = load_with_models('schema_schema.json', nil, nil)
       @cache['grammar.schema'] = gs = load_with_models('grammar_schema.json', nil, ss)
       @cache['grammar.grammar'] = load_with_models('grammar_grammar.json', nil, gs)
@@ -76,6 +75,7 @@ module Load
       update_json('grammar.schema')
       update_json('grammar.grammar')
       update_json('schema.grammar')
+
 =begin
       @cache['schema.schema'] = ss = load_with_models('schema_schema.json', nil, nil)
       @cache['grammar.schema'] = gs = load_with_models('grammar_schema.json', nil, ss)
@@ -90,12 +90,13 @@ module Load
         @cache['schema.grammar'] = update_xml('schema.grammar')
       end
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
->>>>>>> c8580b5e748745f54b6670c14f0b861cbcdf49d5
 =end
     end
 
     def update_json(name)
-      model, type = name.split(".")
+      parts = name.split(".")
+      model = parts[0]
+      type = parts[1]
       if Cache::check_dep(name)
         patch_schema_pointers!(@cache[name], load("#{type}.schema"))
       else
@@ -149,12 +150,6 @@ module Load
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
       else
-        begin
-          header = File.open(path, &:readline)
-        rescue EOFError => err
-          $stderr << "Unable to open file #{path}\n"
-          raise err
-        end
         $stderr << "## loading #{path}...\n"
         result = Parse.load_file(path, grammar, schema, encoding)
       end

@@ -47,7 +47,7 @@ module Layout
     end
   
     def recurse(pat, data, container=nil)
-      pair = [pat, data.current]
+      pair = "#{pat.to_s}/#{data.current}"  # have to use strings, for JavaScript!
       if !@stack.include?(pair)
         @stack << pair 
         if @debug

@@ -1,11 +1,10 @@
 define([
-  "core/system/utils/paths",
   "core/schema/code/factory",
   "core/schema/tools/union",
   "json",
   "enso"
 ],
-function(Paths, Factory, Union, Json, Enso) {
+function(Factory, Union, Json, Enso) {
   var MetaSchema ;
 
   var MObject = MakeClass("MObject", EnsoProxyObject, [],
@@ -35,7 +34,7 @@ function(Paths, Factory, Union, Json, Enso) {
         data.each(function(key, value) {
           if (key == "class") {
           } else if (key._get(- 1) == "=") {
-            self.define_singleton_value(key.slice(0, key.length - 1), value);
+            self.define_singleton_value(key.slice(0, key.size() - 1), value);
             if (key == "name=") {
               has_name = true;
               return self.define_singleton_value("to_s", S("<", data._get("class"), " ", self._id(), " ", value, ">"));
@@ -43,10 +42,9 @@ function(Paths, Factory, Union, Json, Enso) {
           } else if (System.test_type(value, Array)) {
             keyed = key._get(- 1) == "#";
             name = keyed
-              ? key.slice(0, key.length - 1)
-              : key
-            ;
-            if (value.length == 0 || ! System.test_type(value._get(0), String)) {
+              ? key.slice(0, key.size() - 1)
+              : key;
+            if (value.size() == 0 || ! System.test_type(value._get(0), String)) {
               return self._create_many(name, value.map(function(a) {
                 return MetaSchema.make_object(a, self.$.root);
               }), keyed);
@@ -60,6 +58,22 @@ function(Paths, Factory, Union, Json, Enso) {
         }
       };
 
+      this._lookup = function(str, obj) {
+        var self = this; 
+        var n, field, obj, index;
+        str.split(".").each(function(part) {
+          if ((n = part.index("[")) && part.slice(- 1) == "]") {
+            field = part.slice(0, n);
+            obj = obj._get(field);
+            index = part.slice(n + 1, (part.size() - n) - 2);
+            return obj = obj._get(index);
+          } else {
+            return obj = obj._get(part);
+          }
+        });
+        return obj;
+      };
+
       this._complete = function() {
         var self = this; 
         var keyed, name;
@@ -70,12 +84,11 @@ function(Paths, Factory, Union, Json, Enso) {
             if (System.test_type(value, Array)) {
               keyed = key._get(- 1) == "#";
               name = keyed
-                ? key.slice(0, key.length - 1)
-                : key
-              ;
-              if (value.length > 0 && System.test_type(value._get(0), String)) {
+                ? key.slice(0, key.size() - 1)
+                : key;
+              if (value.size() > 0 && System.test_type(value._get(0), String)) {
                 return self._create_many(name, value.map(function(a) {
-                  return Paths.parse(a).deref(self.$.root);
+                  return MetaSchema.path_eval(a, self.$.root);
                 }), keyed);
               } else {
                 return self._get(name).each(function(obj) {
@@ -83,7 +96,7 @@ function(Paths, Factory, Union, Json, Enso) {
                 });
               }
             } else if (System.test_type(value, String)) {
-              return self.define_singleton_value(key, Paths.parse(value).deref(self.$.root));
+              return self.define_singleton_value(key, MetaSchema.path_eval(value, self.$.root));
             } else {
               return self._get(key)._complete();
             }
@@ -169,18 +182,18 @@ function(Paths, Factory, Union, Json, Enso) {
 
       this.each_with_match = function(block, other) {
         var self = this; 
-        var other, ks, a, b;
+        var other, ks, i;
         if (self.$.keyed) {
-          other = other || new EnsoHash ( { } );
+          other = other || new EnsoHash ({ });
           ks = self.keys() || other.keys();
           return ks.each(function(k) {
             return block(self._get(k), other._get(k));
           });
         } else {
-          a = Array(self);
-          b = Array(other);
-          return Range.new(0, [a.length, b.length].max() - 1).each(function(i) {
-            return block(a._get(i), b._get(i));
+          i = 0;
+          return self.each(function(a) {
+            block(a, other && other._get(i));
+            return i = i + 1;
           });
         }
       };
@@ -199,25 +212,46 @@ function(Paths, Factory, Union, Json, Enso) {
 
   MetaSchema = {
     load_path: function(path) {
+      var self = this; 
       return MetaSchema.load(System.readJSON(path)._get("model"));
     },
 
     load: function(doc) {
+      var self = this; 
+      var ss0;
       ss0 = MetaSchema.make_object(doc, null);
       ss0._complete();
       return Union.Copy(Factory.new(ss0), ss0);
     },
 
     make_object: function(data, root) {
+      var self = this; 
       if (data != null) {
-        if (data._get("class") == "Schema") {
-          return Schema.new(data, root);
-        } else if (data._get("class") == "Class") {
-          return Class.new(data, root);
-        } else {
-          return MObject.new(data, root);
+        switch (data._get("class")) {
+          case "Schema":
+            return Schema.new(data, root);
+          case "Class":
+            return Class.new(data, root);
+          default:
+            return MObject.new(data, root);
         }
       }
+    },
+
+    path_eval: function(str, obj) {
+      var self = this; 
+      var n, field, obj, index;
+      str.split(".").each(function(part) {
+        if ((n = part.index("[")) && part.slice(- 1) == "]") {
+          field = part.slice(0, n);
+          obj = obj._get(field);
+          index = part.slice(n + 1, (part.size() - n) - 2);
+          return obj = obj._get(index);
+        } else {
+          return obj = obj._get(part);
+        }
+      });
+      return obj;
     },
 
     MObject: MObject,

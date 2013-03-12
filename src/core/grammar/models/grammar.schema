@@ -64,7 +64,7 @@ class Let < Pattern
   arg: Pattern
   binding: Binding
 
-class Var < Key
+class Var < Expr
   name: str
 
 class Binding

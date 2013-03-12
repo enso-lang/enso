@@ -6,7 +6,7 @@ function() {
     function() {
       this.new = function() {
         var self = this; 
-        var args = compute_rest_arguments(arguments, 0 );
+        var args = compute_rest_arguments(arguments, 0);
         if (! self._class_.$.nodes.has_key_P(args)) {
           return self._class_.$.nodes._set(args, super$.new.call(self));
         } else {
@@ -30,7 +30,7 @@ function() {
         var self = this; 
         self.$.item = item;
         self.$.pos = pos;
-        self.$.edges = new EnsoHash ( { } );
+        self.$.edges = new EnsoHash ({ });
         return self.$.hash = item.hash() * 3 + pos * 17;
       };
 
