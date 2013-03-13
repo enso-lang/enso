@@ -22,7 +22,7 @@ src/bla.dot
 src/sppf.dot
 
 # Cache
-src/core/system/load/cache/*
+src/cache/*
 
 
 # -NEWs

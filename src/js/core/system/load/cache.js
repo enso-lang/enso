@@ -47,34 +47,12 @@ function(Factory, Dumpjson, FindModel, Sha1) {
       }
     },
 
-    clean: function(name) {
-      var self = this; 
-      if (name === undefined) name = null;
-      if (name == null) {
-        if (File.exists_P(S(Cache.cache_path(), "*"))) {
-          return File.delete(S(Cache.cache_path(), "*"));
-        }
-      } else if (File.exists_P(Cache.find_json(name))) {
-        return File.delete(Cache.find_json(name));
-      }
-    },
-
-    cache_path: function() {
-      var self = this; 
-      var res;
-      res = "core/system/load/cache/";
-      if (! File.exists_P(res)) {
-        Dir.mkdir(res);
-      }
-      return res;
-    },
-
     find_json: function(name) {
       var self = this; 
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        return S(Cache.cache_path(), name.gsub(".", "_"), ".json");
+        return S("cache/", name.gsub(".", "_"), ".json");
       }
     },
 

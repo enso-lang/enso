@@ -18,7 +18,6 @@ function() {
         if (File.exists_P(name)) {
           return block(name);
         } else {
-         puts("CHECK " + name);
           path = self.file_map()._get(name);
           if (! path) {
             self.raise(EOFError, S("File not found ", name));

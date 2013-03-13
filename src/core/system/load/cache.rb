@@ -35,28 +35,11 @@ module Cache
     end
   end
 
-  def self.clean(name=nil)
-    if name.nil?  #clean everything
-      File.delete("#{cache_path}*") if File.exists?("#{cache_path}*") 
-    else
-      File.delete(find_json(name)) if File.exists?(find_json(name))
-    end
-  end
-
-
-  def self.cache_path
-    res = "core/system/load/cache/"
-    unless File.exists? res
-      Dir.mkdir res
-    end
-    res 
-  end
-  
   def self.find_json(name)
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      "#{cache_path}#{name.gsub('.','_')}.json"
+      "cache/#{name.gsub('.','_')}.json"
     end
   end
   

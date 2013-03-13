@@ -1,8 +1,26 @@
 
-define (function() {
-
+if (typeof window === 'undefined') {
+// running in node
   fs = require("fs");
   ARGV = process.argv.slice(2);
+} else {
+// running in browser
+  root_url = "http://localhost:8000";
+  fs = {
+    readFileSync: function(path) {
+      var resource;
+      if(typeof ActiveXObject == 'undefined'){
+        resource = new XMLHttpRequest();
+      }
+      else{ // IE
+        resource = new ActiveXObject("Microsoft.XMLHTTP");
+      }
+      resource.open('GET', root_url + path, false);
+      resource.send(null);
+      return resource.responseText; // JavaScript waits for response
+    }
+  }
+}
   
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
@@ -76,7 +94,10 @@ define (function() {
   
   CompatStream = function(s) {
     this.push = function(d) {
-      process.stdout.write(d);
+      if (s)
+        s.write(d);
+      else
+        console.log(d);
     }
   };
 
@@ -118,7 +139,7 @@ define (function() {
   System = {
     max: function(a, b) {
       return a > b ? a : b;
-    },  
+    },
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
     },
@@ -129,8 +150,8 @@ define (function() {
         type = type.new;
       return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     },
-    stdout: function() { return new CompatStream(process.stdout); },
-    stderr: function() { return new CompatStream(process.stderr); },
+    stdout: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stdout); },
+    stderr: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stderr); },
   }
   
   Object.prototype.raise = function(msg) { puts(msg); return ERROR; }
@@ -520,6 +541,4 @@ define (function() {
           proc(i);
       }       
     }});   
-
-})
 
