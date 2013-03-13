@@ -101,30 +101,12 @@ if (typeof window === 'undefined') {
     }
   };
 
-  var walk = function(dir, block) {
-    var list = fs.readdirSync(dir);
-    for (var i = 0; i < list.length; i++) {
-      var name = list[i];
-      var path = dir + '/' + name;
-      var stat = fs.statSync(path);
-      if (stat && stat.isDirectory()) {
-        walk(path, block);
-      } else {
-        block(name, path);
-      }
-    }
-  };
-
   File = {
     exists_P: function(p) { 
       return fs.existsSync(p);
     },
-    create_file_map: function (base) {
-      map = new EnsoHash({});
-      walk(base, function(name, path) {
-        map._set(name, path);
-      });
-      return map; 
+    create_file_map: function () {
+      return System.readJSON("model_index.json");
     },
     read_header: function (path) {
       var data = fs.readFileSync(path).toString();

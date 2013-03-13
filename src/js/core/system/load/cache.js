@@ -35,6 +35,7 @@ function(Factory, Dumpjson, FindModel, Sha1) {
 
     check_dep: function(name) {
       var self = this; 
+        return true; // can only load cache from JSON
       var path, json;
       try {
         path = Cache.find_json(name);
