@@ -7,7 +7,7 @@ require 'core/schema/tools/print'
 
 class GLL
   include SPPF
-  include GSS
+  include GSSMod
   attr_reader :ci
 
   def self.parse(source, grammar, top, org)
@@ -134,3 +134,17 @@ class GLL
   end
 end
 
+
+if __FILE__ == $0 then
+  require 'core/grammar/parse/origins'
+  require 'core/system/load/load'
+  gg = Load::load('grammar.grammar')
+  src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
+  #src = "start Expr Expr ::= ETernOp"
+  #src = '"a"'
+  x = GLL.parse(src, gg, gg.start, Origins.new(src, "-"))
+  puts x
+  # File.open('sppf.dot', 'w') do |f|
+  #   ToDot.to_dot(x, f)
+  # end
+end

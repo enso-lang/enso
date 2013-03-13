@@ -6,10 +6,78 @@ require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan'
 require 'core/system/load/load'
 
+require 'ruby-prof'
 
 module EnsoGLL
   def self.parse(source, grammar, start_symbol, org)
     EnsoGLLParser.new.parse(source, grammar, start_symbol, org)
+  end
+
+  class FormattingRemover
+    
+    def remove_formatting(x)
+      #puts "Removing from: #{x}"
+      if is_formatting?(x) then
+        $stderr << "WARNING: *not* removing formatting #{x}"
+      elsif respond_to?(x.schema_class.name)
+        send(x.schema_class.name, x)
+      end
+    end
+    
+    def Grammar(this)
+      this.rules.each do |x|
+        remove_formatting(x.arg)
+      end
+    end
+    
+    def Sequence(this)
+      #puts "SEQUENCE"
+      del = []
+      this.elements.each do |x|
+        #puts "ELT = #{x}"
+        if is_formatting?(x) then
+          #puts "REMOVING: #{x}"
+          del << x
+        else
+          remove_formatting(x)
+        end
+      end
+      del.each do |x|
+        this.elements.delete(x)
+      end
+    end
+
+    def Alt(this)
+      this.alts.each do |x|
+        remove_formatting(x)
+      end
+    end
+
+    def Create(this)
+      remove_formatting(this.arg)
+    end
+
+    def Field(this)
+      remove_formatting(this.arg)
+    end
+    
+    def Regular(this)
+      remove_formatting(this.arg)
+      #puts "***** REGULAR: #{this.arg.rule.name} #{this.sep}"
+      if this.sep && is_formatting?(this.sep) then
+        #puts "REMOVING SEP: #{this.sep}"
+        this.sep = nil
+      elsif this.sep then
+        #puts "###################### REMOVING FROM: #{this.sep}"
+        remove_formatting(this.sep)
+      end
+    end
+
+    def is_formatting?(x)
+      %w(NoSpace Indent Break).include?(x.schema_class.name)
+    end
+
+    
   end
 
 
@@ -36,7 +104,7 @@ module EnsoGLL
 
       @fact = SharingFactory::new(@schema, shared)
       @grammar =  Copy.new(@fact).copy(grammar)
-
+      FormattingRemover.new.remove_formatting(@grammar)
 
       #HACK
       start_rule = @grammar.rules[start_symbol]
@@ -101,6 +169,7 @@ module EnsoGLL
     end
 
     def Sequence(this, nxt)
+      create(nxt) if nxt
       add(@fact.Item(this, this.elements, 0))
 
       # if this.elements.empty? then
@@ -120,27 +189,31 @@ module EnsoGLL
       empty(this, nxt)
     end
 
-    def NoSpace(this, nxt)
-      Item(nxt, nil) if nxt
-    end
+    # def NoSpace(this, nxt)
+    #   Item(nxt, nil) if nxt
+    # end
 
-    def Indent(this, nxt)
-      Item(nxt, nil) if nxt
-    end
+    # def Indent(this, nxt)
+    #   Item(nxt, nil) if nxt
+    # end
 
-    def Break(this, nxt)
-      Item(nxt, nil) if nxt
-    end
+    # def Break(this, nxt)
+    #   Item(nxt, nil) if nxt
+    # end
 
     def Rule(this, nxt)
       # chain(this, nxt)
       create(nxt) if nxt
       this.arg.alts.each do |x|
-        if x.Sequence? then
-          add(@fact.Item(this, x.elements, 0))
-        else # Create
-          add(@fact.Item(this, [x], 0))
-        end
+        add_seq_or_elt(this, x)
+      end
+    end
+
+    def add_seq_or_elt(this, x)
+      if x.schema_class.name == 'Sequence' then
+        add(@fact.Item(this, x.elements, 0))
+      else # Create
+        add(@fact.Item(this, [x], 0))
       end
     end
 
@@ -175,8 +248,7 @@ module EnsoGLL
       create(nxt) if nxt
       this.alts.each do |alt|
         debug "ADDING ALT (Alt): #{alt}"
-        # add(alt)
-        add(@fact.Item(this, [alt], 0))
+        add_seq_or_elt(this, alt)
       end
     end
 
@@ -277,7 +349,7 @@ module EnsoGLL
     end
     
     def top_node?(node, source, top)
-      node.Node? &&
+      node.schema_class.name == 'Node' &&
         node.starts == @start_pos && 
         node.ends == source.size  &&
         node.type == top
@@ -409,8 +481,15 @@ if __FILE__ == $0 then
   gg = Load::load('grammar.grammar')
   src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
   src = "start Expr Expr ::= ETernOp | BLA Bla ::= \"a\""
-  src = '(a: X)'
+  src = '([X])'
+  RubyProf.start
+
   x = EnsoGLL::parse(src, gg, 'Pattern', Origins.new(src, "-"))
+
+  result = RubyProf.stop
+
+  printer = RubyProf::FlatPrinter.new(result)
+  printer.print(STDOUT)
   puts x
   File.open('sppf.dot', 'w') do |f|
     ToDot.to_dot(x, f)

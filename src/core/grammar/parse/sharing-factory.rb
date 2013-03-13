@@ -1,6 +1,7 @@
 
 require 'core/schema/code/factory'
 require 'core/system/library/schema'
+#require 'weakref'
 
 module SharingFactory
 
@@ -13,34 +14,29 @@ module SharingFactory
     def initialize(schema, shares)
       super(schema)
       @shares = shares
-      @objects = {}
-      shares.each do |klass|
-        @objects[klass] = []
-      end
       @memo = {}
+    end
+
+    def _objects_for(klass)
+      @memo.values.select do |x|
+        Schema::subclass?(x.schema_class, klass)
+      end
     end
 
     def __install_methods(schema)
       schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
-          cat = @shares.find { |x| Schema::subclass?(klass, x) }
-          if cat then
+          if @shares.include?(klass) then
             if @memo.has_key?(args) then
               @memo[args]
             else
-              obj = MObject.new(klass, self, *args)
-              @objects[cat] << obj
-              @memo[args] = obj
+              @memo[args] = MObject.new(klass, self, *args)
             end
           else
             MObject.new(klass, self, *args)
           end
         end 
       end
-    end
-
-    def _objects_for(klass)
-      @objects[klass]
     end
 
   end

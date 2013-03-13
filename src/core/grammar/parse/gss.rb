@@ -1,5 +1,5 @@
 
-module GSS
+module GSSMod
 
   class GSS
     attr_reader :item, :pos, :edges
