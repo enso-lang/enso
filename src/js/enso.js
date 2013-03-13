@@ -9,7 +9,7 @@ if (typeof window === 'undefined') {
 } else {
 // running in browser
   puts = function(obj) {
-    document.write("<PRE>" + obj + "</PRE>");
+    document.write(("" + obj).replace(/</g, "&lt").replace(/>/g, "&gt").replace(/\n/g, "<br>") + "<br>");
   }
   root_url = "http://localhost:8000/";
   fs = {
@@ -99,7 +99,7 @@ if (typeof window === 'undefined') {
       if (s)
         s.write(d);
       else
-        puts(d);
+        document.write(("" + d).replace("<", "&lt").replace(">", "&gt").replace("\n", "<br>"));
     }
   };
 

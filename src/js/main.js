@@ -1,5 +1,4 @@
 requirejs(["enso", "./core/system/boot/meta_schema"],
-
 function(Enso, Boot) {
   x = Boot.load_path("./core/system/boot/schema_schema.json");
   puts("x._id = " + x._id()) ;
@@ -22,5 +21,5 @@ function(Enso, Load, Layout) {
   m = Load.load('grammar.grammar');
   g = Load.load(S("grammar", ".grammar"));
   System.stderr().push(S("## Printing ", "grammar.grammar", "...\n"));
-  Layout.DisplayFormat.print(g, m, System.stdout, false); 
+  Layout.DisplayFormat.print(g, m, System.stdout(), false); 
 })
