@@ -3,9 +3,15 @@ if (typeof window === 'undefined') {
 // running in node
   fs = require("fs");
   ARGV = process.argv.slice(2);
+  puts = function(obj) {
+    console.log("" + obj);
+  }
 } else {
 // running in browser
-  root_url = "http://localhost:8000";
+  puts = function(obj) {
+    document.write("<PRE>" + obj + "</PRE>");
+  }
+  root_url = "http://localhost:8000/";
   fs = {
     readFileSync: function(path) {
       var resource;
@@ -25,11 +31,7 @@ if (typeof window === 'undefined') {
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
   }
-    
-  puts = function(obj) {
-    console.log("" + obj);
-  }
-  
+      
   EnsoHash = function(init) {
     var data = init;
     this.has_key_P = function(key) { return data.hasOwnProperty(key); };
@@ -97,7 +99,7 @@ if (typeof window === 'undefined') {
       if (s)
         s.write(d);
       else
-        console.log(d);
+        puts(d);
     }
   };
 
