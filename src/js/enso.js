@@ -1,23 +1,47 @@
 
-define (function() {
-
+if (typeof window === 'undefined') {
+// running in node
   fs = require("fs");
-  ARGV = process.argv.slice(1);
+  ARGV = process.argv.slice(2);
+  puts = function(obj) {
+    console.log("" + obj);
+  }
+} else {
+// running in browser
+  puts = function(obj) {
+    document.write(("" + obj).replace(/</g, "&lt").replace(/>/g, "&gt").replace(/\n/g, "<br>") + "<br>");
+  }
+  root_url = "http://localhost:8000/";
+  fs = {
+    readFileSync: function(path) {
+      var resource;
+      if(typeof ActiveXObject == 'undefined'){
+        resource = new XMLHttpRequest();
+      }
+      else{ // IE
+        resource = new ActiveXObject("Microsoft.XMLHTTP");
+      }
+      resource.open('GET', root_url + path, false);
+      resource.send(null);
+      return resource.responseText; // JavaScript waits for response
+    }
+  }
+}
   
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
   }
-    
-  puts = function(obj) {
-    console.log("" + obj);
-  }
-  
+      
   EnsoHash = function(init) {
     var data = init;
     this.has_key_P = function(key) { return data.hasOwnProperty(key); };
     this._get = function(key) { 
       return data[key]; 
     };
+    this.inspect = function() {
+      return "<HASH " + this.size() + ">";
+    }
+    this.toString = this.inspect;
     this.size = function() { 
       var count = 0;
       for (k in data) {
@@ -27,7 +51,7 @@ define (function() {
       return count;
     };
     this._set = function(key, value) {
-      data[key] = value;
+      return data[key] = value;
     };
     this.each = function(fun) {
       for (k in data) {
@@ -49,6 +73,21 @@ define (function() {
       }
       return keys;
     }
+    this.values = function() { 
+      var vals = [];
+      this.each_value(function(x) {
+        vals.push(x);
+      })
+      return vals;
+    }
+    this.empty_P = function() { 
+      var count = 0;
+      for (k in data) {
+        if (data.hasOwnProperty(k))
+          return false;
+      }
+      return true;
+    };
   }
   
   TrueClass = Boolean;
@@ -57,21 +96,10 @@ define (function() {
   
   CompatStream = function(s) {
     this.push = function(d) {
-      process.stdout.write(d);
-    }
-  };
-
-  var walk = function(dir, block) {
-    var list = fs.readdirSync(dir);
-    for (var i = 0; i < list.length; i++) {
-      var name = list[i];
-      var path = dir + '/' + name;
-      var stat = fs.statSync(path);
-      if (stat && stat.isDirectory()) {
-        walk(path, block);
-      } else {
-        block(name, path);
-      }
+      if (s)
+        s.write(d);
+      else
+        document.write(("" + d).replace("<", "&lt").replace(">", "&gt").replace("\n", "<br>"));
     }
   };
 
@@ -79,16 +107,23 @@ define (function() {
     exists_P: function(p) { 
       return fs.existsSync(p);
     },
-    create_file_map: function (base) {
-      map = new EnsoHash({});
-      walk(base, function(name, path) {
-        map._set(name, path);
-      });
-      return map; 
+    create_file_map: function () {
+      return System.readJSON("model_index.json");
+    },
+    read_header: function (path) {
+      var data = fs.readFileSync(path).toString();
+      var pos = data.indexOf("\n");
+      if (pos == -1)
+        return data;
+      else
+        return data.substring(0, pos);
     }
   };
   
   System = {
+    max: function(a, b) {
+      return a > b ? a : b;
+    },
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
     },
@@ -99,8 +134,8 @@ define (function() {
         type = type.new;
       return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     },
-    stdout: function() { return new CompatStream(process.stdout); },
-    stderr: function() { return new CompatStream(process.stderr); },
+    stdout: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stdout); },
+    stderr: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stderr); },
   }
   
   Object.prototype.raise = function(msg) { puts(msg); return ERROR; }
@@ -122,6 +157,7 @@ define (function() {
     return this.apply(a, newargs);
   }
   
+  Array.prototype.values = function() { return this; }
   Array.prototype.any_P = Array.prototype.some;
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
@@ -130,14 +166,7 @@ define (function() {
       fun(this[i], i);
     }
   };
-  Array.prototype.max = function() {
-    var max;
-    this.each(function(n) {
-      if (max == undefined || n > max)
-        max = n;
-    });
-    return max; 
-  };
+  Array.prototype.each_with_index = Array.prototype.each;
   Array.prototype.clone = function(fun) {  // Array.prototype.forEach;
     var i;
     var result = new Array;
@@ -155,14 +184,22 @@ define (function() {
     return result;
   };
   
-  Array.prototype.each_with_index = Array.prototype.each;
+  String.prototype.inspect = function() {
+     return "\"" + this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
+  } 
+  String.prototype.repeat = function(n) {
+    result = "";
+    for (var i = 0; i < n; i++)
+      result = result + this;
+    return result;
+  }
   
+  Array.prototype.size = function() { return this.length }
   Array.prototype.map = function(fun) {  // Array.prototype.forEach;
-    var i;
     var result = new Array;
-    for (i = 0; i < this.length; i++) {
-      result.push(fun(this[i]));
-    }
+    this.each(function (x) { 
+      result.push(fun(x));
+    })
     return result;
   };
  
@@ -209,7 +246,7 @@ define (function() {
       x.push(obj);
     }); 
     other.each(function(obj) {
-      if (!x.contains(obj))
+      // if (!x.contains(obj))
         x.push(obj);
     }); 
     return x; 
@@ -236,23 +273,46 @@ define (function() {
   Object.prototype.find = function(pred) { 
     var result = null;
     this.each( function(a) {
-      if (pred(a)) {
+      if (result == null && pred(a)) {
         result = a; 
       }
     });
     return result;
   }
-  Object.prototype.find_first = Object.prototype.find;
+  Object.prototype.find_first = function(pred) { 
+    var result = null;
+    this.each( function(a) {
+      if (result == null) {
+        var item = pred(a);
+        if (item) 
+          result = item; 
+      }
+    });
+    return result;
+  }
+  
+  Integer = Number;
+  Numeric = Number;
+  Fixnum = Number;
   
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
+  String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
-  Object.prototype.to_s = function() { return "" + this }
+  Number.prototype.to_i = function() { return this }
+  Number.prototype.to_s = function() { return this.toString(); }
+  Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }
+  String.prototype.casecmp = function(other) { 
+     puts("COMP " + this + "=" + other + " => " + this.toUpperCase() === other.toUpperCase());
+     return this.toUpperCase() === other.toUpperCase() 
+   }
+  Array.prototype.first = function() { return this[0]; }
   Object.prototype._get = function(k) { return this[k] }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Object.prototype._set = function(k, v) { this[k] = v; return v; }
+  String.prototype._set = function(k, v) { raise("Strings are immutable"); }
   String.prototype.gsub = String.prototype.replace;
   String.prototype.index = String.prototype.indexOf;
   String.prototype.to_sym = function() { return this; }
@@ -281,7 +341,9 @@ define (function() {
   EnsoBaseClass._instance_spec_ = {  
     send: function(method) {
       var args = Array.prototype.slice.call(arguments, 1);
-      var val = this[method.replace("?", "_P")].apply(this, args);
+      var fun = this[method.replace("?", "_P")];
+      if (!fun) raise("Undefined method " + method + " for " + this);
+      var val = fun.apply(this, args);
       return val;
     },
     define_getter: function(name, prop) {
@@ -300,6 +362,17 @@ define (function() {
       return function() { 
         return self[m].apply(self, arguments); 
     }},
+    to_s: function() {             
+       var kind = this.__classname__;
+       if (this.schema_class)
+         kind = this.schema_class().name();
+       var info = "";
+       if (typeof this.name == "function")
+         info = this.name();
+       else if (this._id)
+         info = this._id();
+       return "<[" + kind + " " + info + "]>";
+    },
     respond_to_P: function(method) { return this[method.replace("?", "_P")]; },
   }
 
@@ -386,18 +459,10 @@ define (function() {
          var obj = Object.create(instance_spec);
          obj.$ = {};
 
-          obj.inspect = function() { 
-             var kind = this.__classname__;
-             if (this.schema_class)
-               kind = this.schema_class().name();
-             var info = "";
-             if (typeof this.name == "function")
-               info = this.name();
-             else if (this._id)
-               info = this._id();
-             return "<[" + kind + " " + info + "]>";
-          }
-          obj.toString = obj.inspect;
+          obj.inspect = EnsoBaseClass._instance_spec_.to_s;
+          obj.toString = function() { 
+            return this.to_s();
+          };
           
          instance_spec.initialize.apply(obj, arguments);
          return obj;
@@ -405,6 +470,7 @@ define (function() {
       // set its prototype, even thought it is not actually used view "new"
       // it is accessed above
       // fill in the "new" function of the class
+      constructor.prototype = instance_spec;
       instance_spec._class_.new = constructor;
       // return the new class
       return instance_spec._class_;
@@ -433,24 +499,30 @@ define (function() {
       	}
       	return methods
    }
+   Enumerable = MakeMixin([], function() {
+     this.all_P= function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; };
+     this.any_P= function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; };
+     this.map = Array.prototype.map;
+     this.each_with_index = function(cmd) {
+       var i = 0;
+       this.each(function(obj) { 
+         cmd(obj, i);
+         i++;
+       })
+     };
+   });
 
-    Range = MakeClass("Range", null, [], 
+    Range = MakeClass("Range", null, [Enumerable], 
     function() {},
     function(super$) { return {
-      intialize: function(a, b) {
+      initialize: function(a, b) {
         this.$.a = a;
         this.$.b = b;
       },
       each: function(proc) {
         var i;
-        for (i = this.$.a; i <= this.$.a; i++)
+        for (i = this.$.a; i <= this.$.b; i++)
           proc(i);
       }       
     }});   
-   Enumerable = MakeMixin([], function() {
-     this.all_P= function(pred) { var x = true; this.each(function(obj) { x = x && pred(obj) }); return x; };
-     this.any_P= function(pred) { var x = false; this.each(function(obj) { x = x || pred(obj) }); return x; };
-   });
-
-})
 

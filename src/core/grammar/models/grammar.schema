@@ -59,29 +59,17 @@ class Indent < Pattern
  
 class Epsilon < Pattern
 
-class Expr
-
-class Item < Pattern
-  expression: Pattern
-  elements: Pattern*
-  dot: int
-
-class Base
-  starts: int
-  ends: int
-  type: Pattern
-  origin! Location?
+// let bindings
 
 class Empty < Base
   kids: Base* = []
 
-class Leaf < Base
-  value: str
-  ws: str
-  kids: Base* = []
+class Var < Expr
+  name: str
 
-class Node < Base
-  kids: Pack*
+class Binding
+  target: Expr
+  value: Expr
 
 class Pack
   parent: Node / kids

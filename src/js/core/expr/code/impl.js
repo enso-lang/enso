@@ -6,6 +6,7 @@ define([
 ],
 function(Eval, Lvalue, Interpreter, Env) {
   var Impl ;
+
   var Closure = MakeClass("Closure", null, [],
     function() {
       this.make_closure = function(body, formals, env, interp) {
@@ -27,16 +28,16 @@ function(Eval, Lvalue, Interpreter, Env) {
 
       this.call_closure = function() {
         var self = this; 
-        var params = compute_rest_arguments(arguments, 0 );
-        var nenv;
-        nenv = Env.HashEnv.new();
+        var params = compute_rest_arguments(arguments, 0);
+        var nv, nenv;
+        nv = new EnsoHash ({ });
         self.$.formals.each_with_index(function(f, i) {
-          return nenv._set(f.name(), params._get(i));
+          return nv._set(f.name(), params._get(i));
         });
-        nenv.set_parent(self.$.env);
+        nenv = Env.HashEnv.new(nv, self.$.env);
         return self.$.interp.dynamic_bind(function() {
           return self.$.interp.eval(self.$.body);
-        }, new EnsoHash ( { env: nenv } ));
+        }, new EnsoHash ({ env: nenv }));
       };
 
       this.to_s = function() {
@@ -63,12 +64,12 @@ function(Eval, Lvalue, Interpreter, Env) {
     this.eval_EFor = function(var_V, list, body) {
       var self = this; 
       var nenv;
-      nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
+      nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
       return self.eval(list).each(function(val) {
         nenv._set(var_V, val);
         return self.dynamic_bind(function() {
           return self.eval(body);
-        }, new EnsoHash ( { env: nenv } ));
+        }, new EnsoHash ({ env: nenv }));
       });
     };
 
@@ -81,56 +82,60 @@ function(Eval, Lvalue, Interpreter, Env) {
       }
     };
 
-    this.eval_EBlock = function(body) {
+    this.eval_EBlock = function(fundefs, body) {
       var self = this; 
-      var res, nenv;
+      var res, defenv, env1;
       res = null;
-      nenv = Env.HashEnv.new().set_parent(self.$.D._get("env"));
+      defenv = Env.HashEnv.new(self.$.D._get("env"));
+      self.dynamic_bind(function() {
+        return fundefs.each(function(c) {
+          return self.eval(c);
+        });
+      }, new EnsoHash ({ in_fc: false, env: defenv }));
+      env1 = Env.HashEnv.new(defenv);
       self.dynamic_bind(function() {
         return body.each(function(c) {
           return res = self.eval(c);
         });
-      }, new EnsoHash ( { env: nenv, in_fc: false } ));
+      }, new EnsoHash ({ in_fc: false, env: env1 }));
       return res;
     };
 
     this.eval_EFunDef = function(name, formals, body) {
       var self = this; 
-      var res;
-      res = Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self);
-      self.$.D._get("env")._set(name, res);
-      return res;
+      self.$.D._get("env")._set(name, Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self));
+      return null;
     };
 
     this.eval_ELambda = function(body, formals) {
       var self = this; 
       return Proc.new(function() {
-        var p = compute_rest_arguments(arguments, 0 );
-        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat( p ));
+        var p = compute_rest_arguments(arguments, 0);
+        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat(p));
       });
     };
 
     this.eval_EFunCall = function(fun, params, lambda) {
       var self = this; 
-      var m, p;
+      var m, b;
       m = self.dynamic_bind(function() {
         return self.eval(fun);
-      }, new EnsoHash ( { in_fc: true } ));
+      }, new EnsoHash ({ in_fc: true }));
       if (lambda == null) {
-        return m.apply(m, [].concat( params.map(function(p) {
+        return m.apply(m, [].concat(params.map(function(p) {
           return self.eval(p);
-        }) ));
+        })));
       } else {
-        p = self.eval(lambda);
-        return m.apply(m, [p].concat( params.map(function(p) {
+        b = self.eval(lambda);
+        return m.apply(m, [b].concat(params.map(function(p) {
           return self.eval(p);
-        }) ));
+        })));
       }
     };
 
     this.eval_EAssign = function(var_V, val) {
       var self = this; 
-      return self.lvalue(var_V).value = self.eval(val);
+      return self.lvalue(var_V).set_value(self.eval(val));
     };
   });
 
@@ -144,6 +149,20 @@ function(Eval, Lvalue, Interpreter, Env) {
     });
 
   Impl = {
+    eval: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = EvalCommandC.new();
+      if (args.empty_P()) {
+        return interp.eval(obj);
+      } else {
+        return interp.dynamic_bind(function() {
+          return interp.eval(obj);
+        }, args);
+      }
+    },
+
     Closure: Closure,
     EvalCommand: EvalCommand,
     EvalCommandC: EvalCommandC,

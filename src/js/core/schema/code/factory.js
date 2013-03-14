@@ -24,12 +24,45 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.schema = schema;
         self.$.roots = [];
         self.$.file_path = [];
-        return schema.classes().each(function(klass) {
+        schema.classes().each(function(klass) {
           return self.define_singleton_method(function() {
-            var args = compute_rest_arguments(arguments, 0 );
-            return MObject.new.apply(MObject, [klass, self].concat( args ));
+            var args = compute_rest_arguments(arguments, 0);
+            return MObject.new.apply(MObject, [klass, self].concat(args));
           }, klass.name());
         });
+        return schema.classes().each(function(c) {
+          if (self.check_cyclic_subtyping(c, [])) {
+            return self.raise(S("Build factory failed: ", c, " is its own superclass"));
+          }
+        });
+      };
+
+      this.check_cyclic_subtyping = function(c, subs) {
+        var self = this; 
+        var res;
+        if (subs.include_P(c)) {
+          return true;
+        } else {
+          res = false;
+          c.supers().each(function(s) {
+            return res = res || self.check_cyclic_subtyping(s, subs.union([c]));
+          });
+          return res;
+        }
+      };
+
+      this.unsafe_P = function() {
+        var self = this; 
+        return ! (self.$.unsafe == null) && self.$.unsafe > 0;
+      };
+
+      this.unsafe_mode = function(body) {
+        var self = this; 
+        self.$.unsafe = self.$.unsafe
+          ? self.$.unsafe + 1
+          : 1;
+        body();
+        return self.$.unsafe = self.$.unsafe - 1;
       };
 
       this._get = function(name) {
@@ -65,10 +98,10 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.initialize = function(klass, factory) {
         var self = this; 
-        var args = compute_rest_arguments(arguments, 2 );
+        var args = compute_rest_arguments(arguments, 2);
         self.$._id = self._class_.$._id = self._class_.$._id + 1;
-        self.$.listeners = new EnsoHash ( { } );
-        self.$.props = new EnsoHash ( { } );
+        self.$.listeners = new EnsoHash ({ });
+        self.$.props = new EnsoHash ({ });
         self.define_singleton_value("schema_class", klass);
         self.$.factory = factory;
         self.__is_a(klass);
@@ -77,7 +110,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           return self.__setup(fld);
         });
         return klass.fields().each_with_index(function(fld, i) {
-          if (i < args.length) {
+          if (i < args.size()) {
             if (fld.many()) {
               return args._get(i).each(function(value) {
                 return self._get(fld.name()).push(value);
@@ -131,7 +164,9 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.__to_s = function(cls) {
         var self = this; 
         var k;
-        k = Schema.class_key(cls);
+        k = Schema.class_key(cls) || cls.fields().find(function(f) {
+          return f.type().Primitive_P();
+        });
         if (k) {
           return self.define_singleton_method(function() {
             return S("<<", cls.name(), " ", self._id(), " '", self._get(k.name()), "'>>");
@@ -143,7 +178,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.__computed = function(fld) {
         var self = this; 
-        var c, base, name, exp, fvInterp, commInterp, val, fvs, var_V;
+        var c, base, name, exp, fvInterp, val, fvs, key, collection;
         if (fld.computed().EList_P() && (c = fld.owner().supers().find(function(c) {
           return c.all_fields()._get(fld.name());
         }))) {
@@ -153,31 +188,39 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
               if (! var_V.EVar_P()) {
                 self.raise(S("Field override ", fld.name(), " includes non-var ", var_V));
               }
-              return self.__get(var_V.name())._set_inverse = base.inverse();
+              return self.__get(var_V.name()).set__set_inverse(base.inverse());
             });
           }
         }
         name = fld.name();
         exp = fld.computed();
         fvInterp = Freevar.FreeVarExprC.new();
-        commInterp = Impl.EvalCommandC.new();
         val = null;
         return self.define_singleton_method(function() {
           if (val == null) {
             fvs = fvInterp.dynamic_bind(function() {
               return fvInterp.depends(exp);
-            }, new EnsoHash ( { env: Env.ObjEnv.new(self), bound: [] } ));
+            }, new EnsoHash ({ env: Env.ObjEnv.new(self), bound: [] }));
             fvs.each(function(fv) {
               if (fv.object()) {
                 return fv.object().add_listener(function() {
-                  return var_V = null;
+                  return val = null;
                 }, fv.index());
               }
             });
-            val = commInterp.dynamic_bind(function() {
-              return commInterp.eval(exp);
-            }, new EnsoHash ( { env: Env.ObjEnv.new(self), for_field: fld } ));
-            var_V = val;
+            val = Impl.eval(exp, new EnsoHash ({ env: Env.ObjEnv.new(self) }));
+            if (fld.many() && ! System.test_type(val, Many)) {
+              if (key = Schema.class_key(fld.type())) {
+                collection = Set.new(self, fld, key);
+              } else {
+                collection = List.new(self, fld);
+              }
+              val.each(function(v) {
+                return collection.push(v);
+              });
+              val = collection;
+            }
+            val;
           }
           return val;
         }, name);
@@ -217,7 +260,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var listeners;
         listeners = self.$.listeners._get(name);
         if (! listeners) {
-          listeners = self.$.listeners._get(name) = [];
+          listeners = self.$.listeners._set(name, []);
         }
         return listeners.push(block);
       };
@@ -238,7 +281,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this._set_origin_of = function(name, org) {
         var self = this; 
-        return self.__get(name)._origin = org;
+        return self.__get(name).set__origin(org);
       };
 
       this._path_of = function(name) {
@@ -251,7 +294,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         if (self.__shell()) {
           return self.__shell()._path(self);
         } else {
-          return Paths.new();
+          return Paths.Path.new();
         }
       };
 
@@ -368,22 +411,22 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         var ok;
         if (! self.$.field.optional() || value) {
-          ok = self.$.field.type().name() == "str"
-            ? System.test_type(value, String)
-            : self.$.field.type().name() == "int"
-              ? System.test_type(value, Integer)
-              : self.$.field.type().name() == "bool"
-                ? System.test_type(value, TrueClass) || System.test_type(value, FalseClass)
-                : self.$.field.type().name() == "real"
-                  ? System.test_type(value, Numeric)
-                  : self.$.field.type().name() == "datetime"
-                    ? System.test_type(value, DateTime)
-                    : ((function(){ {
-                      if (self.$.field.type().name() == "atom") {
-                        return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
-                      }
-                    } })())
-          ;
+          ok = ((function() {
+            switch (self.$.field.type().name()) {
+              case "str":
+                return System.test_type(value, String);
+              case "int":
+                return System.test_type(value, Integer);
+              case "bool":
+                return System.test_type(value, TrueClass) || System.test_type(value, FalseClass);
+              case "real":
+                return System.test_type(value, Numeric);
+              case "datetime":
+                return System.test_type(value, DateTime);
+              case "atom":
+                return ((System.test_type(value, Numeric) || System.test_type(value, String)) || System.test_type(value, TrueClass)) || System.test_type(value, FalseClass);
+            }
+          })());
           if (! ok) {
             return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
           }
@@ -393,20 +436,21 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.default = function() {
         var self = this; 
         if (! self.$.field.optional()) {
-          if (self.$.field.type().name() == "str") {
-            return "";
-          } else if (self.$.field.type().name() == "int") {
-            return 0;
-          } else if (self.$.field.type().name() == "bool") {
-            return false;
-          } else if (self.$.field.type().name() == "real") {
-            return 0.0;
-          } else if (self.$.field.type().name() == "datetime") {
-            return DateTime.now();
-          } else if (self.$.field.type().name() == "atom") {
-            return null;
-          } else {
-            return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
+          switch (self.$.field.type().name()) {
+            case "str":
+              return "";
+            case "int":
+              return 0;
+            case "bool":
+              return false;
+            case "real":
+              return 0.0;
+            case "datetime":
+              return DateTime.now();
+            case "atom":
+              return null;
+            default:
+              return self.raise(S("Unknown primitive type: ", self.$.field.type().name()));
           }
         }
       };
@@ -415,7 +459,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
   var SetUtils = MakeMixin([], function() {
     this.to_ary = function() {
       var self = this; 
-      return self.$.values.values();
+      return self.$.value.values();
     };
 
     this.union = function(other) {
@@ -452,7 +496,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         if (new_V == null) {
           key = set.__key();
           new_V = Set.new(null, self.$.field, key);
-        } else {
         }
         return set.each(function(y) {
           return new_V.push(y);
@@ -534,15 +577,17 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
     this.check = function(mobj) {
       var self = this; 
-      if (mobj || ! self.$.field.optional()) {
-        if (mobj == null) {
-          self.raise(S("Cannot assign nil to non-optional field ", self.$.field.name()));
-        }
-        if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
-          self.raise(S("Invalid value for '", self.$.field.owner().name(), ".", self.$.field.name(), "': ", mobj, " : ", mobj.schema_class().name()));
-        }
-        if (mobj._graph_id() != self.$.owner._graph_id()) {
-          return self.raise(S("Inserting object ", mobj, " into the wrong model"));
+      if (! self.$.owner._graph_id().unsafe_P()) {
+        if (mobj || ! self.$.field.optional()) {
+          if (mobj == null) {
+            self.raise(S("Cannot assign nil to non-optional field '", self.$.field.owner().name(), ".", self.$.field.name(), "'"));
+          }
+          if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
+            self.raise(S("Invalid value for '", self.$.field.owner().name(), ".", self.$.field.name(), "': ", mobj, " : ", mobj.schema_class().name()));
+          }
+          if (mobj._graph_id() != self.$.owner._graph_id()) {
+            return self.raise(S("Inserting object ", mobj, " into the wrong model"));
+          }
         }
       }
     };
@@ -563,10 +608,10 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         if (self.$.field.traversal()) {
           if (value) {
-            value.__shell = self;
+            value.set___shell(self);
           }
           if (self.get() && ! value) {
-            self.get().__shell = null;
+            self.get().set___shell(null);
           }
         }
         return self.$.value = value;
@@ -621,14 +666,9 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.__value().empty_P();
       };
 
-      this.length = function() {
+      this.size = function() {
         var self = this; 
-        return self.__value().length;
-      };
-
-      this.to_s = function() {
-        var self = this; 
-        return self.__value().to_s();
+        return self.__value().size();
       };
 
       this.clear = function() {
@@ -670,8 +710,15 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.connect = function(mobj, shell) {
         var self = this; 
         if (self.connected_P() && self.$.field.traversal()) {
-          return mobj.__shell = shell;
+          return mobj.set___shell(shell);
         }
+      };
+
+      this.to_s = function() {
+        var self = this; 
+        return S("<MANY ", self.map(function(x) {
+          return x.to_s();
+        }), ">");
       };
     });
 
@@ -682,7 +729,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.initialize = function(owner, field, key) {
         var self = this; 
         super$.initialize.call(self, owner, field);
-        self.$.value = new EnsoHash ( { } );
+        self.$.value = new EnsoHash ({ });
         return self.$.key = key;
       };
 
@@ -714,7 +761,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this._recompute_hash_in_place = function() {
         var self = this; 
         var nval;
-        nval = new EnsoHash ( { } );
+        nval = new EnsoHash ({ });
         self.$.value.each(function(k, v) {
           return nval._set(v._get(self.$.key.name()), v);
         });
@@ -811,7 +858,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var self = this; 
         return Array.new(function(i) {
           return i;
-        }, self.length);
+        }, self.size());
       };
 
       this.push = function(mobj) {
@@ -886,6 +933,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
   Factory = {
     new: function(schema) {
+      var self = this; 
       return SchemaFactory.new(schema);
     },
 

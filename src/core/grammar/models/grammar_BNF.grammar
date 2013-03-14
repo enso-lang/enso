@@ -1,4 +1,4 @@
-import path.grammar, expr.grammar
+import expr.grammar
 
   start Grammar
 
@@ -36,9 +36,5 @@ import path.grammar, expr.grammar
     | "(".Alt.")"
     
   Sep ::= "@".sep:Pattern
-
-// extension of path.grammar
-abstract Path
-Key ::= [It] "it"
 
 abstract Expr

@@ -129,14 +129,14 @@ module Env
   class LambdaEnv
     include BaseEnv
     
-    def initialize(label, parent=nil &block)
+    def initialize(label, parent = nil, &block)
       @label = label
       @block = block
-      @parent=parent
+      @parent = parent
     end
     
     def [](key)
-      if @label==key
+      if @label == key
         @block.call
       else
         @parent && @parent[key]
@@ -144,10 +144,10 @@ module Env
     end
     
     def []=(key, value)
-      if @label==key
+      if @label == key
         raise "Trying to modify read-only variable #{key}"
       else
-        @parent[key]=value
+        @parent[key] = value
       end
     end
     

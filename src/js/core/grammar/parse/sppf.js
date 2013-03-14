@@ -11,7 +11,7 @@ function() {
 
       this.new = function() {
         var self = this; 
-        var args = compute_rest_arguments(arguments, 0 );
+        var args = compute_rest_arguments(arguments, 0);
         if (! self._class_.$.nodes.has_key_P(args)) {
           return self._class_.$.nodes._set(args, super$.new.call(self));
         } else {
@@ -46,13 +46,12 @@ function() {
 
       this.build_kids = function(owner, accu, field, fixes, paths, fact, orgs) {
         var self = this; 
-        if (self.kids().length() > 1) {
+        if (self.kids().size() > 1) {
           self.raise(Ambiguity.new(self));
         }
         if (! self.kids().empty_P()) {
-          self.kids().first().build(owner, accu, field, fixes, paths, fact, orgs);
+          return self.kids().first().build(owner, accu, field, fixes, paths, fact, orgs);
         }
-        return null;
       };
 
       this.hash = function() {
@@ -60,22 +59,22 @@ function() {
         return self.$.hash;
       };
 
-      this.eql_P = function(o) {
-        var self = this; 
-        return self.equals(o);
-      };
-
       this.origin = function(orgs) {
         var self = this; 
-        var path, offset, length, start_line, start_column, end_line, end_column;
+        var path, offset, size, start_line, start_column, end_line, end_column;
         path = orgs.path();
         offset = orgs.offset(self.starts());
-        length = self.ends() - self.starts();
+        size = self.ends() - self.starts();
         start_line = orgs.line(self.starts());
         start_column = orgs.column(self.starts());
         end_line = orgs.line(self.ends());
         end_column = orgs.column(self.ends());
-        return Location.new(path, offset, length, start_line, start_column, end_line, end_column);
+        return Location.new(path, offset, size, start_line, start_column, end_line, end_column);
+      };
+
+      this.eql_P = function(o) {
+        var self = this; 
+        return self.equals(o);
       };
     });
 
@@ -121,6 +120,11 @@ function() {
         return self.$.hash = self.$.hash + 13 * value.hash();
       };
 
+      this.ends = function() {
+        var self = this; 
+        return self.super() + self.ws().size();
+      };
+
       this.equals = function(x) {
         var self = this; 
         if (! System.test_type(x, Leaf)) {
@@ -128,11 +132,6 @@ function() {
         } else {
           return self.value().equals(x.value());
         }
-      };
-
-      this.ends = function() {
-        var self = this; 
-        return self.super() + self.ws().length();
       };
 
       this.to_s = function() {
@@ -146,11 +145,11 @@ function() {
       this.new = function(item, z, w) {
         var self = this; 
         var t, x, k, i, s, j, y;
-        if (item.dot() == 1 && item.elements().length() > 1) {
+        if (item.dot() == 1 && item.elements().size() > 1) {
           return w;
         } else {
           t = item;
-          if (item.dot() == item.elements().length()) {
+          if (item.dot() == item.elements().size()) {
             t = item.expression();
           }
           x = w.type();

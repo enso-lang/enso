@@ -78,7 +78,9 @@ module Load
     end
 
     def update_json(name)
-      model, type = name.split(".")
+      parts = name.split(".")
+      model = parts[0]
+      type = parts[1]
       if Cache::check_dep(name)
         patch_schema_pointers!(@cache[name], load("#{type}.schema"))
       else
@@ -132,12 +134,6 @@ module Load
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
       else
-        begin
-          header = File.open(path, &:readline)
-        rescue EOFError => err
-          $stderr << "Unable to open file #{path}\n"
-          raise err
-        end
         $stderr << "## loading #{path}...\n"
         result = Parse.load_file(path, grammar, schema, encoding)
       end

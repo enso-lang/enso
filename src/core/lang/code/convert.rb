@@ -117,7 +117,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_assoc_new(key, value)
-    @f.Binding(key, get_seq(value))
+    @f.Binding(if key.is_a?(String) then key else key.name end, get_seq(value))
   end
 
   def on_assoclist_from_args(args)
@@ -776,6 +776,10 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_return(args)
+    raise "Return statements are illegal"
+  end
+
+  def on_return0
     raise "Return statements are illegal"
   end
 

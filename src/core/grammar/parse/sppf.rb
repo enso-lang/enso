@@ -39,8 +39,7 @@ module SPPF
 
     def build_kids(owner, accu, field, fixes, paths, fact, orgs)
       raise Ambiguity.new(self) if kids.size > 1
-      return if kids.empty?
-      kids.first.build(owner, accu, field, fixes, paths, fact, orgs)
+      kids.first.build(owner, accu, field, fixes, paths, fact, orgs) if !kids.empty?
     end
 
     def hash
@@ -125,26 +124,27 @@ module SPPF
 
     def self.new(item, z, w)
       if item.dot == 1 && item.elements.size > 1 then
-        return w
-      end
-      t = item
-      if item.dot == item.elements.size then
-        t = item.expression
-      end
-      x = w.type
-      k = w.starts
-      i = w.ends
-      if z != nil then
-        s = z.type
-        j = z.starts
-        # assert k == z.ends
-        y = super(j, i, t)
-        y.add_kid(Pack.new(item, k, z, w))
+        w
       else
-        y = super(k, i, t)
-        y.add_kid(Pack.new(item, k, nil, w))
+        t = item
+        if item.dot == item.elements.size then
+          t = item.expression
+        end
+        x = w.type
+        k = w.starts
+        i = w.ends
+        if z != nil then
+          s = z.type
+          j = z.starts
+          # assert k == z.ends
+          y = super(j, i, t)
+          y.add_kid(Pack.new(item, k, z, w))
+        else
+          y = super(k, i, t)
+          y.add_kid(Pack.new(item, k, nil, w))
+        end
+        y
       end
-      return y
     end
 
     def initialize(starts, ends, type)

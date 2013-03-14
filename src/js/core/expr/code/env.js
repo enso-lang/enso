@@ -24,17 +24,11 @@ function() {
 
     this.set_grandparent = function(env) {
       var self = this; 
-      if (self.$.parent == null || self.$.parent == new EnsoHash ( { } )) {
+      if (self.$.parent == null || self.$.parent == new EnsoHash ({ })) {
         return self.set_parent(env);
       } else {
         return self.$.parent.set_grandparent(env);
       }
-    };
-
-    this.add = function(env) {
-      var self = this; 
-      self.set_parent(env);
-      return self;
     };
 
     this.to_s = function() {
@@ -46,21 +40,19 @@ function() {
       });
       return S("{ ", r.join(", "), " }");
     };
-
-    this.clone = function() {
-      var self = this; 
-      return self;
-    };
   });
 
   var HashEnv = MakeClass("HashEnv", null, [BaseEnv],
     function() {
     },
     function(super$) {
-      this.initialize = function(hash) {
+      this.initialize = function(hash, parent) {
         var self = this; 
-        if (hash === undefined) hash = new EnsoHash ( { } );
-        return self.$.hash = hash;
+        if (hash === undefined) hash = new EnsoHash ({ });
+        if (parent === undefined) parent = null;
+        var parent, hash;
+        self.$.hash = hash;
+        return self.$.parent = parent;
       };
 
       this._get = function(key) {
@@ -74,7 +66,9 @@ function() {
 
       this._set = function(key, value) {
         var self = this; 
-        if (self.$.parent && self.$.parent.has_key_P(key)) {
+        if (self.$.hash.has_key_P(key)) {
+          return self.$.hash._set(key, value);
+        } else if (self.$.parent && self.$.parent.has_key_P(key)) {
           return self.$.parent._set(key, value);
         } else {
           return self.$.hash._set(key, value);
@@ -86,17 +80,16 @@ function() {
         return self.$.hash.has_key_P(key) || self.$.parent && self.$.parent.has_key_P(key);
       };
 
-      this.to_s = function() {
+      this.keys = function() {
         var self = this; 
-        return self.$.hash.to_s();
+        return (self.$.hash.keys() + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
       };
 
-      this.clone = function() {
+      this.to_s = function() {
         var self = this; 
-        var r;
-        r = HashEnv.new(self.$.hash.clone());
-        r.set_parent(self.$.parent);
-        return r;
+        return S(self.$.hash.to_s(), "-", self.$.parent);
       };
     });
 
@@ -128,27 +121,33 @@ function() {
 
       this._set = function(key, value) {
         var self = this; 
-        return self.$.obj._set(key, value);
+        try {
+          return self.$.obj._set(key, value);
+        } catch (DUMMY) {
+          return self.$.parent && (self.$.parent._set(key, value));
+        }
       };
 
       this.has_key_P = function(key) {
         var self = this; 
-        return self.$.obj.schema_class().all_fields()._get(key) || self.$.parent && self.$.parent.has_key_P(key);
+        return (key == "self" || self.$.obj.schema_class().all_fields()._get(key)) || self.$.parent && self.$.parent.has_key_P(key);
+      };
+
+      this.keys = function() {
+        var self = this; 
+        return (self.$.obj.schema_class().all_fields().keys() + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
       };
 
       this.to_s = function() {
         var self = this; 
-        return self.$.obj.to_s();
+        return S(self.$.obj.to_s(), "-", self.$.parent);
       };
 
       this.type = function(fname) {
         var self = this; 
         return self.$.obj.schema_class().all_fields()._get(fname).type();
-      };
-
-      this.clone = function() {
-        var self = this; 
-        return self;
       };
     });
 
@@ -156,18 +155,18 @@ function() {
     function() {
     },
     function(super$) {
-      this.initialize = function(block, label) {
+      this.initialize = function(block, label, parent) {
         var self = this; 
+        if (parent === undefined) parent = null;
         self.$.label = label;
-        return self.$.block = block;
+        self.$.block = block;
+        return self.$.parent = parent;
       };
 
       this._get = function(key) {
         var self = this; 
-        var res;
         if (self.$.label == key) {
-          res = self.$.block();
-          return res;
+          return self.$.block();
         } else {
           return self.$.parent && self.$.parent._get(key);
         }
@@ -187,14 +186,16 @@ function() {
         return self.$.label == key || self.$.parent && self.$.parent.has_key_P(key);
       };
 
-      this.to_s = function() {
+      this.keys = function() {
         var self = this; 
-        return self.$.block.to_s();
+        return ([self.$.label] + (self.$.parent == null
+          ? []
+          : self.$.parent.keys())).uniq();
       };
 
-      this.clone = function() {
+      this.to_s = function() {
         var self = this; 
-        return self;
+        return S(self.$.block.to_s(), "-", self.$.parent);
       };
     });
 
