@@ -1,49 +1,43 @@
 {
   "filename": "schema.grammar",
-  "source": "../src/core/schema/models/schema.grammar",
-  "date": "2013-03-09 16:59:31 -0600",
+  "source": "./core/schema/models/schema.grammar",
+  "date": "2013-03-11 23:55:39 +0100",
   "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9",
   "depends": [
     {
       "filename": "grammar.grammar",
-      "source": "../src/core/grammar/models/grammar.grammar",
-      "date": "2013-03-12 15:14:31 -0500",
+      "source": "./core/grammar/models/grammar.grammar",
+      "date": "2013-03-12 23:45:45 +0100",
       "checksum": "37b5f8b06b0304dd545108cd1dd739e9eb195854"
     },
     {
       "filename": "grammar.schema",
-      "source": "../src/core/grammar/models/grammar.schema",
-      "date": "2013-03-10 16:13:31 -0500",
-      "checksum": "829f51cc56589142d031100d5c9b5de60d0fe769"
-    },
-    {
-      "filename": "schema.grammar",
-      "source": "../src/core/schema/models/schema.grammar",
-      "date": "2013-03-09 16:59:31 -0600",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
-    },
-    {
-      "filename": "path.schema",
-      "source": "../src/core/grammar/models/path.schema",
-      "date": "2013-03-01 00:07:25 -0600",
-      "checksum": "fec1660891f127df0bda3c4431d9e05d48ad19cc"
+      "source": "./core/grammar/models/grammar.schema",
+      "date": "2013-03-14 12:54:23 +0100",
+      "checksum": "4c3e6ad41e083f985e96ce452d8d76a6e186ac7a"
     },
     {
       "filename": "expr.schema",
-      "source": "../src/core/expr/models/expr.schema",
-      "date": "2013-03-01 00:07:25 -0600",
-      "checksum": "57d49e5cc388844fbef9d0306467f08cf28aeec5"
+      "source": "./core/expr/models/expr.schema",
+      "date": "2013-03-12 01:06:23 +0100",
+      "checksum": "2ee9d8336edaaf88c6b7691b4b7906d13a1f1687"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "./core/schema/models/schema.grammar",
+      "date": "2013-03-11 23:55:39 +0100",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "impl.grammar",
-      "source": "../src/core/expr/models/impl.grammar",
-      "date": "2013-03-05 20:27:48 -0600",
+      "source": "./core/expr/models/impl.grammar",
+      "date": "2013-03-11 23:55:39 +0100",
       "checksum": "4ec189318b40f59362434f3ef70f31330fbc6506"
     },
     {
       "filename": "expr.grammar",
-      "source": "../src/core/expr/models/expr.grammar",
-      "date": "2013-03-09 15:51:28 -0600",
+      "source": "./core/expr/models/expr.grammar",
+      "date": "2013-03-11 23:52:55 +0100",
       "checksum": "1e2c67e718f6ffe354870e24816185c96bbbc4f4"
     }
   ],

@@ -52,24 +52,36 @@ class Regular < Pattern
   sep! Pattern ? 
 
 class NoSpace < Pattern
+
 class Break < Pattern
   lines: int
+
 class Indent < Pattern
   indent: int
  
 class Epsilon < Pattern
 
-// let bindings
+class Item < Pattern
+  expression: Pattern
+  elements: Pattern*
+  dot: int
+
+class Base
+  starts: int
+  ends: int
+  type: Pattern
+  origin! Location?
+
+class Node < Base
+  kids: Pack*
 
 class Empty < Base
   kids: Base* = []
 
-class Var < Expr
-  name: str
-
-class Binding
-  target: Expr
-  value: Expr
+class Leaf < Base
+  value: str
+  ws: str
+  kids: Base* = []
 
 class Pack
   parent: Node / kids
@@ -78,7 +90,6 @@ class Pack
   left: Base?
   right: Base
   kids: Base* = (left == nil ? [right] : [left, right])
-
 
 
 class GSS
