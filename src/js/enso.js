@@ -11,7 +11,9 @@ if (typeof window === 'undefined') {
   puts = function(obj) {
     document.write(("" + obj).replace(/</g, "&lt").replace(/>/g, "&gt").replace(/\n/g, "<br>") + "<br>");
   }
-  root_url = "http://localhost:8000/";
+  root_url = window.location.href;
+  var pos = root_url.indexOf("/js");
+  root_url = root_url.slice(0, pos + 1);
   fs = {
     readFileSync: function(path) {
       var resource;
