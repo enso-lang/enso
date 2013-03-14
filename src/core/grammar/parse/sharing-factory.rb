@@ -26,6 +26,7 @@ module SharingFactory
     def __install_methods(schema)
       schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
+          puts "FACT: #{klass.name} (sh=#{@shares.include?(klass)}) #memo=#{@memo.length}"
           if @shares.include?(klass) then
             if @memo.has_key?(args) then
               @memo[args]
