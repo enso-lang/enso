@@ -47,7 +47,7 @@ module EnsoBuild
     end
 
     def build_sppf_Pack(sppf, owner, accu, field, fixes, paths)
-      build_sppf(sppf.left, owner, accu, field, fixes, paths) if sppf.left
+      build_sppf(sppf.left, owner, accu, nil, fixes, paths) if sppf.left
       build_sppf(sppf.right, owner, accu, sppf.left ? nil : field, fixes, paths) 
     end
 
@@ -57,7 +57,7 @@ module EnsoBuild
     ###
 
     def build_symbol_leaf(this, sppf, owner, accu, field, fixes, paths)
-      puts "LEAF: #{this}"
+      #puts "LEAF: #{this}"
       meth = "build_symbol_leaf_#{this.schema_class.name}"
       if respond_to?(meth)
         send(meth, this, sppf, owner, accu, field, fixes, paths)
@@ -67,9 +67,9 @@ module EnsoBuild
 
     def build_symbol(this, sppf, owner, accu, field, fixes, paths)
       meth = "build_symbol_#{this.schema_class.name}"
-      puts "trying #{this.schema_class.name} for #{sppf}"
+      #puts "trying #{this.schema_class.name} for #{sppf}"
       if respond_to?(meth)
-        puts "building symbol #{this.schema_class.name}"
+        #puts "building symbol #{this.schema_class.name}"
         send(meth, this, sppf, owner, accu, field, fixes, paths)
       else
         puts "recursing to kids"
@@ -78,6 +78,7 @@ module EnsoBuild
     end
 
     def build_symbol_Rule(this, sppf, owner, accu, field, fixes, paths)
+      puts "RULE: #{this.name}"
       if this.original then
         build_symbol(this.original, sppf, owner, accu, field, fixes, paths)
       else
@@ -86,6 +87,7 @@ module EnsoBuild
     end
 
     def build_symbol_Create(this, sppf, owner, accu, field, fixes, paths)
+      puts "CREATE: #{this.name}"
       current = @factory[this.name]
       build_sppf(sppf.kids[0], current, {}, nil, fixes, {})
       current._origin = org = origin(sppf)
@@ -114,19 +116,23 @@ module EnsoBuild
 
     
     def build_symbol_leaf_Lit(this, sppf, owner, accu, field, fixes, paths)
+      puts "LIT: #{this.value}"
       return unless field
       accu[origin(sppf)] = sppf.value
     end
 
     def build_symbol_leaf_Value(this, sppf, owner, accu, field, fixes, paths)
+      puts "VALUE: #{this.kind} = #{sppf.value}"
       accu[origin(sppf)] = convert_token(sppf.value, this.kind)
     end
 
     def build_symbol_leaf_Ref(this, sppf, owner, accu, field, fixes, paths)
+      puts "REF: #{this} (value = #{sppf.value})"
       paths[origin(sppf)] = Fix.new(this.path, owner, field, origin(sppf), sppf.value)
     end
 
     def build_symbol_leaf_Code(this, sppf, owner, accu, field, fixes, paths)
+      puts "CODE"
       check = AssertExprC.new
       check.dynamic_bind env: Env::ObjEnv.new(owner) do
         check.assert(this.expr)
