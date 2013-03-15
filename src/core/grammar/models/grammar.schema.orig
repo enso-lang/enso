@@ -10,21 +10,11 @@ class Grammar
   rules! Rule* 
 
 class Pattern
-  prev: Pattern?
-  nxt: Pattern?
-
-class End < Pattern
-
-class EpsilonEnd < End
-
-class TerminalEnd < End
-
-// Pattern is needed because Ends refer to it via nxt
+ 
 class Rule < Pattern
   name# str 
   grammar: Grammar / rules 
   arg! Pattern?   // optional because of abstract rules
-  original! Pattern?
  
 class Alt < Pattern 
   alts! Pattern+ 
@@ -40,22 +30,20 @@ class Field < Pattern
   name: str 
   arg! Pattern 
  
-class Terminal < Pattern
-
-class Value < Terminal
+class Code < Pattern
+  expr! Expr
+ 
+class Value < Pattern 
   kind: str 
  
-class Ref < Terminal
+class Ref < Pattern
    path! Expr
 
-class Lit < Terminal
+class Lit < Pattern 
   value: str
-
-class Layout < Terminal
  
 class Call < Pattern 
   rule: Rule 
-
  
 class Regular < Pattern 
   arg! Pattern 
@@ -64,18 +52,14 @@ class Regular < Pattern
   sep! Pattern ? 
 
 class NoSpace < Pattern
-
 class Break < Pattern
   lines: int
-
 class Indent < Pattern
   indent: int
  
 class Epsilon < Pattern
 
-class Code < Epsilon
-  expr! Expr
- 
+class Expr
 
 class Item < Pattern
   expression: Pattern
@@ -88,9 +72,6 @@ class Base
   type: Pattern
   origin! Location?
 
-class Node < Base
-  kids: Pack*
-
 class Empty < Base
   kids: Base* = []
 
@@ -99,6 +80,9 @@ class Leaf < Base
   ws: str
   kids: Base* = []
 
+class Node < Base
+  kids: Pack*
+
 class Pack
   parent: Node / kids
   type: Item
@@ -106,6 +90,7 @@ class Pack
   left: Base?
   right: Base
   kids: Base* = (left == nil ? [right] : [left, right])
+
 
 
 class GSS

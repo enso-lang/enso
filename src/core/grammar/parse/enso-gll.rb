@@ -1,74 +1,19 @@
 
 require 'core/grammar/tools/todot'
-require 'core/grammar/parse/sharing-factory'
 require 'core/grammar/parse/gll-factory'
 require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
-require 'core/grammar/parse/scan'
+require 'core/grammar/parse/scan2'
+require 'core/grammar/parse/normalize'
+require 'core/grammar/parse/itemize'
+require 'core/grammar/parse/deformat'
+require 'core/grammar/parse/layout'
 require 'core/system/load/load'
 require 'ruby-prof'
 
 module EnsoGLL
   def self.parse(source, grammar, org, start_symbol = grammar.start.name)
     EnsoGLLParser.new(grammar).parse(source, org, start_symbol)
-  end
-
-  class FormattingRemover
-    
-    def remove_formatting(x)
-      if is_formatting?(x) then
-        $stderr << "WARNING: *not* removing formatting #{x}\n"
-      elsif respond_to?(x.schema_class.name)
-        send(x.schema_class.name, x)
-      end
-    end
-    
-    def Grammar(this)
-      this.rules.each do |x|
-        remove_formatting(x.arg)
-      end
-    end
-    
-    def Sequence(this)
-      del = []
-      this.elements.each do |x|
-        if is_formatting?(x) then
-          del << x
-        else
-          remove_formatting(x)
-        end
-      end
-      del.each do |x|
-        this.elements.delete(x)
-      end
-    end
-
-    def Alt(this)
-      this.alts.each do |x|
-        remove_formatting(x)
-      end
-    end
-
-    def Create(this)
-      remove_formatting(this.arg)
-    end
-
-    def Field(this)
-      remove_formatting(this.arg)
-    end
-    
-    def Regular(this)
-      remove_formatting(this.arg)
-      if this.sep && is_formatting?(this.sep) then
-        this.sep = nil
-      elsif this.sep then
-        remove_formatting(this.sep)
-      end
-    end
-
-    def is_formatting?(x)
-      %w(NoSpace Indent Break).include?(x.schema_class.name)
-    end    
   end
 
 
@@ -78,7 +23,19 @@ module EnsoGLL
     def initialize(grammar, fact = GLLFactory::new)
       @gfact = Factory::new(grammar._graph_id.schema)
       @grammar =  Copy.new(@gfact).copy(grammar)
-      FormattingRemover.new.remove_formatting(@grammar)
+      DeformatGrammar::deformat(@grammar)
+      NormalizeGrammar::normalize(@grammar)
+      LayoutGrammar::layout(@grammar)
+      ItemizeGrammar::itemize(@grammar)
+      @grammar.rules.each do |x|
+        puts "#{x} (#{x.name}):"
+        x.arg.alts.each do |seq|
+          puts "ALT"
+          seq.elements.each do |item|
+            puts " - #{item} nxt: #{item.nxt}"
+          end
+        end
+      end
       @fact = fact
     end
 
@@ -89,146 +46,149 @@ module EnsoGLL
       @iters = {}
 
       # Important: take the start from copied grammar.
-      start_rule = @grammar.rules[start_symbol]
+      @start_rule = @grammar.rules[start_symbol]
 
 
       @origins = org
 
-      @scan = Scan.new(@grammar, source)
+      @scan = Scan2.new(@grammar, source)
       @ws, @start_pos = @scan.skip_ws
       @epsilon = @gfact.Epsilon
 
       
-      @dummy_node = @fact.Leaf(0, 0, @epsilon, 0, "$DUMMY$", "")
+      @dummy_node = nil # @fact.Leaf(0, 0, @epsilon, 0, "$DUMMY$", "")
 
-      start_item = @fact.Item(start_rule, [start_rule], 1)
+      dummy = @gfact.Call(nil, nil, @gfact.Rule(nil, nil, "BALABALBAL"))
 
       @ci = @start_pos
-      @cu = @start = @fact.GSS(start_item, 0)
+      @cu = @start = @fact.GSS(dummy, 0)
       @cn = @dummy_node
 
-      add(@fact.Item(start_rule, [start_rule], 0))
+      @start_rule.arg.alts.each do |x|
+        puts "item = #{x.elements[0]}"
+        add(x.elements[0])
+      end
       while !@todo.empty? do
-        parser, @cu, @cn, @ci = @todo.shift
-        eval(parser, nil)
+        parser, @cu, @cn, @ci = @todo.pop #shift
+        puts "PARSING: cu = #{@cu}, cn = #{@cn}, ci = #{@ci}"
+        eval(parser)
       end
-      result(source, start_rule)
+      result(source, @start_rule)
     end
 
-    def eval(this, nxt)
-      send(this.schema_class.name, this, nxt)
+    def eval(this)
+      #puts "Dispatching to #{this}"
+      send(this.schema_class.name, this)
     end
 
-    def Item(this, _)
-      if this.dot == this.elements.size then
-        pop
-      else
-        nxt = @fact.Item(this.expression, this.elements, this.dot + 1)
-        eval(this.elements[this.dot], nxt)
-      end
-    end
-
-    def Sequence(this, nxt)
-      create(nxt) if nxt
-      add(@fact.Item(this, this.elements, 0))
+    def End(this)
+      puts "---------------------> END #{this}  rule =#{this.nxt}"
+      pop
     end
     
-    def Epsilon(this, nxt)
-      empty_node(@fact.Item(this, [], 0), @epsilon)
-      Item(nxt, nil) if nxt
+    def EpsilonEnd(this)
+      puts "EPSILON #{this.nxt}"
+      # cr = @fact.Empty(@ci, @ci, @epsilon, nil)
+      cr = @fact.Leaf(@ci, @ci, @epsilon, 0, "")
+      puts "EMPTY NODE = #{cr}"
+      @cn = make_node(this, @cn, cr)
+      pop
     end
 
-    def Rule(this, nxt)
-      create(nxt) if nxt
+
+
+    def Rule(this)
       this.arg.alts.each do |x|
-        add_seq_or_elt(this, x)
+        add(x.elements[0])
+        # elts = x.elements
+        # if elts.empty? then
+        #   cr = @fact.Empty(@ci, @ci, @epsilon, nil)
+        #   @cn = make_node(this, @cn, cr)
+        #   pop
+        # elsif elts.size == 1 && elts[0].Terminal? then
+        #   @single = true
+        #   eval(elts[0])
+        #   pop
+        # elsif elts[0].Terminal?
+        #   @single = false
+        #   eval(elts[0])
+        # else
+        #   add(elts[0])
+        # end
+        # #add(x.elements[0])
+        # #add(x)
       end
     end
 
-    def Call(this, nxt)
-      eval(this.rule, nxt)
-    end
+    def terminal(type, pos, value)
+      # # NB: pos includes the ws that has been matched
+      # # so subtract the size of ws from pos.
+      cr = @fact.Leaf(@ci, pos, type, origin(@ci, pos), value)
+      @ci = pos
+      puts "TERMINAL: #{type}"
+      puts "TERMINAL prev: #{type.prev}"
+      puts "TERMINAL next: #{type.nxt}"
 
-    def Create(this, nxt)
-      create(nxt) if nxt
-      add(@fact.Item(this, this.arg.elements, 0))
-    end
-
-    def Field(this, nxt)
-      create(nxt) if nxt
-      add(@fact.Item(this, [this.arg], 0))
-    end
-
-    def Alt(this, nxt)
-      create(nxt) if nxt
-      this.alts.each do |alt|
-        add_seq_or_elt(this, alt)
-      end
-    end
-
-    def Code(this, nxt)
-      terminal(this, @ci, '', '', nxt)
-    end
-
-    def Lit(this, nxt)
-      @scan.with_literal(this.value, @ci) do |pos, ws|
-        terminal(this, pos, this.value, ws, nxt)
-      end
-    end
-
-    def Ref(this, nxt)
-      @scan.with_token('sym', @ci) do |pos, tk, ws|
-        terminal(this, pos, tk, ws, nxt)
-      end
-    end
-
-    def Value(this, nxt)
-      @scan.with_token(this.kind, @ci) do |pos, tk, ws|
-        terminal(this, pos, tk, ws, nxt)
-      end
-    end
-
-    def Regular(this, nxt)
-      create(nxt) if nxt
-      if !this.many && this.optional then
-        add(@fact.Item(this, [@epsilon], 0))
-        add(@fact.Item(this, [this.arg], 0))
-      elsif this.many && !this.optional && !this.sep then
-        add(@fact.Item(this, [this.arg, this], 0))
-        add(@fact.Item(this, [this.arg], 0))
-      elsif this.many && this.optional && !this.sep then
-        add(@fact.Item(this, [@epsilon], 0))
-        add(@fact.Item(this, [this.arg, this], 0))
-      elsif this.many && !this.optional && this.sep then
-        add(@fact.Item(this, [this.arg], 0)) 
-        add(@fact.Item(this, [this.arg, this.sep, this], 0))
-      elsif this.many && this.optional && this.sep then
-        @iters[this] ||= @gfact.Regular(this.arg, false, true, this.sep)
-        add(@fact.Item(this, [@epsilon], 0))
-        add(@fact.Item(this, [@iters[this]], 0))
+      if type.prev.nil? && !type.nxt.End? then
+        @cn = cr
       else
-        raise "Invalid regular: #{this}"
+        @cn = make_node(type.nxt, @cn, cr)
+      end
+      eval(type.nxt)
+    end
+
+
+    def Call(this)
+      puts "CALL: #{this.rule.name}"
+      create(this.nxt)
+      eval(this.rule)
+    end
+
+    def Code(this)
+      terminal(this, @ci, '', '')
+    end
+
+    def Lit(this)
+      puts "LIT: #{this.value}"
+      @scan.with_literal(this.value, @ci) do |pos|
+        puts " success LIT: #{this.value}"
+        terminal(this, pos, this.value)
       end
     end
 
-    def terminal(type, pos, value, ws, nxt)
-      cr = leaf_node(pos, type, value, ws)
-      if nxt then
-        item_node(nxt, cr)
-        Item(nxt, nil)
+    def Layout(this)
+      @scan.with_layout(@ci) do |pos, ws|
+        terminal(this, pos, ws)
       end
     end
 
-    def add_seq_or_elt(this, x)
-      if x.schema_class.name == 'Sequence' then
-        add(@fact.Item(this, x.elements, 0))
-      else # Create
-        add(@fact.Item(this, [x], 0))
+    def Ref(this)
+      @scan.with_token('sym', @ci) do |pos, tk|
+        terminal(this, pos, tk)
       end
     end
+
+    def Value(this)
+      puts "VAL: #{this.kind}"
+      @scan.with_token(this.kind, @ci) do |pos, tk|
+        puts " success"
+        terminal(this, pos, tk)
+      end
+    end
+
 
     def result(source, top)
       r = @fact._objects_for(@gfact.schema.classes['Node']).find do |n|
+        #puts "node = #{n}"
+        if top_node?(n, source, top) then
+          puts "node = #{n}"
+          true
+        else
+          false
+        end
+      end
+      @fact._objects_for(@gfact.schema.classes['Leaf']).find do |n|
+        puts "node = #{n}"
         top_node?(n, source, top)
       end
       if r then
@@ -252,7 +212,7 @@ module EnsoGLL
       conf = [parser, u, w]
       if !@done[i][conf]
         @done[i][conf] = true
-        @todo << [parser, u, w, i]
+        @todo.push [parser, u, w, i]
       end
     end
 
@@ -267,9 +227,12 @@ module EnsoGLL
           @toPop[@cu][@cn] = @cn
         end
         cnt = @cu.item
+        puts "CNT #{cnt}"
         @cu.edges.each do |edge| #|w, gs|
           w = edge.sppf
           u = edge.target
+          puts "POP WWWW: #{w}"
+          puts "POP UUUU: #{u}"
           x = make_node(cnt, w, @cn)
           add(cnt, u, @ci, x)
         end
@@ -277,6 +240,11 @@ module EnsoGLL
     end
 
     def create(item)
+      if item.End? then
+        puts "CREA: #{item.nxt}"
+      else
+        puts "CREA: #{item}"
+      end
       w = @cn
       v = @fact.GSS(item, @ci)
       e = @fact.Edge(w, @cu)
@@ -292,52 +260,60 @@ module EnsoGLL
       @cu = v
     end
 
-    def empty_node(item, eps)
-      cr = @fact.Empty(@ci, @ci, eps, nil)
-      item_node(item, cr)
-      pop
+    def is_second_but_not_last?(item)
+      #if item.dot == 1 && item.elements.size > 1 then
+      # a . b c 
+      return false if item.prev.nil?
+      item.prev.Terminal? && item.prev.prev.nil? && !item.End?
     end
-
-    def item_node(item, cr)
-      @cn = make_node(item, @cn, cr)
-    end
-
-    def leaf_node(pos, type, value, ws)
-      # NB: pos includes the ws that has been matched
-      # so subtract the size of ws from pos.
-      cr = @fact.Leaf(@ci, pos - ws.size, type, origin(@ci, pos - ws.size), value, ws)
-      @ci = pos
-      cr
-    end
-
-
+      
     def make_node(item, z, w)
-      if item.dot == 1 && item.elements.size > 1 then
+      if is_second_but_not_last?(item) then
+        puts "PREV = #{item.prev}; prev.prev = #{item.prev && item.prev.prev}"
+        puts "returning w = #{w} because of #{item}"
         return w
       end
+      puts "MAKENODE item: #{item}"
+      puts "z = #{z}"
+      puts "w = #{w}"
       t = item
-      if item.dot == item.elements.size then
-        t = item.expression
+      if item.End? then
+        t = item.nxt # the rule
+        raise "Item.nxt = nil" if t.nil?
       end
       x = w.type
       k = w.starts
+      
+      puts "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK #{k}" if item.nxt == @start_rule
       i = w.ends
       if z != @dummy_node then
         s = z.type
         j = z.starts
         # assert k == z.ends
-        y = @fact.Node(j, i, t, origin(j, i))
+        y = @fact.Node(j, i, t, nil)
         pack = @fact.Pack(y, item, k, z, w)
+        puts "***************** Kid packs, looking ofr #{pack}"
+        y.kids.each do |p|
+          puts "\tPACK: #{p} pack =? p: #{p == pack}"
+          puts "\t\tPARENT: #{p.parent}"
+        end
+        puts
         if !y.kids.include?(pack)
           y.kids << pack
         end
       else
-        y = @fact.Node(k, i, t, origin(k, i))
+        y = @fact.Node(k, i, t, nil)
         pack = @fact.Pack(y, item, k, nil, w)
+        puts "***************** Kid packs, looking ofr #{pack}"
+        y.kids.each do |p|
+          puts "\tPACK: #{p} pack =? p: #{p == pack}"
+          puts "\t\tPARENT: #{p.parent}"
+        end
         if !y.kids.include?(pack)
           y.kids << pack
         end
       end
+      puts "Returning y = #{y}"
       return y
     end
     
@@ -359,18 +335,119 @@ end
 if __FILE__ == $0 then
   require 'core/grammar/parse/origins'
   gg = Load::load('grammar.grammar')
-  src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
-  #src = "start Expr Expr ::= ETernOp | BLA Bla ::= \"a\""
-  #src = '([X])'
+  #src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
+  src = "start Expr Expr ::= ETernOp | BLA Bla ::= \"a\""
+  src = '{a == b}'
+  src = '(a)'
+  #src = '()'
+  #src = "X ::="
   
-  RubyProf.start
+  ss = Load::load('grammar.schema')
+  f = Factory::new(ss)
+  grammar = f.Grammar
+  rule = f.Rule
+  rule.name = "X"
+  rule.arg = f.Alt
+  seq = f.Sequence
+  rule.arg.alts << seq
 
-  x = EnsoGLL::parse(src, gg, Origins.new(src, "-"), 'Grammar')
+  ruleA = f.Rule
+  ruleA.name = "A"
+  ruleA.arg = f.Alt
+  seqA = f.Sequence
+  ruleA.arg.alts << seqA
 
-  result = RubyProf.stop
+  ruleB = f.Rule
+  ruleB.name = "B"
+  ruleB.arg = f.Alt
+  seqB = f.Sequence
+  ruleB.arg.alts << seqB
 
-  printer = RubyProf::FlatPrinter.new(result)
-  printer.print(STDOUT)
+  call = f.Call
+  call.rule = ruleA
+  callB = f.Call
+  callB.rule = ruleB
+
+  seq.elements << call
+  seq.elements << callB
+
+  lit = f.Lit
+  lit.value = "c"
+  seq.elements << lit
+ 
+  lit = f.Lit
+  lit.value = "a"
+  seqA.elements << lit
+ 
+
+  lit = f.Lit
+  lit.value = "b"
+  seqB.elements << lit
+  
+  
+  grammar.start = rule
+  grammar.rules << rule
+  grammar.rules << ruleA
+  grammar.rules << ruleB
+  
+  grammar.finalize
+  Print::print(grammar)
+
+  #RubyProf.start
+
+  src = "a b c"
+
+  require 'core/grammar/parse/parse'
+  source = <<-EOG
+start S
+S ::= "a" S | A S "d" | 
+A ::= "a"
+EOG
+  grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
+  src = "a a d"
+
+  x = EnsoGLL::parse(src, grammar, Origins.new(src, "-"), 'S')
+
+
+  source = <<-EOG
+start S
+S ::= A | B
+A ::= "a"
+B ::= "a"
+EOG
+  grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
+
+  src = "a"
+
+
+
+  source = <<-EOG
+start S
+S ::= A C | B
+A ::= "a"
+B ::= "a"
+C ::= 
+EOG
+  grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
+
+  src = "a"
+
+
+  source = <<-EOG
+start S
+S ::= A C 
+A ::= "a"
+C ::= 
+EOG
+  grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
+
+  src = "a"
+
+
+  #result = RubyProf.stop
+
+  #printer = RubyProf::FlatPrinter.new(result)
+  #printer.print(STDOUT)
   puts x
   File.open('sppf.dot', 'w') do |f|
     ToDot.to_dot(x, f)

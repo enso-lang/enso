@@ -1,8 +1,8 @@
 {
   "filename": "grammar.schema",
   "source": "./core/grammar/models/grammar.schema",
-  "date": "2013-03-14 12:54:23 +0100",
-  "checksum": "4c3e6ad41e083f985e96ce452d8d76a6e186ac7a",
+  "date": "2013-03-15 15:14:27 +0100",
+  "checksum": "f6835470e360dffca09b6f5c3907fb966dd51d46",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -88,15 +88,13 @@
 
         ],
         "subclasses#": [
+          "types[End]",
           "types[Rule]",
           "types[Alt]",
           "types[Sequence]",
           "types[Create]",
           "types[Field]",
-          "types[Code]",
-          "types[Value]",
-          "types[Ref]",
-          "types[Lit]",
+          "types[Terminal]",
           "types[Call]",
           "types[Regular]",
           "types[NoSpace]",
@@ -104,6 +102,74 @@
           "types[Indent]",
           "types[Epsilon]",
           "types[Item]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "prev",
+            "owner": "types[Pattern]",
+            "type": "types[Pattern]",
+            "optional=": true,
+            "many=": false,
+            "key=": false,
+            "auto=": false,
+            "inverse": null,
+            "computed": null,
+            "traversal=": false
+          },
+          {
+            "class": "Field",
+            "name=": "nxt",
+            "owner": "types[Pattern]",
+            "type": "types[Pattern]",
+            "optional=": true,
+            "many=": false,
+            "key=": false,
+            "auto=": false,
+            "inverse": null,
+            "computed": null,
+            "traversal=": false
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "End",
+        "schema": "",
+        "supers#": [
+          "types[Pattern]"
+        ],
+        "subclasses#": [
+          "types[EpsilonEnd]",
+          "types[TerminalEnd]"
+        ],
+        "defined_fields#": [
+
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EpsilonEnd",
+        "schema": "",
+        "supers#": [
+          "types[End]"
+        ],
+        "subclasses#": [
+
+        ],
+        "defined_fields#": [
+
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "TerminalEnd",
+        "schema": "",
+        "supers#": [
+          "types[End]"
+        ],
+        "subclasses#": [
+
         ],
         "defined_fields#": [
 
@@ -149,6 +215,19 @@
           {
             "class": "Field",
             "name=": "arg",
+            "owner": "types[Rule]",
+            "type": "types[Pattern]",
+            "optional=": true,
+            "many=": false,
+            "key=": false,
+            "auto=": false,
+            "inverse": null,
+            "computed": null,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "original",
             "owner": "types[Rule]",
             "type": "types[Pattern]",
             "optional=": true,
@@ -293,28 +372,19 @@
       },
       {
         "class": "Class",
-        "name=": "Code",
+        "name=": "Terminal",
         "schema": "",
         "supers#": [
           "types[Pattern]"
         ],
         "subclasses#": [
-
+          "types[Value]",
+          "types[Ref]",
+          "types[Lit]",
+          "types[Layout]"
         ],
         "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "expr",
-            "owner": "types[Code]",
-            "type": "types[Expr]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": true
-          }
+
         ]
       },
       {
@@ -322,7 +392,7 @@
         "name=": "Value",
         "schema": "",
         "supers#": [
-          "types[Pattern]"
+          "types[Terminal]"
         ],
         "subclasses#": [
 
@@ -348,7 +418,7 @@
         "name=": "Ref",
         "schema": "",
         "supers#": [
-          "types[Pattern]"
+          "types[Terminal]"
         ],
         "subclasses#": [
 
@@ -374,7 +444,7 @@
         "name=": "Lit",
         "schema": "",
         "supers#": [
-          "types[Pattern]"
+          "types[Terminal]"
         ],
         "subclasses#": [
 
@@ -393,6 +463,20 @@
             "computed": null,
             "traversal=": false
           }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Layout",
+        "schema": "",
+        "supers#": [
+          "types[Terminal]"
+        ],
+        "subclasses#": [
+
+        ],
+        "defined_fields#": [
+
         ]
       },
       {
@@ -560,10 +644,36 @@
           "types[Pattern]"
         ],
         "subclasses#": [
-
+          "types[Code]"
         ],
         "defined_fields#": [
 
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Code",
+        "schema": "",
+        "supers#": [
+          "types[Epsilon]"
+        ],
+        "subclasses#": [
+
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "expr",
+            "owner": "types[Code]",
+            "type": "types[Expr]",
+            "optional=": false,
+            "many=": false,
+            "key=": false,
+            "auto=": false,
+            "inverse": null,
+            "computed": null,
+            "traversal=": true
+          }
         ]
       },
       {

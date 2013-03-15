@@ -40,6 +40,10 @@ module GLLFactory
         @pos = pos
         @edges = []
       end
+
+      def to_s
+        "gss(#{item}, #{pos})"
+      end
     end
 
     class Edge < EnsoBase
@@ -75,29 +79,41 @@ module GLLFactory
       def initialize(starts, ends, type, origin)
         super(starts, ends, type, origin)
         @kids = []
-      end
+      end 
 
       def Node?; true end
+
+      def to_s
+        t = type.Call? ? "call(#{type.rule.name})" : type.inspect
+        "Node(#{starts}, #{ends}, #{t}: #{kids.join(', ')})"
+      end
     end
 
     class Leaf < Base
       attr_reader :value, :ws
-      def initialize(starts, ends, type, origin, value, ws)
+      def initialize(starts, ends, type, origin, value)
         super(starts, ends, type, origin)
         @value = value
-        @ws = ws
       end
 
       def Leaf?; true end
+
+      def to_s
+        "Leaf(#{starts}, #{ends}, #{type}, '#{value}')"
+      end
     end
 
     class Empty < Base
       def Empty?; true end
+      def to_s
+        "()"
+      end
     end
 
     class Pack < SPPF
-      attr_reader :type, :pivot, :left, :right
+      attr_reader :type, :pivot, :left, :right, :parent
       def initialize(parent, type, pivot, left, right)
+        @parent = parent
         @type = type
         @pivot = pivot
         @left = left
@@ -109,6 +125,10 @@ module GLLFactory
       end
 
       def Pack?; true end
+
+      def to_s
+        "pack(#{type}, #{pivot})"
+      end
     end
 
   end
@@ -140,8 +160,8 @@ module GLLFactory
       make(Node, starts, ends, type, origin)
     end
 
-    def Leaf(starts, ends, type, origin, value, ws)
-      make(Leaf, starts, ends, type, origin, value, ws)
+    def Leaf(starts, ends, type, origin, value)
+      make(Leaf, starts, ends, type, origin, value)
     end
 
     def Empty(starts, ends, type, origin)

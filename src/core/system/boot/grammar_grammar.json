@@ -13,8 +13,8 @@
     {
       "filename": "grammar.schema",
       "source": "./core/grammar/models/grammar.schema",
-      "date": "2013-03-14 12:54:23 +0100",
-      "checksum": "4c3e6ad41e083f985e96ce452d8d76a6e186ac7a"
+      "date": "2013-03-15 15:14:27 +0100",
+      "checksum": "f6835470e360dffca09b6f5c3907fb966dd51d46"
     },
     {
       "filename": "expr.schema",
@@ -41,26 +41,40 @@
     "rules#": [
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Grammar",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Grammar",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "start"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "start",
                     "arg": {
                       "class": "Ref",
+                      "prev": null,
+                      "nxt": null,
                       "path": {
                         "class": "ESubscript",
                         "e": {
@@ -80,17 +94,25 @@
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "rules",
                     "arg": {
                       "class": "Regular",
+                      "prev": null,
+                      "nxt": null,
                       "arg": {
                         "class": "Call",
+                        "prev": null,
+                        "nxt": null,
                         "rule": "rules[Rule]"
                       },
                       "optional=": true,
                       "many=": true,
                       "sep": {
                         "class": "Break",
+                        "prev": null,
+                        "nxt": null,
                         "lines=": 2
                       }
                     }
@@ -99,38 +121,57 @@
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Rule",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Rule",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "name",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "::="
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Alt]"
                     }
                   }
@@ -139,19 +180,29 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Rule",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "abstract"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "name",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   }
@@ -159,48 +210,73 @@
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Alt",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Alt",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Indent",
+                    "prev": null,
+                    "nxt": null,
                     "indent=": 1
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "alts",
                     "arg": {
                       "class": "Regular",
+                      "prev": null,
+                      "nxt": null,
                       "arg": {
                         "class": "Call",
+                        "prev": null,
+                        "nxt": null,
                         "rule": "rules[Create]"
                       },
                       "optional=": false,
                       "many=": true,
                       "sep": {
                         "class": "Alt",
+                        "prev": null,
+                        "nxt": null,
                         "alts": [
                           {
                             "class": "Sequence",
+                            "prev": null,
+                            "nxt": null,
                             "elements": [
                               {
                                 "class": "Break",
+                                "prev": null,
+                                "nxt": null,
                                 "lines=": 1
                               },
                               {
                                 "class": "Lit",
+                                "prev": null,
+                                "nxt": null,
                                 "value=": "|"
                               }
                             ]
@@ -211,54 +287,81 @@
                   },
                   {
                     "class": "Indent",
+                    "prev": null,
+                    "nxt": null,
                     "indent=": -1
                   }
                 ]
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Create",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Create",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "["
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "name",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "]"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Sequence]"
                     }
                   }
@@ -267,36 +370,55 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[Sequence]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Sequence",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Sequence",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "elements",
                     "arg": {
                       "class": "Regular",
+                      "prev": null,
+                      "nxt": null,
                       "arg": {
                         "class": "Call",
+                        "prev": null,
+                        "nxt": null,
                         "rule": "rules[Field]"
                       },
                       "optional=": true,
@@ -308,44 +430,67 @@
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Field",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Field",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "name",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": ":"
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Pattern]"
                     }
                   }
@@ -354,34 +499,51 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[Pattern]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Pattern",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Value",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "kind",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "int"
                     }
                   }
@@ -390,15 +552,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Value",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "kind",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "str"
                     }
                   }
@@ -407,15 +577,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Value",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "kind",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "real"
                     }
                   }
@@ -424,15 +602,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Value",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "kind",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "sym"
                     }
                   }
@@ -441,15 +627,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Value",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "kind",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "atom"
                     }
                   }
@@ -458,24 +652,36 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Code",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "{"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "expr",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "}"
                   }
                 ]
@@ -483,30 +689,46 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Ref",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "<"
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "path",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": ">"
                   }
                 ]
@@ -514,15 +736,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Lit",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "value",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "str"
                     }
                   }
@@ -531,15 +761,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Call",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "rule",
                     "arg": {
                       "class": "Ref",
+                      "prev": null,
+                      "nxt": null,
                       "path": {
                         "class": "ESubscript",
                         "e": {
@@ -562,29 +800,45 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Regular",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Pattern]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "*"
                   },
                   {
                     "class": "Regular",
+                    "prev": null,
+                    "nxt": null,
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Sep]"
                     },
                     "optional=": true,
@@ -593,6 +847,8 @@
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "&",
@@ -627,27 +883,41 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Regular",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Pattern]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "?"
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -666,29 +936,45 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Regular",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "arg",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Pattern]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "+"
                   },
                   {
                     "class": "Regular",
+                    "prev": null,
+                    "nxt": null,
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Sep]"
                     },
                     "optional=": true,
@@ -697,6 +983,8 @@
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -715,47 +1003,73 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "NoSpace",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "."
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   }
                 ]
               }
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Break",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "/"
                   },
                   {
                     "class": "Alt",
+                    "prev": null,
+                    "nxt": null,
                     "alts": [
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
-                            "class": "NoSpace"
+                            "class": "NoSpace",
+                            "prev": null,
+                            "nxt": null
                           },
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "lines",
                             "arg": {
                               "class": "Value",
+                              "prev": null,
+                              "nxt": null,
                               "kind=": "int"
                             }
                           }
@@ -763,9 +1077,13 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Code",
+                            "prev": null,
+                            "nxt": null,
                             "expr": {
                               "class": "EBinOp",
                               "op=": "eql?",
@@ -788,16 +1106,24 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Indent",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": ">"
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -816,16 +1142,24 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "Indent",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "<"
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -844,129 +1178,194 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Lit",
+                  "prev": null,
+                  "nxt": null,
                   "value=": "("
                 },
                 {
-                  "class": "NoSpace"
+                  "class": "NoSpace",
+                  "prev": null,
+                  "nxt": null
                 },
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[Alt]"
                 },
                 {
-                  "class": "NoSpace"
+                  "class": "NoSpace",
+                  "prev": null,
+                  "nxt": null
                 },
                 {
                   "class": "Lit",
+                  "prev": null,
+                  "nxt": null,
                   "value=": ")"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Sep",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Lit",
+                  "prev": null,
+                  "nxt": null,
                   "value=": "@"
                 },
                 {
-                  "class": "NoSpace"
+                  "class": "NoSpace",
+                  "prev": null,
+                  "nxt": null
                 },
                 {
                   "class": "Field",
+                  "prev": null,
+                  "nxt": null,
                   "name=": "sep",
                   "arg": {
                     "class": "Call",
+                    "prev": null,
+                    "nxt": null,
                     "rule": "rules[Pattern]"
                   }
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Expr",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[ETernOp]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "ETernOp",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "ETernOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[ETernOp]"
                     }
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "op1",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": "?"
                     }
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EOr]"
                     }
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "op2",
                     "arg": {
                       "class": "Lit",
+                      "prev": null,
+                      "nxt": null,
                       "value=": ":"
                     }
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e3",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EOr]"
                     }
                   }
@@ -975,51 +1374,76 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EOr]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EOr",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBinOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EOr]"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "or"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EAnd]"
                     }
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -1038,51 +1462,76 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EAnd]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EAnd",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBinOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EAnd]"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "and"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp1]"
                     }
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -1101,49 +1550,74 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EBinOp1]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EBinOp1",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBinOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp1]"
                     }
                   },
                   {
                     "class": "Alt",
+                    "prev": null,
+                    "nxt": null,
                     "alts": [
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Lit",
+                            "prev": null,
+                            "nxt": null,
                             "value=": "=="
                           },
                           {
                             "class": "Code",
+                            "prev": null,
+                            "nxt": null,
                             "expr": {
                               "class": "EBinOp",
                               "op=": "eql?",
@@ -1161,12 +1635,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "!="
                             }
                           }
@@ -1174,12 +1654,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": ">"
                             }
                           }
@@ -1187,12 +1673,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "<"
                             }
                           }
@@ -1200,12 +1692,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": ">="
                             }
                           }
@@ -1213,12 +1711,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "<="
                             }
                           }
@@ -1228,9 +1732,13 @@
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp2]"
                     }
                   }
@@ -1239,48 +1747,73 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EBinOp2]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EBinOp2",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBinOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp2]"
                     }
                   },
                   {
                     "class": "Alt",
+                    "prev": null,
+                    "nxt": null,
                     "alts": [
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "+"
                             }
                           }
@@ -1288,12 +1821,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "-"
                             }
                           }
@@ -1303,9 +1842,13 @@
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp3]"
                     }
                   }
@@ -1314,48 +1857,73 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EBinOp3]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EBinOp3",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBinOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e1",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EBinOp3]"
                     }
                   },
                   {
                     "class": "Alt",
+                    "prev": null,
+                    "nxt": null,
                     "alts": [
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "*"
                             }
                           }
@@ -1363,12 +1931,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "/"
                             }
                           }
@@ -1376,12 +1950,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "%"
                             }
                           }
@@ -1391,9 +1971,13 @@
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e2",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EUnOp]"
                     }
                   }
@@ -1402,43 +1986,64 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EUnOp]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EUnOp",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EUnOp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "not"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -1457,84 +2062,127 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EFunCall]"
                 }
               ]
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EListComp]"
                 }
               ]
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[Primary]"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EFunCall",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EFunCall",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "fun",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[EUnOp]"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "("
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "params",
                     "arg": {
                       "class": "Regular",
+                      "prev": null,
+                      "nxt": null,
                       "arg": {
                         "class": "Call",
+                        "prev": null,
+                        "nxt": null,
                         "rule": "rules[Expr]"
                       },
                       "optional=": true,
                       "many=": true,
                       "sep": {
                         "class": "Alt",
+                        "prev": null,
+                        "nxt": null,
                         "alts": [
                           {
                             "class": "Sequence",
+                            "prev": null,
+                            "nxt": null,
                             "elements": [
                               {
-                                "class": "NoSpace"
+                                "class": "NoSpace",
+                                "prev": null,
+                                "nxt": null
                               },
                               {
                                 "class": "Lit",
+                                "prev": null,
+                                "nxt": null,
                                 "value=": ","
                               }
                             ]
@@ -1544,63 +2192,94 @@
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": ")"
                   }
                 ]
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "Primary",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[EConst]"
                 }
               ]
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EField",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Primary]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "."
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "fname",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   }
@@ -1609,41 +2288,63 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "ESubscript",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "["
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "sub",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "]"
                   }
                 ]
@@ -1651,15 +2352,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EVar",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "name",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   }
@@ -1668,39 +2377,61 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EList",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "["
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "elems",
                     "arg": {
                       "class": "Regular",
+                      "prev": null,
+                      "nxt": null,
                       "arg": {
                         "class": "Call",
+                        "prev": null,
+                        "nxt": null,
                         "rule": "rules[Expr]"
                       },
                       "optional=": true,
                       "many=": true,
                       "sep": {
                         "class": "Alt",
+                        "prev": null,
+                        "nxt": null,
                         "alts": [
                           {
                             "class": "Sequence",
+                            "prev": null,
+                            "nxt": null,
                             "elements": [
                               {
-                                "class": "NoSpace"
+                                "class": "NoSpace",
+                                "prev": null,
+                                "nxt": null
                               },
                               {
                                 "class": "Lit",
+                                "prev": null,
+                                "nxt": null,
                                 "value=": ","
                               }
                             ]
@@ -1710,10 +2441,14 @@
                     }
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "NoSpace",
+                    "prev": null,
+                    "nxt": null
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "]"
                   }
                 ]
@@ -1721,54 +2456,83 @@
             },
             {
               "class": "Sequence",
+              "prev": null,
+              "nxt": null,
               "elements": [
                 {
                   "class": "Lit",
+                  "prev": null,
+                  "nxt": null,
                   "value=": "("
                 },
                 {
-                  "class": "NoSpace"
+                  "class": "NoSpace",
+                  "prev": null,
+                  "nxt": null
                 },
                 {
                   "class": "Call",
+                  "prev": null,
+                  "nxt": null,
                   "rule": "rules[Expr]"
                 },
                 {
-                  "class": "NoSpace"
+                  "class": "NoSpace",
+                  "prev": null,
+                  "nxt": null
                 },
                 {
                   "class": "Lit",
+                  "prev": null,
+                  "nxt": null,
                   "value=": ")"
                 }
               ]
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EListComp",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EListComp",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Alt",
+                    "prev": null,
+                    "nxt": null,
                     "alts": [
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "all?"
                             }
                           }
@@ -1776,12 +2540,18 @@
                       },
                       {
                         "class": "Sequence",
+                        "prev": null,
+                        "nxt": null,
                         "elements": [
                           {
                             "class": "Field",
+                            "prev": null,
+                            "nxt": null,
                             "name=": "op",
                             "arg": {
                               "class": "Lit",
+                              "prev": null,
+                              "nxt": null,
                               "value=": "any?"
                             }
                           }
@@ -1791,33 +2561,49 @@
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "var",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "sym"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "in"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "list",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   },
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": ":"
                   },
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "e",
                     "arg": {
                       "class": "Call",
+                      "prev": null,
+                      "nxt": null,
                       "rule": "rules[Expr]"
                     }
                   }
@@ -1825,26 +2611,39 @@
               }
             }
           ]
-        }
+        },
+        "original": null
       },
       {
         "class": "Rule",
+        "prev": null,
+        "nxt": null,
         "name=": "EConst",
         "grammar": "",
         "arg": {
           "class": "Alt",
+          "prev": null,
+          "nxt": null,
           "alts": [
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EStrConst",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "val",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "str"
                     }
                   }
@@ -1853,15 +2652,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EIntConst",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "val",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "int"
                     }
                   }
@@ -1870,16 +2677,24 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBoolConst",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "true"
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -1898,16 +2713,24 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "EBoolConst",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "false"
                   },
                   {
                     "class": "Code",
+                    "prev": null,
+                    "nxt": null,
                     "expr": {
                       "class": "EBinOp",
                       "op=": "eql?",
@@ -1926,15 +2749,23 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "ERealConst",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Field",
+                    "prev": null,
+                    "nxt": null,
                     "name=": "val",
                     "arg": {
                       "class": "Value",
+                      "prev": null,
+                      "nxt": null,
                       "kind=": "real"
                     }
                   }
@@ -1943,19 +2774,26 @@
             },
             {
               "class": "Create",
+              "prev": null,
+              "nxt": null,
               "name=": "ENil",
               "arg": {
                 "class": "Sequence",
+                "prev": null,
+                "nxt": null,
                 "elements": [
                   {
                     "class": "Lit",
+                    "prev": null,
+                    "nxt": null,
                     "value=": "nil"
                   }
                 ]
               }
             }
           ]
-        }
+        },
+        "original": null
       }
     ]
   }
