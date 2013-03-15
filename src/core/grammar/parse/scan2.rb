@@ -30,11 +30,6 @@ class Scan2
     end
   end
 
-  def skip_ws
-    ws = @scanner.scan(LAYOUT)
-    return ws, @scanner.pos
-  end
-
   def lookahead(pat, ci)
     @scanner.pos = ci
     @scanner.scan(pat)
@@ -65,12 +60,6 @@ class Scan2
     def Lit(this, accu)
       accu << this.value if this.value.match(SYMBOL)
     end
-
-    # def Regular(this, accu)
-    #   accu << this.sep if this.sep && this.sep.match(SYMBOL)
-    #   # since we visit regular explicitly, we have to recurse explicitly
-    #   recurse(this.arg, accu)
-    # end
   end
 
   private

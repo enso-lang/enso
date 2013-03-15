@@ -10,8 +10,7 @@ module NormalizeGrammar
     Normalizer.new(grammar._graph_id).normalize(grammar, []).finalize
   end
 
-  class Normalizer
-    
+  class Normalizer    
     def initialize(fact)
       @fact = fact
     end
@@ -52,6 +51,7 @@ module NormalizeGrammar
         #puts "Rule: #{x.name} arg = #{x.arg}"
         this.rules << x
       end
+
 
       this
     end
@@ -132,29 +132,35 @@ module NormalizeGrammar
         rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, []), 
                                    @fact.Sequence(nil, nil, [arg])])
       elsif this.many && !this.optional && !this.sep then
+        arg1 = clone(arg)
+        arg2 = clone(arg)
         rule = @fact.Rule
         rule.name = "IterPlus_#{this._id}"
-        rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg, @fact.Call(nil, nil, rule)]), 
-                                   @fact.Sequence(nil, nil, [arg])])
+        rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg1, @fact.Call(nil, nil, rule)]), 
+                                        @fact.Sequence(nil, nil, [arg2])])
       elsif this.many && this.optional && !this.sep then
         rule = @fact.Rule
         rule.name = "IterStar_#{this._id}"
         rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, []), 
                                         @fact.Sequence(nil, nil, [arg, @fact.Call(nil, nil, rule)])])
       elsif this.many && !this.optional && this.sep then
+        arg1 = clone(arg)
+        arg2 = clone(arg)
         sep = normalize(this.sep, added)
         raise "Wrong sep: #{sep}" if !(sep.Terminal? || sep.Call?)
         rule = @fact.Rule
         rule.name = "IterPlusSep_#{this._id}"
-        rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg]), 
-                                   @fact.Sequence(nil, nil, [arg, sep, @fact.Call(nil, nil, rule)])])
+        rule.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg1]), 
+                                   @fact.Sequence(nil, nil, [arg2, sep, @fact.Call(nil, nil, rule)])])
       elsif this.many && this.optional && this.sep then
+        arg1 = clone(arg)
+        arg2 = clone(arg)
         sep = normalize(this.sep, added)
         raise "Wrong sep: #{sep}" if !(sep.Terminal? || sep.Call?)
         helper = @fact.Rule
         helper.name = "IterPlusSepHelper_#{this._id}"
-        helper.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg]), 
-                                     @fact.Sequence(nil, nil, [arg, sep, @fact.Call(nil, nil, helper)])])
+        helper.arg = @fact.Alt(nil, nil, [@fact.Sequence(nil, nil, [arg1]), 
+                                     @fact.Sequence(nil, nil, [arg2, sep, @fact.Call(nil, nil, helper)])])
         helper.original = this
         added << helper
         rule = @fact.Rule
@@ -167,6 +173,16 @@ module NormalizeGrammar
       rule.original = this
       added << rule
       @fact.Call(nil, nil, rule)
+    end
+
+    def clone(arg)
+      if arg.Call? then
+        @fact.Call(nil, nil, arg.rule)
+      elsif arg.Terminal? || arg.Epsilon? then
+        Copy.new(@fact).copy(arg)
+      else
+        raise "Error invalid normalized item"
+      end
     end
 
   end

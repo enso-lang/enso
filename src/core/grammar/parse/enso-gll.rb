@@ -12,85 +12,93 @@ require 'core/system/load/load'
 require 'ruby-prof'
 
 module EnsoGLL
-  def self.parse(source, grammar, org, start_symbol = grammar.start.name)
-    EnsoGLLParser.new(grammar).parse(source, org, start_symbol)
+  def self.parse(source, grammar, org, start = nil)
+    EnsoGLLParser.new(grammar, start).parse(source, org)
   end
 
 
   class EnsoGLLParser
     include Interpreter::Dispatcher
 
-    def initialize(grammar, fact = GLLFactory::new)
+    def initialize(grammar, start = nil, fact = GLLFactory::new)
       @gfact = Factory::new(grammar._graph_id.schema)
       @grammar =  Copy.new(@gfact).copy(grammar)
-      DeformatGrammar::deformat(@grammar)
-      NormalizeGrammar::normalize(@grammar)
-      LayoutGrammar::layout(@grammar)
-      ItemizeGrammar::itemize(@grammar)
-      @grammar.rules.each do |x|
-        puts "#{x} (#{x.name}):"
-        x.arg.alts.each do |seq|
-          puts "ALT"
-          seq.elements.each do |item|
-            puts " - #{item} nxt: #{item.nxt}"
-          end
-        end
-      end
       @fact = fact
+
+      $stderr << "## removing formatting...\n"
+      DeformatGrammar::deformat(@grammar)
+
+      $stderr << "## normalizing...\n"
+      NormalizeGrammar::normalize(@grammar)
+
+      start = @grammar.start if start.nil?
+      s = @gfact.Rule
+      s.name = '__START__'
+      s.arg = @gfact.Alt
+      s.arg.alts << @gfact.Sequence
+      call = @gfact.Call
+      call.rule = start
+      s.arg.alts[0].elements << @gfact.Layout
+      s.arg.alts[0].elements << call
+      s.arg.alts[0].elements << @gfact.Layout
+      @grammar.rules << s
+      @start = s
+
+      
+      $stderr << "## adding layout...\n"
+      LayoutGrammar::layout(@grammar)
+
+      $stderr << "## adding items...\n"
+      ItemizeGrammar::itemize(@grammar)
+
+
+      @epsilon = @gfact.Epsilon
     end
 
-    def parse(source, org, start_symbol)
+
+
+    def parse(source, org)
       @todo = []
       @done = {}
       @toPop = {}
       @iters = {}
 
-      # Important: take the start from copied grammar.
-      @start_rule = @grammar.rules[start_symbol]
-
-
       @origins = org
 
       @scan = Scan2.new(@grammar, source)
-      @ws, @start_pos = @scan.skip_ws
-      @epsilon = @gfact.Epsilon
-
-      
-      @dummy_node = nil # @fact.Leaf(0, 0, @epsilon, 0, "$DUMMY$", "")
 
       dummy = @gfact.Call(nil, nil, @gfact.Rule(nil, nil, "BALABALBAL"))
 
-      @ci = @start_pos
-      @cu = @start = @fact.GSS(dummy, 0)
-      @cn = @dummy_node
+      @ci = 0
+      @cu = @start_gss = @fact.GSS(dummy, 0)
+      @cn = nil 
 
-      @start_rule.arg.alts.each do |x|
-        puts "item = #{x.elements[0]}"
+      @start.arg.alts.each do |x|
+        #puts "item = #{x.elements[0]}"
         add(x.elements[0])
       end
       while !@todo.empty? do
         parser, @cu, @cn, @ci = @todo.pop #shift
-        puts "PARSING: cu = #{@cu}, cn = #{@cn}, ci = #{@ci}"
+        #puts "PARSING: cu = #{@cu}, cn = #{@cn}, ci = #{@ci}"
         eval(parser)
       end
-      result(source, @start_rule)
+      result(source, @start)
     end
 
     def eval(this)
-      #puts "Dispatching to #{this}"
+      ##puts "Dispatching to #{this}"
       send(this.schema_class.name, this)
     end
 
     def End(this)
-      puts "---------------------> END #{this}  rule =#{this.nxt}"
+      #puts "---------------------> END #{this}  rule =#{this.nxt}"
       pop
     end
     
     def EpsilonEnd(this)
-      puts "EPSILON #{this.nxt}"
-      # cr = @fact.Empty(@ci, @ci, @epsilon, nil)
+      #puts "EPSILON #{this.nxt}"
       cr = @fact.Leaf(@ci, @ci, @epsilon, 0, "")
-      puts "EMPTY NODE = #{cr}"
+      #puts "EMPTY NODE = #{cr}"
       @cn = make_node(this, @cn, cr)
       pop
     end
@@ -100,34 +108,15 @@ module EnsoGLL
     def Rule(this)
       this.arg.alts.each do |x|
         add(x.elements[0])
-        # elts = x.elements
-        # if elts.empty? then
-        #   cr = @fact.Empty(@ci, @ci, @epsilon, nil)
-        #   @cn = make_node(this, @cn, cr)
-        #   pop
-        # elsif elts.size == 1 && elts[0].Terminal? then
-        #   @single = true
-        #   eval(elts[0])
-        #   pop
-        # elsif elts[0].Terminal?
-        #   @single = false
-        #   eval(elts[0])
-        # else
-        #   add(elts[0])
-        # end
-        # #add(x.elements[0])
-        # #add(x)
       end
     end
 
     def terminal(type, pos, value)
-      # # NB: pos includes the ws that has been matched
-      # # so subtract the size of ws from pos.
       cr = @fact.Leaf(@ci, pos, type, origin(@ci, pos), value)
       @ci = pos
-      puts "TERMINAL: #{type}"
-      puts "TERMINAL prev: #{type.prev}"
-      puts "TERMINAL next: #{type.nxt}"
+      #puts "TERMINAL: #{type}"
+      #puts "TERMINAL prev: #{type.prev}"
+      #puts "TERMINAL next: #{type.nxt}"
 
       if type.prev.nil? && !type.nxt.End? then
         @cn = cr
@@ -139,19 +128,19 @@ module EnsoGLL
 
 
     def Call(this)
-      puts "CALL: #{this.rule.name}"
+      #puts "CALL: #{this.rule.name}"
       create(this.nxt)
       eval(this.rule)
     end
 
     def Code(this)
-      terminal(this, @ci, '', '')
+      terminal(this, @ci, '')
     end
 
     def Lit(this)
-      puts "LIT: #{this.value}"
+      #puts "LIT: #{this.value}"
       @scan.with_literal(this.value, @ci) do |pos|
-        puts " success LIT: #{this.value}"
+        #puts " success LIT: #{this.value}"
         terminal(this, pos, this.value)
       end
     end
@@ -169,9 +158,9 @@ module EnsoGLL
     end
 
     def Value(this)
-      puts "VAL: #{this.kind}"
+      #puts "VAL: #{this.kind}"
       @scan.with_token(this.kind, @ci) do |pos, tk|
-        puts " success"
+        #puts " success"
         terminal(this, pos, tk)
       end
     end
@@ -179,16 +168,16 @@ module EnsoGLL
 
     def result(source, top)
       r = @fact._objects_for(@gfact.schema.classes['Node']).find do |n|
-        #puts "node = #{n}"
+        ##puts "node = #{n}"
         if top_node?(n, source, top) then
-          puts "node = #{n}"
+          #puts "node = #{n}"
           true
         else
           false
         end
       end
       @fact._objects_for(@gfact.schema.classes['Leaf']).find do |n|
-        puts "node = #{n}"
+        #puts "node = #{n}"
         top_node?(n, source, top)
       end
       if r then
@@ -200,12 +189,12 @@ module EnsoGLL
     end
     
     def top_node?(node, source, top)
-      node.starts == @start_pos && 
+      node.starts == 0 && 
         node.ends == source.size  &&
         node.type == top
     end
     
-    def add(parser, u = @cu, i = @ci, w = @dummy_node) 
+    def add(parser, u = @cu, i = @ci, w = nil) 
       if !@done.has_key?(i) then
         @done[i] = {}
       end
@@ -217,7 +206,7 @@ module EnsoGLL
     end
 
     def pop
-      if @cu.equals(@start) then
+      if @cu.equals(@start_gss) then
         nil
       else
         if !@toPop.has_key?(@cu) then
@@ -227,12 +216,12 @@ module EnsoGLL
           @toPop[@cu][@cn] = @cn
         end
         cnt = @cu.item
-        puts "CNT #{cnt}"
+        #puts "CNT #{cnt}"
         @cu.edges.each do |edge| #|w, gs|
           w = edge.sppf
           u = edge.target
-          puts "POP WWWW: #{w}"
-          puts "POP UUUU: #{u}"
+          #puts "POP WWWW: #{w}"
+          #puts "POP UUUU: #{u}"
           x = make_node(cnt, w, @cn)
           add(cnt, u, @ci, x)
         end
@@ -241,9 +230,9 @@ module EnsoGLL
 
     def create(item)
       if item.End? then
-        puts "CREA: #{item.nxt}"
+        #puts "CREA: #{item.nxt}"
       else
-        puts "CREA: #{item}"
+        #puts "CREA: #{item}"
       end
       w = @cn
       v = @fact.GSS(item, @ci)
@@ -264,18 +253,19 @@ module EnsoGLL
       #if item.dot == 1 && item.elements.size > 1 then
       # a . b c 
       return false if item.prev.nil?
-      item.prev.Terminal? && item.prev.prev.nil? && !item.End?
+      #item.prev.Terminal? && 
+      item.prev.prev.nil? && !item.End?
     end
       
     def make_node(item, z, w)
       if is_second_but_not_last?(item) then
-        puts "PREV = #{item.prev}; prev.prev = #{item.prev && item.prev.prev}"
-        puts "returning w = #{w} because of #{item}"
+        #puts "PREV = #{item.prev}; prev.prev = #{item.prev && item.prev.prev}"
+        #puts "returning w = #{w} because of #{item}"
         return w
       end
-      puts "MAKENODE item: #{item}"
-      puts "z = #{z}"
-      puts "w = #{w}"
+      #puts "MAKENODE item: #{item}"
+      #puts "z = #{z}"
+      #puts "w = #{w}"
       t = item
       if item.End? then
         t = item.nxt # the rule
@@ -284,36 +274,24 @@ module EnsoGLL
       x = w.type
       k = w.starts
       
-      puts "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK #{k}" if item.nxt == @start_rule
       i = w.ends
-      if z != @dummy_node then
+      if z != nil then
         s = z.type
         j = z.starts
         # assert k == z.ends
         y = @fact.Node(j, i, t, nil)
         pack = @fact.Pack(y, item, k, z, w)
-        puts "***************** Kid packs, looking ofr #{pack}"
-        y.kids.each do |p|
-          puts "\tPACK: #{p} pack =? p: #{p == pack}"
-          puts "\t\tPARENT: #{p.parent}"
-        end
-        puts
         if !y.kids.include?(pack)
           y.kids << pack
         end
       else
         y = @fact.Node(k, i, t, nil)
         pack = @fact.Pack(y, item, k, nil, w)
-        puts "***************** Kid packs, looking ofr #{pack}"
-        y.kids.each do |p|
-          puts "\tPACK: #{p} pack =? p: #{p == pack}"
-          puts "\t\tPARENT: #{p.parent}"
-        end
         if !y.kids.include?(pack)
           y.kids << pack
         end
       end
-      puts "Returning y = #{y}"
+      #puts "Returning y = #{y}"
       return y
     end
     
@@ -335,13 +313,25 @@ end
 if __FILE__ == $0 then
   require 'core/grammar/parse/origins'
   gg = Load::load('grammar.grammar')
-  #src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
-  src = "start Expr Expr ::= ETernOp | BLA Bla ::= \"a\""
-  src = '{a == b}'
-  src = '(a)'
+  src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
+  #src = "  start Expr Expr ::= ETernOp | BLA Bla ::= \"a\"  "
+  #src = '{a == b}'
+  #src = '(a)'
   #src = '()'
   #src = "X ::="
-  
+
+
+  parser = EnsoGLL::EnsoGLLParser.new(gg)
+
+  #RubyProf.start
+  x = parser.parse(src, Origins.new(src, "-"))
+  #result = RubyProf.stop
+
+  #printer = RubyProf::FlatPrinter.new(result)
+  #printer.print(STDOUT)
+
+
+
   ss = Load::load('grammar.schema')
   f = Factory::new(ss)
   grammar = f.Grammar
@@ -391,7 +381,6 @@ if __FILE__ == $0 then
   grammar.rules << ruleB
   
   grammar.finalize
-  Print::print(grammar)
 
   #RubyProf.start
 
@@ -406,7 +395,6 @@ EOG
   grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
   src = "a a d"
 
-  x = EnsoGLL::parse(src, grammar, Origins.new(src, "-"), 'S')
 
 
   source = <<-EOG
@@ -441,7 +429,19 @@ C ::=
 EOG
   grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
 
-  src = "a"
+
+   source = <<-EOG
+start S
+S ::= A+ 
+A ::= "a"
+EOG
+  grammar = Parse::load_raw(source, gg,ss , f, imports = [], show = false, filename = '-')
+
+
+  src = "a a a"
+
+
+  #x = EnsoGLL::parse(src, grammar, Origins.new(src, "-"), 'S')
 
 
   #result = RubyProf.stop
