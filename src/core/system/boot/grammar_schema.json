@@ -1,8 +1,8 @@
 {
   "filename": "grammar.schema",
   "source": "./core/grammar/models/grammar.schema",
-  "date": "2013-03-15 15:14:27 +0100",
-  "checksum": "f6835470e360dffca09b6f5c3907fb966dd51d46",
+  "date": "2013-03-15 17:01:33 +0100",
+  "checksum": "c6c0ddeef5bd319a6221bb25a0ed46d532b566e2",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -100,8 +100,7 @@
           "types[NoSpace]",
           "types[Break]",
           "types[Indent]",
-          "types[Epsilon]",
-          "types[Item]"
+          "types[Epsilon]"
         ],
         "defined_fields#": [
           {
@@ -140,8 +139,7 @@
           "types[Pattern]"
         ],
         "subclasses#": [
-          "types[EpsilonEnd]",
-          "types[TerminalEnd]"
+          "types[EpsilonEnd]"
         ],
         "defined_fields#": [
 
@@ -150,20 +148,6 @@
       {
         "class": "Class",
         "name=": "EpsilonEnd",
-        "schema": "",
-        "supers#": [
-          "types[End]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "TerminalEnd",
         "schema": "",
         "supers#": [
           "types[End]"
@@ -678,58 +662,6 @@
       },
       {
         "class": "Class",
-        "name=": "Item",
-        "schema": "",
-        "supers#": [
-          "types[Pattern]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "expression",
-            "owner": "types[Item]",
-            "type": "types[Pattern]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          },
-          {
-            "class": "Field",
-            "name=": "elements",
-            "owner": "types[Item]",
-            "type": "types[Pattern]",
-            "optional=": true,
-            "many=": true,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          },
-          {
-            "class": "Field",
-            "name=": "dot",
-            "owner": "types[Item]",
-            "type": "types[int]",
-            "optional=": false,
-            "many=": false,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": false
-          }
-        ]
-      },
-      {
-        "class": "Class",
         "name=": "Base",
         "schema": "",
         "supers#": [
@@ -737,7 +669,6 @@
         ],
         "subclasses#": [
           "types[Node]",
-          "types[Empty]",
           "types[Leaf]"
         ],
         "defined_fields#": [
@@ -823,37 +754,6 @@
       },
       {
         "class": "Class",
-        "name=": "Empty",
-        "schema": "",
-        "supers#": [
-          "types[Base]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "kids",
-            "owner": "types[Empty]",
-            "type": "types[Base]",
-            "optional=": true,
-            "many=": true,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": {
-              "class": "EList",
-              "elems": [
-
-              ]
-            },
-            "traversal=": false
-          }
-        ]
-      },
-      {
-        "class": "Class",
         "name=": "Leaf",
         "schema": "",
         "supers#": [
@@ -888,24 +788,6 @@
             "inverse": null,
             "computed": null,
             "traversal=": false
-          },
-          {
-            "class": "Field",
-            "name=": "kids",
-            "owner": "types[Leaf]",
-            "type": "types[Base]",
-            "optional=": true,
-            "many=": true,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": {
-              "class": "EList",
-              "elems": [
-
-              ]
-            },
-            "traversal=": false
           }
         ]
       },
@@ -937,7 +819,7 @@
             "class": "Field",
             "name=": "type",
             "owner": "types[Pack]",
-            "type": "types[Item]",
+            "type": "types[Pattern]",
             "optional=": false,
             "many=": false,
             "key=": false,
@@ -984,56 +866,6 @@
             "inverse": null,
             "computed": null,
             "traversal=": false
-          },
-          {
-            "class": "Field",
-            "name=": "kids",
-            "owner": "types[Pack]",
-            "type": "types[Base]",
-            "optional=": true,
-            "many=": true,
-            "key=": false,
-            "auto=": false,
-            "inverse": null,
-            "computed": {
-              "class": "ETernOp",
-              "op1=": "?",
-              "op2=": ":",
-              "e1": {
-                "class": "EBinOp",
-                "op=": "eql?",
-                "e1": {
-                  "class": "EVar",
-                  "name=": "left"
-                },
-                "e2": {
-                  "class": "ENil"
-                }
-              },
-              "e2": {
-                "class": "EList",
-                "elems": [
-                  {
-                    "class": "EVar",
-                    "name=": "right"
-                  }
-                ]
-              },
-              "e3": {
-                "class": "EList",
-                "elems": [
-                  {
-                    "class": "EVar",
-                    "name=": "left"
-                  },
-                  {
-                    "class": "EVar",
-                    "name=": "right"
-                  }
-                ]
-              }
-            },
-            "traversal=": false
           }
         ]
       },
@@ -1052,7 +884,7 @@
             "class": "Field",
             "name=": "item",
             "owner": "types[GSS]",
-            "type": "types[Item]",
+            "type": "types[Pattern]",
             "optional=": false,
             "many=": false,
             "key=": false,

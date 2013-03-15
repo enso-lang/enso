@@ -9,28 +9,22 @@ module GLLFactory
   end
 
   module GLLClasses
+    class SchemaClass
+      attr_reader :name
+      def initialize(name)
+        @name = name
+      end
+    end
 
     class EnsoBase
+      attr_reader :schema_class
+      def initialize(c)
+        @schema_class = SchemaClass.new(c)
+      end
+
       def equals(o)
         self == o
       end      
-    end
-
-    class Item < EnsoBase
-      attr_reader :expression, :elements, :dot
-      def initialize(exp, elts, dot)
-        @expression = exp
-        @elements = elts
-        @dot = dot
-      end
-      
-      def name
-        'Item'
-      end
-
-      def schema_class
-        self
-      end
     end
 
     class GSS < EnsoBase
@@ -63,7 +57,8 @@ module GLLFactory
 
     class Base < SPPF
       attr_reader :starts, :ends, :type, :origin
-      def initialize(starts, ends, type, origin)
+      def initialize(cls, starts, ends, type, origin)
+        super(cls)
         @starts = starts
         @ends = ends
         @type = type
@@ -77,7 +72,7 @@ module GLLFactory
     class Node < Base
       attr_reader :kids
       def initialize(starts, ends, type, origin)
-        super(starts, ends, type, origin)
+        super('Node', starts, ends, type, origin)
         @kids = []
       end 
 
@@ -92,7 +87,7 @@ module GLLFactory
     class Leaf < Base
       attr_reader :value, :ws
       def initialize(starts, ends, type, origin, value)
-        super(starts, ends, type, origin)
+        super('Leaf', starts, ends, type, origin)
         @value = value
       end
 
@@ -113,6 +108,7 @@ module GLLFactory
     class Pack < SPPF
       attr_reader :type, :pivot, :left, :right, :parent
       def initialize(parent, type, pivot, left, right)
+        super('Pack')
         @parent = parent
         @type = type
         @pivot = pivot
@@ -144,10 +140,6 @@ module GLLFactory
       @memo = {}
     end
 
-    def Item(exp, elts, dot)
-      make(Item, exp, elts, dot)
-    end
-
     def GSS(item, pos)
       make(GSS, item, pos)
     end
@@ -162,10 +154,6 @@ module GLLFactory
 
     def Leaf(starts, ends, type, origin, value)
       make(Leaf, starts, ends, type, origin, value)
-    end
-
-    def Empty(starts, ends, type, origin)
-      make(Empty, starts, ends, type, origin)
     end
 
     def Pack(parent, type, pivot, left, right)

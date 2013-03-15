@@ -25,6 +25,7 @@ module EnsoGLL
       @grammar =  Copy.new(@gfact).copy(grammar)
       @fact = fact
 
+      $stderr << "## initializing grammar for #{grammar.start.name}...\n"
       $stderr << "## removing formatting...\n"
       DeformatGrammar::deformat(@grammar)
 
@@ -58,6 +59,7 @@ module EnsoGLL
 
 
     def parse(source, org)
+      $stderr << "## parsing...\n"
       @todo = []
       @done = {}
       @toPop = {}
@@ -82,6 +84,7 @@ module EnsoGLL
         #puts "PARSING: cu = #{@cu}, cn = #{@cn}, ci = #{@ci}"
         eval(parser)
       end
+      $stderr << "## done.\n"
       result(source, @start)
     end
 
@@ -138,9 +141,7 @@ module EnsoGLL
     end
 
     def Lit(this)
-      #puts "LIT: #{this.value}"
       @scan.with_literal(this.value, @ci) do |pos|
-        #puts " success LIT: #{this.value}"
         terminal(this, pos, this.value)
       end
     end
@@ -158,9 +159,7 @@ module EnsoGLL
     end
 
     def Value(this)
-      #puts "VAL: #{this.kind}"
       @scan.with_token(this.kind, @ci) do |pos, tk|
-        #puts " success"
         terminal(this, pos, tk)
       end
     end
@@ -168,17 +167,7 @@ module EnsoGLL
 
     def result(source, top)
       r = @fact._objects_for(@gfact.schema.classes['Node']).find do |n|
-        ##puts "node = #{n}"
-        if top_node?(n, source, top) then
-          #puts "node = #{n}"
-          true
-        else
-          false
-        end
-      end
-      @fact._objects_for(@gfact.schema.classes['Leaf']).find do |n|
-        #puts "node = #{n}"
-        top_node?(n, source, top)
+        top_node?(n, source, top) 
       end
       if r then
         r
@@ -229,11 +218,6 @@ module EnsoGLL
     end
 
     def create(item)
-      if item.End? then
-        #puts "CREA: #{item.nxt}"
-      else
-        #puts "CREA: #{item}"
-      end
       w = @cn
       v = @fact.GSS(item, @ci)
       e = @fact.Edge(w, @cu)
@@ -312,9 +296,12 @@ end
 
 if __FILE__ == $0 then
   require 'core/grammar/parse/origins'
+  require 'core/grammar/parse/enso-build'
+
   gg = Load::load('grammar.grammar')
+  gs = Load::load('grammar.schema')
   src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
-  #src = "  start Expr Expr ::= ETernOp | BLA Bla ::= \"a\"  "
+  src = "  start Expr Expr ::= Expr "
   #src = '{a == b}'
   #src = '(a)'
   #src = '()'
@@ -324,7 +311,18 @@ if __FILE__ == $0 then
   parser = EnsoGLL::EnsoGLLParser.new(gg)
 
   #RubyProf.start
-  x = parser.parse(src, Origins.new(src, "-"))
+  org = Origins.new(src, "-")
+  x = parser.parse(src, org)
+
+  puts x
+  File.open('sppf.dot', 'w') do |f|
+    ToDot.to_dot(x, f)
+  end
+  
+  obj = EnsoBuild::build(x, Factory.new(gs), org, [])
+
+  Layout::DisplayFormat.print(gg, obj, $stdout, false)
+
   #result = RubyProf.stop
 
   #printer = RubyProf::FlatPrinter.new(result)
@@ -448,8 +446,4 @@ EOG
 
   #printer = RubyProf::FlatPrinter.new(result)
   #printer.print(STDOUT)
-  puts x
-  File.open('sppf.dot', 'w') do |f|
-    ToDot.to_dot(x, f)
-  end
 end
