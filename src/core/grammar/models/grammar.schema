@@ -17,8 +17,6 @@ class End < Pattern
 
 class EpsilonEnd < End
 
-class TerminalEnd < End
-
 // Pattern is needed because Ends refer to it via nxt
 class Rule < Pattern
   name# str 
@@ -76,12 +74,6 @@ class Epsilon < Pattern
 class Code < Epsilon
   expr! Expr
  
-
-class Item < Pattern
-  expression: Pattern
-  elements: Pattern*
-  dot: int
-
 class Base
   starts: int
   ends: int
@@ -91,25 +83,19 @@ class Base
 class Node < Base
   kids: Pack*
 
-class Empty < Base
-  kids: Base* = []
-
 class Leaf < Base
   value: str
   ws: str
-  kids: Base* = []
 
 class Pack
   parent: Node / kids
-  type: Item
+  type: Pattern
   pivot: int
   left: Base?
   right: Base
-  kids: Base* = (left == nil ? [right] : [left, right])
-
 
 class GSS
-  item! Item
+  item! Pattern
   pos: int
   edges: Edge*
 
