@@ -72,13 +72,13 @@ module EnsoBuild
         #puts "building symbol #{this.schema_class.name}"
         send(meth, this, sppf, owner, accu, field, fixes, paths)
       else
-        puts "recursing to kids"
+        #puts "recursing to kids"
         build_sppf(sppf.kids[0], owner, accu, field, fixes, paths)
       end
     end
 
     def build_symbol_Rule(this, sppf, owner, accu, field, fixes, paths)
-      puts "RULE: #{this.name}"
+      #puts "RULE: #{this.name}"
       if this.original then
         build_symbol(this.original, sppf, owner, accu, field, fixes, paths)
       else
@@ -87,7 +87,7 @@ module EnsoBuild
     end
 
     def build_symbol_Create(this, sppf, owner, accu, field, fixes, paths)
-      puts "CREATE: #{this.name}"
+      #puts "CREATE: #{this.name}"
       current = @factory[this.name]
       build_sppf(sppf.kids[0], current, {}, nil, fixes, {})
       current._origin = org = origin(sppf)
@@ -95,7 +95,7 @@ module EnsoBuild
     end
 
     def build_symbol_Field(this, sppf, owner, accu, _, fixes, paths)
-      puts "FIELD: #{this.name}"
+      #puts "FIELD: #{this.name}"
       field = owner.schema_class.fields[this.name]
       # TODO: this check should be done if owner = Env
       # for new paths.
@@ -116,23 +116,23 @@ module EnsoBuild
 
     
     def build_symbol_leaf_Lit(this, sppf, owner, accu, field, fixes, paths)
-      puts "LIT: #{this.value}"
+      #puts "LIT: #{this.value}"
       return unless field
       accu[origin(sppf)] = sppf.value
     end
 
     def build_symbol_leaf_Value(this, sppf, owner, accu, field, fixes, paths)
-      puts "VALUE: #{this.kind} = #{sppf.value}"
+      #puts "VALUE: #{this.kind} = #{sppf.value}"
       accu[origin(sppf)] = convert_token(sppf.value, this.kind)
     end
 
     def build_symbol_leaf_Ref(this, sppf, owner, accu, field, fixes, paths)
-      puts "REF: #{this} (value = #{sppf.value})"
+      #puts "REF: #{this} (value = #{sppf.value})"
       paths[origin(sppf)] = Fix.new(this.path, owner, field, origin(sppf), sppf.value)
     end
 
     def build_symbol_leaf_Code(this, sppf, owner, accu, field, fixes, paths)
-      puts "CODE"
+      #puts "CODE"
       check = AssertExprC.new
       check.dynamic_bind env: Env::ObjEnv.new(owner) do
         check.assert(this.expr)
@@ -147,12 +147,11 @@ module EnsoBuild
     end
 
     def amb_error(sppf)
-      Unparse.unparse(sppf, s = '')
+      #Unparse.unparse(sppf, s = '')
       File.open('amb.dot', 'w') do |f|
         ToDot.to_dot(sppf, f)
       end
-      raise "Ambiguity: >>>#{s}<<<" 
-      
+      raise "Ambiguity at #{origin(sppf)}"
     end
     
     def origin(sppf)
@@ -225,7 +224,7 @@ module EnsoBuild
     end
 
     def update(owner, field, x)
-      puts "Updating: #{owner}.#{field.name} := #{x}"
+      #puts "Updating: #{owner}.#{field.name} := #{x}"
       if field.many then
         owner[field.name] << x
       else

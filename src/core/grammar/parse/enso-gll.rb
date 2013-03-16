@@ -59,7 +59,7 @@ module EnsoGLL
 
 
     def parse(source, org)
-      $stderr << "## parsing...\n"
+      $stderr << "## parsing #{org.path}...\n"
       @todo = []
       @done = {}
       @toPop = {}

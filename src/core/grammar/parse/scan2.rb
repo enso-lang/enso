@@ -69,7 +69,7 @@ class Scan2
     @lit_res = {}
     # \ also has a follow restriction
     (['\\'] + @keywords).each do |kw|
-      @lit_res[kw] = Regexp.new(Regexp.escape(kw)) ## + "(?![a-zA-Z_$0-9])")
+      @lit_res[kw] = Regexp.new(Regexp.escape(kw) + "(?![a-zA-Z_$0-9])")
     end
   end
 
