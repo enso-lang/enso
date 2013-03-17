@@ -14,7 +14,7 @@ require 'ruby-prof'
 
 module EnsoGLL
   def self.parse(source, grammar, org)
-    EnsoGLLParser.new(grammar, start).parse(source, org)
+    EnsoGLLParser.new(grammar).parse(source, org)
   end
 
 
@@ -22,10 +22,13 @@ module EnsoGLL
     include Interpreter::Dispatcher
 
 
-    def initialize(grammar,  fact = GLLFactory::new)
-      # @gfact = Factory::new(grammar._graph_id.schema)
+    def initialize(grammar, fact = GLLFactory::new)
       @fact = fact
-      @gfact = fact
+      if fact.is_a?(GLLFactory::GLLFactoryClass) then
+        @gfact = Factory::new(Load::load('parsing.schema'))
+      else
+        @gfact = fact
+      end
       @grammar =  Copy.new(@gfact).copy(grammar)
 
       # Use start from copied model.
@@ -108,11 +111,11 @@ module EnsoGLL
     
     def EpsilonEnd(this)
       #puts "EPSILON #{this.nxt}"
-      cr = @fact.Leaf
-      cr.starts = @ci
-      cr.ends = @ci
-      cr.type = @epsilon
-      cr.value = ""
+      cr = @fact.Leaf(@ci, @ci, @epsilon, nil, "")
+      # cr.starts = @ci
+      # cr.ends = @ci
+      # cr.type = @epsilon
+      # cr.value = ""
       #puts "EMPTY NODE = #{cr}"
       @cn = make_node(this, @cn, cr)
       pop
