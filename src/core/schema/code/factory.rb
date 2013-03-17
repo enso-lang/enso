@@ -22,7 +22,7 @@ module Factory
   def self.new(schema)
     SchemaFactory.new(schema)
   end
-
+  
   class SchemaFactory
     attr_reader :schema
     attr_accessor :file_path
@@ -201,7 +201,7 @@ module Factory
             else
               collection = List.new(self, fld)
             end
-            val.each {|v|collection<<v}
+            val.each {|v|collection << v}
             val = collection
           end
           val
@@ -588,14 +588,14 @@ module Factory
 
     def each(&block); __value.each_value(&block) end
 
-    def each_pair(&block); __value.each_pair &block end
-    def find_first_pair(&block); __value.find_first_pair &block end
+    def each_pair(&block); __value.each_pair(&block) end
+    def find_first_pair(&block); __value.find_first_pair(&block) end
 
     def values; __value.values end
 
     def keys; __value.keys end
 
-    #FIXME: poor programming practise but necessary
+    # FIXME: poor programming practise but necessary
     # to support key changes in object
     def _recompute_hash!
       nval = {}
