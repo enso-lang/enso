@@ -4,6 +4,7 @@ require 'core/grammar/parse/gll-factory'
 require 'core/grammar/parse/sharing-factory'
 require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
+require 'core/schema/tools/todot'
 require 'core/grammar/parse/scan2'
 require 'core/grammar/parse/normalize'
 require 'core/grammar/parse/itemize'
@@ -62,7 +63,7 @@ module EnsoGLL
       ItemizeGrammar::itemize(@grammar)
 
 
-      @epsilon = @gfact.Epsilon
+      @epsilon = @gfact.Sequence
     end
 
 
@@ -322,7 +323,7 @@ if __FILE__ == $0 then
   gg = Load::load('grammar.grammar')
   gs = Load::load('grammar.schema')
   #src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
-  src = "  start Expr Expr ::= Expr "
+  src = "  start Expr Expr ::= Expr op:\"+\" Expr"
   #src = '{a == b}'
   #src = '(a)'
   #src = '()'
@@ -347,10 +348,20 @@ if __FILE__ == $0 then
     ToDot.to_dot(x, f)
   end
   
-  obj = EnsoBuild::build(x, Factory.new(gs), org, [])
+  obj = EnsoBuild::build(x, SharingFactory.new(ps, shares), org, [])
   
   Layout::DisplayFormat.print(gg, obj, $stdout, false)
 
+  NormalizeGrammar::normalize(obj)
+  LayoutGrammar::layout(obj)
+  ItemizeGrammar::itemize(obj)
+  
+  t = ObjectToDot.new
+  File.open('normalized.dot', 'w') do |f|
+    t.todot(obj, f)
+  end
+
+  
   #result = RubyProf.stop
 
   #printer = RubyProf::FlatPrinter.new(result)

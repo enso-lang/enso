@@ -13,8 +13,14 @@
     {
       "filename": "grammar.schema",
       "source": "./core/grammar/models/grammar.schema",
-      "date": "2013-03-17 10:45:38 +0100",
-      "checksum": "596b8ce6b50b56a27504829f34ee18cc346e7273"
+      "date": "2013-03-17 12:42:34 +0100",
+      "checksum": "86f09fda678b5032c17c88e04764b2e14463c123"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "./core/schema/models/schema.grammar",
+      "date": "2013-03-11 23:55:39 +0100",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "expr.schema",

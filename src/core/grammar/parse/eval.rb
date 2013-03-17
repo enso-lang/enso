@@ -9,8 +9,7 @@ class GrammarEval
     @scan = Scan.new(grammar, source)
     @ws, @start_pos = @scan.skip_ws
     @fact = grammar._graph_id
-    @epsilon = @fact.Epsilon
-
+    @epsilon = @fact.Sequence
     @items = {}
     @seps = {}
     @iters = {}

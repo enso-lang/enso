@@ -13,11 +13,12 @@ class End < Pattern
 class EpsilonEnd < End
 
 class Layout < Terminal
- 
+class Epsilon < Terminal
+
 
 // Rule < Pattern because Ends refer to it via nxt
 class Rule < Pattern
-  original! Pattern?
+  original: Pattern?
  
  
 class Base
