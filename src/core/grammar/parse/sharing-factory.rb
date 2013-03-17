@@ -1,16 +1,15 @@
 
 require 'core/schema/code/factory'
 require 'core/system/library/schema'
-#require 'weakref'
 
 module SharingFactory
-
   def self.new(schema, shares)
     SharingSchemaFactory.new(schema, shares)
   end
 
   class SharingSchemaFactory < Factory::SchemaFactory
     include Factory
+    
     def initialize(schema, shares)
       super(schema)
       @shares = shares
@@ -26,7 +25,7 @@ module SharingFactory
     def __install_methods(schema)
       schema.classes.each do |klass|
         define_singleton_method(klass.name) do |*args|
-          puts "FACT: #{klass.name} (sh=#{@shares.include?(klass)}) #memo=#{@memo.length}"
+          #puts "FACT: #{klass.name} (sh=#{@shares.include?(klass)}) #memo=#{@memo.length}"
           if @shares.include?(klass) then
             if @memo.has_key?(args) then
               @memo[args]
@@ -66,7 +65,8 @@ if __FILE__ == $0 then
   i2 = f.Item(p, [], 0)
   puts "i1: #{i1}"
   puts "i2: #{i2}"
-
+    
+    
   g1 = f.GSS(i1, 0)
   g2 = f.GSS(i2, 0)
   puts "g1: #{g1}"

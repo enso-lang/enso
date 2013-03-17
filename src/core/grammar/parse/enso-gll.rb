@@ -1,6 +1,7 @@
 
 require 'core/grammar/tools/todot'
 require 'core/grammar/parse/gll-factory'
+require 'core/grammar/parse/sharing-factory'
 require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan2'
@@ -12,7 +13,7 @@ require 'core/system/load/load'
 require 'ruby-prof'
 
 module EnsoGLL
-  def self.parse(source, grammar, org, start = nil)
+  def self.parse(source, grammar, org)
     EnsoGLLParser.new(grammar, start).parse(source, org)
   end
 
@@ -20,19 +21,24 @@ module EnsoGLL
   class EnsoGLLParser
     include Interpreter::Dispatcher
 
-    def initialize(grammar, start = nil, fact = GLLFactory::new)
-      @gfact = Factory::new(grammar._graph_id.schema)
-      @grammar =  Copy.new(@gfact).copy(grammar)
-      @fact = fact
 
-      $stderr << "## initializing grammar for #{grammar.start.name}...\n"
+    def initialize(grammar,  fact = GLLFactory::new)
+      # @gfact = Factory::new(grammar._graph_id.schema)
+      @fact = fact
+      @gfact = fact
+      @grammar =  Copy.new(@gfact).copy(grammar)
+
+      # Use start from copied model.
+      start = @grammar.start
+
+      
+      $stderr << "## initializing grammar for #{start.name}...\n"
       $stderr << "## removing formatting...\n"
       DeformatGrammar::deformat(@grammar)
 
       $stderr << "## normalizing...\n"
       NormalizeGrammar::normalize(@grammar)
 
-      start = @grammar.start if start.nil?
       s = @gfact.Rule
       s.name = '__START__'
       s.arg = @gfact.Alt
@@ -69,7 +75,9 @@ module EnsoGLL
 
       @scan = Scan2.new(@grammar, source)
 
-      dummy = @gfact.Call(nil, nil, @gfact.Rule(nil, nil, "BALABALBAL"))
+      dummy_rule = @gfact.Rule
+      dummy_rule.name = "BALABALBAL"
+      dummy = @gfact.Call(nil, nil, dummy_rule)
 
       @ci = 0
       @cu = @start_gss = @fact.GSS(dummy, 0)
@@ -100,7 +108,11 @@ module EnsoGLL
     
     def EpsilonEnd(this)
       #puts "EPSILON #{this.nxt}"
-      cr = @fact.Leaf(@ci, @ci, @epsilon, 0, "")
+      cr = @fact.Leaf
+      cr.starts = @ci
+      cr.ends = @ci
+      cr.type = @epsilon
+      cr.value = ""
       #puts "EMPTY NODE = #{cr}"
       @cn = make_node(this, @cn, cr)
       pop
@@ -110,7 +122,13 @@ module EnsoGLL
 
     def Rule(this)
       this.arg.alts.each do |x|
+        #if x.elements.empty? then
+        #  cr = @fact.Leaf(@ci, @ci, @epsilon, 0, "")
+        #  @cn = make_node(this, @cn, cr)
+        #  pop
+        #else
         add(x.elements[0])
+        #end
       end
     end
 
@@ -300,7 +318,7 @@ if __FILE__ == $0 then
 
   gg = Load::load('grammar.grammar')
   gs = Load::load('grammar.schema')
-  src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
+  #src = File.read('core/expr/models/expr.grammar') # "start A A ::= \"a\""
   src = "  start Expr Expr ::= Expr "
   #src = '{a == b}'
   #src = '(a)'
@@ -308,7 +326,14 @@ if __FILE__ == $0 then
   #src = "X ::="
 
 
-  parser = EnsoGLL::EnsoGLLParser.new(gg)
+  ps = Load::load('parsing.schema')
+  shares = [ps.classes["Node"],
+            ps.classes["Leaf"],
+            ps.classes["Pack"],
+            ps.classes["GSS"],
+            ps.classes["Edge"]]
+
+  parser = EnsoGLL::EnsoGLLParser.new(gg, SharingFactory.new(ps, shares))
 
   #RubyProf.start
   org = Origins.new(src, "-")
@@ -320,7 +345,7 @@ if __FILE__ == $0 then
   end
   
   obj = EnsoBuild::build(x, Factory.new(gs), org, [])
-
+  
   Layout::DisplayFormat.print(gg, obj, $stdout, false)
 
   #result = RubyProf.stop
