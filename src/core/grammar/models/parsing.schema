@@ -12,6 +12,9 @@ class End < Pattern
 
 class EpsilonEnd < End
 
+class Layout < Terminal
+ 
+
 // Rule < Pattern because Ends refer to it via nxt
 class Rule < Pattern
   original! Pattern?
@@ -39,7 +42,7 @@ class Pack
 class GSS
   item! Pattern
   pos: int
-  edges: Edge*
+  edges! Edge*
 
 class Edge
   sppf: Base?

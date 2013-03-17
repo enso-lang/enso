@@ -42,8 +42,6 @@ class Ref < Terminal
 class Lit < Terminal
   value: str
 
-class Layout < Terminal
- 
 class Call < Pattern 
   rule: Rule 
  
