@@ -12,50 +12,30 @@ syntax ETernOp
   ;
 
 syntax EOr
-  = eBinOp: EOr e1 "or" EAnd e2
+  = eBinOp: EOr e1 "or" op EAnd e2
   | EAnd
   ;  
 
 syntax EAnd
-  = eBinOp: EAnd e1 "and" EBinOp1 e2
+  = eBinOp: EAnd e1 "and" op EBinOp1 e2
   | EBinOp1
   ;  
 
 syntax EBinOp1
-  = eBinOp: EBinOp1 e1 BinOp1 op EBinOp2
+  = eBinOp: EBinOp1 e1 ("=="|"!="|"\<"|"\>"|"\<="|"\>=") op EBinOp2 e2
   | EBinOp2
   ;
   
-syntax BinOp1
-  = eq: "=="
-  | neq: "!="
-  | gt: "\<"
-  | lt: "\>"
-  | leq: "\<="
-  | geq: "\>="
-  ;
-
 syntax EBinOp2
-  = eBinOp: EBinOp2 e1 BinOp2 op EBinOp3 e2
+  = eBinOp: EBinOp2 e1 ("+"|"-") op EBinOp3 e2
   | EBinOp3
   ;
   
-syntax BinOp2
-  = add: "+"
-  | sub: "-"
-  ;
-
 syntax EBinOp3
-  = eBinOp: EBinOp3 e1 BinOp3 op EUnOp e2
+  = eBinOp: EBinOp3 e1 ("*"|"/"|"%") op EUnOp e2
   | EUnOp
   ;
   
-syntax BinOp3
-  = mul: "*"
-  | div: "/"
-  | \mod: "%"
-  ;
-
 syntax EUnOp
   = eUnOp: "not" Expr e
   | EFunCall
@@ -89,15 +69,10 @@ syntax EConst
   = eStrConst: Str val
   | eIntConst: Int val
   | eRealConst: Real val
-  | eBoolConst: Bool val
+  | eBoolConst: ("true"|"false") val
   | eNil: "nil"
   ;
   
-syntax Bool
-  = \true: "true"
-  | \false: "false"
-  ;
- 
  keyword Reserved 
   = "true"
   | "false"
