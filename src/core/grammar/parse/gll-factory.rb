@@ -162,10 +162,10 @@ module GLLFactory
     end
 
 
-    def _objects_for(klass)
+    def _objects_for(klass_name)
       @memo.values.select do |x|
-        # a little brittle maybe
-        x.class.name.end_with?(klass.name)
+        # ouch, brittle.
+        x.class.name.end_with?(klass_name)
       end
     end
 

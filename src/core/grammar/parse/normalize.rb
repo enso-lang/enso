@@ -5,6 +5,7 @@ module NormalizeGrammar
 
   # TODO: this should just work on grammar.schema
   # without prev, next, End etc.
+  # --> do something about nil, nil, 
   
   def self.normalize(grammar)
     Normalizer.new(grammar._graph_id).normalize(grammar, []).finalize

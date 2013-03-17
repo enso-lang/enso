@@ -1,0 +1,10 @@
+
+import grammar.schema
+
+class Rule
+  original: Pattern?
+
+class Terminal 
+class Layout < Terminal
+
+

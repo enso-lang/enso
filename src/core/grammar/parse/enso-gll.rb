@@ -26,7 +26,7 @@ module EnsoGLL
     def initialize(grammar, fact = GLLFactory::new)
       @fact = fact
       if fact.is_a?(GLLFactory::GLLFactoryClass) then
-        @gfact = Factory::new(Load::load('parsing.schema'))
+        @gfact = Factory::new(Load::load('itemize.schema'))
       else
         @gfact = fact
       end
@@ -43,6 +43,9 @@ module EnsoGLL
       $stderr << "## normalizing...\n"
       NormalizeGrammar::normalize(@grammar)
 
+      $stderr << "## adding layout...\n"
+      LayoutGrammar::layout(@grammar)
+
       s = @gfact.Rule
       s.name = '__START__'
       s.arg = @gfact.Alt
@@ -55,9 +58,6 @@ module EnsoGLL
       @grammar.rules << s
       @start = s
 
-      
-      $stderr << "## adding layout...\n"
-      LayoutGrammar::layout(@grammar)
 
       $stderr << "## adding items...\n"
       ItemizeGrammar::itemize(@grammar)
@@ -188,7 +188,7 @@ module EnsoGLL
 
 
     def result(source, top)
-      r = @fact._objects_for(@gfact.schema.classes['Node']).find do |n|
+      r = @fact._objects_for('Node').find do |n|
         top_node?(n, source, top) 
       end
       if r then
@@ -337,7 +337,8 @@ if __FILE__ == $0 then
             ps.classes["GSS"],
             ps.classes["Edge"]]
 
-  parser = EnsoGLL::EnsoGLLParser.new(gg, SharingFactory.new(ps, shares))
+  # parser = EnsoGLL::EnsoGLLParser.new(gg, SharingFactory.new(ps, shares))
+  parser = EnsoGLL::EnsoGLLParser.new(gg)
 
   #RubyProf.start
   org = Origins.new(src, "-")
@@ -349,7 +350,7 @@ if __FILE__ == $0 then
   end
   
   obj = EnsoBuild::build(x, SharingFactory.new(ps, shares), org, [])
-  
+
   Layout::DisplayFormat.print(gg, obj, $stdout, false)
 
   NormalizeGrammar::normalize(obj)

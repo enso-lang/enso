@@ -16,9 +16,9 @@ module SharingFactory
       @memo = {}
     end
 
-    def _objects_for(klass)
+    def _objects_for(klass_name)
       @memo.values.select do |x|
-        Schema::subclass?(x.schema_class, klass)
+        x.schema_class.name == klass_name
       end
     end
 
