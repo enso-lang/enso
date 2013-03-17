@@ -35,7 +35,7 @@ class ToDot
           nodes[node.right] = id += 1
           todo << node.right
         end
-      else
+      elsif node.Node? then
         nodes[node] = id += 1
         node.kids.each do |k|
           if !nodes[k] then
@@ -56,8 +56,13 @@ class ToDot
 
   def edges(nodes)
     nodes.each do |n, id|
-      n.kids.each do |k|
-        @out << "#{node(n, id)} -> #{node(k, nodes[k])}\n"
+      if n.Pack? then
+        @out << "#{node(n, id)} -> #{node(n.left, nodes[n.left])}\n" if n.left
+        @out << "#{node(n, id)} -> #{node(n.right, nodes[n.right])}\n" 
+      elsif n.Node? then
+        n.kids.each do |k|
+          @out << "#{node(n, id)} -> #{node(k, nodes[k])}\n"
+        end
       end
     end
   end
