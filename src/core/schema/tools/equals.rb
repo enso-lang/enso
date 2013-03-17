@@ -1,4 +1,3 @@
-require 'core/system/load/load'
 require 'core/grammar/render/layout'
 
 =begin
