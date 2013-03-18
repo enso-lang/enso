@@ -17,7 +17,7 @@ end
 class File
   def self.create_file_map
     result = {}
-    Dir["./**/*.*"].each do |p|
+    Dir["../**/*.*"].each do |p|
       ext = File.extname(p)
       if ext != ".rb" && ext != ".js"
         name = File.basename(p)

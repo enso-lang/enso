@@ -6,7 +6,6 @@ require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan'
 require 'core/system/load/load'
-require 'ruby-prof'
 
 module EnsoGLL
   def self.parse(source, grammar, org, start_symbol = grammar.start.name)

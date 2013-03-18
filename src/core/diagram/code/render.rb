@@ -58,7 +58,7 @@ module Render
     
     def render_Pages(label, props, items, current)
       index = Construct::eval(current, env: @D[:env])
-      raise "Trying to render an out of bounds page" if index >= items.length
+      raise "Trying to render an out of bounds page" if index >= items.size
       render(items[index])
     end
 

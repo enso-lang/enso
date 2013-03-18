@@ -101,7 +101,13 @@ module Construct
           end
         end
       end
-      res.current = Union::Copy(factory, current)
+      #####FIXME: Ugly hack to make Eval work
+      if current.Eval?
+        neval = factory.Eval
+        res.current = neval
+      else
+        res.current = Union::Copy(factory, current)
+      end
       unless label.nil?
         @D[:env][label] = res
       end

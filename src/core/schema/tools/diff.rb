@@ -77,7 +77,6 @@ Topological sort of the diff list
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
-        puts "diffing ref: o1=#{o1} o2=#{o2}"
         diff_ref(o1, o2, path, matches, ref)
       end
     elsif type.is_a? Factory::List

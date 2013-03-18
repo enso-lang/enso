@@ -39,7 +39,7 @@ module Cache
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      "cache/#{name.gsub('.','_')}.json"
+      "core/system/load/cache/#{name.gsub('.','_')}.json"
     end
   end
   
