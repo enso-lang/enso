@@ -45,12 +45,17 @@ module Interpreter
   end
   
   module Dispatcher
-
+    def debug
+      @debug = true
+      @indent = 0 if !@indent
+    end
+    
     def dynamic_bind fields, &block
       if !@D
         @D = DynamicPropertyStack.new
       end
       fields.each do |key, value|
+        puts "BIND #{key}=#{value}" if @debug
         @D._bind(key, value)
       end
       result = block.call
@@ -64,7 +69,7 @@ module Interpreter
       }
     end
 
-    def dispatch_obj(operation, obj, &block)
+    def dispatch_obj(operation, obj)
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -76,7 +81,16 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
-      send(method, obj, &block)
+      if @debug
+        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
+        @indent = @indent + 1
+      end
+      result = send(method, obj)
+      if @debug
+        @indent = @indent - 1
+        $stderr << "#{' '.repeat(@indent)}= #{result}\n"
+      end
+      result
     end
 
     def find(operation, type)

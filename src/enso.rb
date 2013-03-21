@@ -14,6 +14,12 @@ module System
   end
 end
 
+module Math
+  def self.round(r)
+    r.round
+  end
+end
+
 class File
   def self.create_file_map
     result = {}

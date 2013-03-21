@@ -11,14 +11,13 @@ require 'core/schema/tools/union'
 module Construct
 
   module EvalStencil
-    include Interpreter::Dispatcher
     include Impl::EvalCommand
 
     def eval_Stencil(obj)
       factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       res = factory.Stencil(obj.title, obj.root)
       env = {}
-      env[:data] = @D[:data]
+      env["data"] = @D[:data]
       dynamic_bind env: env, 
       			   factory: factory,
       			   props: {} do
@@ -128,14 +127,13 @@ module Construct
   end
 
   module EvalExpr
-    include Interpreter::Dispatcher
     include Eval::EvalExpr
 
     def eval_Color(obj)
       factory = @D[:factory]
-      r1 = Eval::make_const(factory, Math.round(eval(r)))
-      g1 = Eval::make_const(factory, Math.round(eval(g)))
-      b1 = Eval::make_const(factory, Math.round(eval(b)))
+      r1 = Eval::make_const(factory, Math.round(eval(obj.r)))
+      g1 = Eval::make_const(factory, Math.round(eval(obj.g)))
+      b1 = Eval::make_const(factory, Math.round(eval(obj.b)))
       factory.Color(r1,g1,b1)
     end
   
