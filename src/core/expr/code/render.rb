@@ -6,27 +6,27 @@ module Render
     include Interpreter::Dispatcher    
       
     def render(obj)
-      dispatch(:render, obj)
+      dispatch_obj(:render, obj)
     end
   
-    def render_EBinOp(op, e1, e2)
-      "#{render(e1)} #{op} #{render(e2)}"
+    def render_EBinOp(obj)
+      "#{render(obj.e1)} #{obj.op} #{render(obj.e2)}"
     end
   
-    def render_EUnOp(op, e)
-      "#{op} #{render(e)}"
+    def render_EUnOp(obj)
+      "#{obj.op} #{render(obj.e)}"
     end
   
-    def render_EField(e, fname)
-      "#{render(e)}.#{fname}"
+    def render_EField(obj)
+      "#{render(obj.e)}.#{obj.fname}"
     end
   
-    def render_EVar(name)
-      "#{name}"
+    def render_EVar(obj)
+      "#{obj.name}"
     end
   
-    def render_EConst(val)
-      "#{val}"
+    def render_EConst(obj)
+      "#{obj.val}"
     end
     
     def render_ENil
@@ -36,7 +36,5 @@ module Render
   
   class RenderExprC
     include RenderExpr
-    def initialize
-    end
   end
 end
