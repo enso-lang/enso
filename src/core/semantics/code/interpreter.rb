@@ -16,7 +16,7 @@ module Interpreter
     def [](name)
       @current[name]
     end
-    
+
     def include?(name)
       @current.include?(name)
     end
@@ -46,7 +46,7 @@ module Interpreter
   
   module Dispatcher
 
-    def dynamic_bind fields, &block
+    def dynamic_bind fields={}, &block
       if !@D
         @D = DynamicPropertyStack.new
       end

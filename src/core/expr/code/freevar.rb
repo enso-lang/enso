@@ -63,4 +63,11 @@ module Freevar
     def initialize
     end
   end
+
+  def self.depends(obj, args={})
+    interp = FreeVarExprC.new
+    interp.dynamic_bind args do
+      interp.depends(obj)
+    end
+  end
 end

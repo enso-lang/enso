@@ -4,7 +4,6 @@ require 'core/semantics/code/interpreter'
 
 module Eval  
   module EvalExpr
-  
     include Interpreter::Dispatcher
 
     def eval(obj)
@@ -14,7 +13,7 @@ module Eval
     def eval_ETernOp(obj)
       eval(obj.e1) ? eval(obj.e2) : eval(obj.e3)
     end
-  
+
     def eval_EBinOp(obj)
       case obj.op
       when "&"
@@ -104,23 +103,6 @@ module Eval
       end
     end
   end
-  
-  class EvalExprC
-    include EvalExpr
-    def initialize
-    end
-  end
-
-  def self.eval(obj, *args)
-    interp = EvalExprC.new
-    if args.empty?
-      interp.eval(obj)
-    else
-      interp.dynamic_bind *args do
-        interp.eval(obj)
-      end
-    end
-  end
 
   def self.make_const(factory, val)
     if val.is_a?(String)
@@ -135,6 +117,18 @@ module Eval
       val
     else
       raise "Trying to make constant using an invalid #{val.class} object" 
+    end
+  end
+  
+  class EvalExprC
+    include EvalExpr
+    def initialize; end
+  end
+
+  def self.eval(obj, args={})
+    interp = EvalExprC.new
+    interp.dynamic_bind args do
+      interp.eval(obj)
     end
   end
 

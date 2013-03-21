@@ -6,7 +6,6 @@ module Render
   module RenderStencil
     include Interpreter::Dispatcher
     include Render::RenderExpr
-    include Construct::EvalExpr
 
     def render_Stencil(obj)
       pre = %{
@@ -71,14 +70,10 @@ module Render
     include RenderStencil
   end
 
-  def self.render(obj, *args)
+  def self.render(obj, args={})
     interp = RenderStencilC.new
-    if args.empty?
+    interp.dynamic_bind args do
       interp.render(obj)
-    else
-      interp.dynamic_bind *args do
-        interp.render(obj)
-      end
     end
   end
 end

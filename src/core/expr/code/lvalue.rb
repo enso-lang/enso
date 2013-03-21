@@ -51,7 +51,7 @@ module Lvalue
 
   module LValueExpr
     include Eval::EvalExpr
-    include Interpreter::Dispatcher    
+    include Interpreter::Dispatcher
 
     def lvalue(obj)
       dispatch_obj(:lvalue, obj)
@@ -72,5 +72,12 @@ module Lvalue
   
   class LValueExprC
     include LValueExpr
+  end
+
+  def self.eval(obj, args = {})
+    interp = LValueExprC.new
+    interp.dynamic_bind args do
+      interp.eval(obj)
+    end
   end
 end

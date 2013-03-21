@@ -114,12 +114,6 @@ module Construct
       end
       res
     end
-    
-  end
-
-  module EvalExpr
-    include Interpreter::Dispatcher
-    include Eval::EvalExpr
 
     def eval_Color(obj)
       factory = @D[:factory]
@@ -147,20 +141,15 @@ module Construct
   end
   
   class EvalStencilC
-    include EvalExpr
     include EvalStencil
     def initialize
     end
   end
 
-  def self.eval(obj, *args)
+  def self.eval(obj, args={})
     interp = EvalStencilC.new
-    if args.empty?
+    interp.dynamic_bind args do
       interp.eval(obj)
-    else
-      interp.dynamic_bind *args do
-        interp.eval(obj)
-      end
     end
   end
 

@@ -36,4 +36,11 @@ module Render
   class RenderExprC
     include RenderExpr
   end
+
+  def self.eval(obj, args={})
+    interp = EvalExprC.new
+    interp.dynamic_bind args do
+      interp.eval(obj)
+    end
+  end
 end
