@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Sample Project</title>
+        <!-- data-main attribute tells require.js to load
+             scripts/main.js after require.js loads. -->
+        <script src="require.js"></script>
+     <script>
+     document.write("FOO");
+requirejs([
+  "enso",
+'core/system/load/load',
+'core/diagram/code/construct',
+'core/diagram/code/render'
+],
+function(Enso, Load, Construct, Render) {
+// jquery
+data_file = "income.ql"
+stencil_file = S("ql.stencil")
+
+stencil = Load.load(stencil_file)
+data = Load.load(data_file)
+diagram = Construct.eval(stencil, { data:  data })
+html = Render.render(diagram, { data: data })
+console.log("FOO");
+document.write(html)
+})
+</script>
+    </head>
+    <body>
+        <h1>My Sample Project</h1>
+    </body>
+</html>

@@ -22,6 +22,9 @@ main: \
 	js/core/system/utils/find_model.js \
   js/core/schema/tools/dumpjson.js \
   js/core/schema/tools/print.js \
+  js/core/diagram/code/construct.js \
+  js/core/diagram/code/render.js \
+  js/core/expr/code/render.js \
 
 
 foo: \

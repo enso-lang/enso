@@ -117,7 +117,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_assoc_new(key, value)
-    @f.Binding(if key.is_a?(String) then key else key.name end, get_seq(value))
+    @f.Binding(if key.is_a?(String) then key elsif key.Lit? then key.value else key.name end, get_seq(value))
   end
 
   def on_assoclist_from_args(args)
@@ -862,7 +862,8 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
-    token = eval("\"#{token}\"")
+#    puts "FOO [#{token}]"
+#    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
 

@@ -58,6 +58,9 @@ function() {
         self.$.D = DynamicPropertyStack.new();
       }
       fields.each(function(key, value) {
+        if (self.$.debug) {
+          console.log("BIND " + key + "=" + value);
+        }
         return self.$.D._bind(key, value);
       });
       result = block();
