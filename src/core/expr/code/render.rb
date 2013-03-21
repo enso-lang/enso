@@ -1,3 +1,4 @@
+require 'core/semantics/code/interpreter'
 
 module Render
   module RenderExpr

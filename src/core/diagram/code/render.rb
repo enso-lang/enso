@@ -1,5 +1,6 @@
 require 'core/expr/code/render'
 require 'core/diagram/code/construct'
+require 'core/semantics/code/interpreter'
 
 module Render
 
@@ -12,7 +13,7 @@ module Render
 <!DOCTYPE html>
 <html>
 <head>
-<script src="./jquery-1.9.1.min.js">
+<script src="./lib/jquery-1.9.1.min.js">
 </script>
 <title>} + obj.title.to_s + %{</title>
 </head>

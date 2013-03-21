@@ -52,7 +52,7 @@ module Eval
     end
   
     def eval_EVar(obj)
-      raise "ERROR: undefined variable #{name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
+      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
       @D[:env][obj.name]
     end
   

@@ -1,5 +1,12 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/render'
+require 'core/semantics/code/interpreter'
+require 'core/expr/code/impl'
+require 'core/expr/code/env'
+require 'core/schema/code/factory'
+require 'core/system/load/load'
+require 'core/system/library/schema'
+require 'core/schema/tools/union'
 
 module Construct
 
@@ -10,7 +17,9 @@ module Construct
     def eval_Stencil(obj)
       factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       res = factory.Stencil(obj.title, obj.root)
-      dynamic_bind env: {"data"=>@D[:data]}, 
+      env = {}
+      env["data"] = @D[:data]
+      dynamic_bind env: env, 
       			   factory: factory,
       			   props: {} do
         res.body = eval(obj.body)
@@ -35,29 +44,30 @@ module Construct
       nprops = handle_props(obj.props)
       nprops.values.each {|p| res.props << p }        
       type.fields.each do |f|
-        next if f.name=="label" or f.name=="props"
-        if f.type.Primitive?
-          res[f.name] = obj[f.name]
-        elsif f.type.name=="Expr"
-          if obj[f.name].nil?
-            res[f.name] = nil
+        if !(f.name=="label" or f.name=="props")
+          if f.type.Primitive?
+            res[f.name] = obj[f.name]
+          elsif f.type.name=="Expr"
+            if obj[f.name].nil?
+              res[f.name] = nil
+            else
+              res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
+            end
           else
-            res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
-          end
-        else
-          if !f.many
-  	        dynamic_bind props: nprops do
-              res[f.name] = eval(obj[f.name])
-	        end
-          else
-            obj[f.name].each do |item|
-              dynamic_bind props: nprops do
-                ev = eval(item)
-                if ev.is_a? Array    # flatten arrays
-                  ev.flatten.each {|e| if not e.nil?; res[f.name] << e; end}
-                elsif not ev.nil?
-                  res[f.name] << ev
-                end 
+            if !f.many
+    	        dynamic_bind props: nprops do
+                res[f.name] = eval(obj[f.name])
+  	        end
+            else
+              obj[f.name].each do |item|
+                dynamic_bind props: nprops do
+                  ev = eval(item)
+                  if ev.is_a? Array    # flatten arrays
+                    ev.flatten.each {|e| if not e.nil?; res[f.name] << e; end}
+                  elsif not ev.nil?
+                    res[f.name] << ev
+                  end 
+                end
               end
             end
           end
@@ -125,7 +135,7 @@ module Construct
   
     def eval_InstanceOf(obj)
       a = eval(obj.base)
-      a && Schema.subclass?(a.schema_class, obj.class_name)
+      a && Schema::subclass?(a.schema_class, obj.class_name)
     end
 
     def eval_Eval(obj)
