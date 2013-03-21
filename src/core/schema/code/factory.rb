@@ -87,7 +87,6 @@ module Factory
 
   class MObject < EnsoProxyObject
     attr_accessor :_origin # source location
-    attr_accessor :__shell # spine parent (e.g. Ref, Set or List)
     attr_reader :_id
     attr_reader :factory
     attr_accessor :extra_instance_data
@@ -99,7 +98,8 @@ module Factory
       @_id = @@_id += 1
       @listeners = {}
       @props = {}
-      
+      @path = nil
+
       # define accessors and updators
       define_singleton_value(:schema_class, klass)
       # setup
@@ -246,6 +246,14 @@ module Factory
       end
     end
 
+    def __shell
+      @__shell
+    end
+    
+    def __shell=(nval)
+      @__shell = nval
+    end
+
     def _origin_of(name); __get(name)._origin end
 
     def _set_origin_of(name, org)
@@ -255,7 +263,19 @@ module Factory
     def _path_of(name); _path.field(name) end
 
     def _path
-      __shell ? __shell._path(self) : Paths::Path.new
+      if @path.nil?
+        @path = __shell ? __shell._path(self) : Paths::Path.new
+      end
+      @path
+    end
+
+    def __clean_path
+      @path = nil
+      schema_class.fields.each do |fld|
+        if fld.traversal then
+          __get(fld.name).__clean_path
+        end
+      end
     end
 
     def _clone
@@ -410,7 +430,7 @@ module Factory
       end
       new || Set.new(nil, @field, __key)
     end
-      
+
     def each_with_match(other, &block)
       empty = Set.new(nil, @field, __key)
       __outer_join(other || empty) do |sa, sb|
