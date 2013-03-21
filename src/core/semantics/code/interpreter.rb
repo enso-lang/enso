@@ -59,12 +59,23 @@ module Interpreter
     end
 
     def wrap(operation, outer, obj)
-      dispatch_obj(outer, obj) {
+      type = obj.schema_class
+      method = "#{outer}_#{type.name}".to_s
+      if !respond_to?(method)
+        method = find(outer, type)  # slow path
+      end
+      if !method
+        method = "#{outer}_?".to_s
+        if !respond_to?(method)
+          raise "Missing method in interpreter for #{outer}_#{type.name}(#{obj})"
+        end
+      end
+      send(method, obj) {
         dispatch_obj(operation, obj)
       }
     end
 
-    def dispatch_obj(operation, obj, &block)
+    def dispatch_obj(operation, obj)
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -76,7 +87,7 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
-      send(method, obj, &block)
+      send(method, obj)
     end
 
     def find(operation, type)
