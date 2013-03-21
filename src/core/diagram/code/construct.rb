@@ -11,7 +11,6 @@ require 'core/schema/tools/union'
 module Construct
 
   module EvalStencil
-    include Interpreter::Dispatcher
     include Impl::EvalCommand
 
     def eval_Stencil(obj)
@@ -127,9 +126,9 @@ module Construct
 
     def eval_Color(obj)
       factory = @D[:factory]
-      r1 = Eval::make_const(factory, eval(obj.r).round)
-      g1 = Eval::make_const(factory, eval(obj.g).round)
-      b1 = Eval::make_const(factory, eval(obj.b).round)
+      r1 = Eval::make_const(factory, Math.round(eval(obj.r)))
+      g1 = Eval::make_const(factory, Math.round(eval(obj.g)))
+      b1 = Eval::make_const(factory, Math.round(eval(obj.b)))
       factory.Color(r1,g1,b1)
     end
   

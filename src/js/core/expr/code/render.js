@@ -6,32 +6,32 @@ function(Interpreter) {
   var RenderExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.render = function(obj) {
       var self = this; 
-      return self.dispatch("render", obj);
+      return self.dispatch_obj("render", obj);
     };
 
-    this.render_EBinOp = function(op, e1, e2) {
+    this.render_EBinOp = function(obj) {
       var self = this; 
-      return S(self.render(e1), " ", op, " ", self.render(e2));
+      return S(self.render(obj.e1()), " ", obj.op(), " ", self.render(obj.e2()));
     };
 
-    this.render_EUnOp = function(op, e) {
+    this.render_EUnOp = function(obj) {
       var self = this; 
-      return S(op, " ", self.render(e));
+      return S(obj.op(), " ", self.render(obj.e()));
     };
 
-    this.render_EField = function(e, fname) {
+    this.render_EField = function(obj) {
       var self = this; 
-      return S(self.render(e), ".", fname);
+      return S(self.render(obj.e()), ".", obj.fname());
     };
 
-    this.render_EVar = function(name) {
+    this.render_EVar = function(obj) {
       var self = this; 
-      return name;
+      return obj.name();
     };
 
-    this.render_EConst = function(val) {
+    this.render_EConst = function(obj) {
       var self = this; 
-      return val;
+      return obj.val();
     };
 
     this.render_ENil = function() {
@@ -44,9 +44,6 @@ function(Interpreter) {
     function() {
     },
     function(super$) {
-      this.initialize = function() {
-        var self = this; 
-      };
     });
 
   Render = {

@@ -12,16 +12,16 @@ define([
 function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
   var Construct ;
 
-  var EvalStencil = MakeMixin([Interpreter.Dispatcher, Impl.EvalCommand], function() {
-    this.eval_Stencil = function(title, root, body) {
+  var EvalStencil = MakeMixin([Impl.EvalCommand], function() {
+    this.eval_Stencil = function(obj) {
       var self = this; 
       var factory, res, env;
       factory = Factory.SchemaFactory.new(Load.load("diagram.schema"));
-      res = factory.Stencil(title, root);
+      res = factory.Stencil(obj.title(), obj.root());
       env = new EnsoHash ({ });
       env._set("data", self.$.D._get("data"));
       self.dynamic_bind(function() {
-        return res.set_body(self.eval(body));
+        return res.set_body(self.eval(obj.body()));
       }, new EnsoHash ({ env: env, factory: factory, props: new EnsoHash ({ }) }));
       return res;
     };
@@ -37,9 +37,10 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
       return nprops;
     };
 
-    this.eval__P = function(type, obj, args) {
+    this.eval__P = function(obj) {
       var self = this; 
-      var factory, res, nprops, ev;
+      var type, factory, res, nprops, ev;
+      type = obj.schema_class();
       factory = self.$.D._get("factory");
       res = factory._get(type.name());
       nprops = self.handle_props(obj.props());
@@ -84,38 +85,38 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
       return res;
     };
 
-    this.eval_Prop = function(var_V, val) {
+    this.eval_Prop = function(obj) {
       var self = this; 
       var factory, res;
       factory = self.$.D._get("factory");
       res = factory.Prop();
-      res.set_var(factory.EStrConst(Render.RenderExprC.new().render(var_V)));
-      res.set_val(Eval.make_const(factory, self.eval(val)));
+      res.set_var(factory.EStrConst(Render.RenderExprC.new().render(obj.var())));
+      res.set_val(Eval.make_const(factory, self.eval(obj.val())));
       return res;
     };
 
-    this.eval_EFor = function(var_V, list, body) {
+    this.eval_EFor = function(obj) {
       var self = this; 
       var nenv;
       nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
-      return self.eval(list).map(function(val) {
-        nenv._set(var_V, val);
+      return self.eval(obj.list()).map(function(val) {
+        nenv._set(obj.var(), val);
         return self.dynamic_bind(function() {
-          return self.eval(body);
+          return self.eval(obj.body());
         }, new EnsoHash ({ env: nenv }));
       });
     };
 
-    this.eval_Pages = function(label, props, items, current) {
+    this.eval_Pages = function(obj) {
       var self = this; 
       var factory, res, nprops, ev, neval;
       factory = self.$.D._get("factory");
       res = factory.Pages();
-      nprops = self.handle_props(props);
+      nprops = self.handle_props(obj.props());
       nprops.values().each(function(p) {
         return res.props().push(p);
       });
-      items.each(function(item) {
+      obj.items().each(function(item) {
         return self.dynamic_bind(function() {
           ev = self.eval(item);
           if (System.test_type(ev, Array)) {
@@ -129,119 +130,50 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
           }
         }, new EnsoHash ({ props: nprops }));
       });
-      if (current.Eval_P()) {
+      if (obj.current().Eval_P()) {
         neval = factory.Eval();
         res.set_current(neval);
       } else {
-        res.set_current(Union.Copy(factory, current));
+        res.set_current(Union.Copy(factory, obj.current()));
       }
-      if (! (label == null)) {
-        self.$.D._get("env")._set(label, res);
+      if (! (obj.label() == null)) {
+        self.$.D._get("env")._set(obj.label(), res);
       }
       return res;
     };
   });
 
-  var EvalExpr = MakeMixin([Interpreter.Dispatcher, Eval.EvalExpr], function() {
-    this.eval_Color = function(r, g, b) {
+  var EvalExpr = MakeMixin([Eval.EvalExpr], function() {
+    this.eval_Color = function(obj) {
       var self = this; 
       var factory, r1, g1, b1;
       factory = self.$.D._get("factory");
-      r1 = Eval.make_const(factory, Math.round(self.eval(r)));
-      g1 = Eval.make_const(factory, Math.round(self.eval(g)));
-      b1 = Eval.make_const(factory, Math.round(self.eval(b)));
+      r1 = Eval.make_const(factory, Math.round(self.eval(obj.r())));
+      g1 = Eval.make_const(factory, Math.round(self.eval(obj.g())));
+      b1 = Eval.make_const(factory, Math.round(self.eval(obj.b())));
       return factory.Color(r1, g1, b1);
     };
 
-    this.eval_InstanceOf = function(base, class_name) {
+    this.eval_InstanceOf = function(obj) {
       var self = this; 
       var a;
-      a = self.eval(base);
-      return a && Schema.subclass_P(a.schema_class(), class_name);
+      a = self.eval(obj.base());
+      return a && Schema.subclass_P(a.schema_class(), obj.class_name());
     };
 
-    this.eval_Eval = function(expr, envs) {
+    this.eval_Eval = function(obj) {
       var self = this; 
       var env1, expr1;
       env1 = Env.HashEnv.new();
-      envs.map(function(e) {
+      obj.envs().map(function(e) {
         return self.eval(e);
       }).each(function(env) {
         return env.each_pair(function(k, v) {
           return env1._set(k, v);
         });
       });
-      expr1 = self.eval(expr);
+      expr1 = self.eval(obj.expr());
       return Eval.eval(expr1, new EnsoHash ({ env: env1 }));
-    };
-
-    this.eval_ETernOp = function(op1, op2, e1, e2, e3) {
-      var self = this; 
-      var dynamic, v, a, b;
-      dynamic = self.$.D._get("dynamic");
-      if (! dynamic) {
-        return self.super();
-      } else {
-        v = self.eval(e1);
-        if (! System.test_type(v, Variable)) {
-          self.fail(S("NON_DYNAMIC ", v));
-        }
-        a = self.eval(e2);
-        b = self.eval(e3);
-        return v.test(a, b);
-      }
-    };
-
-    this.eval_EBinOp = function(op, e1, e2) {
-      var self = this; 
-      var dynamic, r1, r2;
-      dynamic = self.$.D._get("dynamic");
-      if (! dynamic) {
-        return super$.eval_EBinOp.call(self, op, e1, e2);
-      } else {
-        r1 = self.eval(e1);
-        if (r1 && ! System.test_type(r1, Variable)) {
-          r1 = Variable.new("gen", r1);
-        }
-        r2 = self.eval(e2);
-        if (r2 && ! System.test_type(r2, Variable)) {
-          r2 = Variable.new("gen", r2);
-        }
-        return r1.send(op.to_s(), r2);
-      }
-    };
-
-    this.eval_EUnOp = function(op, e) {
-      var self = this; 
-      var dynamic, r1;
-      dynamic = self.$.D._get("dynamic");
-      if (! dynamic) {
-        return super$.eval_EUnOp.call(self, op, e);
-      } else {
-        r1 = self.eval(self.e1());
-        if (r1 && ! System.test_type(r1, Variable)) {
-          r1 = Variable.new("gen", r1);
-        }
-        return r1.send(op.to_s());
-      }
-    };
-
-    this.eval_EField = function(e, fname) {
-      var self = this; 
-      var in_fc, dynamic, r;
-      in_fc = self.$.D._get("in_fc");
-      dynamic = self.$.D._get("dynamic");
-      if (in_fc || ! dynamic) {
-        return super$.eval_EField.call(self, e, fname);
-      } else {
-        r = self.eval(e);
-        if (System.test_type(r, Variable)) {
-          r = r.value().dynamic_update();
-        } else {
-          r = r.dynamic_update();
-        }
-        return r.send(fname);
-      }
     };
   });
 

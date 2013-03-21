@@ -9,73 +9,73 @@ function(Factory, Schema, Interpreter) {
   var EvalExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.eval = function(obj) {
       var self = this; 
-      return self.dispatch("eval", obj);
+      return self.dispatch_obj("eval", obj);
     };
 
-    this.eval_ETernOp = function(op1, op2, e1, e2, e3) {
+    this.eval_ETernOp = function(obj) {
       var self = this; 
-      if (self.eval(e1)) {
-        return self.eval(e2);
+      if (self.eval(obj.e1())) {
+        return self.eval(obj.e2());
       } else {
-        return self.eval(e3);
+        return self.eval(obj.e3());
       }
     };
 
-    this.eval_EBinOp = function(op, e1, e2) {
+    this.eval_EBinOp = function(obj) {
       var self = this; 
-      switch (op) {
+      switch (obj.op()) {
         case "&":
-          return self.eval(e1) && self.eval(e2);
+          return self.eval(obj.e1()) && self.eval(obj.e2());
         case "|":
-          return self.eval(e1) || self.eval(e2);
+          return self.eval(obj.e1()) || self.eval(obj.e2());
         case "eql?":
-          return self.eval(e1) == self.eval(e2);
+          return self.eval(obj.e1()) == self.eval(obj.e2());
         case "+":
-          return self.eval(e1) + self.eval(e2);
+          return self.eval(obj.e1()) + self.eval(obj.e2());
         case "*":
-          return self.eval(e1) * self.eval(e2);
+          return self.eval(obj.e1()) * self.eval(obj.e2());
         case "-":
-          return self.eval(e1) - self.eval(e2);
+          return self.eval(obj.e1()) - self.eval(obj.e2());
         case "/":
-          return self.eval(e1) / self.eval(e2);
+          return self.eval(obj.e1()) / self.eval(obj.e2());
         case "<":
-          return self.eval(e1) < self.eval(e2);
+          return self.eval(obj.e1()) < self.eval(obj.e2());
         case ">":
-          return self.eval(e1) > self.eval(e2);
+          return self.eval(obj.e1()) > self.eval(obj.e2());
         case "<=":
-          return self.eval(e1) <= self.eval(e2);
+          return self.eval(obj.e1()) <= self.eval(obj.e2());
         case ">=":
-          return self.eval(e1) >= self.eval(e2);
+          return self.eval(obj.e1()) >= self.eval(obj.e2());
         default:
-          return self.raise(S("Unknown operator (", op, ")"));
+          return self.raise(S("Unknown operator (", obj.op(), ")"));
       }
     };
 
-    this.eval_EUnOp = function(op, e) {
+    this.eval_EUnOp = function(obj) {
       var self = this; 
-      if (op == "!") {
-        return ! self.eval(e);
+      if (obj.op() == "!") {
+        return ! self.eval(obj.e());
       } else {
-        return self.raise(S("Unknown operator (", op, ")"));
+        return self.raise(S("Unknown operator (", obj.op(), ")"));
       }
     };
 
-    this.eval_EVar = function(name) {
+    this.eval_EVar = function(obj) {
       var self = this; 
-      if (! self.$.D._get("env").has_key_P(name)) {
-        self.raise(S("ERROR: undefined variable ", name, " in ", self.$.D._get("env")));
+      if (! self.$.D._get("env").has_key_P(obj.name())) {
+        self.raise(S("ERROR: undefined variable ", obj.name(), " in ", self.$.D._get("env")));
       }
-      return self.$.D._get("env")._get(name);
+      return self.$.D._get("env")._get(obj.name());
     };
 
-    this.eval_ESubscript = function(e, sub) {
+    this.eval_ESubscript = function(obj) {
       var self = this; 
-      return self.eval(e)._get(self.eval(sub));
+      return self.eval(obj.e())._get(self.eval(obj.sub()));
     };
 
-    this.eval_EConst = function(val) {
+    this.eval_EConst = function(obj) {
       var self = this; 
-      return val;
+      return obj.val();
     };
 
     this.eval_ENil = function() {
@@ -83,34 +83,34 @@ function(Factory, Schema, Interpreter) {
       return null;
     };
 
-    this.eval_EFunCall = function(fun, params) {
+    this.eval_EFunCall = function(obj) {
       var self = this; 
       var m;
       m = self.dynamic_bind(function() {
-        return self.eval(fun);
+        return self.eval(obj.fun());
       }, new EnsoHash ({ in_fc: true }));
-      return m.call_closure.apply(m, [].concat(params.map(function(p) {
+      return m.call_closure.apply(m, [].concat(obj.params().map(function(p) {
         return self.eval(p);
       })));
     };
 
-    this.eval_EList = function(elems) {
+    this.eval_EList = function(obj) {
       var self = this; 
-      return elems.map(function(elem) {
+      return obj.elems().map(function(elem) {
         return self.eval(elem);
       });
     };
 
-    this.eval_EField = function(e, fname) {
+    this.eval_EField = function(obj) {
       var self = this; 
       var target;
       target = self.dynamic_bind(function() {
-        return self.eval(e);
+        return self.eval(obj.e());
       }, new EnsoHash ({ in_fc: false }));
       if (self.$.D._get("in_fc")) {
-        return target.method(fname.to_sym());
+        return target.method(obj.fname().to_sym());
       } else {
-        return target.send(fname);
+        return target.send(obj.fname());
       }
     };
   });

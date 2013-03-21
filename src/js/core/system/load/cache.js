@@ -1,10 +1,9 @@
 define([
-  "core/schema/code/factory",
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
   "digest/sha1"
 ],
-function(Factory, Dumpjson, FindModel, Sha1) {
+function(Dumpjson, FindModel, Sha1) {
   var Cache ;
 
   Cache = {
@@ -48,12 +47,31 @@ function(Factory, Dumpjson, FindModel, Sha1) {
       }
     },
 
+    clean: function(name) {
+      var self = this; 
+      if (name === undefined) name = null;
+      var cache_path;
+      cache_path = "cache/";
+      if (name == null) {
+        if (File.exists_P(S(cache_path, "*"))) {
+          return File.delete(S(cache_path, "*"));
+        }
+      } else if (File.exists_P(Cache.find_json(name))) {
+        return File.delete(Cache.find_json(name));
+      }
+    },
+
     find_json: function(name) {
       var self = this; 
+      var cache_path;
+      cache_path = "cache/";
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        return S("cache/", name.gsub(".", "_"), ".json");
+        if (! File.exists_P(cache_path)) {
+          Dir.mkdir(cache_path);
+        }
+        return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },
 
