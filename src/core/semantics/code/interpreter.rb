@@ -21,6 +21,10 @@ module Interpreter
       @current.include?(name)
     end
     
+    def keys
+      @current.keys
+    end
+    
     def _bind(field, value)
       old = @current[field]
       @stack << [field, old]
@@ -41,8 +45,7 @@ module Interpreter
   end
   
   module Dispatcher
-    attr_accessor :_
-    
+
     def dynamic_bind fields, &block
       if !@D
         @D = DynamicPropertyStack.new
@@ -54,40 +57,14 @@ module Interpreter
       @D._pop(fields.size)
       result
     end
-    
-    def debug
-      @debug = true
-      @indent = 0 if !@indent
+
+    def wrap(operation, outer, obj)
+      dispatch_obj(outer, obj) {
+        dispatch_obj(operation, obj)
+      }
     end
-    
-    def dispatch(operation, obj)
-      if @debug
-        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
-        @indent = @indent + 1
-      end
-      type = obj.schema_class
-      method = "#{operation}_#{type.name}".to_s
-      if !respond_to?(method)
-        method = find(operation, type)  # slow path
-      end
-      if !method
-        method = "#{operation}_?".to_s
-        if !respond_to?(method)
-          raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
-        end
-        result = send(method, type, obj, @D)
-      else
-        params = type.fields.map {|f| obj[f.name] }
-        result = send(method, *params)
-      end
-      if @debug
-        @indent = @indent - 1
-        $stderr << "#{' '.repeat(@indent)}= #{result}\n"
-      end
-      result
-    end
-  
-    def dispatch_obj(operation, obj, *params)
+
+    def dispatch_obj(operation, obj, &block)
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -99,9 +76,9 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
-      send(method, obj, *params)
+      send(method, obj, &block)
     end
-      
+
     def find(operation, type)
       method = "#{operation}_#{type.name}".to_s
       if respond_to?(method)

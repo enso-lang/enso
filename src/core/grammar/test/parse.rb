@@ -13,14 +13,12 @@ class ParseTest < Test::Unit::TestCase
   GRAMMAR_GRAMMAR = 'core/grammar/models/grammar.grammar'
   
   def test_parse_render
-    gg = Load('grammar.grammar')
-    gs = Load('grammar.schema')
-    grammar1 = Parse.load_file(GRAMMAR_GRAMMAR, gg, gs)
+    gg = Load::load('grammar.grammar')
+    gs = Load::load('grammar.schema')
     s = ''
-    Layout::DisplayFormat.print(gg, grammar1, s)
+    Layout::DisplayFormat.print(gg, gg, s)
     grammar2 = Parse.load(s, gg, gs)
-    assert_equal(nil, diff(grammar1, grammar2))
+    assert_equal([], Diff::diff(gg, grammar2))
   end
-
 
 end

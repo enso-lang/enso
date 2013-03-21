@@ -6,38 +6,38 @@ module AssertExpr
   include Lvalue::LValueExpr
 
   include Interpreter::Dispatcher  
-    
+
   def assert(obj)
-    dispatch(:assert, obj)
+    dispatch_obj(:assert, obj)
   end
 
-  def assert_?(type, fields, args)
-    raise "Invalid expression in grammar" unless eval
+  def assert_?(obj)
+    raise "Invalid expression in grammar"
   end
 
-  def assert_EBinOp(op, e1, e2)
-    if op == "eql?"
-      var = lvalue(e1)
-      val = eval(e2)
+  def assert_EBinOp(obj)
+    if obj.op == "eql?"
+      var = lvalue(obj.e1)
+      val = eval(obj.e2)
       if var.nil?  #try flip it around
-        var = lvalue(e2)
-        val = eval(e1)
+        var = lvalue(obj.e2)
+        val = eval(obj.e1)
       end
       if var.nil?
         raise "Invalid expression in grammar"
       end
       var.value = val
-    elsif op == "&"
-      assert e1
-      assert e2
+    elsif obj.op == "&"
+      assert obj.e1
+      assert obj.e2
     else
       raise "Invalid expression in grammar"
     end
   end
 
-  def assert_EUnOp(op, e)
+  def assert_EUnOp(obj)
     if op == "!"
-      var = lvalue(e)
+      var = lvalue(obj.e)
       if var.nil?
         raise "Invalid expression in grammar"
       end
@@ -47,16 +47,16 @@ module AssertExpr
     end
   end
 
-  def assert_EVar(name)
-    var = lvalue(e)
+  def assert_EVar(obj)
+    var = lvalue(obj.e)
     if var.nil?
       raise "Invalid expression in grammar"
     end
     var.value = true
   end
 
-  def assert_EField(e, fname)
-    var = lvalue(e)
+  def assert_EField(obj)
+    var = lvalue(obj.e)
     if var.nil?
       raise "Invalid expression in grammar"
     end
