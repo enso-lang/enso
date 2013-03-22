@@ -15,7 +15,7 @@ module Render
 <head>
 <script src="./lib/jquery-1.9.1.min.js">
 </script>
-<title>} + obj.title + %{</title>
+<title>} + (obj.title || "Enso Page") + %{</title>
 </head>
 <body>
       } 

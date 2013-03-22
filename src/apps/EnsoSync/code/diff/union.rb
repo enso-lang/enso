@@ -3,8 +3,6 @@ require 'core/diff/code/intersect'
 require 'core/diff/code/conflicts'
 require 'core/schema/tools/equals'
 
-what is this??
-
 class Union
 
   # union takes two deltas and combine them

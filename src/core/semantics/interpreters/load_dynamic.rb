@@ -22,7 +22,7 @@ module Loading
       filename = name.split(/\//)[-1]
       model, type = filename.split(/\./)
 
-      if !CacheXML::check_dep(name)
+      if !Cache::check_dep(name)
         res = true
         #load changes from file
         new = _load(name, type)
