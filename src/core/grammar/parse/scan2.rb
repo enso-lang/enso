@@ -24,6 +24,7 @@ class Scan2
     @scanner.pos = ci
     tk, kind = scan_token(kind)
     if tk then
+      return if @keywords.include?(tk)
       yield @scanner.pos, unescape(tk, kind)
     end
   end
