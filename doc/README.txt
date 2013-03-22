@@ -7,7 +7,7 @@ concepts of model-driven software development.
   a) Install RVM
     http://www.rvm.beginrescueend.com/
   b) Edit ~/.rvmrc before installing the ruby interpreter: 
-      rvm_archflags="-arch x86_64,i386"
+      rvm_archflags="--arch x86_64,i386"
   c) Install ruby 
       rvm install 1.9.2
       rvm 1.9.2
