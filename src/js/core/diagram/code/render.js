@@ -1,16 +1,16 @@
 define([
-  "core/expr/code/render",
+  "core/expr/code/renderexp",
   "core/diagram/code/construct",
   "core/semantics/code/interpreter"
 ],
-function(Render, Construct, Interpreter) {
+function(Renderexp, Construct, Interpreter) {
   var Render ;
 
-  var RenderStencil = MakeMixin([Interpreter.Dispatcher, Render.RenderExpr, Construct.EvalExpr], function() {
+  var RenderStencil = MakeMixin([Interpreter.Dispatcher, Renderexp.RenderExpr], function() {
     this.render_Stencil = function(obj) {
       var self = this; 
       var pre, post, body;
-      pre = ("\n<!DOCTYPE html>\n<html>\n<head>\n<script src=\"./lib/jquery-1.9.1.min.js\">\n</script>\n<title>" + obj.title().to_s()) + "</title>\n</head>\n<body>\n      ";
+      pre = ("\n<!DOCTYPE html>\n<html>\n<head>\n<script src=\"./lib/jquery-1.9.1.min.js\">\n</script>\n<title>" + obj.title()) + "</title>\n</head>\n<body>\n      ";
       post = "\n</body>\n</html>\n      ";
       body = self.dynamic_bind(function() {
         return self.render(obj.body());
@@ -21,21 +21,21 @@ function(Render, Construct, Interpreter) {
     this.render_Container = function(obj) {
       var self = this; 
       var res;
-      res = "<table>\\n";
+      res = "<table>\n";
       if (obj.direction() == 2) {
         res = res + "<tr>";
       }
-      res = res + obj.items().inject(function(memo, item) {
+      obj.items().each(function(item) {
         if (obj.direction() == 1) {
-          return ((memo + "<tr><td>") + self.render(item)) + "</td></tr>\\n";
+          return res = res + ("<tr><td>" + self.render(item)) + "</td></tr>\n";
         } else if (obj.direction() == 2) {
-          return ((memo + "<td>") + self.render(item)) + "</td>";
+          return res = res + ("<td>" + self.render(item)) + "</td>";
         }
-      }, "");
+      });
       if (obj.direction() == 2) {
         res = res + "</tr>";
       }
-      res = res + "</table>\\n";
+      res = res + "</table>\n";
       return res;
     };
 
@@ -77,18 +77,14 @@ function(Render, Construct, Interpreter) {
     });
 
   Render = {
-    render: function(obj) {
+    render: function(obj, args) {
       var self = this; 
-      var args = compute_rest_arguments(arguments, 1);
+      if (args === undefined) args = new EnsoHash ({ });
       var interp;
       interp = RenderStencilC.new();
-      if (args.empty_P()) {
+      return interp.dynamic_bind(function() {
         return interp.render(obj);
-      } else {
-        return interp.dynamic_bind(function() {
-          return interp.render(obj);
-        });
-      }
+      }, args);
     },
 
     RenderStencil: RenderStencil,

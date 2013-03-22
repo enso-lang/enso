@@ -1,9 +1,8 @@
 define([
-  "core/schema/code/factory",
   "core/system/library/schema",
   "core/semantics/code/interpreter"
 ],
-function(Factory, Schema, Interpreter) {
+function(Schema, Interpreter) {
   var Eval ;
 
   var EvalExpr = MakeMixin([Interpreter.Dispatcher], function() {
@@ -125,20 +124,6 @@ function(Factory, Schema, Interpreter) {
     });
 
   Eval = {
-    eval: function(obj) {
-      var self = this; 
-      var args = compute_rest_arguments(arguments, 1);
-      var interp;
-      interp = EvalExprC.new();
-      if (args.empty_P()) {
-        return interp.eval(obj);
-      } else {
-        return interp.dynamic_bind(function() {
-          return interp.eval(obj);
-        });
-      }
-    },
-
     make_const: function(factory, val) {
       var self = this; 
       if (System.test_type(val, String)) {
@@ -149,11 +134,19 @@ function(Factory, Schema, Interpreter) {
         return factory.EBoolConst(val);
       } else if (val == null) {
         return factory.ENil();
-      } else if (System.test_type(val, Factory.MObject)) {
-        return val;
       } else {
-        return Eval.raise(S("Trying to make constant using an invalid ", val.class(), " object"));
+        return val;
       }
+    },
+
+    eval: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = EvalExprC.new();
+      return interp.dynamic_bind(function() {
+        return interp.eval(obj);
+      }, args);
     },
 
     EvalExpr: EvalExpr,

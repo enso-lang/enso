@@ -63,13 +63,14 @@ function() {
 
     this.dynamic_bind = function(block, fields) {
       var self = this; 
+      if (fields === undefined) fields = new EnsoHash ({ });
       var result;
       if (! self.$.D) {
         self.$.D = DynamicPropertyStack.new();
       }
       fields.each(function(key, value) {
         if (self.$.debug) {
-          console.log("BIND " + key + "=" + value);
+          puts(S("BIND ", key, "=", value));
         }
         return self.$.D._bind(key, value);
       });
@@ -80,9 +81,21 @@ function() {
 
     this.wrap = function(operation, outer, obj) {
       var self = this; 
-      return self.dispatch_obj(function() {
+      var type, method;
+      type = obj.schema_class();
+      method = S(outer, "_", type.name()).to_s();
+      if (! self.respond_to_P(method)) {
+        method = self.find(outer, type);
+      }
+      if (! method) {
+        method = S(outer, "_?").to_s();
+        if (! self.respond_to_P(method)) {
+          self.raise(S("Missing method in interpreter for ", outer, "_", type.name(), "(", obj, ")"));
+        }
+      }
+      return self.send(function() {
         return self.dispatch_obj(operation, obj);
-      }, outer, obj);
+      }, method, obj);
     };
 
     this.dispatch_obj = function(operation, obj) {

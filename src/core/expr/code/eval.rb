@@ -1,4 +1,3 @@
-require 'core/schema/code/factory'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 
@@ -113,10 +112,8 @@ module Eval
       factory.EBoolConst(val)
     elsif val.nil?
       factory.ENil
-    elsif val.is_a? Factory::MObject
-      val
     else
-      raise "Trying to make constant using an invalid #{val.class} object" 
+      val
     end
   end
   

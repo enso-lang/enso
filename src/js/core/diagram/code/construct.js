@@ -1,6 +1,6 @@
 define([
   "core/expr/code/eval",
-  "core/expr/code/render",
+  "core/expr/code/renderexp",
   "core/semantics/code/interpreter",
   "core/expr/code/impl",
   "core/expr/code/env",
@@ -9,7 +9,7 @@ define([
   "core/system/library/schema",
   "core/schema/tools/union"
 ],
-function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
+function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
   var Construct ;
 
   var EvalStencil = MakeMixin([Impl.EvalCommand], function() {
@@ -28,11 +28,12 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
 
     this.handle_props = function(props) {
       var self = this; 
-      var nprops, p1;
+      var nprops, p1, name;
       nprops = self.$.D._get("props").clone();
       props.each(function(p) {
         p1 = self.eval(p);
-        return nprops._set(Render.render(p1.var()), p1);
+        name = Renderexp.render(p1.var());
+        return nprops._set(name, p1);
       });
       return nprops;
     };
@@ -66,7 +67,7 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
               return self.dynamic_bind(function() {
                 ev = self.eval(item);
                 if (System.test_type(ev, Array)) {
-                  return ev.flatten().each(function(e) {
+                  return ev.each(function(e) {
                     if (! (e == null)) {
                       return res._get(f.name()).push(e);
                     }
@@ -90,7 +91,7 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
       var factory, res;
       factory = self.$.D._get("factory");
       res = factory.Prop();
-      res.set_var(factory.EStrConst(Render.RenderExprC.new().render(obj.var())));
+      res.set_var(factory.EStrConst(Renderexp.RenderExprC.new().render(obj.var())));
       res.set_val(Eval.make_const(factory, self.eval(obj.val())));
       return res;
     };
@@ -141,9 +142,7 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
       }
       return res;
     };
-  });
 
-  var EvalExpr = MakeMixin([Eval.EvalExpr], function() {
     this.eval_Color = function(obj) {
       var self = this; 
       var factory, r1, g1, b1;
@@ -177,7 +176,7 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
     };
   });
 
-  var EvalStencilC = MakeClass("EvalStencilC", null, [EvalExpr, EvalStencil],
+  var EvalStencilC = MakeClass("EvalStencilC", null, [EvalStencil],
     function() {
     },
     function(super$) {
@@ -187,17 +186,17 @@ function(Eval, Render, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
     });
 
   Construct = {
-    eval: function(obj, fields) {
+    eval: function(obj, args) {
       var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
       var interp;
       interp = EvalStencilC.new();
       return interp.dynamic_bind(function() {
         return interp.eval(obj);
-      }, fields);
+      }, args);
     },
 
     EvalStencil: EvalStencil,
-    EvalExpr: EvalExpr,
     EvalStencilC: EvalStencilC,
 
   };

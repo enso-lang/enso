@@ -1,4 +1,4 @@
-require 'core/expr/code/render'
+require 'core/expr/code/renderexp'
 require 'core/diagram/code/construct'
 require 'core/semantics/code/interpreter'
 
@@ -6,7 +6,7 @@ module Render
 
   module RenderStencil
     include Interpreter::Dispatcher
-    include Render::RenderExpr
+    include Renderexp::RenderExpr
 
     def render_Stencil(obj)
       pre = %{
@@ -15,7 +15,7 @@ module Render
 <head>
 <script src="./lib/jquery-1.9.1.min.js">
 </script>
-<title>} + obj.title.to_s + %{</title>
+<title>} + obj.title + %{</title>
 </head>
 <body>
       } 
@@ -32,11 +32,11 @@ module Render
     def render_Container(obj)
       res = "<table>\n"
       res += "<tr>" if obj.direction==2
-      res += obj.items.inject("") do |memo,item|
+      obj.items.each do |item|
         if obj.direction==1  #vertical
-          memo + "<tr><td>" + render(item) + "</td></tr>\n"
+          res += "<tr><td>" + render(item) + "</td></tr>\n"
         elsif obj.direction==2  #horizontal
-          memo + "<td>" + render(item) + "</td>"
+          res += "<td>" + render(item) + "</td>"
         end
       end
       res += "</tr>" if obj.direction==2

@@ -1,6 +1,6 @@
 require 'core/semantics/code/interpreter'
 
-module Render
+module Renderexp
   module RenderExpr
     
     include Interpreter::Dispatcher    
@@ -38,10 +38,10 @@ module Render
     include RenderExpr
   end
 
-  def self.eval(obj, args={})
-    interp = EvalExprC.new
+  def self.render(obj, args={})
+    interp = RenderExprC.new
     interp.dynamic_bind args do
-      interp.eval(obj)
+      interp.render(obj)
     end
   end
 end

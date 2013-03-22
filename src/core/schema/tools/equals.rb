@@ -1,6 +1,3 @@
-require 'core/system/load/load'
-require 'core/grammar/render/layout'
-
 =begin
 
 Deep equality based on object tree structure and primitive values

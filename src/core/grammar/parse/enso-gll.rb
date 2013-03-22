@@ -2,10 +2,8 @@
 require 'core/grammar/tools/todot'
 require 'core/grammar/parse/sharing-factory'
 require 'core/grammar/parse/gll-factory'
-require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan'
-require 'core/system/load/load'
 
 module EnsoGLL
   def self.parse(source, grammar, org, start_symbol = grammar.start.name)

@@ -5,6 +5,7 @@ define([
 ],
 function(Eval, Interpreter, Env) {
   var Lvalue ;
+
   var Address = MakeClass("Address", null, [],
     function() {
     },
@@ -102,6 +103,16 @@ function(Eval, Interpreter, Env) {
     });
 
   Lvalue = {
+    eval: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = LValueExprC.new();
+      return interp.dynamic_bind(function() {
+        return interp.eval(obj);
+      }, args);
+    },
+
     Address: Address,
     LValueExpr: LValueExpr,
     LValueExprC: LValueExprC,

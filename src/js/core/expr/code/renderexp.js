@@ -2,7 +2,7 @@ define([
   "core/semantics/code/interpreter"
 ],
 function(Interpreter) {
-  var Render ;
+  var Renderexp ;
 
   var RenderExpr = MakeMixin([Interpreter.Dispatcher], function() {
     this.render = function(obj) {
@@ -47,14 +47,14 @@ function(Interpreter) {
     function(super$) {
     });
 
-  Render = {
-    eval: function(obj, args) {
+  Renderexp = {
+    render: function(obj, args) {
       var self = this; 
       if (args === undefined) args = new EnsoHash ({ });
       var interp;
-      interp = EvalExprC.new();
+      interp = RenderExprC.new();
       return interp.dynamic_bind(function() {
-        return interp.eval(obj);
+        return interp.render(obj);
       }, args);
     },
 
@@ -62,5 +62,5 @@ function(Interpreter) {
     RenderExprC: RenderExprC,
 
   };
-  return Render;
+  return Renderexp;
 })

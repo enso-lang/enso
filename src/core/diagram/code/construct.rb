@@ -1,5 +1,5 @@
 require 'core/expr/code/eval'
-require 'core/expr/code/render'
+require 'core/expr/code/renderexp'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/impl'
 require 'core/expr/code/env'
@@ -30,7 +30,8 @@ module Construct
       nprops = @D[:props].clone
       props.each do |p|
         p1 = eval(p)
-        nprops[Render::render(p1.var)] = p1
+        name = Renderexp::render(p1.var)
+        nprops[name] = p1
       end
       nprops
     end
@@ -62,7 +63,7 @@ module Construct
                 dynamic_bind props: nprops do
                   ev = eval(item)
                   if ev.is_a? Array    # flatten arrays
-                    ev.flatten.each {|e| if not e.nil?; res[f.name] << e; end}
+                    ev.each {|e| if not e.nil?; res[f.name] << e; end}
                   elsif not ev.nil?
                     res[f.name] << ev
                   end 
@@ -81,7 +82,7 @@ module Construct
     def eval_Prop(obj)
       factory = @D[:factory]
       res = factory.Prop
-      res.var = factory.EStrConst(Render::RenderExprC.new.render(obj.var))
+      res.var = factory.EStrConst(Renderexp::RenderExprC.new.render(obj.var))
       res.val = Eval::make_const(factory, eval(obj.val))
       res
     end

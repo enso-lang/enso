@@ -5,10 +5,10 @@ define([
 ],
 function(Eval, Lvalue, Interpreter) {
   var Freevar ;
+
   var FreeVarExpr = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
     this.depends = function(obj) {
       var self = this; 
-        console.log("COMPUTED " + obj);
       return self.dispatch_obj("depends", obj);
     };
 
@@ -73,6 +73,16 @@ function(Eval, Lvalue, Interpreter) {
     });
 
   Freevar = {
+    depends: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = FreeVarExprC.new();
+      return interp.dynamic_bind(function() {
+        return interp.depends(obj);
+      }, args);
+    },
+
     FreeVarExpr: FreeVarExpr,
     FreeVarExprC: FreeVarExprC,
 
