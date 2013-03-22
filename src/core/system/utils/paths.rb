@@ -37,9 +37,9 @@ module Paths
       Equals::equals(@path, other.path)
     end
 
-    def deref?(scan, root = scan)
+    def deref?(root)
       begin
-        deref(scan, root = scan)
+        !deref(root).nil?
       rescue
         false
       end
@@ -70,7 +70,6 @@ module Paths
     end
 
     def deref(root)
-      Is deref ever used?
       dynamic_bind root: root do 
         eval
       end
@@ -89,7 +88,7 @@ module Paths
     def eval_EConst(obj)
       obj.val
     end
-        
+
     def eval_EField(obj)
       eval(obj.e)[obj.fname]
     end
@@ -98,9 +97,53 @@ module Paths
       eval(obj.e)[eval(obj.sub)]
     end
 
-    def assign(root, obj)
-      raise "Can only assign to lvalues not to #{self}" if not lvalue?
-      owner.deref(root)[last.name] = obj
+    def assign(root, val)
+      obj = @path
+      if obj.EField?
+        dynamic_bind root: root do
+          eval(obj.e)[obj.fname] = val
+        end
+      elsif obj.ESubscript?
+        dynamic_bind root: root do 
+          eval(obj.e)[eval(obj.sub)] = val
+        end
+      end
+    end
+
+    #insert is the same as assign, except that for arrays it injects into rather than replace
+    def insert(root, val)
+      obj = @path
+      if obj.EField?
+        dynamic_bind root: root do
+          eval(obj.e)[obj.fname] = val
+        end
+      elsif obj.ESubscript?
+        dynamic_bind root: root do 
+          eval(obj.e).insert(eval(obj.sub), val)
+        end
+      end
+    end
+    def delete(root)
+      obj = @path
+      if obj.EField?
+        dynamic_bind root: root do
+          eval(obj.e)[obj.fname] = nil
+        end
+      elsif obj.ESubscript?
+        dynamic_bind root: root do
+          eval(obj.e).delete(eval(obj))
+        end
+      end
+    end
+
+    def type(root, obj = @path)
+      if obj.EField?
+        dynamic_bind root: root do
+          eval(obj.e).schema_class.fields[obj.fname]
+        end
+      elsif obj.ESubscript?
+        type(root, obj.e)
+      end
     end
 
     def assign_and_coerce(root, value)
