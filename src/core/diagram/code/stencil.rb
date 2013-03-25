@@ -11,7 +11,7 @@ require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/expr/code/env'
-require 'core/expr/code/render'
+require 'core/expr/code/renderexp'
 require 'yaml'  
 
 # render(Stencil, data) = diagram
@@ -291,7 +291,7 @@ class StencilFrame < DiagramFrame
     stencil.props.each do |prop|
       val = eval(prop.exp, newEnv, true)
       #puts "SET #{prop.loc} = #{val}"
-      case Layout::RenderExprC.new.render(prop.loc)
+      case Renderexp::RenderExprC.new.render(prop.loc)
       when "font.size" then
         #puts "FONT SIZE #{val}"
         newEnv[:font] = font = env[:font]._clone if !font

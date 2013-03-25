@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 require 'core/grammar/render/layout'
 
+=======
+>>>>>>> 971fd6cd614fa4cddf34799a0b2835fa1a083485
 =begin
 
 Deep equality based on object tree structure and primitive values

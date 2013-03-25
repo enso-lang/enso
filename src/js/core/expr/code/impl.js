@@ -51,91 +51,91 @@ function(Eval, Lvalue, Interpreter, Env) {
   var EvalCommand = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], function() {
     this.eval = function(obj) {
       var self = this; 
-      return self.dispatch("eval", obj);
+      return self.dispatch_obj("eval", obj);
     };
 
-    this.eval_EWhile = function(cond, body) {
+    this.eval_EWhile = function(obj) {
       var self = this; 
-      while (self.eval(cond)) {
-        self.eval(body);
+      while (self.eval(obj.cond())) {
+        self.eval(obj.body());
       }
     };
 
-    this.eval_EFor = function(var_V, list, body) {
+    this.eval_EFor = function(obj) {
       var self = this; 
       var nenv;
       nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
-      return self.eval(list).each(function(val) {
-        nenv._set(var_V, val);
+      return self.eval(obj.list()).each(function(val) {
+        nenv._set(obj.var(), val);
         return self.dynamic_bind(function() {
-          return self.eval(body);
+          return self.eval(obj.body());
         }, new EnsoHash ({ env: nenv }));
       });
     };
 
-    this.eval_EIf = function(cond, body, body2) {
+    this.eval_EIf = function(obj) {
       var self = this; 
-      if (self.eval(cond)) {
-        return self.eval(body);
-      } else if (! (body2 == null)) {
-        return self.eval(body2);
+      if (self.eval(obj.cond())) {
+        return self.eval(obj.body());
+      } else if (! (obj.body2() == null)) {
+        return self.eval(obj.body2());
       }
     };
 
-    this.eval_EBlock = function(fundefs, body) {
+    this.eval_EBlock = function(obj) {
       var self = this; 
       var res, defenv, env1;
       res = null;
-      defenv = Env.HashEnv.new(self.$.D._get("env"));
+      defenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
       self.dynamic_bind(function() {
-        return fundefs.each(function(c) {
+        return obj.fundefs().each(function(c) {
           return self.eval(c);
         });
       }, new EnsoHash ({ in_fc: false, env: defenv }));
-      env1 = Env.HashEnv.new(defenv);
+      env1 = Env.HashEnv.new(new EnsoHash ({ }), defenv);
       self.dynamic_bind(function() {
-        return body.each(function(c) {
+        return obj.body().each(function(c) {
           return res = self.eval(c);
         });
       }, new EnsoHash ({ in_fc: false, env: env1 }));
       return res;
     };
 
-    this.eval_EFunDef = function(name, formals, body) {
+    this.eval_EFunDef = function(obj) {
       var self = this; 
-      self.$.D._get("env")._set(name, Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self));
+      self.$.D._get("env")._set(obj.name(), Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self));
       return null;
     };
 
-    this.eval_ELambda = function(body, formals) {
+    this.eval_ELambda = function(obj) {
       var self = this; 
       return Proc.new(function() {
         var p = compute_rest_arguments(arguments, 0);
-        return Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(body, formals, self.$.D._get("env"), self), [].concat(p));
+        return Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self).apply(Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self), [].concat(p));
       });
     };
 
-    this.eval_EFunCall = function(fun, params, lambda) {
+    this.eval_EFunCall = function(obj) {
       var self = this; 
       var m, b;
       m = self.dynamic_bind(function() {
-        return self.eval(fun);
+        return self.eval(obj.fun());
       }, new EnsoHash ({ in_fc: true }));
-      if (lambda == null) {
-        return m.apply(m, [].concat(params.map(function(p) {
+      if (obj.lambda() == null) {
+        return m.apply(m, [].concat(obj.params().map(function(p) {
           return self.eval(p);
         })));
       } else {
-        b = self.eval(lambda);
-        return m.apply(m, [b].concat(params.map(function(p) {
+        b = self.eval(obj.lambda());
+        return m.apply(m, [b].concat(obj.params().map(function(p) {
           return self.eval(p);
         })));
       }
     };
 
-    this.eval_EAssign = function(var_V, val) {
+    this.eval_EAssign = function(obj) {
       var self = this; 
-      return self.lvalue(var_V).set_value(self.eval(val));
+      return self.lvalue(obj.var()).set_value(self.eval(obj.val()));
     };
   });
 

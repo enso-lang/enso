@@ -50,18 +50,3 @@ def copy(obj)
   obj = Copy.new(f).copy(obj)
   obj.finalize
 end
-
-if __FILE__ == $0 then
-
-  require 'core/system/load/load'
-  
-  gs = Load::load('grammar.schema')
-  sg = Load::load('schema.grammar')
-
-  require 'core/schema/tools/print'
-  
-  newSchema = Copy.new(Factory::new(gs)).copy(sg)
-  newSchema.finalize()
-  
-  Print::Print.print(newSchema)
-end

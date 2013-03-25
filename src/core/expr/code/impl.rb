@@ -50,76 +50,76 @@ module Impl
     include Interpreter::Dispatcher    
       
     def eval(obj)
-      dispatch(:eval, obj)
+      dispatch_obj(:eval, obj)
     end
     
-    def eval_EWhile(cond, body)
-      while eval(cond)
-        eval(body)
+    def eval_EWhile(obj)
+      while eval(obj.cond)
+        eval(obj.body)
       end
     end
 
-    def eval_EFor(var, list, body)
-      nenv = Env::HashEnv.new({var=>nil}, @D[:env])
-      eval(list).each do |val|
-        nenv[var] = val
+    def eval_EFor(obj)
+      nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
+      eval(obj.list).each do |val|
+        nenv[obj.var] = val
         dynamic_bind env: nenv do
-          eval(body)
+          eval(obj.body)
         end
       end
     end
   
-    def eval_EIf(cond, body, body2)
-      if eval(cond)
-        eval(body)
-      elsif !body2.nil?
-        eval(body2)
+    def eval_EIf(obj)
+      if eval(obj.cond)
+        eval(obj.body)
+      elsif !obj.body2.nil?
+        eval(obj.body2)
       end
     end
 
-    def eval_EBlock(fundefs, body)
+    def eval_EBlock(obj)
       res = nil
       #fundefs are able to see each other but not any other variable created in the block
       defenv = Env::HashEnv.new({}, @D[:env])
       dynamic_bind in_fc: false, env: defenv do
-        fundefs.each do |c|
+        obj.fundefs.each do |c|
           eval(c)
         end
       end
       #rest of body can see fundefs
       env1 = Env::HashEnv.new({}, defenv)
       dynamic_bind in_fc: false, env: env1 do
-        body.each do |c|
+        obj.body.each do |c|
           res = eval(c)
         end
       end
       res
     end
 
-    def eval_EFunDef(name, formals, body)
-      @D[:env][name] = Impl::Closure.make_closure(body, formals, @D[:env], self)
+    def eval_EFunDef(obj)
+      @D[:env][obj.name] = Impl::Closure.make_closure(obj.body, obj.formals, @D[:env], self)
       nil
     end
 
-    def eval_ELambda(body, formals)
+    def eval_ELambda(obj)
       #puts "LAMBDA #{formals} #{body}"
-      Proc.new { |*p| Impl::Closure.make_closure(body, formals, @D[:env], self).call(*p) }
+      Proc.new { |*p| Impl::Closure.make_closure(obj.body, obj.formals, @D[:env], self).call(*p) }
     end
 
-    def eval_EFunCall(fun, params, lambda)
+    def eval_EFunCall(obj)
       m = dynamic_bind in_fc: true do
-        eval(fun)
+        eval(obj.fun)
       end
-      if lambda.nil?
-        m.call(*(params.map{|p|eval(p)}))
+      if obj.lambda.nil?
+        m.call(*(obj.params.map{|p|eval(p)}))
       else
-        b = eval(lambda)
-        m.call(*(params.map{|p|eval(p)}), &b) 
+        b = eval(obj.lambda)
+        m.call(*(obj.params.map{|p|eval(p)}), &b) 
       end
     end
 
-    def eval_EAssign(var, val)
-      lvalue(var).value = eval(val)
+    def eval_EAssign(obj)
+      lvalue(obj.var).value = eval(obj.val)
     end
   end
   

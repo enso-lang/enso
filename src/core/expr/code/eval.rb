@@ -1,83 +1,81 @@
-require 'core/schema/code/factory'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 
 module Eval  
   module EvalExpr
-  
     include Interpreter::Dispatcher
 
     def eval(obj)
-      dispatch(:eval, obj)
+      dispatch_obj(:eval, obj)
     end
   
-    def eval_ETernOp(op1, op2, e1, e2, e3)
-      eval(e1) ? eval(e2) : eval(e3)
+    def eval_ETernOp(obj)
+      eval(obj.e1) ? eval(obj.e2) : eval(obj.e3)
     end
-  
-    def eval_EBinOp(op, e1, e2)
-      case op
+
+    def eval_EBinOp(obj)
+      case obj.op
       when "&"
-        eval(e1) && eval(e2)
+        eval(obj.e1) && eval(obj.e2)
       when "|"
-        eval(e1) || eval(e2)
+        eval(obj.e1) || eval(obj.e2)
       when "eql?"
-        eval(e1) == eval(e2)
+        eval(obj.e1) == eval(obj.e2)
       when "+"
-        eval(e1) + eval(e2)
+        eval(obj.e1) + eval(obj.e2)
       when "*"
-        eval(e1) * eval(e2)
+        eval(obj.e1) * eval(obj.e2)
       when "-"
-        eval(e1) - eval(e2)
+        eval(obj.e1) - eval(obj.e2)
       when "/"
-        eval(e1) / eval(e2)
+        eval(obj.e1) / eval(obj.e2)
       when "<"
-        eval(e1) < eval(e2)
+        eval(obj.e1) < eval(obj.e2)
       when ">"
-        eval(e1) > eval(e2)
+        eval(obj.e1) > eval(obj.e2)
       when "<=" 
-        eval(e1) <= eval(e2)
+        eval(obj.e1) <= eval(obj.e2)
       when ">=" 
-        eval(e1) >= eval(e2)
+        eval(obj.e1) >= eval(obj.e2)
       else
-        raise "Unknown operator (#{op})"
+        raise "Unknown operator (#{obj.op})"
       end
     end
   
-    def eval_EUnOp(op, e)
-      if op == "!"
-        !eval(e)
+    def eval_EUnOp(obj)
+      if obj.op == "!"
+        !eval(obj.e)
       else
-        raise "Unknown operator (#{op})"
+        raise "Unknown operator (#{obj.op})"
       end
     end
   
-    def eval_EVar(name)
-      raise "ERROR: undefined variable #{name} in #{@D[:env]}" unless @D[:env].has_key?(name)
-      @D[:env][name]
+    def eval_EVar(obj)
+      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
+      @D[:env][obj.name]
     end
   
-    def eval_ESubscript(e, sub)
-      eval(e)[eval(sub)]
+    def eval_ESubscript(obj)
+      eval(obj.e)[eval(obj.sub)]
     end
   
-    def eval_EConst(val)
-      val
+    def eval_EConst(obj)
+      obj.val
     end
   
     def eval_ENil
       nil
     end
   
-    def eval_EFunCall(fun, params)
+    def eval_EFunCall(obj)
       m = dynamic_bind in_fc: true do 
-        eval(fun)
+        eval(obj.fun)
       end
-      m.call_closure(*(params.map{|p|eval(p)}))
+      m.call_closure(*(obj.params.map{|p|eval(p)}))
     end
   
-    def eval_EList(elems)
-      elems.map do |elem|
+    def eval_EList(obj)
+      obj.elems.map do |elem|
         #puts "ELEM #{elem}=#{eval(elem)}"
         eval(elem)
       end
@@ -93,31 +91,14 @@ module Eval
     #This distinction is particular to Ruby, since it wraps the first
     # case as an implicit function call. In Javascript, the first case
     # will (correctly) return the accessor method without calling it.
-    def eval_EField(e, fname)
+    def eval_EField(obj)
       target = dynamic_bind in_fc: false do
-        eval(e)
+        eval(obj.e)
       end
       if @D[:in_fc]
-        target.method(fname.to_sym)
+        target.method(obj.fname.to_sym)
       else
-        target.send(fname)
-      end
-    end
-  end
-  
-  class EvalExprC
-    include EvalExpr
-    def initialize
-    end
-  end
-
-  def self.eval(obj, *args)
-    interp = EvalExprC.new
-    if args.empty?
-      interp.eval(obj)
-    else
-      interp.dynamic_bind *args do
-        interp.eval(obj)
+        target.send(obj.fname)
       end
     end
   end
@@ -131,10 +112,20 @@ module Eval
       factory.EBoolConst(val)
     elsif val.nil?
       factory.ENil
-    elsif val.is_a? Factory::MObject
-      val
     else
-      raise "Trying to make constant using an invalid #{val.class} object" 
+      val
+    end
+  end
+  
+  class EvalExprC
+    include EvalExpr
+    def initialize; end
+  end
+
+  def self.eval(obj, args={})
+    interp = EvalExprC.new
+    interp.dynamic_bind args do
+      interp.eval(obj)
     end
   end
 

@@ -1,16 +1,14 @@
 
+puts = function(obj) {
+  console.log("" + obj);
+}
+
 if (typeof window === 'undefined') {
 // running in node
   fs = require("fs");
   ARGV = process.argv.slice(2);
-  puts = function(obj) {
-    console.log("" + obj);
-  }
 } else {
 // running in browser
-  puts = function(obj) {
-    document.write(("" + obj).replace(/</g, "&lt").replace(/>/g, "&gt").replace(/\n/g, "<br>") + "<br>");
-  }
   root_url = window.location.href;
   var pos = root_url.indexOf("/js");
   root_url = root_url.slice(0, pos + 1);
@@ -98,10 +96,12 @@ if (typeof window === 'undefined') {
   
   CompatStream = function(s) {
     this.push = function(d) {
-      if (s)
+      if (s == true)
+        document.write(("" + d).replace("<", "&lt").replace(">", "&gt").replace("\n", "<br>"));
+      else if (s)
         s.write(d);
       else
-        document.write(("" + d).replace("<", "&lt").replace(">", "&gt").replace("\n", "<br>"));
+        console.log(d);
     }
   };
 
@@ -136,7 +136,7 @@ if (typeof window === 'undefined') {
         type = type.new;
       return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     },
-    stdout: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stdout); },
+    stdout: function() { return new CompatStream(typeof process == 'undefined' ? true : process.stdout); },
     stderr: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stderr); },
   }
   
@@ -160,6 +160,7 @@ if (typeof window === 'undefined') {
   }
   
   Array.prototype.values = function() { return this; }
+  Array.prototype.empty_P = function() { return this.length > 0; }
   Array.prototype.any_P = Array.prototype.some;
   Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
@@ -169,7 +170,7 @@ if (typeof window === 'undefined') {
     }
   };
   Array.prototype.each_with_index = Array.prototype.each;
-  Array.prototype.clone = function(fun) {  // Array.prototype.forEach;
+  Array.prototype.clone = function() {  // Array.prototype.forEach;
     var i;
     var result = new Array;
     for (i = 0; i < this.length; i++) {
@@ -256,6 +257,14 @@ if (typeof window === 'undefined') {
   
     
   
+  Object.prototype.clone = function() {  // Array.prototype.forEach;
+    var result = new Object;
+    for (var i in this) {
+      if (this.hasOwnProperty(i))
+        result[i] = this[i];
+    }
+    return result;
+  };
   
   Object.prototype.each = function (cmd) {
     for (var i in this) {
@@ -297,6 +306,7 @@ if (typeof window === 'undefined') {
   Numeric = Number;
   Fixnum = Number;
   
+  Object.prototype.to_s = function() { return "<OBJECT>" }
   Object.prototype.is_a_P = function(type) { return this instanceof type; }
   Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
   Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }

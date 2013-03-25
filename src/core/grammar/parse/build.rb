@@ -126,10 +126,7 @@ class Build
   end
     
   def Code(this, sppf, owner, accu, field, fixes, paths)
-    check = AssertExprC.new
-    check.dynamic_bind env: Env::ObjEnv.new(owner) do
-      check.assert(this.expr)
-    end
+    check = AssertExpr::assert(this.expr, env: Env::ObjEnv.new(owner))
   end
 
   private

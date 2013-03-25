@@ -24,20 +24,30 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$.schema = schema;
         self.$.roots = [];
         self.$.file_path = [];
-        schema.classes().each(function(klass) {
+        self.__install_methods(self.$.schema);
+        return self.__check_cylic_inheritance(self.$.schema);
+      };
+
+      this.__install_methods = function(schema) {
+        var self = this; 
+        return schema.classes().each(function(klass) {
           return self.define_singleton_method(function() {
             var args = compute_rest_arguments(arguments, 0);
             return MObject.new.apply(MObject, [klass, self].concat(args));
           }, klass.name());
         });
+      };
+
+      this.__check_cylic_inheritance = function(schema) {
+        var self = this; 
         return schema.classes().each(function(c) {
-          if (self.check_cyclic_subtyping(c, [])) {
+          if (self.__check_cyclic_subtyping(c, [])) {
             return self.raise(S("Build factory failed: ", c, " is its own superclass"));
           }
         });
       };
 
-      this.check_cyclic_subtyping = function(c, subs) {
+      this.__check_cyclic_subtyping = function(c, subs) {
         var self = this; 
         var res;
         if (subs.include_P(c)) {
@@ -45,7 +55,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         } else {
           res = false;
           c.supers().each(function(s) {
-            return res = res || self.check_cyclic_subtyping(s, subs.union([c]));
+            return res = res || self.__check_cyclic_subtyping(s, subs.union([c]));
           });
           return res;
         }
@@ -84,9 +94,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this._origin = function() { return this.$._origin };
       this.set__origin = function(val) { this.$._origin  = val };
 
-      this.__shell = function() { return this.$.__shell };
-      this.set___shell = function(val) { this.$.__shell  = val };
-
       this._id = function() { return this.$._id };
 
       this.factory = function() { return this.$.factory };
@@ -102,6 +109,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         self.$._id = self._class_.$._id = self._class_.$._id + 1;
         self.$.listeners = new EnsoHash ({ });
         self.$.props = new EnsoHash ({ });
+        self.$.path = null;
         self.define_singleton_value("schema_class", klass);
         self.$.factory = factory;
         self.__is_a(klass);
@@ -274,6 +282,16 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         }
       };
 
+      this.__shell = function() {
+        var self = this; 
+        return self.$.__shell;
+      };
+
+      this.set___shell = function(nval) {
+        var self = this; 
+        return self.$.__shell = nval;
+      };
+
       this._origin_of = function(name) {
         var self = this; 
         return self.__get(name)._origin();
@@ -291,11 +309,22 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this._path = function() {
         var self = this; 
-        if (self.__shell()) {
-          return self.__shell()._path(self);
-        } else {
-          return Paths.Path.new();
+        if (self.$.path == null) {
+          self.$.path = self.__shell()
+            ? self.__shell()._path(self)
+            : Paths.Path.new();
         }
+        return self.$.path;
+      };
+
+      this.__clean_path = function() {
+        var self = this; 
+        self.$.path = null;
+        return self.schema_class().fields().each(function(fld) {
+          if (fld.traversal()) {
+            return self.__get(fld.name()).__clean_path();
+          }
+        });
       };
 
       this._clone = function() {

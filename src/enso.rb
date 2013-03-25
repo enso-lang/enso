@@ -14,10 +14,16 @@ module System
   end
 end
 
+module Math
+  def self.round(r)
+    r.round
+  end
+end
+
 class File
   def self.create_file_map
     result = {}
-    Dir["./**/*.*"].each do |p|
+    Dir["../**/*.*"].each do |p|
       ext = File.extname(p)
       if ext != ".rb" && ext != ".js"
         name = File.basename(p)

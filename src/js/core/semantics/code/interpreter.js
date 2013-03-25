@@ -22,6 +22,11 @@ function() {
         return self.$.current.include_P(name);
       };
 
+      this.keys = function() {
+        var self = this; 
+        return self.$.current.keys();
+      };
+
       this._bind = function(field, value) {
         var self = this; 
         var old;
@@ -48,23 +53,6 @@ function() {
     });
 
   var Dispatcher = MakeMixin([], function() {
-    this._ = function() { return this.$._ };
-    this.set__ = function(val) { this.$._  = val };
-
-    this.dynamic_bind = function(block, fields) {
-      var self = this; 
-      var result;
-      if (! self.$.D) {
-        self.$.D = DynamicPropertyStack.new();
-      }
-      fields.each(function(key, value) {
-        return self.$.D._bind(key, value);
-      });
-      result = block();
-      self.$.D._pop(fields.size());
-      return result;
-    };
-
     this.debug = function() {
       var self = this; 
       self.$.debug = true;
@@ -73,42 +61,46 @@ function() {
       }
     };
 
-    this.dispatch = function(operation, obj) {
+    this.dynamic_bind = function(block, fields) {
       var self = this; 
-      var type, method, result, params;
-      if (self.$.debug) {
-        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\n"));
-        self.$.indent = self.$.indent + 1;
+      if (fields === undefined) fields = new EnsoHash ({ });
+      var result;
+      if (! self.$.D) {
+        self.$.D = DynamicPropertyStack.new();
       }
+      fields.each(function(key, value) {
+        if (self.$.debug) {
+          puts(S("BIND ", key, "=", value));
+        }
+        return self.$.D._bind(key, value);
+      });
+      result = block();
+      self.$.D._pop(fields.size());
+      return result;
+    };
+
+    this.wrap = function(operation, outer, obj) {
+      var self = this; 
+      var type, method;
       type = obj.schema_class();
-      method = S(operation, "_", type.name()).to_s();
+      method = S(outer, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
-        method = self.find(operation, type);
+        method = self.find(outer, type);
       }
       if (! method) {
-        method = S(operation, "_?").to_s();
+        method = S(outer, "_?").to_s();
         if (! self.respond_to_P(method)) {
-          self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
+          self.raise(S("Missing method in interpreter for ", outer, "_", type.name(), "(", obj, ")"));
         }
-        result = self.send(method, type, obj, self.$.D);
-      } else {
-        params = type.fields().map(function(f) {
-          return obj._get(f.name());
-        });
-        //puts("DISP " + [method].concat(params));
-        result = self.send.apply(self, [method].concat(params));
       }
-      if (self.$.debug) {
-        self.$.indent = self.$.indent - 1;
-        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\n"));
-      }
-      return result;
+      return self.send(function() {
+        return self.dispatch_obj(operation, obj);
+      }, method, obj);
     };
 
     this.dispatch_obj = function(operation, obj) {
       var self = this; 
-      var params = compute_rest_arguments(arguments, 2);
-      var type, method;
+      var type, method, result;
       type = obj.schema_class();
       method = S(operation, "_", type.name()).to_s();
       if (! self.respond_to_P(method)) {
@@ -120,7 +112,16 @@ function() {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
-      return self.send.apply(self, [method, obj].concat(params));
+      if (self.$.debug) {
+        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\\n"));
+        self.$.indent = self.$.indent + 1;
+      }
+      result = self.send(method, obj);
+      if (self.$.debug) {
+        self.$.indent = self.$.indent - 1;
+        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\\n"));
+      }
+      return result;
     };
 
     this.find = function(operation, type) {

@@ -6,9 +6,13 @@ def drawElem(elem) {
   if elem is Question
     drawQuestion(elem)
   else if elem is Group
-    pages([[elem.guard | data.all_elems]]) {
-      for elem : elem.elems
-        drawElem(elem)
+//    pages([[elem.guard | data.all_elems]]) {
+    pages(0) {
+      vertical {
+        for elem : elem.elems
+          drawElem(elem)
+      }
+      --
     }
 }
 
@@ -24,8 +28,6 @@ def drawQuestion(elem) {
         radio elem.value elem.ans.choices
 	  if elem.ans is TextBox
 	    vertical {
-	      text? elem.value
-	      text? elem.value
 	      if elem.ans.name=="money" 
 	        text? convert(100)
 	      else 

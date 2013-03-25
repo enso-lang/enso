@@ -3,34 +3,23 @@ module BindExpr
   include Interpreter::Dispatcher    
     
   def bind(obj)
-    dispatch(:bind, obj)
+    dispatch_obj(:bind, obj)
   end
 
  # args
-  def bind_EVar(name)
-    env = @D[:args][:env]
-    if env.keys.include? name
-      BindExpr.make_const(env[name], @D[:args][:factory])
+  def bind_EVar(obj)
+    env = @D[:env]
+    if env.keys.include? obj.name
+      BindExpr.make_const(env[obj.name], @D[:factory])
     else
-      @D[:args][:self]
+      obj
     end
   end
 
-  def bind_?(op, e1, e2)
-    @D[:args][:self]
+  def bind_?(obj)
+    obj
   end
 
-  def self.make_const(val, factory)
-    if val.is_a?(String)
-      factory.EStrConst(val)
-    elsif val.is_a?(Integer)
-      factory.EIntConst(val)
-    elsif val.is_a?(TrueClass) or val.is_a?(FalseClass)
-      factory.EBoolConst(val)
-    else
-      val
-    end
-  end
 end
 
 class BindExprC

@@ -51,29 +51,33 @@ module Lvalue
 
   module LValueExpr
     include Eval::EvalExpr
-    
-    include Interpreter::Dispatcher    
-      
+    include Interpreter::Dispatcher
+
     def lvalue(obj)
-      dispatch(:lvalue, obj)
+      dispatch_obj(:lvalue, obj)
     end
-    
-    def lvalue_EField(e, fname)
-      Address.new(Env::ObjEnv.new(eval(e)), fname)
-    end
-  
-    def lvalue_EVar(name)
-      Address.new(@D[:env], name)
+
+    def lvalue_EField(obj)
+      Address.new(Env::ObjEnv.new(eval(obj.e)), obj.fname)
     end
   
-    def lvalue_?(type, fields, args)
+    def lvalue_EVar(obj)
+      Address.new(@D[:env], obj.name)
+    end
+  
+    def lvalue_?(obj)
       nil
     end
   end
   
   class LValueExprC
     include LValueExpr
-    def initialize
+  end
+
+  def self.eval(obj, args = {})
+    interp = LValueExprC.new
+    interp.dynamic_bind args do
+      interp.eval(obj)
     end
   end
 end

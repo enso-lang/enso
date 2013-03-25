@@ -5,6 +5,7 @@ define([
 ],
 function(Eval, Interpreter, Env) {
   var Lvalue ;
+
   var Address = MakeClass("Address", null, [],
     function() {
     },
@@ -76,20 +77,20 @@ function(Eval, Interpreter, Env) {
   var LValueExpr = MakeMixin([Eval.EvalExpr, Interpreter.Dispatcher], function() {
     this.lvalue = function(obj) {
       var self = this; 
-      return self.dispatch("lvalue", obj);
+      return self.dispatch_obj("lvalue", obj);
     };
 
-    this.lvalue_EField = function(e, fname) {
+    this.lvalue_EField = function(obj) {
       var self = this; 
-      return Address.new(Env.ObjEnv.new(self.eval(e)), fname);
+      return Address.new(Env.ObjEnv.new(self.eval(obj.e())), obj.fname());
     };
 
-    this.lvalue_EVar = function(name) {
+    this.lvalue_EVar = function(obj) {
       var self = this; 
-      return Address.new(self.$.D._get("env"), name);
+      return Address.new(self.$.D._get("env"), obj.name());
     };
 
-    this.lvalue__P = function(type, fields, args) {
+    this.lvalue__P = function(obj) {
       var self = this; 
       return null;
     };
@@ -99,12 +100,19 @@ function(Eval, Interpreter, Env) {
     function() {
     },
     function(super$) {
-      this.initialize = function() {
-        var self = this; 
-      };
     });
 
   Lvalue = {
+    eval: function(obj, args) {
+      var self = this; 
+      if (args === undefined) args = new EnsoHash ({ });
+      var interp;
+      interp = LValueExprC.new();
+      return interp.dynamic_bind(function() {
+        return interp.eval(obj);
+      }, args);
+    },
+
     Address: Address,
     LValueExpr: LValueExpr,
     LValueExprC: LValueExprC,

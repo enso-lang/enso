@@ -1,6 +1,6 @@
 .SUFFIXES: .rb .js .code
 
-main: \
+SOURCES = \
 	js/core/schema/code/factory.js \
 	js/core/system/boot/meta_schema.js \
 	js/core/schema/code/dynamic.js \
@@ -20,16 +20,17 @@ main: \
 	js/core/grammar/parse/gss.js \
 	js/core/system/load/cache.js \
 	js/core/system/utils/find_model.js \
-  js/core/schema/tools/dumpjson.js \
-  js/core/schema/tools/print.js \
+	js/core/schema/tools/dumpjson.js \
+	js/core/schema/tools/print.js \
+	js/core/diagram/code/construct.js \
+	js/core/diagram/code/render.js \
+	js/core/expr/code/renderexp.js \
 
 
-foo: \
-    js/core/grammar/parse/origins.js \
-    js/core/grammar/parse/gll.js \
-    js/core/grammar/parse/build.js \
+main: $(SOURCES)
 
-
+check: 
+	ruby bin/check_requires.rb `find core | grep ".rb"`
 
 .SECONDARY:
 

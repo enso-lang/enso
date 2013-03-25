@@ -16,9 +16,13 @@ module Interpreter
     def [](name)
       @current[name]
     end
-    
+
     def include?(name)
       @current.include?(name)
+    end
+    
+    def keys
+      @current.keys
     end
     
     def _bind(field, value)
@@ -41,30 +45,43 @@ module Interpreter
   end
   
   module Dispatcher
-    attr_accessor :_
+
+    def debug
+      @debug = true
+      @indent = 0 if !@indent
+    end
     
-    def dynamic_bind fields, &block
+    def dynamic_bind fields={}, &block
       if !@D
         @D = DynamicPropertyStack.new
       end
       fields.each do |key, value|
+        puts "BIND #{key}=#{value}" if @debug
         @D._bind(key, value)
       end
       result = block.call
       @D._pop(fields.size)
       result
     end
-    
-    def debug
-      @debug = true
-      @indent = 0 if !@indent
-    end
-    
-    def dispatch(operation, obj)
-      if @debug
-        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
-        @indent = @indent + 1
+
+    def wrap(operation, outer, obj)
+      type = obj.schema_class
+      method = "#{outer}_#{type.name}".to_s
+      if !respond_to?(method)
+        method = find(outer, type)  # slow path
       end
+      if !method
+        method = "#{outer}_?".to_s
+        if !respond_to?(method)
+          raise "Missing method in interpreter for #{outer}_#{type.name}(#{obj})"
+        end
+      end
+      send(method, obj) {
+        dispatch_obj(operation, obj)
+      }
+    end
+
+    def dispatch_obj(operation, obj)
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -75,33 +92,19 @@ module Interpreter
         if !respond_to?(method)
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
-        result = send(method, type, obj, @D)
-      else
-        params = type.fields.map {|f| obj[f.name] }
-        result = send(method, *params)
       end
+      if @debug
+        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
+        @indent = @indent + 1
+      end
+      result = send(method, obj)
       if @debug
         @indent = @indent - 1
         $stderr << "#{' '.repeat(@indent)}= #{result}\n"
       end
       result
     end
-  
-    def dispatch_obj(operation, obj, *params)
-      type = obj.schema_class
-      method = "#{operation}_#{type.name}".to_s
-      if !respond_to?(method)
-        method = find(operation, type)  # slow path
-      end
-      if !method
-        method = "#{operation}_?".to_s
-        if !respond_to?(method)
-          raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
-        end
-      end
-      send(method, obj, *params)
-    end
-      
+
     def find(operation, type)
       method = "#{operation}_#{type.name}".to_s
       if respond_to?(method)
