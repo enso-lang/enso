@@ -148,6 +148,13 @@ module EnsoBuild
 
     def amb_error(sppf)
       #Unparse.unparse(sppf, s = '')
+      # puts "sppf.type = #{sppf.type}"
+      # sppf.kids.each do |k|
+      #   puts "sppf.k = #{k}"
+      #   puts "sppf.k.nxt = #{k.type.nxt}"
+      #   puts "sppf.k.original = #{k.type.nxt.Rule? && k.type.nxt.original}"
+      # end
+      
       File.open('amb.dot', 'w') do |f|
         ToDot.to_dot(sppf, f)
       end

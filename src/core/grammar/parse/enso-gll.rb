@@ -1,7 +1,6 @@
 
 require 'core/grammar/tools/todot'
 require 'core/grammar/parse/gll-factory'
-<<<<<<< HEAD
 require 'core/grammar/parse/sharing-factory'
 require 'core/schema/tools/print'
 require 'core/schema/tools/copy'
@@ -13,10 +12,8 @@ require 'core/grammar/parse/deformat'
 require 'core/grammar/parse/layout'
 require 'core/system/load/load'
 require 'ruby-prof'
-=======
 require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan'
->>>>>>> 971fd6cd614fa4cddf34799a0b2835fa1a083485
 
 module EnsoGLL
   def self.parse(source, grammar, org)
@@ -356,6 +353,7 @@ if __FILE__ == $0 then
   
   obj = EnsoBuild::build(x, SharingFactory.new(ps, shares), org, [])
 
+  require 'core/grammar/render/layout'
   Layout::DisplayFormat.print(gg, obj, $stdout, false)
 
   NormalizeGrammar::normalize(obj)
