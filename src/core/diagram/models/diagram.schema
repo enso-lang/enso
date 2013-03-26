@@ -6,6 +6,8 @@ class Stencil
   body! Part
 
 class Part
+  label: str?
+  props! Prop*
 
 class Prop
   var! Expr
@@ -14,36 +16,24 @@ class Prop
 // DIAGRAMS
 
 class Container < Part
-  label: str?
-  props! Prop*
   direction: int // 1=vert, 2=hoiz, 3=graph
   items! Part*
 
 class Pages < Part
-  label: str?
-  props! Prop*
   items! Part*
   current! Expr?
 
 class Space < Part
-  label: str?
-  props! Prop*
 
 class Shape < Part
-  label: str?
-  props! Prop*
   kind: str
   content! Part?
 
 class Text < Part
-  label: str?
-  props! Prop*
   string! Expr
   editable: bool
 
 class Widget < Part
-  label: str?
-  props! Prop*
 
 class CheckBox < Widget
   value! Expr?
@@ -66,7 +56,6 @@ class ConnectorEnd
   other_label! Expr?
   part! Expr
 
-
 // Additional expr 
 
 class InstanceOf < Expr
@@ -83,6 +72,7 @@ class Eval < Expr
   envs! Expr*
 
 class Rule < Expr	//a rule is essentially a sugar-ed up function
+
 
 primitive int
 primitive str
