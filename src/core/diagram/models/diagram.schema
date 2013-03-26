@@ -71,9 +71,6 @@ class Eval < Expr
   expr! Expr
   envs! Expr*
 
-class Rule < Expr	//a rule is essentially a sugar-ed up function
-
-
 primitive int
 primitive str
 primitive bool

@@ -1,3 +1,12 @@
 import diagram.schema
 import impl.schema with Command as Part
 
+class Rule < EFunDef	//a rule is essentially a sugar-ed up function
+  obj:str
+  type:str
+
+class RuleCall < Part
+  name:str
+  obj:Expr
+  params!Expr*
+

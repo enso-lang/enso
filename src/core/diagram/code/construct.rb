@@ -87,6 +87,21 @@ module Construct
       res
     end
 
+    def eval_Rule(obj)
+      funname = "#{obj.name}__#{obj.type}"
+      #create a new function
+      forms = [obj.obj]
+      obj.formals.each {|f| forms << f.name}
+      @D[:env][funname] = Impl::Closure.make_closure(obj.body, forms, @D[:env], self)
+    end
+
+    def eval_RuleCall(obj)
+      target = eval(obj.obj)
+      funname = "#{obj.name}__#{target.schema_class.name}"
+      args = obj.params.map{|p|eval(p)}
+      @D[:env][funname].call(target, *args)
+    end
+
     def eval_EFor(obj)
       nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
       eval(obj.list).map do |val|  #returns list of results instead of only last result

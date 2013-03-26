@@ -29,7 +29,7 @@ module Impl
       #puts "CALL #{@formals} #{params}"
       nv = {}
       @formals.each_with_index do |f,i|
-        nv[f.name] = params[i]
+        nv[f] = params[i]
       end
       nenv = Env::HashEnv.new(nv, @env)
       @interp.dynamic_bind env: nenv do
@@ -97,13 +97,16 @@ module Impl
     end
 
     def eval_EFunDef(obj)
-      @D[:env][obj.name] = Impl::Closure.make_closure(obj.body, obj.formals, @D[:env], self)
+      forms = []
+      obj.formals.each {|f| forms << f.name}
+      @D[:env][obj.name] = Impl::Closure.make_closure(obj.body, forms, @D[:env], self)
       nil
     end
 
     def eval_ELambda(obj)
-      #puts "LAMBDA #{formals} #{body}"
-      Proc.new { |*p| Impl::Closure.make_closure(obj.body, obj.formals, @D[:env], self).call(*p) }
+      forms = []
+      obj.formals.each {|f| forms << f.name}
+      Proc.new { |*p| Impl::Closure.make_closure(obj.body, forms, @D[:env], self).call(*p) }
     end
 
     def eval_EFunCall(obj)

@@ -2,3 +2,9 @@ import diagram.grammar
 import impl.grammar with Command as Part
 
 start Stencil
+
+EFunDef ::= EFunDef
+          | [Rule] "rule" name:sym ("(" formals:Formal* @"," ")")? "for" obj:sym ":" type:sym body:Part
+
+EFunCall ::= EFunCall
+           | [RuleCall] "call" name:sym  ("(" params:Expr* @"," ")")? "for" obj:Expr
