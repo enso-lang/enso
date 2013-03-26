@@ -1,0 +1,14 @@
+
+import normalize.schema
+
+class Pattern
+  prev: Pattern?
+  nxt: Pattern?
+
+class End < Pattern
+
+class EpsilonEnd < End
+
+// Rule < Pattern because Ends refer to it via nxt
+class Rule < Pattern
+ 

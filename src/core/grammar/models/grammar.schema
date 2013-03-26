@@ -10,8 +10,9 @@ class Grammar
   rules! Rule* 
 
 class Pattern
- 
-class Rule < Pattern
+
+
+class Rule
   name# str 
   grammar: Grammar / rules 
   arg! Pattern?   // optional because of abstract rules
@@ -30,18 +31,17 @@ class Field < Pattern
   name: str 
   arg! Pattern 
  
-class Code < Pattern
-  expr! Expr
- 
-class Value < Pattern 
+class Terminal < Pattern
+
+class Value < Terminal
   kind: str 
  
-class Ref < Pattern
+class Ref < Terminal
    path! Expr
 
-class Lit < Pattern 
+class Lit < Terminal
   value: str
- 
+
 class Call < Pattern 
   rule: Rule 
  
@@ -59,53 +59,6 @@ class Break < Pattern
 class Indent < Pattern
   indent: int
  
-class Epsilon < Pattern
-
-class Item < Pattern
-  expression: Pattern
-  elements: Pattern*
-  dot: int
-
-class Base
-  starts: int
-  ends: int
-  type: Pattern
-  origin! Location?
-
-class Node < Base
-  kids: Pack*
-
-class Empty < Base
-  kids: Base* = []
-
-class Leaf < Base
-  value: str
-  ws: str
-  kids: Base* = []
-
-class Pack
-  parent: Node / kids
-  type: Item
-  pivot: int
-  left: Base?
-  right: Base
-  kids: Base* = (left == nil ? [right] : [left, right])
-
-
-class GSS
-  item! Item
-  pos: int
-  edges: Edge*
-
-class Edge
-  sppf: Base
-  target: GSS
-
-class Location
-  path: str
-  offset: int
-  size: int
-  start_line: int
-  start_column: int
-  end_line: int
-  end_column: int
+class Code < Terminal
+  expr! Expr
+ 

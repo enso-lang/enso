@@ -9,28 +9,23 @@ module GLLFactory
   end
 
   module GLLClasses
+    class SchemaClass
+      attr_reader :name
+      def initialize(name)
+        @name = name
+      end
+
+    end
 
     class EnsoBase
+      attr_reader :schema_class
+      def initialize(c)
+        @schema_class = SchemaClass.new(c)
+      end
+
       def equals(o)
         self == o
       end      
-    end
-
-    class Item < EnsoBase
-      attr_reader :expression, :elements, :dot
-      def initialize(exp, elts, dot)
-        @expression = exp
-        @elements = elts
-        @dot = dot
-      end
-      
-      def name
-        'Item'
-      end
-
-      def schema_class
-        self
-      end
     end
 
     class GSS < EnsoBase
@@ -39,6 +34,10 @@ module GLLFactory
         @item = item
         @pos = pos
         @edges = []
+      end
+
+      def to_s
+        "gss(#{item}, #{pos})"
       end
     end
 
@@ -59,7 +58,8 @@ module GLLFactory
 
     class Base < SPPF
       attr_reader :starts, :ends, :type, :origin
-      def initialize(starts, ends, type, origin)
+      def initialize(cls, starts, ends, type, origin)
+        super(cls)
         @starts = starts
         @ends = ends
         @type = type
@@ -73,31 +73,44 @@ module GLLFactory
     class Node < Base
       attr_reader :kids
       def initialize(starts, ends, type, origin)
-        super(starts, ends, type, origin)
+        super('Node', starts, ends, type, origin)
         @kids = []
-      end
+      end 
 
       def Node?; true end
+
+      def to_s
+        t = type.Call? ? "call(#{type.rule.name})" : type.inspect
+        "Node(#{starts}, #{ends}, #{t}: #{kids.join(', ')})"
+      end
     end
 
     class Leaf < Base
       attr_reader :value, :ws
-      def initialize(starts, ends, type, origin, value, ws)
-        super(starts, ends, type, origin)
+      def initialize(starts, ends, type, origin, value)
+        super('Leaf', starts, ends, type, origin)
         @value = value
-        @ws = ws
       end
 
       def Leaf?; true end
+
+      def to_s
+        "Leaf(#{starts}, #{ends}, #{type}, '#{value}')"
+      end
     end
 
     class Empty < Base
       def Empty?; true end
+      def to_s
+        "()"
+      end
     end
 
     class Pack < SPPF
-      attr_reader :type, :pivot, :left, :right
+      attr_reader :type, :pivot, :left, :right, :parent
       def initialize(parent, type, pivot, left, right)
+        super('Pack')
+        @parent = parent
         @type = type
         @pivot = pivot
         @left = left
@@ -109,6 +122,10 @@ module GLLFactory
       end
 
       def Pack?; true end
+
+      def to_s
+        "pack(#{type}, #{pivot})"
+      end
     end
 
   end
@@ -124,10 +141,6 @@ module GLLFactory
       @memo = {}
     end
 
-    def Item(exp, elts, dot)
-      make(Item, exp, elts, dot)
-    end
-
     def GSS(item, pos)
       make(GSS, item, pos)
     end
@@ -140,12 +153,8 @@ module GLLFactory
       make(Node, starts, ends, type, origin)
     end
 
-    def Leaf(starts, ends, type, origin, value, ws)
-      make(Leaf, starts, ends, type, origin, value, ws)
-    end
-
-    def Empty(starts, ends, type, origin)
-      make(Empty, starts, ends, type, origin)
+    def Leaf(starts, ends, type, origin, value)
+      make(Leaf, starts, ends, type, origin, value)
     end
 
     def Pack(parent, type, pivot, left, right)
@@ -153,10 +162,10 @@ module GLLFactory
     end
 
 
-    def _objects_for(klass)
+    def _objects_for(klass_name)
       @memo.values.select do |x|
-        # a little brittle maybe
-        x.class.name.end_with?(klass.name)
+        # ouch, brittle.
+        x.class.name.end_with?(klass_name)
       end
     end
 

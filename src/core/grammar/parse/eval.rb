@@ -9,8 +9,7 @@ class GrammarEval
     @scan = Scan.new(grammar, source)
     @ws, @start_pos = @scan.skip_ws
     @fact = grammar._graph_id
-    @epsilon = @fact.Epsilon
-
+    @epsilon = @fact.Sequence
     @items = {}
     @seps = {}
     @iters = {}
@@ -161,7 +160,14 @@ class GrammarEval
       gll.add(this.arg) 
       gll.add(item(this, [this.arg, this.sep, this], 0))
     elsif this.many && this.optional && this.sep then
-      @iters[this] ||= @fact.Regular(this.arg, false, true, this.sep)
+      if !@iters.has_key?(this) then
+        reg = @fact.Regular #this.arg, false, true, this.sep)
+        reg.arg = this.arg
+        reg.optional = false
+        reg.many = true
+        reg.sep = this.sep
+        @iters[this] = reg 
+      end
       gll.add(@epsilon)
       gll.add(@iters[this])
     else

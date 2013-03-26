@@ -1,0 +1,42 @@
+
+import itemize.schema
+
+primitive str 
+primitive int 
+
+class Base
+  starts: int
+  ends: int
+  type: Pattern
+  origin! Location?
+
+class Node < Base
+  kids: Pack*
+
+class Leaf < Base
+  value: str
+
+class Pack
+  parent: Node / kids
+  type: Pattern
+  pivot: int
+  left: Base?
+  right: Base
+
+class GSS
+  item! Pattern
+  pos: int
+  edges! Edge*
+
+class Edge
+  sppf: Base?
+  target: GSS
+
+class Location
+  path: str
+  offset: int
+  size: int
+  start_line: int
+  start_column: int
+  end_line: int
+  end_column: int

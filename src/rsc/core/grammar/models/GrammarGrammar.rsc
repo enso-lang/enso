@@ -4,7 +4,7 @@ extend rsc::core::grammar::models::ExprGrammar;
 extend rsc::core::grammar::models::PathGrammar;
 extend rsc::core::grammar::models::Lexical;
 
-start syntax Grammar
+start syntax EnsoGrammar
   = grammar: Import* imports "start" Sym start Rule* rules
   ;
   

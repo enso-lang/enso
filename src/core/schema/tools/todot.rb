@@ -2,7 +2,7 @@
 
 require 'core/system/load/load'
 
-class Todot
+class ObjectToDot
 
   def initialize
     @memo = {}
@@ -14,6 +14,7 @@ class Todot
 
   def todot(obj, out = '')
     out << "digraph #{obj.schema_class.name} {\n"
+    out << "rankdir = LR\n"
     out << "graph [ordering=out]\n"
     out << "node [shape=plaintext]\n"
     obj2dot(obj)
@@ -101,6 +102,6 @@ end
 if __FILE__ == $0 then
   #x = Load::load('door.state_machine')
   x = Load::load(ARGV[0])
-  t = Todot.new
+  t = ObjectToDot.new
   t.todot(x, $stdout)
 end

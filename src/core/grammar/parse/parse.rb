@@ -2,10 +2,12 @@
 require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
 require 'core/grammar/parse/enso-gll'
+require 'core/grammar/parse/enso-build'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
 require 'core/grammar/tools/rename_binding'
+# require 'debugger'
 
 class Parse
 
@@ -64,13 +66,20 @@ class Parse
   def self.load_raw(source, grammar, schema, factory, imports = [], show = false, filename = '-')
     org = Origins.new(source, filename)
     tree = parse(source, grammar, org)
+    # File.open('sppf.dot', 'w') do |f|
+    #   ToDot.to_dot(tree, f)
+    # end
     Print.print(inst) if show
-    Build.build(tree, factory, org, imports)
+    if ENV['GLL'] == 'enso' then
+      EnsoBuild::build(tree, factory, org, imports)
+    else
+      Build.build(tree, factory, org, imports)
+    end
   end
 
   def self.parse(source, grammar, org)
     if ENV['GLL'] == 'enso' then
-      EnsoGLL.parse(source, grammar, org)
+      EnsoGLL::parse(source, grammar, org)
     else
       GLL.parse(source, grammar, grammar.start, org)
     end

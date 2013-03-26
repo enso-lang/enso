@@ -1,0 +1,112 @@
+
+import expr.schema
+
+primitive str 
+primitive int 
+primitive bool 
+
+class Grammar 
+  start: Rule 
+  rules! Rule* 
+
+class Pattern
+ 
+class Rule < Pattern
+  name# str 
+  grammar: Grammar / rules 
+  arg! Pattern?   // optional because of abstract rules
+ 
+class Alt < Pattern 
+  alts! Pattern+ 
+
+class Sequence < Pattern 
+  elements! Pattern* 
+ 
+class Create < Pattern 
+  name: str 
+  arg! Pattern
+ 
+class Field < Pattern 
+  name: str 
+  arg! Pattern 
+ 
+class Code < Pattern
+  expr! Expr
+ 
+class Value < Pattern 
+  kind: str 
+ 
+class Ref < Pattern
+   path! Expr
+
+class Lit < Pattern 
+  value: str
+ 
+class Call < Pattern 
+  rule: Rule 
+ 
+class Regular < Pattern 
+  arg! Pattern 
+  optional: bool 
+  many: bool 
+  sep! Pattern ? 
+
+class NoSpace < Pattern
+class Break < Pattern
+  lines: int
+class Indent < Pattern
+  indent: int
+ 
+class Epsilon < Pattern
+
+class Expr
+
+class Item < Pattern
+  expression: Pattern
+  elements: Pattern*
+  dot: int
+
+class Base
+  starts: int
+  ends: int
+  type: Pattern
+  origin! Location?
+
+class Empty < Base
+  kids: Base* = []
+
+class Leaf < Base
+  value: str
+  ws: str
+  kids: Base* = []
+
+class Node < Base
+  kids: Pack*
+
+class Pack
+  parent: Node / kids
+  type: Item
+  pivot: int
+  left: Base?
+  right: Base
+  kids: Base* = (left == nil ? [right] : [left, right])
+
+
+
+class GSS
+  item! Item
+  pos: int
+  edges: Edge*
+
+class Edge
+  sppf: Base
+  target: GSS
+
+class Location
+  path: str
+  offset: int
+  size: int
+  start_line: int
+  start_column: int
+  end_line: int
+  end_column: int
