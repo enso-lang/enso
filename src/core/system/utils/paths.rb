@@ -33,7 +33,7 @@ module Paths
       Path.new(@@factory.ESubscript(@path, @@factory.EIntConst(index)))
     end
 
-    def ==(other)
+    def equals(other)
       Equals::equals(@path, other.path)
     end
 

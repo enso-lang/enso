@@ -126,7 +126,7 @@ Topological sort of the diff list
   def self.diff_ref(o1, o2, path, matches, ref)
     if o1==o2
       []
-    elsif !o1.nil? and !o2.nil? and o1._path==o2._path
+    elsif !o1.nil? and !o2.nil? and o1._path.equals(o2._path)
       []
     else
       [Op.new(mod, path, o2.nil? ? nil : o2._path)]

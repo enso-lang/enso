@@ -11,7 +11,7 @@ Part ::= [Container] Dir Props? "{" items:Part+ "}"
        | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
        | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part
-       | [CheckBox] "checkbox" Props? string:Expr
+       | [CheckBox] "checkbox" Props? value:Expr choices:Expr
        | [RadioList] "radio" Props? value:Expr choices:Expr
        | [TextBox] "text?" Props? value:Expr
        | [Pages] "pages" ("(" current:Expr ")")? Props? "{" items:Part+ "}"
@@ -23,7 +23,7 @@ ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:
 Index ::= "," index:sym
 
 Props ::= "[" props:Prop* @"," "]"
-Prop ::= [Prop] var:Expr "=" val:Expr
+Prop ::= [Prop] var:sym "=" val:Expr
 
 // Extra expressions
 

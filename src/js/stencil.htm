@@ -4,9 +4,9 @@
         <title>My Sample Project</title>
         <!-- data-main attribute tells require.js to load
              scripts/main.js after require.js loads. -->
+        <script src="jquery.js"></script>
         <script src="require.js"></script>
      <script>
-     document.write("FOO");
 requirejs([
   "enso",
 'core/system/load/load',
@@ -22,13 +22,95 @@ stencil = Load.load(stencil_file)
 data = Load.load(data_file)
 params = new EnsoHash({ data:  data })
 diagram = Construct.eval(stencil, params)
-html = Render.render(diagram, params)
-console.log("FOO");
-document.write(html)
-})
+//html = Render.render(diagram, params)
+//console.log("FOO");
+
+
+var interp = { 
+  render: function(obj) {
+    var self = this; 
+	type = obj.schema_class();
+    method = S("render", "_", type.name()).to_s();
+    console.log(S("this method is ", method));
+    result = this[method](obj);
+    return result;
+  },
+  render_Stencil: function (obj) {
+  	return this.render(obj.body())
+  },
+  render_Shape: function (obj) {
+  	if (obj.content()) {
+	  	return this.render(obj.content());
+  	} else {
+  		return document.createElement("p");
+  	}
+  },
+  render_Container: function (obj) {
+  	console.log("blah cont")
+  	var txt3 = $("<table>")
+  	if (obj.direction()==1) { //vertical
+	    for (var i=0,len=obj.items().size(); i<len; i++)
+	    {
+	    	t = this.render(obj.items()._get(i));
+	    	row = $("<tr>");
+	    	row.append(t);
+	    	txt3.append(row);
+	  	} 
+  	} else if (obj.direction()==2) { //horizontal
+	     var row = $("<tr>");
+	    for (var i=0,len=obj.items().size(); i<len; i++)
+	    {
+	    	t = this.render(obj.items()._get(i));
+	    	col = $("<td>");
+	    	col.append(t);
+	    	row.append(col);
+	  	} 
+	    txt3.append(row);
+  	}
+    return txt3;
+  },
+  render_Pages: function (obj) {
+  	console.log("blah pages")
+  	var txt3 = $("<p />")
+  	
+    for (var i=0,len=obj.items().size(); i<len; i++)
+    {
+    	t = this.render(obj.items()._get(i))
+    	t.appendTo(txt3)
+    }
+    return txt3;
+  },
+  render_Space: function (obj) {
+  	var txt3 = $("<p>");
+  	return txt3;
+  },
+  render_Text: function (obj) {
+  	console.log("blah text")
+  	var txt3 = $("<font face=\"verdana\">");
+  	txt3.text(obj.string().val().to_s()); 
+    return txt3;
+  },
+  render_TextBox: function (obj) {
+  	console.log("blah textbx")
+  	var txt3 = $("<input type='text'>");
+  	txt3.keyup(function () {
+		var value = parseInt($(this).val());
+		if (value) {
+			if (obj.value()._get('val')!=value) {
+				obj.value()._set('val', value);
+			}
+		}
+	}).keyup();
+  	txt3.val(obj.value().val().to_s()); 
+    return txt3;
+  }
+}
+
+   $("body").append(interp.render(diagram));
+}
+)
 </script>
     </head>
     <body>
-        <h1>My Sample Project</h1>
     </body>
 </html>

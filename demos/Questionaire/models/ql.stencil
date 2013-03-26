@@ -12,7 +12,7 @@ rule draw for elem:Group
     }
 
 rule draw for elem:Question {
-  box [line.color=(255,255,255)] {
+  box [line_color=(255,255,255)] {
     horizontal {
       text+ elem.qn
       call draw(elem.value) for elem.ans
@@ -28,7 +28,7 @@ rule draw(value) for elem:TextBox
 
 rule draw(value) for elem:CheckBox
   for choice : elem.choices {
-    checkbox choice.to_str
+    checkbox value choice.to_str
   }
 
 rule draw(value) for elem:MultiChoice
@@ -37,7 +37,7 @@ rule draw(value) for elem:MultiChoice
 rule draw for elem:Computed
   box { text+ "xxx" }
 
-// create the nodes (one for each class)
+  // create the nodes (one for each class)
   vertical {
     for elem : data.elems {
       call draw for elem

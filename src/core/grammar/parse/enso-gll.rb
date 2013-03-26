@@ -11,7 +11,6 @@ require 'core/grammar/parse/itemize'
 require 'core/grammar/parse/deformat'
 require 'core/grammar/parse/layout'
 require 'core/system/load/load'
-require 'ruby-prof'
 require 'core/schema/tools/copy'
 require 'core/grammar/parse/scan'
 

@@ -10,7 +10,7 @@ class Part
   props! Prop*
 
 class Prop
-  var! Expr
+  var! str
   val! Expr
 
 // DIAGRAMS
@@ -34,17 +34,15 @@ class Text < Part
   editable: bool
 
 class Widget < Part
+  value! Expr?
 
 class CheckBox < Widget
-  value! Expr?
-  string! Expr
+  choices! Expr
 
 class RadioList < Widget
-  value! Expr?
   choices! Expr
 
 class TextBox < Widget
-  value! Expr?
 
 class Connector < Part
   label! Expr?

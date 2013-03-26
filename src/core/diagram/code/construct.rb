@@ -30,8 +30,8 @@ module Construct
       nprops = @D[:props].clone
       props.each do |p|
         p1 = eval(p)
-        name = Renderexp::render(p1.var)
-        nprops[name] = p1
+        name = p1.var
+        nprops[p1.var] = p1
       end
       nprops
     end
@@ -82,7 +82,7 @@ module Construct
     def eval_Prop(obj)
       factory = @D[:factory]
       res = factory.Prop
-      res.var = factory.EStrConst(Renderexp::RenderExprC.new.render(obj.var))
+      res.var = obj.var
       res.val = Eval::make_const(factory, eval(obj.val))
       res
     end
