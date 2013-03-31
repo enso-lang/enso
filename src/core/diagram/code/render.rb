@@ -30,6 +30,7 @@ module Render
     end
 
     def render_Container(obj)
+      obj.schema_class.schema_class.fields.each {|f|}
       res = "<table>\n"
       res += "<tr>" if obj.direction==2
       obj.items.each do |item|

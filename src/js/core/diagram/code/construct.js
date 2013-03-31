@@ -26,58 +26,49 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       return res;
     };
 
-    this.handle_props = function(props) {
-      var self = this; 
-      var nprops, p1, name;
-      nprops = self.$.D._get("props").clone();
-      props.each(function(p) {
-        p1 = self.eval(p);
-        name = Renderexp.render(p1.var());
-        return nprops._set(name, p1);
-      });
-      return nprops;
-    };
-
     this.eval__P = function(obj) {
       var self = this; 
-      var type, factory, res, nprops, ev;
+      var type, factory, res, ev;
       type = obj.schema_class();
       factory = self.$.D._get("factory");
       res = factory._get(type.name());
-      nprops = self.handle_props(obj.props());
-      nprops.values().each(function(p) {
-        return res.props().push(p);
-      });
       type.fields().each(function(f) {
-        if (! (f.name() == "label" || f.name() == "props")) {
-          if (f.type().Primitive_P()) {
-            return res._set(f.name(), obj._get(f.name()));
-          } else if (f.type().name() == "Expr") {
-            if (obj._get(f.name()) == null) {
-              return res._set(f.name(), null);
-            } else {
-              return res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
-            }
+        if (f.type().name() == "Expr") {
+          if (obj._get(f.name()) == null) {
+            return res._set(f.name(), null);
           } else if (! f.many()) {
-            return self.dynamic_bind(function() {
-              return res._set(f.name(), self.eval(obj._get(f.name())));
-            }, new EnsoHash ({ props: nprops }));
+            return res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
           } else {
             return obj._get(f.name()).each(function(item) {
-              return self.dynamic_bind(function() {
-                ev = self.eval(item);
-                if (System.test_type(ev, Array)) {
-                  return ev.each(function(e) {
-                    if (! (e == null)) {
-                      return res._get(f.name()).push(e);
-                    }
-                  });
-                } else if (! (ev == null)) {
-                  return res._get(f.name()).push(ev);
-                }
-              }, new EnsoHash ({ props: nprops }));
+              ev = self.eval(item);
+              if (System.test_type(ev, Array)) {
+                return ev.each(function(e) {
+                  if (! (e == null)) {
+                    return res._get(f.name()).push(factory.Label(Eval.make_const(factory, e)));
+                  }
+                });
+              } else if (! (ev == null)) {
+                return res._get(f.name()).push(factory.Label(Eval.make_const(factory, ev)));
+              }
             });
           }
+        } else if (f.type().Primitive_P()) {
+          return res._set(f.name(), obj._get(f.name()));
+        } else if (! f.many()) {
+          return res._set(f.name(), self.eval(obj._get(f.name())));
+        } else {
+          return obj._get(f.name()).each(function(item) {
+            ev = self.eval(item);
+            if (System.test_type(ev, Array)) {
+              return ev.each(function(e) {
+                if (! (e == null)) {
+                  return res._get(f.name()).push(e);
+                }
+              });
+            } else if (! (ev == null)) {
+              return res._get(f.name()).push(ev);
+            }
+          });
         }
       });
       if (! (obj.label() == null)) {
@@ -91,9 +82,31 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       var factory, res;
       factory = self.$.D._get("factory");
       res = factory.Prop();
-      res.set_var(factory.EStrConst(Renderexp.RenderExprC.new().render(obj.var())));
+      res.set_var(obj.var());
       res.set_val(Eval.make_const(factory, self.eval(obj.val())));
       return res;
+    };
+
+    this.eval_Rule = function(obj) {
+      var self = this; 
+      var funname, forms;
+      funname = S(obj.name(), "__", obj.type());
+      forms = [obj.obj()];
+      obj.formals().each(function(f) {
+        return forms.push(f.name());
+      });
+      return self.$.D._get("env")._set(funname, Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self));
+    };
+
+    this.eval_RuleCall = function(obj) {
+      var self = this; 
+      var target, funname, args;
+      target = self.eval(obj.obj());
+      funname = S(obj.name(), "__", target.schema_class().name());
+      args = obj.params().map(function(p) {
+        return self.eval(p);
+      });
+      return self.$.D._get("env")._get(funname).apply(self.$.D._get("env")._get(funname), [target].concat(args));
     };
 
     this.eval_EFor = function(obj) {
@@ -108,28 +121,46 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       });
     };
 
+    this.eval_RadioList = function(obj) {
+      var self = this; 
+      var type, factory, res, cs;
+      type = obj.schema_class();
+      factory = self.$.D._get("factory");
+      res = factory._get(type.name());
+      res.set_label(obj.label());
+      obj.props().each(function(prop) {
+        return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
+      });
+      res.set_value(Eval.make_const(factory, self.eval(obj.value())));
+      obj.choices().each(function(choice) {
+        cs = self.eval(choice);
+        return cs.each(function(c) {
+          return res.choices().push(Eval.make_const(factory, c));
+        });
+      });
+      return res;
+    };
+
     this.eval_Pages = function(obj) {
       var self = this; 
-      var factory, res, nprops, ev, neval;
+      var factory, res, ev, neval;
       factory = self.$.D._get("factory");
       res = factory.Pages();
-      nprops = self.handle_props(obj.props());
-      nprops.values().each(function(p) {
-        return res.props().push(p);
+      res.set_label(obj.label());
+      obj.props().each(function(prop) {
+        return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
       });
       obj.items().each(function(item) {
-        return self.dynamic_bind(function() {
-          ev = self.eval(item);
-          if (System.test_type(ev, Array)) {
-            return ev.flatten().each(function(e) {
-              if (! (e == null)) {
-                return res.items().push(e);
-              }
-            });
-          } else if (! (ev == null)) {
-            return res.items().push(ev);
-          }
-        }, new EnsoHash ({ props: nprops }));
+        ev = self.eval(item);
+        if (System.test_type(ev, Array)) {
+          return ev.flatten().each(function(e) {
+            if (! (e == null)) {
+              return res.items().push(e);
+            }
+          });
+        } else if (! (ev == null)) {
+          return res.items().push(ev);
+        }
       });
       if (obj.current().Eval_P()) {
         neval = factory.Eval();

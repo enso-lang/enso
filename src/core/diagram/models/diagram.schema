@@ -6,11 +6,11 @@ class Stencil
   body! Part
 
 class Part
-  label: str?
+  label: str
   props! Prop*
 
 class Prop
-  var! str
+  var# str
   val! Expr
 
 // DIAGRAMS
@@ -37,22 +37,12 @@ class Widget < Part
   value! Expr?
 
 class CheckBox < Widget
-  choices! Expr
+  choices! Expr*
 
 class RadioList < Widget
-  choices! Expr
+  choices! Expr*
 
 class TextBox < Widget
-
-class Connector < Part
-  label! Expr?
-  ends! ConnectorEnd*
-
-class ConnectorEnd
-  arrow: str?
-  label! Expr?
-  other_label! Expr?
-  part! Expr
 
 // Additional expr 
 
@@ -73,3 +63,6 @@ primitive int
 primitive str
 primitive bool
 primitive atom
+
+class Label
+  string # str

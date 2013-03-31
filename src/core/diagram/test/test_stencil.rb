@@ -10,6 +10,7 @@ stencil_file = "#{data_file.split('.')[-1]}.stencil"
 
 stencil = Load::load(stencil_file)
 data = Load::load(data_file)
+
 model = Construct::eval(stencil, data: data)
 
 def render(diagram, data)

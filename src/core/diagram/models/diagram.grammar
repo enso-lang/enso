@@ -24,6 +24,7 @@ Index ::= "," index:sym
 
 Props ::= "[" props:Prop* @"," "]"
 Prop ::= [Prop] var:sym "=" val:Expr
+       | [Prop] var:str "=" val:Expr
 
 // Extra expressions
 

@@ -22,4 +22,4 @@ Computed ::= [Computed] name:sym ":" type:Type "=" expr:Expr
 
 Type ::= "int" | "bool" | "str" | "real"
 
-Label ::= [Label] to_str:str
+Label ::= [Label] string:str

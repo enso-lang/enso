@@ -38,5 +38,5 @@ class Computed < Answer
   expr ! Expr
 
 class Label
-  to_str # str
+  string # str
 

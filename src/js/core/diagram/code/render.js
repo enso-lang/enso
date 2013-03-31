@@ -10,7 +10,7 @@ function(Renderexp, Construct, Interpreter) {
     this.render_Stencil = function(obj) {
       var self = this; 
       var pre, post, body;
-      pre = ("\n<!DOCTYPE html>\n<html>\n<head>\n<script src=\"./lib/jquery-1.9.1.min.js\">\n</script>\n<title>" + obj.title()) + "</title>\n</head>\n<body>\n      ";
+      pre = ("\n<!DOCTYPE html>\n<html>\n<head>\n<script src=\"./lib/jquery-1.9.1.min.js\">\n</script>\n<title>" + (obj.title() || "Enso Page")) + "</title>\n</head>\n<body>\n      ";
       post = "\n</body>\n</html>\n      ";
       body = self.dynamic_bind(function() {
         return self.render(obj.body());
@@ -21,13 +21,15 @@ function(Renderexp, Construct, Interpreter) {
     this.render_Container = function(obj) {
       var self = this; 
       var res;
-      res = "<table>\n";
+      obj.schema_class().schema_class().fields().each(function(f) {
+      });
+      res = "<table>\\n";
       if (obj.direction() == 2) {
         res = res + "<tr>";
       }
       obj.items().each(function(item) {
         if (obj.direction() == 1) {
-          return res = res + ("<tr><td>" + self.render(item)) + "</td></tr>\n";
+          return res = res + ("<tr><td>" + self.render(item)) + "</td></tr>\\n";
         } else if (obj.direction() == 2) {
           return res = res + ("<td>" + self.render(item)) + "</td>";
         }
@@ -35,7 +37,7 @@ function(Renderexp, Construct, Interpreter) {
       if (obj.direction() == 2) {
         res = res + "</tr>";
       }
-      res = res + "</table>\n";
+      res = res + "</table>\\n";
       return res;
     };
 

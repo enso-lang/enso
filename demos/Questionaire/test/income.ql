@@ -1,6 +1,6 @@
 import prelude.ql
 
-hasSoldHouse: "Did you sell a house in 2010?" money
+hasSoldHouse: "Did you sell a house in 2010?" boolean
 hasBoughtHouse: "Did you buy a house in 2010?" money
 hasMaintLoan: "Did you enter a loan for maintenance/reconstruction?" money
 

@@ -32,7 +32,7 @@ function(Eval, Lvalue, Interpreter, Env) {
         var nv, nenv;
         nv = new EnsoHash ({ });
         self.$.formals.each_with_index(function(f, i) {
-          return nv._set(f.name(), params._get(i));
+          return nv._set(f, params._get(i));
         });
         nenv = Env.HashEnv.new(nv, self.$.env);
         return self.$.interp.dynamic_bind(function() {
@@ -103,15 +103,25 @@ function(Eval, Lvalue, Interpreter, Env) {
 
     this.eval_EFunDef = function(obj) {
       var self = this; 
-      self.$.D._get("env")._set(obj.name(), Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self));
+      var forms;
+      forms = [];
+      obj.formals().each(function(f) {
+        return forms.push(f.name());
+      });
+      self.$.D._get("env")._set(obj.name(), Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self));
       return null;
     };
 
     this.eval_ELambda = function(obj) {
       var self = this; 
+      var forms;
+      forms = [];
+      obj.formals().each(function(f) {
+        return forms.push(f.name());
+      });
       return Proc.new(function() {
         var p = compute_rest_arguments(arguments, 0);
-        return Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self).apply(Impl.Closure.make_closure(obj.body(), obj.formals(), self.$.D._get("env"), self), [].concat(p));
+        return Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self).apply(Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self), [].concat(p));
       });
     };
 

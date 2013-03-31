@@ -1,6 +1,17 @@
 import diagram.schema
 import impl.schema with Command as Part
 
+// DIAGRAMS
+
+class Text < Part
+  string! Expr
+
+class CheckBox < Widget
+  choices! Expr
+
+class RadioList < Widget
+  choices! Expr
+
 class Rule < EFunDef	//a rule is essentially a sugar-ed up function
   obj:str
   type:str

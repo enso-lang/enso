@@ -26,49 +26,40 @@ module Construct
       res
     end
 
-    def handle_props(props)
-      nprops = @D[:props].clone
-      props.each do |p|
-        p1 = eval(p)
-        name = p1.var
-        nprops[p1.var] = p1
-      end
-      nprops
-    end
-
     def eval_?(obj)
       # simple copy that evaluates the "holes"
       type = obj.schema_class
       factory = @D[:factory]
       res = factory[type.name]
-      nprops = handle_props(obj.props)
-      nprops.values.each {|p| res.props << p }        
       type.fields.each do |f|
-        if !(f.name=="label" or f.name=="props")
+        if f.type.name=="Expr" # and res.schema_class.fields[f.name].type.name!="Expr"
+          if obj[f.name].nil?
+            res[f.name] = nil
+          elsif !f.many
+            res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
+          else
+            obj[f.name].each do |item|
+              ev = eval(item)
+              if ev.is_a? Array    # flatten arrays
+                ev.each {|e| if not e.nil?; res[f.name] << factory.Label(Eval::make_const(factory, e)); end}
+              elsif not ev.nil?
+                res[f.name] << factory.Label(Eval::make_const(factory, ev))
+              end 
+            end
+          end
+        else
           if f.type.Primitive?
             res[f.name] = obj[f.name]
-          elsif f.type.name=="Expr"
-            if obj[f.name].nil?
-              res[f.name] = nil
-            else
-              res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
-            end
+          elsif !f.many
+            res[f.name] = eval(obj[f.name])
           else
-            if !f.many
-    	        dynamic_bind props: nprops do
-                res[f.name] = eval(obj[f.name])
-  	        end
-            else
-              obj[f.name].each do |item|
-                dynamic_bind props: nprops do
-                  ev = eval(item)
-                  if ev.is_a? Array    # flatten arrays
-                    ev.each {|e| if not e.nil?; res[f.name] << e; end}
-                  elsif not ev.nil?
-                    res[f.name] << ev
-                  end 
-                end
-              end
+            obj[f.name].each do |item|
+              ev = eval(item)
+              if ev.is_a? Array    # flatten arrays
+                ev.each {|e| if not e.nil?; res[f.name] << e; end}
+              elsif not ev.nil?
+                res[f.name] << ev
+              end 
             end
           end
         end
@@ -112,20 +103,39 @@ module Construct
       end
     end
 
+    def eval_RadioList(obj)
+      type = obj.schema_class
+      factory = @D[:factory]
+      res = factory[type.name]
+      res.label = obj.label
+      obj.props.each do |prop|
+        res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
+      end
+      res.value = Eval::make_const(factory, eval(obj.value))
+#      obj.choices.map{|c|eval(c)}.each do |choice|
+      obj.choices.each do |choice|
+        cs = eval(choice)
+        cs.each do |c|
+          res.choices << Eval::make_const(factory, c)
+        end
+      end
+      res
+    end
+
     def eval_Pages(obj)
       factory = @D[:factory]
       res = factory.Pages
-      nprops = handle_props(obj.props)
-      nprops.values.each {|p| res.props << p }
+      res.label = obj.label
+      obj.props.each do |prop|
+        res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
+      end
       obj.items.each do |item|
-        dynamic_bind props: nprops do
           ev = eval(item)
           if ev.is_a? Array    # flatten arrays
             ev.flatten.each {|e| if not e.nil?; res.items << e; end}
           elsif not ev.nil?
             res.items << ev
           end
-        end
       end
       #####FIXME: Ugly hack to make Eval work
       if obj.current.Eval?

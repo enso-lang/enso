@@ -25,6 +25,19 @@ diagram = Construct.eval(stencil, params)
 //html = Render.render(diagram, params)
 //console.log("FOO");
 
+function getMethods(obj) {
+  var result = [];
+  for (var id in obj) {
+    try {
+      if (typeof(obj[id]) == "function") {
+        result.push(id + ": " + obj[id].toString());
+      }
+    } catch (err) {
+      result.push(id + ": inaccessible");
+    }
+  }
+  return result;
+}
 
 var interp = { 
   render: function(obj) {
@@ -40,21 +53,22 @@ var interp = {
   },
   render_Shape: function (obj) {
   	if (obj.content()) {
-	  	return this.render(obj.content());
+	  return this.render(obj.content());
   	} else {
-  		return document.createElement("p");
+      return document.createElement("p");
   	}
   },
   render_Container: function (obj) {
   	console.log("blah cont")
-  	var txt3 = $("<table>")
+  	var dom = $('<table>')
+  	this.make_style(dom, obj.props());
   	if (obj.direction()==1) { //vertical
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
 	    	t = this.render(obj.items()._get(i));
-	    	row = $("<tr>");
+	    	row = $('<tr border="1">');
 	    	row.append(t);
-	    	txt3.append(row);
+	    	dom.append(row);
 	  	} 
   	} else if (obj.direction()==2) { //horizontal
 	     var row = $("<tr>");
@@ -65,20 +79,20 @@ var interp = {
 	    	col.append(t);
 	    	row.append(col);
 	  	} 
-	    txt3.append(row);
+	    dom.append(row);
   	}
-    return txt3;
+    return dom;
   },
   render_Pages: function (obj) {
   	console.log("blah pages")
-  	var txt3 = $("<p />")
-  	
+  	var dom = $("<p />")
+  	this.make_style(dom, obj.props());
     for (var i=0,len=obj.items().size(); i<len; i++)
     {
-    	t = this.render(obj.items()._get(i))
-    	t.appendTo(txt3)
+    	t = this.render(obj.items()._get(i));
+    	t.appendTo(dom);
     }
-    return txt3;
+    return dom;
   },
   render_Space: function (obj) {
   	var txt3 = $("<p>");
@@ -86,14 +100,16 @@ var interp = {
   },
   render_Text: function (obj) {
   	console.log("blah text")
-  	var txt3 = $("<font face=\"verdana\">");
-  	txt3.text(obj.string().val().to_s()); 
-    return txt3;
+  	var dom = $('<text>');
+  	this.make_style(dom, obj.props());
+  	dom.text(obj.string().val().to_s());
+    return dom;
   },
   render_TextBox: function (obj) {
   	console.log("blah textbx")
-  	var txt3 = $("<input type='text'>");
-  	txt3.keyup(function () {
+  	var dom = $("<input type='text'>");
+  	this.make_style(dom, obj.props());
+  	dom.keyup(function () {
 		var value = parseInt($(this).val());
 		if (value) {
 			if (obj.value()._get('val')!=value) {
@@ -101,16 +117,50 @@ var interp = {
 			}
 		}
 	}).keyup();
-  	txt3.val(obj.value().val().to_s()); 
-    return txt3;
-  }
+  	dom.val(obj.value().val().to_s()); 
+    return dom;
+  },
+  render_CheckBox: function (obj) {
+  	console.log("blah chkbx")
+  	var dom = $("<input type='checkbox'>");
+  	this.make_style(dom, obj.props);
+  	var li = $("<li>asd</li>");
+  	dom.append(li);
+    return dom;
+  },
+  render_RadioList: function (obj) {
+  	console.log("blah radbx")
+  	var dom = $('<form>');
+  	this.make_style(dom, obj.props());
+    for (var i=0,len=obj.choices().size(); i<len; i++)
+    {
+    	var choice = obj.choices()._get(i);
+    	var line = S("<input type='radio'>", choice.val(), "</input>");
+    	var arrange = obj.props._get("arrange");
+    	console.log(obj.props._get("arrange"));
+    	if (arrange=='vertical') {
+    		line = line + "<br>";
+    	} else if (arrange=='horizontal') {
+    	} else {
+    		//automatically determine how to arrange
+    	}
+        dom.append($(line));
+    }
+    return dom;
+  },
+  coercetostr: function () { },
+  coercefromstr: function () { },
+  make_style: function (dom, props) {
+  	props.each(function(prop) {
+      dom.css(prop.var().to_s(), prop.val().val().to_s());
+    });
+  },
 }
-
-   $("body").append(interp.render(diagram));
+   data = interp.render(diagram)
+   $("body").append(data);
 }
 )
 </script>
     </head>
     <body>
-    </body>
 </html>

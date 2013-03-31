@@ -1,41 +1,38 @@
 import currency.stencil
 
 diagram(data) {
+	
+	rule draw for elem:Group
+	    pages(0) {
+	      vertical {
+	        for elem : elem.elems
+	          call draw for elem
+	      }
+	      --
+	    }
+	
+	rule draw for elem:Question
+	  box {
+	    horizontal {
+	      text ["font-family" = "arial"] elem.qn
+	      call draw(elem.value) for elem.ans
+	    }
+	  }
+	
+	rule draw(value) for elem:TextBox
+	  if elem.name=="money" 
+	    text? convert(100)
+	  else
+	    text? elem.name
 
-rule draw for elem:Group
-    pages(0) {
-      vertical {
-        for elem : elem.elems
-          call draw for elem
-      }
-      --
-    }
+	rule draw(value) for elem:CheckBox
+	  checkbox value elem.choices
 
-rule draw for elem:Question {
-  box [line_color=(255,255,255)] {
-    horizontal {
-      text+ elem.qn
-      call draw(elem.value) for elem.ans
-    }
-  }
-}
+	rule draw(value) for elem:MultiChoice
+	  radio [arrange = "vertical"] value elem.choices.map(){|c|return c.string}
 
-rule draw(value) for elem:TextBox
-  if elem.name=="money" 
-    text? convert(100)
-  else
-    text? elem.name
-
-rule draw(value) for elem:CheckBox
-  for choice : elem.choices {
-    checkbox value choice.to_str
-  }
-
-rule draw(value) for elem:MultiChoice
-  radio elem.value elem.choices
-
-rule draw for elem:Computed
-  box { text+ "xxx" }
+	rule draw for elem:Computed
+	  box { text+ "xxx" }
 
   // create the nodes (one for each class)
   vertical {
