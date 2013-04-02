@@ -1,7 +1,7 @@
 diagram(data) {
 
 def convert(usd) {
-  return usd / 130
+  return usd / 1.30
 }
 
 }
