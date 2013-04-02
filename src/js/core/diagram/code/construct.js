@@ -26,6 +26,22 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       return res;
     };
 
+    this.flatten = function(arr) {
+      var self = this; 
+      var res;
+      if (System.test_type(arr, Array)) {
+        res = [];
+        arr.each(function(a) {
+          return res = res.concat(self.flatten(a));
+        });
+        return res;
+      } else if (arr == null) {
+        return [];
+      } else {
+        return [arr];
+      }
+    };
+
     this.eval__P = function(obj) {
       var self = this; 
       var type, factory, res, ev;
@@ -59,15 +75,9 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
         } else {
           return obj._get(f.name()).each(function(item) {
             ev = self.eval(item);
-            if (System.test_type(ev, Array)) {
-              return ev.each(function(e) {
-                if (! (e == null)) {
-                  return res._get(f.name()).push(e);
-                }
-              });
-            } else if (! (ev == null)) {
-              return res._get(f.name()).push(ev);
-            }
+            return self.flatten(ev).each(function(e) {
+              return res._get(f.name()).push(e);
+            });
           });
         }
       });
@@ -119,6 +129,26 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
           return self.eval(obj.body());
         }, new EnsoHash ({ env: nenv }));
       });
+    };
+
+    this.eval_CheckBox = function(obj) {
+      var self = this; 
+      var type, factory, res, cs;
+      type = obj.schema_class();
+      factory = self.$.D._get("factory");
+      res = factory._get(type.name());
+      res.set_label(obj.label());
+      obj.props().each(function(prop) {
+        return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
+      });
+      res.set_value(Eval.make_const(factory, self.eval(obj.value())));
+      obj.choices().each(function(choice) {
+        cs = self.eval(choice);
+        return cs.each(function(c) {
+          return res.choices().push(Eval.make_const(factory, c));
+        });
+      });
+      return res;
     };
 
     this.eval_RadioList = function(obj) {

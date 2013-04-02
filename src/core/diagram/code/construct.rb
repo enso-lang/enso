@@ -26,6 +26,20 @@ module Construct
       res
     end
 
+    def flatten(arr)
+      if arr.is_a? Array
+        res = []
+        arr.each {|a|res = res.concat(flatten(a))}
+        res
+      else
+        if arr.nil?
+          []
+        else
+          [arr]
+        end
+      end
+    end
+
     def eval_?(obj)
       # simple copy that evaluates the "holes"
       type = obj.schema_class
@@ -55,11 +69,7 @@ module Construct
           else
             obj[f.name].each do |item|
               ev = eval(item)
-              if ev.is_a? Array    # flatten arrays
-                ev.each {|e| if not e.nil?; res[f.name] << e; end}
-              elsif not ev.nil?
-                res[f.name] << ev
-              end 
+              flatten(ev).each {|e| res[f.name] << e}
             end
           end
         end
@@ -101,6 +111,25 @@ module Construct
           eval(obj.body)
         end
       end
+    end
+
+    def eval_CheckBox(obj)
+      type = obj.schema_class
+      factory = @D[:factory]
+      res = factory[type.name]
+      res.label = obj.label
+      obj.props.each do |prop|
+        res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
+      end
+      res.value = Eval::make_const(factory, eval(obj.value))
+#      obj.choices.map{|c|eval(c)}.each do |choice|
+      obj.choices.each do |choice|
+        cs = eval(choice)
+        cs.each do |c|
+          res.choices << Eval::make_const(factory, c)
+        end
+      end
+      res
     end
 
     def eval_RadioList(obj)

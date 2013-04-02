@@ -128,8 +128,10 @@ function(Schema, Interpreter) {
       var self = this; 
       if (System.test_type(val, String)) {
         return factory.EStrConst(val);
-      } else if (System.test_type(val, Integer)) {
+      } else if (System.test_type(val, Integer) && val % 1 == 0) {
         return factory.EIntConst(val);
+      } else if (System.test_type(val, Float) && val % 1 != 0) {
+        return factory.ERealConst(val);
       } else if (System.test_type(val, TrueClass) || System.test_type(val, FalseClass)) {
         return factory.EBoolConst(val);
       } else if (val == null) {

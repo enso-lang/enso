@@ -25,7 +25,7 @@ render(model, data)
 
 require 'test/repl.rb'
 
-Repl.run(data) do
+Repl.run(model) do
   render(model, data)
   puts "Re-rendered page"
 end

@@ -16,7 +16,7 @@ class Prop
 // DIAGRAMS
 
 class Container < Part
-  direction: int // 1=vert, 2=hoiz, 3=graph
+  direction: int // 1=vert, 2=hoiz, 3=grid, 4=graph
   items! Part*
 
 class Pages < Part

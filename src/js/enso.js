@@ -303,6 +303,7 @@ if (typeof window === 'undefined') {
   }
   
   Integer = Number;
+  Float = Number;
   Numeric = Number;
   Fixnum = Number;
   

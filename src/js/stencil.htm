@@ -39,7 +39,7 @@ function getMethods(obj) {
   return result;
 }
 
-var interp = { 
+var interp = {
   render: function(obj) {
     var self = this; 
 	type = obj.schema_class();
@@ -59,10 +59,57 @@ var interp = {
   	}
   },
   render_Container: function (obj) {
-  	console.log("blah cont")
-  	var dom = $('<table>')
-  	this.make_style(dom, obj.props());
+  	console.log("blah cont");
+  	var dom;
   	if (obj.direction()==1) { //vertical
+       dom = $('<table>');
+	    for (var i=0,len=obj.items().size(); i<len; i++)
+	    {
+	    	var t = this.render(obj.items()._get(i));
+	    	var row = $('<tr border="1">');
+	    	row.append(t);
+	    	dom.append(row);
+	  	} 
+  	} else if (obj.direction()==2) { //horizontal
+       dom = $('<table>');
+	    var row = $('<tr border="1">');
+	    var grid = false;
+	    if (this.in_grid > 0) {
+	    	grid = true;
+//	    	this.in_grid -= 1;
+	    }
+	    for (var i=0,len=obj.items().size(); i<len; i++)
+	    {
+	    	var t = this.render(obj.items()._get(i));
+	    	var col = $('<td>');
+	    	col.append(t);
+	    	row.append(col);
+	  	} 
+	    dom.append(row);
+	    if (grid) {
+//	    	this.in_grid += 1;
+	    	dom = row;
+	    }
+  	} else if (obj.direction()==3) { //grid
+//  		alert('asdf');
+		dom = $('<table>');
+		this.in_grid += 1;
+		for (var i=0,len=obj.items().size(); i<len; i++)
+	    {
+	    	var row = this.render(obj.items()._get(i));
+//	    	var row = $('<tr border="1">');
+//	    	row.append(t);
+	    	dom.append(row);
+	  	}
+		this.in_grid -= 1;
+  	} else { //some freeform thing
+  		
+  	}
+  	this.make_style(dom, obj.props());
+  	return dom;
+/*
+  	if (obj.direction()==1 || obj.direction()==3) { //vertical or grid
+       dom = $('<table>');
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
 	    	t = this.render(obj.items()._get(i));
@@ -71,27 +118,37 @@ var interp = {
 	    	dom.append(row);
 	  	} 
   	} else if (obj.direction()==2) { //horizontal
-	     var row = $("<tr>");
-	    for (var i=0,len=obj.items().size(); i<len; i++)
-	    {
-	    	t = this.render(obj.items()._get(i));
-	    	col = $("<td>");
-	    	col.append(t);
-	    	row.append(col);
-	  	} 
-	    dom.append(row);
+	     if (this.in_grid > 0) {
+	     	this.in_grid-=1;
+		    for (var i=0,len=obj.items().size(); i<len; i++)
+		    {
+		    	t = this.render(obj.items()._get(i));
+		    	col = $("<td>");
+		    	col.append(t);
+		    	row.append(col);
+		  	}
+	     	this.in_grid+=1;
+	     } else {
+           dom = $('<table>');
+		    var row = $('<tr>');
+		    for (var i=0,len=obj.items().size(); i<len; i++)
+		    {
+		    	t = this.render(obj.items()._get(i));
+		    	col = $("<td>");
+		    	col.append(t);
+		    	row.append(col);
+		  	}
+		    dom.append(row);
+	    }
   	}
+  	this.make_style(dom, obj.props());
     return dom;
+*/
   },
   render_Pages: function (obj) {
   	console.log("blah pages")
-  	var dom = $("<p />")
-  	this.make_style(dom, obj.props());
-    for (var i=0,len=obj.items().size(); i<len; i++)
-    {
-    	t = this.render(obj.items()._get(i));
-    	t.appendTo(dom);
-    }
+  	var index = obj.current().val();
+  	var dom = this.render(obj.items()._get(index));
     return dom;
   },
   render_Space: function (obj) {
@@ -122,27 +179,47 @@ var interp = {
   },
   render_CheckBox: function (obj) {
   	console.log("blah chkbx")
-  	var dom = $("<input type='checkbox'>");
-  	this.make_style(dom, obj.props);
-  	var li = $("<li>asd</li>");
-  	dom.append(li);
+  	var dom = $('<form>');
+  	this.make_style(dom, obj.props());
+  	var arrange = obj.props._get("arrange");
+  	if (arrange!='vertical' && arrange!='horizontal') {
+  		//guess how to arrange
+  		var too_long = false;
+  		obj.choices().each(function(c) {
+  			if (c.val().length > 20) too_long=true;
+  		});
+  		if (too_long) arrange='vertical';
+  	}
+    for (var i=0,len=obj.choices().size(); i<len; i++)
+    {
+    	var choice = obj.choices()._get(i);
+    	var line = S("<input type='checkbox' name='", obj._id().toString(),"'>", choice.val(), "</input>");
+    	if (arrange=='vertical') {
+    		line = line + "<br>";
+    	}
+        dom.append($(line));
+    }
     return dom;
   },
   render_RadioList: function (obj) {
   	console.log("blah radbx")
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
+  	var arrange = obj.props._get("arrange");
+  	if (arrange!='vertical' && arrange!='horizontal') {
+  		//guess how to arrange
+  		var too_long = false;
+  		obj.choices().each(function(c) {
+  			if (c.val().length > 20) too_long=true;
+  		});
+  		if (too_long) arrange='vertical';
+  	}
     for (var i=0,len=obj.choices().size(); i<len; i++)
     {
     	var choice = obj.choices()._get(i);
-    	var line = S("<input type='radio'>", choice.val(), "</input>");
-    	var arrange = obj.props._get("arrange");
-    	console.log(obj.props._get("arrange"));
+    	var line = S("<input type='radio' name='", obj._id().toString(),"'>", choice.val(), "</input>");
     	if (arrange=='vertical') {
     		line = line + "<br>";
-    	} else if (arrange=='horizontal') {
-    	} else {
-    		//automatically determine how to arrange
     	}
         dom.append($(line));
     }
@@ -155,6 +232,7 @@ var interp = {
       dom.css(prop.var().to_s(), prop.val().val().to_s());
     });
   },
+  in_grid: []
 }
    data = interp.render(diagram)
    $("body").append(data);

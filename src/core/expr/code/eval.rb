@@ -106,8 +106,10 @@ module Eval
   def self.make_const(factory, val)
     if val.is_a?(String)
       factory.EStrConst(val)
-    elsif val.is_a?(Integer)
+    elsif val.is_a?(Integer) and val%1==0 #remainder test is needed for JS conversion
       factory.EIntConst(val)
+    elsif val.is_a?(Float) and val%1!=0
+      factory.ERealConst(val)
     elsif val.is_a?(TrueClass) or val.is_a?(FalseClass)
       factory.EBoolConst(val)
     elsif val.nil?
