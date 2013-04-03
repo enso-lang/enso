@@ -3,6 +3,7 @@ import expr.schema
 primitive str
 
 class Questionaire
+  title : str?
   elems ! Element*
   answers ! Answer*
   all_elems : Question* = elems.flat_map() {|e| return e.all_elems}

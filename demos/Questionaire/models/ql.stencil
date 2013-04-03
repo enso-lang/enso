@@ -6,7 +6,7 @@ diagram(data) {
 	          								call draw for elem
 
 	rule draw for elem:Question			horizontal {
-			      							text ["font-family" = "arial"] elem.qn
+			      							text elem.qn
 	      									call draw(elem.value) for elem.ans
 	    								}
 
@@ -26,9 +26,17 @@ diagram(data) {
 	///////////////////////////////////////////////////////////////
 
 	//create the nodes (one for each class)
-	grid {
-    	for elem : data.elems {
-			call draw for elem
+	style [background="#feb97d", height="100%", width="100%"] {
+	vertical [background="#feb97d", color="#570C00", border="1px solid black",
+			height="100%", width="760px", margin="0 auto"] {
+		style [background="#943400", color="#fff", padding="16px 10px 20px",
+				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
+			text data.title
 		}
-	}
+		grid [background="#fff", border="1px solid red"] { //, "font-family" = "arial"] {
+    		for elem : data.elems {
+				call draw for elem
+			}
+		}
+	} }
 }

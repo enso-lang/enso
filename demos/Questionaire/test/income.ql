@@ -1,5 +1,7 @@
 import prelude.ql
 
+title "House buying survey"
+
 hasSoldHouse: "Did you sell a house in 2010?" boolean
 hasBoughtHouse: "Did you buy a house in 2010?" boolean
 hasMaintLoan: "Did you enter a loan for maintenance/reconstruction?" money

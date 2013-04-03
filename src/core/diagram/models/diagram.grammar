@@ -17,7 +17,7 @@ Part ::= [Container] Dir Props? "{" items:Part+ "}"
        | [Pages] "pages" ("(" current:Expr ")")? Props? "{" items:Part+ "}"
        | [Space] "--" Props?
 
-Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "grid"  {direction==3} | "graph"  {direction==4} | "do"  {direction==4}
+Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "grid"  {direction==3} | "graph"  {direction==4} | "style"  {direction==5}
 ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
 Index ::= "," index:sym

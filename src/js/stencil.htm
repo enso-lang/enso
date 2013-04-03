@@ -22,8 +22,6 @@ stencil = Load.load(stencil_file)
 data = Load.load(data_file)
 params = new EnsoHash({ data:  data })
 diagram = Construct.eval(stencil, params)
-//html = Render.render(diagram, params)
-//console.log("FOO");
 
 function getMethods(obj) {
   var result = [];
@@ -44,22 +42,13 @@ var interp = {
     var self = this; 
 	type = obj.schema_class();
     method = S("render", "_", type.name()).to_s();
-    console.log(S("this method is ", method));
-    result = this[method](obj);
-    return result;
+    dom = this[method](obj);
+    return dom;
   },
   render_Stencil: function (obj) {
   	return this.render(obj.body())
   },
-  render_Shape: function (obj) {
-  	if (obj.content()) {
-	  return this.render(obj.content());
-  	} else {
-      return document.createElement("p");
-  	}
-  },
   render_Container: function (obj) {
-  	console.log("blah cont");
   	var dom;
   	if (obj.direction()==1) { //vertical
        dom = $('<table>');
@@ -71,12 +60,11 @@ var interp = {
 	    	dom.append(row);
 	  	} 
   	} else if (obj.direction()==2) { //horizontal
-       dom = $('<table>');
+        dom = $('<table>');
 	    var row = $('<tr border="1">');
 	    var grid = false;
 	    if (this.in_grid > 0) {
 	    	grid = true;
-//	    	this.in_grid -= 1;
 	    }
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
@@ -87,83 +75,47 @@ var interp = {
 	  	} 
 	    dom.append(row);
 	    if (grid) {
-//	    	this.in_grid += 1;
 	    	dom = row;
 	    }
   	} else if (obj.direction()==3) { //grid
-//  		alert('asdf');
-		dom = $('<table>');
+		dom2 = $('<table cellpadding="10" height="100%">');
 		this.in_grid += 1;
 		for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
+	    	dom2.append(row);
 	    	var row = this.render(obj.items()._get(i));
-//	    	var row = $('<tr border="1">');
-//	    	row.append(t);
-	    	dom.append(row);
 	  	}
 		this.in_grid -= 1;
-  	} else { //some freeform thing
-  		
-  	}
-  	this.make_style(dom, obj.props());
-  	return dom;
-/*
-  	if (obj.direction()==1 || obj.direction()==3) { //vertical or grid
-       dom = $('<table>');
+		dom = $('<div height="100%">');
+		dom.append(dom2);
+  	} else if (obj.direction()==4) { //graph
+  	} else if (obj.direction()==5) { //style, group
+  		dom = $('<div>')
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
-	    	t = this.render(obj.items()._get(i));
-	    	row = $('<tr border="1">');
-	    	row.append(t);
-	    	dom.append(row);
-	  	} 
-  	} else if (obj.direction()==2) { //horizontal
-	     if (this.in_grid > 0) {
-	     	this.in_grid-=1;
-		    for (var i=0,len=obj.items().size(); i<len; i++)
-		    {
-		    	t = this.render(obj.items()._get(i));
-		    	col = $("<td>");
-		    	col.append(t);
-		    	row.append(col);
-		  	}
-	     	this.in_grid+=1;
-	     } else {
-           dom = $('<table>');
-		    var row = $('<tr>');
-		    for (var i=0,len=obj.items().size(); i<len; i++)
-		    {
-		    	t = this.render(obj.items()._get(i));
-		    	col = $("<td>");
-		    	col.append(t);
-		    	row.append(col);
-		  	}
-		    dom.append(row);
+	    	var t = this.render(obj.items()._get(i));
+	    	dom.append(t);
 	    }
   	}
   	this.make_style(dom, obj.props());
-    return dom;
-*/
+  	return dom;
   },
   render_Pages: function (obj) {
-  	console.log("blah pages")
   	var index = obj.current().val();
   	var dom = this.render(obj.items()._get(index));
     return dom;
   },
   render_Space: function (obj) {
-  	var txt3 = $("<p>");
+  	var txt3 = $("<div>");
   	return txt3;
   },
   render_Text: function (obj) {
-  	console.log("blah text")
   	var dom = $('<text>');
-  	this.make_style(dom, obj.props());
   	dom.text(obj.string().val().to_s());
+  	this.make_style(dom, obj.props());
     return dom;
   },
   render_TextBox: function (obj) {
-  	console.log("blah textbx")
   	var dom = $("<input type='text'>");
   	this.make_style(dom, obj.props());
   	dom.keyup(function () {
@@ -178,7 +130,6 @@ var interp = {
     return dom;
   },
   render_CheckBox: function (obj) {
-  	console.log("blah chkbx")
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
   	var arrange = obj.props._get("arrange");
@@ -202,7 +153,6 @@ var interp = {
     return dom;
   },
   render_RadioList: function (obj) {
-  	console.log("blah radbx")
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
   	var arrange = obj.props._get("arrange");
@@ -229,6 +179,7 @@ var interp = {
   coercefromstr: function () { },
   make_style: function (dom, props) {
   	props.each(function(prop) {
+  		console.log(S("css prop:", prop.var().to_s(), " -> ", prop.val().val().to_s()));
       dom.css(prop.var().to_s(), prop.val().val().to_s());
     });
   },
@@ -239,6 +190,10 @@ var interp = {
 }
 )
 </script>
+        <style>
+            html {height: 100%;}
+            body {height: 100%; margin: 0; padding: 0;}
+        </style>
     </head>
     <body>
 </html>

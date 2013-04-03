@@ -45,10 +45,12 @@ function(Factory) {
             })());
             if (! (a_val == null) || ! (b_val == null)) {
               if (field.type().Primitive_P()) {
-                if ((a && b) && a_val != b_val) {
-                  puts(S("UNION WARNING: changing ", a, ".", field.name(), " from '", a_val, "' to '", b_val, "'"));
+                if (! (a_val == null)) {
+                  if ((a && b) && a_val != b_val) {
+                    puts(S("UNION WARNING: changing ", new_V, ".", field.name(), " from '", b_val, "' to '", a_val, "'"));
+                  }
+                  return new_V._set(field.name(), a_val);
                 }
-                return new_V._set(field.name(), a_val);
               } else if (field.traversal()) {
                 if (! field.many()) {
                   return self.build(a_val, b_val);

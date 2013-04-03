@@ -2,7 +2,7 @@ import expr.grammar
 
 start Questionaire
 
-Questionaire ::= [Questionaire] elems:Elem*@/ "answers" / answers:Answer*@/
+Questionaire ::= [Questionaire] ("title" title:str)? elems:Elem*@/ "answers" / answers:Answer*@/
 
 Elem ::= Group | Question
 
