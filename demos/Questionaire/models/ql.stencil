@@ -27,13 +27,14 @@ diagram(data) {
 
 	//create the nodes (one for each class)
 	style [background="#feb97d", height="100%", width="100%"] {
-	vertical [background="#feb97d", color="#570C00", border="1px solid black",
+	vertical [background="#feb97d", padding="0px", 
 			height="100%", width="760px", margin="0 auto"] {
-		style [background="#943400", color="#fff", padding="16px 10px 20px",
+		style [background="#943400", color="#fff", padding="16px 10px 20px", margin="0px",
 				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
 			text data.title
 		}
-		grid [background="#fff", border="1px solid red"] { //, "font-family" = "arial"] {
+		grid [background="#fff", height="100%", margin="auto",
+				"font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
     		for elem : data.elems {
 				call draw for elem
 			}
