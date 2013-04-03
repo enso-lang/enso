@@ -40,10 +40,12 @@ module Union
           b_val = begin b[field.name]; rescue; nil end
           if !a_val.nil? or !b_val.nil?
             if field.type.Primitive?
-              if a && b && a_val != b_val then
-                puts "UNION WARNING: changing #{a}.#{field.name} from '#{a_val}' to '#{b_val}'" 
+              if !a_val.nil?
+                if a && b && a_val != b_val then
+                  puts "UNION WARNING: changing #{new}.#{field.name} from '#{b_val}' to '#{a_val}'"
+                end
+                new[field.name] = a_val
               end
-              new[field.name] = a_val
             elsif field.traversal
               if !field.many
                 build(a_val, b_val)
