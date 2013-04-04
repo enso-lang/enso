@@ -31,8 +31,26 @@ module Lvalue
       end
       begin; @array[@index] = val; rescue; end
     end
+    
+    def set(val)
+      if type
+        case type.name
+          when 'int'
+            val = val.to_i
+          when 'str'
+            val = val.to_s
+          when 'real'
+            val = val.to_f
+        end
+      end
+      begin; @array[@index] = val; rescue; end
+    end
 
     def value
+      @array[@index]
+    end
+    
+    def get
       @array[@index]
     end
 
@@ -74,10 +92,10 @@ module Lvalue
     include LValueExpr
   end
 
-  def self.eval(obj, args = {})
+  def self.lvalue(obj, args = {})
     interp = LValueExprC.new
     interp.dynamic_bind args do
-      interp.eval(obj)
+      interp.lvalue(obj)
     end
   end
 end
