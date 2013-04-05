@@ -10,10 +10,7 @@ diagram(data) {
 	      									call draw(elem.value) for elem.ans
 	    								}
 
-	rule draw(value) for elem:TextBox	if elem.name=="money" 
-											text? value
-										else
-											text? value
+	rule draw(value) for elem:TextBox	text? value
 
 	rule draw(value) for elem:CheckBox	checkbox value
 											elem.choices.map(){|c|return c.string}
@@ -21,7 +18,7 @@ diagram(data) {
 	rule draw(value) for elem:MultiChoice	radio value 
 											elem.choices.map(){|c|return c.string}
 
-	rule draw for elem:Computed			box { text+ "xxx" }
+	rule draw for elem:Computed			box { text+ "" }
 
 	///////////////////////////////////////////////////////////////
 
@@ -29,15 +26,17 @@ diagram(data) {
 	style [background="#feb97d", height="100%", width="100%"] {
 	vertical [background="#feb97d", padding="0px", 
 			height="100%", width="760px", margin="0 auto"] {
-		style [background="#943400", color="#fff", padding="16px 10px 20px", margin="0px",
+		style [background="#943400", color="#fff", padding="18px 10px 20px", margin="0px",
 				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
 			text data.title
 		}
-		grid [background="#fff", height="100%", margin="0px auto auto",
+		style [background="#fff", height="100%", padding="20px 20px 0px", margin="0px auto auto"] {
+		grid [height="400px", width="100%",   
 				"font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
     		for elem : data.elems {
 				call draw for elem
 			}
+		}
 		}
 	} }
 }

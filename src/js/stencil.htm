@@ -50,13 +50,13 @@ var interp = {
   render_Container: function (obj) {
   	var dom;
   	if (obj.direction()==1) { //vertical
-       dom = $('<table>');
+       dom = $('<div>');
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
 	    	var t = this.render(obj.items()._get(i));
-	    	var row = $('<tr>');
-	    	row.append(t);
-	    	dom.append(row);
+//	    	var row = $('<tr>');
+//	    	row.append(t);
+	    	dom.append(t);
 	  	} 
   	} else if (obj.direction()==2) { //horizontal
         dom = $('<table>');
@@ -77,16 +77,15 @@ var interp = {
 	    	dom = row;
 	    }
   	} else if (obj.direction()==3) { //grid
-		dom2 = $('<table cellpadding="10" height="100%">');
+//		dom = $('<table>');
+		dom = $('<table>');
 		this.in_grid += 1;
 		for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
-	    	dom2.append(row);
+	    	dom.append(row);
 	    	var row = this.render(obj.items()._get(i));
 	  	}
 		this.in_grid -= 1;
-		dom = $('<div height="100%">');
-		dom.append(dom2);
   	} else if (obj.direction()==4) { //graph
   	} else if (obj.direction()==5) { //style, group
   		dom = $('<div>')
@@ -201,8 +200,8 @@ var interp = {
    diagram = Construct.eval(stencil, params)
    data = interp.render(diagram)
    $("body").append(data);
-//   console.log("zxxxxxxxxxxxxxxxxxxxxxxxx")
-//   console.log($("body").html());
+   console.log("zxxxxxxxxxxxxxxxxxxxxxxxx")
+   console.log($("body").html());
 }
 )
 </script>
