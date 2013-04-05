@@ -6,10 +6,10 @@ import impl.schema with Command as Part
 class Text < Part
   string! Expr
 
-class CheckBox < Widget
+class SelectMulti < Widget
   choices! Expr
 
-class RadioList < Widget
+class SelectSingle < Widget
   choices! Expr
 
 class Rule < EFunDef	//a rule is essentially a sugar-ed up function

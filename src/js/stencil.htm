@@ -139,7 +139,7 @@ var interp = {
   	dom.val(obj.value().val().to_s()); 
     return dom;
   },
-  render_CheckBox: function (obj) {
+  render_SelectMulti: function (obj) {
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
   	var arrange = obj.props._get("arrange");
@@ -162,7 +162,7 @@ var interp = {
     }
     return dom;
   },
-  render_RadioList: function (obj) {
+  render_SelectSingle: function (obj) {
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
   	var arrange = obj.props._get("arrange");

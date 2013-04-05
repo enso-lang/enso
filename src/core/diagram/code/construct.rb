@@ -99,7 +99,7 @@ module Construct
       res
     end
 
-    def eval_CheckBox(obj)
+    def eval_SelectMulti(obj)
       type = obj.schema_class
       factory = @D[:factory]
       res = factory[type.name]
@@ -118,7 +118,7 @@ module Construct
       res
     end
 
-    def eval_RadioList(obj)
+    def eval_SelectSingle(obj)
       type = obj.schema_class
       factory = @D[:factory]
       res = factory[type.name]

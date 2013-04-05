@@ -36,10 +36,10 @@ class Text < Part
 class Widget < Part
   value! Expr?
 
-class CheckBox < Widget
+class SelectMulti < Widget
   choices! Expr*
 
-class RadioList < Widget
+class SelectSingle < Widget
   choices! Expr*
 
 class TextBox < Widget

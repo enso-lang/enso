@@ -12,10 +12,10 @@ diagram(data) {
 
 	rule draw(value) for elem:TextBox	text? value
 
-	rule draw(value) for elem:CheckBox	checkbox value
+	rule draw(value) for elem:CheckBox	multi value
 											elem.choices.map(){|c|return c.string}
 
-	rule draw(value) for elem:MultiChoice	radio value 
+	rule draw(value) for elem:MultiChoice	single value 
 											elem.choices.map(){|c|return c.string}
 
 	rule draw for elem:Computed			box { text+ "" }

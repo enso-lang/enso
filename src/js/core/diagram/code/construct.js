@@ -105,7 +105,7 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       return res;
     };
 
-    this.eval_CheckBox = function(obj) {
+    this.eval_SelectMulti = function(obj) {
       var self = this; 
       var type, factory, res, cs;
       type = obj.schema_class();
@@ -125,7 +125,7 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       return res;
     };
 
-    this.eval_RadioList = function(obj) {
+    this.eval_SelectSingle = function(obj) {
       var self = this; 
       var type, factory, res, cs;
       type = obj.schema_class();

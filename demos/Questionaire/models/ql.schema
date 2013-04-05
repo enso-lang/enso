@@ -17,6 +17,7 @@ class Group < Element
 
 class Question < Element
   name # str
+  desc : str?
   qn : str
   ans : Answer
   all_elems : Question* = [self]
