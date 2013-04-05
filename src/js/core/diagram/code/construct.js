@@ -15,7 +15,7 @@ define([
 function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union, Traceval, Evalexprstencil) {
   var Construct ;
 
-  var EvalStencil = MakeMixin([Interpreter.Dispatcher, Traceval.TracevalCommand, Evalexprstencil.EvalExprStencil], function() {
+  var EvalStencil = MakeMixin([Interpreter.Dispatcher, Evalexprstencil.EvalExprStencil], function() {
     this.eval_Stencil = function(obj) {
       var self = this; 
       var factory, res, env, src;

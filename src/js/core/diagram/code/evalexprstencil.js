@@ -1,8 +1,10 @@
 define([
+  "core/expr/code/impl",
+  "core/expr/code/env"
 ],
-function() {
+function(Impl, Env) {
   var Evalexprstencil ;
-  var EvalExprStencil = MakeMixin([], function() {
+  var EvalExprStencil = MakeMixin([Impl.EvalCommand], function() {
     this.eval_Rule = function(obj) {
       var self = this; 
       var funname, forms;
@@ -46,8 +48,7 @@ function() {
       var self = this; 
       var nenv, res;
       nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
-      res = null;
-      self.eval(obj.list()).map(function(val) {
+      res = self.eval(obj.list()).map(function(val) {
         nenv._set(obj.var(), val);
         return self.dynamic_bind(function() {
           return self.eval(obj.body());

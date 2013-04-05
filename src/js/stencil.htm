@@ -122,10 +122,9 @@ var interp = {
   	console.log(S(domkey, "addr = ", addr));
   	console.log(mm.inspect());
   	mm.each(function(k,v){
-  		console.log(S(k, " = ", v));
+  		console.log(S(k, " -> ", v));
   	})
-  	console.log(S(addr==null));
-  	console.log(S(addr==undefined));
+  	console.log(S(addr==null, "  ", addr==undefined));
   	dom.keyup(function () {
 		var value = parseInt($(this).val());
 		if (value) {

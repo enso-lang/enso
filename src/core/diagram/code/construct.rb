@@ -15,7 +15,6 @@ module Construct
 
   module EvalStencil
     include Interpreter::Dispatcher
-    include Traceval::TracevalCommand
     include Evalexprstencil::EvalExprStencil
 
     def eval_Stencil(obj)

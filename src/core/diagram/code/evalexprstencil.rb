@@ -1,7 +1,11 @@
+require 'core/expr/code/impl'
+require 'core/expr/code/env'
 
 module Evalexprstencil
 
   module EvalExprStencil
+#    include Traceval::TracevalCommand
+    include Impl::EvalCommand
 
     def eval_Rule(obj)
       funname = "#{obj.name}__#{obj.type}"
@@ -38,8 +42,7 @@ module Evalexprstencil
 
     def eval_EFor(obj)
       nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
-      res = nil
-      eval(obj.list).map do |val|  #returns list of results instead of only last result
+      res = eval(obj.list).map do |val|  #returns list of results instead of only last result
         nenv[obj.var] = val
         dynamic_bind env: nenv do
           eval(obj.body)
