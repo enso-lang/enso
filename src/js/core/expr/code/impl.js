@@ -15,8 +15,9 @@ function(Eval, Lvalue, Interpreter, Env) {
       };
     },
     function(super$) {
-      this.env = function() { return this.$.env };
-      this.set_env = function(val) { this.$.env  = val };
+      this.formals = function() { return this.$.formals };
+
+      this.body = function() { return this.$.body };
 
       this.initialize = function(body, formals, env, interp) {
         var self = this; 

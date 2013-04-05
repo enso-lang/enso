@@ -45,7 +45,34 @@ function(Eval, Interpreter, Env) {
         }
       };
 
+      this.set = function(val) {
+        var self = this; 
+        var val;
+        if (self.type()) {
+          switch (self.type().name()) {
+            case "int":
+              val = val.to_i();
+              break;
+            case "str":
+              val = val.to_s();
+              break;
+            case "real":
+              val = val.to_f();
+              break;
+          }
+        }
+        try {
+          return self.$.array._set(self.$.index, val);
+        } catch (DUMMY) {
+        }
+      };
+
       this.value = function() {
+        var self = this; 
+        return self.$.array._get(self.$.index);
+      };
+
+      this.get = function() {
         var self = this; 
         return self.$.array._get(self.$.index);
       };
@@ -103,13 +130,13 @@ function(Eval, Interpreter, Env) {
     });
 
   Lvalue = {
-    eval: function(obj, args) {
+    lvalue: function(obj, args) {
       var self = this; 
       if (args === undefined) args = new EnsoHash ({ });
       var interp;
       interp = LValueExprC.new();
       return interp.dynamic_bind(function() {
-        return interp.eval(obj);
+        return interp.lvalue(obj);
       }, args);
     },
 

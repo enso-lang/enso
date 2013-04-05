@@ -11,7 +11,12 @@ stencil_file = "#{data_file.split('.')[-1]}.stencil"
 stencil = Load::load(stencil_file)
 data = Load::load(data_file)
 
-model = Construct::eval(stencil, data: data)
+mm = {}
+model = Construct::eval(stencil, data: data, modelmap: mm)
+mm.each do |k,v|
+  puts "\n#{k} ->"
+  Print.print(v)
+end
 
 def render(diagram, data)
   html = Render::render(diagram, data: data)
@@ -22,6 +27,8 @@ def render(diagram, data)
   end
 end
 render(model, data)
+
+abort
 
 require 'test/repl.rb'
 

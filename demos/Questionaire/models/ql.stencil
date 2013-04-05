@@ -11,9 +11,9 @@ diagram(data) {
 	    								}
 
 	rule draw(value) for elem:TextBox	if elem.name=="money" 
-											text? convert(100)
+											text? value
 										else
-											text? elem.name
+											text? value
 
 	rule draw(value) for elem:CheckBox	checkbox value
 											elem.choices.map(){|c|return c.string}
@@ -33,7 +33,7 @@ diagram(data) {
 				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
 			text data.title
 		}
-		grid [background="#fff", height="100%", margin="auto",
+		grid [background="#fff", height="100%", margin="0px auto auto",
 				"font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
     		for elem : data.elems {
 				call draw for elem

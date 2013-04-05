@@ -20,8 +20,6 @@ stencil_file = S("ql.stencil")
 
 stencil = Load.load(stencil_file)
 data = Load.load(data_file)
-params = new EnsoHash({ data:  data })
-diagram = Construct.eval(stencil, params)
 
 function getMethods(obj) {
   var result = [];
@@ -36,6 +34,7 @@ function getMethods(obj) {
   }
   return result;
 }
+   var mm = new EnsoHash({ })
 
 var interp = {
   render: function(obj) {
@@ -55,13 +54,13 @@ var interp = {
 	    for (var i=0,len=obj.items().size(); i<len; i++)
 	    {
 	    	var t = this.render(obj.items()._get(i));
-	    	var row = $('<tr border="1">');
+	    	var row = $('<tr>');
 	    	row.append(t);
 	    	dom.append(row);
 	  	} 
   	} else if (obj.direction()==2) { //horizontal
         dom = $('<table>');
-	    var row = $('<tr border="1">');
+	    var row = $('<tr>');
 	    var grid = false;
 	    if (this.in_grid > 0) {
 	    	grid = true;
@@ -72,7 +71,7 @@ var interp = {
 	    	var col = $('<td>');
 	    	col.append(t);
 	    	row.append(col);
-	  	} 
+	  	}
 	    dom.append(row);
 	    if (grid) {
 	    	dom = row;
@@ -118,11 +117,24 @@ var interp = {
   render_TextBox: function (obj) {
   	var dom = $("<input type='text'>");
   	this.make_style(dom, obj.props());
+  	var domkey = obj.value()._id();
+  	var addr = mm._get(domkey);
+  	console.log(S(domkey, "addr = ", addr));
+  	console.log(mm.inspect());
+  	mm.each(function(k,v){
+  		console.log(S(k, " = ", v));
+  	})
+  	console.log(S(addr==null));
+  	console.log(S(addr==undefined));
   	dom.keyup(function () {
 		var value = parseInt($(this).val());
 		if (value) {
-			if (obj.value()._get('val')!=value) {
-				obj.value()._set('val', value);
+//			if (obj.value()._get('val')!=value) {
+//				obj.value()._set('val', value);
+//			}
+			console.log()
+			if (addr.get()!=value) {
+				addr.set(value);
 			}
 		}
 	}).keyup();
@@ -179,14 +191,19 @@ var interp = {
   coercefromstr: function () { },
   make_style: function (dom, props) {
   	props.each(function(prop) {
-  		console.log(S("css prop:", prop.var().to_s(), " -> ", prop.val().val().to_s()));
+//  		console.log(S("css prop:", prop.var().to_s(), " -> ", prop.val().val().to_s()));
       dom.css(prop.var().to_s(), prop.val().val().to_s());
     });
   },
   in_grid: []
 }
+
+   params = new EnsoHash({ data:  data, modelmap: mm })
+   diagram = Construct.eval(stencil, params)
    data = interp.render(diagram)
    $("body").append(data);
+//   console.log("zxxxxxxxxxxxxxxxxxxxxxxxx")
+//   console.log($("body").html());
 }
 )
 </script>

@@ -10,7 +10,7 @@ module Impl
   #depending on where it is evaluated because the
   #interpreter may be different
   class Closure
-    attr_accessor :env #this is a hack to allow self-recursion
+    attr_reader :formals, :body
 
     def self.make_closure(body, formals, env, interp)
       Closure.new(body, formals, env, interp).method('call_closure')

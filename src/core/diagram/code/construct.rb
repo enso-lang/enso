@@ -1,4 +1,5 @@
 require 'core/expr/code/eval'
+require 'core/expr/code/lvalue'
 require 'core/expr/code/renderexp'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/impl'
@@ -7,19 +8,26 @@ require 'core/schema/code/factory'
 require 'core/system/load/load'
 require 'core/system/library/schema'
 require 'core/schema/tools/union'
+require 'core/diagram/code/traceval'
+require 'core/diagram/code/evalexprstencil'
 
 module Construct
 
   module EvalStencil
-    include Impl::EvalCommand
+    include Interpreter::Dispatcher
+    include Traceval::TracevalCommand
+    include Evalexprstencil::EvalExprStencil
 
     def eval_Stencil(obj)
       factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       res = factory.Stencil(obj.title, obj.root)
       env = {}
       env["data"] = @D[:data]
+      src = {}
       dynamic_bind env: env, 
       			   factory: factory,
+      			   src: src,
+      			   srctemp: {},
       			   props: {} do
         res.body = eval(obj.body)
       end
@@ -51,6 +59,10 @@ module Construct
             res[f.name] = nil
           elsif !f.many
             res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
+            addr = @D[:src][obj[f.name]]
+            if !addr.nil?
+              @D[:modelmap][res[f.name].to_s] = addr 
+            end
           else
             obj[f.name].each do |item|
               ev = eval(item)
@@ -88,31 +100,6 @@ module Construct
       res
     end
 
-    def eval_Rule(obj)
-      funname = "#{obj.name}__#{obj.type}"
-      #create a new function
-      forms = [obj.obj]
-      obj.formals.each {|f| forms << f.name}
-      @D[:env][funname] = Impl::Closure.make_closure(obj.body, forms, @D[:env], self)
-    end
-
-    def eval_RuleCall(obj)
-      target = eval(obj.obj)
-      funname = "#{obj.name}__#{target.schema_class.name}"
-      args = obj.params.map{|p|eval(p)}
-      @D[:env][funname].call(target, *args)
-    end
-
-    def eval_EFor(obj)
-      nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
-      eval(obj.list).map do |val|  #returns list of results instead of only last result
-        nenv[obj.var] = val
-        dynamic_bind env: nenv do
-          eval(obj.body)
-        end
-      end
-    end
-
     def eval_CheckBox(obj)
       type = obj.schema_class
       factory = @D[:factory]
@@ -141,7 +128,6 @@ module Construct
         res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
       end
       res.value = Eval::make_const(factory, eval(obj.value))
-#      obj.choices.map{|c|eval(c)}.each do |choice|
       obj.choices.each do |choice|
         cs = eval(choice)
         cs.each do |c|
@@ -186,22 +172,7 @@ module Construct
       b1 = Eval::make_const(factory, Math.round(eval(obj.b)))
       factory.Color(r1,g1,b1)
     end
-  
-    def eval_InstanceOf(obj)
-      a = eval(obj.base)
-      a && Schema::subclass?(a.schema_class, obj.class_name)
-    end
 
-    def eval_Eval(obj)
-      env1 = Env::HashEnv.new
-      obj.envs.map{|e| eval(e)}.each do |env|
-        env.each_pair do |k,v|
-          env1[k] = v
-        end
-      end
-      expr1 = eval(obj.expr)
-      Eval::eval(expr1, env: env1)
-    end
   end
   
   class EvalStencilC

@@ -1,5 +1,6 @@
 define([
   "core/expr/code/eval",
+  "core/expr/code/lvalue",
   "core/expr/code/renderexp",
   "core/semantics/code/interpreter",
   "core/expr/code/impl",
@@ -7,22 +8,25 @@ define([
   "core/schema/code/factory",
   "core/system/load/load",
   "core/system/library/schema",
-  "core/schema/tools/union"
+  "core/schema/tools/union",
+  "core/diagram/code/traceval",
+  "core/diagram/code/evalexprstencil"
 ],
-function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) {
+function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union, Traceval, Evalexprstencil) {
   var Construct ;
 
-  var EvalStencil = MakeMixin([Impl.EvalCommand], function() {
+  var EvalStencil = MakeMixin([Interpreter.Dispatcher, Traceval.TracevalCommand, Evalexprstencil.EvalExprStencil], function() {
     this.eval_Stencil = function(obj) {
       var self = this; 
-      var factory, res, env;
+      var factory, res, env, src;
       factory = Factory.SchemaFactory.new(Load.load("diagram.schema"));
       res = factory.Stencil(obj.title(), obj.root());
       env = new EnsoHash ({ });
       env._set("data", self.$.D._get("data"));
+      src = new EnsoHash ({ });
       self.dynamic_bind(function() {
         return res.set_body(self.eval(obj.body()));
-      }, new EnsoHash ({ env: env, factory: factory, props: new EnsoHash ({ }) }));
+      }, new EnsoHash ({ env: env, factory: factory, src: src, srctemp: new EnsoHash ({ }), props: new EnsoHash ({ }) }));
       return res;
     };
 
@@ -44,7 +48,7 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
 
     this.eval__P = function(obj) {
       var self = this; 
-      var type, factory, res, ev;
+      var type, factory, res, addr, ev;
       type = obj.schema_class();
       factory = self.$.D._get("factory");
       res = factory._get(type.name());
@@ -53,7 +57,11 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
           if (obj._get(f.name()) == null) {
             return res._set(f.name(), null);
           } else if (! f.many()) {
-            return res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
+            res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
+            addr = self.$.D._get("src")._get(obj._get(f.name()));
+            if (! (addr == null)) {
+              return self.$.D._get("modelmap")._set(res._get(f.name()).to_s(), addr);
+            }
           } else {
             return obj._get(f.name()).each(function(item) {
               ev = self.eval(item);
@@ -95,40 +103,6 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       res.set_var(obj.var());
       res.set_val(Eval.make_const(factory, self.eval(obj.val())));
       return res;
-    };
-
-    this.eval_Rule = function(obj) {
-      var self = this; 
-      var funname, forms;
-      funname = S(obj.name(), "__", obj.type());
-      forms = [obj.obj()];
-      obj.formals().each(function(f) {
-        return forms.push(f.name());
-      });
-      return self.$.D._get("env")._set(funname, Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self));
-    };
-
-    this.eval_RuleCall = function(obj) {
-      var self = this; 
-      var target, funname, args;
-      target = self.eval(obj.obj());
-      funname = S(obj.name(), "__", target.schema_class().name());
-      args = obj.params().map(function(p) {
-        return self.eval(p);
-      });
-      return self.$.D._get("env")._get(funname).apply(self.$.D._get("env")._get(funname), [target].concat(args));
-    };
-
-    this.eval_EFor = function(obj) {
-      var self = this; 
-      var nenv;
-      nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
-      return self.eval(obj.list()).map(function(val) {
-        nenv._set(obj.var(), val);
-        return self.dynamic_bind(function() {
-          return self.eval(obj.body());
-        }, new EnsoHash ({ env: nenv }));
-      });
     };
 
     this.eval_CheckBox = function(obj) {
@@ -212,28 +186,6 @@ function(Eval, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union) 
       g1 = Eval.make_const(factory, Math.round(self.eval(obj.g())));
       b1 = Eval.make_const(factory, Math.round(self.eval(obj.b())));
       return factory.Color(r1, g1, b1);
-    };
-
-    this.eval_InstanceOf = function(obj) {
-      var self = this; 
-      var a;
-      a = self.eval(obj.base());
-      return a && Schema.subclass_P(a.schema_class(), obj.class_name());
-    };
-
-    this.eval_Eval = function(obj) {
-      var self = this; 
-      var env1, expr1;
-      env1 = Env.HashEnv.new();
-      obj.envs().map(function(e) {
-        return self.eval(e);
-      }).each(function(env) {
-        return env.each_pair(function(k, v) {
-          return env1._set(k, v);
-        });
-      });
-      expr1 = self.eval(obj.expr());
-      return Eval.eval(expr1, new EnsoHash ({ env: env1 }));
     };
   });
 

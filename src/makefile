@@ -24,6 +24,8 @@ SOURCES = \
 	js/core/schema/tools/print.js \
 	js/core/diagram/code/construct.js \
 	js/core/diagram/code/render.js \
+	js/core/diagram/code/traceval.js \
+	js/core/diagram/code/evalexprstencil.js \
 	js/core/expr/code/renderexp.js \
 
 
