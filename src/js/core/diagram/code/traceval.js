@@ -1,15 +1,57 @@
 define([
+  "core/schema/code/factory",
   "core/semantics/code/interpreter",
-  "core/expr/code/impl"
+  "core/expr/code/env",
+  "core/expr/code/impl",
+  "core/expr/code/eval",
+  "core/schema/tools/union"
 ],
-function(Interpreter, Impl) {
+function(Factory, Interpreter, Env, Impl, Eval, Union) {
   var Traceval ;
 
   var TracevalCommand = MakeMixin([Interpreter.Dispatcher, Impl.EvalCommand], function() {
     this.eval_EBinOp = function(obj) {
       var self = this; 
       var res, src;
-      res = super$.eval_EBinOp.call(self, obj);
+      res = null;
+      switch (obj.op()) {
+        case "&":
+          res = self.eval(obj.e1()) && self.eval(obj.e2());
+          break;
+        case "|":
+          res = self.eval(obj.e1()) || self.eval(obj.e2());
+          break;
+        case "eql?":
+          res = self.eval(obj.e1()) == self.eval(obj.e2());
+          break;
+        case "+":
+          res = self.eval(obj.e1()) + self.eval(obj.e2());
+          break;
+        case "*":
+          res = self.eval(obj.e1()) * self.eval(obj.e2());
+          break;
+        case "-":
+          res = self.eval(obj.e1()) - self.eval(obj.e2());
+          break;
+        case "/":
+          res = self.eval(obj.e1()) / self.eval(obj.e2());
+          break;
+        case "<":
+          res = self.eval(obj.e1()) < self.eval(obj.e2());
+          break;
+        case ">":
+          res = self.eval(obj.e1()) > self.eval(obj.e2());
+          break;
+        case "<=":
+          res = self.eval(obj.e1()) <= self.eval(obj.e2());
+          break;
+        case ">=":
+          res = self.eval(obj.e1()) >= self.eval(obj.e2());
+          break;
+        default:
+          self.raise(S("Unknown operator (", obj.op(), ")"));
+          break;
+      }
       src = self.$.D._get("factory")._get(obj.schema_class().name());
       src.set_op(obj.op());
       src.set_e1(self.$.D._get("src")._get(obj.e1()));
@@ -21,7 +63,9 @@ function(Interpreter, Impl) {
     this.eval_EUnOp = function(obj) {
       var self = this; 
       var res, src;
-      res = super$.eval_EUnOp.call(self, obj);
+      res = obj.op() == "!"
+        ? ! self.eval(obj.e())
+        : self.raise(S("Unknown operator (", obj.op(), ")"));
       src = self.$.D._get("factory")._get(obj.schema_class().name());
       src.set_op(obj.op());
       src.set_e(self.$.D._get("src")._get(obj.e()));
@@ -32,7 +76,10 @@ function(Interpreter, Impl) {
     this.eval_EVar = function(obj) {
       var self = this; 
       var res, path;
-      res = super$.eval_EVar.call(self, obj);
+      if (! self.$.D._get("env").has_key_P(obj.name())) {
+        self.raise(S("ERROR: undefined variable ", obj.name(), " in ", self.$.D._get("env")));
+      }
+      res = self.$.D._get("env")._get(obj.name());
       if (! System.test_type(res, Factory.MObject)) {
         if (self.$.D._get("srctemp")._get(obj.name())) {
           self.$.D._get("src")._set(obj, self.$.D._get("srctemp")._get(obj.name()));
@@ -49,15 +96,26 @@ function(Interpreter, Impl) {
     this.eval_EConst = function(obj) {
       var self = this; 
       var res;
-      res = super$.eval_EConst.call(self, obj);
+      res = obj.val();
       self.$.D._get("src")._set(obj, Eval.make_const(self.$.D._get("factory"), res));
       return res;
     };
 
+    this.eval_ENil = function(obj) {
+      var self = this; 
+      self.$.D._get("src")._set(obj, self.$.D._get("factory").ENil());
+      return null;
+    };
+
     this.eval_EField = function(obj) {
       var self = this; 
-      var res, src;
-      res = super$.eval_EField.call(self, obj);
+      var target, res, src;
+      target = self.dynamic_bind(function() {
+        return self.eval(obj.e());
+      }, new EnsoHash ({ in_fc: false }));
+      res = self.$.D._get("in_fc")
+        ? target.method(obj.fname().to_sym())
+        : target.send(obj.fname());
       src = self.$.D._get("factory")._get(obj.schema_class().name());
       src.set_fname(obj.fname());
       src.set_e(self.$.D._get("src")._get(obj.e()));
@@ -108,8 +166,20 @@ function(Interpreter, Impl) {
 
     this.eval_EBlock = function(obj) {
       var self = this; 
-      var res, last;
-      res = super$.eval_EBlock.call(self, obj);
+      var res, defenv, env1, last;
+      res = null;
+      defenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
+      self.dynamic_bind(function() {
+        return obj.fundefs().each(function(c) {
+          return self.eval(c);
+        });
+      }, new EnsoHash ({ in_fc: false, env: defenv }));
+      env1 = Env.HashEnv.new(new EnsoHash ({ }), defenv);
+      self.dynamic_bind(function() {
+        return obj.body().each(function(c) {
+          return res = self.eval(c);
+        });
+      }, new EnsoHash ({ in_fc: false, env: env1 }));
       last = obj.body()._get(obj.body().size() - 1);
       self.$.D._get("src")._set(obj, self.$.D._get("src")._get(last));
       return res;
@@ -118,15 +188,25 @@ function(Interpreter, Impl) {
     this.eval_EWhile = function(obj) {
       var self = this; 
       var res;
-      res = super$.eval_EWhile.call(self, obj);
+      res = ((function() {
+        while (self.eval(obj.cond())) {
+          self.eval(obj.body());
+        }
+      })());
       self.$.D._get("src")._set(obj, self.$.D._get("src")._get(obj.body()));
       return res;
     };
 
     this.eval_EFor = function(obj) {
       var self = this; 
-      var res;
-      res = super$.eval_EFor.call(self, obj);
+      var nenv, res;
+      nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
+      res = self.eval(obj.list()).each(function(val) {
+        nenv._set(obj.var(), val);
+        return self.dynamic_bind(function() {
+          return self.eval(obj.body());
+        }, new EnsoHash ({ env: nenv }));
+      });
       self.$.D._get("src")._set(obj, self.$.D._get("src")._get(obj.body()));
       return res;
     };
@@ -148,11 +228,11 @@ function(Interpreter, Impl) {
     this.eval_EFunDef = function(obj) {
       var self = this; 
       var forms;
-      super$.eval_EFunDef.call(self, obj);
       forms = [];
       obj.formals().each(function(f) {
         return forms.push(f.name());
       });
+      self.$.D._get("env")._set(obj.name(), Impl.Closure.make_closure(obj.body(), forms, self.$.D._get("env"), self));
       self.$.D._get("srctemp")._set(obj.name(), Impl.Closure.new(obj.body(), forms, self.$.D._get("env"), self));
       return null;
     };

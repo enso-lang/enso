@@ -8,7 +8,6 @@ require 'core/schema/code/factory'
 require 'core/system/load/load'
 require 'core/system/library/schema'
 require 'core/schema/tools/union'
-require 'core/diagram/code/traceval'
 require 'core/diagram/code/evalexprstencil'
 
 module Construct
@@ -60,6 +59,12 @@ module Construct
             res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
             addr = @D[:src][obj[f.name]]
             if !addr.nil?
+
+              env = {}
+              env['root'] = @D[:data]
+              val = Eval::eval(addr, env: env)
+              raise "val=#{val}, res=#{res[f.name].val}" unless res[f.name].val==val  
+
               @D[:modelmap][res[f.name].to_s] = addr 
             end
           else

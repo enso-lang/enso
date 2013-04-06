@@ -63,7 +63,7 @@ module Eval
       obj.val
     end
   
-    def eval_ENil
+    def eval_ENil(obj)
       nil
     end
   

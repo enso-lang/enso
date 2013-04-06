@@ -9,10 +9,9 @@ define([
   "core/system/load/load",
   "core/system/library/schema",
   "core/schema/tools/union",
-  "core/diagram/code/traceval",
   "core/diagram/code/evalexprstencil"
 ],
-function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union, Traceval, Evalexprstencil) {
+function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema, Union, Evalexprstencil) {
   var Construct ;
 
   var EvalStencil = MakeMixin([Interpreter.Dispatcher, Evalexprstencil.EvalExprStencil], function() {
@@ -48,7 +47,7 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
 
     this.eval__P = function(obj) {
       var self = this; 
-      var type, factory, res, addr, ev;
+      var type, factory, res, addr, env, val, ev;
       type = obj.schema_class();
       factory = self.$.D._get("factory");
       res = factory._get(type.name());
@@ -60,6 +59,12 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
             res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
             addr = self.$.D._get("src")._get(obj._get(f.name()));
             if (! (addr == null)) {
+              env = new EnsoHash ({ });
+              env._set("root", self.$.D._get("data"));
+              val = Eval.eval(addr, new EnsoHash ({ env: env }));
+              if (! (res._get(f.name()).val() == val)) {
+                self.raise(S("val=", val, ", res=", res._get(f.name()).val()));
+              }
               return self.$.D._get("modelmap")._set(res._get(f.name()).to_s(), addr);
             }
           } else {

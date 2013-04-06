@@ -1,10 +1,11 @@
 define([
   "core/expr/code/impl",
-  "core/expr/code/env"
+  "core/expr/code/env",
+  "core/diagram/code/traceval"
 ],
-function(Impl, Env) {
+function(Impl, Env, Traceval) {
   var Evalexprstencil ;
-  var EvalExprStencil = MakeMixin([Impl.EvalCommand], function() {
+  var EvalExprStencil = MakeMixin([Traceval.TracevalCommand], function() {
     this.eval_Rule = function(obj) {
       var self = this; 
       var funname, forms;

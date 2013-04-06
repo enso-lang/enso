@@ -11,9 +11,9 @@ requirejs([
   "enso",
 'core/system/load/load',
 'core/diagram/code/construct',
-'core/diagram/code/render'
+'core/expr/code/eval'
 ],
-function(Enso, Load, Construct, Render) {
+function(Enso, Load, Construct, Eval) {
 // jquery
 data_file = "income.ql"
 stencil_file = S("ql.stencil")
@@ -34,7 +34,18 @@ function getMethods(obj) {
   }
   return result;
 }
-   var mm = new EnsoHash({ })
+function coercefromstr(type, val) {
+	if (type=='int') {
+		res = parseInt(val);
+		if (res.isNaN())
+			return 0;
+		else
+			return res;
+	} else
+		return null;
+  }
+
+var mm = new EnsoHash({ })
 
 var interp = {
   render: function(obj) {
@@ -116,32 +127,42 @@ var interp = {
   render_TextBox: function (obj) {
   	var dom = $("<input type='text'>");
   	this.make_style(dom, obj.props());
-  	var domkey = obj.value()._id();
+  	var domkey = obj.value().to_s();
   	var addr = mm._get(domkey);
+/*
   	console.log(S(domkey, "addr = ", addr));
   	console.log(mm.inspect());
   	mm.each(function(k,v){
   		console.log(S(k, " -> ", v));
   	})
   	console.log(S(addr==null, "  ", addr==undefined));
-  	dom.keyup(function () {
-		var value = parseInt($(this).val());
-		if (value) {
-//			if (obj.value()._get('val')!=value) {
-//				obj.value()._set('val', value);
-//			}
-			console.log()
-			if (addr.get()!=value) {
-				addr.set(value);
+*/
+	if (addr!=null) {
+		var env = new EnsoHash ({ });
+		env._set("root", data);
+	  	dom.keyup(function () {
+			var ui_value = coercefromstr('int', $(this).val()); 
+			var model_value = Eval.eval(addr, new EnsoHash ({ env: env }));
+			console.log(S("ui_value=",ui_value, "   (==nil):", ui_value==null));
+			console.log(S("model_value=",model_value));
+			console.log(S("ui_value!=model_value : ", ui_value!=model_value))
+			if (ui_value!=model_value) {
+	//			if (obj.value()._get('val')!=value) {
+	//				obj.value()._set('val', value);
+	//			}
+//				if (addr.get()!=value) {
+//					addr.set(value);
+//				}
 			}
-		}
-	}).keyup();
-  	dom.val(obj.value().val().to_s()); 
+		}).keyup();
+//  	dom.val(obj.value().val().to_s()); 
+	}
     return dom;
   },
   render_SelectMulti: function (obj) {
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
+  	//guess defaults
   	var arrange = obj.props._get("arrange");
   	if (arrange!='vertical' && arrange!='horizontal') {
   		//guess how to arrange
@@ -151,6 +172,7 @@ var interp = {
   		});
   		if (too_long) arrange='vertical';
   	}
+  	//make actual widget
     for (var i=0,len=obj.choices().size(); i<len; i++)
     {
     	var choice = obj.choices()._get(i);
@@ -165,6 +187,7 @@ var interp = {
   render_SelectSingle: function (obj) {
   	var dom = $('<form>');
   	this.make_style(dom, obj.props());
+  	//guess defaults
   	var arrange = obj.props._get("arrange");
   	if (arrange!='vertical' && arrange!='horizontal') {
   		//guess how to arrange
@@ -174,19 +197,50 @@ var interp = {
   		});
   		if (too_long) arrange='vertical';
   	}
-    for (var i=0,len=obj.choices().size(); i<len; i++)
-    {
-    	var choice = obj.choices()._get(i);
-    	var line = S("<input type='radio' name='", obj._id().toString(),"'>", choice.val(), "</input>");
-    	if (arrange=='vertical') {
-    		line = line + "<br>";
-    	}
-        dom.append($(line));
-    }
+  	var type = obj.props._get("type");
+  	if (type!='radio' && type!='dropdown') {
+  		if (obj.choices().size() < 5)
+  			type = 'radio'
+  		else
+  			type = 'dropdown'
+  	}
+  	//make actual widget
+  	if (type=='radio') {
+	    for (var i=0,len=obj.choices().size(); i<len; i++)
+	    {
+	    	var choice = obj.choices()._get(i);
+	    	var line = S("<input type='radio' name='", obj._id().toString(),"' value='", choice.val(),"'>", choice.val(), "</input>");
+	    	if (arrange=='vertical') {
+	    		line = line + "<br>";
+	    	}
+	        dom.append($(line));
+	    }
+    } else {
+    	var sel = $(S("<select name='", obj._id().toString(),"'>"));
+	    for (var i=0,len=obj.choices().size(); i<len; i++)
+	    {
+	    	var choice = obj.choices()._get(i);
+	    	var line = S("<option value='", choice.val(),"'>", choice.val(), "</option>");
+	    	console.log(line);
+	    	sel.append($(line));
+		}
+		console.log("<select name='", obj._id().toString(),"'></select>");
+		dom.append(sel);
+	}
     return dom;
   },
-  coercetostr: function () { },
-  coercefromstr: function () { },
+  coercetostr: function (type, val) {
+  },
+  coercefromstr: function () {
+	if (type=='int') {
+		res = parseInt($(this).val());
+		if (res.isNaN())
+			return null;
+		else
+			return res;
+	} else
+		return null;
+  },
   make_style: function (dom, props) {
   	props.each(function(prop) {
 //  		console.log(S("css prop:", prop.var().to_s(), " -> ", prop.val().val().to_s()));
@@ -200,8 +254,8 @@ var interp = {
    diagram = Construct.eval(stencil, params)
    data = interp.render(diagram)
    $("body").append(data);
-   console.log("zxxxxxxxxxxxxxxxxxxxxxxxx")
-   console.log($("body").html());
+//   console.log("xxxxxxxxxxxxxxxxxxxxxxxx")
+//   console.log($("body").html());
 }
 )
 </script>

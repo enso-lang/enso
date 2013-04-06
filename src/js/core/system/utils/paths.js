@@ -1,7 +1,8 @@
 define([
-  "core/semantics/code/interpreter"
+  "core/semantics/code/interpreter",
+  "core/schema/tools/equals"
 ],
-function(Interpreter) {
+function(Interpreter, Equals) {
   var Paths ;
 
   var Path = MakeClass("Path", null, [Interpreter.Dispatcher],
@@ -12,6 +13,8 @@ function(Interpreter) {
       };
     },
     function(super$) {
+      this.path = function() { return this.$.path };
+
       this.initialize = function(path) {
         var self = this; 
         if (path === undefined) path = self._class_.$.factory.EVar("root");
@@ -22,28 +25,28 @@ function(Interpreter) {
 
       this.field = function(name) {
         var self = this; 
-        self.$.path = self._class_.$.factory.EField(self.$.path, name);
-        return self;
+        return Path.new(self._class_.$.factory.EField(self.$.path, name));
       };
 
       this.key = function(key) {
         var self = this; 
-        self.$.path = self._class_.$.factory.ESubscript(self.$.path, self._class_.$.factory.EStrConst(key));
-        return self;
+        return Path.new(self._class_.$.factory.ESubscript(self.$.path, self._class_.$.factory.EStrConst(key)));
       };
 
       this.index = function(index) {
         var self = this; 
-        self.$.path = self._class_.$.factory.ESubscript(self.$.path, self._class_.$.factory.EIntConst(index));
-        return self;
+        return Path.new(self._class_.$.factory.ESubscript(self.$.path, self._class_.$.factory.EIntConst(index)));
       };
 
-      this.deref_P = function(scan, root) {
+      this.equals = function(other) {
         var self = this; 
-        if (root === undefined) root = scan;
-        var root;
+        return Equals.equals(self.$.path, other.path());
+      };
+
+      this.deref_P = function(root) {
+        var self = this; 
         try {
-          return self.deref(scan, root = scan);
+          return ! (self.deref(root) == null);
         } catch (DUMMY) {
           return false;
         }
@@ -51,7 +54,7 @@ function(Interpreter) {
 
       this.to_s = function() {
         var self = this; 
-        return self.to_s_path(self.$.path);
+        return "asdf" + self.to_s_path(self.$.path);
       };
 
       this.to_s_path = function(path) {
@@ -81,7 +84,6 @@ function(Interpreter) {
 
       this.deref = function(root) {
         var self = this; 
-        Is(self.deref(self.ever(self.used_P())));
         return self.dynamic_bind(function() {
           return self.eval();
         }, new EnsoHash ({ root: root }));
@@ -116,12 +118,61 @@ function(Interpreter) {
         return self.eval(obj.e())._get(self.eval(obj.sub()));
       };
 
-      this.assign = function(root, obj) {
+      this.assign = function(root, val) {
         var self = this; 
-        if (! self.lvalue_P()) {
-          self.raise(S("Can only assign to lvalues not to ", self));
+        var obj;
+        obj = self.$.path;
+        if (obj.EField_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e())._set(obj.fname(), val);
+          }, new EnsoHash ({ root: root }));
+        } else if (obj.ESubscript_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e())._set(self.eval(obj.sub()), val);
+          }, new EnsoHash ({ root: root }));
         }
-        return self.owner().deref(root)._set(self.last().name(), obj);
+      };
+
+      this.insert = function(root, val) {
+        var self = this; 
+        var obj;
+        obj = self.$.path;
+        if (obj.EField_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e())._set(obj.fname(), val);
+          }, new EnsoHash ({ root: root }));
+        } else if (obj.ESubscript_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e()).insert(self.eval(obj.sub()), val);
+          }, new EnsoHash ({ root: root }));
+        }
+      };
+
+      this.delete = function(root) {
+        var self = this; 
+        var obj;
+        obj = self.$.path;
+        if (obj.EField_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e())._set(obj.fname(), null);
+          }, new EnsoHash ({ root: root }));
+        } else if (obj.ESubscript_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e()).delete(self.eval(obj));
+          }, new EnsoHash ({ root: root }));
+        }
+      };
+
+      this.type = function(root, obj) {
+        var self = this; 
+        if (obj === undefined) obj = self.$.path;
+        if (obj.EField_P()) {
+          return self.dynamic_bind(function() {
+            return self.eval(obj.e()).schema_class().fields()._get(obj.fname());
+          }, new EnsoHash ({ root: root }));
+        } else if (obj.ESubscript_P()) {
+          return self.type(root, obj.e());
+        }
       };
 
       this.assign_and_coerce = function(root, value) {

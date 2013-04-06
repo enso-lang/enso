@@ -941,8 +941,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
 
       this._path = function(mobj) {
-        var self = this; 
-        return self.$.owner._path().field(self.$.field.name()).index(self.$.value.index(mobj));
+        var self = this;
+        return self.$.owner._path().field(self.$.field.name()).index(self.$.value.indexOf(mobj));
       };
 
       this.__insert = function(mobj) {

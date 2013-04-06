@@ -1,11 +1,13 @@
 require 'core/expr/code/impl'
 require 'core/expr/code/env'
+require 'core/expr/code/env'
+require 'core/diagram/code/traceval'
 
 module Evalexprstencil
 
   module EvalExprStencil
-#    include Traceval::TracevalCommand
-    include Impl::EvalCommand
+    include Traceval::TracevalCommand
+#    include Impl::EvalCommand
 
     def eval_Rule(obj)
       funname = "#{obj.name}__#{obj.type}"

@@ -77,7 +77,7 @@ function(Schema, Interpreter) {
       return obj.val();
     };
 
-    this.eval_ENil = function() {
+    this.eval_ENil = function(obj) {
       var self = this; 
       return null;
     };

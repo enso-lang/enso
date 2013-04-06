@@ -22,6 +22,7 @@ SOURCES = \
 	js/core/system/utils/find_model.js \
 	js/core/schema/tools/dumpjson.js \
 	js/core/schema/tools/print.js \
+	js/core/schema/tools/equals.js \
 	js/core/diagram/code/construct.js \
 	js/core/diagram/code/render.js \
 	js/core/diagram/code/traceval.js \
