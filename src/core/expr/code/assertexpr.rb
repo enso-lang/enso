@@ -27,7 +27,7 @@ module AssertExpr
         if var.nil?
           raise "Invalid expression in grammar"
         end
-        var.value = val
+        var.set(val)
       elsif obj.op == "&"
         assert obj.e1
         assert obj.e2

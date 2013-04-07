@@ -13,7 +13,6 @@ data = Load::load(data_file)
 
 mm = {}
 model = Construct::eval(stencil, data: data, modelmap: mm)
-abort
 Print.print(model)
 mm.each do |k,v|
   puts "\n#{k} ->"

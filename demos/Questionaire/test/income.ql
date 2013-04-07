@@ -16,4 +16,4 @@ if (hasSoldHouse) {
 answers
 
 locations : str [ "Austin" "Amsterdam" "Cambridge" ]
-value : int = sellingPrice.value
+value : int = sellingPrice.value.val - privateDebt.value.val

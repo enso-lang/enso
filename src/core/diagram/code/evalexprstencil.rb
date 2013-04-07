@@ -2,6 +2,7 @@ require 'core/expr/code/impl'
 require 'core/expr/code/env'
 require 'core/expr/code/env'
 require 'core/diagram/code/traceval'
+require 'core/schema/code/factory'
 
 module Evalexprstencil
 
@@ -62,18 +63,22 @@ module Evalexprstencil
     def eval_Eval(obj)
       env1 = Env::HashEnv.new
       obj.envs.map{|e| eval(e)}.each do |env|
-        env.each_pair do |k,v|
-          env1[k] = v
+        if env.is_a? Factory::List
+          env.each do |v|
+            env1[v.name] = v
+          end
+        else
+          env.each_pair do |k,v|
+            env1[k] = v
+          end
         end
       end
-      puts "env1=#{env1}"
       expr1 = eval(obj.expr)
-      puts "expr1=#{expr1}"
-      Print.print(expr1)
-      res = Eval::eval(expr1, env: env1)
-      puts "should be res=#{env1['sellingPrice']}"
-      Print.print(env1['sellingPrice'])
-      puts "res=#{res}"
+      res = dynamic_bind env: env1 do
+        eval(expr1)
+      end
+      puts "src for inner=#{@D[:src][expr1]}"
+      @D[:src][obj] = @D[:src][expr1]
       res
     end
 

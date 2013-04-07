@@ -104,10 +104,6 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       return res;
     };
 
-    this.default_value = function(res) {
-      var self = this; 
-    };
-
     this.eval_TextBox = function(obj) {
       var self = this; 
       var res;

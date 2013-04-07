@@ -91,6 +91,7 @@ module Traceval
         eval(obj.e)
       end
       res = if @D[:in_fc]
+        puts "in field #{obj} #{obj.e} #{obj.fname} #{target}"
         target.method(obj.fname.to_sym)
       else
         target.send(obj.fname)
@@ -131,6 +132,7 @@ module Traceval
         if obj.lambda.nil?
           res = m.call(*params)
         else
+          puts "obj=#{obj} obj.fun=#{obj.fun} m=#{m}"
           b = eval(obj.lambda)
           res = m.call(*params, &b)
         end

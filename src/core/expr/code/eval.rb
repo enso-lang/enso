@@ -118,7 +118,20 @@ module Eval
       val
     end
   end
-  
+
+  def self.make_default_const(factory, type)
+    case type
+    when 'int'
+      factory.EIntConst
+    when 'str'
+      factory.EStrConst
+    when 'bool'
+      factory.EBoolConst
+    when 'real'
+      factory.ERealConst
+    end
+  end  
+
   class EvalExprC
     include EvalExpr
     def initialize; end

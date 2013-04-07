@@ -20,9 +20,10 @@ class Question < Element
   desc : str?
   qn : str
   ans : Answer
+  type : str = ans.type
   all_elems : Question* = [self]
   //dynamic
-  value : str
+  value ! Expr?
 
 class Answer
   name # str

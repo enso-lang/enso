@@ -1,9 +1,10 @@
 define([
   "core/expr/code/impl",
   "core/expr/code/env",
-  "core/diagram/code/traceval"
+  "core/diagram/code/traceval",
+  "core/schema/code/factory"
 ],
-function(Impl, Env, Traceval) {
+function(Impl, Env, Traceval, Factory) {
   var Evalexprstencil ;
   var EvalExprStencil = MakeMixin([Traceval.TracevalCommand], function() {
     this.eval_Rule = function(obj) {
@@ -68,17 +69,28 @@ function(Impl, Env, Traceval) {
 
     this.eval_Eval = function(obj) {
       var self = this; 
-      var env1, expr1;
+      var env1, expr1, res;
       env1 = Env.HashEnv.new();
       obj.envs().map(function(e) {
         return self.eval(e);
       }).each(function(env) {
-        return env.each_pair(function(k, v) {
-          return env1._set(k, v);
-        });
+        if (System.test_type(env, Factory.List)) {
+          return env.each(function(v) {
+            return env1._set(v.name(), v);
+          });
+        } else {
+          return env.each_pair(function(k, v) {
+            return env1._set(k, v);
+          });
+        }
       });
       expr1 = self.eval(obj.expr());
-      return Eval.eval(expr1, new EnsoHash ({ env: env1 }));
+      res = self.dynamic_bind(function() {
+        return self.eval(expr1);
+      }, new EnsoHash ({ env: env1 }));
+      puts(S("src for inner=", self.$.D._get("src")._get(expr1)));
+      self.$.D._get("src")._set(obj, self.$.D._get("src")._get(expr1));
+      return res;
     };
   });
 

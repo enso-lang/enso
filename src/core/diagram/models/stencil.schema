@@ -16,7 +16,7 @@ class Rule < EFunDef	//a rule is essentially a sugar-ed up function
   obj:str
   type:str
 
-class RuleCall < Part
+class RuleCall < Expr, Part
   name:str
   obj!Expr
   params!Expr*

@@ -268,7 +268,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         var listeners;
         listeners = self.$.listeners._get(name);
         if (! listeners) {
-          listeners = self.$.listeners._set(name, []);
+          listeners = [];
+          self.$.listeners._set(name, []);
         }
         return listeners.push(block);
       };
@@ -576,6 +577,19 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           return block(item, null);
         });
       }
+    };
+
+    this.flat_map = function(block) {
+      var self = this; 
+      var new_V, set;
+      new_V = List.new(null, self.$.field);
+      self.each(function(x) {
+        set = block(x);
+        return set.each(function(y) {
+          return new_V.push(y);
+        });
+      });
+      return new_V;
     };
   });
 
@@ -941,7 +955,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       };
 
       this._path = function(mobj) {
-        var self = this;
+        var self = this; 
         return self.$.owner._path().field(self.$.field.name()).index(self.$.value.indexOf(mobj));
       };
 

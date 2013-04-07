@@ -50,7 +50,6 @@ function() {
         var self = this; 
         if (hash === undefined) hash = new EnsoHash ({ });
         if (parent === undefined) parent = null;
-        var parent, hash;
         self.$.hash = hash;
         return self.$.parent = parent;
       };

@@ -234,7 +234,12 @@ module Factory
 
     def add_listener(name, &block)
       listeners = @listeners[name]
-      listeners = @listeners[name] = [] if !listeners
+      if !listeners
+        #<[JS HACK]: listeners = self.$.listeners._set(name, []);
+        listeners = []
+        @listeners[name] = []
+        #[JS HACK]/>
+      end 
       listeners.push(block)
     end
 
@@ -464,6 +469,17 @@ module Factory
           block.call( item, nil )
         end
       end
+    end
+
+    def flat_map(&block)
+      new = List.new(nil, @field)
+      each do |x|
+        set = block.call(x)
+        set.each do |y|
+          new << y
+        end
+      end
+      new
     end
   end
   
@@ -729,7 +745,9 @@ module Factory
     end
 
     def _path(mobj)
+      #[JS HACK]: return self.$.owner._path().field(self.$.field.name()).index(self.$.value.indexOf(mobj));
       @owner._path.field(@field.name).index(@value.index(mobj))
+      #[JS HACK]/>
     end
 
     def __insert(mobj)
