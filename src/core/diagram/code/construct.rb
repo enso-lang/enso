@@ -59,12 +59,6 @@ module Construct
             res[f.name] = Eval::make_const(factory, eval(obj[f.name]))
             addr = @D[:src][obj[f.name]]
             if !addr.nil?
-
-              env = {}
-              env['root'] = @D[:data]
-              val = Eval::eval(addr, env: env)
-              raise "val=#{val}, res=#{res[f.name].val}" unless res[f.name].val==val  
-
               @D[:modelmap][res[f.name].to_s] = addr 
             end
           else
@@ -104,6 +98,14 @@ module Construct
       res
     end
 
+    def eval_TextBox(obj)
+      res = eval_?(obj)
+      if (res.value.nil? and !obj.type.nil?)
+        res.value = Eval::make_default_const(@D[:factory], obj.type.val)
+      end
+      res
+    end
+
     def eval_SelectMulti(obj)
       type = obj.schema_class
       factory = @D[:factory]
@@ -112,13 +114,15 @@ module Construct
       obj.props.each do |prop|
         res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
       end
-      res.value = Eval::make_const(factory, eval(obj.value))
 #      obj.choices.map{|c|eval(c)}.each do |choice|
       obj.choices.each do |choice|
         cs = eval(choice)
         cs.each do |c|
           res.choices << Eval::make_const(factory, c)
         end
+      end
+      if (res.value.nil? and !obj.type.nil?)
+        res.value = Eval::make_default_const(@D[:factory], obj.type.val)
       end
       res
     end
@@ -131,12 +135,14 @@ module Construct
       obj.props.each do |prop|
         res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
       end
-      res.value = Eval::make_const(factory, eval(obj.value))
       obj.choices.each do |choice|
         cs = eval(choice)
         cs.each do |c|
           res.choices << Eval::make_const(factory, c)
         end
+      end
+      if (res.value.nil? and !obj.type.nil?)
+        res.value = Eval::make_default_const(@D[:factory], obj.type.val)
       end
       res
     end

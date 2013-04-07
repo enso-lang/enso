@@ -13,7 +13,7 @@ Part ::= [Container] Dir Props? "{" items:Part+ "}"
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part
        | [SelectMulti] "multi" Props? value:Expr choices:Expr
        | [SelectSingle] "single" Props? value:Expr choices:Expr
-       | [TextBox] "text?" Props? value:Expr
+       | [TextBox] "text?" Props? value:Expr type:Expr
        | [Pages] "pages" ("(" current:Expr ")")? Props? "{" items:Part+ "}"
        | [Space] "--" Props?
 

@@ -10,10 +10,10 @@ if (hasSoldHouse) {
   location: "In which cities have you sold a house?" locations
   sellingPrice: "Price the house was sold for:" money
   privateDebt: "Private debts for the sold house:" money
-  valueResidue: "Value residue:" money
+  valueResidue: "Value residue:" value
 }
 
 answers
 
 locations : str [ "Austin" "Amsterdam" "Cambridge" ]
-value : int = (sellingPrice - privateDebt)
+value : int = sellingPrice.value

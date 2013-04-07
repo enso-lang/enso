@@ -47,7 +47,7 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
 
     this.eval__P = function(obj) {
       var self = this; 
-      var type, factory, res, addr, env, val, ev;
+      var type, factory, res, addr, ev;
       type = obj.schema_class();
       factory = self.$.D._get("factory");
       res = factory._get(type.name());
@@ -59,12 +59,6 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
             res._set(f.name(), Eval.make_const(factory, self.eval(obj._get(f.name()))));
             addr = self.$.D._get("src")._get(obj._get(f.name()));
             if (! (addr == null)) {
-              env = new EnsoHash ({ });
-              env._set("root", self.$.D._get("data"));
-              val = Eval.eval(addr, new EnsoHash ({ env: env }));
-              if (! (res._get(f.name()).val() == val)) {
-                self.raise(S("val=", val, ", res=", res._get(f.name()).val()));
-              }
               return self.$.D._get("modelmap")._set(res._get(f.name()).to_s(), addr);
             }
           } else {
@@ -110,6 +104,20 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       return res;
     };
 
+    this.default_value = function(res) {
+      var self = this; 
+    };
+
+    this.eval_TextBox = function(obj) {
+      var self = this; 
+      var res;
+      res = self.eval__P(obj);
+      if (res.value() == null && ! (obj.type() == null)) {
+        res.set_value(Eval.make_default_const(self.$.D._get("factory"), obj.type().val()));
+      }
+      return res;
+    };
+
     this.eval_SelectMulti = function(obj) {
       var self = this; 
       var type, factory, res, cs;
@@ -120,13 +128,15 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       obj.props().each(function(prop) {
         return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
       });
-      res.set_value(Eval.make_const(factory, self.eval(obj.value())));
       obj.choices().each(function(choice) {
         cs = self.eval(choice);
         return cs.each(function(c) {
           return res.choices().push(Eval.make_const(factory, c));
         });
       });
+      if (res.value() == null && ! (obj.type() == null)) {
+        res.set_value(Eval.make_default_const(self.$.D._get("factory"), obj.type().val()));
+      }
       return res;
     };
 
@@ -140,13 +150,15 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       obj.props().each(function(prop) {
         return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
       });
-      res.set_value(Eval.make_const(factory, self.eval(obj.value())));
       obj.choices().each(function(choice) {
         cs = self.eval(choice);
         return cs.each(function(c) {
           return res.choices().push(Eval.make_const(factory, c));
         });
       });
+      if (res.value() == null && ! (obj.type() == null)) {
+        res.set_value(Eval.make_default_const(self.$.D._get("factory"), obj.type().val()));
+      }
       return res;
     };
 

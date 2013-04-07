@@ -141,6 +141,20 @@ function(Schema, Interpreter) {
       }
     },
 
+    make_default_const: function(factory, type) {
+      var self = this; 
+      switch (type) {
+        case "int":
+          return factory.EIntConst();
+        case "str":
+          return factory.EStrConst();
+        case "bool":
+          return factory.EBoolConst();
+        case "real":
+          return factory.ERealConst();
+      }
+    },
+
     eval: function(obj, args) {
       var self = this; 
       if (args === undefined) args = new EnsoHash ({ });

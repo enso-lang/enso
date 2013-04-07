@@ -11,9 +11,10 @@ requirejs([
   "enso",
 'core/system/load/load',
 'core/diagram/code/construct',
-'core/expr/code/eval'
+'core/expr/code/eval',
+'core/expr/code/lvalue'
 ],
-function(Enso, Load, Construct, Eval) {
+function(Enso, Load, Construct, Eval, Lvalue) {
 // jquery
 data_file = "income.ql"
 stencil_file = S("ql.stencil")
@@ -37,7 +38,7 @@ function getMethods(obj) {
 function coercefromstr(type, val) {
 	if (type=='int') {
 		res = parseInt(val);
-		if (res.isNaN())
+		if (isNaN(res))
 			return 0;
 		else
 			return res;
@@ -120,42 +121,41 @@ var interp = {
   },
   render_Text: function (obj) {
   	var dom = $('<text>');
-  	dom.text(obj.string().val().to_s());
   	this.make_style(dom, obj.props());
+  	dom.text(obj.string().val().to_s());
+  	var type = obj.type().val().to_s();
+  	var path = mm._get(obj.value().to_s());
+	if (path!=null) {
+		var env = new EnsoHash ({ });
+		env._set("root", data);
+		addr = Lvalue.lvalue(path, new EnsoHash ({ env: env }));
+		addr.object().add_listener(addr.index(), function(val) {
+			console.log(S("changed value in ", addr.object(), ".", addr.index, " to ", val));
+			dom.text(val.to_s());
+		});
+	}
     return dom;
   },
   render_TextBox: function (obj) {
   	var dom = $("<input type='text'>");
   	this.make_style(dom, obj.props());
-  	var domkey = obj.value().to_s();
-  	var addr = mm._get(domkey);
-/*
-  	console.log(S(domkey, "addr = ", addr));
-  	console.log(mm.inspect());
-  	mm.each(function(k,v){
-  		console.log(S(k, " -> ", v));
-  	})
-  	console.log(S(addr==null, "  ", addr==undefined));
-*/
-	if (addr!=null) {
+  	dom.text(obj.string().val().to_s());
+  	var type = obj.type().val().to_s();
+  	var path = mm._get(obj.value().to_s());
+	if (path!=null) {
 		var env = new EnsoHash ({ });
 		env._set("root", data);
 	  	dom.keyup(function () {
-			var ui_value = coercefromstr('int', $(this).val()); 
-			var model_value = Eval.eval(addr, new EnsoHash ({ env: env }));
+			var ui_value = coercefromstr(type, $(this).val()); 
+			var model_value = Eval.eval(path, new EnsoHash ({ env: env }));
 			console.log(S("ui_value=",ui_value, "   (==nil):", ui_value==null));
 			console.log(S("model_value=",model_value));
-			console.log(S("ui_value!=model_value : ", ui_value!=model_value))
-			if (ui_value!=model_value) {
-	//			if (obj.value()._get('val')!=value) {
-	//				obj.value()._set('val', value);
-	//			}
-//				if (addr.get()!=value) {
-//					addr.set(value);
-//				}
+			console.log(S("ui_value!=model_value : ", ui_value.to_s()!=model_value))
+			if (ui_value.to_s()!=model_value) {
+				addr = Lvalue.lvalue(path, new EnsoHash ({ env: env }));
+				addr.set(ui_value.to_s());
 			}
 		}).keyup();
-//  	dom.val(obj.value().val().to_s()); 
 	}
     return dom;
   },

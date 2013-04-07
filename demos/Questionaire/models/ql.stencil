@@ -2,15 +2,18 @@ import currency.stencil
 
 diagram(data) {
 
-	rule draw for elem:Group			for elem : elem.elems
-	          								call draw for elem
+	rule draw for elem:Group			pages(0) {
+											for elem : elem.elems
+	          									call draw for elem
+	          								--
+	          							}
 
 	rule draw for elem:Question			horizontal {
 			      							text elem.qn
 	      									call draw(elem.value) for elem.ans
 	    								}
 
-	rule draw(value) for elem:TextBox	text? value
+	rule draw(value) for elem:TextBox	text? value elem.type
 
 	rule draw(value) for elem:CheckBox	multi value
 											elem.choices.map(){|c|return c.string}
@@ -18,7 +21,7 @@ diagram(data) {
 	rule draw(value) for elem:MultiChoice	single value 
 											elem.choices.map(){|c|return c.string}
 
-	rule draw for elem:Computed			box { text+ "" }
+	rule draw(value) for elem:Computed	box { text [[elem.expr|data.all_elems]] }
 
 	///////////////////////////////////////////////////////////////
 

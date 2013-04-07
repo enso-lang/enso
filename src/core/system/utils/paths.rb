@@ -46,7 +46,7 @@ module Paths
     end
     
     def to_s()
-      "asdf"+to_s_path(@path)
+      to_s_path(@path)
     end
     
     def to_s_path(path)

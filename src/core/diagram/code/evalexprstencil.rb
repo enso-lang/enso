@@ -66,8 +66,15 @@ module Evalexprstencil
           env1[k] = v
         end
       end
+      puts "env1=#{env1}"
       expr1 = eval(obj.expr)
-      Eval::eval(expr1, env: env1)
+      puts "expr1=#{expr1}"
+      Print.print(expr1)
+      res = Eval::eval(expr1, env: env1)
+      puts "should be res=#{env1['sellingPrice']}"
+      Print.print(env1['sellingPrice'])
+      puts "res=#{res}"
+      res
     end
 
   end    

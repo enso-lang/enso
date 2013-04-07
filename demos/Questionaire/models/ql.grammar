@@ -15,11 +15,11 @@ Answer ::= CheckBox
          | TextBox
          | Computed
 
-CheckBox ::= [CheckBox] name:sym ":" type:Type "[" choices:Label+ "]"
-MultiChoice ::= [MultiChoice] name:sym ":" type:Type "(" choices:Label+ ")"
-TextBox ::= [TextBox] name:sym ":" type:Type
-Computed ::= [Computed] name:sym ":" type:Type "=" expr:Expr
+CheckBox ::= [CheckBox] name:sym ":" Type "[" choices:Label+ "]"
+MultiChoice ::= [MultiChoice] name:sym ":" Type "(" choices:Label+ ")"
+TextBox ::= [TextBox] name:sym ":" Type
+Computed ::= [Computed] name:sym ":" Type "=" expr:Expr
 
-Type ::= "int" | "bool" | "str" | "real"
+Type ::= type:"int" | type:"bool" | type:"str" | type:"real"
 
 Label ::= [Label] string:str

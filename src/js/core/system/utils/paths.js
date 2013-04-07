@@ -54,7 +54,7 @@ function(Interpreter, Equals) {
 
       this.to_s = function() {
         var self = this; 
-        return "asdf" + self.to_s_path(self.$.path);
+        return self.to_s_path(self.$.path);
       };
 
       this.to_s_path = function(path) {
