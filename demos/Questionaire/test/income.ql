@@ -6,7 +6,7 @@ hasSoldHouse: "Did you sell a house in 2010?" boolean
 hasBoughtHouse: "Did you buy a house in 2010?" boolean
 hasMaintLoan: "Did you enter a loan for maintenance/reconstruction?" money
 
-if (hasMaintLoan.value.val > 1000) {
+if (hasMaintLoan.response.val > 1000) {
   location: "In which cities have you sold a house?" locations
   sellingPrice: "Price the house was sold for:" money
   privateDebt: "Private debts for the sold house:" money
@@ -16,4 +16,4 @@ if (hasMaintLoan.value.val > 1000) {
 answers
 
 locations : str [ "Austin" "Amsterdam" "Cambridge" ]
-value : int = sellingPrice.value.val - privateDebt.value.val
+value : int = sellingPrice.response.val - privateDebt.response.val

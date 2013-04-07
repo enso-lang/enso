@@ -5,7 +5,7 @@ primitive str
 class Questionaire
   title : str?
   elems ! Element*
-  answers ! Answer*
+  answers ! AnswerType*
   all_elems : Question* = elems.flat_map() {|e| return e.all_elems}
 
 class Element
@@ -19,26 +19,25 @@ class Question < Element
   name # str
   qn : str
   desc : str?
-  ans : Answer
+  ans : AnswerType
   type : str = ans.type
   all_elems : Question* = [self]
-  value ! Expr?
+  response ! Expr?
 
-class Answer
+class AnswerType
   name # str
   type : str
 
-class CheckBox < Answer
+class CheckBox < AnswerType
   choices ! Label+
 
-class MultiChoice < Answer
+class MultiChoice < AnswerType
   choices ! Label+
 
-class TextBox < Answer
+class TextBox < AnswerType
 
-class Computed < Answer
+class Computed < AnswerType
   expr ! Expr
 
 class Label
   string # str
-
