@@ -27,6 +27,7 @@ SOURCES = \
 	js/core/diagram/code/render.js \
 	js/core/diagram/code/traceval.js \
 	js/core/diagram/code/evalexprstencil.js \
+	js/core/diagram/code/invert.js \
 	js/core/expr/code/renderexp.js \
 
 

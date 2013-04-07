@@ -88,7 +88,6 @@ function(Impl, Env, Traceval, Factory) {
       res = self.dynamic_bind(function() {
         return self.eval(expr1);
       }, new EnsoHash ({ env: env1 }));
-      puts(S("src for inner=", self.$.D._get("src")._get(expr1)));
       self.$.D._get("src")._set(obj, self.$.D._get("src")._get(expr1));
       return res;
     };

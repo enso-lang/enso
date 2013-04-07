@@ -269,7 +269,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         listeners = self.$.listeners._get(name);
         if (! listeners) {
           listeners = [];
-          self.$.listeners._set(name, []);
+          self.$.listeners._set(name, listeners);
         }
         return listeners.push(block);
       };

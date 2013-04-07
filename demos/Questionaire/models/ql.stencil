@@ -19,8 +19,8 @@ diagram(data) {
 	rule draw(value) for elem:MultiChoice	single value 
 											elem.choices.map(){|c|return c.string}
 
-//	rule draw(value) for elem:Computed	box { text [[elem.expr|data.all_elems]] }
-	rule draw(value) for elem:Computed	box { text [[elem.expr|get_elems(data)]] }
+	rule draw(value) for elem:Computed	text [[elem.expr|get_elems(data)]]
+//	rule draw(value) for elem:Computed	text [[elem.expr|data.all_elems]]
 
 	def get_elems ( x ) { return (call gelems for x) }
 	rule gelems for o:Questionaire		o.elems.flat_map() {|e| return (call gelems for e)}

@@ -77,7 +77,6 @@ module Evalexprstencil
       res = dynamic_bind env: env1 do
         eval(expr1)
       end
-      puts "src for inner=#{@D[:src][expr1]}"
       @D[:src][obj] = @D[:src][expr1]
       res
     end

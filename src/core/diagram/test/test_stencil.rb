@@ -1,6 +1,7 @@
 require 'core/system/load/load'
 require 'core/diagram/code/construct'
 require 'core/diagram/code/render'
+require 'core/diagram/code/invert'
 
 data_file = ARGV[0]
 if data_file.nil?
@@ -18,6 +19,8 @@ mm.each do |k,v|
   puts "\n#{k} ->"
   Print.print(v)
 end
+#Invert.invert(mm["<<EStrConst 1788 'House buying survey'>>"], env: {"root"=>data}, val: "blah")
+#puts Invert.getSources(mm["<<EIntConst 2318 '0'>>"])
 
 def render(diagram, data)
   html = Render::render(diagram, data: data)

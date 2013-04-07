@@ -237,7 +237,7 @@ module Factory
       if !listeners
         #<[JS HACK]: listeners = self.$.listeners._set(name, []);
         listeners = []
-        @listeners[name] = []
+        @listeners[name] = listeners
         #[JS HACK]/>
       end 
       listeners.push(block)

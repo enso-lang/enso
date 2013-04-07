@@ -114,10 +114,7 @@ function(Factory, Interpreter, Env, Impl, Eval, Union) {
         return self.eval(obj.e());
       }, new EnsoHash ({ in_fc: false }));
       res = self.$.D._get("in_fc")
-        ? ((function() {
-          puts(S("in field ", obj, " ", obj.e(), " ", obj.fname(), " ", target));
-          return target.method(obj.fname().to_sym());
-        })())
+        ? target.method(obj.fname().to_sym())
         : target.send(obj.fname());
       src = self.$.D._get("factory")._get(obj.schema_class().name());
       src.set_fname(obj.fname());
@@ -159,7 +156,6 @@ function(Factory, Interpreter, Env, Impl, Eval, Union) {
         if (obj.lambda() == null) {
           res = m.apply(m, [].concat(params));
         } else {
-          puts(S("obj=", obj, " obj.fun=", obj.fun(), " m=", m));
           b = self.eval(obj.lambda());
           res = m.apply(m, [b].concat(params));
         }
