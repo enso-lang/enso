@@ -20,7 +20,7 @@ MultiChoice ::= [MultiChoice] name:sym ":" Type "(" choices:Label+ ")"
 TextBox ::= [TextBox] name:sym ":" Type
 Computed ::= [Computed] name:sym ":" Type "=" expr:Expr
 
-Type ::= type:"int" // { value == self.factory.EIntConst }
+Type ::= type:"int"
        | type:"bool" 
        | type:"str" 
        | type:"real"

@@ -2,9 +2,13 @@ import currency.stencil
 
 diagram(data) {
 
-	rule draw for elem:Group			//pages(0) {
-											for elem : elem.elems
-	          									call draw for elem
+	rule draw for elem:Group			pages([[elem.guard|data.all_elems]] ? 0 : 1) {
+											vertical {
+												for elem : elem.elems
+		          									call draw for elem
+	          								}
+	    	      							--
+										}
 
 	rule draw for elem:Question			horizontal {
 			      							text elem.qn
