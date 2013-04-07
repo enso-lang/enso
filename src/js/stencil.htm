@@ -110,13 +110,15 @@ var interp = {
   	this.make_style(dom, obj.props());
   	return dom;
   },
-  update_Pages: function (dom,val) {
-  	console.log(S("dom=",dom,"  val=",val))
-	if (dom.current!=val) {
-		console.log(S("Flipping page from ", dom.current, " to ", val));
-		dom.get(dom.current).hide()
-		dom.get(val).show()
-		dom.current = val
+  update_Pages: function (doms,list,nval) {
+  	console.log(S("dom=",doms.current,"  val=",nval))
+	if (doms.current!=nval) {
+		console.log(S("Flipping page from ", doms.current, " to ", nval));
+		list[doms.current].hide()
+		console.log(S("hiding ",list[doms.current]))
+		list[nval].show()
+		console.log(S("showing ",list[nval]))
+		doms.current = nval
 	}
   },
   render_Pages: function (obj) {
@@ -129,13 +131,14 @@ var interp = {
 		console.log(S("init item=",item_dom))
     	doms.append(item_dom);
     	list[i] = item_dom;
+    	item_dom.hide();
   	}
-  	doms["current"]=0;
-	console.log(doms.get())
   	var path = mm._get(obj.current().to_s());
+	var env = new EnsoHash ({ });
+	env._set("root", data);
+  	doms["current"]=Eval.eval(path, new EnsoHash ({ env: env }));
+  	list[doms.current].show();  	
 	if (path!=null) {
-		var env = new EnsoHash ({ });
-		env._set("root", data);
 		srcs = Invert.getSources(path);
 	    for (var i=0,len=srcs.size(); i<len; i++) {
 	    	var addr = Lvalue.lvalue(srcs._get(i), new EnsoHash ({ env: env }));
@@ -143,7 +146,7 @@ var interp = {
 			addr.object().add_listener(function(val) {
 				var nval = Eval.eval(path, new EnsoHash ({ env: env }));
 				console.log(S("changed value in ", addr.object(), ".", addr.index(), " to ", nval));
-			  	console.log(S("dom=",doms.current,"  val=",val))
+			  	console.log(S("dom=",doms.current,"  val=",nval))
 				if (doms.current!=nval) {
 					console.log(S("Flipping page from ", doms.current, " to ", nval));
 					list[doms.current].hide()
@@ -152,6 +155,7 @@ var interp = {
 					console.log(S("showing ",list[nval]))
 					doms.current = nval
 				}
+//				this.update_Pages(doms,list,nval);
 			}, addr.index().to_s());
 	    }
 	}

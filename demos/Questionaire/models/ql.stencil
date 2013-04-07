@@ -1,7 +1,4 @@
-import currency.stencil
-
 diagram(data) {
-
 	rule draw for elem:Group			pages([[elem.guard|data.all_elems]] ? 0 : 1) {
 											vertical {
 												for elem : elem.elems
@@ -42,6 +39,4 @@ diagram(data) {
 				call draw for elem
 			}
 		}
-		}
-	} }
-}
+}	} }	}

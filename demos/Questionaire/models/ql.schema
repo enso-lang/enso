@@ -17,12 +17,11 @@ class Group < Element
 
 class Question < Element
   name # str
-  desc : str?
   qn : str
+  desc : str?
   ans : Answer
   type : str = ans.type
   all_elems : Question* = [self]
-  //dynamic
   value ! Expr?
 
 class Answer
