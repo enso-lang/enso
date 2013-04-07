@@ -9,8 +9,19 @@ module Invert
       dispatch_obj(:getSources, obj)
     end
   
+    def getSources_ETernOp(obj)
+      res = []
+      res = res.concat(getSources(obj.e1))  #res=res.concat instead of just res.concat for JS [JS HACK]
+      res = res.concat(getSources(obj.e2))
+      res = res.concat(getSources(obj.e3))
+      res
+    end
+  
     def getSources_EBinOp(obj)
-      getSources(obj.e1).concat(getSources(obj.e2))
+      res = []
+      res = res.concat(getSources(obj.e1))
+      res = res.concat(getSources(obj.e2))
+      res
     end
 
     def getSources_EUnOp(obj)

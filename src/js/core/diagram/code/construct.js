@@ -160,33 +160,21 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
 
     this.eval_Pages = function(obj) {
       var self = this; 
-      var factory, res, ev, neval;
+      var factory, res, ev, addr;
       factory = self.$.D._get("factory");
       res = factory.Pages();
       res.set_label(obj.label());
       obj.props().each(function(prop) {
         return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
       });
+      res.set_current(Eval.make_const(factory, self.eval(obj.current())));
       obj.items().each(function(item) {
         ev = self.eval(item);
-        if (System.test_type(ev, Array)) {
-          return ev.flatten().each(function(e) {
-            if (! (e == null)) {
-              return res.items().push(e);
-            }
-          });
-        } else if (! (ev == null)) {
-          return res.items().push(ev);
-        }
+        return res.items().push(ev);
       });
-      if (obj.current().Eval_P()) {
-        neval = factory.Eval();
-        res.set_current(neval);
-      } else {
-        res.set_current(Union.Copy(factory, obj.current()));
-      }
-      if (! (obj.label() == null)) {
-        self.$.D._get("env")._set(obj.label(), res);
+      addr = self.$.D._get("src")._get(obj.current());
+      if (! (addr == null)) {
+        self.$.D._get("modelmap")._set(res.current().to_s(), addr);
       }
       return res;
     };

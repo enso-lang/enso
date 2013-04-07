@@ -154,23 +154,14 @@ module Construct
       obj.props.each do |prop|
         res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
       end
+      res.current = Eval::make_const(factory, eval(obj.current))
       obj.items.each do |item|
-          ev = eval(item)
-          if ev.is_a? Array    # flatten arrays
-            ev.flatten.each {|e| if not e.nil?; res.items << e; end}
-          elsif not ev.nil?
-            res.items << ev
-          end
+        ev = eval(item)
+        res.items << ev
       end
-      #####FIXME: Ugly hack to make Eval work
-      if obj.current.Eval?
-        neval = factory.Eval
-        res.current = neval
-      else
-        res.current = Union::Copy(factory, obj.current)
-      end
-      unless obj.label.nil?
-        @D[:env][obj.label] = res
+      addr = @D[:src][obj.current]
+      if !addr.nil?
+        @D[:modelmap][res.current.to_s] = addr 
       end
       res
     end

@@ -10,6 +10,23 @@ function(Factory, Interpreter, Env, Impl, Eval, Union) {
   var Traceval ;
 
   var TracevalCommand = MakeMixin([Interpreter.Dispatcher, Impl.EvalCommand], function() {
+    this.eval_ETernOp = function(obj) {
+      var self = this; 
+      var e1, e2, e3, res, src;
+      e1 = self.eval(obj.e1());
+      e2 = self.eval(obj.e2());
+      e3 = self.eval(obj.e3());
+      res = e1
+        ? e2
+        : e3;
+      src = self.$.D._get("factory")._get(obj.schema_class().name());
+      src.set_e1(self.$.D._get("src")._get(obj.e1()));
+      src.set_e2(self.$.D._get("src")._get(obj.e2()));
+      src.set_e3(self.$.D._get("src")._get(obj.e3()));
+      self.$.D._get("src")._set(obj, src);
+      return res;
+    };
+
     this.eval_EBinOp = function(obj) {
       var self = this; 
       var res, src;

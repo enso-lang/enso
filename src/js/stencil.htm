@@ -110,10 +110,52 @@ var interp = {
   	this.make_style(dom, obj.props());
   	return dom;
   },
+  update_Pages: function (dom,val) {
+  	console.log(S("dom=",dom,"  val=",val))
+	if (dom.current!=val) {
+		console.log(S("Flipping page from ", dom.current, " to ", val));
+		dom.get(dom.current).hide()
+		dom.get(val).show()
+		dom.current = val
+	}
+  },
   render_Pages: function (obj) {
   	var index = obj.current().val();
-  	var dom = this.render(obj.items()._get(index));
-    return dom;
+  	var doms = $("<div>");
+  	var list = []
+	for (var i=0,len=obj.items().size(); i<len; i++)
+    {
+    	var item_dom = this.render(obj.items()._get(i));
+		console.log(S("init item=",item_dom))
+    	doms.append(item_dom);
+    	list[i] = item_dom;
+  	}
+  	doms["current"]=0;
+	console.log(doms.get())
+  	var path = mm._get(obj.current().to_s());
+	if (path!=null) {
+		var env = new EnsoHash ({ });
+		env._set("root", data);
+		srcs = Invert.getSources(path);
+	    for (var i=0,len=srcs.size(); i<len; i++) {
+	    	var addr = Lvalue.lvalue(srcs._get(i), new EnsoHash ({ env: env }));
+			console.log(S("adding listener to addr: ", addr.object(), ".", addr.index()));
+			addr.object().add_listener(function(val) {
+				var nval = Eval.eval(path, new EnsoHash ({ env: env }));
+				console.log(S("changed value in ", addr.object(), ".", addr.index(), " to ", nval));
+			  	console.log(S("dom=",doms.current,"  val=",val))
+				if (doms.current!=nval) {
+					console.log(S("Flipping page from ", doms.current, " to ", nval));
+					list[doms.current].hide()
+					console.log(S("hiding ",list[doms.current]))
+					list[nval].show()
+					console.log(S("showing ",list[nval]))
+					doms.current = nval
+				}
+			}, addr.index().to_s());
+	    }
+	}
+    return doms;
   },
   render_Space: function (obj) {
   	var txt3 = $("<div>");
@@ -130,11 +172,11 @@ var interp = {
 		srcs = Invert.getSources(path);
 	    for (var i=0,len=srcs.size(); i<len; i++) {
 	    	var addr = Lvalue.lvalue(srcs._get(i), new EnsoHash ({ env: env }));
-			console.log(S("adding listener to addr: ", addr.object(), "..", addr.index()));
+			console.log(S("adding listener to addr: ", addr.object(), ".", addr.index()));
 			addr.object().add_listener(function(val) {
 				var nval = Eval.eval(path, new EnsoHash ({ env: env }));
-				dom.text(nval.to_s());
 				console.log(S("changed value in ", addr.object(), ".", addr.index(), " to ", nval));
+				dom.text(nval.to_s());
 			}, addr.index().to_s());
 	    }
 	}

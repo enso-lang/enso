@@ -10,6 +10,19 @@ module Traceval
     include Interpreter::Dispatcher
     include Impl::EvalCommand
 
+    def eval_ETernOp(obj)
+      e1 = eval(obj.e1)
+      e2 = eval(obj.e2)
+      e3 = eval(obj.e3)
+      res = e1 ? e2 : e3
+      src = @D[:factory][obj.schema_class.name]
+      src.e1 = @D[:src][obj.e1]
+      src.e2 = @D[:src][obj.e2]
+      src.e3 = @D[:src][obj.e3]
+      @D[:src][obj] = src
+      res
+    end
+
     def eval_EBinOp(obj)
       res = nil
       case obj.op

@@ -11,9 +11,23 @@ function(Interpreter, Lvalue) {
       return self.dispatch_obj("getSources", obj);
     };
 
+    this.getSources_ETernOp = function(obj) {
+      var self = this; 
+      var res;
+      res = [];
+      res = res.concat(self.getSources(obj.e1()));
+      res = res.concat(self.getSources(obj.e2()));
+      res = res.concat(self.getSources(obj.e3()));
+      return res;
+    };
+
     this.getSources_EBinOp = function(obj) {
       var self = this; 
-      return self.getSources(obj.e1()).concat(self.getSources(obj.e2()));
+      var res;
+      res = [];
+      res = res.concat(self.getSources(obj.e1()));
+      res = res.concat(self.getSources(obj.e2()));
+      return res;
     };
 
     this.getSources_EUnOp = function(obj) {
