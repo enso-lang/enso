@@ -217,7 +217,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
               }
             });
             val = Impl.eval(exp, new EnsoHash ({ env: Env.ObjEnv.new(self) }));
-            if (fld.many() && ! System.test_type(val, Many)) {
+            if (fld.many()) {
               if (key = Schema.class_key(fld.type())) {
                 collection = Set.new(self, fld, key);
               } else {
@@ -532,6 +532,16 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         });
       });
       return new_V || Set.new(null, self.$.field, self.__key());
+    };
+
+    this.hash_map = function(block) {
+      var self = this; 
+      var new_V;
+      new_V = new EnsoHash ({ });
+      self.each(function(v) {
+        return new_V._set(v._get(self.__key().name()), block(v));
+      });
+      return new_V;
     };
 
     this.each_with_match = function(block, other) {

@@ -59,6 +59,12 @@ if (typeof window === 'undefined') {
           fun(k, data[k]);
       }
     };
+    this.each_pair = function(fun) {
+   	  for (k in data) {
+        if (data.hasOwnProperty(k))
+          fun(k, data[k]);
+      }
+    }
     this.each_value = function(fun) {
       for (k in data) {
         if (data.hasOwnProperty(k))

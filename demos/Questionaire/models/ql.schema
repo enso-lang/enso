@@ -41,3 +41,4 @@ class Computed < AnswerType
 
 class Label
   string # str
+

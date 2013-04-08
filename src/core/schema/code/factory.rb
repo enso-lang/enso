@@ -195,7 +195,7 @@ module Factory
             end
           end
           val = Impl::eval(exp, env: Env::ObjEnv.new(self))
-          if fld.many and !val.is_a? Many
+          if fld.many #coerce to whatever the right container should be
             if key = Schema::class_key(fld.type)
               collection = Set.new(self, fld, key)
             else
@@ -434,6 +434,14 @@ module Factory
         end
       end
       new || Set.new(nil, @field, __key)
+    end
+
+    def hash_map(&block)
+      new = {}
+      each do |v|
+        new[v[__key.name]]=block.call(v)
+      end
+      new
     end
 
     def each_with_match(other, &block)

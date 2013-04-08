@@ -258,7 +258,8 @@ var interp = {
 	    for (var i=0,len=obj.choices().size(); i<len; i++)
 	    {
 	    	var choice = obj.choices()._get(i);
-	    	var line = S("<input type='radio' name='", obj._id().toString(),"' value='", choice.val(),"'>", choice.val(), "</input>");
+	    	var name = S("x",obj._id().toString());
+	    	var line = S("<input type='radio' name='", name,"' value='", choice.val(),"'>", choice.val(), "</input>");
 	    	if (arrange=='vertical') {
 	    		line = line + "<br>";
 	    	}
