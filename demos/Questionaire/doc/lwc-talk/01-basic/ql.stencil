@@ -1,0 +1,9 @@
+diagram(data) {
+
+	vertical {
+		text data.title
+		for elem : data.elems {
+			text elem.qn
+		}
+	}
+}

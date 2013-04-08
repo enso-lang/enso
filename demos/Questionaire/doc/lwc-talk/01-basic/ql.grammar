@@ -1,0 +1,6 @@
+start Questionaire
+
+Questionaire ::= [Questionaire] ("title" title:str)? elems:Question*@/
+
+Question ::= [Question] qn:str
+
