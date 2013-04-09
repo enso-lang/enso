@@ -1,18 +1,11 @@
-requirejs([
+define([
 	"enso", 
-	'core/system/load/load', 
-	'core/diagram/code/construct', 
 	'core/expr/code/eval', 
 	'core/expr/code/lvalue', 
 	'core/diagram/code/invert'
 ], 
-function(Enso, Load, Construct, Eval, Lvalue, Invert) {
-	// jquery
-	data_file = "housing.ql"
-	stencil_file = S("ql.stencil")
-
-	stencil = Load.load(stencil_file)
-	data = Load.load(data_file)
+function(Enso, Eval, Lvalue, Invert) {
+	var mm;
 
 	function getMethods(obj) {
 		var result = [];
@@ -38,8 +31,6 @@ function(Enso, Load, Construct, Eval, Lvalue, Invert) {
 		} else
 			return null;
 	}
-
-	var mm = new EnsoHash({ })
 
 	var interp = {
 		render : function(obj) {
@@ -115,7 +106,6 @@ function(Enso, Load, Construct, Eval, Lvalue, Invert) {
 			var list = []
 			for (var i = 0, len = obj.items().size(); i < len; i++) {
 				var item_dom = this.render(obj.items()._get(i));
-				console.log(S("init item=", item_dom))
 				doms.append(item_dom);
 				list[i] = item_dom;
 				item_dom.hide();
@@ -303,11 +293,13 @@ function(Enso, Load, Construct, Eval, Lvalue, Invert) {
 		in_grid : []
 	}
 
-	params = new EnsoHash({
-		data : data,
-		modelmap : mm
-	})
-	diagram = Construct.eval(stencil, params)
-	data = interp.render(diagram)
-	$("body").append(data);
+  var Diagram = {
+    render: function(obj, modelmap) {
+      var self = this;
+      mm = modelmap;
+      return interp.render(obj);
+    },
+  };
+
+  return Diagram;
 })

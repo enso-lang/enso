@@ -1,22 +1,16 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>My Sample Project</title>
 		<!-- data-main attribute tells require.js to load
 		scripts/main.js after require.js loads. -->
 		<script src="lib/jquery.js"></script>
 		<script src="lib/require.js"></script>
-		<script src="diagram.js"></script>
-		<style>
-			html {
-				height: 100%;
-			}
-			body {
-				height: 100%;
-				margin: 0;
-				padding: 0;
-			}
-		</style>
+		<script>
+			requirejs(['stencil'], function(Stencil) {
+				Stencil.render('housing.ql')
+			})
+		</script>
 	</head>
+	<title></title>
 	<body>
 </html>
