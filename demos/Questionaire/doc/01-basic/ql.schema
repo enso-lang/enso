@@ -1,9 +1,0 @@
-primitive str
-
-class Questionaire
-  title : str?
-  elems ! Question*
-
-class Question
-  qn : str
-
