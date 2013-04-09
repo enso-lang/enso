@@ -1,12 +1,4 @@
 diagram(data) {
-	rule draw for elem:Group            pages([[elem.guard|data.all_elems]] ? 0 : 1) {
-                                            vertical {
-                                                for elem : elem.elems
-                                                    call draw for elem
-                                            }
-                                            --
-                                        }
-
 	rule draw for elem:Question         horizontal {
                                             text elem.qn
                                             call ans(elem.response.val) for elem.ans
@@ -18,15 +10,13 @@ diagram(data) {
 
 	rule ans(val) for elem:MultiChoice  single val elem.choices.map(){|c|return c.string}
 
-	rule ans(val) for elem:Computed     text [[elem.expr|data.all_elems]]
-
 	///////////////////////////////////////////////////////////////
 
 	//create the nodes (one for each class)
 	style [background="#feb97d", height="100%", width="100%"] {
 	vertical [background="#feb97d", padding="0px", 
 			height="100%", width="760px", margin="0 auto"] {
-		style [background="#943400", color="#fff", padding="18px 10px 6px", margin="0px",
+		style [background="#943400", color="#fff", padding="18px 10px 20px", margin="0px",
 				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
 			text data.title
 		}

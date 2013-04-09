@@ -1,12 +1,4 @@
 diagram(data) {
-	rule draw for elem:Group            pages([[elem.guard|data.all_elems]] ? 0 : 1) {
-                                            vertical {
-                                                for elem : elem.elems
-                                                    call draw for elem
-                                            }
-                                            --
-                                        }
-
 	rule draw for elem:Question         horizontal {
                                             text elem.qn
                                             call ans(elem.response.val) for elem.ans
@@ -18,7 +10,7 @@ diagram(data) {
 
 	rule ans(val) for elem:MultiChoice  single val elem.choices.map(){|c|return c.string}
 
-	rule ans(val) for elem:Computed     text [[elem.expr|data.all_elems]]
+	rule ans(val) for elem:Computed     text [[elem.expr|data.elems]]     //computed fields are static text
 
 	///////////////////////////////////////////////////////////////
 

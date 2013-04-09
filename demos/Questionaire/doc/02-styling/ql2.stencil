@@ -1,0 +1,8 @@
+import layout.stencil
+
+diagram(data) {
+	title = data.title
+	body = data.elems.map() {|elem| text elem.qn}
+
+	layout (data.title, body)
+}

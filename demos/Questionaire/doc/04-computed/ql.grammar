@@ -2,11 +2,7 @@ import expr.grammar
 
 start Questionaire
 
-Questionaire ::= [Questionaire] ("title" title:str)? elems:Elem*@/ "answers" / answers:AnswerType*@/
-
-Elem ::= Group | Question
-
-Group ::= [Group] ("if" guard:Expr)? "{" elems:Elem*@/ "}"
+Questionaire ::= [Questionaire] ("title" title:str)? elems:Question*@/ "answers" / answers:AnswerType*@/
 
 Question ::= [Question] name:sym ":" qn:str ans:<root.answers[it]> { response == self.factory.EIntConst }
 
