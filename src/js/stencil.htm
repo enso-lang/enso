@@ -17,7 +17,7 @@ requirejs([
 ],
 function(Enso, Load, Construct, Eval, Lvalue, Invert) {
 // jquery
-data_file = "income.ql"
+data_file = "housing.ql"
 stencil_file = S("ql.stencil")
 
 stencil = Load.load(stencil_file)
@@ -184,6 +184,7 @@ var interp = {
 			}, addr.index().to_s());
 	    }
 	}
+	dom.append($('<p>'))
     return dom;
   },
   render_TextBox: function (obj) {
