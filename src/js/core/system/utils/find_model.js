@@ -15,11 +15,15 @@ function() {
       this.find_model = function(block, name) {
         var self = this; 
         var path;
-        path = self.file_map()._get(name);
-        if (! path) {
-          self.raise(S("File not found ", name));
+        if (File.exists_P(name)) {
+          return block(name);
+        } else {
+          path = self.file_map()._get(name);
+          if (! path) {
+            self.raise(S("File not found ", name));
+          }
+          return block(path);
         }
-        return block(path);
       };
     },
     function(super$) {

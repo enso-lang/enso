@@ -24,6 +24,23 @@ if (typeof window === 'undefined') {
       resource.open('GET', root_url + path, false);
       resource.send(null);
       return resource.responseText; // JavaScript waits for response
+    },
+    existsSync: function(path) {
+      return false;	//TODO: fix the following piece of code
+      var resource;
+      if(typeof ActiveXObject == 'undefined'){
+        resource = new XMLHttpRequest();
+      }
+      else{ // IE
+        resource = new ActiveXObject("Microsoft.XMLHTTP");
+      }
+      try {
+        resource.open('GET', root_url + path, false);
+        resource.send(null);
+        return true;
+      } catch(err) {
+      	return false;
+      }
     }
   }
 }
