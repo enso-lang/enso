@@ -192,6 +192,7 @@ if (typeof window === 'undefined') {
     }
     return result;
   };
+  Array.prototype.index = Array.prototype.indexOf;
   
   String.prototype.inspect = function() {
      return "\"" + this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0") + "\"";
