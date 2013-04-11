@@ -145,6 +145,12 @@ if (typeof window === 'undefined') {
     }
   };
   
+  Dir = {
+  	mkdir: function(path) {
+  		//stub
+  	}
+  }
+  
   System = {
     max: function(a, b) {
       return a > b ? a : b;

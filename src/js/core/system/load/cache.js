@@ -34,7 +34,7 @@ function(Dumpjson, FindModel, Sha1) {
 
     check_dep: function(name) {
       var self = this; 
-        return true; // can only load cache from JSON
+      return true;
       var path, json;
       try {
         path = Cache.find_json(name);
@@ -68,9 +68,9 @@ function(Dumpjson, FindModel, Sha1) {
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-//        if (! File.exists_P(cache_path)) {
-//          Dir.mkdir(cache_path);
-//        }
+        if (! File.exists_P(cache_path)) {
+          Dir.mkdir(cache_path);
+        }
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },
