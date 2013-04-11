@@ -47,7 +47,6 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
 
       this.load_cache = function(name, obj) {
         var self = this; 
-        System.stderr().push(S("## caching ", name, "...\n"));
         return self.$.cache._set(name, obj);
       };
 

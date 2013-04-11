@@ -35,7 +35,6 @@ module Load
     end
 
     def load_cache(name, obj)
-      $stderr << "## caching #{name}...\n"
       @cache[name] = obj
     end
 

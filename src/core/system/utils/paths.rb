@@ -13,9 +13,14 @@ module Paths
     
     attr_reader :path
 
+    #[JS HACK] @@ in class methods confuses JS
     def self.set_factory(factory)
+      Path.new(factory.EVar("root")).set_factory(factory)
+    end
+    def set_factory(factory)
       @@factory = factory
     end
+    #[/JS HACK] 
 
     def initialize(path = @@factory.EVar("root"))
       @path = path ? path : @@factory.EVar("root")

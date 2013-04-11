@@ -10,4 +10,6 @@ Unsupported Ruby features
 
 Known bugs with JS converter (not features, but fixable):
 
+- @@ in class methods confuses JS: in Ruby classes share their @@ with all their instances 
+- nested instance evals don't work
 - each vs each_pair in Lists and Sets --- should standardize

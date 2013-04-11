@@ -9,11 +9,16 @@ function(Interpreter, Equals) {
     function() {
       this.set_factory = function(factory) {
         var self = this; 
-        return self.$.factory = factory;
+        return Path.new(factory.EVar("root")).set_factory(factory);
       };
     },
     function(super$) {
       this.path = function() { return this.$.path };
+
+      this.set_factory = function(factory) {
+        var self = this; 
+        return self._class_.$.factory = factory;
+      };
 
       this.initialize = function(path) {
         var self = this; 
