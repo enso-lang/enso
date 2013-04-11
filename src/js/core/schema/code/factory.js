@@ -909,9 +909,12 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
 
       this.keys = function() {
         var self = this; 
-        return Array.new(function(i) {
-          return i;
-        }, self.size());
+        var x;
+        x = [];
+        Range.new(0, self.size() - 1).each(function(i) {
+          return x.push(i);
+        });
+        return x;
       };
 
       this.push = function(mobj) {

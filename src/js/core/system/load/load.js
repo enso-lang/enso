@@ -91,7 +91,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         model = parts._get(0);
         type = parts._get(1);
         if (Cache.check_dep(name)) {
-//          return self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
+          return self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
         } else {
           self.$.cache._set(name, self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema"))));
           new_V = self.$.cache._get(name);
@@ -111,10 +111,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         }, obj);
         return all_classes.each(function(o, sc) {
           return o.instance_eval(function() {
-            self.define_singleton_value("schema_class", sc);
-            return self.$.factory.instance_eval(function() {
-              return self.$.schema = schema;
-            });
+            return self.define_singleton_value("schema_class", sc);
           });
         });
       };

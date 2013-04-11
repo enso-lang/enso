@@ -147,6 +147,8 @@ if (typeof window === 'undefined') {
   }
   
   Object.prototype.raise = function(msg) { puts(msg); return ERROR; }
+
+  Object.prototype.instance_eval = function(fun) { fun.apply(this); }
   
   compute_rest_arguments = function(args, num) { 
     var x = new Array;

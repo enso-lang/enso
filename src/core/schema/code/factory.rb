@@ -235,10 +235,8 @@ module Factory
     def add_listener(name, &block)
       listeners = @listeners[name]
       if !listeners
-        #<[JS HACK]: listeners = self.$.listeners._set(name, []);
         listeners = []
         @listeners[name] = listeners
-        #[JS HACK]/>
       end 
       listeners.push(block)
     end
@@ -712,7 +710,13 @@ module Factory
 
     def values; __value end
 
-    def keys; Array.new(size){|i|i} end
+    def keys
+      x = []
+      for i in 0..size-1
+        x << i
+      end
+      x
+    end
 
     def <<(mobj)
       raise "Cannot insert nil into list" if !mobj
@@ -753,9 +757,7 @@ module Factory
     end
 
     def _path(mobj)
-      #[JS HACK]: return self.$.owner._path().field(self.$.field.name()).index(self.$.value.indexOf(mobj));
       @owner._path.field(@field.name).index(@value.index(mobj))
-      #[JS HACK]/>
     end
 
     def __insert(mobj)

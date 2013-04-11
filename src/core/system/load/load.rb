@@ -111,7 +111,7 @@ module Load
       all_classes.each do |o, sc|
         o.instance_eval do
           define_singleton_value(:schema_class, sc)
-          @factory.instance_eval { @schema = schema }
+#          @factory.instance_eval { @schema = schema }  #[JS HACK] This line does not work in JS (even though instance_eval does)
         end
       end
     end
