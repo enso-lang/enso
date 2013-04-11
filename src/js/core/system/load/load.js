@@ -78,12 +78,10 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
         Paths.Path.set_factory(Factory.new(ss));
-/*
         self.update_json("schema.schema");
         self.update_json("grammar.schema");
         self.update_json("grammar.grammar");
         return self.update_json("schema.grammar");
-*/
       };
 
       this.update_json = function(name) {
@@ -93,9 +91,10 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         model = parts._get(0);
         type = parts._get(1);
         if (Cache.check_dep(name)) {
-          return self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
+//          return self.patch_schema_pointers_in_place(self.$.cache._get(name), self.load(S(type, ".schema")));
         } else {
-          new_V = self.$.cache._set(name, self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema"))));
+          self.$.cache._set(name, self.load_with_models(name, self.load(S(type, ".grammar")), self.load(S(type, ".schema"))));
+          new_V = self.$.cache._get(name);
           self.$.cache._set(name, Union.Copy(Factory.new(self.load(S(type, ".schema"))), new_V));
           self.$.cache._get(name).factory().set_file_path(new_V.factory().file_path());
           return Cache.save_cache(name, self.$.cache._get(name));
@@ -131,7 +130,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
       this.load_path = function(path, grammar, schema, encoding) {
         var self = this; 
         if (encoding === undefined) encoding = null;
-        var result, name, type, header;
+        var result, name, type;
         if (path.end_with_P(".json")) {
           if (schema == null) {
             System.stderr().push(S("## booting ", path, "...\n"));

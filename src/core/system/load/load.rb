@@ -85,7 +85,8 @@ module Load
         patch_schema_pointers!(@cache[name], load("#{type}.schema"))
       else
         #if file has been updated, reload file using current models
-        new = @cache[name] = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
+        @cache[name] = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
+        new = @cache[name]
         #now reload file with itself -- this ensures its schema information is correct
         @cache[name] = Union::Copy(Factory::new(load("#{type}.schema")), new)
         #patch schema pointers 
