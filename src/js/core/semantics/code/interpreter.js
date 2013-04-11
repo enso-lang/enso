@@ -113,13 +113,13 @@ function() {
         }
       }
       if (self.$.debug) {
-        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\\n"));
+        System.stderr().push(S(" ".repeat(self.$.indent), ">", operation, " ", obj, "\n"));
         self.$.indent = self.$.indent + 1;
       }
       result = self.send(method, obj);
       if (self.$.debug) {
         self.$.indent = self.$.indent - 1;
-        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\\n"));
+        System.stderr().push(S(" ".repeat(self.$.indent), "= ", result, "\n"));
       }
       return result;
     };

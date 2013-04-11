@@ -23,13 +23,13 @@ function(Renderexp, Construct, Interpreter) {
       var res;
       obj.schema_class().schema_class().fields().each(function(f) {
       });
-      res = "<table>\\n";
+      res = "<table>\n";
       if (obj.direction() == 2) {
         res = res + "<tr>";
       }
       obj.items().each(function(item) {
         if (obj.direction() == 1) {
-          return res = res + ("<tr><td>" + self.render(item)) + "</td></tr>\\n";
+          return res = res + ("<tr><td>" + self.render(item)) + "</td></tr>\n";
         } else if (obj.direction() == 2) {
           return res = res + ("<td>" + self.render(item)) + "</td>";
         }
@@ -37,7 +37,7 @@ function(Renderexp, Construct, Interpreter) {
       if (obj.direction() == 2) {
         res = res + "</tr>";
       }
-      res = res + "</table>\\n";
+      res = res + "</table>\n";
       return res;
     };
 
