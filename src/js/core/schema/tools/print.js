@@ -46,7 +46,7 @@ function() {
             if (field != back_link) {
               if (field.type().Primitive_P()) {
                 data = field.type().name() == "str"
-                  ? S("\\\"", obj._get(field.name()), "\\\"")
+                  ? S("\"", obj._get(field.name()), "\"")
                   : obj._get(field.name());
                 return self.$.output.push(S(" ".repeat(indent), field.name(), ": ", data, "\n"));
               } else if (! field.many()) {

@@ -455,7 +455,10 @@ class CodeBuilder < Ripper::SexpBuilder
     when "Ref", "Attribute", "Super"
       
     when "Lit"
-      o.value.gsub!('\n', "\n") if o.value.is_a? String 
+      if o.value.is_a? String
+        o.value.gsub!('\n', "\n")
+        o.value.gsub!('\"', "\"")
+      end
 
     when "Assign"
       o.to = fixup_expr(o.to, env)

@@ -103,7 +103,7 @@ if (typeof window === 'undefined') {
   CompatStream = function(s) {
     this.push = function(d) {
       if (s == true)
-        document.write(("" + d).replace(/ /g, "&nbsp;").replace(/\n/g, "<br>").replace(/</g, "&lt").replace(/>/, "&gt"));
+        document.write(("" + d).replace(/</g, "&lt").replace(/>/, "&gt").replace(/ /g, "&nbsp;").replace(/\n/, "<br>"));
       else if (s)
         s.write(d);
       else
