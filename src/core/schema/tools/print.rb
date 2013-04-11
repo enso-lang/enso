@@ -7,15 +7,15 @@
 module Print
   
   def self.print(obj)
-    Print.print(obj)
+    PrintC.print(obj)
   end
 
-  class Print
+  class PrintC
     def initialize(output = $stdout, depth = nil)
       @output = output
       @depth = depth
     end
-  
+
     def self.print(obj, depth = nil)
       self.new($stdout, depth).print(obj)
     end

@@ -452,7 +452,10 @@ class CodeBuilder < Ripper::SexpBuilder
       o.name = fixup_var_name(o.name)
       o.default = fixup_expr(o.default, env)
 
-    when "Ref", "Lit", "Attribute", "Super"
+    when "Ref", "Attribute", "Super"
+      
+    when "Lit"
+      o.value.gsub!('\n', "\n") if o.value.is_a? String 
 
     when "Assign"
       o.to = fixup_expr(o.to, env)

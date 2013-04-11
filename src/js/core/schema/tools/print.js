@@ -2,7 +2,8 @@ define([
 ],
 function() {
   var Print ;
-  var Print = MakeClass("Print", null, [],
+
+  var PrintC = MakeClass("PrintC", null, [],
     function() {
       this.print = function(obj, depth) {
         var self = this; 
@@ -45,7 +46,7 @@ function() {
             if (field != back_link) {
               if (field.type().Primitive_P()) {
                 data = field.type().name() == "str"
-                  ? S("\"", obj._get(field.name()), "\"")
+                  ? S("\\\"", obj._get(field.name()), "\\\"")
                   : obj._get(field.name());
                 return self.$.output.push(S(" ".repeat(indent), field.name(), ": ", data, "\n"));
               } else if (! field.many()) {
@@ -87,7 +88,12 @@ function() {
     });
 
   Print = {
-    Print: Print,
+    print: function(obj) {
+      var self = this; 
+      return PrintC.print(obj);
+    },
+
+    PrintC: PrintC,
 
   };
   return Print;
