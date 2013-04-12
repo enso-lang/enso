@@ -1,7 +1,0 @@
-
-diagram (root)
-
-vertical {
-  for (class : schema.classes)
-     text class.name
-}
