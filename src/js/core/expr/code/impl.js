@@ -64,8 +64,10 @@ function(Eval, Lvalue, Interpreter, Env) {
 
     this.eval_EFor = function(obj) {
       var self = this; 
-      var nenv;
-      nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
+      var env, nenv;
+      env = new EnsoHash ({ });
+      env._set(obj.var(), null);
+      nenv = Env.HashEnv.new(env, self.$.D._get("env"));
       return self.eval(obj.list()).each(function(val) {
         nenv._set(obj.var(), val);
         return self.dynamic_bind(function() {

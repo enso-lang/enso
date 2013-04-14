@@ -167,11 +167,11 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
       obj.props().each(function(prop) {
         return res.props().push(factory.Prop(prop.var(), Eval.make_const(factory, self.eval(prop.val()))));
       });
-      res.set_current(Eval.make_const(factory, self.eval(obj.current())));
       obj.items().each(function(item) {
         ev = self.eval(item);
         return res.items().push(ev);
       });
+      res.set_current(Eval.make_const(factory, self.eval(obj.current())));
       addr = self.$.D._get("src")._get(obj.current());
       if (! (addr == null)) {
         self.$.D._get("modelmap")._set(res.current().to_s(), addr);

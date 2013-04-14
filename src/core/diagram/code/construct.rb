@@ -154,11 +154,11 @@ module Construct
       obj.props.each do |prop|
         res.props << factory.Prop(prop.var, Eval::make_const(factory, eval(prop.val)))
       end
-      res.current = Eval::make_const(factory, eval(obj.current))
       obj.items.each do |item|
         ev = eval(item)
         res.items << ev
       end
+      res.current = Eval::make_const(factory, eval(obj.current))
       addr = @D[:src][obj.current]
       if !addr.nil?
         @D[:modelmap][res.current.to_s] = addr 

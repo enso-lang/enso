@@ -214,20 +214,6 @@ function(Factory, Interpreter, Env, Impl, Eval, Union) {
       return res;
     };
 
-    this.eval_EFor = function(obj) {
-      var self = this; 
-      var nenv, res;
-      nenv = Env.HashEnv.new(new EnsoHash ({ }), self.$.D._get("env"));
-      res = self.eval(obj.list()).each(function(val) {
-        nenv._set(obj.var(), val);
-        return self.dynamic_bind(function() {
-          return self.eval(obj.body());
-        }, new EnsoHash ({ env: nenv }));
-      });
-      self.$.D._get("src")._set(obj, self.$.D._get("src")._get(obj.body()));
-      return res;
-    };
-
     this.eval_EIf = function(obj) {
       var self = this; 
       var res;

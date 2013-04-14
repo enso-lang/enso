@@ -617,7 +617,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_hash(assocs)
-    @f.Record()
+    assocs.nil? ? @f.Record() : @f.Record(assocs)
   end
 
   def on_ident(token)

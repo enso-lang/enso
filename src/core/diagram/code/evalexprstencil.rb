@@ -44,7 +44,9 @@ module Evalexprstencil
     end
 
     def eval_EFor(obj)
-      nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
+      env = {}
+      env[obj.var] = nil
+      nenv = Env::HashEnv.new(env, @D[:env])
       res = eval(obj.list).map do |val|  #returns list of results instead of only last result
         nenv[obj.var] = val
         dynamic_bind env: nenv do

@@ -1,11 +1,12 @@
 Unsupported Ruby features
+  *=caught by converter
 
 - No circular imports
 - Return statements*
 - Transitive assigns (eg "x = foo.bar = y") that involves fields in the middle assignment
 - Most types, since JS and Ruby uses different names for the same type, eg FixNum vs Numeric
 - No yields*
-- Cannot create hash tables with { .. => .. }
+- Cannot create hash tables with { .. => .. } when LHS is not a symbol
 - No Array.new
 
 Known bugs with JS converter (not features, but fixable):

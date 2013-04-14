@@ -181,18 +181,6 @@ module Traceval
       res
     end
 
-    def eval_EFor(obj)
-      nenv = Env::HashEnv.new({obj.var=>nil}, @D[:env])
-      res = eval(obj.list).each do |val|
-        nenv[obj.var] = val
-        dynamic_bind env: nenv do
-          eval(obj.body)
-        end
-      end
-      @D[:src][obj] = @D[:src][obj.body]
-      res
-    end
-
     def eval_EIf(obj)
       if eval(obj.cond)
         res = eval(obj.body)
