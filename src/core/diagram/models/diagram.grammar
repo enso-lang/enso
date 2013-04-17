@@ -7,14 +7,14 @@ start Stencil
 // diagrams
 Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Part
 
-Part ::= [Container] Dir Props? "{" items:Part+ "}"
+Part ::= [Container] Dir Props? "{" / items:Part+@/ / "}"
        | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
        | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:Part
        | [SelectMulti] "multi" Props? value:Expr choices:Expr
        | [SelectSingle] "single" Props? value:Expr choices:Expr
        | [TextBox] "text?" Props? value:Expr type:Expr
-       | [Pages] "pages" ("(" current:Expr ")")? Props? "{" items:Part+ "}"
+       | [Pages] "pages" ("(" current:Expr ")")? Props? "{" / items:Part+@/ / "}"
        | [Space] "--" Props?
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "grid"  {direction==3} | "graph"  {direction==4} | "style"  {direction==5}
@@ -22,7 +22,7 @@ ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
 Index ::= "," index:sym
 
-Props ::= "[" props:Prop* @"," "]"
+Props ::= "[" props:Prop+ @"," "]"
 Prop ::= [Prop] var:sym "=" val:Expr
        | [Prop] var:str "=" val:Expr
 

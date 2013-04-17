@@ -47,6 +47,7 @@ function(Eval, Env, Print, Paths, Schema) {
         var self = this; 
         self.$.root = stream.current();
         //self.$.literals = Scan.collect_keywords(this_V);
+        self.$.literals = new EnsoHash ({ });
         return self.recurse(this_V.start().arg(), SingletonStream.new(stream.current()), container);
       };
 

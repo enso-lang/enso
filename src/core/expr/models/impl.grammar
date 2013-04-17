@@ -23,10 +23,10 @@ EReturn ::= "return" Expr
 
 Formal ::= [Formal] name:sym
 
-EBlock ::= "{" EBlock_nocurly "}"
-EBlock_nocurly ::= [EBlock] fundefs:EFunDef* body:Command* 
+EBlock ::= "{" / EBlock_nocurly / "}"
+EBlock_nocurly ::= [EBlock] (fundefs:EFunDef+@/ /)? body:Command*@/ 
 
-EFunCall ::= [EFunCall] fun:EUnOp "(" params:Expr* @"," ")" lambda:ELambda
+EFunCall ::= [EFunCall] fun:EUnOp . "(" params:Expr* @"," ")" lambda:ELambda
 
-ELambda ::= [ELambda] "{" ("|" formals:Formal+ @"," "|")? body:EBlock_nocurly "}"
+ELambda ::= [ELambda] "{" ("|" formals:Formal+ @"," "|")? / body:EBlock_nocurly / "}"
 

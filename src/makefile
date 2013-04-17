@@ -15,7 +15,6 @@ SOURCES = \
 	js/core/schema/tools/equals.js \
 	js/core/semantics/code/interpreter.js \
 	js/core/grammar/render/layout.js \
-	js/core/grammar/render/render.js \
 	js/core/grammar/parse/sppf.js \
 	js/core/grammar/parse/gss.js \
 	js/core/expr/code/impl.js \

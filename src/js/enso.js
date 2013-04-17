@@ -127,6 +127,20 @@ if (typeof window === 'undefined') {
         console.log(d);
     }
   };
+  
+  StringBuilder = function(s) {
+  	this.inner = "";
+  	this.push = function(s) {
+  		this.inner = this.inner + s
+  	}
+  	this.toString = function() {
+  		return this.inner
+  	}
+  	this.valueOf = this.toString
+  	this.toDocument = function() {
+  		return this.toString().replace(/</g, "&lt").replace(/>/, "&gt").replace(/ /g, "&nbsp;").replace(/\n/, "<br>")
+  	}
+  }
 
   File = {
     exists_P: function(p) { 

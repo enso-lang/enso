@@ -456,6 +456,7 @@ class CodeBuilder < Ripper::SexpBuilder
       
     when "Lit"
       if o.value.is_a? String
+        o.value.gsub!('\\', "\\")
         o.value.gsub!('\n', "\n")
         o.value.gsub!('\"', "\"")
       end
