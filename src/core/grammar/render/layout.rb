@@ -7,71 +7,50 @@ require 'core/system/library/schema'
 module Layout
   
   # render an object into a grammar, to create a parse tree
-  class RenderClass
-  
-    def initialize(slash_keywords = true)
-      @depth = 0
-      @stack = []
-      @indent_amount = 2
-      @slash_keywords = slash_keywords
-      @create_stack = []
-      @need_pop = 0
-    end
-  
-    def recurse(obj, *args)
-      #puts "RENDER #{obj} #{arg}"
-      raise "**UNKNOWN #{obj.class} #{obj}" if !obj.schema_class.name
-      send(obj.schema_class.name, obj, *args)
-    end
-    
-    def render(grammar, obj)
-      r = recurse(grammar, SingletonStream.new(obj))
-      if !r
-        @create_stack.each_with_index do |p, i|
-          puts "*****#{i + @success >= @create_stack.size ? 'SUCCESS' : 'FAIL'}*****"          
-          Print::Print.print(p[0], 2)
-          puts "-----------------"
-          Print::Print.print(p[1], 2)
-        end
-        puts "grammar=#{grammar} obj=#{obj}\n\n"
-        raise "Can't render this object"
-      end
-      r
-    end
-  
-    def Grammar(this, stream, container)
-      # ugly, should be higher up
-      @root = stream.current
-      @literals = Scan.collect_keywords(this)
-      recurse(this.start.arg, SingletonStream.new(stream.current), container)
-    end
-  
-    def recurse(pat, data, container=nil)
-      pair = "#{pat.to_s}/#{data.current}"  # have to use strings, for JavaScript!
-      if !@stack.include?(pair)
+  module RenderGrammar
+    include Interpreter::Dispatcher
+
+    def render(pat)
+      stream = @D[:stream]
+      @stack ||= []
+      pair = "#{pat.to_s}/#{stream.current}"  # have to use strings, for JavaScript!
+      if !@stack.include?(pair) # avoid infinite loop on recursive grammars
         @stack << pair 
-        if @debug
-          puts "#{' '.repeat(@depth)}#{pat} #{data.current}"
-          @depth = @depth + 1
-        end
-        val = send(pat.schema_class.name, pat, data, container)
-        if @debug
-          @depth = @depth - 1
-          puts "#{' '.repeat(@depth)}#{pat} #{data.current} ==> #{val}"
-        end
+        val = dispatch_obj(:render, pat)
         @stack.pop
         val
       end
     end
-  
-    def Call(this, stream, container)
-      recurse(this.rule.arg, stream, container)
+
+    def render_Grammar(this)
+      stream = @D[:stream]
+      @stack = []
+      @create_stack = []
+      @need_pop = 0
+      # ugly, should be higher up
+      @root = stream.current
+      @literals = Scan.collect_keywords(this)
+      out = render(this.start.arg)
+      @out = ""
+      @indent = 0
+      @lines = 0
+      @space = false
+      @modelmap = {}
+      combine out
+      @out
     end
-  
-    def Alt(this, stream, container)
+
+    def render_Call(this)
+      render(this.rule.arg)
+    end
+
+    def render_Alt(this)
+      stream = @D[:stream]
       if @avoid_optimization
         this.alts.find_first do |pat|
-          recurse(pat, stream.copy, container)
+          dynamic_bind stream: stream.copy do
+            render(pat)
+          end
         end
       else
         if !this.extra_instance_data
@@ -82,27 +61,18 @@ module Layout
         this.extra_instance_data.find_first do |info|
           pred = info[0]
           if !pred || pred.call(stream.current, @localEnv)
-            recurse(info[1], stream.copy, container)
+            dynamic_bind stream: stream.copy do
+              render(info[1])
+            end
           end
         end
       end
     end
-        
-    def scan_alts(this, alts)
-      this.alts.each do |pat|
-        if pat.Alt?
-          scan_alts(pat, infos)
-        else
-          pred = PredicateAnalysis.new.recurse(pat)
-          alts << [pred, pat]
-        end
-      end
-    end
-  
-    def Sequence(this, stream, container)
+
+    def render_Sequence(this)
       items = true
       ok = this.elements.all? do |x|
-        item = recurse(x, stream, container)
+        item = render(x)
         if item
           if item == true
             true
@@ -119,8 +89,9 @@ module Layout
       end
       items if ok
     end
-  
-    def Create(this, stream, container)
+
+    def render_Create(this)
+      stream = @D[:stream]
       obj = stream.current
       #puts "#{' '.repeat(@depth)}[#{this.name}] #{obj}"
       if !obj.nil? && obj.schema_class.name == this.name
@@ -128,7 +99,9 @@ module Layout
         @create_stack.pop(@need_pop)
         @need_pop = @success = 0
         @create_stack.push [this, obj]
-        res = recurse(this.arg, SingletonStream.new(obj), obj)
+        res = dynamic_bind stream: SingletonStream.new(obj) do
+          render(this.arg)
+        end
         if res
           @success += 1
         end
@@ -139,7 +112,8 @@ module Layout
       end
     end
   
-    def Field(this, stream, container)
+    def render_Field(this)
+      stream = @D[:stream]
       obj = stream.current
       # handle special case of [[ field:"text" ]] in a grammar 
       if this.arg.Lit?
@@ -153,17 +127,21 @@ module Layout
         else
           fld = obj.schema_class.all_fields[this.name]
           raise "Unknown field #{obj.schema_class.name}.#{this.name}" if !fld
+#          path = obj.path().field(this.name)
           if fld.many
             data = ManyStream.new(obj[this.name])
           else
             data = SingletonStream.new(obj[this.name])
           end
         end
-        recurse(this.arg, data, container)
+        dynamic_bind stream: data do
+          render(this.arg)
+        end
       end
     end
     
-    def Value(this, stream, container)
+    def render_Value(this)
+      stream = @D[:stream]
       obj = stream.current
       if !obj.nil?
         if !(obj.is_a?(String) || obj.is_a?(Fixnum)  || obj.is_a?(Float))
@@ -176,7 +154,7 @@ module Layout
           end
         when "sym"
           if obj.is_a?(String)
-            if @slash_keywords && @literals.include?(obj) then
+            if @literals.include?(obj) then
               output('\\' + obj)
             else
               output(obj)
@@ -202,7 +180,8 @@ module Layout
       end
     end
   
-    def Ref(this, stream, container)
+    def render_Ref(this)
+      stream = @D[:stream]
       obj = stream.current
       if !obj.nil?
         # TODO: this is complete cheating! we need to search the path
@@ -211,34 +190,34 @@ module Layout
       end
     end
   
-    def Lit(this, stream, container)
+    def render_Lit(this)
+      stream = @D[:stream]
       obj = stream.current
       #puts "#{' '.repeat(@depth)}Rendering #{this.value} (#{this.value.class}) (obj = #{obj}, #{obj.class})"
       output(this.value)
     end
-  
-    def output(v)
-      v
-    end
     
-    def Code(this, stream, container)
+    def render_Code(this)
+      stream = @D[:stream]
       obj = stream.current
       if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code != ""
        # FIXME: this case is needed to parse bootstrap grammar
         code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
         obj.instance_eval(code)
       else
-        interp = Eval::EvalExprC.new
-        interp.dynamic_bind env: Env::ObjEnv.new(obj, @localEnv) do
-          interp.eval(this.expr)
-        end
+        Eval.eval(this.expr, env: Env::ObjEnv.new(obj, @localEnv))
+#        interp = Eval::EvalExprC.new
+#        interp.dynamic_bind env: Env::ObjEnv.new(obj, @localEnv) do
+#          interp.eval(this.expr)
+#        end
       end
     end
   
-    def Regular(this, stream, container)
+    def render_Regular(this)
+      stream = @D[:stream]
       if !this.many
         # optional
-        recurse(this.arg, stream, container) || true
+        render(this.arg) || true
       else
         if stream.size > 0 || this.optional
           oldEnv = @localEnv
@@ -252,7 +231,7 @@ module Layout
             @localEnv['_first'] = (i == 0)
             @localEnv['_last'] = (stream.size == 1)
             if i > 0 && this.sep
-              v = recurse(this.sep, stream, container)
+              v = render(this.sep)
               if v
                 s << v
               else
@@ -261,7 +240,7 @@ module Layout
             end
             if ok
               pos = stream.size
-              v = recurse(this.arg, stream, container)
+              v = render(this.arg)
               if v
                 s << v
                 stream.next if stream.size == pos
@@ -277,18 +256,59 @@ module Layout
       end
     end
     
-    def NoSpace(this, stream, container)
+    def render_NoSpace(this)
       this
     end
     
-    def Indent(this, stream, container)
+    def render_Indent(this)
       this
     end
     
-    def Break(this, stream, container)
+    def render_Break(this)
       this
     end
+  
+    def output(v)
+      v
+    end
     
+    def scan_alts(this, alts)
+      this.alts.each do |pat|
+        if pat.Alt?
+          scan_alts(pat, infos)
+        else
+          pred = PredicateAnalysis.new.recurse(pat)
+          alts << [pred, pat]
+        end
+      end
+    end
+
+    def combine(obj)
+      if obj == true
+        # nothing
+      elsif obj.is_a?(Array)
+        obj.each {|x| combine x}
+      elsif obj.is_a?(String)
+        if @lines > 0
+          @out << ("\n".repeat(@lines))
+          @out << (" ".repeat(@indent))
+          @lines = 0
+        else
+          @out << " " if @space
+        end
+        @out << obj
+        @space = true
+      elsif obj.NoSpace?
+        @space = false
+      elsif obj.Indent?
+        @indent += 2 * obj.indent
+      elsif obj.Break?
+        @lines = System.max(@lines, obj.lines)
+      else
+        raise "Unknown format #{obj}"
+      end
+    end  
+
   end
   
   class PredicateAnalysis
@@ -429,49 +449,19 @@ module Layout
       ManyStream.new(@collection, @index)
     end
   end
-  
+ 
   class DisplayFormat
-    def initialize(output)
-      @output = output
-    end
-  
+    extend RenderGrammar
+
     def self.print(grammar, obj, output=$stdout, slash_keywords = true)
-      layout = RenderClass.new(slash_keywords).render(grammar, obj)
-      #pp layout
-      DisplayFormat.new(output).print(layout)
-      output << "\n"
-    end
-  
-    def initialize(out)
-      @out = out
-      @indent = 0
-      @lines = 0
-    end
-  
-    def print obj
-      if obj == true
-        # nothing
-      elsif obj.is_a?(Array)
-        obj.each {|x| print x}
-      elsif obj.is_a?(String)
-        if @lines > 0
-          @out << ("\n".repeat(@lines))
-          @out << (" ".repeat(@indent))
-          @lines = 0
-        else
-          @out << " " if @space
-        end
-        @out << obj
-        @space = true
-      elsif obj.NoSpace?
-        @space = false
-      elsif obj.Indent?
-        @indent += 2 * obj.indent
-      elsif obj.Break?
-        @lines = System.max(@lines, obj.lines)
-      else
-        raise "Unknown format #{obj}"
+#      interp = RenderGrammarC.new
+      res = dynamic_bind stream: SingletonStream.new(obj) do
+        render(grammar)
       end
-    end  
+      output << res
+      output << "\n"
+      res
+    end
   end
 end
+
