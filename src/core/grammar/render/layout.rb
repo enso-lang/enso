@@ -3,6 +3,7 @@ require 'core/expr/code/env'
 require 'core/schema/tools/print'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
+require 'core/semantics/code/interpreter'
 
 module Layout
   
@@ -29,13 +30,14 @@ module Layout
       @need_pop = 0
       # ugly, should be higher up
       @root = stream.current
-      @literals = Scan.collect_keywords(this)
+#      @literals = Scan.collect_keywords(this)
+      @modelmap = {}
       out = render(this.start.arg)
       @out = ""
       @indent = 0
       @lines = 0
       @space = false
-      @modelmap = {}
+      puts @modelmap
       combine out
       @out
     end
@@ -106,6 +108,9 @@ module Layout
           @success += 1
         end
         @need_pop += 1
+        #this is the place to put some kind of tag around the res....
+#        "<div id='<#{obj.schema_class.name}:#{obj._id}>'>" + combine(res) + "</div>"
+        @modelmap[res] = obj
         res
       else
         nil
@@ -154,11 +159,12 @@ module Layout
           end
         when "sym"
           if obj.is_a?(String)
-            if @literals.include?(obj) then
-              output('\\' + obj)
-            else
+#            if @literals.include?(obj) then
+#              output('\\' + obj)
+#              output(obj)
+#            else
               output(obj)
-            end
+#            end
           end
         when "int"
           if obj.is_a?(Fixnum)
@@ -287,7 +293,14 @@ module Layout
       if obj == true
         # nothing
       elsif obj.is_a?(Array)
-        obj.each {|x| combine x}
+        if @modelmap[obj]
+          o = @modelmap[obj]
+#          @out << "<div id='<#{o.schema_class.name}:#{o._id}>' style='font-size: 48pt; color: fuchsia'>"
+          obj.each {|x| combine x}
+#          @out << "</div>"
+        else
+          obj.each {|x| combine x}
+        end
       elsif obj.is_a?(String)
         if @lines > 0
           @out << ("\n".repeat(@lines))
@@ -451,9 +464,13 @@ module Layout
   end
  
   class DisplayFormat
-    extend RenderGrammar
+    include RenderGrammar
 
-    def self.print(grammar, obj, output=$stdout, slash_keywords = true)
+    def self.print(*args)
+      Layout::DisplayFormat.new.print(*args)
+    end
+
+    def print(grammar, obj, output=$stdout, slash_keywords = true)
 #      interp = RenderGrammarC.new
       res = dynamic_bind stream: SingletonStream.new(obj) do
         render(grammar)

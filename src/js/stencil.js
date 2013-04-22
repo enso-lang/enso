@@ -41,8 +41,11 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			dbg.css("overflow", "auto")
 			dbg.css("background", "#D9D9D9")
 			dbg.css("font-family", "Courier New")
-			dbg.css("font-size", "small")
-			dbg.append($("<p>"+out.toDocument()+"</p>"))
+//			dbg.css("font-size", "small")
+s = out.toDocument()
+console.log(s)
+			dbg.append($(s))
+//			dbg.append($("<p>"+out.toDocument()+"</p>"))
 			
 
 			$("body").append(dbg);
