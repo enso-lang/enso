@@ -1,6 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/env'
 require 'core/schema/tools/print'
+require 'core/schema/code/factory'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
@@ -33,13 +34,12 @@ module Layout
 #      @literals = Scan.collect_keywords(this)
       @modelmap = {}
       out = render(this.start.arg)
-      @out = ""
-      @indent = 0
-      @lines = 0
-      @space = false
-      puts @modelmap
-      combine out
-      @out
+      format = {}
+      format[:lines] = 0
+      format[:space] = false
+      format[:indent] = 0
+      #puts @modelmap
+      combine out, format
     end
 
     def render_Call(this)
@@ -109,7 +109,13 @@ module Layout
         end
         @need_pop += 1
         #this is the place to put some kind of tag around the res....
-#        "<div id='<#{obj.schema_class.name}:#{obj._id}>'>" + combine(res) + "</div>"
+        if @add_tags and res!=nil
+          format = {}
+          format[:lines] = 0
+          format[:space] = false
+          format[:indent] = 0
+          res = "*[*debug id='#{obj.schema_class.name}#{obj._id}'*]*" + combine(res, format) + "*[*/debug*]*"
+        end
         @modelmap[res] = obj
         res
       else
@@ -206,16 +212,17 @@ module Layout
     def render_Code(this)
       stream = @D[:stream]
       obj = stream.current
-      if this.schema_class.defined_fields.map{|f|f.name}.include?("code") && this.code != ""
-       # FIXME: this case is needed to parse bootstrap grammar
-        code = this.code.gsub("=", "==").gsub(";", "&&").gsub("@", "self.")
-        obj.instance_eval(code)
+      if this.expr.EBinOp? and this.expr.op=="eql?"
+        rhs = Eval.eval(this.expr.e2, env: Env::ObjEnv.new(obj, @localEnv))
+        if rhs.is_a? Factory::MObject
+          lhs = Eval.eval(this.expr.e1, env: Env::ObjEnv.new(obj, @localEnv))
+          puts "blah"
+          lhs.schema_class == rhs.schema_class
+        else
+          Eval.eval(this.expr, env: Env::ObjEnv.new(obj, @localEnv))
+        end
       else
         Eval.eval(this.expr, env: Env::ObjEnv.new(obj, @localEnv))
-#        interp = Eval::EvalExprC.new
-#        interp.dynamic_bind env: Env::ObjEnv.new(obj, @localEnv) do
-#          interp.eval(this.expr)
-#        end
       end
     end
   
@@ -284,39 +291,48 @@ module Layout
           scan_alts(pat, infos)
         else
           pred = PredicateAnalysis.new.recurse(pat)
+          puts "pred = #{pred}"
           alts << [pred, pat]
         end
       end
     end
 
-    def combine(obj)
+    def combine(obj, format)
       if obj == true
         # nothing
+        ""
       elsif obj.is_a?(Array)
-        if @modelmap[obj]
-          o = @modelmap[obj]
+#        if @modelmap[obj]
+#          o = @modelmap[obj]
 #          @out << "<div id='<#{o.schema_class.name}:#{o._id}>' style='font-size: 48pt; color: fuchsia'>"
-          obj.each {|x| combine x}
+#          obj.each {|x| combine x}
 #          @out << "</div>"
-        else
-          obj.each {|x| combine x}
-        end
+#        else
+          res = ""
+          obj.each {|x| res = res + combine(x, format)}
+          res
+#        end
       elsif obj.is_a?(String)
-        if @lines > 0
-          @out << ("\n".repeat(@lines))
-          @out << (" ".repeat(@indent))
-          @lines = 0
+        res = ""
+        if format[:lines] > 0
+          res = res + ("\n".repeat(format[:lines]))
+          res = res + (" ".repeat(format[:indent]))
+          format[:lines] = 0
         else
-          @out << " " if @space
+          (res = res + " ") if format[:space]
         end
-        @out << obj
-        @space = true
+        res = res + obj
+        format[:space] = true
+        res
       elsif obj.NoSpace?
-        @space = false
+        format[:space] = false
+        ""
       elsif obj.Indent?
-        @indent += 2 * obj.indent
+        format[:indent] = format[:indent] + 2 * obj.indent
+        ""
       elsif obj.Break?
-        @lines = System.max(@lines, obj.lines)
+        format[:lines] = System.max(format[:lines], obj.lines)
+        ""
       else
         raise "Unknown format #{obj}"
       end
@@ -347,14 +363,16 @@ module Layout
     end
   
     def Sequence(this)
-      this.elements.reduce(nil) do |memo, x|
+      memo = nil
+      this.elements.each do |x|
         pred = recurse(x)
         if memo && pred
           lambda{|obj, env| memo.call(obj, env) && pred.call(obj, env) }
         else
-          memo || pred
+          memo ||= pred
         end
       end
+      memo
     end
   
     def Create(this)
@@ -470,8 +488,11 @@ module Layout
       Layout::DisplayFormat.new.print(*args)
     end
 
-    def print(grammar, obj, output=$stdout, slash_keywords = true)
+    def print(grammar, obj, output=$stdout, slash_keywords = true, add_tags=false)
 #      interp = RenderGrammarC.new
+      @avoid_optimization = true
+      @out = output
+      @add_tags = add_tags
       res = dynamic_bind stream: SingletonStream.new(obj) do
         render(grammar)
       end

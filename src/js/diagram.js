@@ -1,10 +1,4 @@
-define([
-	"enso", 
-	'core/expr/code/eval', 
-	'core/expr/code/lvalue', 
-	'core/diagram/code/invert'
-], 
-function(Enso, Eval, Lvalue, Invert) {
+define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/code/invert'], function(Enso, Eval, Lvalue, Invert) {
 	var mm;
 
 	function getMethods(obj) {
@@ -158,6 +152,7 @@ function(Enso, Eval, Lvalue, Invert) {
 				env._set("root", data);
 				srcs = Invert.getSources(path);
 				for (var i = 0, len = srcs.size(); i < len; i++) {
+					//add listener to when model changes value
 					var addr = Lvalue.lvalue(srcs._get(i), new EnsoHash({
 						env : env
 					}));
@@ -169,6 +164,12 @@ function(Enso, Eval, Lvalue, Invert) {
 						console.log(S("changed value in ", addr.object(), ".", addr.index(), " to ", nval));
 						dom.text(nval.to_s());
 					}, addr.index().to_s());
+
+					//add debugging highlight
+					self = this;
+					dom.click(function() {
+						self.toggleHightlight(S("#", addr.object().schema_class().name(), addr.object()._id().toString()))
+					});
 				}
 			}
 			dom.append($('<p>'))
@@ -284,6 +285,19 @@ function(Enso, Eval, Lvalue, Invert) {
 			} else
 				return null;
 		},
+		highlighted : [],
+		toggleHightlight : function(name, color) {
+			if (color === undefined)
+				color = "yellow"
+			var index = this.highlighted.indexOf(name)
+			if (index <= -1) {
+				$(name).css("background-color", color)
+				this.highlighted.push(name)
+			} else {
+				$(name).css("background-color", "inherit")
+				this.highlighted.splice(index, index + 1)
+			}
+		},
 		make_style : function(dom, props) {
 			props.each(function(prop) {
 				//  		console.log(S("css prop:", prop.var().to_s(), " -> ", prop.val().val().to_s()));
@@ -293,13 +307,13 @@ function(Enso, Eval, Lvalue, Invert) {
 		in_grid : []
 	}
 
-  var Diagram = {
-    render: function(obj, modelmap) {
-      var self = this;
-      mm = modelmap;
-      return interp.render(obj);
-    },
-  };
+	var Diagram = {
+		render : function(obj, modelmap) {
+			var self = this;
+			mm = modelmap;
+			return interp.render(obj);
+		},
+	};
 
-  return Diagram;
+	return Diagram;
 })

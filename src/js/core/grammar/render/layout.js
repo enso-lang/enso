@@ -2,11 +2,12 @@ define([
   "core/expr/code/eval",
   "core/expr/code/env",
   "core/schema/tools/print",
+  "core/schema/code/factory",
   "core/system/utils/paths",
   "core/system/library/schema",
   "core/semantics/code/interpreter"
 ],
-function(Eval, Env, Print, Paths, Schema, Interpreter) {
+function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
   var Layout ;
   var RenderGrammar = MakeMixin([Interpreter.Dispatcher], function() {
     this.render = function(pat) {
@@ -25,7 +26,7 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
 
     this.render_Grammar = function(this_V) {
       var self = this; 
-      var stream, out;
+      var stream, out, format;
       stream = self.$.D._get("stream");
       self.$.stack = [];
       self.$.create_stack = [];
@@ -33,13 +34,11 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
       self.$.root = stream.current();
       self.$.modelmap = new EnsoHash ({ });
       out = self.render(this_V.start().arg());
-      self.$.out = "";
-      self.$.indent = 0;
-      self.$.lines = 0;
-      self.$.space = false;
-      puts(self.$.modelmap);
-      self.combine(out);
-      return self.$.out;
+      format = new EnsoHash ({ });
+      format._set("lines", 0);
+      format._set("space", false);
+      format._set("indent", 0);
+      return self.combine(out, format);
     };
 
     this.render_Call = function(this_V) {
@@ -98,7 +97,7 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
 
     this.render_Create = function(this_V) {
       var self = this; 
-      var stream, obj, ss, res;
+      var stream, obj, res, format;
       stream = self.$.D._get("stream");
       obj = stream.current();
       if (! (obj == null) && obj.schema_class().name() == this_V.name()) {
@@ -106,14 +105,20 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
         self.$.create_stack.pop(self.$.need_pop);
         self.$.need_pop = self.$.success = 0;
         self.$.create_stack.push([this_V, obj]);
-        ss = SingletonStream.new(obj);
         res = self.dynamic_bind(function() {
           return self.render(this_V.arg());
-        }, new EnsoHash ({ stream: ss }));
+        }, new EnsoHash ({ stream: SingletonStream.new(obj) }));
         if (res) {
           self.$.success = self.$.success + 1;
         }
         self.$.need_pop = self.$.need_pop + 1;
+        if (self.$.add_tags && res != null) {
+          format = new EnsoHash ({ });
+          format._set("lines", 0);
+          format._set("space", false);
+          format._set("indent", 0);
+          res = (S("*[*debug id='", obj.schema_class().name(), obj._id(), "'*]*") + self.combine(res, format)) + "*[*/debug*]*";
+        }
         self.$.modelmap._set(res, obj);
         return res;
       } else {
@@ -209,14 +214,18 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
 
     this.render_Code = function(this_V) {
       var self = this; 
-      var stream, obj, code;
+      var stream, obj, rhs, lhs;
       stream = self.$.D._get("stream");
       obj = stream.current();
-      if (this_V.schema_class().defined_fields().map(function(f) {
-        return f.name();
-      }).include_P("code") && this_V.code() != "") {
-        code = this_V.code().gsub("=", "==").gsub(";", "&&").gsub("@", "self.");
-        return obj.instance_eval(code);
+      if (this_V.expr().EBinOp_P() && this_V.expr().op() == "eql?") {
+        rhs = Eval.eval(this_V.expr().e2(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
+        if (System.test_type(rhs, Factory.MObject)) {
+          lhs = Eval.eval(this_V.expr().e1(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
+          puts("blah");
+          return lhs.schema_class() == rhs.schema_class();
+        } else {
+          return Eval.eval(this_V.expr(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
+        }
       } else {
         return Eval.eval(this_V.expr(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
       }
@@ -296,42 +305,44 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
           return self.scan_alts(pat, self.infos());
         } else {
           pred = PredicateAnalysis.new().recurse(pat);
+          puts(S("pred = ", pred));
           return alts.push([pred, pat]);
         }
       });
     };
 
-    this.combine = function(obj) {
+    this.combine = function(obj, format) {
       var self = this; 
-      var o;
+      var res;
       if (obj == true) {
+        return "";
       } else if (System.test_type(obj, Array)) {
-        if (self.$.modelmap._get(obj)) {
-          o = self.$.modelmap._get(obj);
-          return obj.each(function(x) {
-            return self.combine(x);
-          });
-        } else {
-          return obj.each(function(x) {
-            return self.combine(x);
-          });
-        }
+        res = "";
+        obj.each(function(x) {
+          return res = res + self.combine(x, format);
+        });
+        return res;
       } else if (System.test_type(obj, String)) {
-        if (self.$.lines > 0) {
-          self.$.out.push("\n".repeat(self.$.lines));
-          self.$.out.push(" ".repeat(self.$.indent));
-          self.$.lines = 0;
-        } else if (self.$.space) {
-          self.$.out.push(" ");
+        res = "";
+        if (format._get("lines") > 0) {
+          res = res + "\n".repeat(format._get("lines"));
+          res = res + " ".repeat(format._get("indent"));
+          format._set("lines", 0);
+        } else if (format._get("space")) {
+          res = res + " ";
         }
-        self.$.out.push(obj);
-        return self.$.space = true;
+        res = res + obj;
+        format._set("space", true);
+        return res;
       } else if (obj.NoSpace_P()) {
-        return self.$.space = false;
+        format._set("space", false);
+        return "";
       } else if (obj.Indent_P()) {
-        return self.$.indent = self.$.indent + 2 * obj.indent();
+        format._set("indent", format._get("indent") + 2 * obj.indent());
+        return "";
       } else if (obj.Break_P()) {
-        return self.$.lines = System.max(self.$.lines, obj.lines());
+        format._set("lines", System.max(format._get("lines"), obj.lines()));
+        return "";
       } else {
         return self.raise(S("Unknown format ", obj));
       }
@@ -377,17 +388,19 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
 
       this.Sequence = function(this_V) {
         var self = this; 
-        var pred;
-        return this_V.elements().reduce(function(memo, x) {
+        var memo, pred;
+        memo = null;
+        this_V.elements().each(function(x) {
           pred = self.recurse(x);
           if (memo && pred) {
             return self.lambda(function(obj, env) {
               return memo(obj, env) && pred(obj, env);
             });
           } else {
-            return memo || pred;
+            return memo = memo || pred;
           }
-        }, null);
+        });
+        return memo;
       };
 
       this.Create = function(this_V) {
@@ -568,11 +581,15 @@ function(Eval, Env, Print, Paths, Schema, Interpreter) {
       };
     },
     function(super$) {
-      this.print = function(grammar, obj, output, slash_keywords) {
+      this.print = function(grammar, obj, output, slash_keywords, add_tags) {
         var self = this; 
         if (output === undefined) output = System.stdout();
         if (slash_keywords === undefined) slash_keywords = true;
+        if (add_tags === undefined) add_tags = false;
         var res;
+        self.$.avoid_optimization = true;
+        self.$.out = output;
+        self.$.add_tags = add_tags;
         res = self.dynamic_bind(function() {
           return self.render(grammar);
         }, new EnsoHash ({ stream: SingletonStream.new(obj) }));

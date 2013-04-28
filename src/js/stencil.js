@@ -9,8 +9,9 @@ define([
 function(Enso, Load, Construct, Layout, Print, Diagram) {
 	var Stencil = {
 		render : function(data_file, stencil_file) {
+			var filetype = data_file.split('.')[1];
 			if (stencil_file === undefined) {
-				stencil_file = data_file.split('.')[1] + ".stencil"
+				stencil_file = filetype + ".stencil"
 			}
 			data = Load.load(data_file)
 			stencil = Load.load(stencil_file)
@@ -21,9 +22,8 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 				modelmap : modelmap
 			})
 			diagram = Construct.eval(stencil, params)
-			data = Diagram.render(diagram, modelmap)
 			main = $("<div>")
-			main.append(data)
+			main.append(Diagram.render(diagram, modelmap))
 			main.css("width", "900px")
 			main.css("height", "100%")
 			main.css("float", "left")
@@ -31,8 +31,9 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 
 			//Debugger stuff
 			out = new StringBuilder();
-			g = Load.load('stencil.grammar')
-			Layout.DisplayFormat.print(g, stencil, out)
+			g = Load.load(filetype+".grammar")
+			console.log("Loading grammar file: "+filetype+".grammar")
+			Layout.DisplayFormat.print(g, data, out, false, true)
 			console.log(out.toString())
 
 			dbg = $("<div>")
@@ -41,13 +42,10 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			dbg.css("overflow", "auto")
 			dbg.css("background", "#D9D9D9")
 			dbg.css("font-family", "Courier New")
-//			dbg.css("font-size", "small")
-s = out.toDocument()
-console.log(s)
+			dbg.css("font-size", "small")
+			s = out.toDocument().replace(/\*\[\*/g, "<").replace(/\*\]\*/g, ">").replace(/<debug&nbsp;/g, "<debug ")
+			console.log(s)
 			dbg.append($(s))
-//			dbg.append($("<p>"+out.toDocument()+"</p>"))
-			
-
 			$("body").append(dbg);
 
 			//Main
