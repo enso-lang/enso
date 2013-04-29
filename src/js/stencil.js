@@ -32,9 +32,10 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			//Debugger stuff
 			out = new StringBuilder();
 			g = Load.load(filetype+".grammar")
-			console.log("Loading grammar file: "+filetype+".grammar")
 			Layout.DisplayFormat.print(g, data, out, false, true)
-			console.log(out.toString())
+			out2 = new StringBuilder();
+			g2 = Load.load("stencil.grammar")
+			Layout.DisplayFormat.print(g2, stencil, out2, false, true)
 
 			dbg = $("<div>")
 			dbg.css("width", "400px")
@@ -46,6 +47,10 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			s = out.toDocument().replace(/\*\[\*/g, "<").replace(/\*\]\*/g, ">").replace(/<debug&nbsp;/g, "<debug ")
 			console.log(s)
 			dbg.append($(s))
+			dbg.append($("<div><br>---------------------<br><br></div>"))
+			s2 = out2.toDocument().replace(/\*\[\*/g, "<").replace(/\*\]\*/g, ">").replace(/<debug&nbsp;/g, "<debug ")
+			console.log(s2)
+			dbg.append($(s2))
 			$("body").append(dbg);
 
 			//Main

@@ -28,7 +28,7 @@ diagram "Questionaire QL" (data) {
 			height="100%", width="760px", margin="0 auto"] {
 		style [background="#943400", color="#fff", padding="18px 10px 6px", margin="0px",
 				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
-			text data.title
+			text "Survey: "+data.title
 		}
 		style [background="#fff", height="100%", padding="20px 20px 0px", margin="0px auto auto"] {
 		grid [height="400px", width="100%",

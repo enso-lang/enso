@@ -77,7 +77,7 @@ module Traceval
       res = @D[:env][obj.name]
       if !res.is_a? Factory::MObject #if this result is a constant then just list it as a constant
         if @D[:srctemp][obj.name]
-          @D[:src][obj] = @D[:srctemp][obj.name]
+          @D[:src][obj] = @D[:srctemp][obj.name] #local vars: eg x=[from model]; y=x+1 
         else
           @D[:src][obj] = Eval::make_const(@D[:factory], res)
         end

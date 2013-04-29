@@ -31,7 +31,9 @@ module Layout
       @need_pop = 0
       # ugly, should be higher up
       @root = stream.current
-#      @literals = Scan.collect_keywords(this)
+      if @slash_keywords
+        @literals = Scan.collect_keywords(this)
+      end
       @modelmap = {}
       out = render(this.start.arg)
       format = {}
@@ -145,9 +147,17 @@ module Layout
             data = SingletonStream.new(obj[this.name])
           end
         end
-        dynamic_bind stream: data do
+        res = dynamic_bind stream: data do
           render(this.arg)
         end
+        if @add_tags and res!=nil
+          format = {}
+          format[:lines] = 0
+          format[:space] = false
+          format[:indent] = 0
+          res = "*[*debug id='#{obj.schema_class.name}#{obj._id}#{this.name}'*]*" + combine(res, format) + "*[*/debug*]*"
+        end
+        res
       end
     end
     
@@ -165,12 +175,12 @@ module Layout
           end
         when "sym"
           if obj.is_a?(String)
-#            if @literals.include?(obj) then
-#              output('\\' + obj)
-#              output(obj)
-#            else
+            if @slash_keywords && @literals.include?(obj) then
+              output('\\' + obj)
               output(obj)
-#            end
+            else
+             output(obj)
+            end
           end
         when "int"
           if obj.is_a?(Fixnum)
@@ -490,6 +500,7 @@ module Layout
 
     def print(grammar, obj, output=$stdout, slash_keywords = true, add_tags=false)
 #      interp = RenderGrammarC.new
+      @slash_keywords = slash_keywords
       @avoid_optimization = true
       @out = output
       @add_tags = add_tags

@@ -168,7 +168,7 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 					//add debugging highlight
 					self = this;
 					dom.click(function() {
-						self.toggleHightlight(S("#", addr.object().schema_class().name(), addr.object()._id().toString()))
+						self.toggleHightlight(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() ))
 					});
 				}
 			}

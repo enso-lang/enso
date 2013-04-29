@@ -32,6 +32,9 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
       self.$.create_stack = [];
       self.$.need_pop = 0;
       self.$.root = stream.current();
+      if (self.$.slash_keywords) {
+        self.$.literals = Scan.collect_keywords(this_V);
+      }
       self.$.modelmap = new EnsoHash ({ });
       out = self.render(this_V.start().arg());
       format = new EnsoHash ({ });
@@ -128,7 +131,7 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
 
     this.render_Field = function(this_V) {
       var self = this; 
-      var stream, obj, data, fld;
+      var stream, obj, data, fld, res, format;
       stream = self.$.D._get("stream");
       obj = stream.current();
       if (this_V.arg().Lit_P()) {
@@ -149,9 +152,17 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
             data = SingletonStream.new(obj._get(this_V.name()));
           }
         }
-        return self.dynamic_bind(function() {
+        res = self.dynamic_bind(function() {
           return self.render(this_V.arg());
         }, new EnsoHash ({ stream: data }));
+        if (self.$.add_tags && res != null) {
+          format = new EnsoHash ({ });
+          format._set("lines", 0);
+          format._set("space", false);
+          format._set("indent", 0);
+          res = (S("*[*debug id='", obj.schema_class().name(), obj._id(), this_V.name(), "'*]*") + self.combine(res, format)) + "*[*/debug*]*";
+        }
+        return res;
       }
     };
 
@@ -171,7 +182,12 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
             }
           case "sym":
             if (System.test_type(obj, String)) {
-              return self.output(obj);
+              if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
+                self.output("\\\\" + obj);
+                return self.output(obj);
+              } else {
+                return self.output(obj);
+              }
             }
           case "int":
             if (System.test_type(obj, Fixnum)) {
@@ -587,6 +603,7 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
         if (slash_keywords === undefined) slash_keywords = true;
         if (add_tags === undefined) add_tags = false;
         var res;
+        self.$.slash_keywords = slash_keywords;
         self.$.avoid_optimization = true;
         self.$.out = output;
         self.$.add_tags = add_tags;
