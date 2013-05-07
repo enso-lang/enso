@@ -134,14 +134,10 @@ module Impl
     end
   end
 
-  def self.eval(obj, args = {})
+  def self.eval(obj, args = {env:{}})
     interp = EvalCommandC.new
-    if args.empty?
+    interp.dynamic_bind args do
       interp.eval(obj)
-    else
-      interp.dynamic_bind args do
-        interp.eval(obj)
-      end
     end
   end
 end

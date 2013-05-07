@@ -14,7 +14,7 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-      case obj.op
+      case obj.op.to_s
       when "&"
         eval(obj.e1) && eval(obj.e2)
       when "|"
@@ -49,10 +49,11 @@ module Eval
         raise "Unknown operator (#{obj.op})"
       end
     end
-  
+
     def eval_EVar(obj)
-      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
-      @D[:env][obj.name]
+      raise "ERROR: environment not defined" unless @D[:env]
+      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name.to_s)
+      @D[:env][obj.name.to_s]
     end
   
     def eval_ESubscript(obj)
@@ -137,7 +138,7 @@ module Eval
     def initialize; end
   end
 
-  def self.eval(obj, args={})
+  def self.eval(obj, args={env:{}})
     interp = EvalExprC.new
     interp.dynamic_bind args do
       interp.eval(obj)

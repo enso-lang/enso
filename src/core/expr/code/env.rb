@@ -45,6 +45,7 @@ module Env
     end
     
     def [](key)
+      key = key.to_s
       if @hash.has_key? key
         @hash[key]
       else
@@ -53,6 +54,7 @@ module Env
     end
 
     def []=(key, value)
+      key = key.to_s
       if @hash.has_key? key #if defined in current env
         @hash[key] = value
       elsif @parent && @parent.has_key?(key) #if defined in parent env
@@ -63,6 +65,7 @@ module Env
     end
     
     def has_key?(key)
+      key = key.to_s
       @hash.has_key?(key) || (@parent && @parent.has_key?(key))
     end
     

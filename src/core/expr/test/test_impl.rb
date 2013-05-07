@@ -23,22 +23,13 @@ class CommandTest < Test::Unit::TestCase
 
   def test_impl1
     #test while loops, assignments
-    interp = Impl::EvalCommandC.new
-    impl1 = Load::load("test1.impl")
-
-    interp.dynamic_bind env: {} do
-      assert_equal(20, interp.eval(impl1))
-    end
+    assert_equal(20, Impl.eval(Load::load("test1.impl")))
   end
 
   def test_impl2
     #test fun def and calls, external environment
-    interp = Impl::EvalCommandC.new
     impl2 = Load::load("test2.impl")
-
-    interp.dynamic_bind env: {'x'=>22, 'lst'=>[1,2,3,4,5]} do
-      assert_equal(57, interp.eval(impl2))
-    end
+    assert_equal(57, Impl.eval(impl2, env: {'x'=>22, 'lst'=>[1,2,3,4,5]}))
   end
 
   def test_fib
