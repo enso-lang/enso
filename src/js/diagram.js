@@ -26,6 +26,40 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 			return null;
 	}
 
+(function($) {
+    $.fn.editable = function() {
+        var textBlock = $(this);
+        // Create a new input to allow editing text on double click
+        var textBox = $('<input/>');
+        textBox.hide().insertAfter(textBlock).val(textBlock.html());
+
+        // Hiding the div and showing a input to allow editing the value.
+        textBlock.dblclick(function() {
+        	console.log("DBL CLICK!!!!!")
+            toggleVisiblity(true);
+        });
+        // Hiding the input and showing the original div
+        textBox.blur(function() {
+            toggleVisiblity(false);
+        });
+
+        toggleVisiblity = function(editMode) {
+            if (editMode == true) {
+                textBlock.hide();
+                textBox.show().focus();
+                // workaround, to move the cursor at the end in input box.
+                textBox[0].value = textBox[0].value;
+            }
+            else {
+                textBlock.show();
+                textBox.hide();
+                textBlock.html(textBox.val());
+            }
+        };
+    };
+
+})(jQuery);
+
 	var interp = {
 		render : function(obj) {
 			var self = this;
@@ -143,7 +177,8 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 			return txt3;
 		},
 		render_Text : function(obj) {
-			var dom = $('<text>');
+			var dom = $('<div>');
+			dom.editable();
 			this.make_style(dom, obj.props());
 			dom.text(obj.string().val().to_s());
 			var path = mm._get(obj.string().to_s());
@@ -151,6 +186,59 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 				var env = new EnsoHash({ });
 				env._set("root", data);
 				srcs = Invert.getSources(path);
+				
+		        var textBox = $('<input/>');
+		        // Hiding the input and showing the original div
+		        textBox.blur(function() {
+	                textBox.hide();
+	                console.log("val="+textBox.val())
+	                console.log("dom="+dom);
+	                dom.text(textBox.val());
+					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "inherit")
+		        });
+		        textBox.appendTo(dom).val(dom.text());
+
+		        // Hiding the div and showing a input to allow editing the value.
+		        dom.dblclick(function() {
+//	                dom.hide();
+	                console.log("tb is ")
+	                console.log(textBox)
+	                textBox.show().focus();
+	                // workaround, to move the cursor at the end in input box.
+//	                textBox[0].value = textBox[0].value;
+					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "yellow")
+		        });
+
+
+
+
+/*
+        textBox.hide().insertAfter(textBlock).val(textBlock.html());
+
+	        // Hiding the div and showing a input to allow editing the value.
+	        textBlock.dblclick(function() {
+                textBlock.hide();
+                textBox.show().focus();
+                // workaround, to move the cursor at the end in input box.
+                textBox[0].value = textBox[0].value;
+	        });
+
+        toggleVisiblity = function(editMode) {
+            if (editMode == true) {
+                textBlock.hide();
+                textBox.show().focus();
+                // workaround, to move the cursor at the end in input box.
+                textBox[0].value = textBox[0].value;
+            }
+            else {
+                textBlock.show();
+                textBox.hide();
+                textBlock.html(textBox.val());
+            }
+        };
+*/
+				
+				
 				for (var i = 0, len = srcs.size(); i < len; i++) {
 					//add listener to when model changes value
 					var addr = Lvalue.lvalue(srcs._get(i), new EnsoHash({
@@ -167,9 +255,10 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 
 					//add debugging highlight
 					self = this;
-					dom.click(function() {
-						self.toggleHightlight(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() ))
-					});
+//					dom.click(function() {
+//						dom.hide()
+//						self.toggleHightlight()
+//					});
 				}
 			}
 			dom.append($('<p>'))
