@@ -11,14 +11,14 @@ class CommandTest < Test::Unit::TestCase
     str = ""
 #    Layout::DisplayFormat.print(g, obj, str)
 #    puts str
-=begin
-    assert_equal(str.squeeze(" "), "{
-    x = 0 
-    i = 0 
-    j = 0 
-    while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 } 
-    return x".squeeze(" "))
-=end
+#=begin
+#    assert_equal(str.squeeze(" "), "{
+#    x = 0 
+#    i = 0 
+#    j = 0 
+#    while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 } 
+#    return x".squeeze(" "))
+#=end
   end
 
   def test_impl1

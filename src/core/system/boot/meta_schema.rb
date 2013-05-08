@@ -4,14 +4,14 @@ require 'core/schema/tools/union'
 require 'json'
 require 'enso'
 
-=begin
-Meta schema that is able to load any JSON file into memory as read-only pseudo-MObjects
-An (not very) optional patchup phase makes it the schema class of itself (assuming it is a schema)
+#=begin
+#Meta schema that is able to load any JSON file into memory as read-only pseudo-MObjects
+#An (not very) optional patchup phase makes it the schema class of itself (assuming it is a schema)
 
-The only requirements are:
-- root is a Schema
-- Schema has field types 
-=end
+#The only requirements are:
+#- root is a Schema
+#- Schema has field types 
+#=end
 
 module MetaSchema
   def self.load_path(path)

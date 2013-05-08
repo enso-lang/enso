@@ -34,7 +34,6 @@ function(Dumpjson, FindModel, Sha1) {
 
     check_dep: function(name) {
       var self = this; 
-      return true;
       var path, json;
       try {
         path = Cache.find_json(name);
@@ -90,7 +89,7 @@ function(Dumpjson, FindModel, Sha1) {
     get_meta: function(name) {
       var self = this; 
       var e;
-      e = new EnsoHash ({ });
+      e = new EnsoHash ({ filename: name });
       FindModel.FindModel.find_model(function(path) {
         e._set("source", path);
         e._set("date", File.ctime(path));
@@ -103,7 +102,7 @@ function(Dumpjson, FindModel, Sha1) {
       var self = this; 
       var e, type, deps;
       if (name == null) {
-        e = new EnsoHash ({ });
+        e = new EnsoHash ({ filename: "MetaData" });
       } else {
         e = Cache.get_meta(name);
         type = name.split(".")._get(- 1);

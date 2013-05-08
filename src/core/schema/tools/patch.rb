@@ -1,8 +1,8 @@
-=begin
+#=begin
 
-Apply a diff result conforming to delta schema as a patch script on an object
+#Apply a diff result conforming to delta schema as a patch script on an object
 
-=end
+#=end
 
 require 'core/system/library/schema'
 

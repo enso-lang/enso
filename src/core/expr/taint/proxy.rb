@@ -107,6 +107,7 @@ module Proxy
     def ==(other)
       method_missing(:==, other)
     end
+    def valueOf; @_val.valueOf end #[JS HACK] used for JS equality
     def to_s; "#{@_val}" end
     def eql?(other); @_val.eql?(other) end
     def hash; @_val.hash end

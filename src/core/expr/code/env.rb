@@ -1,9 +1,9 @@
-=begin
-This file stores various types of environments
+#=begin
+#This file stores various types of environments
 
-@parent is the parent env used when the local lookup fails
-@parent is never written to, even when a variable is already defined there
-=end
+#@parent is the parent env used when the local lookup fails
+#@parent is never written to, even when a variable is already defined there
+#=end
 
 module Env
   module BaseEnv

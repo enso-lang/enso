@@ -7,15 +7,15 @@ require 'core/expr/code/impl'
 require 'core/expr/code/env'
 require 'core/expr/code/freevar'
 
-=begin
+#=begin
 
-Coding convention
+#Coding convention
 
-- private methods: private to the class (ordinary Ruby semantics)
-- __method: to be only used by classes in ManagedData
-- _method: to be used outside, but internal meta data (e.g. origin/path)
+#- private methods: private to the class (ordinary Ruby semantics)
+#- __method: to be only used by classes in ManagedData
+#- _method: to be used outside, but internal meta data (e.g. origin/path)
 
-=end
+#=end
 
 
 module Factory
@@ -712,7 +712,7 @@ module Factory
 
     def keys
       x = []
-      for i in 0..size-1
+      (0..size-1).each do |i|
         x << i
       end
       x

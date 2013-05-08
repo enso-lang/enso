@@ -1,10 +1,10 @@
-=begin
-
- Some definitions for documentation below:
- - operation: an action the interpreter can take, eg eval, debug, lvalue, etc
- - type: schema type, eg BinaryOp
- - method: name of method for {o:operation X t:type} eg eval_BinaryOp()
-=end
+#=begin
+#
+# Some definitions for documentation below:
+# - operation: an action the interpreter can take, eg eval, debug, lvalue, etc
+# - type: schema type, eg BinaryOp
+# - method: name of method for {o:operation X t:type} eg eval_BinaryOp()
+#=end
 
 module Interpreter
   class DynamicPropertyStack

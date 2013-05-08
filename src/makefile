@@ -23,6 +23,7 @@ SOURCES = \
 	js/core/expr/code/eval.js \
 	js/core/expr/code/lvalue.js \
 	js/core/expr/code/renderexp.js \
+	js/core/expr/taint/proxy.js \
 	js/core/diagram/code/construct.js \
 	js/core/diagram/code/render.js \
 	js/core/diagram/code/traceval.js \

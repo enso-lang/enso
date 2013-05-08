@@ -6,30 +6,30 @@ require 'core/grammar/check/reach-eval'
 require 'core/grammar/check/types'
 require 'core/grammar/check/multiplicity'
 
-=begin
-
-Open problems
-
-- check general reachability of creates? (e.g. dead code)
-- check presence, and type correctness of path references
-- check that field bindings are always on the spine, if the bound value
-  is not a path reference.
-- check correct use of primitives (i.e. in the schema)
-- deal with atoms correctly.
-- maintain lub-tree as part of computed types so that we can
-  give better error messages.
-- how to ensure that referenced classes in paths are actually
-  instantiated as such on the spine? E.g. the ref could expect
-  a field in klass C, whereas on the spine a superclass of C
-  could be created that does not have that field (cf. field.inverse)
-- have to support abstract classes to check whether all classes 
-  are represented in the grammar.
-- schemas need to identify root classes.
-- optimization: this check traverses the grammar many, many times.
-- duplicate errors with same message: because multiple creates of 
-  the same class might trigger the same error.
-- what to do with code blocks: need first class expressions.
-=end
+#=begin
+#
+#Open problems
+#
+#- check general reachability of creates? (e.g. dead code)
+#- check presence, and type correctness of path references
+#- check that field bindings are always on the spine, if the bound value
+#  is not a path reference.
+#- check correct use of primitives (i.e. in the schema)
+#- deal with atoms correctly.
+#- maintain lub-tree as part of computed types so that we can
+#  give better error messages.
+#- how to ensure that referenced classes in paths are actually
+#  instantiated as such on the spine? E.g. the ref could expect
+#  a field in klass C, whereas on the spine a superclass of C
+#  could be created that does not have that field (cf. field.inverse)
+#- have to support abstract classes to check whether all classes 
+#  are represented in the grammar.
+#- schemas need to identify root classes.
+#- optimization: this check traverses the grammar many, many times.
+#- duplicate errors with same message: because multiple creates of 
+#  the same class might trigger the same error.
+#- what to do with code blocks: need first class expressions.
+#=end
 
 
 class CheckGrammar

@@ -1,7 +1,7 @@
 define([
 ],
 function() {
-  var GSS ;
+  var GSSMod ;
   var GSS = MakeClass("GSS", null, [],
     function() {
       this.new = function() {
@@ -74,9 +74,9 @@ function() {
       };
     });
 
-  GSS = {
+  GSSMod = {
     GSS: GSS,
 
   };
-  return GSS;
+  return GSSMod;
 })

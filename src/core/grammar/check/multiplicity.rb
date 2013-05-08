@@ -2,97 +2,97 @@
 
 
 
-=begin
+#=begin
 
----> We have two things
-  fields themselves can get repeated
-  and the argument of a field can be multiple
-  (and perhaps even both...).
+#---> We have two things
+#  fields themselves can get repeated
+#  and the argument of a field can be multiple
+#  (and perhaps even both...).
 
-----------------------------------
-stats:Stats
-Stats ::= 
-       | Stat Stats
-Stat ::= [Stat] ...
+#----------------------------------
+#stats:Stats
+#Stats ::= 
+#       | Stat Stats
+#Stat ::= [Stat] ...
 
-----------------------------------
-stats:Stat*
-Stat ::= [Stat] ...
-### path Stat*/Stat/[Stat]
-----------------------------------
-Stats
-Stats ::= 
-       | stats:Stat Stats
-Stat ::= [Stat] ...
+#----------------------------------
+#stats:Stat*
+#Stat ::= [Stat] ...
+#### path Stat*/Stat/[Stat]
+#----------------------------------
+#Stats
+#Stats ::= 
+#       | stats:Stat Stats
+#Stat ::= [Stat] ...
 
------------------------------------
-Stats
-Stats ::= 
-       | stats:Stat Stats
-Stat ::= [Stat] ...
-       | "{" Stats "}"
------------------------------------
-Stats
-Stats ::= 
-       | stats:Stat Stats
-Stat ::= [Stat] ...
-       | "{" Stat* "}" //flattening
------------------------------------
-Stats
-Stats ::= 
-       | stats:Stat stats:Stat stats:Stat
-Stat ::= [Stat] ...
------------------------------------
+#-----------------------------------
+#Stats
+#Stats ::= 
+#       | stats:Stat Stats
+#Stat ::= [Stat] ...
+#       | "{" Stats "}"
+#-----------------------------------
+#Stats
+#Stats ::= 
+#       | stats:Stat Stats
+#Stat ::= [Stat] ...
+#       | "{" Stat* "}" //flattening
+#-----------------------------------
+#Stats
+#Stats ::= 
+#       | stats:Stat stats:Stat stats:Stat
+#Stat ::= [Stat] ...
+#-----------------------------------
 
-=end
+#=end
 
 module Multiplicity
 
-=begin
+#=begin
 
-Notes on the algebra
+#Notes on the algebra
 
-A = {0, 1, +, *, ?}
-_*_ : A x A -> A
-_+_ : A x A -> A
+#A = {0, 1, +, *, ?}
+#_*_ : A x A -> A
+#_+_ : A x A -> A
 
-+/* are both commutative and associative
+#+/* are both commutative and associative
 
-_*_ is not idempotent on 1 and ?
+#_*_ is not idempotent on 1 and ?
 
-0 is the unit of _*_.
+#0 is the unit of _*_.
 
-1 is *not* the unit of _+_ because 0 + 1 != 0 (but ?)
+#1 is *not* the unit of _+_ because 0 + 1 != 0 (but ?)
 
-_*_ distributes over _+_: a * (b + c) = (a * b) + (a * c)
+#_*_ distributes over _+_: a * (b + c) = (a * b) + (a * c)
 
-A is a partially ordererd set (poset)
+#A is a partially ordererd set (poset)
 
-a <= b =def (b == a + b)
+#a <= b =def (b == a + b)
 
-+/* are both monotone wrt the order <=
+#+/* are both monotone wrt the order <=
 
-The order can be drawn as follows (upside down):
+#The order can be drawn as follows (upside down):
 
- 0  1
- | /|
- |/ |
- ?  +
-  \/
-  *
+# 0  1
+# | /|
+# |/ |
+# ?  +
+#  \/
+#  *
 
-So we seem to have two bottoms: 1 and 0.
+#So we seem to have two bottoms: 1 and 0.
 
-A is not a lattice, because
- - absorption laws do not hold (e.g. a + (a * b) = a)
- - _*_ is not idempotent
- - _+_ has no unit
+#A is not a lattice, because
+# - absorption laws do not hold (e.g. a + (a * b) = a)
+# - _*_ is not idempotent
+# - _+_ has no unit
 
-It is, however, a semi-lattice for _+_:
- - assoc, comm, idemp 
+#It is, however, a semi-lattice for _+_:
+# - assoc, comm, idemp 
 
 
-=end
+#=end
 
   def test_alg_props
     test_comm_add
@@ -421,14 +421,14 @@ It is, however, a semi-lattice for _+_:
     def zero_or_more; ZERO_OR_MORE end
     def zero_or_one; ZERO_OR_ONE end
 
-=begin
-if we define <= using * 
-poset requirements break:  not 1 <= 1, not ? <= ?
-(similar to idempotent laws not holding: 1 * 1 != 1, ? * ? != ?;
-this is the cause, of course)
-[it is, however, not a strict partial order, since irreflexivity
-does not hold for all elements.]
-=end
+#=begin
+#if we define <= using * 
+#poset requirements break:  not 1 <= 1, not ? <= ?
+#(similar to idempotent laws not holding: 1 * 1 != 1, ? * ? != ?;
+#this is the cause, of course)
+#[it is, however, not a strict partial order, since irreflexivity
+#does not hold for all elements.]
+#=end
     def <=(b)
       #self * b == self
       b == self + b

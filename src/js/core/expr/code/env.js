@@ -56,6 +56,8 @@ function() {
 
       this._get = function(key) {
         var self = this; 
+        var key;
+        key = key.to_s();
         if (self.$.hash.has_key_P(key)) {
           return self.$.hash._get(key);
         } else {
@@ -65,6 +67,8 @@ function() {
 
       this._set = function(key, value) {
         var self = this; 
+        var key;
+        key = key.to_s();
         if (self.$.hash.has_key_P(key)) {
           return self.$.hash._set(key, value);
         } else if (self.$.parent && self.$.parent.has_key_P(key)) {
@@ -76,6 +80,8 @@ function() {
 
       this.has_key_P = function(key) {
         var self = this; 
+        var key;
+        key = key.to_s();
         return self.$.hash.has_key_P(key) || self.$.parent && self.$.parent.has_key_P(key);
       };
 

@@ -1,12 +1,12 @@
 require 'core/schema/code/factory'
 
-=begin
+#=begin
 
-This file creates the copy of two structures.
-The copy U of structures A and B has all the
-objects of both A and B. 
+#This file creates the copy of two structures.
+#The copy U of structures A and B has all the
+#objects of both A and B. 
 
-=end
+#=end
 
 module Union
   

@@ -164,16 +164,12 @@ function(Eval, Lvalue, Interpreter, Env) {
   Impl = {
     eval: function(obj, args) {
       var self = this; 
-      if (args === undefined) args = new EnsoHash ({ });
+      if (args === undefined) args = new EnsoHash ({ env: new EnsoHash ({ }) });
       var interp;
       interp = EvalCommandC.new();
-      if (args.empty_P()) {
+      return interp.dynamic_bind(function() {
         return interp.eval(obj);
-      } else {
-        return interp.dynamic_bind(function() {
-          return interp.eval(obj);
-        }, args);
-      }
+      }, args);
     },
 
     Closure: Closure,

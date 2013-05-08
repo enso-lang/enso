@@ -1,0 +1,31 @@
+require 'opal'
+
+task :default => [:compile]
+
+task :compile do
+  def doit(src, tgt)
+    f = File.read src
+    js = Opal.parse f
+    File.open(tgt, 'w+') {|o| o.puts js}
+  end
+  doit("app.rb", "js2/app.js")
+  banned = ['convert.rb']
+  Dir.glob("core/**/*.rb") do |f|
+    puts f
+    next if banned.any?{|b|f.include? b}
+    dir = "js2/#{f[0..f.rindex('/')]}"
+    tgt = "js2/#{f[0..-4]}.js"
+    unless File.exists? dir
+      FileUtils.mkdir_p dir
+    end
+    doit(f, tgt)
+  end
+  
+=begin
+  src = File.read 'app.rb'
+  js = Opal.parse src
+
+  File.open('app.js', 'w+') { |o| o.puts js }
+=end
+end
+

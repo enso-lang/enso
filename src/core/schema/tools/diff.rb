@@ -35,15 +35,6 @@ module Diff
     diff_all(o1, o2, Paths::Path.new, matches)
   end
 
-=begin
-Topological sort of the diff list
-*Dependencies
-- New must precede any op whose path contains it or its desc
-- any op on a path unless broken by another op on the closer path
-*Interferences
--
-=end
-
   #return 1 or 2 depending on which is the subpath. 0 if neither
   def subpath(p1, p2)
     if p1.elts.empty? and p2.elts.empty?
@@ -180,7 +171,7 @@ Topological sort of the diff list
         j+=1
       end
     end
-    for n in j..o2.size-1
+    [j..o2.size-1].each do |n|
       difflist.unshift *diff_all(nil, o2[n], path.index(i), matches, ref)
     end
     difflist

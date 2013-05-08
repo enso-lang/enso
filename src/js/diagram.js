@@ -190,9 +190,9 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 		        var textBox = $('<input/>');
 		        // Hiding the input and showing the original div
 		        textBox.blur(function() {
-	                textBox.hide();
 	                console.log("val="+textBox.val())
 	                console.log("dom="+dom);
+//	                textBox.hide();
 	                dom.text(textBox.val());
 					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "inherit")
 		        });
@@ -203,7 +203,7 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 //	                dom.hide();
 	                console.log("tb is ")
 	                console.log(textBox)
-	                textBox.show().focus();
+//	                textBox.show().focus();
 	                // workaround, to move the cursor at the end in input box.
 //	                textBox[0].value = textBox[0].value;
 					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "yellow")

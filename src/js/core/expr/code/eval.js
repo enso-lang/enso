@@ -22,7 +22,7 @@ function(Schema, Interpreter) {
 
     this.eval_EBinOp = function(obj) {
       var self = this; 
-      switch (obj.op()) {
+      switch (obj.op().to_s()) {
         case "&":
           return self.eval(obj.e1()) && self.eval(obj.e2());
         case "|":
@@ -61,10 +61,13 @@ function(Schema, Interpreter) {
 
     this.eval_EVar = function(obj) {
       var self = this; 
-      if (! self.$.D._get("env").has_key_P(obj.name())) {
+      if (! self.$.D._get("env")) {
+        self.raise("ERROR: environment not defined");
+      }
+      if (! self.$.D._get("env").has_key_P(obj.name().to_s())) {
         self.raise(S("ERROR: undefined variable ", obj.name(), " in ", self.$.D._get("env")));
       }
-      return self.$.D._get("env")._get(obj.name());
+      return self.$.D._get("env")._get(obj.name().to_s());
     };
 
     this.eval_ESubscript = function(obj) {
@@ -157,7 +160,7 @@ function(Schema, Interpreter) {
 
     eval: function(obj, args) {
       var self = this; 
-      if (args === undefined) args = new EnsoHash ({ });
+      if (args === undefined) args = new EnsoHash ({ env: new EnsoHash ({ }) });
       var interp;
       interp = EvalExprC.new();
       return interp.dynamic_bind(function() {

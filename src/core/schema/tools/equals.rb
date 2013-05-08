@@ -1,8 +1,8 @@
-=begin
+#=begin
 
-Deep equality based on object tree structure and primitive values
+#Deep equality based on object tree structure and primitive values
 
-=end
+#=end
 
 module Equals
 class Equals 

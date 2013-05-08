@@ -361,9 +361,12 @@ class CodeBuilder < Ripper::SexpBuilder
   def make_def_binding(name, params, body)
     vars = reset_assigned_vars()
     #puts "DEF #{name} #{params} #{vars}"
-    raise "can't redefine #{name}" if ["==", "is_a?"].include?(name)
-    name = fixup_method_name(name)
-    @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
+    if ["==", "is_a?"].include?(name)
+      puts "ERROR: can't redefine #{name}"
+    else
+      name = fixup_method_name(name)
+      @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
+    end
   end
 
   def make_simple_fun(params, body, vars=[])

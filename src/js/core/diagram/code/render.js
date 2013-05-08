@@ -14,7 +14,7 @@ function(Renderexp, Construct, Interpreter) {
       post = "\n</body>\n</html>\n      ";
       body = self.dynamic_bind(function() {
         return self.render(obj.body());
-      }, new EnsoHash ({ env: new EnsoHash ({ }) }));
+      }, new EnsoHash ({ env: new EnsoHash ({ data: self.$.D._get("data") }) }));
       return (pre + body) + post;
     };
 
