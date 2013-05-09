@@ -177,7 +177,6 @@ module Layout
           if obj.is_a?(String)
             if @slash_keywords && @literals.include?(obj) then
               output('\\' + obj)
-              output(obj)
             else
              output(obj)
             end
