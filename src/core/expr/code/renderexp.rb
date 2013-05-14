@@ -21,6 +21,10 @@ module Renderexp
       "#{render(obj.e)}.#{obj.fname}"
     end
   
+    def render_ESubscript(obj)
+      "#{render(obj.e)}[#{render(obj.sub)}]"
+    end
+  
     def render_EVar(obj)
       "#{obj.name}"
     end

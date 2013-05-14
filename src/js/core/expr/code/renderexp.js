@@ -25,6 +25,11 @@ function(Interpreter) {
       return S(self.render(obj.e()), ".", obj.fname());
     };
 
+    this.render_ESubscript = function(obj) {
+      var self = this; 
+      return S(self.render(obj.e()), "[", self.render(obj.sub()), "]");
+    };
+
     this.render_EVar = function(obj) {
       var self = this; 
       return obj.name();

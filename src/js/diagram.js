@@ -1,4 +1,11 @@
-define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/code/invert'], function(Enso, Eval, Lvalue, Invert) {
+define([
+	"enso", 
+	'core/expr/code/eval', 
+	'core/expr/code/lvalue', 
+	'core/diagram/code/invert',
+	'core/expr/code/renderexp',
+],
+function(Enso, Eval, Lvalue, Invert, RenderExp) {
 	var mm;
 
 	function getMethods(obj) {
@@ -26,41 +33,66 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 			return null;
 	}
 
-(function($) {
-    $.fn.editable = function() {
-        var textBlock = $(this);
-        // Create a new input to allow editing text on double click
-        var textBox = $('<input/>');
-        textBox.hide().insertAfter(textBlock).val(textBlock.html());
-
-        // Hiding the div and showing a input to allow editing the value.
-        textBlock.dblclick(function() {
-        	console.log("DBL CLICK!!!!!")
-            toggleVisiblity(true);
-        });
-        // Hiding the input and showing the original div
-        textBox.blur(function() {
-            toggleVisiblity(false);
-        });
-
-        toggleVisiblity = function(editMode) {
-            if (editMode == true) {
-                textBlock.hide();
-                textBox.show().focus();
-                // workaround, to move the cursor at the end in input box.
-                textBox[0].value = textBox[0].value;
-            }
-            else {
-                textBlock.show();
-                textBox.hide();
-                textBlock.html(textBox.val());
-            }
-        };
-    };
-
-})(jQuery);
-
 	var interp = {
+		drawit : function (obj) {
+			var myname = ""+obj.schema_class().name()+obj._id();
+	      if (obj.schema_class().name() == "EBinOp") {
+	      	var e1 = $("<dedit>").attr("id", myname+"e1")
+	       	e1.append(this.drawit(obj.e1()));
+	       	var op = $("<dedit>").attr("id", myname+"op")
+	       	op.text(obj.op())
+	       	var e2 = $("<dedit>").attr("id", myname+"e2")
+	       	e2.append(this.drawit(obj.e2()));
+			var f = $("<dedit>").attr("id", myname)
+	       	f.append(e1)
+	       	f.append(op)
+	       	f.append(e2)
+	       	return f;
+	      } else if (obj.schema_class().name() == "EUnOp") {
+/*
+        	return S("<dedit id='", obj.schema_class().name(), obj._id(), 
+        				"'>(<dedit id='", obj.schema_class().name(), obj._id(), "op'>", 
+        					obj.op(), 
+        				"</dedit>",
+        				"<dedit id='", obj.schema_class().name(), obj._id(), "e'>", 
+        					this.drawit(obj.e()), 
+        				"</dedit>)", 
+        			"</dedit>\n");
+*/
+	       	var op = $("<dedit id='"+obj.schema_class().name()+obj._id()+"op'>"+obj.op()+"</dedit>")
+	        var e2 = $("<dedit id='"+obj.schema_class().name()+obj._id()+"e'>")
+	       	e1.append(this.drawit(obj.e()));
+			var f = $("<dedit>").attr("id", ""+obj.schema_class().name()+obj._id())
+	       	f.append(op)
+	       	f.append(e)
+	       	return f;
+	      } else if (obj.schema_class().name() == "EField") {
+			var f = $("<dedit>").attr("id", myname)
+			f.text(RenderExp.render(obj));
+			var env = new EnsoHash({ });
+			env._set("root", data);
+			var addr = Lvalue.lvalue(obj, new EnsoHash({
+				env : env
+			}));
+			f.dblclick(function() {
+				console.log("addr=")
+				console.log(addr.object().to_s())
+				console.log(addr.index().to_s())
+				$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "yellow")
+			});
+	        return f;
+	      } else if (obj.EStrConst_P()) {
+	      	return S('"', obj.val().to_s(), '"');
+	      } else if (obj.EConst_P()) {
+	        return (obj.val().to_s());
+	      } else {
+	        self.raise("unable to render edit tree:"+obj.schema_class().name());
+	      }
+		},
+		drawtree : function (tree) {
+		  var s = this.drawit(tree)
+		  $("#dbgtree").append(s)
+		},
 		render : function(obj) {
 			var self = this;
 			type = obj.schema_class();
@@ -177,8 +209,9 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 			return txt3;
 		},
 		render_Text : function(obj) {
+			var self = this;
 			var dom = $('<div>');
-			dom.editable();
+//			dom.editable();
 			this.make_style(dom, obj.props());
 			dom.text(obj.string().val().to_s());
 			var path = mm._get(obj.string().to_s());
@@ -186,31 +219,15 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 				var env = new EnsoHash({ });
 				env._set("root", data);
 				srcs = Invert.getSources(path);
-				
-		        var textBox = $('<input/>');
-		        // Hiding the input and showing the original div
-		        textBox.blur(function() {
-	                console.log("val="+textBox.val())
-	                console.log("dom="+dom);
-//	                textBox.hide();
-	                dom.text(textBox.val());
-					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "inherit")
-		        });
-		        textBox.appendTo(dom).val(dom.text());
 
 		        // Hiding the div and showing a input to allow editing the value.
+		        var self=this;
 		        dom.dblclick(function() {
-//	                dom.hide();
-	                console.log("tb is ")
-	                console.log(textBox)
-//	                textBox.show().focus();
-	                // workaround, to move the cursor at the end in input box.
-//	                textBox[0].value = textBox[0].value;
-					$(S("#", addr.object().schema_class().name(), addr.object()._id().toString(), addr.index() )).css("background-color", "yellow")
-		        });
+		        	self.drawtree(path)
+	        	});
 
-
-
+//		        textBox.val(dom.text());
+//				dom.append(textBox)
 
 /*
         textBox.hide().insertAfter(textBlock).val(textBlock.html());
@@ -254,7 +271,7 @@ define(["enso", 'core/expr/code/eval', 'core/expr/code/lvalue', 'core/diagram/co
 					}, addr.index().to_s());
 
 					//add debugging highlight
-					self = this;
+//					self = this;
 //					dom.click(function() {
 //						dom.hide()
 //						self.toggleHightlight()

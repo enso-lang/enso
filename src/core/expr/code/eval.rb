@@ -14,7 +14,7 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-      case obj.op.to_s
+      case obj.op
       when "&"
         eval(obj.e1) && eval(obj.e2)
       when "|"
@@ -38,7 +38,7 @@ module Eval
       when ">=" 
         eval(obj.e1) >= eval(obj.e2)
       else
-        raise "Unknown operator (#{obj.op})"
+        raise "Unknown operator (#{obj.op.to_s})"
       end
     end
   

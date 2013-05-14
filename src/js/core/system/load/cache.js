@@ -34,6 +34,7 @@ function(Dumpjson, FindModel, Sha1) {
 
     check_dep: function(name) {
       var self = this; 
+      return true;
       var path, json;
       try {
         path = Cache.find_json(name);

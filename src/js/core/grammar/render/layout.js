@@ -183,8 +183,7 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
           case "sym":
             if (System.test_type(obj, String)) {
               if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
-                self.output("\\\\" + obj);
-                return self.output(obj);
+                return self.output("\\\\" + obj);
               } else {
                 return self.output(obj);
               }

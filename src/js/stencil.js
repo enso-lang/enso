@@ -4,9 +4,10 @@ define([
 	'core/diagram/code/construct',
 	'core/grammar/render/layout',
 	'core/schema/tools/print',
+	'core/expr/code/renderexp',
 	'diagram'
 ], 
-function(Enso, Load, Construct, Layout, Print, Diagram) {
+function(Enso, Load, Construct, Layout, Print, RenderExp, Diagram) {
 	var Stencil = {
 		render : function(data_file, stencil_file) {
 			var filetype = data_file.split('.')[1];
@@ -29,7 +30,9 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			main.css("float", "left")
 			$("body").append(main);
 
-			//Debugger stuff
+			dbgmain = $("<div id='dbg-main'>")
+
+			//Debugger source
 			out = new StringBuilder();
 			g = Load.load(filetype+".grammar")
 			Layout.DisplayFormat.print(g, data, out, false, true)
@@ -37,21 +40,28 @@ function(Enso, Load, Construct, Layout, Print, Diagram) {
 			g2 = Load.load("stencil.grammar")
 			Layout.DisplayFormat.print(g2, stencil, out2, false, true)
 
-			dbg = $("<div>")
+			dbg = $("<div id='dbg-src'>")
 			dbg.css("width", "400px")
-			dbg.css("height", "100%")
+			dbg.css("height", "70%")
 			dbg.css("overflow", "auto")
 			dbg.css("background", "#D9D9D9")
 			dbg.css("font-family", "Courier New")
 			dbg.css("font-size", "small")
 			s = out.toDocument().replace(/\*\[\*/g, "<").replace(/\*\]\*/g, ">").replace(/<debug&nbsp;/g, "<debug ")
+
 			console.log(s)
 			dbg.append($(s))
 			dbg.append($("<div><br>---------------------<br><br></div>"))
+
 			s2 = out2.toDocument().replace(/\*\[\*/g, "<").replace(/\*\]\*/g, ">").replace(/<debug&nbsp;/g, "<debug ")
 			console.log(s2)
 			dbg.append($(s2))
-			$("body").append(dbg);
+			dbgmain.append(dbg);
+
+			//Debugger edit panel
+			dbgtree = $("<div id='dbgtree'>")
+			dbgmain.append(dbgtree);
+			$("body").append(dbgmain);
 
 			//Main
 			$("title").text(diagram.title)

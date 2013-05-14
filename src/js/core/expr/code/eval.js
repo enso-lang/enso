@@ -22,7 +22,7 @@ function(Schema, Interpreter) {
 
     this.eval_EBinOp = function(obj) {
       var self = this; 
-      switch (obj.op().to_s()) {
+      switch (obj.op()) {
         case "&":
           return self.eval(obj.e1()) && self.eval(obj.e2());
         case "|":
@@ -46,7 +46,7 @@ function(Schema, Interpreter) {
         case ">=":
           return self.eval(obj.e1()) >= self.eval(obj.e2());
         default:
-          return self.raise(S("Unknown operator (", obj.op(), ")"));
+          return self.raise(S("Unknown operator (", obj.op().to_s(), ")"));
       }
     };
 
