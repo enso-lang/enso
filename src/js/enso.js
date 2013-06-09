@@ -1,3 +1,79 @@
+var config = {
+  writable: true,
+  configurable: true
+};
+var extendObjectPrototype = function(name, value) {
+  config.value = value;
+  Object.defineProperty(Object.prototype, name, config);
+}
+
+extendObjectPrototype('to_s', function() { return "<OBJECT>" })
+extendObjectPrototype('raise', function(msg) { puts(msg); return ERROR; })
+extendObjectPrototype('instance_eval', function(fun) { fun.apply(this); })
+extendObjectPrototype('has_key_P', Object.prototype.hasOwnProperty)
+
+extendObjectPrototype('is_a_P', function(type) { return this instanceof type; })
+extendObjectPrototype('define_singleton_value', 
+	function(name, val) { this[_fixup_method_name(name)] = function() { return val;} });
+extendObjectPrototype('define_singleton_method', 
+	function(proc, name) { this[_fixup_method_name(name)] = proc } );
+
+extendObjectPrototype('_get', function(k) { return this[k] })
+extendObjectPrototype('_set', function(k, v) { this[k] = v; return v; })
+
+extendObjectPrototype('include_P', 
+  function(obj) {  // Array.prototype.filter;
+    var i;
+    for (i = 0; i < this.length; i++) {
+      if (this[i] == obj)
+        return true;
+    }
+    return false;
+  });  
+
+extendObjectPrototype('clone', 
+  function() {  // Array.prototype.forEach;
+    var result = new Object;
+    for (var i in this) {
+      if (this.hasOwnProperty(i))
+        result[i] = this[i];
+    }
+    return result;
+  });
+
+extendObjectPrototype('each', 
+  function (cmd) {
+    for (var i in this) {
+      if (this.hasOwnProperty(i)) {
+        var a = this[i];
+        cmd.call(a, i, a)
+      }
+    }
+  });
+
+extendObjectPrototype('find', 
+  function(pred) { 
+    var result = null;
+    this.each( function(a) {
+      if (result == null && pred(a)) {
+        result = a; 
+      }
+    });
+    return result;
+  });
+
+extendObjectPrototype('find_first', 
+  function(pred) {
+    var result = null;
+    this.each( function(a) {
+      if (result == null) {
+        var item = pred(a);
+        if (item) 
+          result = item; 
+      }
+    });
+    return result;
+  });
 
 puts = function(obj) {
   console.log("" + obj);
@@ -183,10 +259,6 @@ if (typeof window === 'undefined') {
     stderr: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stderr); },
   }
   
-  Object.prototype.raise = function(msg) { puts(msg); return ERROR; }
-
-  Object.prototype.instance_eval = function(fun) { fun.apply(this); }
-  
   compute_rest_arguments = function(args, num) { 
     var x = new Array;
     while (num < args.length)
@@ -207,7 +279,6 @@ if (typeof window === 'undefined') {
   Array.prototype.values = function() { return this; }
   Array.prototype.empty_P = function() { return this.length > 0; }
   Array.prototype.any_P = Array.prototype.some;
-  Object.prototype.has_key_P = Object.prototype.hasOwnProperty
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
     var i;
     for (i = 0; i < this.length; i++) {
@@ -252,14 +323,6 @@ if (typeof window === 'undefined') {
     return result;
   };
  
-  Object.prototype.include_P =  function(obj) {  // Array.prototype.filter;
-    var i;
-    for (i = 0; i < this.length; i++) {
-      if (this[i] == obj)
-        return true;
-    }
-    return false;
-  };  
   Array.prototype.select =  function(fun) {  // Array.prototype.filter;
     var i;
     var result = new Array;
@@ -303,60 +366,17 @@ if (typeof window === 'undefined') {
   
     
   
-  Object.prototype.clone = function() {  // Array.prototype.forEach;
-    var result = new Object;
-    for (var i in this) {
-      if (this.hasOwnProperty(i))
-        result[i] = this[i];
-    }
-    return result;
-  };
-  
-  Object.prototype.each = function (cmd) {
-    for (var i in this) {
-      if (this.hasOwnProperty(i)) {
-        var a = this[i];
-        cmd.call(a, i, a)
-      }
-    }
-  }
-
   _fixup_method_name = function(name) { 
     if (name.slice(-1) == "?") { 
       name = name.slice(0,-1) + "_P";
     } 
     return name; 
   }
-  Object.prototype.find = function(pred) { 
-    var result = null;
-    this.each( function(a) {
-      if (result == null && pred(a)) {
-        result = a; 
-      }
-    });
-    return result;
-  }
-  Object.prototype.find_first = function(pred) { 
-    var result = null;
-    this.each( function(a) {
-      if (result == null) {
-        var item = pred(a);
-        if (item) 
-          result = item; 
-      }
-    });
-    return result;
-  }
-  
   Integer = Number;
   Float = Number;
   Numeric = Number;
   Fixnum = Number;
   
-  Object.prototype.to_s = function() { return "<OBJECT>" }
-  Object.prototype.is_a_P = function(type) { return this instanceof type; }
-  Object.prototype.define_singleton_value = function(name, val) { this[_fixup_method_name(name)] = function() { return val;} }
-  Object.prototype.define_singleton_method = function(proc, name) { this[_fixup_method_name(name)] = proc }
   String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
   Number.prototype.to_i = function() { return this }
@@ -367,10 +387,8 @@ if (typeof window === 'undefined') {
      return this.toUpperCase() === other.toUpperCase() 
    }
   Array.prototype.first = function() { return this[0]; }
-  Object.prototype._get = function(k) { return this[k] }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
   Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
-  Object.prototype._set = function(k, v) { this[k] = v; return v; }
   String.prototype._set = function(k, v) { raise("Strings are immutable"); }
   String.prototype.gsub = String.prototype.replace;
   String.prototype.index = String.prototype.indexOf;
