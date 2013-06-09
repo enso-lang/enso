@@ -14,7 +14,7 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-      case obj.op
+      case obj.op.to_s
       when "&"
         eval(obj.e1) && eval(obj.e2)
       when "|"

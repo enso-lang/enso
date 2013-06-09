@@ -225,7 +225,6 @@ module Layout
         rhs = Eval.eval(this.expr.e2, env: Env::ObjEnv.new(obj, @localEnv))
         if rhs.is_a? Factory::MObject
           lhs = Eval.eval(this.expr.e1, env: Env::ObjEnv.new(obj, @localEnv))
-          puts "blah"
           lhs.schema_class == rhs.schema_class
         else
           Eval.eval(this.expr, env: Env::ObjEnv.new(obj, @localEnv))

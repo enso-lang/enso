@@ -44,18 +44,22 @@ class ENew < Expr
 
 // constants
 
-class EConst < Expr 
+class EConst < Expr
 class EStrConst < EConst
   val: str
+  type: str = "str"
 
 class EIntConst < EConst
   val: int
+  type: str = "int"
 
 class EBoolConst < EConst
   val: bool
+  type: str = "bool"
 
 class ERealConst < EConst
   val: real
+  type: str = "real"
 
 class ENil < EConst
 

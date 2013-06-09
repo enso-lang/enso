@@ -1,5 +1,6 @@
 
 require 'core/schema/test/test_copy.rb'
+require 'core/schema/test/test_model.rb'
 require 'core/grammar/test/parse.rb'
 require 'test/unit/test_diff.rb'
 require 'test/unit/test_patch.rb'
