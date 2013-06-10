@@ -152,6 +152,9 @@ module MetaSchema
     def fields
       BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
     end
+    def key
+      fields.find {|f| f.key}
+    end
   end
 
   class BootManyField < Array

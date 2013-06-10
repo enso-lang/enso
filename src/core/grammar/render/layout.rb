@@ -206,7 +206,7 @@ module Layout
       obj = stream.current
       if !obj.nil?
         # TODO: this is complete cheating! we need to search the path
-        key_field = Schema::class_key(obj.schema_class)
+        key_field = obj.schema_class.key
         output(obj[key_field.name()])
       end
     end

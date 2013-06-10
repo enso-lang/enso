@@ -91,7 +91,7 @@ class BatchFactory
     #end
 
     klass = @schema.classes.find {|t| t.table==table}
-    keyfield = Schema::class_key(klass)
+    keyfield = klass.key
     keycol = keyfield.column || keyfield.name
     #check if this is a relationship or an attribute.
     puts "setting key #{key} in table #{table} to value #{value}"

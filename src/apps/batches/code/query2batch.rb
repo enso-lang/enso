@@ -57,7 +57,7 @@ class Query2Batch
   end
 
   def e2b_Query(query, pname, env)
-    keyfield = Schema::class_key(@schema.classes[query.classname])
+    keyfield = @schema.classes[query.classname].key
     if query.fields.none? {|f| f.name == keyfield.name}
       query.fields << query.factory.Field(keyfield.name)
     end

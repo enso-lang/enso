@@ -155,7 +155,7 @@ module Web::Eval
 
     def each_with_index
       value.each_with_index do |v, i|
-        key_field = Schema::class_key(v.schema_class)
+        key_field = v.schema_class.key
         key = key_field ? v[key_field.name] : i
         yield subscript(key), key
       end

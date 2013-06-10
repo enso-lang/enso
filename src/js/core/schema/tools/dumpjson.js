@@ -71,7 +71,7 @@ function(Paths, Schema, MetaSchema, Json) {
                 return self.$.fixups.push(Fixup.new(obj, f, this_V._get(f.name())));
               }
             } else {
-              fname = Schema.is_keyed_P(f.type())
+              fname = f.type().key()
                 ? S(f.name(), "#")
                 : f.name();
               if (f.traversal()) {
@@ -105,7 +105,7 @@ function(Paths, Schema, MetaSchema, Json) {
             if (f.type().Primitive_P()) {
               return e._set(S(name, "="), val);
             } else if (f.many()) {
-              if (Schema.is_keyed_P(f.type())) {
+              if (f.type().key()) {
                 name = name + "#";
               }
               ef = [];

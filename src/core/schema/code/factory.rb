@@ -137,7 +137,7 @@ module Factory
         define_getter(fld.name, prop)
         define_setter(fld.name, prop)
       else
-        if key = Schema::class_key(fld.type)
+        if key = fld.type.key
           collection = Set.new(self, fld, key)
         else
           collection = List.new(self, fld)
@@ -159,7 +159,7 @@ module Factory
     end
         
     def __to_s(cls)
-      k = Schema::class_key(cls) || cls.fields.find{|f| f.type.Primitive? }
+      k = cls.key || cls.fields.find{|f| f.type.Primitive? }
       if k then
         define_singleton_method :to_s do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
@@ -196,7 +196,7 @@ module Factory
           end
           val = Impl::eval(exp, env: Env::ObjEnv.new(self))
           if fld.many #coerce to whatever the right container should be
-            if key = Schema::class_key(fld.type)
+            if key = fld.type.key
               collection = Set.new(self, fld, key)
             else
               collection = List.new(self, fld)

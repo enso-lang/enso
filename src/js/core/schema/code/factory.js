@@ -145,7 +145,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           self.define_getter(fld.name(), prop);
           return self.define_setter(fld.name(), prop);
         } else {
-          if (key = Schema.class_key(fld.type())) {
+          if (key = fld.type().key()) {
             collection = Set.new(self, fld, key);
           } else {
             collection = List.new(self, fld);
@@ -172,7 +172,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.__to_s = function(cls) {
         var self = this; 
         var k;
-        k = Schema.class_key(cls) || cls.fields().find(function(f) {
+        k = cls.key() || cls.fields().find(function(f) {
           return f.type().Primitive_P();
         });
         if (k) {
@@ -218,7 +218,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             });
             val = Impl.eval(exp, new EnsoHash ({ env: Env.ObjEnv.new(self) }));
             if (fld.many()) {
-              if (key = Schema.class_key(fld.type())) {
+              if (key = fld.type().key()) {
                 collection = Set.new(self, fld, key);
               } else {
                 collection = List.new(self, fld);

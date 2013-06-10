@@ -57,7 +57,7 @@ module Proxy
           if !f.many
             Proxy.new(@_val.send(sym), @_val.factory.file_path[0], @_val._path.field(sym.to_s))
           else
-            if Schema::is_keyed?(f.type)
+            if f.type.key
               newlist = {}
               @_val[f.name].each_pair do |k,v|
                 newlist[k] = Proxy.new(v)
@@ -106,6 +106,12 @@ module Proxy
     end
     def ==(other)
       method_missing(:==, other)
+    end
+    def ===(other)
+      method_missing(:===, other)
+    end
+    def hash
+      method_missing(:hash)
     end
     def valueOf; @_val.valueOf end #[JS HACK] used for JS equality
     def to_s; "#{@_val}" end

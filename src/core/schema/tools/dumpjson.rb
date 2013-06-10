@@ -21,7 +21,7 @@ module Dumpjson
             e["#{name}="] = val
           else 
             if f.many then
-              name = name + "#" if Schema::is_keyed?(f.type)
+              name = name + "#" if f.type.key
               ef = []
               if f.traversal then
                 val.each do |fobj|
@@ -110,7 +110,7 @@ module Dumpjson
               end 
             end
           else #multi-valued objects 
-            fname = Schema::is_keyed?(f.type) ? "#{f.name}#" : f.name
+            fname = f.type.key ? "#{f.name}#" : f.name
             if f.traversal
               this[fname].each do |o|
                 obj[f.name] << from_json(o) 

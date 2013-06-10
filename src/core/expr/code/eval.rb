@@ -38,7 +38,7 @@ module Eval
       when ">=" 
         eval(obj.e1) >= eval(obj.e2)
       else
-        raise "Unknown operator (#{obj.op.to_s})"
+        raise "Unknown operator (#{obj.op.to_s}:#{obj.op.class})"
       end
     end
   

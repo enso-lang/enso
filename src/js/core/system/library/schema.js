@@ -4,21 +4,9 @@ function() {
   var Schema ;
 
   Schema = {
-    class_key: function(klass) {
-      var self = this; 
-      return klass.fields().find(function(f) {
-        return f.key() && f.type().Primitive_P();
-      });
-    },
-
     object_key: function(obj) {
       var self = this; 
-      return obj._get(Schema.class_key(obj.schema_class()).name());
-    },
-
-    is_keyed_P: function(klass) {
-      var self = this; 
-      return ! klass.Primitive_P() && ! (Schema.class_key(klass) == null);
+      return obj._get(obj.schema_class().key().name());
     },
 
     lookup: function(block, obj) {

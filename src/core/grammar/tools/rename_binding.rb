@@ -25,7 +25,7 @@ class RenameBinding
           obj[f.name].each do |elt|
             rename(elt, map)
           end
-          obj[f.name]._recompute_hash! if Schema::is_keyed?(f.type)
+          obj[f.name]._recompute_hash! if f.type.key
         else
           rename(obj[f.name], map)
         end

@@ -214,7 +214,7 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
       stream = self.$.D._get("stream");
       obj = stream.current();
       if (! (obj == null)) {
-        key_field = Schema.class_key(obj.schema_class());
+        key_field = obj.schema_class().key();
         return self.output(obj._get(key_field.name()));
       }
     };
@@ -236,7 +236,6 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
         rhs = Eval.eval(this_V.expr().e2(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
         if (System.test_type(rhs, Factory.MObject)) {
           lhs = Eval.eval(this_V.expr().e1(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));
-          puts("blah");
           return lhs.schema_class() == rhs.schema_class();
         } else {
           return Eval.eval(this_V.expr(), new EnsoHash ({ env: Env.ObjEnv.new(obj, self.$.localEnv) }));

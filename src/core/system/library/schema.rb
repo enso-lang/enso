@@ -1,15 +1,6 @@
 module Schema
-  # gets the primitive-valued key of a class, if there is one
-  def self.class_key(klass)
-    klass.fields.find { |f| f.key && f.type.Primitive? }
-  end
-  
   def self.object_key(obj)
-    obj[class_key(obj.schema_class).name]
-  end
-  
-  def self.is_keyed?(klass)
-    not klass.Primitive? and not class_key(klass).nil?
+    obj[obj.schema_class.key.name]
   end
   
   #run DFS on obj's parent hierarchy and return first non-nil result

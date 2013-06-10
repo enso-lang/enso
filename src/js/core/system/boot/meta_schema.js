@@ -149,6 +149,13 @@ function(Factory, Union, Json, Enso) {
           return ! f.computed();
         }), self.$.root, true);
       };
+
+      this.key = function() {
+        var self = this; 
+        return self.fields().find(function(f) {
+          return f.key();
+        });
+      };
     });
 
   var BootManyField = MakeClass("BootManyField", Array, [],

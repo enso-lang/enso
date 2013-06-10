@@ -80,7 +80,7 @@ function(Env, Eval, Factory, Load) {
           if (f = self.$._val.schema_class().all_fields()._get(sym.to_s())) {
             if (! f.many()) {
               return Proxy.new(self.$._val.send(sym), self.$._val.factory().file_path()._get(0), self.$._val._path().field(sym.to_s()));
-            } else if (Schema.is_keyed_P(f.type())) {
+            } else if (f.type().key()) {
               newlist = new EnsoHash ({ });
               self.$._val._get(f.name()).each_pair(function(k, v) {
                 return newlist._set(k, Proxy.new(v));
@@ -123,6 +123,11 @@ function(Env, Eval, Factory, Load) {
         } else {
           return self.$._val.send.apply(self.$._val, [block, sym].concat(args));
         }
+      };
+
+      this.set_== = function(other) {
+        var self = this; 
+        return self.method_missing("===", other);
       };
 
       this.valueOf = function() {
