@@ -8,6 +8,7 @@ class Schema
 class Type
   name# str
   schema: Schema / types
+  key: Field? = nil
   
 class Primitive < Type
   
