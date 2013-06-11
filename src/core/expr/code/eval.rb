@@ -14,7 +14,8 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-      case obj.op.to_s
+=begin
+      case obj.op
       when "&"
         eval(obj.e1) && eval(obj.e2)
       when "|"
@@ -37,8 +38,31 @@ module Eval
         eval(obj.e1) <= eval(obj.e2)
       when ">=" 
         eval(obj.e1) >= eval(obj.e2)
+=end
+      if obj.op == "&"
+        eval(obj.e1) && eval(obj.e2)
+      elsif obj.op == "|"
+        eval(obj.e1) || eval(obj.e2)
+      elsif obj.op == "eql?"
+        eval(obj.e1) == eval(obj.e2)
+      elsif obj.op == "+"
+        eval(obj.e1) + eval(obj.e2)
+      elsif obj.op == "*"
+        eval(obj.e1) * eval(obj.e2)
+      elsif obj.op == "-"
+        eval(obj.e1) - eval(obj.e2)
+      elsif obj.op == "/"
+        eval(obj.e1) / eval(obj.e2)
+      elsif obj.op == "<"
+        eval(obj.e1) < eval(obj.e2)
+      elsif obj.op == ">"
+        eval(obj.e1) > eval(obj.e2)
+      elsif obj.op == "<=" 
+        eval(obj.e1) <= eval(obj.e2)
+      elsif obj.op == ">=" 
+        eval(obj.e1) >= eval(obj.e2)
       else
-        raise "Unknown operator (#{obj.op.to_s}:#{obj.op.class})"
+        raise "Unknown operator (#{obj.op.to_s})"
       end
     end
   
