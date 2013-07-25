@@ -4,13 +4,13 @@ module core::lang::\syntax::Layout
 
 lexical Comment 
   = @category="Comment" "#" ![\n\r]* $
-  | @category="Comment" ^"=begin" DocChar* ^"=end"
+//  | @category="Comment" ^"=begin" DocChar* ^"=end"
   ;
   
-lexical DocChar
-  = ![=]
-  | [=] !>> "=end"
-  ;
+//lexical DocChar
+//  = ![=]
+//  | [=] !>> "=end"
+//  ;
 
 lexical Whitespace 
   = [\t\ ]

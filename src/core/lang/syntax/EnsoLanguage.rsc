@@ -18,6 +18,15 @@ To simplify:
 
 */ 
 
+/*
+Rules
+
+- always write parens in expressions and when invoking blocks, *except* if there are now arguments
+- there is no hash literal anymore.
+- all keywords in this grammar are reserved. TODO: fix x.class problem.
+- there is no do .. end notation (TODO)
+*/
+
 
 start syntax Unit 
   = STMTS
@@ -54,12 +63,12 @@ syntax STMT
   // maybe only allow primaries in commands and no blocks
   | YIELD1 !>> "("  CALLARGS 
   | OPERATION1 !>> "("  CALLARGS 
-  | OPERATION2 !>> "("  CALLARGS  BLOCK
+//  | OPERATION2 !>> "("  CALLARGS  BLOCK
   | SUPER1  !>> "(" CALLARGS 
   | PRIMARY "." OPERATION2 !>> "(" CALLARGS 
   | PRIMARY "::" OPERATION3 !>> "(" CALLARGS 
-  | PRIMARY "." OPERATION4 !>> "(" CALLARGS  BLOCK
-  | PRIMARY "::" OPERATION5 !>> "("  CALLARGS BLOCK
+//  | PRIMARY "." OPERATION4 !>> "(" CALLARGS  BLOCK
+//  | PRIMARY "::" OPERATION5 !>> "("  CALLARGS BLOCK
   
   | LHS "=" STMT ! expr
   | LHS OP_ASGN STMT ! expr
@@ -105,8 +114,8 @@ syntax PRIMARY
   | [a-zA-Z_0-9] !<< "[" {EXPR ","}* "]"
   | "yield" 
   | YIELD2 >> "(" "(" CALLARGS? ")"
-  | OPERATION //\ Reserved
-  | OPERATION /*\ Reserved*/ BLOCK
+  | OPERATION
+  | OPERATION BLOCK
   | POPERATION1 >> "(" "(" CALLARGS? ")"
   | POPERATION2 >> "(" "(" CALLARGS? ")" BLOCK
   | "super"

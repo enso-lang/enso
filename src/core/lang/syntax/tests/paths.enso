@@ -131,7 +131,7 @@ module Paths
     def delete(root)
       obj = @path
       if obj.EField?
-        dynamic_bind(root: root) do
+        dynamic_bind root: root do
           eval(obj.e)[obj.fname] = nil
         end
       elsif obj.ESubscript?

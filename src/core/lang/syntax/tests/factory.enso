@@ -161,7 +161,7 @@ module Factory
     def __to_s(cls)
       k = cls.key || cls.fields.find{|f| f.type.Primitive? }
       if k then
-        define_singleton_method :to_s do
+        define_singleton_method(:to_s) do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
         end
       else
@@ -186,7 +186,7 @@ module Factory
       val = nil
       define_singleton_method(name) do
         if val.nil?
-          fvs = fvInterp.dynamic_bind env: Env::ObjEnv.new(self), bound: [] do
+          fvs = fvInterp.dynamic_bind(env: Env::ObjEnv.new(self), bound: []) do
             fvInterp.depends(exp)
           end
           fvs.each do |fv|
