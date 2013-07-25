@@ -50,6 +50,8 @@ syntax STMT
   | "def" SINGLETON ("."|"::") FNAME TERM STMTS "end"
   
   // NB: CALLARGS are not optional here.
+  // But still it leads to all kinds of ambiguities
+  // maybe only allow primaries in commands and no blocks
   | YIELD1 !>> "("  CALLARGS 
   | OPERATION1 !>> "("  CALLARGS 
   | OPERATION2 !>> "("  CALLARGS  BLOCK
@@ -103,8 +105,8 @@ syntax PRIMARY
   | [a-zA-Z_0-9] !<< "[" {EXPR ","}* "]"
   | "yield" 
   | YIELD2 >> "(" "(" CALLARGS? ")"
-  | OPERATION
-  | OPERATION BLOCK
+  | OPERATION //\ Reserved
+  | OPERATION /*\ Reserved*/ BLOCK
   | POPERATION1 >> "(" "(" CALLARGS? ")"
   | POPERATION2 >> "(" "(" CALLARGS? ")" BLOCK
   | "super"
@@ -137,7 +139,7 @@ syntax EXPR
   | "~" EXPR
   | "+" !>> [\ \t] EXPR
   > right EXPR "**" EXPR
-  > "-" EXPR
+  > "-" !>> [\ \t] EXPR
   > left ( EXPR "*" EXPR
     | EXPR "/" EXPR
     | EXPR "%" EXPR
@@ -255,14 +257,30 @@ syntax AMP = "&" !>> [\ \t];
 
 // TODO: default params.
 syntax ARGLIST     
-  = {IDENTIFIER ","}+  "," STAR IDENTIFIER "," AMP IDENTIFIER
-  | {IDENTIFIER ","}+  "," STAR IDENTIFIER 
-  | {IDENTIFIER ","}+  "," AMP IDENTIFIER 
+  = {IDENTIFIER ","}+ ","  DEFAULTS "," STAR IDENTIFIER "," AMP IDENTIFIER
+  | {IDENTIFIER ","}+ "," DEFAULTS "," STAR IDENTIFIER
+  | {IDENTIFIER ","}+ "," DEFAULTS "," AMP IDENTIFIER
+  | {IDENTIFIER ","}+ "," DEFAULTS
+  | {IDENTIFIER ","}+ "," STAR IDENTIFIER "," AMP IDENTIFIER
+  | {IDENTIFIER ","}+ "," STAR IDENTIFIER 
+  | {IDENTIFIER ","}+ "," AMP IDENTIFIER
   | {IDENTIFIER ","}+
+  | DEFAULTS "," STAR IDENTIFIER "," AMP IDENTIFIER
+  | DEFAULTS "," STAR IDENTIFIER
+  | DEFAULTS "," AMP IDENTIFIER
+  | DEFAULTS
   | STAR IDENTIFIER "," AMP IDENTIFIER
   | STAR IDENTIFIER
   | AMP IDENTIFIER
   | /* empty */
+  ;
+
+syntax DEFAULTS
+  = {DEFAULT ","}+
+  ;
+  
+syntax DEFAULT
+  = IDENTIFIER "=" EXPR
   ;
 
 syntax SINGLETON 
@@ -280,6 +298,7 @@ syntax LITERAL
 
 lexical Numeric
   = [0-9]+ !>> [0-9]
+  | [0-9]+ "." [0-9]+ !>> [0-9]
   ;
    
 lexical SYMBOL     
@@ -296,7 +315,7 @@ syntax FNAME
               
 
 lexical OPERATION 
-  = IDENTIFIER  \ Reserved
+  = IDENTIFIER \ Reserved
   | IDENTIFIER "!"
   | IDENTIFIER "?"
   ;
@@ -308,9 +327,27 @@ lexical VARIABLE
   | id: IDENTIFIER \ Reserved
   ;
 
-lexical STRING
-  = "\"" DQStrChar* "\""
-  | "\'" QStrChar* "\'"
+syntax STRING
+  = BSTR TAIL
+  | ISTR
+  | SSTR 
+  ;
+  
+lexical SSTR = [\'] QStrChar* [\'];
+lexical ISTR = [\"] STRCHAR* [\"];
+lexical BSTR = [\"] STRCHAR* "#{";
+lexical MSTR = "}"  STRCHAR* "#{";
+lexical ESTR = "}" STRCHAR* [\"];
+  
+lexical STRCHAR
+  = ![\\\"#]
+  | [#] !>> [{]
+  | [\\][\\\"nrtf]
+  ;
+  
+syntax TAIL
+  = EXPR MSTR TAIL
+  | EXPR ESTR
   ;
   
 lexical DQStrChar
