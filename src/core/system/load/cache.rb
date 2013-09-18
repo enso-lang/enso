@@ -2,6 +2,7 @@
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'
+require 'fileutils'
 
 module Cache
 
@@ -15,6 +16,7 @@ module Cache
 
   def self.load_cache(name, factory, input=find_json(name))
     type = name.split('.')[-1]
+    puts "## loading cache for: #{name} (#{input})"
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
@@ -49,9 +51,16 @@ module Cache
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      unless File.exists? cache_path
-        Dir.mkdir cache_path
+      index = name.rindex('/')
+	  if index
+        puts "SLASH #{name} => #{index}"
+        dir = name[0, index].gsub('.','_')
+        unless File.exists? "#{cache_path}#{dir}"
+	        puts "#### making #{cache_path}#{dir}"
+          FileUtils.mkdir_p "#{cache_path}#{dir}"
+        end
       end
+      puts "## loading chache #{cache_path}#{name.gsub('.','_')}.json"
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end

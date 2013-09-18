@@ -803,6 +803,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_sclass(superclass, body)
+    puts "RUNNINg #{superclass} #{body}"
     Ruby::SingletonClass.new(superclass, body)
   end
 
