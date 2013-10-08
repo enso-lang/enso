@@ -6,12 +6,105 @@ import core::lang::\syntax::JavascriptAST;
 //"if" EXPR THEN STMTS ELSIF* ELSE? "end"
 
 
+// Statement lists
+
+Statement stmts2js((STMTS)`<NL* _><{STMT TERM}+ stmts><NL* _>`)
+  = block([ stmt2js(s) | s <- stmts ]);
+  
+default Statement stmts2js(STMTS _) = empty();
+
+
+// Statements
 Statement stmt2js((STMT)`if <EXPR e> <THEN _> <STMTS body> <ELSIF* eifs> else <STMTS ebody> end`)
-  = 4;
+  = \if(expr2js(e), stmts2js(body), elsifs2js(eifs, stmts2js(ebody)));
 
 Statement stmt2js((STMT)`if <EXPR e> <THEN _> <STMTS body> <ELSIF* eifs> end`)
-  = 4;
+  = \if(expr2js(e), stmts2js(body), elsifs2js(eifs, empty()));
+
+Statement elsifs2js(ELSIF* eifs, Statement els) 
+  = ( els | \if(expr2js(e), stmts2js(b), it) 
+      | (ELSIF)`elsif <EXPR e> <THEN _> <STMTS b>` 
+        <- reverse([ eif | eif <- eifs]));
   
+Statement stmt2js((STMT)`unless <EXPR e> <THEN _> <STMTS body> else <STMTS ebody> end`)
+  = \if(unary(not(), true, expr2js(e)), stmts2js(body), stmts2js(ebody));
+
+Statement stmt2js((STMT)`while <EXPR e> <DO _> <STMTS body> end`)
+  = \while(expr2js(e), stmts2js(body));
+
+Statement stmt2js((STMT)`until <EXPR e> <DO _> <STMTS body> end`)
+  = \while(unary(not(), true, expr2js(e)), stmts2js(body));
+  
+  
+str caseVar(STMT cas) = "case$<cas@\loc.offset>";
+
+Statement stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS ebody> end`)
+  = call(function("", [variable(x)], [], "", whens2js(x, whens, stmts2js(ebody))), [stmts2exp(stmts)])
+  when x := caseVar(t);
+
+  
+Statement stmt2js((STMT)`case <STMTS stmts> <WHEN+ whens> end`)
+  = call(function("", [variable(x)], [], "", whens2js(x, whens, empty())), [stmts2exp(stmts)])
+  when x := caseVar(t);
+  
+Statement when2js(WHEN+ whens, Statement els, str x) 
+  = ( els | \if(whenArgs2Cond(wa, x), stmts2js(stmts), it) 
+      | (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS stmts>` <- reverse([ w <- whens ]) ); 
+
+
+Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
+  = ( literal(boolean(false))  
+       | binary(or(), binary(longEquals(), x, expr2js(e)), it)
+       | EXPR e <- reverse([ e | e <- es ]) );
+
+Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>, <STAR _> <EXPR rest>`, str x)
+  = ( binary(\in(), variable(x), expr2js(rest)) 
+       | binary(or(), binary(longEquals(), x, expr2js(e)), it)
+       | EXPR e <- reverse([ e | e <- es ]) );
+
+Expression whenArgs2Cond((WHEN_ARGS)`<STAR _> <EXPR rest>`, str x)
+  = binary(\in(), variable(x), expr2js(rest)); 
+
+Expression whenArgs2Cond((WHEN_ARGS)``, str x)
+  = literal(boolean(false)); 
+
+Statement stmt2js((STMT)`for <BLOCK_VAR bv> in <EXPR e> <DO _> <STMTS stmts> end`)
+  = { throw "For-in not supported."; };
+
+// TODO: this cannot be accurately supported because exception types differ.
+  
+  //data CatchClause
+  //= catchClause(Pattern param, Expression guard, Statement statBody) // blockstatement
+  //| catchClause(Pattern param, Statement statBody) // blockstatement
+  
+  
+str tryVar(STMT s) = "caught$<s@\loc.offset>";
+  
+Statement stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> ensure <STMTS ens> end`)
+  = \try(stmts2js(stmts), catchClause(variable(x), block([rescues2ifs(rescues, x)])), stmts2js(ens))
+  when x := tryVar(t);
+
+Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> end`)
+  = TODO;
+  
+Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> ensure <STMTS ens> end`)
+  = TODO;
+  
+Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> end`)
+  = TODO;
+
+
+Statement rescue2clause((RESCUE)`rescue <{EXPR ","}* es> <DO _> <STMTS body>`, str x)
+  = TODO;
+
+Statement rescue2clause((RESCUE)`rescue <EXPR e> =\> <IDENTIFIER y> <DO _> <STMTS body>`, str x)
+  = \if(binary(instanceOf(), variable(x), expr2js(e)),
+     call(function("", [variable("<y>")], [], "", stmts2js(body)), [variable(x)]));
+
+
+  
+// Variables
+ 
 Expression var2js((VARIABLE)`$<IDENTIFIER id>`) = 
   { throw "$ vars not supported"; };
 
@@ -80,8 +173,11 @@ Expression prim2js((PRIMARY)`self`) = variable("self");
 Expression prim2js((PRIMARY)`true`) = literal(boolean(true));
 Expression prim2js((PRIMARY)`false`) = literal(boolean(false));
 
-Expression prim2js((PRIMARY)`(<STMTS stmts>)`) = 
-   call(function("", [], [], "", block([ stmt2js(s) | s <- stmts ])), []);
+Expression prim2js((PRIMARY)`(<STMTS stmts>)`) = stmts2exp(stmts);
+
+Expression stmts2exp(STMTS stmts)
+  = call(function("", [], [], "", block([ stmt2js(s) | s <- stmts ])), []); 
+   
 
 Expression prim2js((PRIMARY)`<LITERAL lit>`) = 3;
 Expression prim2js((PRIMARY)`<VARIABLE var>`) = var2js(var);
@@ -90,9 +186,14 @@ Expression prim2js((PRIMARY)`::<IDENTIFIER id>`) = "<id>";
 Expression prim2js((PRIMARY)`[<{EXPR ","}* elts>]`) = 
    array([ expr2js(e) | e <- elts ]);
    
-Expression prim2js((PRIMARY)`yield`) = 3;
-Expression prim2js((PRIMARY)`yield(<CALLARGS args>)`) = 3;
-Expression prim2js((PRIMARY)`yield()`) = 3;
+Expression prim2js((PRIMARY)`yield`) 
+  = { throw "Yield not supported; use explicit block."; };
+Expression prim2js((PRIMARY)`yield(<CALLARGS args>)`) 
+  = { throw "Yield not supported."; };
+  
+Expression prim2js((PRIMARY)`yield()`)
+  = { throw "Yield not supported."; };
+  
 Expression prim2js((PRIMARY)`<OPERATION op>`) = 3;
 Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`) = 3;
 Expression prim2js((PRIMARY)`<POPERATION1 op>(<CALLARGS args>)`) = 3;
