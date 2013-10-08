@@ -55,8 +55,8 @@ syntax STMT
   | "module" IDENTIFIER STMTS "end"
   | "def" FNAME "(" ARGLIST ")" STMTS "end"
   | "def" FNAME TERM STMTS "end"
-  | "def" SINGLETON ("."|"::") FNAME "(" ARGLIST ")" STMTS "end"
-  | "def" SINGLETON ("."|"::") FNAME TERM STMTS "end"
+  | "def" SINGLETON ("."|"::") FNAMENoReserved "(" ARGLIST ")" STMTS "end"
+  | "def" SINGLETON ("."|"::") FNAMENoReserved TERM STMTS "end"
   
   // NB: CALLARGS are not optional here.
   // But still it leads to all kinds of ambiguities
@@ -78,8 +78,8 @@ syntax STMT
   
 // Workaround
 syntax OPERATION1 = OPERATION;
-syntax OPERATION2 = OPERATION;
-syntax OPERATION3 = OPERATION;
+syntax OPERATION2 = OPERATIONNoReserved;
+syntax OPERATION3 = OPERATIONNoReserved;
 syntax OPERATION4 = OPERATION;
 syntax OPERATION5 = OPERATION;
 syntax OPERATION6 = OPERATION;
@@ -91,7 +91,11 @@ syntax DO   = TERM | "do" | TERM "do" ;
 syntax ELSIF = "elsif" EXPR THEN STMTS;
 syntax ELSE = "else" STMTS;
 syntax WHEN = "when" WHEN_ARGS THEN STMTS;
-syntax RESCUE = "rescue" {EXPR ","}* DO STMTS;
+syntax RESCUE 
+  = "rescue" {EXPR ","}* DO STMTS
+  | "rescue" EXPR "=\>" EXPR DO STMTS
+  ;
+  
 syntax ENSURE = "ensure" STMTS;
 syntax EXTEND = "\<" IDENTIFIER; // should probably be expression
 
@@ -119,25 +123,34 @@ syntax PRIMARY
   | POPERATION1 >> "(" "(" CALLARGS? ")"
   | POPERATION2 >> "(" "(" CALLARGS? ")" BLOCK
   | "super"
+  | HASH
   | SUPER2 >> "(" "(" CALLARGS? ")"
   | PRIMARY >> "[" "[" {EXPR ","}* "]"
-  | PRIMARY "." OPERATION 
-  | PRIMARY "::" OPERATION
-  | PRIMARY "." OPERATION BLOCK
-  | PRIMARY "::" OPERATION BLOCK
+  | PRIMARY "." OPERATIONNoReserved 
+  | PRIMARY "::" OPERATIONNoReserved
+  | PRIMARY "." OPERATIONNoReserved BLOCK
+  | PRIMARY "::" OPERATIONNoReserved BLOCK
   | PRIMARY "." POPERATION3 >> "(" "(" CALLARGS? ")"
   | PRIMARY "::" POPERATION4 >> "(" "(" CALLARGS? ")"
   | PRIMARY "." POPERATION5 >> "(" "(" CALLARGS? ")" BLOCK
   | PRIMARY "::" POPERATION6 >> "(" "(" CALLARGS? ")" BLOCK
   ;
+  
+  
+syntax HASH
+  = "{" {NameValuePair ","}* "}"
+  ;
+  
+syntax NameValuePair
+  = IDENTIFIER ":" EXPR;
 
 // Workaround
 syntax POPERATION1 = OPERATION;
 syntax POPERATION2 = OPERATION;
-syntax POPERATION3 = OPERATION;
-syntax POPERATION4 = OPERATION;
-syntax POPERATION5 = OPERATION;
-syntax POPERATION6 = OPERATION;
+syntax POPERATION3 = OPERATIONNoReserved;
+syntax POPERATION4 = OPERATIONNoReserved;
+syntax POPERATION5 = OPERATIONNoReserved;
+syntax POPERATION6 = OPERATIONNoReserved;
 syntax YIELD2 = "yield";
 syntax SUPER2 = "super";
 
@@ -311,8 +324,16 @@ lexical Numeric
   ;
    
 lexical SYMBOL     
-  = [:] !<< ":" FNAME
+  = [:] !<< ":" FNAMENoReserved
   | [:] !<< ":" VARIABLE ! id // use :FNAME instead of :VARIABLE
+  ;
+    
+    
+syntax FNAMENoReserved
+  = OPERATIONNoReserved
+  | IDENTIFIER >> "=" "="
+  | ".." | "|" | "^" | "&" | "\<=\>" | "==" | "===" | "=~" | "\>" | "\>=" | "\<" | "\<="
+  | "+" | "-" | "*" | "/" | "%" | "**" | "\<\<" | "\>\>" | "~" | "+@" | "-@" | "[]" | "[]="
   ;
     
 syntax FNAME
@@ -325,6 +346,13 @@ syntax FNAME
 
 lexical OPERATION 
   = IDENTIFIER \ Reserved
+  | IDENTIFIER "!"
+  | IDENTIFIER "?"
+  ;
+
+
+lexical OPERATIONNoReserved 
+  = IDENTIFIER
   | IDENTIFIER "!"
   | IDENTIFIER "?"
   ;
