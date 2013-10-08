@@ -301,7 +301,7 @@ syntax DEFAULTS
   ;
   
 syntax DEFAULT
-  = IDENTIFIER "=" EXPR
+  = IDENTIFIER id "=" EXPR expr
   ;
 
 syntax SINGLETON 

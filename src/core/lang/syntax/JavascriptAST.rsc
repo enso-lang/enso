@@ -129,11 +129,16 @@ data Expression
   | graph(int index, Literal expression)
   | graphIndex(int index)
   | let(list[tuple[Pattern id, Init init]], Expression expBody)
+  // not in Spidermonkey's AST API?
+  | variable(str name)
+  | literal(Literal lit)
+  | undefined()
   ;
   
 data Pattern
   = object(list[tuple[LitOrId key, Pattern \value]] properties)
   | array(list[Pattern] elements) // elts contain null!
+  | variable(str name)
   ;   
 
 data SwitchCase
