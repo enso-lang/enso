@@ -72,7 +72,13 @@ syntax STMT
   
   | assign: LHS "=" STMT ! expr
   | assign: LHS OP_ASGN STMT ! expr
-  
+  //
+  //
+  | ifMod: STMT ! expr "if" EXPR
+  | whileMod: STMT ! expr "while" EXPR
+  | unlessMod: STMT ! expr "unless" EXPR
+  | untilMod: STMT ! expr "until" EXPR
+  //
   | expr: EXPR
   ;
   
@@ -194,12 +200,13 @@ syntax EXPR
     | range3: EXPR "..." EXPR
   )
   > triCond: EXPR [a-zA-Z0-9_] !<< "?" EXPR ":" EXPR
-  > assign: LHS "=" EXPR
-  | assign: LHS OP_ASGN EXPR
   > not2: "not" EXPR
   > left (and2: EXPR "and" EXPR 
     | or2: EXPR "or" EXPR
   )
+  > assign: LHS "=" EXPR
+  | assign: LHS OP_ASGN EXPR
+  // raise "bla" if x ==> raise ("bla" if x) !!!
   > left (ifMod: EXPR "if" EXPR
     | whileMod: EXPR "while" EXPR
     | unlessMod: EXPR "unless" EXPR
@@ -251,15 +258,20 @@ syntax MRHS
   | /* empty */
   ;
   
+  
+syntax CEXPR
+  = EXPR ! ifMod ! unlessMod ! whileMod ! untilMod
+  ;
+  
 
 syntax CALLARGS 
-  = {EXPR ","}+ "," KEYWORDS "," SPLAT "," BLOCKARG
-  | {EXPR ","}+ "," KEYWORDS "," SPLAT
-  | {EXPR ","}+ "," KEYWORDS
-  | {EXPR ","}+ "," SPLAT
-  | {EXPR ","}+ "," SPLAT "," BLOCKARG
-  | {EXPR ","}+ "," BLOCKARG
-  | {EXPR ","}+
+  = {CEXPR ","}+ "," KEYWORDS "," SPLAT "," BLOCKARG
+  | {CEXPR ","}+ "," KEYWORDS "," SPLAT
+  | {CEXPR ","}+ "," KEYWORDS
+  | {CEXPR ","}+ "," SPLAT
+  | {CEXPR ","}+ "," SPLAT "," BLOCKARG
+  | {CEXPR ","}+ "," BLOCKARG
+  | {CEXPR ","}+
   | KEYWORDS "," SPLAT "," BLOCKARG
   | KEYWORDS "," SPLAT
   | KEYWORDS

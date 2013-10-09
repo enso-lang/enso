@@ -101,7 +101,21 @@ list[Statement] stmt2js((STMT)`while <EXPR e> <DO _> <STMTS body> end`)
 
 list[Statement] stmt2js((STMT)`until <EXPR e> <DO _> <STMTS body> end`)
   = [\while(unary(not(), true, expr2js(e)), blockOrNot(stmts2js(body)))];
+
+// NOTE: these are expressions in the grammar, but here we only
+// allow them as statements... (can't use ?:)
   
+list[Statement] stmt2js((STMT)`<EXPR l> if <EXPR r>`) 
+  = [\if(expr2js(r), Statement::expression(expr2js(l)))];
+   
+list[Statement] stmt2js((STMT)`<EXPR l> while <EXPR r>`) 
+  = [\while(expr2js(r), Statement::expression(expr2js(l)))];
+   
+list[Statement] stmt2js((STMT)`<EXPR l> unless <EXPR r>`) 
+  = [\if(unary(not(), true, expr2js(r)), Statement::expression(expr2js(l)))];
+
+list[Statement] stmt2js((STMT)`<EXPR l> until <EXPR r>`) 
+  = [\while(unary(not(), true, expr2js(r)), Statement::expression(expr2js(l)))];
   
 str caseVar(STMT cas) = "case$<cas@\loc.offset>";
 
@@ -372,17 +386,6 @@ Expression expr2js((EXPR)`<EXPR l> ... <EXPR r>`) = { throw "Unsupported: ..."; 
 Expression expr2js((EXPR)`<EXPR l> and <EXPR r>`) = logical(and(), expr2js(l), expr2js(r));
 Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = logical(or(), expr2js(l), expr2js(r));
 
-Expression expr2js((EXPR)`<EXPR l> if <EXPR r>`) 
-  = conditional(expr2js(r), expr2js(l), literal(null()));
-   
-Expression expr2js((EXPR)`<EXPR l> while <EXPR r>`) 
-  = call(function("", [], [], "", \while(expr2js(r), expression(expr2js(l)))), []);
-   
-Expression expr2js((EXPR)`<EXPR l> unless <EXPR r>`) 
-  = conditional(expr2js(r), literal(null()), expr2js(l));
-
-Expression expr2js((EXPR)`<EXPR l> until <EXPR r>`) 
-  = call(function("", [], [], "", doWhile(unary(not(), true, expr2js(r)), expression(expr2js(l)))), []);
 
 Expression expr2js((EXPR)`<EXPR c> ? <EXPR t> : <EXPR e>`) 
   =  conditional(expr2js(c), expr2js(t), expr2js(e));
@@ -603,7 +606,7 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <AMP _>
   = <false, [ expr2js(b) ] + [ expr2js(a) | a <- args ]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>`)
-  = <false, [ expr2js(e) | e <- args ]>;
+  = <false, [ expr2js(e) | e <- args, bprintln("e = <e>") ]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
   = <true, [variable("self"),  

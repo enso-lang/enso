@@ -9,7 +9,8 @@ import IO;
 void testSources() {
   success = 0;
   failure = 0;
-  for (/file(loc src) := crawl(|project://enso/src/core/lang/syntax/tests|)) {
+  println("Starting");
+  for (/file(loc src) := crawl(|project://Enso/src/core/lang/syntax/tests/|)) {
     try {
       println("Parsing <src.file>...");
       pt = parse(#start[Unit], src);
