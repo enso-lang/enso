@@ -93,14 +93,15 @@ data Expression
             list[Pattern] params, 
             list[Expression] defaults,
             str rest, // "" = null
-            Statement statBody,
-            bool generator = false) 
+            Statement statBody) // ,
+            //bool generator = false) 
   | function(str name, // "" = null 
             list[Pattern] params, 
             list[Expression] defaults,
             str rest, // "" = null
-            Expression expBody,
-            bool generator = false) 
+            Expression expBody)
+            //,
+            //bool generator = false) 
   | arrow(list[Pattern] params, 
   			list[Expression] defaults,
             str rest, // "" = null
