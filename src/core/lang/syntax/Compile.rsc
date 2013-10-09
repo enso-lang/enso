@@ -4,13 +4,14 @@ import core::lang::\syntax::EnsoLanguage;
 import core::lang::\syntax::JavascriptAST;
 import IO;
 import String;
+import List;
 
 
 list[str] ASSIGNED = [];
 
 void resetAssignedVars() { ASSIGNED = []; }
 void assignVar(str name) { ASSIGNED += [name]; }
-void assignedVars() = ASSIGNED;
+list[str] assignedVars() = ASSIGNED;
 
 
 
@@ -181,10 +182,10 @@ list[Expression] includedModules(STMTS body)
   = [ expr2js(e) | (STMT)`include <EXPR e>` <- body.stmts ];
   
 Statement declareMixin(str name, STMTS body)
-  = varDecl([variableDeclarator(variable(name), 
+  = varDecl([variableDeclarator(Pattern::variable(name), 
                expression(call(variable("MakeMixin"), 
                   [array(includedModules(body)), 
-                  function("", [], [], "", stmts2js(body))
+                  Expression::function("", [], [], "", stmts2js(body))
                   ])))], "var");
   
 
@@ -192,13 +193,13 @@ Statement stmt2js((STMT)`module <IDENTIFIER name> <STMTS body> end`)
   = declareMixin("<name>", body);
 
 Statement declareClass(str name, Expression super, STMTS body)
-  = varDecl([variableDeclarator(variable(name), 
+  = varDecl([variableDeclarator(Pattern::variable(name), 
                expression(call(variable("MakeClass"), 
                   [literal(string("\"<id>\"")), 
                   super,
                   array(includedModules(body)),
-                  function("", [], [], "", meta2js(body)),
-                  function("", [variable("super$")], [], "", stmts2js(body))
+//TODO                  function("", [], [], "", meta2js(body)),
+                  Expression::function("", [Pattern::variable("super$")], [], "", stmts2js(body))
                   ])))], "var");
 
 Statement stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
@@ -211,20 +212,21 @@ default str renameMethodSym(str name) = name;
 
 Statement declareMethod(IDENTIFIER f, ARGLIST args, STMTS body) {
   resetAssignedVars();
-  func = arglist2func(args);
+  println("ARGS = <args>");
+  func = arglist2func("<f>", args);
   sym = renameMethodSym("<f>");
   func.name = sym;
   // we know it's a block
   func.statBody.stats = 
     [varDecl([variableDeclarator(
-                variable("self"), expression(this()))
+                Pattern::variable("self"), expression(this()))
                 ], "var"), *func.statBody.stats];
   func.statBody.stats += 
     [ variableDeclaration([variableDeclarator(variable(a), none())])
                         | a <- assignedVars()] 
-    + stmts2js(body).stats;
-  return assignment(assign(), member(this(), sym), 
-              func);
+    + [stmts2js(body)]; // .stats;
+  return Statement::expression(assignment(assign(), member(this(), sym), 
+              func));
 }
 
 Statement stmt2js((STMT)`def <IDENTIFIER f>(<ARGLIST args>) <STMTS body> end`)
@@ -261,7 +263,7 @@ Expression var2js((VARIABLE)`$<IDENTIFIER id>`) =
   { throw "$ vars not supported"; };
 
 Expression var2js((VARIABLE)`@<IDENTIFIER id>`) 
-  = member(member(variable("self"), "$", "<id>"));
+  = member(member(variable("self"), "$"), "<id>");
   
 Expression var2js((VARIABLE)`@@<IDENTIFIER id>`) 
   = member(member(member(variable("self"), "_class_"), "$"), "<id>");
@@ -331,7 +333,8 @@ Expression stmts2exp(STMTS stmts)
   = call(function("", [], [], "", block([ stmt2js(s) | s <- stmts ])), []); 
    
 
-Expression prim2js((PRIMARY)`<LITERAL lit>`) = 3;
+// TODO!!!
+Expression prim2js((PRIMARY)`<LITERAL lit>`) = literal(string("<lit>"));
 Expression prim2js((PRIMARY)`<VARIABLE var>`) = var2js(var);
 Expression prim2js((PRIMARY)`::<IDENTIFIER id>`) = "<id>";
 
@@ -342,35 +345,164 @@ Expression prim2js((PRIMARY)`yield`)
   = { throw "Yield not supported; use explicit block."; };
 Expression prim2js((PRIMARY)`yield(<CALLARGS args>)`) 
   = { throw "Yield not supported; use explicit block."; };
-  
 Expression prim2js((PRIMARY)`yield()`)
   = { throw "Yield not supporteduse explicit block."; };
   
-Expression prim2js((PRIMARY)`<OPERATION op>`) = 3;
-Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`) = 3;
-Expression prim2js((PRIMARY)`<POPERATION1 op>(<CALLARGS args>)`) = 3;
-Expression prim2js((PRIMARY)`<POPERATION1 op>()`) = 3;
-Expression prim2js((PRIMARY)`<POPERATION2 op>(<CALLARGS args>) <BLOCK block>`) = 3;
-Expression prim2js((PRIMARY)`<POPERATION2 op>() <BLOCK block>`) = 3;
+Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str name, list[Expression] blockIfAny) {
+  switch (<apply, name>) {
+    case <false, "call">: 
+      return call(trg, blockIfAny + args);
+    case <false, _>:
+      return call(member(trg, name), [trg, *blockIfAny, *args]); 
+    case <true, "call">:
+      throw "Error";
+    case <true, _>:
+      return call(member(trg, "apply"), [trg, *blockIfAny, *args]); 
+  }
+}
+
+
+// NOTE: assume if block is given, there is &block argument in CALLARGS.
+ 
+Expression prim2js((PRIMARY)`<OPERATION op>`) 
+  = makeCall(<false, []>, variable("self"), "<op>", []);
+  
+Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`)  
+  = makeCall(<false, []>, variable("self"), "<op>", [block2js(block)]);
+  
+
+Expression prim2js((PRIMARY)`<POPERATION1 op>()`) 
+  = makeCall(<false, []>, variable("self"), "<op>", []);
+
+Expression prim2js((PRIMARY)`<POPERATION2 op>() <BLOCK block>`) 
+  = makeCall(<false, []>, variable("self"), "<op>", [block2js(block)]);
+
+Expression prim2js((PRIMARY)`<POPERATION1 op>(<CALLARGS args>)`) 
+  = makeCall(callargs2js(args), variable("self"), "<op>", []);
+
+Expression prim2js((PRIMARY)`<POPERATION2 op>(<CALLARGS args>) <BLOCK block>`) 
+  = makeCall(callargs2js(args), variable("self"), "<op>", [block2js(block)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`) 
+  = makeCall(<false, [ expr2js(e) | e <- es]>, prim2js(p), "get", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = makeCall(<false, []>, prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) 
+  = makeCall(<false, []>, prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op> <BLOCK b>`)
+  = makeCall(<false, []>, prim2js(p), "<op>", [block2js(b)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op> <BLOCK b>`)
+  = makeCall(<false, []>, prim2js(p), "<op>", [block2js(b)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
+  = makeCall(callargs2js(args), prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>(<CALLARGS args>)`)
+  = makeCall(callargs2js(args), prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>()`)
+  = makeCall(<false, []>, prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>()`)
+  = makeCall(<false, []>, prim2js(p), "<op>", []);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>(<CALLARGS args>) <BLOCK b>`)
+  = makeCall(callargs2js(args), prim2js(p), "<op>", [block2js(b)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>(<CALLARGS args>) <BLOCK b>`)
+  = makeCall(callargs2js(args), prim2js(p), "<op>", [block2js(b)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>() <BLOCK b>`)
+  = makeCall(<false, []>, prim2js(p), "<op>", [block2js(b)]);
+
+Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`)
+  = makeCall(<false, []>, prim2js(p), "<op>", [block2js(b)]);
+
+
 Expression prim2js((PRIMARY)`super`) = 3;
 Expression prim2js((PRIMARY)`super(<CALLARGS args>)`) = 3;
 Expression prim2js((PRIMARY)`super()`) = 3;
 Expression prim2js((PRIMARY)`<HASH h>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op> <BLOCK b>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op> <BLOCK b>`) = 3;
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>(<CALLARGS args>)`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>()`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>()`) = 3;
+Expression block2closure(BLOCK_VAR bv, STMTS body)
+  = function("", blockvar2params(bv), [], "", stmts2js(body));
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>(<CALLARGS args>) <BLOCK b>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>(<CALLARGS args>) <BLOCK b>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>() <BLOCK b>`) = 3;
-Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`) = 3;
+Expression block2js((BLOCK)`{<STMTS stmts>}`) = 
+  block2closure((BLOCK_VAR)``, stmts);
+
+Expression block2js((BLOCK)`do <STMTS stmts> end`) = 
+  block2closure((BLOCK_VAR)``, stmts);
+
+Expression block2js((BLOCK)`{ |<BLOCK_VAR bv>| <STMTS stmts>}`) = 
+  block2closure(bv, stmts);
+
+Expression block2js((BLOCK)`do |<BLOCK_VAR bv>| <STMTS stmts> end`) = 
+  block2closure(bv, stmts);
+
+
+list[Pattern] blockvar2params((BLOCK_VAR)`<LHS v>`) 
+  = [lhs2pattern(v)];
+
+list[Pattern] blockvar2params((BLOCK_VAR)`<LHS l1>, <{MLHS_ITEM ","}+ ms>`) 
+  = [lhs2pattern(l1), *[ lhs2pattern(l2) | (MLHS_ITEM)`<LHS l2>` <- ms ]];
+  
+list[Pattern] blockvar2params((BLOCK_VAR)``) = [];
+
+default list[Pattern] blockvar2params(BLOCK_VAR x) = 
+  { throw "Unsupported blockvar <x>."; };
+
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = variable("<v>");
+default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
+
+
+
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
+//  = 3;
+//
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>`)
+//  = 3;
+//
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>`)
+//  = 3;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
+  = <true, [variable("self"), expr2js(b), 
+      call(member(array([ expr2js(a) | a <- args ]), "concat"), 
+               [expr2js(s)])]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <STAR _><EXPR s>`)
+  = <true, [variable("self"), 
+      call(member(array([ expr2js(a) | a <- args ]), "concat"), 
+               [expr2js(s)])]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <AMP _><EXPR b>`)
+  = <false, [ expr2js(b) ] + [ expr2js(a) | a <- args ]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>`)
+  = <false, [ expr2js(e) | e <- args ]>;
+
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
+//  = 3;
+//
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
+//  = 3;
+//
+//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
+//  = 3;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>, <AMP _><EXPR b>`)
+  = <true, [variable("self"), expr2js(b), expr2js(s)]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>`)
+  = <true, [variable("self"), expr2js(s)]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<AMP _><EXPR b>`)
+  = <false, [expr2js(b)]>;
+
 
 
 // http://stackoverflow.com/questions/894860/set-a-default-parameter-value-for-a-javascript-function
@@ -387,7 +519,9 @@ list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
 list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
   = [ variable("<d.id>") | d <- ds ];
 
-list[Pattern] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
+// BUG:
+//list[Pattern] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
+list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable("<i>") | i <- ids ];
 
 // Rest params: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/rest_parameters
 //  var args = Array.prototype.slice.call(arguments, f.length);
@@ -403,59 +537,59 @@ list[Statement] restInits(str f, IDENTIFIER rest)
 Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
   = { throw "Unsupported: block param after rest args."; };
   
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <STAR _> <IDENTIFIER rest>`) 
-  = function(f, [params(ids) + defaultParams(defs)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <STAR _> <IDENTIFIER rest>`) 
+  = Expression::function(f, [params([ i | i <- ids]) + defaultParams(defs)], [], "", 
       block(defaultInits(defs) + restInits(f, rest)));
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <AMP _> <IDENTIFIER b>`)
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <AMP _> <IDENTIFIER b>`)
   = { throw "Unsupported: block param after default args."; };
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>`) 
-  = function(f, [params(ids) + defaultParams(defs)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>`) 
+  = Expression::function(f, [params([ i | i <- ids]) + defaultParams(defs)], [], "", 
       block(defaultInits(defs)));
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
   = { throw "Unsupported: block param after rest args."; };
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>`)
-  = function(f, [params(ids)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>`)
+  = Expression::function(f, params([ i | i <- ids]), [], "", 
       block(restInits(f, rest)));
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <AMP _> <IDENTIFIER b>`)
-  = function(f, [params(ids) + params(b)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <AMP _> <IDENTIFIER b>`)
+  = Expression::function(f, [params([ i | i <- ids]) + params(b)], [], "", 
       block([]));
 
-Function arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>`)
-  = function(f, [params(ids)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>`)
+  = Expression::function(f, params([ i | i <- ids]), [], "", 
       block([]));
 
-Function arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`)
+Expression arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`)
   = { throw "Unsupported: block param after rest args."; };
 
-Function arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <STAR _> <IDENTIFIER rest>`)
-  = function(f, [defaultParams(defs)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <STAR _> <IDENTIFIER rest>`)
+  = Expression::function(f, [defaultParams(defs)], [], "", 
       block(defaultInits(defs) + restInits(f, rest)));
 
-Function arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <AMP _> <IDENTIFIER b>`)
+Expression arglist2func(str f, (ARGLIST)`<DEFAULTS defs>, <AMP _> <IDENTIFIER b>`)
   = { throw "Unsupported: block param after default args."; };
   
-Function arglist2func(str f, (ARGLIST)`<DEFAULTS defs>`) 
-  = function(f, [defaultParams(defs)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<DEFAULTS defs>`) 
+  = Expression::function(f, [defaultParams(defs)], [], "", 
       block(defaultInits(defs)));
 
-Function arglist2func(str f, (ARGLIST)`<STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
+Expression arglist2func(str f, (ARGLIST)`<STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
   = { throw "Unsupported: block param after rest args."; };
 
-Function arglist2func(str f, (ARGLIST)`<STAR _> <IDENTIFIER rest>`) 
-  = function(f, [], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<STAR _> <IDENTIFIER rest>`) 
+  = Expression::function(f, [], [], "", 
       block(restInits(f, rest)));
 
-Function arglist2func(str f, (ARGLIST)`<AMP _> <IDENTIFIER b>`)
-  = function(f, [params(b)], [], "", 
+Expression arglist2func(str f, (ARGLIST)`<AMP _> <IDENTIFIER b>`)
+  = Expression::function(f, [params(b)], [], "", 
       block([]));
 
-Function arglist2func(str f, (ARGLIST)``)
-  = function(f, [], [], "", 
+Expression arglist2func(str f, (ARGLIST)``)
+  = Expression::function(f, [], [], "", 
       block([]));
 
 
