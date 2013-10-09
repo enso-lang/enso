@@ -47,6 +47,7 @@ data Statement
   | \return()
   | \throw(Expression argument)  
   | \try(Statement block, CatchClause handler, Statement finalizer)
+  | \try(Statement block, CatchClause handler)
   | \try(Statement block, CatchClause handler, list[CatchClause] guardedHandlers, Statement finalizer)
   | \try(Statement block, list[CatchClause] guardedHandlers, Statement finalizer)
   | \try(Statement block, CatchClause handler, list[CatchClause] guardedHandlers)

@@ -2,16 +2,66 @@ module core::lang::\syntax::Compile
 
 import core::lang::\syntax::EnsoLanguage;
 import core::lang::\syntax::JavascriptAST;
+import IO;
+import String;
 
-//"if" EXPR THEN STMTS ELSIF* ELSE? "end"
 
+list[str] ASSIGNED = [];
+
+void resetAssignedVars() { ASSIGNED = []; }
+void assignVar(str name) { ASSIGNED += [name]; }
+void assignedVars() = ASSIGNED;
+
+
+
+
+list[Statement] mainBody() = [
+  variableDeclaration([variableDeclarator(variable("requirejs"), 
+    expression(call(variable("require"), 
+          [literal(string("requirejs"))])))], "var"),
+ // requirejs.config({ nodeRequire: require, baseUrl: 'js' });
+    call(member(variable("requirejs"), "config"), [
+           object([<id("nodeRequire"), variable("require"), "">,
+                   <id("baseURL"), literal(string("js")), "">])]), 
+    x];
+    
+
+list[str] requiredPaths(STMTS body)
+  = [ "<p>"[1..-1] | /(STMT)`require <STRING p>` := body ];
+
+list[str] paths2modules(list[str] paths)
+  = [ capitalize(split("/", p)[-1]) | p <- paths ];
+
+
+Statement declareModule(list[str] reqPaths)
+  = expression(call(variable("define"), [
+       array([ literal(string(p)) | p <- reqPaths]),
+       function("", [variable(n) | n <- paths2modules(reqPaths)], [], "",
+         block([
+           variableDeclaration(variableDeclarator(variable(name)), "var"),
+           stmt2js(body),
+           assignment(assign(), variable(name), exportedObject(body)),
+           \return(variable(name))
+         ]))
+     ]));
+  
+  
+
+
+Program unit2js((Unit)`<STMTS stmts>`)
+  = program(stmts2js(stmts).stats);
 
 // Statement lists
 
 Statement stmts2js((STMTS)`<NL* _><{STMT TERM}+ stmts><NL* _>`)
-  = block([ stmt2js(s) | s <- stmts ]);
+  = block([ stmt2js(s) | s <- stmts, bprintln("S = <s>") ]);
   
 default Statement stmts2js(STMTS _) = empty();
+
+default Statement stmt2js(STMT x) {
+  println("WARNING: unhandled stmt: <x>");
+  return empty();
+}
 
 
 // Statements
@@ -70,38 +120,140 @@ Expression whenArgs2Cond((WHEN_ARGS)``, str x)
 
 Statement stmt2js((STMT)`for <BLOCK_VAR bv> in <EXPR e> <DO _> <STMTS stmts> end`)
   = { throw "For-in not supported."; };
-
-// TODO: this cannot be accurately supported because exception types differ.
-  
-  //data CatchClause
-  //= catchClause(Pattern param, Expression guard, Statement statBody) // blockstatement
-  //| catchClause(Pattern param, Statement statBody) // blockstatement
-  
-  
+ 
 str tryVar(STMT s) = "caught$<s@\loc.offset>";
   
 Statement stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> ensure <STMTS ens> end`)
-  = \try(stmts2js(stmts), catchClause(variable(x), block([rescues2ifs(rescues, x)])), stmts2js(ens))
+  = \try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x)), stmts2js(ens))
   when x := tryVar(t);
 
-Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> end`)
-  = TODO;
+Statement stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> end`)
+  = \try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x)))
+  when x := tryVar(t);
   
-Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> ensure <STMTS ens> end`)
-  = TODO;
+Statement stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> ensure <STMTS ens> end`)
+  = \try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, empty(), x)), stmts2js(ens))
+  when x := tryVar(t);
   
 Statement stmt2js((STMT)`begin <STMTS stmts> <RESCUE+ rescues> end`)
-  = TODO;
+  = \try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, empty(), x)))
+  when x := tryVar(t);
 
+
+Statement rescues2ifs(RESCUE+ rescues, Statement els, str x)
+  = ( els | rescue2clause(r, it, x) | r <- reverse([ r | r <- rescues ]) );
 
 Statement rescue2clause((RESCUE)`rescue <{EXPR ","}* es> <DO _> <STMTS body>`, str x)
   = TODO;
 
-Statement rescue2clause((RESCUE)`rescue <EXPR e> =\> <IDENTIFIER y> <DO _> <STMTS body>`, str x)
-  = \if(binary(instanceOf(), variable(x), expr2js(e)),
-     call(function("", [variable("<y>")], [], "", stmts2js(body)), [variable(x)]));
+// TODO uncomment
+//Statement rescue2clause((RESCUE)`rescue <EXPR e> =\> <IDENTIFIER y> <DO _> <STMTS body>`, Statement els, str x)
+//  = \if(binary(instanceOf(), variable(x), expr2js(e)),
+//     call(function("", [variable("<y>")], [], "", stmts2js(body)), [variable(x)]), els);
 
 
+
+
+// Definitions
+
+
+// Modules
+
+/*
+Module ::= [Module] "define(". Imports "{">/
+                    "var" name:sym ";"/
+                    defs:Def* @/2 /2
+                    name:sym "=" "{"/> defs:Export* /2 /<"};"/
+                    "return" name:sym .";"/
+                    <"})"/
+Imports ::= "["/> requires:([Require] path:str)* @(.","/) </"]," /
+            "function(". requires:([Require] name:sym)* @(.",") .")"
+
+*/
+
+
+  
+//Mixin   ::= [Mixin] "var" name:sym "= MakeMixin(". 
+// Includes ."," "function() {" Body "});"
+
+
+list[Expression] includedModules(STMTS body) 
+  = [ expr2js(e) | (STMT)`include <EXPR e>` <- body.stmts ];
+  
+Statement declareMixin(str name, STMTS body)
+  = varDecl([variableDeclarator(variable(name), 
+               expression(call(variable("MakeMixin"), 
+                  [array(includedModules(body)), 
+                  function("", [], [], "", stmts2js(body))
+                  ])))], "var");
+  
+
+Statement stmt2js((STMT)`module <IDENTIFIER name> <STMTS body> end`)
+  = declareMixin("<name>", body);
+
+Statement declareClass(str name, Expression super, STMTS body)
+  = varDecl([variableDeclarator(variable(name), 
+               expression(call(variable("MakeClass"), 
+                  [literal(string("\"<id>\"")), 
+                  super,
+                  array(includedModules(body)),
+                  function("", [], [], "", meta2js(body)),
+                  function("", [variable("super$")], [], "", stmts2js(body))
+                  ])))], "var");
+
+Statement stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
+  = declareClass("<id>", literal(null()), body);
+  
+
+str renameMethodSym("[]") = "_get";
+str renameMethodSym("[]=") = "_set";
+default str renameMethodSym(str name) = name;
+
+Statement declareMethod(IDENTIFIER f, ARGLIST args, STMTS body) {
+  resetAssignedVars();
+  func = arglist2func(args);
+  sym = renameMethodSym("<f>");
+  func.name = sym;
+  // we know it's a block
+  func.statBody.stats = 
+    [varDecl([variableDeclarator(
+                variable("self"), expression(this()))
+                ], "var"), *func.statBody.stats];
+  func.statBody.stats += 
+    [ variableDeclaration([variableDeclarator(variable(a), none())])
+                        | a <- assignedVars()] 
+    + stmts2js(body).stats;
+  return assignment(assign(), member(this(), sym), 
+              func);
+}
+
+Statement stmt2js((STMT)`def <IDENTIFIER f>(<ARGLIST args>) <STMTS body> end`)
+  = declareMethod(f, args, body); 
+
+Statement stmt2js((STMT)`def <IDENTIFIER f> <TERM _> <STMTS body> end`) 
+  = declareMethod(f, (ARGLIST)``, body);
+
+// Attrs
+/*
+Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". name:sym "}" .";"
+Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
+*/
+
+Statement reader(str name)
+  = assignment(assign(), member(this(), name), 
+      function("", [], [], "", \return(member(member(this(), "$"), name))));
+
+Statement writer(str name)
+  = assignment(assign(), member(this(), "set_" + name), 
+      function("", [variable("val")], [], "", 
+          assignment(assign(), member(member(this(), "$"), name), variable(val))));
+
+Statement stmt2js((STMT)`attr_reader :<IDENTIFIER id>`)
+  = reader("<id>");
+
+// TODO: let stmt2js return lists of statements.
+Statement stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
+  = block([reader("<id>"), writer("<id>")]);
   
 // Variables
  
@@ -189,10 +341,10 @@ Expression prim2js((PRIMARY)`[<{EXPR ","}* elts>]`) =
 Expression prim2js((PRIMARY)`yield`) 
   = { throw "Yield not supported; use explicit block."; };
 Expression prim2js((PRIMARY)`yield(<CALLARGS args>)`) 
-  = { throw "Yield not supported."; };
+  = { throw "Yield not supported; use explicit block."; };
   
 Expression prim2js((PRIMARY)`yield()`)
-  = { throw "Yield not supported."; };
+  = { throw "Yield not supporteduse explicit block."; };
   
 Expression prim2js((PRIMARY)`<OPERATION op>`) = 3;
 Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`) = 3;
@@ -232,10 +384,10 @@ list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
           literal(string("undefined"))), variable("<d.id>"), 
             expr2js(d.expr))) | d <- ds ];
 
-list[Param] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
+list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
   = [ variable("<d.id>") | d <- ds ];
 
-list[Param] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
+list[Pattern] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
 
 // Rest params: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/rest_parameters
 //  var args = Array.prototype.slice.call(arguments, f.length);

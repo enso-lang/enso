@@ -33,7 +33,7 @@ start syntax Unit
   ;
 
 syntax STMTS
- = stmts: NL* {STMT TERM}+ NL* // possibly this could be simplified.
+ = stmts: NL* {STMT TERM}+ stmts NL* // possibly this could be simplified.
  | empties: NL*
  ;
  
@@ -97,7 +97,7 @@ syntax RESCUE
   ;
   
 syntax ENSURE = ensure: "ensure" STMTS;
-syntax EXTEND = \extend: "\<" IDENTIFIER; // should probably be expression
+syntax EXTEND = \extend: "\<" PRIMARY; // should probably be expression
 
 syntax BLOCK
   = block: "{" STMTS "}"
