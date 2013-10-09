@@ -11,7 +11,7 @@ data Function
             list[Pattern] params, 
             list[Expression] defaults,
             str rest, // "" = null
-            Statement statBody,
+            list[Statement] statBody,
             bool generator = false) 
   | function(str name, // "" = null 
             list[Pattern] params, 
@@ -38,10 +38,10 @@ data Statement
   | expression(Expression exp)
   | \if(Expression \test, Statement consequent, Statement alternate)
   | \if(Expression \test, Statement consequent)
-  | labeled(str label, Statement statBody)
+  | labeled(str label, Statement stat)
   | \break(str label = "")  
   | \continue(str label = "")  
-  | with(Expression object, Statement statBody)
+  | with(Expression object, Statement stat)
   | \switch(Expression discriminant, list[SwitchCase] cases, bool \lexical = false)
   | \return(Expression argument)
   | \return()
@@ -52,19 +52,19 @@ data Statement
   | \try(Statement block, list[CatchClause] guardedHandlers, Statement finalizer)
   | \try(Statement block, CatchClause handler, list[CatchClause] guardedHandlers)
   | \try(Statement block, list[CatchClause] guardedHandlers)
-  | \while(Expression \test, Statement statBody)  
-  | doWhile(Statement statBody, Expression \test)
-  | \for(ForInit init, list[Expression] exps, Statement statBody) // exps contains test, update
-  | forIn(list[VariableDeclarator] decls, str kind, Expression right, Statement statBody)  
-  | forIn(Expression left, Expression right, Statement statBody)
-  | forOf(list[VariableDeclarator] decls, str kind, Expression right, Statement statBody)  
-  | forOf(Expression left, Expression right, Statement statBody)
-  | let(list[tuple[Pattern id, Init init]], Statement statBody)
+  | \while(Expression \test, Statement body)  
+  | doWhile(Statement body, Expression \test)
+  | \for(ForInit init, list[Expression] exps, Statement body) // exps contains test, update
+  | forIn(list[VariableDeclarator] decls, str kind, Expression right, Statement body)  
+  | forIn(Expression left, Expression right, Statement body)
+  | forOf(list[VariableDeclarator] decls, str kind, Expression right, Statement body)  
+  | forOf(Expression left, Expression right, Statement body)
+  | let(list[tuple[Pattern id, Init init]], Statement body)
   | debugger()  
   | functionDecl(str id, list[Pattern] params, 
   		list[Expression] defaults,
   		str rest, // "" = null
-  		Statement statBody, 
+  		list[Statement] statBody, 
   		bool generator)
   | functionDecl(str id, list[Pattern] params, 
   		list[Expression] defaults,
@@ -93,7 +93,7 @@ data Expression
             list[Pattern] params, 
             list[Expression] defaults,
             str rest, // "" = null
-            Statement statBody) // ,
+            list[Statement] statBody) // ,
             //bool generator = false) 
   | function(str name, // "" = null 
             list[Pattern] params, 
@@ -105,7 +105,7 @@ data Expression
   | arrow(list[Pattern] params, 
   			list[Expression] defaults,
             str rest, // "" = null
-            Statement statBody,
+            list[Statement] statBody,
             bool generator = false) 
   | arrow(list[Pattern] params, 
   			list[Expression] defaults,
@@ -150,8 +150,8 @@ data SwitchCase
   ;
   
 data CatchClause
-  = catchClause(Pattern param, Expression guard, Statement statBody) // blockstatement
-  | catchClause(Pattern param, Statement statBody) // blockstatement
+  = catchClause(Pattern param, Expression guard, list[Statement] statBody) // blockstatement
+  | catchClause(Pattern param, list[Statement] statBody) // blockstatement
   ;
   
 data ComprehensionBlock
