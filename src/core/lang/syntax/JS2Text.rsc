@@ -12,7 +12,7 @@ str js2txt(program(ss)) = intercalate("\n", [ js2txt(s) | s <- ss ]);
 
 
 str js2txt(ForInit::varDecl(decls, kind)) 
-  = "<kind> <intercalate(",", [ js2txt(d) | d <- decls ])>";
+  = "<kind> <intercalate(",", [ js2txt(d) | d <- decls ])>;";
 
 str js2txt(ForInit::expression(e)) = js2txt(e); 
 
@@ -115,16 +115,24 @@ expression(Expression exp)
 str js2txt(variableDeclarator(Pattern id, Init init)) 
   = "<id.name><init == none() ? "" : " = <js2txt(init.exp)>">";
 
-str js2txt(id(str name)) = "";
-str js2txt(lit(Literal \value)) = "";
-
 str js2txt(this()) = "this";
 str js2txt(Expression::array(list[Expression] elements)) 
   = "[<intercalate(", ", [ js2txt(e) | e <- elements ])>]";
 
 str js2txt(Expression::object(list[tuple[LitOrId key, Expression \value, str kind]] properties)) 
-  = "{<intercalate(", ", [ "<js2txt(k)>: <js2txt(v)>" | <k, v, _> <- properties])>}";
+  = "{<intercalate(", ", [ "<js2txt(k)>: <js2txt(v)>" | <k, v, _> <- properties ])>}";
     
+str js2txt(LitOrId::id(str name)) = name;
+str js2txt(LitOrId::lit(Literal v)) = js2txt(v);
+  
+    
+str js2txt(Expression::function(str name, // "" = null 
+            list[Pattern] params, 
+            list[Expression] defaults,
+            str rest, // "" = null
+            b:block(stats))) 
+ = "function <name>(<intercalate(", ", [ js2txt(p) | p <- params ])>) <js2txt(b)>";
+
 str js2txt(Expression::function(str name, // "" = null 
             list[Pattern] params, 
             list[Expression] defaults,
@@ -185,13 +193,13 @@ str js2txt(new(Expression callee, list[Expression] arguments))
   = "(new <js2txt(callee)>(<intercalate(", ", [ js2txt(a) | a <- arguments ])>))";
   
 str js2txt(call(Expression callee, list[Expression] arguments))
-  = "(<js2txt(callee)>(<intercalate(", ", [ js2txt(a) | a <- arguments, bprintln("a = <a>") ])>))";
+  = "<js2txt(callee)>(<intercalate(", ", [ js2txt(a) | a <- arguments, bprintln("a = <a>") ])>)";
 
 str js2txt(member(Expression object, str strProperty)) 
-  = "(<js2txt(object)>.<strProperty>)";
+  = "<js2txt(object)>.<strProperty>";
   
 str js2txt(member(Expression object, Expression expProperty)) 
-  = "(<js2txt(object)>[<js2txt(expProperty)>])";
+  = "<js2txt(object)>[<js2txt(expProperty)>]";
 
 //str js2txt(yield(Expression argument)) = "";
 //str js2txt(yield()) = "";

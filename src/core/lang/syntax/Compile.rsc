@@ -14,6 +14,7 @@ void assignVar(str name) { ASSIGNED += [name]; }
 list[str] assignedVars() = ASSIGNED;
 
 
+//Statement block([Statement s]) = s;
 
 
 list[Statement] mainBody() = [
@@ -195,7 +196,7 @@ Statement stmt2js((STMT)`module <IDENTIFIER name> <STMTS body> end`)
 Statement declareClass(str name, Expression super, STMTS body)
   = varDecl([variableDeclarator(Pattern::variable(name), 
                expression(call(variable("MakeClass"), 
-                  [literal(string("\"<id>\"")), 
+                  [literal(string("<name>")), 
                   super,
                   array(includedModules(body)),
 //TODO                  function("", [], [], "", meta2js(body)),
@@ -374,10 +375,14 @@ Expression stmts2exp(STMTS stmts)
   = call(Expression::function("", [], [], "", block([ stmt2js(s) | s <- stmts.stmts ])), []); 
    
 
-// TODO!!!
-Expression prim2js((PRIMARY)`<LITERAL lit>`) = literal(string("<lit>"));
+Expression prim2js((PRIMARY)`<LITERAL lit>`) = literal(lit2js(lit));
 Expression prim2js((PRIMARY)`<VARIABLE var>`) = var2js(var);
 Expression prim2js((PRIMARY)`::<IDENTIFIER id>`) = "<id>";
+
+Literal lit2js((LITERAL)`<STRING s>`) = string("<s>"[1..-1]);
+Literal lit2js((LITERAL)`<SYMBOL s>`) = string("<s>"[1..]);
+Literal lit2js((LITERAL)`<Numeric s>`) = number(toInt("<s>"));
+
 
 Expression prim2js((PRIMARY)`[<{EXPR ","}* elts>]`) = 
    array([ expr2js(e) | e <- elts ]);
@@ -394,7 +399,7 @@ Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str nam
     case <false, "call">: 
       return call(trg, blockIfAny + args);
     case <false, _>:
-      return call(member(trg, name), [trg, *blockIfAny, *args]); 
+      return call(member(trg, name), blockIfAny + args); 
     case <true, "call">:
       throw "Error";
     case <true, _>:
@@ -406,7 +411,7 @@ Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str nam
 // NOTE: assume if block is given, there is &block argument in CALLARGS.
  
 Expression prim2js((PRIMARY)`<OPERATION op>`) 
-  = makeCall(<false, []>, variable("self"), "<op>", []);
+  = variable("<op>"); //makeCall(<false, []>, variable("self"), "<op>", []);
   
 Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`)  
   = makeCall(<false, []>, variable("self"), "<op>", [block2js(block)]);
@@ -426,7 +431,7 @@ Expression prim2js((PRIMARY)`<POPERATION2 op>(<CALLARGS args>) <BLOCK block>`)
   when bprintln("CALLARGS: <args>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`) 
-  = makeCall(<false, [ expr2js(e) | e <- es]>, prim2js(p), "get", []);
+  = makeCall(<false, [ expr2js(e) | e <- es]>, prim2js(p), "_get", []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = makeCall(<false, []>, prim2js(p), "<op>", []);
@@ -468,7 +473,9 @@ Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`)
 Expression prim2js((PRIMARY)`super`) = 3;
 Expression prim2js((PRIMARY)`super(<CALLARGS args>)`) = 3;
 Expression prim2js((PRIMARY)`super()`) = 3;
-Expression prim2js((PRIMARY)`<HASH h>`) = 3;
+Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) = 
+  new(variable("EnsoHash"), object(ps))
+  when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
 Expression block2closure(BLOCK_VAR bv, STMTS body)
   = Expression::function("", blockvar2params(bv), [], "", stmts2js(body));
