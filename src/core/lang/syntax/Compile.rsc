@@ -244,7 +244,13 @@ Statement addReturns(s:Statement::expression(x)) = \return(x);
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
 Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
+Statement addReturns(\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
+Statement addReturns(\try(s, h)) = \try(addReturns(s), addReturns(h));
+
 default Statement addReturns(Statement s) = s;
+
+CatchClause addReturns(catchClause(p, ss)) = catchClause(p, addReturns(ss)); 
+
 
 
 list[Statement] declareMethod(IDENTIFIER f, ARGLIST args, STMTS body) {
@@ -281,22 +287,37 @@ Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". 
 Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
 */
 
-list[Statement] reader(str name)
-  = l(assignment(assign(), member(this(), name), 
-      function("", [], [], "", \return(member(member(this(), "$"), name)))));
+//list[Statement] reader(str name)
+//  = l(assignment(assign(), member(this(), name), 
+//      function("", [], [], "", \return(member(member(this(), "$"), name)))));
+//
+//list[Statement] writer(str name)
+//  = l(assignment(assign(), member(this(), "set_" + name), 
+//      function("", [variable("val")], [], "", 
+//          assignment(assign(), member(member(this(), "$"), name), variable(val)))));
+//
+//list[Statement] stmt2js((STMT)`attr_reader :<IDENTIFIER id>`)
+//  = [reader("<id>")];
+//
+//list[Statement] stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
+//  = [reader("<id>"), writer("<id>")];
 
-list[Statement] writer(str name)
-  = l(assignment(assign(), member(this(), "set_" + name), 
-      function("", [variable("val")], [], "", 
-          assignment(assign(), member(member(this(), "$"), name), variable(val)))));
 
-list[Statement] stmt2js((STMT)`attr_reader :<IDENTIFIER id>`)
-  = [reader("<id>")];
+list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
+  = [Statement::expression(makeCall(callargs2js(args), Expression::variable("self"), "<op>", []))];
 
-// TODO: let stmt2js return lists of statements.
-list[Statement] stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
-  = [reader("<id>"), writer("<id>")];
-  
+//list[Statement] stmt2js((STMT)`<OPERATION2 op> <CALLARGS args> <BLOCK block>`)
+//  = makeCall(callargs2js(args), Expression::variable("self"), "<op>", [block2js(block)]);
+
+list[Statement] stmt2js(s:(STMT)`super <CALLARGS args>`)
+  = error(s, "super without parent method not supported"); 
+  //makeCall(callargs2js(args), Expression::variable("super$"), "<op>", []);
+
+list[Statement] stmt2js((STMT)`<PRIMARY p>.<OPERATION2 op> <CALLARGS args>`)
+  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), "<op>", []))];
+
+list[Statement] stmt2js((STMT)`<PRIMARY p>::<OPERATION3 op> <CALLARGS args>`)
+  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), "<op>", []))];
   
 list[Statement] stmt2js((STMT)`<EXPR e>`) 
   = [Statement::expression(expr2js(e))];
@@ -411,7 +432,8 @@ Expression prim2js((PRIMARY)`false`) = literal(boolean(false));
 Expression prim2js((PRIMARY)`(<STMTS stmts>)`) = stmts2exp(stmts);
 
 Expression stmts2exp(STMTS stmts)
-  = call(Expression::function("", [], [], "", ( [] | it + stmt2js(s) | s <- stmts.stmts )), []); 
+  = call(Expression::function("", [], [], "", 
+       addReturns(( [] | it + stmt2js(s) | s <- stmts.stmts ))), []); 
    
 
 Expression prim2js((PRIMARY)`<LITERAL lit>`) = literal(lit2js(lit));
@@ -473,8 +495,7 @@ Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`)
   = makeCall(<false, [ expr2js(e) | e <- es]>, prim2js(p), "_get", []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
-  = member(prim2js(p), "<op>");
-  //makeCall(<false, []>, prim2js(p), "<op>", []);
+  = makeCall(<false, []>, prim2js(p), "<op>", []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) 
   = member(prim2js(p), "<op>");
@@ -511,15 +532,18 @@ Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`)
   = makeCall(<false, []>, prim2js(p), "<op>", [block2js(b)]);
 
 
-Expression prim2js((PRIMARY)`super`) = 3;
-Expression prim2js((PRIMARY)`super(<CALLARGS args>)`) = 3;
-Expression prim2js((PRIMARY)`super()`) = 3;
+Expression prim2js((PRIMARY)`super`) = Expression::variable("super$");
+
+// TODO:
+//Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`) = error(p, "super w/o parent method");
+//Expression prim2js(p:(PRIMARY)`super()`) = error(p, "super w/o parent method");
+
 Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) = 
   new(variable("EnsoHash"), object(ps))
   when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
 Expression block2closure(BLOCK_VAR bv, STMTS body)
-  = Expression::function("", blockvar2params(bv), [], "", stmts2js(body));
+  = Expression::function("", blockvar2params(bv), [], "", addReturns(stmts2js(body)));
 
 Expression block2js((BLOCK)`{<STMTS stmts>}`) = 
   block2closure((BLOCK_VAR)``, stmts);
@@ -637,21 +661,21 @@ Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs
   
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <STAR _> <IDENTIFIER rest>`) 
   = Expression::function(f, [params([ i | i <- ids]) + defaultParams(defs)], [], "", 
-      block(defaultInits(defs) + restInits(f, rest)));
+      defaultInits(defs) + restInits(f, rest));
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <AMP _> <IDENTIFIER b>`)
   = { throw "Unsupported: block param after default args."; };
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>`) 
   = Expression::function(f, [params([ i | i <- ids]) + defaultParams(defs)], [], "", 
-      block(defaultInits(defs)));
+      defaultInits(defs));
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
   = { throw "Unsupported: block param after rest args."; };
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDENTIFIER rest>`)
   = Expression::function(f, params([ i | i <- ids]), [], "", 
-      block(restInits(f, rest)));
+      restInits(f, rest));
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <AMP _> <IDENTIFIER b>`)
   = Expression::function(f, [params([ i | i <- ids]) + params(b)], [], "", []);
