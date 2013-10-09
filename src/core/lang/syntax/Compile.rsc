@@ -55,7 +55,7 @@ Program unit2js((Unit)`<STMTS stmts>`)
 // Statement lists
 
 Statement stmts2js((STMTS)`<NL* _><{STMT TERM}+ stmts><NL* _>`)
-  = block([ stmt2js(s) | s <- stmts, bprintln("S = <s>") ]);
+  = block([ stmt2js(s) | s <- stmts ]);
   
 default Statement stmts2js(STMTS _) = empty();
 
@@ -257,6 +257,14 @@ Statement stmt2js((STMT)`attr_reader :<IDENTIFIER id>`)
 Statement stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
   = block([reader("<id>"), writer("<id>")]);
   
+  
+Statement stmt2js((STMT)`<EXPR e>`) 
+  = Statement::expression(expr2js(e));
+  
+Statement stmt2js((STMT)`<VARIABLE var> = <STMT s>`)
+  = Statement::expression(assignment(assign(), var2js(var), stmt2exp(s)));
+  
+  
 // Variables
  
 Expression var2js((VARIABLE)`$<IDENTIFIER id>`) = 
@@ -277,7 +285,7 @@ Expression expr2js((EXPR)`-<EXPR e>`) = unary(UnaryOperator::min(), true, expr2j
 Expression expr2js((EXPR)`not <EXPR e>`) = unary(UnaryOperator::not(), true, expr2js(e));
 
 Expression expr2js((EXPR)`<EXPR l> ** <EXPR r>`) 
-  = call(member(variable("Math"), "pow"), [exp2js(l), expr2js(r)]);
+  = call(member(variable("Math"), "pow"), [expr2js(l), expr2js(r)]);
 
 Expression expr2js((EXPR)`<EXPR l> * <EXPR r>`) = binary(times(), expr2js(l), expr2js(r));
 Expression expr2js((EXPR)`<EXPR l> / <EXPR r>`) = binary(div(), expr2js(l), expr2js(r));
@@ -295,31 +303,64 @@ Expression expr2js((EXPR)`<EXPR l> != <EXPR r>`) = binary(notEquals(), expr2js(l
 
 Expression expr2js((EXPR)`<EXPR l> =~ <EXPR r>`) = call(member(expr2js(l), "match"), [expr2js(r)]);
 Expression expr2js((EXPR)`<EXPR l> !~ <EXPR r>`) = unary(not(), true, call(member(expr2js(l), "match"), [expr2js(r)]));
-Expression expr2js((EXPR)`<EXPR l> && <EXPR r>`) = binary(and(), expr2js(l), expr2js(r));
-Expression expr2js((EXPR)`<EXPR l> || <EXPR r>`) = binary(or(), expr2js(l), expr2js(r));
+Expression expr2js((EXPR)`<EXPR l> && <EXPR r>`) = logical(and(), expr2js(l), expr2js(r));
+Expression expr2js((EXPR)`<EXPR l> || <EXPR r>`) = logical(or(), expr2js(l), expr2js(r));
 Expression expr2js((EXPR)`<EXPR l> .. <EXPR r>`) = { throw "Unsupported: .."; };
 Expression expr2js((EXPR)`<EXPR l> ... <EXPR r>`) = { throw "Unsupported: ..."; };
 
-Expression expr2js((EXPR)`<EXPR l> and <EXPR r>`) = binary(and(), expr2js(l), expr2js(r));
-Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = binary(or(), expr2js(l), expr2js(r));
+Expression expr2js((EXPR)`<EXPR l> and <EXPR r>`) = logical(and(), expr2js(l), expr2js(r));
+Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = logical(or(), expr2js(l), expr2js(r));
 
 Expression expr2js((EXPR)`<EXPR l> if <EXPR r>`) 
-  = conditional(expr2js(r), exp2js(l), literal(null()));
+  = conditional(expr2js(r), expr2js(l), literal(null()));
    
 Expression expr2js((EXPR)`<EXPR l> while <EXPR r>`) 
-  = call(function("", [], [], "", \while(exp2js(r), expression(expr2js(l)))), []);
+  = call(function("", [], [], "", \while(expr2js(r), expression(expr2js(l)))), []);
    
 Expression expr2js((EXPR)`<EXPR l> unless <EXPR r>`) 
-  = conditional(expr2js(r), literal(null()), exp2js(l));
+  = conditional(expr2js(r), literal(null()), expr2js(l));
 
 Expression expr2js((EXPR)`<EXPR l> until <EXPR r>`) 
-  = call(function("", [], [], "", doWhile(unary(not(), true, exp2js(r)), expression(expr2js(l)))), []);
+  = call(function("", [], [], "", doWhile(unary(not(), true, expr2js(r)), expression(expr2js(l)))), []);
 
 Expression expr2js((EXPR)`<EXPR c> ? <EXPR t> : <EXPR e>`) 
-  =  conditional(expr2js(c), exp2js(t), exp2js(e));
+  =  conditional(expr2js(c), expr2js(t), expr2js(e));
 
-Expression expr2js((EXPR)`<LHS l> = <EXPR r>`) = 3;
-Expression expr2js((EXPR)`<LHS l> <OP_ASGN op> <EXPR r>`) = 3;
+// TODO: how much of LHS do we want to support???
+//Expression expr2js((EXPR)`<LHS l> = <EXPR r>`)
+Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`)  
+  = assignment(assign(), variable("<v>"), expr2js(r));
+  
+Expression expr2js((EXPR)`<VARIABLE v> **= <EXPR r>`)
+  = assignment(assign(), ve, 
+       call(member(variable("Math"), "power"), ve, expr2js(r)))
+  when ve := var2js(v);
+
+Expression expr2js((EXPR)`<VARIABLE v> &&= <EXPR r>`)
+  = assignment(assign(), ve, logical(and(), ve, expr2js(r)))
+  when ve := var2js(v);
+   
+Expression expr2js((EXPR)`<LHS l> ||= <EXPR r>`)
+  = assignment(assign(), ve, logical(or(), ve, expr2js(r)))
+  when ve := var2js(v);
+
+default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`)
+  = assignment(assignOp(op), var2js(v), expr2js(r));
+
+
+AssignmentOperator assignOp((OP_ASGN)`+=`) = plusAssign();
+AssignmentOperator assignOp((OP_ASGN)`-=`) = minAssign();
+AssignmentOperator assignOp((OP_ASGN)`*=`) = timesAssign();
+AssignmentOperator assignOp((OP_ASGN)`/=`) = divAssign();
+AssignmentOperator assignOp((OP_ASGN)`%=`) = remAssign();
+AssignmentOperator assignOp((OP_ASGN)`&=`) = bitAndAssign();
+AssignmentOperator assignOp((OP_ASGN)`|=`) = bitOrAssign();
+AssignmentOperator assignOp((OP_ASGN)`^=`) = bitXorAssign();
+AssignmentOperator assignOp((OP_ASGN)`\<\<=`) = bitShiftLeftAssign();
+AssignmentOperator assignOp((OP_ASGN)`\>\>=`) = bitShiftRightAssign();
+AssignmentOperator assignOp((OP_ASGN)`**=`) = assign();
+AssignmentOperator assignOp((OP_ASGN)`&&=`) = assign();
+AssignmentOperator assignOp((OP_ASGN)`||=`) = assign();
 
 
 Expression prim2js((PRIMARY)`nil`) = literal(null());
@@ -330,7 +371,7 @@ Expression prim2js((PRIMARY)`false`) = literal(boolean(false));
 Expression prim2js((PRIMARY)`(<STMTS stmts>)`) = stmts2exp(stmts);
 
 Expression stmts2exp(STMTS stmts)
-  = call(function("", [], [], "", block([ stmt2js(s) | s <- stmts ])), []); 
+  = call(Expression::function("", [], [], "", block([ stmt2js(s) | s <- stmts.stmts ])), []); 
    
 
 // TODO!!!
@@ -381,7 +422,8 @@ Expression prim2js((PRIMARY)`<POPERATION1 op>(<CALLARGS args>)`)
   = makeCall(callargs2js(args), variable("self"), "<op>", []);
 
 Expression prim2js((PRIMARY)`<POPERATION2 op>(<CALLARGS args>) <BLOCK block>`) 
-  = makeCall(callargs2js(args), variable("self"), "<op>", [block2js(block)]);
+  = makeCall(callargs2js(args), variable("self"), "<op>", [block2js(block)])
+  when bprintln("CALLARGS: <args>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`) 
   = makeCall(<false, [ expr2js(e) | e <- es]>, prim2js(p), "get", []);
@@ -429,7 +471,7 @@ Expression prim2js((PRIMARY)`super()`) = 3;
 Expression prim2js((PRIMARY)`<HASH h>`) = 3;
 
 Expression block2closure(BLOCK_VAR bv, STMTS body)
-  = function("", blockvar2params(bv), [], "", stmts2js(body));
+  = Expression::function("", blockvar2params(bv), [], "", stmts2js(body));
 
 Expression block2js((BLOCK)`{<STMTS stmts>}`) = 
   block2closure((BLOCK_VAR)``, stmts);
@@ -455,23 +497,29 @@ list[Pattern] blockvar2params((BLOCK_VAR)``) = [];
 default list[Pattern] blockvar2params(BLOCK_VAR x) = 
   { throw "Unsupported blockvar <x>."; };
 
-Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = variable("<v>");
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable("<v>");
 default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
+Expression keywords2obj((KEYWORDS)`<{KEYWORD ","}+ kws>`)
+  = object([<id("<k>"), expr2js(v), ""> | (KEYWORD)`<IDENTIFIER k>: <EXPR v>` <- kws]);
 
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-//  = 3;
-//
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>`)
-//  = 3;
-//
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>`)
-//  = 3;
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
+  = <true, [variable("self"), 
+      call(member(array([expr2js(b), keywords2obj(kws)] + [ expr2js(a) | a <- args ]), "concat"), 
+               [expr2js(s)])]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>`)
+  = <true, [variable("self"),  
+      call(member(array([keywords2obj(kws)] + [ expr2js(a) | a <- args ]), "concat"), 
+               [expr2js(s)])]>;
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <KEYWORDS kws>`)
+  = <false, [variable("self"), keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [variable("self"), expr2js(b), 
-      call(member(array([ expr2js(a) | a <- args ]), "concat"), 
+  = <true, [variable("self"),  
+      call(member(array([expr2js(b)] + [ expr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <STAR _><EXPR s>`)
@@ -485,17 +533,19 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>, <AMP _>
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{EXPR ","}+ args>`)
   = <false, [ expr2js(e) | e <- args ]>;
 
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-//  = 3;
-//
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
-//  = 3;
-//
-//tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
-//  = 3;
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
+  = <true, [variable("self"),  
+      call(member(array([expr2js(b), keywords2obj(kws)]), "concat"), 
+               [expr2js(s)])]>;
+  
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
+  = <true, [variable("self"), call(member(array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
+
+tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
+  = <false, [keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [variable("self"), expr2js(b), expr2js(s)]>;
+  = <true, [variable("self"), call(member(array([expr2js(b)]), "concat"), [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>`)
   = <true, [variable("self"), expr2js(s)]>;
