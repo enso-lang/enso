@@ -61,11 +61,22 @@ list[Statement] warning(Tree t, str msg) {
   return [];
 }
 
+set[str] classesAndModules(STMTS stmts) {
+  names = {};
+  for(STMT s <- stmts.stmts) {
+    switch (s) {
+      case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
+      case (STMT)`module <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
+      case (STMT)`class <IDENTIFIER x> <EXTEND _> <STMTS _> end`: names += {"<x>"};
+    }
+  }
+  return names;
+}
+
 Program unit2js((Unit)`<STMTS stmts>`) {
   if ((STMT)`module <IDENTIFIER name> <STMTS body> end` <- stmts.stmts) {
     // toplevel
     ps = requiredPaths(stmts);
-    MODS = paths2modules(ps);
 
     list[Statement] ss = 
       [Statement::expression(call(Expression::variable("define"), [
@@ -77,7 +88,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
                       Expression::variable("<name>"),
                        Expression::object([<LitOrId::id(m), METAS[m], ""> | m <- METAS ]
                             + [ <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS ]))),
-                      \return(Expression::variable("<name>"))]
+                      \return(Expression::variable("<name>"))], classesAndModules(body)
           )
          //Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
          //  [
@@ -309,7 +320,7 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                     Statement::expression(assignment(assign(), member(this(), k),
                        METAS[k])) | k <- METAS
                   ]),
-                  makeFunc([Pattern::variable("super$")], body, [], [])
+                  makeFunc([Pattern::variable("super$")], body, [], [], {})
                   ])))], "var"))
   when addBinding(name),
        resetMetas();
@@ -389,7 +400,7 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
     [Statement::varDecl([variableDeclarator(
                 Pattern::variable("self"), Init::expression(this()))
                 ], "var")];
-  return makeFunc(func.params, body, selfDecl + func.statBody, []);              
+  return makeFunc(func.params, body, selfDecl + func.statBody, [], {});              
 }
 
 list[Statement] makeDecls(set[str] names) { 
@@ -419,8 +430,10 @@ bool isDeclared(str name) = name in ( {} | it + s | set[str] s <- STACK );
 
 Expression makeFunc(list[Pattern] formals, STMTS body, 
 					list[Statement] begin,
-                    list[Statement] end) {
+                    list[Statement] end,
+                    set[str] implicits) {
   pushScope();
+  declareVars(implicits);
   names = { x | Pattern::variable(x) <- formals };
   declareVars(names);
   
@@ -445,7 +458,7 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
   }
   
   bodyStats = begin; 
-  bodyStats += makeDecls(topScope() - names - decls); 
+  bodyStats += makeDecls(topScope() - names - decls - implicits); 
   bodyStats += theStats;
   bodyStats += end;
   popScope();
@@ -841,7 +854,7 @@ Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) =
 
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);
-  return makeFunc(f.params, body, f.statBody, []);
+  return makeFunc(f.params, body, f.statBody, [], {});
 }
  // = Expression::function("", blockvar2params(bv), [], "", addReturns(stmts2js(body)));
 
