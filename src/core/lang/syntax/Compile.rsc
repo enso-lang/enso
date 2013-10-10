@@ -361,7 +361,12 @@ list[Statement] stmt2js((STMT)`<EXPR e>`)
   
 list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`)
   = [Statement::expression(assignment(assign(), var2js(var), 
-          stmts2exp((STMTS)`<STMT s>`)))];
+          stmt2exp(s)))];
+
+Expression stmt2exp((STMT)`<EXPR e>`) = exprjs(e);
+
+default Expression stmt2exp(STMT s) 
+  = stmts2exp((STMTS)`<STMT s>`);
   
 list[Statement] stmt2js((STMT)`<STMT s> if <EXPR e>`)
   = [\if(expr2js(e), blockOrNot(stmt2js(s)))];
@@ -495,7 +500,11 @@ Expression prim2js((PRIMARY)`self`) = variable("self");
 Expression prim2js((PRIMARY)`true`) = literal(boolean(true));
 Expression prim2js((PRIMARY)`false`) = literal(boolean(false));
 
-Expression prim2js((PRIMARY)`(<STMTS stmts>)`) = stmts2exp(stmts);
+Expression prim2js((PRIMARY)`(<NL* _><EXPR e><NL* _>)`) 
+  = expr2js(e);
+
+Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)`) 
+  = stmts2exp((STMTS)`<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>`);
 
 Expression stmts2exp(STMTS stmts)
   = call(Expression::function("", [], [], "", 
