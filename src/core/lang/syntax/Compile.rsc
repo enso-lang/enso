@@ -30,6 +30,12 @@ list[Statement] mainBody() = [
     
 set[Message] ERRS = {};
 map[str, Expression] METAS = ();
+
+bool resetMetas() {
+  METAS = ();
+  return true;
+}                 
+
 list[str] BINDINGS = [];
 
 bool addBinding(str name) {
@@ -39,7 +45,7 @@ bool addBinding(str name) {
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
-  METAS = ();
+  resetMetas();
   return <unit2js(u), ERRS>;
 }
 
@@ -286,12 +292,15 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                   super,
                   array(includedModules(body)),
                   function("", [], [], "", [
-                   // TODO
+                    Statement::expression(assignment(assign(), member(this(), k),
+                       METAS[k])) | k <- METAS
                   ]),
-                  Expression::function("", [Pattern::variable("super$")], [], "", stmts2js(body))
+                  Expression::function("", [Pattern::variable("super$")], [], "", bodyStats)
                   ])))], "var"))
-  when addBinding(name);
-                 
+  when addBinding(name),
+       resetMetas(),
+       bodyStats := stmts2js(body);
+
 
 list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
   = declareClass("<id>", literal(null()), body);
@@ -381,12 +390,6 @@ list[Statement] stmt2js((STMT)`def self.<FNAMENoReserved f> <TERM _> <STMTS body
   METAS[name] = methodFunction(name, (ARGLIST)``, body);
   return [];
 }
-
-// Attrs
-/*
-Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". name:sym "}" .";"
-Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
-*/
 
 list[Statement] reader(str name)
   = l(Statement::expression(assignment(assign(), member(this(), name), 
