@@ -65,7 +65,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
     ps = requiredPaths(stmts);
 
     list[Statement] ss = 
-      [Statement::expression(call(variable("define"), [
+      [Statement::expression(call(Expression::variable("define"), [
          array([ literal(string(p)) | p <- ps]),
          Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
            [
@@ -291,7 +291,7 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                   [literal(string("<name>")), 
                   super,
                   array(includedModules(body)),
-                  function("", [], [], "", [
+                  Expression::function("", [], [], "", [
                     Statement::expression(assignment(assign(), member(this(), k),
                        METAS[k])) | k <- METAS
                   ]),
@@ -572,7 +572,7 @@ AssignmentOperator assignOp((OP_ASGN)`&&=`) = assign();
 AssignmentOperator assignOp((OP_ASGN)`||=`) = assign();
 
 Expression prim2js((PRIMARY)`nil`) = literal(null());
-Expression prim2js((PRIMARY)`self`) = variable("self");
+Expression prim2js((PRIMARY)`self`) = Expression::variable("self");
 Expression prim2js((PRIMARY)`true`) = literal(boolean(true));
 Expression prim2js((PRIMARY)`false`) = literal(boolean(false));
 
@@ -625,7 +625,7 @@ list[Expression] tail2js((TAIL)`<EXPR e><ESTR s>`)
 
 
 Expression prim2js((PRIMARY)`[<{EXPR ","}* elts>]`) = 
-   array([ expr2js(e) | e <- elts ]);
+   Expression::array([ expr2js(e) | e <- elts ]);
    
 Expression prim2js((PRIMARY)`yield`) 
   = { throw "Yield not supported; use explicit block."; };
@@ -734,8 +734,8 @@ Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`)
   when <false, exps> := callargs2js(args);
 
 Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`) 
-  = call(member(member(variable("super$"), CURRENT_METHOD), "apply"), 
-        [variable("self"), *exps])
+  = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "apply"), 
+        [Expression::variable("self"), *exps])
   when <true, exps> := callargs2js(args);
 
   
@@ -866,9 +866,9 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<AMP _><EXPR b>`)
    
 
 list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
-  = [ Statement::expression(assignment(assign(), variable("<d.id>"), 
+  = [ Statement::expression(assignment(assign(), Expression::variable("<d.id>"), 
         conditional(binary(longNotEquals(), unary(typeOf(), true, literal(string("<d.id>"))),
-          literal(string("undefined"))), variable("<d.id>"), 
+          literal(string("undefined"))), Expression::variable("<d.id>"), 
             expr2js(d.expr)))) | d <- ds ];
 
 list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
@@ -884,8 +884,8 @@ list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable(fixVar("<i>")) 
 list[Statement] restInits(str f, IDENTIFIER rest)
   = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
   when 
-    e :=  call(member(member(member(variable("Array"), "prototype"), "slice"), "call"), 
-             [variable("arguments"), member(Expression::variable(f), "length")]);
+    e :=  call(member(member(member(Expression::variable("Array"), "prototype"), "slice"), "call"), 
+             [Expression::variable("arguments"), member(Expression::variable(f), "length")]);
   
 
 
