@@ -401,14 +401,16 @@ list[Statement] stmt2js((STMT)`attr_reader <CALLARGS args>`)
   = ( [] | it + reader(x) | literal(string(x)) <- exps )
   when <_, exps> := callargs2js(args);
 
-list[Statement] stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
+list[Statement] stmt2js((STMT)`attr_accessor <CALLARGS args>`)
   = ( [] | it + reader(x) + writer(x)  | literal(string(x)) <- exps )
   when <_, exps> := callargs2js(args);
 
+// Collected separately when declaring a mixin.
+list[Statement] stmt2js((STMT)`include <CALLARGS _>`) = [];
 
 list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
   = [Statement::expression(makeCall(callargs2js(args), Expression::variable("self"), fixOp("<op>"), []))]
-  when "<op>" notin {"attr_reader", "attr_accessor"};
+  when "<op>" notin {"attr_reader", "attr_accessor", "include"};
   //when bprintln("CA = <args>");
 
 // ????
