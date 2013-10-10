@@ -94,18 +94,18 @@ str js2txt(\return()) = "return;";
 
 str js2txt(\throw(Expression argument)) = "throw <jse2txt(argument)>";
   
-str js2txt(\try(Statement block, CatchClause handler, Statement finalizer))
-  = "try {
-    '  <js2txt(block)>
+str js2txt(\try(list[Statement] block, CatchClause handler, list[Statement] finalizer))
+  = "try {<for (s <- block) {><js2txt(s)>
+    '     <}>
     '}
     '<js2txt(handler)>
-    'finally {
-    '  <js2txt(finalize)>
+    'finally {<for (s <- finalize) {><js2txt(s)>
+    '         <}>
     '}";
      
-str js2txt(\try(Statement block, CatchClause handler)) 
-  = "try {
-    '  <js2txt(block)>
+str js2txt(\try(list[Statement] block, CatchClause handler)) 
+  = "try {<for (s <- block) {><js2txt(s)>
+    '     <}>
     '}
     '<js2txt(handler)>";
 
