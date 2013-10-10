@@ -54,7 +54,7 @@ module Factory
     end
 
     def __check_cyclic_subtyping(c, subs)
-      if subs.include?(c)
+      if subs.include? c
         true
       else
         res = false
@@ -69,7 +69,7 @@ module Factory
       !@unsafe.nil? and @unsafe>0
     end
 
-    def unsafe_mode(&body)
+    def unsafe_mode &body
       @unsafe = @unsafe ? @unsafe+1 : 1
       body.call
       @unsafe -= 1
@@ -96,8 +96,8 @@ module Factory
 
     def initialize(klass, factory, *args)
       @_id = @@_id += 1
-      @listeners = Hash.new
-      @props = Hash.new
+      @listeners = {}
+      @props = {}
       @path = nil
 
       # define accessors and updators
@@ -153,7 +153,7 @@ module Factory
 
     def __is_a(klass)
       klass.schema.classes.each do |cls|
-        val = Schema.subclass?(klass, cls)
+        val = Schema.subclass? klass, cls
         define_singleton_value("#{cls.name}?", val)
       end
     end
@@ -186,7 +186,7 @@ module Factory
       val = nil
       define_singleton_method(name) do
         if val.nil?
-          fvs = fvInterp.dynamic_bind(env: Env::ObjEnv.new(self), bound: []) do
+          fvs = fvInterp.dynamic_bind env: Env::ObjEnv.new(self), bound: [] do
             fvInterp.depends(exp)
           end
           fvs.each do |fv|
@@ -257,13 +257,13 @@ module Factory
       @__shell = nval
     end
 
-    def _origin_of(name) __get(name)._origin end
+    def _origin_of(name); __get(name)._origin end
 
     def _set_origin_of(name, org)
       __get(name)._origin = org
     end
 
-    def _path_of(name) _path.field(name) end
+    def _path_of(name); _path.field(name) end
 
     def _path
       if @path.nil?
@@ -296,7 +296,7 @@ module Factory
       r
     end
 
-    def eql?(o) self == o end
+    def eql?(o); self == o end
 
     def equals(o)
       o && o.is_a?(MObject) && _id == o._id
@@ -307,6 +307,7 @@ module Factory
     def finalize
       # TODO: check required fields etc.
       factory.register(self)
+
       self
     end
 
@@ -353,7 +354,7 @@ module Factory
 
     def get; @value end
 
-    def init(value) set(value) end
+    def init(value); set(value) end
 
     def default; nil end
   end
@@ -385,7 +386,7 @@ module Factory
         when 'str' then ''
         when 'int' then 0
         when 'bool' then false
-        when 'real' then 0
+        when 'real' then 0.0
         when 'datetime' then DateTime.now
         when 'atom' then nil
         else
@@ -434,7 +435,7 @@ module Factory
     end
 
     def hash_map(&block)
-      new = Hash.new
+      new = {}
       each do |v|
         new[v[__key.name]]=block.call(v)
       end
@@ -575,7 +576,7 @@ module Factory
 
     def __value; @value end
 
-    def [](key) __value[key] end
+    def [](key); __value[key] end
 
     def empty?; __value.empty? end
 
@@ -587,7 +588,7 @@ module Factory
 
     def connected?; @owner end
 
-    def has_key?(key) keys.include?(key) end
+    def has_key?(key); keys.include?(key) end
 
     def check(mobj)
       if connected?
@@ -623,14 +624,14 @@ module Factory
 
     def initialize(owner, field, key)
       super(owner, field)
-      @value = Hash.new
+      @value = {}
       @key = key
     end
 
-    def each(&block) __value.each_value(&block) end
+    def each(&block); __value.each_value(&block) end
 
-    def each_pair(&block) __value.each_pair(&block) end
-    def find_first_pair(&block) __value.find_first_pair(&block) end
+    def each_pair(&block); __value.each_pair(&block) end
+    def find_first_pair(&block); __value.find_first_pair(&block) end
 
     def values; __value.values end
 
@@ -639,7 +640,7 @@ module Factory
     # FIXME: poor programming practise but necessary
     # to support key changes in object
     def _recompute_hash!
-      nval = Hash.new
+      nval = {}
       @value.each do |k,v|
         nval[v[@key.name]] = v
       end
@@ -697,9 +698,9 @@ module Factory
       @value = []
     end
 
-    def [](key) __value[key.to_i] end
+    def [](key); __value[key.to_i] end
 
-    def each(&block) __value.each(&block) end
+    def each(&block); __value.each(&block) end
 
     def each_pair(&block)
       __value.each_with_index do |item, i|
