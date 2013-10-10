@@ -8,11 +8,11 @@ import List;
 import ParseTree;
 import Message;
 
-set[str] ASSIGNED = {};
-
-void resetAssignedVars() { ASSIGNED = {}; }
-void assignVar(str name) { ASSIGNED += {fixVar(name)}; }
-set[str] assignedVars() = ASSIGNED;
+//set[str] ASSIGNED = {};
+//
+//void resetAssignedVars() { ASSIGNED = {}; }
+//void assignVar(str name) { ASSIGNED += {fixVar(name)}; }
+//set[str] assignedVars() = ASSIGNED;
 
 
 //Statement block([Statement s]) = s;
@@ -30,6 +30,7 @@ list[Statement] mainBody() = [
     
 set[Message] ERRS = {};
 map[str, Expression] METAS = ();
+list[str] MODS = [];
 
 bool resetMetas() {
   METAS = ();
@@ -45,6 +46,7 @@ bool addBinding(str name) {
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
+  MODS = [];
   resetMetas();
   return <unit2js(u), ERRS>;
 }
@@ -63,25 +65,35 @@ Program unit2js((Unit)`<STMTS stmts>`) {
   if ((STMT)`module <IDENTIFIER name> <STMTS body> end` <- stmts.stmts) {
     // toplevel
     ps = requiredPaths(stmts);
+    MODS = paths2modules(ps);
 
     list[Statement] ss = 
       [Statement::expression(call(Expression::variable("define"), [
          Expression::array([ literal(string(p)) | p <- ps]),
-         Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
-           [
-             Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var"),
-             *stmts2js(body),
-             // todo the object and return stat.
-             Statement::expression(assignment(assign(),
-               Expression::variable("<name>"),
-               object([
-                 <LitOrId::id(m), METAS[m], ""> | m <- METAS 
-               ]
-               + [
-                 <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS
-               ]))),
-             \return(Expression::variable("<name>"))
-           ])
+         makeFunc([Pattern::variable(n) | n <- paths2modules(ps)],
+                   body, 
+                   [Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var")],
+                   [Statement::expression(assignment(assign(),
+                      Expression::variable("<name>"),
+                       Expression::object([<LitOrId::id(m), METAS[m], ""> | m <- METAS ]
+                            + [ <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS ]))),
+                      \return(Expression::variable("<name>"))]
+          )
+         //Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
+         //  [
+         //    Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var"),
+         //    *stmts2js(body),
+         //    // todo the object and return stat.
+         //    Statement::expression(assignment(assign(),
+         //      Expression::variable("<name>"),
+         //      object([
+         //        <LitOrId::id(m), METAS[m], ""> | m <- METAS 
+         //      ]
+         //      + [
+         //        <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS
+         //      ]))),
+         //    \return(Expression::variable("<name>"))
+         //  ])
      ]))];
 
     return program(ss); 
@@ -240,10 +252,10 @@ list[Statement] rescue2clause(r:(RESCUE)`rescue <EXPR e>, <{EXPR ","}* es> <DO _
   = error(r, "not yet implemented");
 
 list[Statement] rescue2clause((RESCUE)`rescue <EXPR e> =\> <IDENTIFIER y> <DO _> <STMTS body>`, Statement els, str x)
-  = [\if(binary(instanceOf(), variable(x), expr2js(e)),
+  = [\if(binary(instanceOf(), Expression::variable(x), expr2js(e)),
      Statement::expression(
-       call(function("", [Pattern::variable("<y>")], [], "", stmts2js(body)), [variable(x)])), 
-     els)];
+       call(function("", [Pattern::variable("<y>")], [], "", stmts2js(body)), 
+        [Expression::variable(x)])), els)];
 
 
 
@@ -297,12 +309,10 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                     Statement::expression(assignment(assign(), member(this(), k),
                        METAS[k])) | k <- METAS
                   ]),
-                  Expression::function("", [Pattern::variable("super$")], [], "", bodyStats)
+                  makeFunc([Pattern::variable("super$")], body, [], [])
                   ])))], "var"))
   when addBinding(name),
-       resetMetas(),
-       bodyStats := stmts2js(body);
-
+       resetMetas();
 
 list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
   = declareClass("<id>", literal(null()), body);
@@ -312,6 +322,7 @@ list[Statement] stmt2js((STMT)`class <IDENTIFIER id> \< <IDENTIFIER sup> <STMTS 
   = declareClass("<id>", Expression::variable("<sup>"), body);
 
 
+str fixFname(/^<name:.*>=$/) = "set_<name>";
 str fixFname("[]") = "_get";
 str fixFname("[]=") = "_set";
 str fixFname("\<\<") = "push";
@@ -341,7 +352,7 @@ CatchClause addReturns(catchClause(p, ss)) = catchClause(p, addReturns(ss));
 
 
 str CURRENT_METHOD = "";
-Expression methodFunction(str f, ARGLIST args, STMTS body) {
+Expression methodFunction__(str f, ARGLIST args, STMTS body) {
   resetAssignedVars();
   sym = fixFname(f);
   Expression func = arglist2func(sym, args);
@@ -370,6 +381,78 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
 
 }
 
+Expression methodFunction(str f, ARGLIST args, STMTS body) {
+  sym = fixFname(f);
+  Expression func = arglist2func(sym, args);
+  
+  selfDecl = 
+    [Statement::varDecl([variableDeclarator(
+                Pattern::variable("self"), Init::expression(this()))
+                ], "var")];
+  return makeFunc(func.params, body, selfDecl + func.statBody, []);              
+}
+
+list[Statement] makeDecls(set[str] names) { 
+  if (names != {}) { 
+    return
+      [Statement::varDecl([
+         variableDeclarator(Pattern::variable(a), Init::none())
+                        | a <- names], "var")];
+  }
+  return [];
+} 
+
+list[set[str]] STACK = [];
+
+void pushScope() { pushScope({}); }
+void pushScope(set[str] vars) { STACK += [vars]; }
+void popScope() { STACK = STACK[0..-1]; }
+set[str] topScope() = STACK[-1];
+void declareVar(str var) = declareVars({var});
+void declareVars(set[str] vars) {
+  newScope = topScope() + { fixVar(v) | v <- vars };
+  popScope();
+  pushScope(newScope);
+}
+
+bool isDeclared(str name) = name in ( {} | it + s | set[str] s <- STACK );
+
+Expression makeFunc(list[Pattern] formals, STMTS body, 
+					list[Statement] begin,
+                    list[Statement] end) {
+  pushScope();
+  names = { x | Pattern::variable(x) <- formals };
+  declareVars(names);
+  
+  // this only looks one level deep, and only in begin (not
+  // body, or end... (hoisting)
+  decls = { x | Statement::varDecl(vds, _) <- begin, 
+                variableDeclarator(Pattern:variable(x), _) <- vds };
+  declareVars(decls);
+  
+  theStats = stmts2js(body); // declares vars
+  
+  set[str] getDecls(Statement::varDecl(vds, _))
+    = { x | variableDeclarator(Pattern:variable(x), _) <- vds };
+  
+  set[str] hoist(list[Statement] stats) {
+    ds = {};
+    top-down-break visit (stats) {
+      case Expression::function(_, _, _, _, _): ; // stop at functions
+      case vs:Statement::varDecl(vds, _): ds += getDecls(vd);
+    }
+    return ds;
+  }
+  
+  bodyStats = begin; 
+  bodyStats += makeDecls(topScope() - names - decls); 
+  bodyStats += theStats;
+  bodyStats += end;
+  popScope();
+  return Expression::function("", formals, [], "", addReturns(bodyStats));
+}
+
+
 list[Statement] declareMethod(FNAME f, ARGLIST args, STMTS body) 
   = l(Statement::expression(assignment(assign(), member(this(), fixFname("<f>")), 
               methodFunction("<f>", args, body))));
@@ -395,20 +478,22 @@ list[Statement] stmt2js((STMT)`def self.<FNAMENoReserved f> <TERM _> <STMTS body
 
 list[Statement] reader(str name)
   = l(Statement::expression(assignment(assign(), member(this(), name), 
-      function("", [], [], "", [\return(member(member(this(), "$"), name))]))));
+      Expression::function("", [], [], "", [\return(member(member(this(), "$"), name))]))));
 
 list[Statement] writer(str name)
   = l(Statement::expression(assignment(assign(), member(this(), "set_" + name), 
-      function("", [variable("val")], [], "", 
-          [assignment(assign(), member(member(this(), "$"), name), variable(val))]))));
+      Expression::function("", [Pattern::variable("val")], [], "", 
+          [Statement::expression(assignment(assign(), 
+             member(member(this(), "$"), name), Expression::variable("val")))]))));
 
-list[Statement] stmt2js((STMT)`attr_reader <CALLARGS args>`)
+// Again: matching on identifiers does not work...
+list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
   = ( [] | it + reader(x) | literal(string(x)) <- exps )
-  when <_, exps> := callargs2js(args);
+  when "<op>" == "attr_reader", <_, exps> := callargs2js(args);
 
-list[Statement] stmt2js((STMT)`attr_accessor <CALLARGS args>`)
+list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
   = ( [] | it + reader(x) + writer(x)  | literal(string(x)) <- exps )
-  when <_, exps> := callargs2js(args);
+  when "<op>" == "attr_accessor", <_, exps> := callargs2js(args);
 
 // Collected separately when declaring a mixin.
 list[Statement] stmt2js((STMT)`include <CALLARGS _>`) = [];
@@ -436,7 +521,7 @@ list[Statement] stmt2js((STMT)`<EXPR e>`)
   = [Statement::expression(expr2js(e))];// when bprintln("e = <e>");
   
 list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`)
-  = [Statement::expression(assignment(assign(), var2js(var), 
+  = [Statement::expression(assignment(assign(), assignVar2js(var), 
           stmt2exp(s)))];
 
 Expression stmt2exp((STMT)`<EXPR e>`) = exprjs(e);
@@ -515,7 +600,7 @@ Expression expr2js((EXPR)`<EXPR l> && <EXPR r>`) = logical(and(), expr2js(l), ex
 Expression expr2js((EXPR)`<EXPR l> || <EXPR r>`) = logical(or(), expr2js(l), expr2js(r));
 
 Expression expr2js((EXPR)`<EXPR l> .. <EXPR r>`)
-  = call(member(variable("Range"), "new"), [expr2js(l), expr2js(r)]); 
+  = call(member(Expression::variable("Range"), "new"), [expr2js(l), expr2js(r)]); 
 
 Expression expr2js((EXPR)`<EXPR l> ... <EXPR r>`) = { throw "Unsupported: ..."; };
 
@@ -534,7 +619,8 @@ Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)
   //assignment(assign(), member(prim2js(p), expr2js(e)), expr2js(r));
   
 Expression expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER x> = <EXPR r>`)  
-  = assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
+  //= assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
+  = call(member(prim2js(p), fixFname("<x>=")), [expr2js(r)]);
   
 Expression expr2js((EXPR)`<VARIABLE v> **= <EXPR r>`)
   = assignment(assign(), ve, 
@@ -553,7 +639,10 @@ default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`)
   = assignment(assignOp(op), assignVar2js(v), expr2js(r));
 
 Expression assignVar2js(v:(VARIABLE)`<IDENTIFIER x>`) {
-  assignVar("<x>");
+  n = "<x>";
+  if (!isDeclared(n)) {
+    declareVar(n);
+  }
   return var2js(v);
 }
 
@@ -656,13 +745,13 @@ Expression prim2js((PRIMARY)`<OPERATION op>`) {
   v = fixVar("<op>");
   //println("V = <v>");
   //println("vars = <assignedVars()>");
-  if (v in assignedVars()) {
-     //println("in assigned vars");
+  if (isDeclared(v)) {
      return Expression::variable(fixVar("<op>"));
   }
   //println("not in assigned vars");
   // fixOp???
-  return Expression::variable(fixVar("<op>")); //makeCall(<false, []>, Expression::variable("self"), fixVar("<op>"), []); 
+  return //Expression::variable(fixVar("<op>")); 
+    makeCall(<false, []>, Expression::variable("self"), fixVar("<op>"), []); 
 }
   
 Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`)  
@@ -732,7 +821,7 @@ Expression prim2js((PRIMARY)`super`) = Expression::variable("super$");
 
 Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`) 
   = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "call"), 
-           [variable("self"), *exps])
+           [Expression::variable("self"), *exps])
   when <false, exps> := callargs2js(args);
 
 Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`) 
@@ -749,10 +838,10 @@ Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) =
   new(Expression::variable("EnsoHash"), [Expression::object(ps)])
   when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
+
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);
-  f.statBody += addReturns(stmts2js(body));
-  return f;
+  return makeFunc(f.params, body, f.statBody, []);
 }
  // = Expression::function("", blockvar2params(bv), [], "", addReturns(stmts2js(body)));
 
@@ -915,7 +1004,7 @@ Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <STAR _> <IDEN
       restInits(f, rest));
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <AMP _> <IDENTIFIER b>`)
-  = Expression::function(f, params([ i | i <- ids]) + params([b]), [], "", []);
+  = Expression::function(f, params([b]) + params([ i | i <- ids]), [], "", []);
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>`)
   = Expression::function(f, params([ i | i <- ids]), [], "", []);
