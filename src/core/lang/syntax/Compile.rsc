@@ -47,7 +47,32 @@ list[Statement] warning(Tree t, str msg) {
   return [];
 }
 
-Program unit2js((Unit)`<STMTS stmts>`) = program(stmts2js(stmts)); 
+Program unit2js((Unit)`<STMTS stmts>`) {
+  if ((STMT)`module <IDENTIFIER name> <STMTS body> end` <- stmts.stmts) {
+    // toplevel
+    ps = requiredPaths(stmts);
+
+    list[Statement] ss = 
+      [Statement::expression(call(variable("define"), [
+         array([ literal(string(p)) | p <- ps]),
+         Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
+           [
+             Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var"),
+             *stmts2js(body),
+             // todo the object and return stat.
+             Statement::expression(assignment(assign(),
+               Expression::variable("<name>"),
+               object([
+                 <LitOrId::id(m), METAS[m], ""> | m <- METAS 
+               ]))),
+             \return(Expression::variable("<name>"))
+           ])
+     ]))];
+
+    return program(ss); 
+  }
+  return program(stmts2js(stmts));
+} 
 
 list[str] requiredPaths(STMTS body)
   = [ "<p>"[1..-1] | /(STMT)`require <STRING p>` := body ];
@@ -56,16 +81,14 @@ list[str] paths2modules(list[str] paths)
   = [ capitalize(split("/", p)[-1]) | p <- paths ];
 
 
-list[Statement] declareModule(list[str] reqPaths)
+list[Statement] declareModule(list[str] reqPaths, str name, STMTS body)
   = [expression(call(variable("define"), [
        array([ literal(string(p)) | p <- reqPaths]),
        function("", [variable(n) | n <- paths2modules(reqPaths)], [], "",
-         block([
-           variableDeclaration(variableDeclarator(variable(name)), "var"),
-           stmt2js(body),
-           assignment(assign(), variable(name), exportedObject(body)),
-           \return(variable(name))
-         ]))
+         [
+           variableDeclaration(variableDeclarator(Pattern::variable(name), none()), "var"),
+           stmts2js(body)
+         ])
      ]))];
   
 
@@ -250,7 +273,7 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                   [literal(string("<name>")), 
                   super,
                   array(includedModules(body)),
-//TODO                  function("", [], [], "", meta2js(body)),
+                  function("", [], [], "", []),
                   Expression::function("", [Pattern::variable("super$")], [], "", stmts2js(body))
                   ])))], "var"));
 
@@ -754,7 +777,9 @@ default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
 Expression keywords2obj((KEYWORDS)`<{KEYWORD ","}+ kws>`)
-  = object([<id("<k>"), expr2js(v), ""> | (KEYWORD)`<IDENTIFIER k>: <EXPR v>` <- kws]);
+  =  new(variable("EnsoHash"), [obj])
+  when obj := 
+    object([<id("<k>"), expr2js(v), ""> | (KEYWORD)`<IDENTIFIER k>: <EXPR v>` <- kws]);
 
 Expression cexpr2js((CEXPR)`<EXPR e>`) = expr2js(e);
 

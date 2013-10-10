@@ -156,7 +156,9 @@ str jse2txt(Expression::array(list[Expression] elements))
   = "[<intercalate(", ", [ jse2txt(e) | e <- elements ])>]";
 
 str jse2txt(Expression::object(list[tuple[LitOrId key, Expression \value, str kind]] properties)) 
-  = "{<intercalate(", ", [ "<js2txt(k)>: <jse2txt(v)>" | <k, v, _> <- properties ])>}";
+  = "{
+    '  <intercalate(",\n", [ "<js2txt(k)>: <jse2txt(v)>" | <k, v, _> <- properties ])>
+    '}";
     
 str js2txt(LitOrId::id(str name)) = name;
 str js2txt(LitOrId::lit(Literal v)) = js2txt(v);
