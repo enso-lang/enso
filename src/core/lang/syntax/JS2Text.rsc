@@ -2,6 +2,7 @@ module core::lang::\syntax::JS2Text
 
 import core::lang::\syntax::JavascriptAST;
 import List;
+import String;
 import IO;
 
 data Program
@@ -268,7 +269,10 @@ str js2txt(catchClause(Pattern param, list[Statement] statBody))
   
 //str js2txt(comprehensionBlock(Pattern left, Expression right, bool each)) = "";
   
-str js2txt(string(str strValue)) = "\'<strValue>\'";
+
+str escapeIt(str x) = escape(x, ("\"": "\\\"", "\n": "\\n", "\t": "\\t"));
+  
+str js2txt(string(str strValue)) = "\"<escapeIt(strValue)>\"";
 str js2txt(boolean(bool boolValue)) = "<boolValue>";
 str js2txt(null()) = "null";
 str js2txt(number(num numValue)) = "<numValue>";
