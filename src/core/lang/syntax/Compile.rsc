@@ -30,6 +30,12 @@ list[Statement] mainBody() = [
     
 set[Message] ERRS = {};
 map[str, Expression] METAS = ();
+list[str] BINDINGS = [];
+
+bool addBinding(str name) {
+  BINDINGS += [name];
+  return true;
+}
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
@@ -64,6 +70,9 @@ Program unit2js((Unit)`<STMTS stmts>`) {
                Expression::variable("<name>"),
                object([
                  <LitOrId::id(m), METAS[m], ""> | m <- METAS 
+               ]
+               + [
+                 <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS
                ]))),
              \return(Expression::variable("<name>"))
            ])
@@ -71,6 +80,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
 
     return program(ss); 
   }
+  // TODO: do the require.js stuff.
   return program(stmts2js(stmts));
 } 
 
@@ -261,7 +271,9 @@ list[Statement] declareMixin(str name, STMTS body)
                Init::expression(call(Expression::variable("MakeMixin"), 
                   [array(includedModules(body)), 
                   Expression::function("", [], [], "", stmts2js(body))
-                  ])))], "var"));
+                  ])))], "var"))
+  when addBinding(name);
+                  
   
 
 list[Statement] stmt2js((STMT)`module <IDENTIFIER name> <STMTS body> end`)
@@ -273,9 +285,13 @@ list[Statement] declareClass(str name, Expression super, STMTS body)
                   [literal(string("<name>")), 
                   super,
                   array(includedModules(body)),
-                  function("", [], [], "", []),
+                  function("", [], [], "", [
+                   // TODO
+                  ]),
                   Expression::function("", [Pattern::variable("super$")], [], "", stmts2js(body))
-                  ])))], "var"));
+                  ])))], "var"))
+  when addBinding(name);
+                 
 
 list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
   = declareClass("<id>", literal(null()), body);
@@ -372,26 +388,30 @@ Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". 
 Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
 */
 
-//list[Statement] reader(str name)
-//  = l(assignment(assign(), member(this(), name), 
-//      function("", [], [], "", \return(member(member(this(), "$"), name)))));
-//
-//list[Statement] writer(str name)
-//  = l(assignment(assign(), member(this(), "set_" + name), 
-//      function("", [variable("val")], [], "", 
-//          assignment(assign(), member(member(this(), "$"), name), variable(val)))));
-//
-//list[Statement] stmt2js((STMT)`attr_reader :<IDENTIFIER id>`)
-//  = [reader("<id>")];
-//
-//list[Statement] stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
-//  = [reader("<id>"), writer("<id>")];
+list[Statement] reader(str name)
+  = l(Statement::expression(assignment(assign(), member(this(), name), 
+      function("", [], [], "", [\return(member(member(this(), "$"), name))]))));
+
+list[Statement] writer(str name)
+  = l(Statement::expression(assignment(assign(), member(this(), "set_" + name), 
+      function("", [variable("val")], [], "", 
+          [assignment(assign(), member(member(this(), "$"), name), variable(val))]))));
+
+list[Statement] stmt2js((STMT)`attr_reader <CALLARGS args>`)
+  = ( [] | it + reader(x) | literal(string(x)) <- exps )
+  when <_, exps> := callargs2js(args);
+
+list[Statement] stmt2js((STMT)`attr_accessor :<IDENTIFIER id>`)
+  = ( [] | it + reader(x) + writer(x)  | literal(string(x)) <- exps )
+  when <_, exps> := callargs2js(args);
 
 
 list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
-  = [Statement::expression(makeCall(callargs2js(args), Expression::variable("self"), fixOp("<op>"), []))];
+  = [Statement::expression(makeCall(callargs2js(args), Expression::variable("self"), fixOp("<op>"), []))]
+  when "<op>" notin {"attr_reader", "attr_accessor"};
   //when bprintln("CA = <args>");
 
+// ????
 //list[Statement] stmt2js((STMT)`<OPERATION2 op> <CALLARGS args> <BLOCK block>`)
 //  = makeCall(callargs2js(args), Expression::variable("self"), fixVar("<op>"), [block2js(block)]);
 
