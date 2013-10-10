@@ -66,7 +66,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
 
     list[Statement] ss = 
       [Statement::expression(call(Expression::variable("define"), [
-         array([ literal(string(p)) | p <- ps]),
+         Expression::array([ literal(string(p)) | p <- ps]),
          Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
            [
              Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var"),
@@ -90,8 +90,10 @@ Program unit2js((Unit)`<STMTS stmts>`) {
   return program(stmts2js(stmts));
 } 
 
+// For some reason this require pattern also captures matches raise statements
+// when using deep match and := body...
 list[str] requiredPaths(STMTS body)
-  = [ "<p>"[1..-1] | /(STMT)`require <STRING p>` := body ];
+  = [ "<p>"[1..-1] | (STMT)`require <STRING p>` <- body.stmts ];
 
 list[str] paths2modules(list[str] paths)
   = [ capitalize(split("/", p)[-1]) | p <- paths ];
@@ -729,7 +731,7 @@ Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`)
 Expression prim2js((PRIMARY)`super`) = Expression::variable("super$");
 
 Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`) 
-  = call(member(member(variable("super$"), CURRENT_METHOD), "call"), 
+  = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "call"), 
            [variable("self"), *exps])
   when <false, exps> := callargs2js(args);
 
@@ -740,11 +742,11 @@ Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`)
 
   
 Expression prim2js(p:(PRIMARY)`super()`) 
-  = call(member(member(variable("super$"), CURRENT_METHOD), "call"), 
+  = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "call"), 
                [variable("self")]);   
 
 Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) = 
-  new(variable("EnsoHash"), [object(ps)])
+  new(Expression::variable("EnsoHash"), [Expression::object(ps)])
   when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
@@ -802,33 +804,33 @@ default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
 Expression keywords2obj((KEYWORDS)`<{KEYWORD ","}+ kws>`)
-  =  new(variable("EnsoHash"), [obj])
+  =  new(Expression::variable("EnsoHash"), [obj])
   when obj := 
     object([<id("<k>"), expr2js(v), ""> | (KEYWORD)`<IDENTIFIER k>: <EXPR v>` <- kws]);
 
 Expression cexpr2js((CEXPR)`<EXPR e>`) = expr2js(e);
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [variable("self"), 
+  = <true, [Expression::variable("self"), 
       call(member(array([expr2js(b), keywords2obj(kws)] + [ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWORDS kws>, <STAR _><EXPR s>`)
-  = <true, [variable("self"),  
-      call(member(array([ cexpr2js(a) | a <- args ] + [keywords2obj(kws)]), "concat"), 
+  = <true, [Expression::variable("self"),  
+      call(member(Expression::array([ cexpr2js(a) | a <- args ] + [keywords2obj(kws)]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWORDS kws>`)
-  = <false, [variable("self"), *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
+  = <false, [Expression::variable("self"), *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
   = <true, [//variable("self"),  
-      call(member(array([expr2js(b)] + [ cexpr2js(a) | a <- args ]), "concat"), 
+      call(member(Expression::array([expr2js(b)] + [ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>`)
   = <true, [//variable("self"), 
-      call(member(array([ cexpr2js(a) | a <- args ]), "concat"), 
+      call(member(Expression::array([ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <AMP _><EXPR b>`)
@@ -839,18 +841,18 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>`)
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
   = <true, [//variable("self"),  
-      call(member(array([expr2js(b), keywords2obj(kws)]), "concat"), 
+      call(member(Expression::array([expr2js(b), keywords2obj(kws)]), "concat"), 
                [expr2js(s)])]>;
                
   
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
-  = <true, [/*variable("self"),*/ call(member(array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
+  = <true, [/*variable("self"),*/ call(member(Expression::array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
   = <false, [keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [/*variable("self"),*/ call(member(array([expr2js(b)]), "concat"), [expr2js(s)])]>;
+  = <true, [/*variable("self"),*/ call(member(Expression::array([expr2js(b)]), "concat"), [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>`)
   = <true, [/*Expression::variable("self"),*/ expr2js(s)]>;

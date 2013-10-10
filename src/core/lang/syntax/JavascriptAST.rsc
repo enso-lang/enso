@@ -5,21 +5,6 @@ data Program
   = program(list[Statement] stats)
   ;
 
-
-data Function
-  = function(str name, // "" = null 
-            list[Pattern] params, 
-            list[Expression] defaults,
-            str rest, // "" = null
-            list[Statement] statBody,
-            bool generator = false) 
-  | function(str name, // "" = null 
-            list[Pattern] params, 
-            list[Expression] defaults,
-            str rest, // "" = null
-            Expression expBody,
-            bool generator = false); 
-
 data ForInit
   = varDecl(list[VariableDeclarator] declarations, str kind)
   | expression(Expression exp)
