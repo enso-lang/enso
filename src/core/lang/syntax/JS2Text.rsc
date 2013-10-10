@@ -11,8 +11,8 @@ data Program
 str js2txt(program(ss)) = intercalate("\n", [ js2txt(s) | s <- ss ]);
 
 
-str js2txt(ForInit::varDecl(decls, kind)) 
-  = "<kind> <intercalate(",", [ js2txt(d) | d <- decls ])>;";
+//str js2txt(ForInit::varDecl(decls, kind)) 
+//  = "<kind> <intercalate(", ", [ js2txt(d) | d <- decls ])>;";
 
 // WHOA: bug, this one fires for expression in Statement...
 //str js2txt(ForInit::expression(e)) = js2txt(e) + "!!!"; 
@@ -24,15 +24,43 @@ str js2txt(ForInit::varDecl(decls, kind))
 
 
 str js2txt(empty()) = ";";
+
+//str js2txt(block([s, *ss])) 
+//  = "{
+//     <for (s <- stats) {>
+//    '  <js2txt(s)><}>
+//    '}";
+
 str js2txt(block(list[Statement] stats)) 
-  = "{<for (s <- stats) {>
+  = "{
+    '  <for (s <- stats) {>
     '  <js2txt(s)><}>
     '}";
     
 str js2txt(Statement::expression(Expression exp)) = "<jse2txt(exp)>;";
 
 str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
-  = "if (<jse2txt(\test)>) <js2txt(consequent)> else <js2txt(alternate)>";
+  = "if (<jse2txt(\test)>) 
+    '  <js2txt(consequent)> 
+    'else 
+    '  <js2txt(alternate)>"
+  when !(consequent is block), !(alternate is block);  
+
+str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
+  = "if (<jse2txt(\test)>) <js2txt(consequent)> else <js2txt(alternate)>"
+  when consequent is block, alternate is block;  
+
+str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
+  = "if (<jse2txt(\test)>) <js2txt(consequent)>
+    'else 
+    '  <js2txt(alternate)>"
+  when consequent is block, !(alternate is block);  
+
+str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
+  = "if (<jse2txt(\test)>) 
+    '  <js2txt(consequent)> else <js2txt(alternate)>"
+  when !(consequent is block), alternate is block; 
+
   
 str js2txt(\if(Expression \test, Statement consequent)) 
   = "if (<jse2txt(\test)>) <js2txt(consequent)>";
@@ -94,9 +122,8 @@ str js2txt(functionDecl(str id, list[Pattern] params,
   		list[Expression] defaults,
   		str rest, // "" = null
   		list[Statement] statBody)) 
-  = "function <id>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {
-    '  <for (s <- statBody) {>
-    '    <js2txt(s)><}>
+  = "function <id>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {<for (s <- statBody) {>
+    '  <js2txt(s)><}>
     '}";    
   
 str js2txt(functionDecl(str id, list[Pattern] params, 
@@ -116,7 +143,7 @@ expression(Expression exp)
   */
 
 str js2txt(variableDeclarator(Pattern id, Init init)) 
-  = "<id.name><init == none() ? "" : " = <jse2txt(init.exp)>">";
+  = "<id.name><init == Init::none() ? "" : " = <jse2txt(init.exp)>">";
 
 str jse2txt(this()) = "this";
 str jse2txt(Expression::array(list[Expression] elements)) 
@@ -134,8 +161,7 @@ str jse2txt(Expression::function(str name, // "" = null
             list[Expression] defaults,
             str rest, // "" = null
             list[Statement] statBody)) 
- = "function <name>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {
-   '  <for (s <- statBody) {>
+ = "function <name>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {<for (s <- statBody) {>
    '  <js2txt(s)><}>
    '}"; 
 
