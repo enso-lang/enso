@@ -32,8 +32,7 @@ str js2txt(empty()) = ";";
 //    '}";
 
 str js2txt(block(list[Statement] stats)) 
-  = "{
-    '  <for (s <- stats) {>
+  = "{<for (s <- stats) {>
     '  <js2txt(s)><}>
     '}";
     
@@ -63,7 +62,13 @@ str js2txt(\if(Expression \test, Statement consequent, Statement alternate))
 
   
 str js2txt(\if(Expression \test, Statement consequent)) 
-  = "if (<jse2txt(\test)>) <js2txt(consequent)>";
+  = "if (<jse2txt(\test)>) <js2txt(consequent)>"
+  when consequent is block;
+
+str js2txt(\if(Expression \test, Statement consequent)) 
+  = "if (<jse2txt(\test)>) 
+    '  <js2txt(consequent)>"
+  when !(consequent is block);
 
 str js2txt(labeled(str label, Statement statBody)) = "<label>: <js2txt(statBody)>";
 str js2txt(\break("")) = "break;";
