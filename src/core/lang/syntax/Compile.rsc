@@ -394,6 +394,7 @@ Expression methodFunction__(str f, ARGLIST args, STMTS body) {
 
 Expression methodFunction(str f, ARGLIST args, STMTS body) {
   sym = fixFname(f);
+  CURRENT_METHOD = sym;
   Expression func = arglist2func(sym, args);
   
   selfDecl = 
@@ -421,7 +422,7 @@ void popScope() { STACK = STACK[0..-1]; }
 set[str] topScope() = STACK[-1];
 void declareVar(str var) = declareVars({var});
 void declareVars(set[str] vars) {
-  newScope = topScope() + { fixVar(v) | v <- vars };
+  newScope = topScope() + { fixVar(v) | v <- vars, !isDeclared(v) };
   popScope();
   pushScope(newScope);
 }
@@ -457,8 +458,11 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
     return ds;
   }
   
+  bool shadowed(v) =
+    v in ( {} | it + s | set[str] s <- STACK[0..-1] ); 
+  
   bodyStats = begin; 
-  bodyStats += makeDecls(topScope() - names - decls - implicits); 
+  bodyStats += makeDecls({ v | v <- topScope() - names - decls - implicits, !shadowed(v) }); 
   bodyStats += theStats;
   bodyStats += end;
   popScope();
@@ -653,9 +657,9 @@ default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`)
 
 Expression assignVar2js(v:(VARIABLE)`<IDENTIFIER x>`) {
   n = "<x>";
-  if (!isDeclared(n)) {
-    declareVar(n);
-  }
+  //if (!isDeclared(n)) {
+  declareVar(n);
+  //}
   return var2js(v);
 }
 
@@ -808,24 +812,28 @@ Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op> <BLOCK b>`)
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
   = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []);
 
+// TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>(<CALLARGS args>)`)
   = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>()`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), []);
 
+// TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>()`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>(<CALLARGS args>) <BLOCK b>`)
   = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), [block2js(b)]);
 
+// TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>(<CALLARGS args>) <BLOCK b>`)
   = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), [block2js(b)]);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>() <BLOCK b>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [block2js(b)]);
 
+// TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>() <BLOCK b>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [block2js(b)]);
 
