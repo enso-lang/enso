@@ -29,9 +29,11 @@ list[Statement] mainBody() = [
     x];
     
 set[Message] ERRS = {};
+map[str, Expression] METAS = ();
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
+  METAS = ();
   return <unit2js(u), ERRS>;
 }
 
@@ -280,12 +282,11 @@ default Statement addReturns(Statement s) = s;
 CatchClause addReturns(catchClause(p, ss)) = catchClause(p, addReturns(ss)); 
 
 
-
 str CURRENT_METHOD = "";
-list[Statement] declareMethod(FNAME f, ARGLIST args, STMTS body) {
+Expression methodFunction(str f, ARGLIST args, STMTS body) {
   resetAssignedVars();
-  Expression func = arglist2func("<f>", args);
-  sym = fixFname("<f>");
+  sym = fixFname(f);
+  Expression func = arglist2func(sym, args);
   CURRENT_METHOD = sym;
   func.name = "";
   func.statBody = 
@@ -307,15 +308,26 @@ list[Statement] declareMethod(FNAME f, ARGLIST args, STMTS body) {
   } 
   func.statBody += bodyStats;
   func.statBody = addReturns(func.statBody);
-  return l(Statement::expression(assignment(assign(), member(this(), sym), 
-              func)));
+  return func;
+
 }
+
+list[Statement] declareMethod(FNAME f, ARGLIST args, STMTS body) 
+  = l(Statement::expression(assignment(assign(), member(this(), fixFname("<f>")), 
+              methodFunction("<f>", args, body))));
 
 list[Statement] stmt2js((STMT)`def <FNAME f>(<ARGLIST args>) <STMTS body> end`)
   = declareMethod(f, args, body); 
 
 list[Statement] stmt2js((STMT)`def <FNAME f> <TERM _> <STMTS body> end`) 
   = declareMethod(f, (ARGLIST)``, body);
+
+
+list[Statement] stmt2js((STMT)`def self.<FNAMENoReserved f>(<ARGLIST args>) <STMTS body> end`) {
+  name = fixFname("<f>");
+  METAS[name] = methodFunction(name, args, body);
+  return [];
+}
 
 // Attrs
 /*
