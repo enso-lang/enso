@@ -78,10 +78,10 @@ str js2txt(\if(Expression \test, Statement consequent))
   when !(consequent is block);
 
 str js2txt(labeled(str label, Statement statBody)) = "<label>: <js2txt(statBody)>";
-str js2txt(\break("")) = "break;";
+str js2txt(\break()) = "break;";
 str js2txt(\break(label)) = "break <label>;" when label != "";
 
-str js2txt(\continue("")) = "continue;";
+str js2txt(\continue()) = "continue;";
 str js2txt(\continue(label)) = "continue <label>;";
 
   

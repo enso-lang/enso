@@ -22,7 +22,7 @@ set[Message] ERRS = {};
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
-  pushScope({"Enumerable"});
+  pushScope({"Enumerable", "Proc"});
   return <unit2js(u), ERRS>;
 }
 
@@ -169,7 +169,7 @@ list[Statement] l(Statement x) = [x];
 list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
   = l(caseStat)
   when 
-     cases :=  [ switchCase(when2js(wa), stmts2js(cstmts)) |
+     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
        (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
      caseStat := \switch(stmts2exp(stmts), cases);
 
@@ -178,7 +178,7 @@ list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS eb
   = l(caseStat)
   when 
      ecase := switchCase(stmts2js(ebody)),
-     cases :=  [ switchCase(when2js(wa), stmts2js(cstmts)) |
+     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
        (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
      caseStat := \switch(stmts2exp(stmts), [*cases, ecase]);
   
@@ -892,11 +892,12 @@ Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`)
 Expression prim2js((PRIMARY)`<PRIMARY p>.nil?`)
   = binary(equals(), prim2js(p), literal(null()));
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.is_a?(<CALLARGS args>)`)
+Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
   = call( 
       member(Expression::variable("System"), "test_type"),
       [prim2js(p), *jargs])
-  when <_, jargs> := callargs2js(args);
+  when "<op>" == "is_a?", // matching doesn't work ... 
+     <_, jargs> := callargs2js(args);
    
 
 bool isSpecialOp(str op) = op in { "is_a?", "nil?" };
@@ -977,7 +978,6 @@ Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);
   return makeFunc(f.params, body, f.statBody, EMPTY, {});
 }
- // = Expression::function("", blockvar2params(bv), [], "", addReturns(stmts2js(body)));
 
 Expression block2js((BLOCK)`{<STMTS stmts>}`) = 
   block2closure((BLOCK_VAR)``, stmts);
@@ -1003,18 +1003,19 @@ Expression blockvar2func((BLOCK_VAR)`<LHS l1>, <{MLHS_ITEM ","}+ ms>`)
 Expression blockvar2func((BLOCK_VAR)`<LHS l1>, <{MLHS_ITEM ","}+ ms>, <STAR _> <IDENTIFIER r>`) 
   = Expression::function("", 
        [lhs2pattern(l1), *[ lhs2pattern(l2) | (MLHS_ITEM)`<LHS l2>` <- ms ]],
-       [], "", initAnonRestParam("<r>"));
+       [], "", initAnonRestParam("<r>", pos))
+ when pos := size([ m | m <- ms]) + 1; 
 
 Expression blockvar2func((BLOCK_VAR)`<STAR _> <IDENTIFIER r>`) 
-  = Expression::function("", [], [], "", initAnonRestParam("<r>"));
+  = Expression::function("", [], [], "", initAnonRestParam("<r>", 0));
   
-list[Statement] initAnonRestParam(str name)
+list[Statement] initAnonRestParam(str name, int pos)
   = [Statement::varDecl([
                   variableDeclarator(Pattern::variable(name), 
                       Init::expression(
                          call(Expression::variable("compute_rest_arguments"), [
                                 Expression::variable("arguments"),
-                                literal(number(0))])))], "var")];
+                                literal(number(pos))])))], "var")];
   
 Expression blockvar2func((BLOCK_VAR)``) = 
   Expression::function("", [], [], "", []);
@@ -1111,7 +1112,7 @@ list[Statement] restInits(str f, IDENTIFIER rest)
   = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
   when 
     e :=  call(member(member(member(Expression::variable("Array"), "prototype"), "slice"), "call"), 
-             [Expression::variable("arguments"), member(Expression::variable(f), "length")]);
+             [Expression::variable("arguments"), member(member(this(), f), "length")]);
   
 
 
