@@ -344,6 +344,13 @@ list[Statement] classStmt2js((STMT)`@@<IDENTIFIER x> = <EXPR e>`)
          member(member(this(), "$"), fixFname("<x>")), 
          expr2js(e)))];
   
+
+list[Statement] classStmt2js((STMT)`def self.<FNAMENoReserved f>(<ARGLIST args>) <STMTS body> end`) 
+  = declareMethod(parse(#FNAME, "<f>"), args, body); // I'm lazy here...
+
+list[Statement] classStmt2js((STMT)`def self.<FNAMENoReserved f> <TERM _> <STMTS body> end`) 
+  = declareMethod(parse(#FNAME, "<f>"), (ARGLIST)``, body);
+  
 default list[Statement] classStmt2js(STMT s) = [];
 
 list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
@@ -1086,8 +1093,8 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<AMP _><EXPR b>`)
 
 list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
   = [ Statement::expression(assignment(assign(), Expression::variable("<d.id>"), 
-        conditional(binary(longNotEquals(), unary(typeOf(), true, literal(string("<d.id>"))),
-          literal(string("undefined"))), Expression::variable("<d.id>"), 
+        conditional(binary(longNotEquals(), unary(typeOf(), true, Expression::variable(fixVar("<d.id>"))),
+          literal(string("undefined"))), Expression::variable(fixVar("<d.id>")), 
             expr2js(d.expr)))) | d <- ds ];
 
 list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
