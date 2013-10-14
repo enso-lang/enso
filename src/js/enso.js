@@ -135,6 +135,11 @@ if (typeof window === 'undefined') {
       return "<HASH " + this.size() + ">";
     }
     this.toString = this.inspect;
+
+    this.delete = function(key) {
+        delete data[key];
+    };
+
     this.size = function() { 
       var count = 0;
       for (k in data) {
