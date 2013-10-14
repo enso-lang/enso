@@ -282,9 +282,9 @@ str js2txt(UnaryOperator::min()) = "-";
 str js2txt(UnaryOperator::plus()) = "+";
 str js2txt(UnaryOperator::not()) = "!";
 str js2txt(UnaryOperator::bitNot()) = "~";
-str js2txt(UnaryOperator::typeOf()) = "typeof";
-str js2txt(UnaryOperator::\void()) = "void";
-str js2txt(UnaryOperator::delete()) = "delete";
+str js2txt(UnaryOperator::typeOf()) = "typeof ";
+str js2txt(UnaryOperator::\void()) = "void ";
+str js2txt(UnaryOperator::delete()) = "delete ";
 
 str js2txt(BinaryOperator::equals()) = "==";
 str js2txt(BinaryOperator::notEquals()) = "!=";

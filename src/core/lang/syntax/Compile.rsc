@@ -8,16 +8,6 @@ import List;
 import ParseTree;
 import Message;
 
-//set[str] ASSIGNED = {};
-//
-//void resetAssignedVars() { ASSIGNED = {}; }
-//void assignVar(str name) { ASSIGNED += {fixVar(name)}; }
-//set[str] assignedVars() = ASSIGNED;
-
-
-//Statement block([Statement s]) = s;
-
-
 list[Statement] mainBody() = [
   variableDeclaration([variableDeclarator(variable("requirejs"), 
     expression(call(variable("require"), 
@@ -299,15 +289,19 @@ Imports ::= "["/> requires:([Require] path:str)* @(.","/) </"]," /
 // Includes ."," "function() {" Body "});"
 
 
-list[Expression] includedModules(STMTS body) 
-  = [ expr2js(e) | (STMT)`include <EXPR e>` <- body.stmts ];
+list[str] includedModules(STMTS body) 
+  = [ "<x>" | (STMT)`include <IDENTIFIER x>` <- body.stmts ];
   
 list[Statement] declareMixin(str name, STMTS body) {
  declareModuleBinding(name, Expression::variable(name));
  pushModule();
+ mods = includedModules(body);
+ for (m <- mods) {
+   declareModuleBinding(m, Expression::variable(m));
+ }
  ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeMixin"), 
-                  [array(includedModules(body)), 
+                  [Expression::array([ Expression::variable(m) | m <- mods]), 
                   Expression::function("", [], [], "", stmts2js(body))
                   ])))], "var"));
  popScope();
@@ -323,17 +317,16 @@ list[Statement]() EMPTY = list[Statement]() { return []; };
 list[Statement] declareClass(str name, Expression super, STMTS body) {
   declareModuleBinding(name, Expression::variable(name));
   pushModule();
+  mods = includedModules(body);
+  for (m <- mods) {
+    declareModuleBinding(m, Expression::variable(name));
+  }
   ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeClass"), 
                   [literal(string("<name>")), 
                   super,
-                  array(includedModules(body)),
+                  Expression::array([ Expression::variable(m) | m <- mods]),
                   Expression::function("", [], [], "", classStmts2js(body) 
-                  
-                  //[
-                  //  Statement::expression(assignment(assign(), member(this(), k),
-                  //     topModule()[k])) | k <- topModule()
-                  //]
                   )
                   ,
                   makeFunc([Pattern::variable("super$")], body, [], EMPTY, {})
@@ -780,6 +773,15 @@ Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)
   = stmts2exp((STMTS)`<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>`);
 
 
+Expression stmts2exp((STMTS)`<IDENTIFIER op> <CALLARGS args>`) 
+  = expr2js((EXPR)`<IDENTIFIER op>(<CALLARGS args>)`);
+
+Expression stmts2exp((STMTS)`<PRIMARY p>.<IDENTIFIER op> <CALLARGS args>`) 
+  = expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER op>(<CALLARGS args>)`);
+
+Expression stmts2exp((STMTS)`<PRIMARY p>::<IDENTIFIER op> <CALLARGS args>`) 
+  = expr2js((EXPR)`<PRIMARY p>::<IDENTIFIER op>(<CALLARGS args>)`);
+
 Expression stmts2exp((STMTS)`<EXPR e>`) = expr2js(e);
 
 default Expression stmts2exp(STMTS stmts)
@@ -1019,7 +1021,8 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWO
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWORDS kws>`)
-  = <false, [Expression::variable("self"), *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
+  = <false, [//Expression::variable("self"), 
+             *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
   = <true, [//variable("self"),  
