@@ -885,9 +885,18 @@ Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`)
 Expression prim2js((PRIMARY)`<PRIMARY p>.nil?`)
   = binary(equals(), prim2js(p), literal(null()));
 
+Expression prim2js((PRIMARY)`<PRIMARY p>.is_a?(<CALLARGS args>)`)
+  = call( 
+      member(Expression::variable("System"), "test_type"),
+      [prim2js(p), *jargs])
+  when <_, jargs> := callargs2js(args);
+   
+
+bool isSpecialOp(str op) = op in { "is_a?", "nil?" };
+
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [])
-  when op != (OPERATIONNoReserved)`nil?`;
+  when !isSpecialOp("<op>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) 
   = member(prim2js(p), fixVar("<op>"));
