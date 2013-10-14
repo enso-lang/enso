@@ -40,10 +40,12 @@ str js2txt(block(list[Statement] stats))
 str js2txt(Statement::expression(Expression exp)) = "<jse2txt(exp)>;";
 
 str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
-  = "if (<jse2txt(\test)>) 
+  = "if (<jse2txt(\test)>) { 
     '  <js2txt(consequent)> 
-    'else 
-    '  <js2txt(alternate)>"
+    '}
+    'else { 
+    '  <js2txt(alternate)>
+    '}"
   when !(consequent is block), !(alternate is block);  
 
 str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
@@ -52,13 +54,16 @@ str js2txt(\if(Expression \test, Statement consequent, Statement alternate))
 
 str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
   = "if (<jse2txt(\test)>) <js2txt(consequent)>
-    'else 
-    '  <js2txt(alternate)>"
+    'else {
+    '  <js2txt(alternate)>
+    '}"
   when consequent is block, !(alternate is block);  
 
 str js2txt(\if(Expression \test, Statement consequent, Statement alternate)) 
-  = "if (<jse2txt(\test)>) 
-    '  <js2txt(consequent)> else <js2txt(alternate)>"
+  = "if (<jse2txt(\test)>) { 
+    '  <js2txt(consequent)> 
+    '} 
+    'else <js2txt(alternate)>"
   when !(consequent is block), alternate is block; 
 
   
@@ -67,8 +72,9 @@ str js2txt(\if(Expression \test, Statement consequent))
   when consequent is block;
 
 str js2txt(\if(Expression \test, Statement consequent)) 
-  = "if (<jse2txt(\test)>) 
-    '  <js2txt(consequent)>"
+  = "if (<jse2txt(\test)>) {
+    '  <js2txt(consequent)>
+    '}"
   when !(consequent is block);
 
 str js2txt(labeled(str label, Statement statBody)) = "<label>: <js2txt(statBody)>";

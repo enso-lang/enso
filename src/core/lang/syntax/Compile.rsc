@@ -289,19 +289,19 @@ Imports ::= "["/> requires:([Require] path:str)* @(.","/) </"]," /
 // Includes ."," "function() {" Body "});"
 
 
-list[str] includedModules(STMTS body) 
-  = [ "<x>" | (STMT)`include <IDENTIFIER x>` <- body.stmts ];
+list[Expression] includedModules(STMTS body) 
+  = [ expr2js(e) | (STMT)`include <EXPR e>` <- body.stmts ];
   
 list[Statement] declareMixin(str name, STMTS body) {
  declareModuleBinding(name, Expression::variable(name));
  pushModule();
  mods = includedModules(body);
- for (m <- mods) {
-   declareModuleBinding(m, Expression::variable(m));
- }
+ //for (m <- mods) {
+ //  declareModuleBinding(m, Expression::variable(m));
+ //}
  ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeMixin"), 
-                  [Expression::array([ Expression::variable(m) | m <- mods]), 
+                  [Expression::array(mods), 
                   Expression::function("", [], [], "", stmts2js(body))
                   ])))], "var"));
  popScope();
@@ -318,14 +318,14 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
   declareModuleBinding(name, Expression::variable(name));
   pushModule();
   mods = includedModules(body);
-  for (m <- mods) {
-    declareModuleBinding(m, Expression::variable(name));
-  }
+  //for (m <- mods) {
+  //  declareModuleBinding(m, Expression::variable(name));
+  //}
   ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeClass"), 
                   [literal(string("<name>")), 
                   super,
-                  Expression::array([ Expression::variable(m) | m <- mods]),
+                  Expression::array(mods),
                   Expression::function("", [], [], "", classStmts2js(body) 
                   )
                   ,
@@ -903,27 +903,34 @@ Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`)
 //  = makeCall(<false, []>, prim2js(p), "<op>", []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op> <BLOCK b>`)
-  = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [block2js(b)]);
+  = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [block2js(b)])
+  when !isSpecialOp("<op>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op> <BLOCK b>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [block2js(b)]);
+  
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
-  = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []);
+  = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), [])
+    when !isSpecialOp("<op>");
+  
 
 // TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>(<CALLARGS args>)`)
   = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>()`)
-  = makeCall(<false, []>, prim2js(p), fixOp("<op>"), []);
+  = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [])
+  when !isSpecialOp("<op>");
 
 // TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION4 op>()`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), []);
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION5 op>(<CALLARGS args>) <BLOCK b>`)
-  = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), [block2js(b)]);
+  = makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), [block2js(b)])
+    when !isSpecialOp("<op>");
+  
 
 // TODO: self should not be passed as first arg
 Expression prim2js((PRIMARY)`<PRIMARY p>::<POPERATION6 op>(<CALLARGS args>) <BLOCK b>`)
