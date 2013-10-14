@@ -29,25 +29,10 @@ list[Statement] mainBody() = [
     x];
     
 set[Message] ERRS = {};
-map[str, Expression] METAS = ();
-list[str] MODS = [];
-
-bool resetMetas() {
-  METAS = ();
-  return true;
-}                 
-
-list[str] BINDINGS = [];
-
-bool addBinding(str name) {
-  BINDINGS += [name];
-  return true;
-}
 
 tuple[Program program, set[Message] msgs] compileUnit(Unit u) {
   ERRS = {};
-  MODS = [];
-  resetMetas();
+  pushScope({"Enumerable"});
   return <unit2js(u), ERRS>;
 }
 
@@ -78,36 +63,31 @@ Program unit2js((Unit)`<STMTS stmts>`) {
     // toplevel
     ps = requiredPaths(stmts);
 
+    pushModule();
+    
+    Expression func 
+      = makeFunc([Pattern::variable(n) | n <- paths2modules(ps)],
+                   body, 
+                   [Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var")],
+                   list[Statement] () { // lazy
+                      return [Statement::expression(assignment(assign(),
+                            Expression::variable("<name>"),
+                            Expression::object([<LitOrId::id(m), topModule().bindings[m], ""> 
+                                | m <- topModule().bindings ]))),
+                         \return(Expression::variable("<name>"))];
+                   }, 
+                   classesAndModules(body)
+          );
+    
     list[Statement] ss = 
       [Statement::expression(call(Expression::variable("define"), [
          Expression::array([ literal(string(p)) | p <- ps]),
-         makeFunc([Pattern::variable(n) | n <- paths2modules(ps)],
-                   body, 
-                   [Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var")],
-                   [Statement::expression(assignment(assign(),
-                      Expression::variable("<name>"),
-                       Expression::object([<LitOrId::id(m), METAS[m], ""> | m <- METAS ]
-                            + [ <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS ]))),
-                      \return(Expression::variable("<name>"))], classesAndModules(body)
-          )
-         //Expression::function("", [Pattern::variable(n) | n <- paths2modules(ps)], [], "",
-         //  [
-         //    Statement::varDecl([variableDeclarator(Pattern::variable("<name>"), Init::none())], "var"),
-         //    *stmts2js(body),
-         //    // todo the object and return stat.
-         //    Statement::expression(assignment(assign(),
-         //      Expression::variable("<name>"),
-         //      object([
-         //        <LitOrId::id(m), METAS[m], ""> | m <- METAS 
-         //      ]
-         //      + [
-         //        <LitOrId::id(b), Expression::variable(b), ""> | b <- BINDINGS
-         //      ]))),
-         //    \return(Expression::variable("<name>"))
-         //  ])
+         func
      ]))];
 
-    return program(ss); 
+    popScope();
+    return program(ss);
+     
   }
   // TODO: do the require.js stuff.
   return program(stmts2js(stmts));
@@ -196,22 +176,47 @@ str caseVar(STMT cas) = "case$<cas@\loc.offset>";
 // nasty ambiguity somewhere in Rascal
 list[Statement] l(Statement x) = [x];
 
+list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
+  = l(caseStat)
+  when 
+     cases :=  [ switchCase(when2js(wa), stmts2js(cstmts)) |
+       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     caseStat := \switch(stmts2exp(stmts), cases);
+
+
 list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS ebody> end`)
-  = l(Statement::expression(call(function("", [Pattern::variable(x)], [], "", [whenStat]), [stmts2exp(stmts)])))
-  when x := caseVar(t),
-      whenStat := ( blockOrNot(stmts2js(ebody)) | \if(whenArgs2Cond(wa, x), blockOrNot(stmts2js(stmts)), it) 
-      | (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS stmts>` <- reverse([ w | w <- whens ]) ); 
+  = l(caseStat)
+  when 
+     ecase := switchCase(stmts2js(ebody)),
+     cases :=  [ switchCase(when2js(wa), stmts2js(cstmts)) |
+       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     caseStat := \switch(stmts2exp(stmts), [*cases, ecase]);
+  
+
+//list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS ebody> end`)
+//  = l(Statement::expression(call(function("", [Pattern::variable(x)], [], "", [whenStat]), [stmts2exp(stmts)])))
+//  when x := caseVar(t),
+//      whenStat := ( blockOrNot(stmts2js(ebody)) | \if(whenArgs2Cond(wa, x), blockOrNot(stmts2js(stmts)), it) 
+//      | (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS stmts>` <- reverse([ w | w <- whens ]) ); 
   
 
   
-list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
-  = l(Statement::expression(call(function("", [Pattern::variable(x)], [], "", [whenStat]), [stmts2exp(stmts)])))
-  when x := caseVar(t),
-    whenStat := ( empty() | \if(whenArgs2Cond(wa, x), blockOrNot(stmts2js(stmts)), it) 
-      | (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS stmts>` <- reverse([ w | w <- whens ]) ); 
+//list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
+//  = l(Statement::expression(call(function("", [Pattern::variable(x)], [], "", [whenStat]), [stmts2exp(stmts)])))
+//  when x := caseVar(t),
+//    whenStat := ( empty() | \if(whenArgs2Cond(wa, x), blockOrNot(stmts2js(stmts)), it) 
+//      | (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS stmts>` <- reverse([ w | w <- whens ]) ); 
   
 //list[Statement] whens2js(WHEN+ whens, Statement els, str x) 
 //  = l(); 
+
+
+Expression when2js((WHEN_ARGS)`<EXPR e>`) = expr2js(e);
+
+default Expression when2js(WHEN_ARGS w) {
+  error(w, "Unsupported when-clause");
+  return Expression::variable("UNSUPPORTED_WHEN_CLAUSE");
+}
 
 
 Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
@@ -297,33 +302,56 @@ Imports ::= "["/> requires:([Require] path:str)* @(.","/) </"]," /
 list[Expression] includedModules(STMTS body) 
   = [ expr2js(e) | (STMT)`include <EXPR e>` <- body.stmts ];
   
-list[Statement] declareMixin(str name, STMTS body)
-  = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
+list[Statement] declareMixin(str name, STMTS body) {
+ declareModuleBinding(name, Expression::variable(name));
+ pushModule();
+ ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeMixin"), 
                   [array(includedModules(body)), 
                   Expression::function("", [], [], "", stmts2js(body))
-                  ])))], "var"))
-  when addBinding(name);
-                  
+                  ])))], "var"));
+ popScope();
+ return ss;
+}                  
   
 
 list[Statement] stmt2js((STMT)`module <IDENTIFIER name> <STMTS body> end`)
   = declareMixin("<name>", body);
 
-list[Statement] declareClass(str name, Expression super, STMTS body)
-  = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
+list[Statement]() EMPTY = list[Statement]() { return []; };
+
+list[Statement] declareClass(str name, Expression super, STMTS body) {
+  declareModuleBinding(name, Expression::variable(name));
+  pushModule();
+  ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeClass"), 
                   [literal(string("<name>")), 
                   super,
                   array(includedModules(body)),
-                  Expression::function("", [], [], "", [
-                    Statement::expression(assignment(assign(), member(this(), k),
-                       METAS[k])) | k <- METAS
-                  ]),
-                  makeFunc([Pattern::variable("super$")], body, [], [], {})
-                  ])))], "var"))
-  when addBinding(name),
-       resetMetas();
+                  Expression::function("", [], [], "", classStmts2js(body) 
+                  
+                  //[
+                  //  Statement::expression(assignment(assign(), member(this(), k),
+                  //     topModule()[k])) | k <- topModule()
+                  //]
+                  )
+                  ,
+                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {})
+                  ])))], "var"));
+  popScope();
+  return ss;               
+}
+
+list[Statement] classStmts2js(STMTS stmts) =
+  ( [] | it + classStmt2js(s) | s <- stmts.stmts );
+  
+  
+list[Statement] classStmt2js((STMT)`@@<IDENTIFIER x> = <EXPR e>`)
+  = [Statement::expression(assignment(assign(), 
+         member(member(this(), "$"), fixFname("<x>")), 
+         expr2js(e)))];
+  
+default list[Statement] classStmt2js(STMT s) = [];
 
 list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
   = declareClass("<id>", literal(null()), body);
@@ -356,6 +384,8 @@ Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
 Statement addReturns(\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
 Statement addReturns(\try(s, h)) = \try(addReturns(s), addReturns(h));
+Statement addReturns(\switch(e, cs)) =
+  \switch(e, [ c[consequent=addReturns(c.consequent)] | c <- cs ]); 
 
 default Statement addReturns(Statement s) = s;
 
@@ -401,7 +431,7 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
     [Statement::varDecl([variableDeclarator(
                 Pattern::variable("self"), Init::expression(this()))
                 ], "var")];
-  return makeFunc(func.params, body, selfDecl + func.statBody, [], {});              
+  return makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});              
 }
 
 list[Statement] makeDecls(set[str] names) { 
@@ -414,24 +444,79 @@ list[Statement] makeDecls(set[str] names) {
   return [];
 } 
 
-list[set[str]] STACK = [];
 
-void pushScope() { pushScope({}); }
-void pushScope(set[str] vars) { STACK += [vars]; }
+data Scope
+  = modul(map[str, Expression] bindings)
+  | method(set[str] vars)
+  ;
+
+list[Scope] STACK = [];
+
+bool isDeclared(str name) = name in ( {} | it + s | method(set[str] s) <- STACK );
+
+void pushScope() { pushScope(method({})); }
+void pushScope(set[str] vars) { pushScope(method({})); }
+void pushScope(Scope s) { STACK += [s]; }
 void popScope() { STACK = STACK[0..-1]; }
-set[str] topScope() = STACK[-1];
+Scope topScope() = STACK[-1];
 void declareVar(str var) = declareVars({var});
 void declareVars(set[str] vars) {
-  newScope = topScope() + { fixVar(v) | v <- vars, !isDeclared(v) };
+  newScope = method(topScope().vars + { fixVar(v) | v <- vars, !isDeclared(v) });
   popScope();
   pushScope(newScope);
 }
 
-bool isDeclared(str name) = name in ( {} | it + s | set[str] s <- STACK );
+int topModuleIndex() {
+  i = size(STACK) - 1;
+  while (i >= 0, !(STACK[i] is modul) ) {
+    i -= 1;
+  }
+  return i;
+}
+
+Scope topModule() = STACK[topModuleIndex()];
+
+void pushModule() { pushModule(()); }
+void pushModule(map[str, Expression] m) { STACK += [modul(m)]; }
+void declareModuleBinding(str var, Expression exp) {
+  STACK[topModuleIndex()].bindings += (fixFname(var): exp);
+}
+
+
+//void pushScope() { pushScope({}); }
+//void pushScope(set[str] vars) { STACK += [vars]; }
+//void popScope() { STACK = STACK[0..-1]; }
+//set[str] topScope() = STACK[-1];
+//void declareVar(str var) = declareVars({var});
+//void declareVars(set[str] vars) {
+//  newScope = topScope() + { fixVar(v) | v <- vars, !isDeclared(v) };
+//  popScope();
+//  pushScope(newScope);
+//}
+//
+//bool isDeclared(str name) = name in ( {} | it + s | set[str] s <- STACK );
+//
+//list[map[str, Expression]] MODULE_STACK = [];
+//
+//void pushModule() { pushModule(()); }
+//void pushModule(map[str, Expression] m) { MODULE_STACK += [m]; }
+//void popModule() { MODULE_STACK = MODULE_STACK[0..-1]; }
+//map[str, Expression] topModule() = MODULE_STACK[-1];
+//void declareModuleBinding(str var, Expression exp) {
+//  newMod = topModule() + ( fixFname(var): exp );
+//  popModule();
+//  pushModule(newMod);
+//  //println("MSTACK = <MODULE_STACK>");
+//}
+
+
+
+//bool isDeclared(str name) = name in ( {} | it + s | set[str] s <- STACK );
+
 
 Expression makeFunc(list[Pattern] formals, STMTS body, 
 					list[Statement] begin,
-                    list[Statement] end,
+                    list[Statement]() end,
                     set[str] implicits) {
   pushScope();
   declareVars(implicits);
@@ -462,9 +547,9 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
     v in ( {} | it + s | set[str] s <- STACK[0..-1] ); 
   
   bodyStats = begin; 
-  bodyStats += makeDecls({ v | v <- topScope() - names - decls - implicits, !shadowed(v) }); 
+  bodyStats += makeDecls({ v | v <- topScope().vars - names - decls - implicits, !shadowed(v) }); 
   bodyStats += theStats;
-  bodyStats += end;
+  bodyStats += end();
   popScope();
   return Expression::function("", formals, [], "", addReturns(bodyStats));
 }
@@ -483,13 +568,13 @@ list[Statement] stmt2js((STMT)`def <FNAME f> <TERM _> <STMTS body> end`)
 
 list[Statement] stmt2js((STMT)`def self.<FNAMENoReserved f>(<ARGLIST args>) <STMTS body> end`) {
   name = fixFname("<f>");
-  METAS[name] = methodFunction(name, args, body);
+  declareModuleBinding(name,  methodFunction(name, args, body));
   return [];
 }
 
 list[Statement] stmt2js((STMT)`def self.<FNAMENoReserved f> <TERM _> <STMTS body> end`) {
   name = fixFname("<f>");
-  METAS[name] = methodFunction(name, (ARGLIST)``, body);
+  declareModuleBinding(name, methodFunction(name, (ARGLIST)``, body));
   return [];
 }
 
@@ -628,7 +713,7 @@ Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = logical(or(), expr2js(l), exp
 Expression expr2js((EXPR)`<EXPR c> ? <EXPR t> : <EXPR e>`) 
   =  conditional(expr2js(c), expr2js(t), expr2js(e));
 
-Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`)  
+Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`)
   = assignment(assign(), assignVar2js(v), expr2js(r));
   
 Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)  
@@ -694,7 +779,10 @@ Expression prim2js((PRIMARY)`(<NL* _><STMT s><NL* _>)`)
 Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)`) 
   = stmts2exp((STMTS)`<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>`);
 
-Expression stmts2exp(STMTS stmts)
+
+Expression stmts2exp((STMTS)`<EXPR e>`) = expr2js(e);
+
+default Expression stmts2exp(STMTS stmts)
   = call(Expression::function("", [], [], "", 
        addReturns(( [] | it + stmt2js(s) | s <- stmts.stmts ))), []); 
    
@@ -862,7 +950,7 @@ Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) =
 
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);
-  return makeFunc(f.params, body, f.statBody, [], {});
+  return makeFunc(f.params, body, f.statBody, EMPTY, {});
 }
  // = Expression::function("", blockvar2params(bv), [], "", addReturns(stmts2js(body)));
 

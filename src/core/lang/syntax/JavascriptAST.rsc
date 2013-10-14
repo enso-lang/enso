@@ -27,7 +27,7 @@ data Statement
   | \break(str label = "")  
   | \continue(str label = "")  
   | with(Expression object, Statement stat)
-  | \switch(Expression discriminant, list[SwitchCase] cases, bool \lexical = false)
+  | \switch(Expression discriminant, list[SwitchCase] cases)
   | \return(Expression argument)
   | \return()
   | \throw(Expression argument)  

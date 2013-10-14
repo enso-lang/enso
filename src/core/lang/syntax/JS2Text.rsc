@@ -82,10 +82,9 @@ str js2txt(\continue(label)) = "continue <label>;";
 str js2txt(with(Expression object, Statement statBody)) 
   = "with (<jse2txt(object)>) {<js2txt(statBody)>}";
 
-str js2txt(\switch(Expression discriminant, list[SwitchCase] cases, bool \lexical)) 
-  = "switch (<jse2txt(discriminant)>) {
-    ' <for (c <- cases) {><js2txt(c)>
-    ' <}>
+str js2txt(\switch(Expression discriminant, list[SwitchCase] cases)) 
+  = "switch (<jse2txt(discriminant)>) {<for (c <- cases) {>
+    '  <js2txt(c)><}>
     '}
     ";
 
@@ -239,7 +238,7 @@ str jse2txt(member(Expression object, Expression expProperty))
 //str js2txt(generator(Expression expBody, list[ComprehensionBlock] blocks, Expression \filter)) = "";
 //str js2txt(generator(Expression expBody, list[ComprehensionBlock] blocks)) = "";
 //str js2txt(graph(int index, Literal expression)) = "";
-//str js2txt(graphIndex(int index)) = "";
+//str js2txt(graphIndex(int index)) when bprintln("test = <\test>") = "";
 //str js2txt(let(list[tuple[Pattern id, Init init]] bindings, Expression expBody)) = "";
 
 str jse2txt(Expression::variable(str name)) = name;
@@ -251,14 +250,12 @@ str jse2txt(undefined()) = "undefined";
 str js2txt(Pattern::variable(str name)) = name;
 
 str js2txt(switchCase(Expression \test, list[Statement] consequent)) 
-  = "case <js2txt(\test)>:
-    ' <for (s <- consequent) {><js2txt(s)>
-    ' <}>";
+  = "case <jse2txt(\test)>:<for (s <- consequent) {>
+    ' <js2txt(s)><}>";
     
 str js2txt(switchCase(list[Statement] consequent)) 
-  = "default:
-    ' <for (s <- consequent) {><js2txt(s)>
-    ' <}>";
+  = "default:<for (s <- consequent) {>
+    ' <js2txt(s)><}>";
 
 //str js2txt(catchClause(Pattern param, Expression guard, Statement statBody)) 
 //    = ""; // blockstatement
@@ -274,10 +271,10 @@ str js2txt(catchClause(Pattern param, list[Statement] statBody))
 
 str escapeIt(str x) = escape(x, ("\"": "\\\"", "\n": "\\n", "\t": "\\t"));
   
-str js2txt(string(str strValue)) = "\"<escapeIt(strValue)>\"";
-str js2txt(boolean(bool boolValue)) = "<boolValue>";
-str js2txt(null()) = "null";
-str js2txt(number(num numValue)) = "<numValue>";
+str js2txt(Literal::string(str strValue)) = "\"<escapeIt(strValue)>\"";
+str js2txt(Literal::boolean(bool boolValue)) = "<boolValue>";
+str js2txt(Literal::null()) = "null";
+str js2txt(Literal::number(num numValue)) = "<numValue>";
 //str js2txt(regExp(str regexp)) = "";
 
 
