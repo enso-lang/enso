@@ -21,6 +21,8 @@ bin
 src/bla.dot
 src/sppf.dot
 
+*.swp
+
 # Cache
 src/cache/*
 
