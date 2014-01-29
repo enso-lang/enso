@@ -1,5 +1,5 @@
-require 'applications/Piping/code/simulator'
-require 'applications/Piping/code/controller'
+require '../demos/Piping/code/simulator'
+require '../demos/Piping/code/controller'
 require 'core/system/load/load_dynamic'
 require 'core/schema/code/factory'
 

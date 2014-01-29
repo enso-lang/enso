@@ -2,8 +2,8 @@ require 'core/semantics/code/interpreter'
 require 'core/expr/code/lvalue'
 require 'core/expr/code/env'
 require 'core/expr/code/impl'
-require 'applications/Piping/code/control-env'
-require 'applications/Piping/code/controller-interp'
+require '../demos/Piping/code/control-env'
+require '../demos/Piping/code/controller-interp'
 
 class Controller
 

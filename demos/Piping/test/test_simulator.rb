@@ -1,4 +1,4 @@
-require 'applications/Piping/code/system'
+require '../demos/Piping/code/system'
 
 $n = 100
 st = PipingSystem.new 'boiler'

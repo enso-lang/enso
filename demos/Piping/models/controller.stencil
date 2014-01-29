@@ -1,6 +1,6 @@
 diagram "Piping & Instrumentation Controller" (controller)
 
-require "applications/Piping/code/controller-stencil-defs.rb"
+require "../demos/Piping/code/controller-stencil-defs.rb"
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create an "init" state
