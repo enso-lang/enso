@@ -9,9 +9,9 @@ class Type
   name# str
   schema: Schema / types
   key: Field? = nil
-  
+ 
 class Primitive < Type
-  
+ 
 class Class < Type
   supers: Class*
   subclasses: Class* / supers
