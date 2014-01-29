@@ -2,7 +2,7 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 
-require 'applications/StateMachine/code/state_machine'
+require '../demos/StateMachine/code/state_machine'
 
 sm_schema = Load::load("state_machine.schema")
 factory = Factory::new(sm_schema)
