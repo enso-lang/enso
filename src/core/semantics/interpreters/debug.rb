@@ -1,4 +1,3 @@
-
 require 'core/semantics/code/interpreter'
 
 module Debug
@@ -16,7 +15,7 @@ module Debug
 
     def debug_?(obj, &block)
       args = @D
-      this = args[:this]
+      this = obj #args[:this]
       stack = args[:stack] + ["in #{this}"]
       if (stack.size<=@stoplevel or @breakpts.include?(this._path))
         @file ||= begin; IO.readlines(this._origin.path); rescue; end
@@ -53,6 +52,18 @@ module Debug
             @stoplevel=stack.size-1
           when " ", "8" #space = resume
             @stoplevel=0
+          when "/"
+            if @file
+              print "***"
+              puts @file
+              print "***"
+              Print.print this
+              puts this._origin
+              sl = this._origin.start_line-1
+              el = this._origin.end_line-1
+              puts sl, el
+            end
+            ready = false
           when "w"
             $stderr << "Currently watching: #{@watchlist.map{|sym|sym.to_s}.join(", ")}\n"
             $stderr << "Available: #{(args.keys-@watchlist).map{|sym|sym.to_s}.join(", ")}\n"

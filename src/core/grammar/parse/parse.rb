@@ -23,10 +23,12 @@ class Parse
   end
   
   def self.load(source, grammar, schema, filename = '-')
+    #handle imports
     s = source.split("\n")+[""] #this is to ensure i is correct for 'empty' files with only imports
     deps = [filename]
     schema.factory.file_path.each  {|p| deps << p}
     imports = []
+    # scan each line from the top of the file looking for 'import'
     for i in 0..s.length-1
       next if s[i].lstrip.empty?
       if s[i] =~ /import (?<file>\w+.\w+)( with(?<as>( \w+ as \w+)+))?/
@@ -51,7 +53,8 @@ class Parse
         break;
       end
     end
-    source = s[i..-1].join("\n")
+    source = "\n"*i+s[i..-1].join("\n") #replace import lines from source with blanks
+                                        # do not simply remove as this messes up source line numbers
     data = load_raw(source, grammar, schema, Factory::new(schema), imports, false, filename)
     deps.uniq.each {|p| data.factory.file_path << p}
     return data.finalize
