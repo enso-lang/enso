@@ -1,0 +1,15 @@
+primitive str
+
+class Exp
+
+class Lambda < Exp
+  var: str
+  body! Exp
+
+class App < Exp
+  fun! Exp
+  arg! Exp
+
+class Var < Exp
+  name: str
+

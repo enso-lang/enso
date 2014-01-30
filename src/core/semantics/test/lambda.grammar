@@ -1,0 +1,7 @@
+
+start Exp
+
+Exp ::= [Lambda] "{" "|" var:sym "|" body:Exp "}"
+      | [App] "(" fun:Exp arg:Exp ")"
+      | [Var] name:sym
+

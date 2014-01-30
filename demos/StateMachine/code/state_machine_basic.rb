@@ -8,7 +8,6 @@ module Run
     include Interpreter::Dispatcher
 
     def run(obj)
-      puts "*** dispatching #{obj} ***"
       dispatch_obj(:run, obj)
     end
 
