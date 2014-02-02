@@ -1,4 +1,0 @@
-class Bla
-  attr_accessor :abc 
-# TODO: check required fields etc.
-end

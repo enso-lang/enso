@@ -865,7 +865,7 @@ Expression prim2js((PRIMARY)`<OPERATION op>`) {
   //println("not in assigned vars");
   // fixOp???
   return //Expression::variable(fixVar("<op>")); 
-    makeCall(<false, []>, Expression::variable("self"), fixVar("<op>"), []); 
+    makeCall(<false, []>, Expression::variable("self"), fixOp("<op>"), []); 
 }
   
 Expression prim2js((PRIMARY)`<OPERATION op> <BLOCK block>`)  
