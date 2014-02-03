@@ -14,6 +14,36 @@ module Debug
       @file = nil
     end
 
+    def get_from_file(file, start_row, end_row, start_col, end_col)
+      file = file + ["\n"]
+      filelen = file.length
+      sl = [start_row, 0].max
+      el = [end_row, filelen].min
+      sc = start_col
+      ec = end_col
+      return "" if sl > el
+      if sl == el
+        if ec == 0
+          return ""
+        else
+          file[sl][sc..ec-1]
+        end
+      else
+        first = middle = last = ""
+        first = file[sl][sc..-1]
+        last = file[el][0..ec-1]
+        if ec == 0
+          last = ""
+        end
+        if el - sl < 2
+          middle = ""
+        else
+          middle = file[sl+1..el-1].join
+        end
+        first + middle + last
+      end
+    end
+
     def debug_?(obj, &block)
       args = @D
       this = obj #args[:this]
@@ -26,8 +56,8 @@ module Debug
  
           #print some debugging info
           sample = @file.nil? ? "-source file not available-" : (line = this._origin.start_line-1; @file[line][this._origin.start_column..(this._origin.start_line==this._origin.end_line ? this._origin.end_column : -2)])
-          vars = @watchlist.select{|v|args[v.to_sym]}.map{|v|"#{v}=#{args[v.to_sym]}"}.join("\n")
-          $stderr << "\n\nin L#{stack.size}. #{this}:\"#{sample[0..30]}\"  #{args[:op]}\n#{vars}"
+          vars = @watchlist.select{|v|args[v.to_sym]}.map{|v|"#{v}=#{args[v.to_sym]}\n"}.join
+          $stderr << "\n\nin L#{stack.size}. #{this}:\"#{sample[0..30]}\"  #{args[:op]}\n#{vars}\n"
                #TODO: change this to a customizable debug message?
           $stderr << "--------------------------------------------\n"
           if @file.nil?
@@ -40,34 +70,14 @@ module Debug
               el = this._origin.end_line-1
               sc = this._origin.start_column
               ec = this._origin.end_column
-              $stderr << @file[[sl-@viewwidth,0].max..[sl-1,0].max].map{|s|"     #{s}"}.join unless sl==0
-              if sc == 0 and ec == 0
-                $stderr << src_indicator + @file[sl..el].join(src_indent).red
-              elsif sl == el
-                $stderr << src_indicator
-                $stderr << @file[sl][0..sc-1] if sc > 0
-                $stderr << @file[sl][sc..ec-1].red + @file[sl][ec..-1]
-              else
-                first = middle = last = ""
-                if sc == 0
-                  first = src_indicator + @file[sl].red
-                else 
-                  first = src_indicator + @file[sl][0..sc-1] + @file[sl][sc..-1].red
-                end
-                if ec == 0
-                  last = ""
-                else
-                  last = src_indent + @file[el][0..ec-1].red + @file[el][ec..-1]
-                end
-                if el - sl < 2
-                  middle = ""
-                else
-                  middle = src_indent + @file[sl+1..el-1].join(src_indent).red
-                end
-                $stderr << first + middle + last
-              end
+              before = get_from_file(@file, 0, sl, 0, sc)
+              $stderr << src_indent + before.split("\n", 100).join("\n"+src_indent)
+              selected = get_from_file(@file, sl, el, sc, ec).red
+              selected = selected.split("\n", 100).join("\n"+src_indent)
+              $stderr << selected
               filelen = @file.length
-              $stderr << @file[[el+1,filelen].min..[el+@viewwidth,filelen].min].map{|s|"     #{s}"}.join
+              after = get_from_file(@file, el, filelen-1, ec, @file[filelen-1].length)
+              $stderr << after.split("\n", 100).join("\n"+src_indent)
           end
           $stderr << "\n--------------------------------------------\n"
   
@@ -129,16 +139,6 @@ module Debug
         end
       end
     end
-# 
-    # def debug_?(obj, &block)
-      # args = @D
-      # this = args[:this]
-      # stack = args[:stack] + ["in #{this}"]
-      # if (@breakpts.include?(this._path)); end
-# #      if (stack.size<=@stoplevel or @breakpts.include?(this._path))
-# #      end
-      # yield
-    # end
 
     def read_char
       begin

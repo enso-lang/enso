@@ -21,7 +21,7 @@ module Parse2
         result = parse(start_rule)
       end
       if result and result[1].empty?
-        return result[0]
+        result[0]
       else
         puts "parse error"
         nil
