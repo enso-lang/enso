@@ -26,7 +26,11 @@ module Interpreter
     end
     
     def _bind(field, value)
-      old = @current[field]
+      if @current.has_key? field
+        old = @current[field]
+      else
+        old = :undefined
+      end
       @stack << [field, old]
       @current[field] = value
     end
@@ -34,7 +38,11 @@ module Interpreter
     def _pop(n = 1)
       while (n > 0) do
         parts = @stack.pop
-        @current[parts[0]] = parts[1]
+        if parts[1] == :undefined
+          @current.delete(parts[0])
+        else
+          @current[parts[0]] = parts[1]
+        end
         n -= 1
       end
     end
