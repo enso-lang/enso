@@ -5,13 +5,14 @@ module Debug
   module Debug
     include Interpreter::Dispatcher
 
-    def initialize
+    def init
       super
       @stoplevel=1
       @breakpts=[]
       @watchlist=[]
-      @viewwidth=10
+      @viewwidth=7
       @file = nil
+      @D._bind(:stack, [])
     end
 
     def get_from_file(file, start_row, end_row, start_col, end_col)
@@ -46,7 +47,7 @@ module Debug
 
     def debug_?(obj, &block)
       args = @D
-      this = obj #args[:this]
+      this = obj
       stack = args[:stack] + ["in #{this}"]
       if (stack.size<=@stoplevel or @breakpts.include?(this._path))
         @file ||= begin; IO.readlines(this._origin.path); rescue; end
@@ -55,9 +56,8 @@ module Debug
           ready = true
  
           #print some debugging info
-          sample = @file.nil? ? "-source file not available-" : (line = this._origin.start_line-1; @file[line][this._origin.start_column..(this._origin.start_line==this._origin.end_line ? this._origin.end_column : -2)])
           vars = @watchlist.select{|v|args[v.to_sym]}.map{|v|"#{v}=#{args[v.to_sym]}\n"}.join
-          $stderr << "\n\nin L#{stack.size}. #{this}:\"#{sample[0..30]}\"  #{args[:op]}\n#{vars}\n"
+          $stderr << "\n\nin L#{stack.size}. #{this}\n#{vars}\n"
                #TODO: change this to a customizable debug message?
           $stderr << "--------------------------------------------\n"
           if @file.nil?
@@ -70,13 +70,18 @@ module Debug
               el = this._origin.end_line-1
               sc = this._origin.start_column
               ec = this._origin.end_column
-              before = get_from_file(@file, 0, sl, 0, sc)
+              before_start = [sl-@viewwidth, 0].max
+              before = get_from_file(@file, before_start, sl, 0, sc)
               $stderr << src_indent + before.split("\n", 100).join("\n"+src_indent)
-              selected = get_from_file(@file, sl, el, sc, ec).red
+              selected = get_from_file(@file, sl, [el, sl+@viewwidth*2+1].min, sc, ec).red
               selected = selected.split("\n", 100).join("\n"+src_indent)
               $stderr << selected
+              if el > sl+@viewwidth*2+1
+                $stderr << " ... ...\n".red
+              end
               filelen = @file.length
-              after = get_from_file(@file, el, filelen-1, ec, @file[filelen-1].length)
+              after_end = [[el+@viewwidth, before_start+@viewwidth*2+2].max, filelen-1].min #min window size is 15
+              after = get_from_file(@file, el, after_end, ec, @file[filelen-1].length)
               $stderr << after.split("\n", 100).join("\n"+src_indent)
           end
           $stderr << "\n--------------------------------------------\n"
@@ -131,11 +136,13 @@ module Debug
         res = dynamic_bind stack: stack do
           block.call
         end
-        $stderr << "=> #{res}  (from L#{stack.size})\n\n"
+        #puts res.class
+        #$stderr << "=> #{res}"
+        $stderr << "=>  (from L#{stack.size})\n\n"
         res
       else
         dynamic_bind stack: stack do
-          block.call
+          res = block.call
         end
       end
     end

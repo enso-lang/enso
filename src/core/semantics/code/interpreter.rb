@@ -53,6 +53,11 @@ module Interpreter
   end
   
   module Dispatcher
+    def init
+      if !@D
+        @D = DynamicPropertyStack.new
+      end
+    end
 
     def debug
       @debug = true
@@ -73,6 +78,11 @@ module Interpreter
     end
 
     def wrap(operation, outer, obj)
+      init_done = @init
+      if !init_done
+        init
+      end
+      @init = true
       type = obj.schema_class
       method = "#{outer}_#{type.name}".to_s
       if !respond_to?(method)
@@ -84,12 +94,22 @@ module Interpreter
           raise "Missing method in interpreter for #{outer}_#{type.name}(#{obj})"
         end
       end
+      result = nil
       send(method, obj) {
-        dispatch_obj(operation, obj)
+        result = dispatch_obj(operation, obj)
       }
+      if !init_done
+        @init = false
+      end
+      result
     end
 
     def dispatch_obj(operation, obj)
+      init_done = @init
+      if !init_done
+        init
+      end
+      @init = true
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
@@ -109,6 +129,9 @@ module Interpreter
       if @debug
         @indent = @indent - 1
         $stderr << "#{' '.repeat(@indent)}= #{result}\n"
+      end
+      if !init_done
+        @init = false
       end
       result
     end
