@@ -52,6 +52,6 @@ class Pump < Element
 
 
 class Sensor
-  user: real?
+  user: real
   value: real = attach[kind]
 
