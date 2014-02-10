@@ -152,5 +152,9 @@ module Load
   def self.Load_text(type, factory, source, show = false)
     Load::load_text(type, factory, source, show)
   end
+
+  def self.load_with_models(name, grammar, schema, encoding = nil)
+    Load::Loader.load_with_models(name, grammar, schema, encoding)
+  end
 end
 
