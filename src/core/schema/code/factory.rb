@@ -168,6 +168,10 @@ module Factory
         define_singleton_value(:to_s, "<<#{cls.name} #{self._id}>>")
       end
     end
+    def inspect
+      to_s
+    end
+
     def __computed(fld)
       # check if this is a computed override of a field
       if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
