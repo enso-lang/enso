@@ -59,7 +59,7 @@ module SimulatorInterpreter
       dynamic_bind workqueue: [] do
         # add just the pump to the workqueue
         obj.elements.each do |elem|
-          if elem.Pump?
+          if elem.Pump? or elem.Splitter?
             enqueue(elem)
           end
         end
@@ -129,7 +129,7 @@ module SimulatorInterpreter
         pressurize_pipes(elem, new_in, new_out)
       else
         # if not on then behave like normal element
-        calcPressure_?(splitter)
+        calcPressure_?(elem)
       end
     end
 
@@ -156,17 +156,17 @@ module SimulatorInterpreter
           #left pipe behaves like it's sealed (ie pressure = other side)
           new_out0 = splitter.outputs[0].out_pressure
         end
-        if not approx(elem.input.out_pressure, new_in)
-          elem.input.out_pressure = new_in
-          enqueue(elem.input.input)
+        if not approx(splitter.input.out_pressure, new_in)
+          splitter.input.out_pressure = new_in
+          enqueue(splitter.input.input)
         end
-        if not approx(elem.outputs[0].in_pressure, new_out0)
-          elem.outputs[0].in_pressure = new_out0
-          enqueue(elem.outputs[0].output)
+        if not approx(splitter.outputs[0].in_pressure, new_out0)
+          splitter.outputs[0].in_pressure = new_out0
+          enqueue(splitter.outputs[0].output)
         end
-        if not approx(elem.outputs[1].in_pressure, new_out1)
-          elem.outputs[1].in_pressure = new_out1
-          enqueue(elem.outputs[1].output)
+        if not approx(splitter.outputs[1].in_pressure, new_out1)
+          splitter.outputs[1].in_pressure = new_out1
+          enqueue(splitter.outputs[1].output)
         end
       end
     end
@@ -189,7 +189,7 @@ module SimulatorInterpreter
         in_flow += flow = (pipe.in_pressure - pipe.out_pressure) / pipe.length * FLOW_CONST
         in_temp += pipe.temperature * flow
       end
-      in_temp / in_flow
+      in_flow==0 ? 0 : in_temp / in_flow
     end
 
     def send_heat(elem, in_temp)
@@ -306,12 +306,18 @@ class Simulator
     @sm.elements.each do |elem|
       begin
       print "#{elem.name[0..6]}"
+      if elem.Attachable? and not elem.sensor.nil?
+        print "\tT:#{elem.output.temperature} -> #{elem.sensor.user}"
+      elsif elem.Splitter?
+        print "\tT:#{elem.output.temperature} #{elem.position < 0.5 ? "<--" : (elem.position > 0.5 ? "-->" : "-O-")}"
+      else
+        print "\tT:#{elem.output.temperature}\t"
+      end
       if elem.Pump?
-        print "\tP:#{elem.input.out_pressure}->#{elem.output.in_pressure}"
+        print "\tP:#{elem.input.out_pressure}/#{elem.output.in_pressure} (#{elem.output.in_pressure-elem.input.out_pressure})"
       else
         print "\tP:#{elem.output.in_pressure}"
       end
-      print "\tT:#{elem.output.temperature}"
       puts
       rescue; end
     end

@@ -23,8 +23,8 @@ require 'test/unit/test_patch.rb'
 #  (failure is local, but frequently use for demos)
 
 # Piping
-require '../demos/Piping/test/simulator.rb'
-require '../demos/Piping/test/controller.rb'
+require '../demos/Piping/test/test_simulator.rb'
+require '../demos/Piping/test/test_controller.rb'
 
 # EnsoSync
 

@@ -3,6 +3,7 @@ class System
   sensors! Sensor*
 
 class Attachable 
+  sensor: Sensor?
 
 class Pipe < Attachable
   input: OutputElement
@@ -53,7 +54,7 @@ class Sensor
   name# str
   kind: str // temperature, pressure, flow
   controllable: bool
-  attach:Attachable
+  attach:Attachable / sensor
 
 primitive str
 primitive int

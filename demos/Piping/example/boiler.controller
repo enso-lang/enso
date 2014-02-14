@@ -1,6 +1,6 @@
 start IGNITE
 
-  START_GAS = 50
+  START_GAS = 100
   Pump.power = 200
   WATER_MARGIN = 10
   RADIATOR_MARGIN = 10
