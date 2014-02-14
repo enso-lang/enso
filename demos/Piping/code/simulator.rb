@@ -2,287 +2,359 @@
 require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
-require 'core/semantics/interpreters/fmap'
-require 'core/semantics/interpreters/attributes'
 require 'core/semantics/interpreters/debug'
 
 =begin
-NOTES:
-- How to send commands from controller?
-- How to display output? Log+sensor?
-- Separate 'dynamic state' schema?
-  - sometimes we need an 'old' and a 'new' state, and the static piping layout is unchanged
-  - the piping editor is only concerned with the static layout
-- Pipes vs Joints vs Splitters: Joints and splitters are 1-way?
-- Sensors only attached to pipes? Not so in the example
-- Proposed change: Pipes to have exactly two elements, and Sensor moved to a non element (special widget attached to pipes)
+The SCIENCE!
+------------
+* Calculating pressure:
 
-TODO:
-- Temperature propagation via convection
+Using kirchoff's law:
+At any point (elem), sum of (input pressure delta / input pipe length) = sum of (output pressure delta / output pipe length)
 
-Options for simulator-controller communication:
-a. separate threads talking thru shared event list, ie producer consumer
-b. after each tick, make a call to the controller. easier, but a little contrived (cant work in real life))
+hence,
+  sum( (Pn-P)/Ln ) = 0, where P is pressure at the opposite end of the pipe (Pn-P is negative for out pipes), 
+                              L is length, and 
+                              sum means sum over all pipes 1..n
+  sum( Pn/Ln - P/Ln) = 0
+  sum(Pn/Ln) - P * sum(1/Ln) = 0
+  P = sum(Pn/Ln) / sum(1/Ln)
 
-Useful Physics laws
-- Ideal gas law: PV = nRT, P=Pressure, V=volume, n=amount of gas (moles), R=universal gas constant, T=temperature
-  = Pressure and volume are inversely proportionate
-- Bernoulli's law: v^2 + p/p0 = constant, where v=velocity of flow, p=pressure, p0=density of fluid
-  = velocity is inversely dependent on pressure difference
-- atmospheric pressure is 101.352 kPa
-- Poiseuille's Equation Calculator: V = (pi * P * r^4) / (8 * n * L)
-    V = Volume per Second
-    P = Pressure Difference Between The Two Ends
-    R = Internal Radius of the Tube
-    n = Absolute Viscosity
-    L = Total Length of the Tube
+* Calculating heat flow:
+
+at each element, compute
+  - how much incoming water. flow is in length dimensions
+  - at what temperature (based on flow of incoming pipes)
+
+transfer to output pipes
+  - each pipe receives water based on its flow
+  - assume temperatures mix perfectly
 
 =end
 
 ROOM_TEMP = 50
 ERROR = 0.1
+FLOW_CONST = 1
+COOLING_CONST = 0.03
 
-module CalcHeatFlow
+module SimulatorInterpreter
+  module RunSimulator
+    include Eval::EvalExpr
+    include Lvalue::LValueExpr
+    include Interpreter::Dispatcher
 
-  def CalcHeatFlow(elem, args)
-    send("CalcHeatFlow_#{elem.schema_class.name}", elem, args[:oldpipe].elements[elem.name], args)
-  end
+    def run(obj)
+      dispatch_obj(:run, obj)
+    end
 
-  def CalcHeatFlow_Joint(elem, old, args)
-    #funnel fluids from pipes into one pipe
-    #total flow is conserved
-    flow = set_pipe_flow(elem.output, args[:flowconst])
-    temp = (old.inputs.inject(0) {|memo, p| memo + p.temperature * set_pipe_flow(p, args[:flowconst])} / flow).sigfig(3)
-    transfer_heat(elem.output, flow, temp)
-  end
+    def calcPressure(obj)
+      dispatch_obj(:calcPressure, obj)
+    end
 
-  def CalcHeatFlow_Splitter(elem, old, args=nil)
-    #shares fluids from one pipe to others
-    #total flow is conserved
-    #distribution is based on position of the splitting head
-    elem.outputs.each do |p|
-      transfer_heat(p, set_pipe_flow(p, args[:flowconst]), old.input.temperature)
+    def calcHeat(obj)
+      dispatch_obj(:calcHeat, obj)
+    end
+
+    def run_System(obj)
+      dynamic_bind workqueue: [] do
+        # add just the pump to the workqueue
+        obj.elements.each do |elem|
+          if elem.Pump?
+            enqueue(elem)
+          end
+        end
+        # run queue to calculate pressure
+        while not done()
+          calcPressure(dequeue())
+        end
+      end
+      # calculate heat and flow based on pressure differences
+      obj.elements.each do |elem|
+        calcHeat(elem)
+      end
+    end
+
+    def enqueue(elem)
+      if not @D[:workqueue].include? elem and not elem.nil?
+        @D[:workqueue].push(elem)
+      end
+    end
+    def dequeue()
+      @D[:workqueue].shift
+    end
+    def done()
+      @D[:workqueue].empty?
+    end
+
+    def approx(float1, float2)
+      (float1 - float2).abs < ERROR
+    end
+
+    #check if neighboring elems need to be added to workqueue
+    #only works for elements with one in and one out pipe
+    def pressurize_pipes(elem, new_in, new_out)
+      elem.inputs.each do |inpipe|
+        if not approx(inpipe.out_pressure, new_in)
+          inpipe.out_pressure = new_in
+          enqueue(inpipe.input)
+        end
+      end
+      elem.outputs.each do |outpipe|
+        if not approx(outpipe.in_pressure, new_out)
+          outpipe.in_pressure = new_out
+          enqueue(outpipe.output)
+        end
+      end
+    end
+
+    def calcPressure_Pump(elem)
+      if elem.run
+=begin
+        # when running, exert a pressure difference between the two ends
+        # based on pump power (pressure) and pressure at in/out pipes
+        # basically same as normal computation except that in pressure 
+        # pretends to be higher by power units
+        num = elem.inputs.inject(0) {|memo, p| memo + (p.in_pressure+elem.power) / p.length} \
+            + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
+        dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} \
+            + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
+        new_out = (num / dem).round(1)
+        new_in = new_out - elem.power
+        pressurize_pipes(elem, new_in, new_out)
+=end
+        #the code above is commented out for aesthetic purposes: I want 
+        # pressure to only be positive numbers
+        new_out = elem.power
+        new_in = 0.0
+        pressurize_pipes(elem, new_in, new_out)
+      else
+        # if not on then behave like normal element
+        calcPressure_?(splitter)
+      end
+    end
+
+    def calcPressure_Splitter(splitter)
+      if splitter.position == 0.5 #do the normal thing
+        calcPressure_?(splitter)
+      else 
+        if splitter.position == 0.0 #turn left
+          #left pipe behaves as the only pipe
+          num = splitter.input.in_pressure / splitter.input.length \
+              + splitter.outputs[0].out_pressure / splitter.outputs[0].length
+          dem = 1.0 / splitter.input.length \
+              + 1.0 / splitter.outputs[0].length
+          new_in = new_out0 = (num / dem).round(1)
+          #right pipe behaves like it's sealed (ie pressure = other side)
+          new_out1 = splitter.outputs[1].out_pressure
+        elsif splitter.position == 1.0 #turn right
+          #right pipe behaves as the only pipe
+          num = splitter.input.in_pressure / splitter.input.length \
+              + splitter.outputs[1].out_pressure / splitter.outputs[1].length
+          dem = 1.0 / splitter.input.length \
+              + 1.0 / splitter.outputs[1].length
+          new_in = new_out1 = (num / dem).round(1)
+          #left pipe behaves like it's sealed (ie pressure = other side)
+          new_out0 = splitter.outputs[0].out_pressure
+        end
+        if not approx(elem.input.out_pressure, new_in)
+          elem.input.out_pressure = new_in
+          enqueue(elem.input.input)
+        end
+        if not approx(elem.outputs[0].in_pressure, new_out0)
+          elem.outputs[0].in_pressure = new_out0
+          enqueue(elem.outputs[0].output)
+        end
+        if not approx(elem.outputs[1].in_pressure, new_out1)
+          elem.outputs[1].in_pressure = new_out1
+          enqueue(elem.outputs[1].output)
+        end
+      end
+    end
+
+    def calcPressure_?(elem)
+      num = elem.inputs.inject(0) {|memo, p| memo + p.in_pressure / p.length} \
+          + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
+      dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} \
+          + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
+      new_in = new_out = (num / dem).round(1)
+      pressurize_pipes(elem, new_in, new_out)
+    end
+
+    def recv_heat(elem)
+      # in_flow is how much water comes in
+      # in_temp is how hot they are
+      in_temp = 0
+      in_flow = 0
+      elem.inputs.each do |pipe|
+        in_flow += flow = (pipe.in_pressure - pipe.out_pressure) / pipe.length * FLOW_CONST
+        in_temp += pipe.temperature * flow
+      end
+      in_temp / in_flow
+    end
+
+    def send_heat(elem, in_temp)
+      # this hot water is distributed to the out pipes and their new temp is calculated
+      # note: sum of flows for all inpipes = sum of flows of all outpipes
+      elem.outputs.each do |pipe|
+        flow = (pipe.in_pressure - pipe.out_pressure) / pipe.length * FLOW_CONST
+        if flow > pipe.length
+          pipe.temperature = in_temp
+        else
+          pipe.temperature = ((in_temp * flow + pipe.temperature * (pipe.length-flow)) / pipe.length).round(1)
+        end
+      end
+    end
+
+    def env_cooling(pipe)
+      # finally, pipes suffer heat loss to the environment based on their surface area
+      pipe.temperature = (pipe.temperature * (1.0-COOLING_CONST) + ROOM_TEMP * COOLING_CONST).round(1)
+    end
+
+    def calcHeat_Burner(elem)
+      # similar to normal elements except heat output is temperature when turned on
+      in_temp = recv_heat(elem)
+      in_temp = [elem.temperature, in_temp].max if elem.ignite #cannot heat to lower temp than input
+      send_heat(elem, in_temp)
+      elem.outputs.each do |pipe|
+        env_cooling(pipe)
+      end
+    end
+
+    def calcHeat_Source(elem)
+    end
+
+    def calcHeat_Exhaust(elem)
+    end
+
+    def calcHeat_Vessel(elem)
+      # right now same as radiator
+      # temperature of radiator heated up by incoming pipes
+      # but loses heat to the environment (which heats up the room)
+      in_temp = recv_heat(elem)
+      heating_rate = 0.20
+      elem.temperature = in_temp * heating_rate + elem.temperature * (1-heating_rate)
+      # cools slower than a normal pipe
+      elem.temperature = (elem.temperature * (1.0-COOLING_CONST/3) + ROOM_TEMP * COOLING_CONST/3).round(1)
+      in_temp = elem.temperature
+      send_heat(elem, in_temp)
+      elem.outputs.each do |pipe|
+        env_cooling(pipe)
+      end
+    end
+
+    def calcHeat_Radiator(elem)
+      # temperature of radiator heated up by incoming pipes
+      # but loses heat to the environment (which heats up the room)
+      in_temp = recv_heat(elem)
+      heating_rate = 0.20
+      elem.temperature = in_temp * heating_rate + elem.temperature * (1-heating_rate)
+      # cools slower than a normal pipe
+      elem.temperature = (elem.temperature * (1.0-COOLING_CONST/3) + ROOM_TEMP * COOLING_CONST/3).round(1)
+      in_temp = elem.temperature
+      send_heat(elem, in_temp)
+      elem.outputs.each do |pipe|
+        env_cooling(pipe)
+      end
+    end
+
+    def calcHeat_?(elem)
+      in_temp = recv_heat(elem)
+      send_heat(elem, in_temp)
+      elem.outputs.each do |pipe|
+        env_cooling(pipe)
+      end
     end
   end
 
-  def CalcHeatFlow_Source(elem, old, args)
-    #allows material to enter the system
-    #pressure is assumed to be maintained by environment
-    #since temperature
-    elem.output.flow = 0
-  end
-
-  def CalcHeatFlow_Room(elem, old, args)
-    elem.temperature = (args[:radiator].temperature - ROOM_TEMP) * 0.5 + ROOM_TEMP
-  end
-
-  def CalcHeatFlow_Burner(elem, old, args)
-    #burner heats up water that passes through it
-    if elem.ignite
-      elem.gas_level = [elem.gas_level, ROOM_TEMP].max
-      elem.temperature = elem.gas_level
-    else
-      elem.temperature = old.input.temperature
-    end
-    flow = set_pipe_flow(elem.output, args[:flowconst])
-    transfer_heat(elem.output, flow, elem.temperature)
-  end
-
-  def CalcHeatFlow_Radiator(elem, old, args)
-    #radiator uses the heat from the passing water to heat the environment
-    #assume the efficiency is 15%, ie 15% of the heat difference is transferred from the water to the environment
-    #if the water passing through is cold, then this doubles up as a cooling system (?)
-    flow = set_pipe_flow(elem.output, args[:flowconst])
-    temp = (old.input.temperature - old.temperature) * 0.10
-    elem.temperature = (old.temperature + temp).sigfig(3)
-    new_temp = old.input.temperature - temp
-    transfer_heat(elem.output, flow, new_temp)
-  end
-
-  def CalcHeatFlow_Vessel(elem, old, args=nil)
-    #Allows material to fill up the vessel. Once filled it acts like a joint
-    if false #elem.contents < elem.capacity
-    else #behave like a joint
-      flow = set_pipe_flow(elem.output, args[:flowconst])
-      temp = (old.input.temperature - old.temperature) * 0.15
-      elem.temperature = (old.temperature + temp).sigfig(3)
-      transfer_heat(elem.output, flow, elem.temperature)
-    end
-  end
-
-  def CalcHeatFlow_Pump(elem, old, args=nil)
-    #raises the flow of the output pipe
-    if elem.run = true
-      flow = elem.output.flow = elem.flow
-    else
-      flow = elem.output.flow = set_pipe_flow(elem.output, args[:flowconst])
-    end
-    transfer_heat(elem.output, flow, old.input.temperature)
-  end
-
-  #transfer some amount of water from s1 to s2 based on connecting area and flow (based on pressure)
-  def set_pipe_flow(p, flowconst)
-    p.flow = ((p.in_pressure - p.out_pressure) / p.size * flowconst).sigfig(3)
-  end
-
-  def transfer_heat(pipe, flow, temperature)
-    #simulate heat loss from water travelling in pipe
-    temperature = flow > pipe.volume ? temperature : ((temperature * flow + pipe.temperature * (pipe.volume - flow)) / pipe.volume).sigfig(3)
-    temp_diff = (temperature - ROOM_TEMP) * (0.96)
-    temperature = ROOM_TEMP + temp_diff
-    pipe.temperature = temperature
-  end
-end
-
-module CalcPressure
-
-  operation :CalcPressure
-
-  def CalcPressure_Pipe(input, output, blocked_pipes)
-    if blocked_pipes.include? self
-      @this.in_pressure = @this.out_pressure = output.CalcPressure[:in]
-    else
-      @this.in_pressure = input.CalcPressure[:out]
-      @this.out_pressure = output.CalcPressure[:in]
-    end
-    {in: @this.in_pressure, out: @this.out_pressure}
-  end
-
-  #default element with one input and output
-  def CalcPressure_?(type, fields, args)
-    input = fields['input'].CalcPressure
-    output = fields['output'].CalcPressure
-    #compute the pressure at this component based on the pressure at the other two ends of the two pipes
-    num = input[:in]/fields['input'].size + output[:out]/fields['output'].size
-    dem = 1.0/fields['input'].size + 1.0/fields['output'].size
-    new_pressure = (num / dem).round(1)
-    {in: new_pressure, out: new_pressure}
-  end
-
-  def CalcPressure_Source(output)
-    new_pressure = output.CalcPressure[:out]
-    {in: new_pressure, out: new_pressure}
-  end
-
-  def CalcPressure_Joint(inputs, output)
-    outp = output.CalcPressure
-    num = inputs.inject(outp[:out]/output.size) {|memo, p| memo + p.CalcPressure[:in]/p.size}
-    dem = inputs.inject(1.0/output.size) {|memo, p| memo + 1.0/p.size}
-    new_pressure = (num / dem).round(1)
-    {in: new_pressure, out: new_pressure}
-  end
-
-  def CalcPressure_Splitter(position, input, left, right, blocked_pipes)
-    inp = input.CalcPressure
-    if position == 0
-      blocked_pipes << right
-      blocked_pipes.delete(left)
-      leftp = left.CalcPressure
-      num = inp[:in]/input.size + leftp[:out]/left.size
-      dem = 1.0/input.size + 1.0/left.size
-      new_pressure = (num / dem).round(1)
-    elsif position == 1
-      blocked_pipes << left
-      blocked_pipes.delete(right)
-      rightp = left.CalcPressure
-      num = inp[:in]/input.size + rightp[:out]/right.size
-      dem = 1.0/input.size + 1.0/right.size
-      new_pressure = (num / dem).round(1)
-    elsif position == 0.5
-      leftp = left.CalcPressure
-      rightp = left.CalcPressure
-      num = inp[:in]/input.size + leftp[:out]/left.size + rightp[:out]/right.size
-      dem = 1.0/input.size + 1.0/left.size + 1.0/right.size
-      new_pressure = (num / dem).round(1)
-    end
-    {in: new_pressure, out: new_pressure}
-  end
-
-  def CalcPressure_Pump
-    {in: 0, out: 100}
-  end
-
-  def default(obj)
-    if obj.Pipe?
-      {in: obj.in_pressure, out: obj.out_pressure}
-    elsif obj.Source?
-      {in: obj.output.in_pressure, out: obj.output.in_pressure}
-    else
-      {in: obj.inputs[0].out_pressure, out: obj.outputs[0].in_pressure}
-    end
-  end
-
-  def __default_args; {:blocked_pipes=>[]}; end
-end
-
-module Init
-
-  operation :Init
-
-  def Init_Pipe
-    p = @this
-    p.diameter = 0.1 if p.diameter == 0
-    p.size = 10 if p.size == 0
-    p.temperature = ROOM_TEMP
-    p.in_pressure = 0
-    p.out_pressure = 0
-    p
-  end
-
-  def Init_Radiator
-    @this.temperature = ROOM_TEMP
-  end
-
-  def Init_Vessel
-    @this.temperature = ROOM_TEMP
-  end
-
-  def Init_Sensor
-    @this.user = ROOM_TEMP
-  end
-
-  def Init_?(fields, type, args)
-    @this
-  end
-
-end
-
-class Float
-  #utility function that rounds to significant figures
-  def sigfig(digits)
-    sprintf("%.#{digits - 1}e", self).to_f
+  class RunSimulatorC
+    include RunSimulator
   end
 end
 
 class Simulator
 
-  include CalcHeatFlow
-
   def initialize(piping)
-    @piping = piping
-    #do initialization here by setting the default states of the pipes, etc
-    Interpreter(Fmap.traverse(Init)).Init(@piping)
-  end
-
-  #will run continuously
-  def execute
-    while true
-      tick
+    @sm = piping
+    # initial all pipes to be of the same length / diameter and temperature
+    @sm.elements.each do |elem|
+      elem.outputs.each do |pipe|
+        pipe.temperature = ROOM_TEMP
+        pipe.length = 10 #if pipe.length == 0
+        pipe.diameter = 0.1 if pipe.diameter == 0
+      end
+      if elem.Temperatured?
+        elem.temperature = ROOM_TEMP
+      end
+      if elem.Splitter?
+        elem.position = 0.5
+      end
     end
-  end
-
-  #main step function. each step takes the current state and produces the next state
-  #maintains a dirty bit on elements to know which elements are connected to pipes whose state have changed
-  def tick
-    pumps = @piping.elements.select {|o| o.Pump? }.values
-    valves = @piping.elements.select {|o| o.Splitter? or o.Valve? }.values
-    if !pumps.empty?
-      Interpreter(AttrGrammar.traverse(CalcPressure)).CalcPressure(pumps[0].output)
-      p = pumps[0].output
-      flowconst = pumps[0].flow / ((p.in_pressure - p.out_pressure) / p.size)
-      oldpipe = Clone(@piping)
-      @piping.elements.each {|e| CalcHeatFlow(e, oldpipe: oldpipe, flowconst: flowconst, radiator: @piping.elements['Radiator'])}
+    @sm.sensors.each do |sensor|
+      sensor.user = ROOM_TEMP
     end
+
+    @interp = SimulatorInterpreter::RunSimulatorC.new
   end
 
+  def run
+    @interp.run(@sm)
+  end
+
+  def display_state
+    # display current state
+    puts "\nCurrent state"
+    @sm.elements.each do |elem|
+      begin
+      print "#{elem.name[0..6]}"
+      if elem.Pump?
+        print "\tP:#{elem.input.out_pressure}->#{elem.output.in_pressure}"
+      else
+        print "\tP:#{elem.output.in_pressure}"
+      end
+      print "\tT:#{elem.output.temperature}"
+      puts
+      rescue; end
+    end
+    puts
+  end
 end
+
+if __FILE__ == $0 then
+  require 'core/system/load/load'
+  require 'core/semantics/interpreters/debug'
+
+  class SimulatorInterpreter::RunSimulatorC
+    include Debug::Debug
+    def run(obj)
+      wrap(:run, :debug, obj)
+    end
+    def calcPressure(obj)
+      wrap(:calcPressure, :debug, obj)
+    end
+  end
+
+  name = 'boiler'
+
+  Cache.clean("#{name}.piping-sim")
+
+  grammar = Load::load('piping.grammar')
+  schema = Load::load('piping-sim.schema')
+  pipes = Load::load_with_models("#{name}.piping", grammar, schema)
+  simulator = Simulator.new(pipes)
+
+  pipes.elements['Pump'].run = true
+  pipes.elements['Pump'].power = 200
+  pipes.elements['Burner'].ignite = true
+  pipes.elements['Burner'].temperature = 100
+
+  time = 0
+  while true
+    puts "\n========================="
+    puts "TIME: #{time+=1}\n"
+    simulator.run
+    simulator.display_state
+    sleep 1
+  end
+end
+
+

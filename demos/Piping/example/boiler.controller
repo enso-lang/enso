@@ -1,7 +1,7 @@
 start IGNITE
 
   START_GAS = 50
-  Pump.flow = 0.35
+  Pump.power = 200
   WATER_MARGIN = 10
   RADIATOR_MARGIN = 10
   BURNER_RAMPUP = 3
@@ -9,7 +9,7 @@ start IGNITE
 
   state IGNITE : if Burner.ignite goto RAMPUP
      Burner.ignite = true
-    Burner.gas_level = START_GAS
+    Burner.temperature = START_GAS
     Pump.run = true
     turn splitter Valve center
 
@@ -20,7 +20,7 @@ start IGNITE
         goto BOILER
     if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN and Boiler.temperature > Boiler_Temp.user + WATER_MARGIN
         goto RADIATOR
-    Burner.gas_level = Burner.gas_level + BURNER_RAMPUP
+    Burner.temperature = Burner.temperature + BURNER_RAMPUP
     turn splitter Valve center
 
   state BOILER :
@@ -28,7 +28,7 @@ start IGNITE
         goto RAMPUP
     if Boiler.temperature > Boiler_Temp.user 
         goto RUNNING
-    Burner.gas_level = Burner.gas_level + BURNER_RAMPUP
+    Burner.temperature = Burner.temperature + BURNER_RAMPUP
     turn splitter Valve left
 
   state RADIATOR :
@@ -36,7 +36,7 @@ start IGNITE
         goto RAMPUP
     if Radiator.temperature > Radiator_Temp.user
         goto RUNNING
-    Burner.gas_level = Burner.gas_level + BURNER_RAMPUP
+    Burner.temperature = Burner.temperature + BURNER_RAMPUP
     turn splitter Valve right
 
   state COOLDOWN :
@@ -46,7 +46,7 @@ start IGNITE
         goto RADIATOR
     if Boiler.temperature < Boiler_Temp.user - RADIATOR_MARGIN 
         goto BOILER 
-    Burner.gas_level = Burner.gas_level - BURNER_RAMPDOWN
+    Burner.temperature = Burner.temperature - BURNER_RAMPDOWN
 
   state RUNNING :
     if Radiator.temperature < Radiator_Temp.user - RADIATOR_MARGIN and Boiler.temperature < Boiler_Temp.user - WATER_MARGIN

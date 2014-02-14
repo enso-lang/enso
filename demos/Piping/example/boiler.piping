@@ -8,7 +8,7 @@
    Valve: splitter in=Pump
    Boiler: vessel in=Valve.left
    Radiator: radiator in=Valve.right
-   Return = Boiler + Radiator + I + G
+   Return = Boiler + Radiator
 
 // sensors
    control Radiator_Temp : temperature ( Radiator )

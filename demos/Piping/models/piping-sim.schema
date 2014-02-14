@@ -5,12 +5,9 @@ primitive real
 primitive bool
 
 class Pipe
-  flow: real
   in_pressure: real
   out_pressure: real
   temperature: real
-  velocity: real = flow / area
-
 
 class Element 
 
@@ -25,8 +22,6 @@ class Source < End
 
 class Burner < Element, Temperatured
   ignite: bool
-  gas_level: real
-
 
 class Radiator < Element, Temperatured
 
@@ -36,18 +31,11 @@ class Room < Element
 class Vessel < Element, Temperatured
   contents: real
 
-
-class Valve < Element
-  flow: real // between 0 and 1
-
-
 class Splitter < Element
   position: real // between 0 and 1
 
-
 class Pump < Element
-  pressure: real
-  flow: real
+  power: real
   run: bool
 
 
