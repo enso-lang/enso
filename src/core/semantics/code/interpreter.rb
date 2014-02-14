@@ -46,7 +46,7 @@ module Interpreter
         n -= 1
       end
     end
-    
+
     def to_s
       @current.to_s
     end
@@ -59,11 +59,6 @@ module Interpreter
       end
     end
 
-    def debug
-      @debug = true
-      @indent = 0 if !@indent
-    end
-    
     def dynamic_bind fields={}, &block
       if !@D
         @D = DynamicPropertyStack.new
@@ -121,15 +116,7 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
-      if @debug
-        $stderr << "#{' '.repeat(@indent)}>#{operation} #{obj}\n"
-        @indent = @indent + 1
-      end
       result = send(method, obj)
-      if @debug
-        @indent = @indent - 1
-        $stderr << "#{' '.repeat(@indent)}= #{result}\n"
-      end
       if !init_done
         @init = false
       end
