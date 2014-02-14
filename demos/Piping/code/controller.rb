@@ -14,7 +14,7 @@ module ControllerInterpreter
     end
 
     def run_Controller(obj)
-      if @D[:init]
+      if not @D.include? :current or @D[:current].nil?
         obj.globals.each do |g|
           run(g)
         end
@@ -118,13 +118,13 @@ class Controller
     @interp = ControllerInterpreter::RunControllerC.new
     @state = ControllerState.new
     @state.env = Env::HashEnv.new({}, ControlEnv.new(piping))
-    @interp.dynamic_bind env: @state.env, init: true do
+    @interp.dynamic_bind env: @state.env do
       @state.current = @interp.run(@sm)
     end
   end
 
   def run
-    @interp.dynamic_bind current: @state.current, env: @state.env, init: false do
+    @interp.dynamic_bind current: @state.current, env: @state.env do
       @state.current = @interp.run(@sm)
     end
   end
