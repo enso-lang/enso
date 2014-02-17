@@ -90,38 +90,3 @@ class Parse
   
 end
 
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  require 'core/schema/code/factory'
-  require 'benchmark'
-  require 'ruby-prof'
-  grammar = Load::load('web.grammar')
-  ss = Load::load('web.schema')
-  factory = Factory::new(ss)
-  path = 'apps/web/models/prelude.web'
-  source = File.read(path)
-  org = Origins.new(source, path)
-  
-  puts "PARSING"
-  tree = nil
-
-  10.times do |x|
-    puts Benchmark.measure { tree = Parse.parse(source, grammar, org) }
-  end
-
-  result = RubyProf.profile do 
-    Build.build(tree, factory, org)
-  end
-
-  printer = RubyProf::FlatPrinter.new(result)
-  printer.print(STDOUT, {})
-
-
-
-#   puts "BUILDING"
-#   10.times do |x|
-#     puts Benchmark.measure { Build.build(tree, factory, org) }
-#   end
-  
-
-end

@@ -73,7 +73,7 @@ module Traceval
     end
   
     def eval_EVar(obj)
-      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
+      raise "ERROR: undefined variable #{obj.name} #{obj._origin} in #{@D[:env]}" unless @D[:env].has_key?(obj.name)
       res = @D[:env][obj.name]
       if !res.is_a? Factory::MObject #if this result is a constant then just list it as a constant
         if @D[:srctemp][obj.name]

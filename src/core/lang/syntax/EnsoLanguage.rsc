@@ -29,12 +29,12 @@ Rules
 
 
 start syntax Unit 
-  = STMTS
+  = unit: STMTS
   ;
 
 syntax STMTS
- = NL* {STMT TERM}+ NL* // possibly this could be simplified.
- | NL*
+ = stmts: NL* {STMT TERM}+ stmts NL* // possibly this could be simplified.
+ | empties: NL*
  ;
  
 syntax TERM  = ";" | NL+ ; // need to have plus, otherwise no comments inbetween...
@@ -44,168 +44,188 @@ lexical NL
   ;
   
 syntax STMT
-  = "if" EXPR THEN STMTS ELSIF* ELSE? "end"
-  | "unless" EXPR THEN STMTS ELSE? "end"
-  | "while" EXPR DO STMTS "end"
-  | "until" EXPR DO STMTS "end"
-  | "case" STMTS WHEN+ ELSE? "end"
-  | "for" BLOCK_VAR "in" EXPR DO STMTS "end"
-  | "begin" STMTS RESCUE+ ELSE? ENSURE? "end"
-  | "class" IDENTIFIER EXTEND? STMTS "end" 
-  | "module" IDENTIFIER STMTS "end"
-  | "def" FNAME "(" ARGLIST ")" STMTS "end"
-  | "def" FNAME TERM STMTS "end"
-  | "def" SINGLETON ("."|"::") FNAME "(" ARGLIST ")" STMTS "end"
-  | "def" SINGLETON ("."|"::") FNAME TERM STMTS "end"
+  = ifThenElse: "if" EXPR THEN STMTS ELSIF* ELSE? "end"
+  | unless: "unless" EXPR THEN STMTS ELSE? "end"
+  | whileDo: "while" EXPR DO STMTS "end"
+  | untilDo: "until" EXPR DO STMTS "end"
+  | caseWhen: "case" STMTS WHEN+ ELSE? "end"
+  | forIn: "for" BLOCK_VAR "in" EXPR DO STMTS "end"
+  | beginRescue: "begin" STMTS RESCUE+ ELSE? ENSURE? "end"
+  | class: "class" IDENTIFIER EXTEND? STMTS "end" 
+  | \module: "module" IDENTIFIER STMTS "end"
+  | defArgs: "def" FNAME "(" ARGLIST ")" STMTS "end"
+  | def: "def" FNAME TERM STMTS "end"
+  | defSingletonArgs: "def" SINGLETON ("."|"::") FNAMENoReserved "(" ARGLIST ")" STMTS "end"
+  | defSingleton: "def" SINGLETON ("."|"::") FNAMENoReserved TERM STMTS "end"
   
   // NB: CALLARGS are not optional here.
   // But still it leads to all kinds of ambiguities
   // maybe only allow primaries in commands and no blocks
-  | YIELD1 !>> "("  CALLARGS 
-  | OPERATION1 !>> "("  CALLARGS 
+  | yield: YIELD1 !>> "("  CALLARGS 
+  | selfCall: OPERATION1 !>> "("  CALLARGS 
 //  | OPERATION2 !>> "("  CALLARGS  BLOCK
-  | SUPER1  !>> "(" CALLARGS 
-  | PRIMARY "." OPERATION2 !>> "(" CALLARGS 
-  | PRIMARY "::" OPERATION3 !>> "(" CALLARGS 
+  | superCall: SUPER1  !>> "(" CALLARGS 
+  | call: PRIMARY "." OPERATION2 !>> "(" CALLARGS 
+  | scopeCall: PRIMARY "::" OPERATION3 !>> "(" CALLARGS 
 //  | PRIMARY "." OPERATION4 !>> "(" CALLARGS  BLOCK
 //  | PRIMARY "::" OPERATION5 !>> "("  CALLARGS BLOCK
   
-  | LHS "=" STMT ! expr
-  | LHS OP_ASGN STMT ! expr
-  
+  | assign: LHS "=" STMT ! expr
+  | assign: LHS OP_ASGN STMT ! expr
+  //
+  //
+  | ifMod: STMT ! expr "if" EXPR
+  | whileMod: STMT ! expr "while" EXPR
+  | unlessMod: STMT ! expr "unless" EXPR
+  | untilMod: STMT ! expr "until" EXPR
+  //
   | expr: EXPR
   ;
   
 // Workaround
 syntax OPERATION1 = OPERATION;
-syntax OPERATION2 = OPERATION;
-syntax OPERATION3 = OPERATION;
+syntax OPERATION2 = OPERATIONNoReserved;
+syntax OPERATION3 = OPERATIONNoReserved;
 syntax OPERATION4 = OPERATION;
 syntax OPERATION5 = OPERATION;
 syntax OPERATION6 = OPERATION;
 syntax YIELD1 = "yield";
 syntax SUPER1 = "super";
 
-syntax THEN = TERM | "then" | TERM "then" ;
-syntax DO   = TERM | "do" | TERM "do" ;
-syntax ELSIF = "elsif" EXPR THEN STMTS;
-syntax ELSE = "else" STMTS;
-syntax WHEN = "when" WHEN_ARGS THEN STMTS;
-syntax RESCUE = "rescue" {EXPR ","}* DO STMTS;
-syntax ENSURE = "ensure" STMTS;
-syntax EXTEND = "\<" IDENTIFIER; // should probably be expression
+syntax THEN = then: TERM | "then" | TERM "then" ;
+syntax DO   = \do: TERM | "do" | TERM "do" ;
+syntax ELSIF = elsif: "elsif" EXPR THEN STMTS;
+syntax ELSE = \else: "else" STMTS;
+syntax WHEN = \when: "when" WHEN_ARGS THEN STMTS;
+syntax RESCUE 
+  = rescue: "rescue" {EXPR ","}* DO STMTS
+  | rescue: "rescue" EXPR "=\>" EXPR DO STMTS
+  ;
+  
+syntax ENSURE = ensure: "ensure" STMTS;
+syntax EXTEND = \extend: "\<" PRIMARY; // should probably be expression
 
 syntax BLOCK
-  = "{" STMTS "}"
-  | "{" "|" BLOCK_VAR "|" STMTS "}"
-  | "do" STMTS "end"
-  | "do" "|" BLOCK_VAR "|" STMTS "end"  
+  = block: "{" STMTS "}"
+  | block: "{" "|" BLOCK_VAR "|" STMTS "}"
+  | block: "do" STMTS "end"
+  | block: "do" "|" BLOCK_VAR "|" STMTS "end"  
   ;
 
 syntax PRIMARY
-  = "(" STMTS ")"
-  | LITERAL
-  | VARIABLE ! id 
-  | "nil"
-  | "self"
-  | "true"
-  | "false"
-  | [a-zA-Z_0-9] !<< "::" IDENTIFIER
-  | [a-zA-Z_0-9] !<< "[" {EXPR ","}* "]"
-  | "yield" 
-  | YIELD2 >> "(" "(" CALLARGS? ")"
-  | OPERATION
-  | OPERATION BLOCK
-  | POPERATION1 >> "(" "(" CALLARGS? ")"
-  | POPERATION2 >> "(" "(" CALLARGS? ")" BLOCK
-  | "super"
-  | SUPER2 >> "(" "(" CALLARGS? ")"
-  | PRIMARY >> "[" "[" {EXPR ","}* "]"
-  | PRIMARY "." OPERATION 
-  | PRIMARY "::" OPERATION
-  | PRIMARY "." OPERATION BLOCK
-  | PRIMARY "::" OPERATION BLOCK
-  | PRIMARY "." POPERATION3 >> "(" "(" CALLARGS? ")"
-  | PRIMARY "::" POPERATION4 >> "(" "(" CALLARGS? ")"
-  | PRIMARY "." POPERATION5 >> "(" "(" CALLARGS? ")" BLOCK
-  | PRIMARY "::" POPERATION6 >> "(" "(" CALLARGS? ")" BLOCK
+  = group: "(" STMTS ")"
+  | literal: LITERAL
+  | variable: VARIABLE ! id 
+  | nil: "nil"
+  | self: "self"
+  | \true: "true"
+  | \false: "false"
+  | moduleIdentifer: [a-zA-Z_0-9] !<< "::" IDENTIFIER
+  | array: [a-zA-Z_0-9] !<< "[" {EXPR ","}* "]"
+  | yield: "yield" 
+  | yield: YIELD2 >> "(" "(" CALLARGS? ")"
+  | selfSend: OPERATION
+  | selfSend: OPERATION BLOCK
+  | selfSend: POPERATION1 >> "(" "(" CALLARGS? ")"
+  | selfSend: POPERATION2 >> "(" "(" CALLARGS? ")" BLOCK
+  | super: "super"
+  | hash: HASH
+  | super: SUPER2 >> "(" "(" CALLARGS? ")"
+  | subscript: PRIMARY >> "[" "[" {EXPR ","}* "]"
+  | send: PRIMARY "." OPERATIONNoReserved 
+  | scopeSend: PRIMARY "::" OPERATIONNoReserved
+  | send: PRIMARY "." OPERATIONNoReserved BLOCK
+  | scopeSend: PRIMARY "::" OPERATIONNoReserved BLOCK
+  | send: PRIMARY "." POPERATION3 >> "(" "(" CALLARGS? ")"
+  | scopeSend: PRIMARY "::" POPERATION4 >> "(" "(" CALLARGS? ")"
+  | send: PRIMARY "." POPERATION5 >> "(" "(" CALLARGS? ")" BLOCK
+  | scopeSend: PRIMARY "::" POPERATION6 >> "(" "(" CALLARGS? ")" BLOCK
   ;
+  
+  
+syntax HASH
+  = "{" {NameValuePair ","}* "}"
+  ;
+  
+syntax NameValuePair
+  = nameValue: IDENTIFIER ":" EXPR;
 
 // Workaround
 syntax POPERATION1 = OPERATION;
 syntax POPERATION2 = OPERATION;
-syntax POPERATION3 = OPERATION;
-syntax POPERATION4 = OPERATION;
-syntax POPERATION5 = OPERATION;
-syntax POPERATION6 = OPERATION;
+syntax POPERATION3 = OPERATIONNoReserved;
+syntax POPERATION4 = OPERATIONNoReserved;
+syntax POPERATION5 = OPERATIONNoReserved;
+syntax POPERATION6 = OPERATIONNoReserved;
 syntax YIELD2 = "yield";
 syntax SUPER2 = "super";
 
 
 syntax EXPR 
-  = PRIMARY
-  > [a-zA-Z0-9_] !<< "!" EXPR
-  | "~" EXPR
-  | "+" !>> [\ \t] EXPR
-  > right EXPR "**" EXPR
-  > "-" !>> [\ \t] EXPR
-  > left ( EXPR "*" EXPR
-    | EXPR "/" EXPR
-    | EXPR "%" EXPR
+  = primary: PRIMARY
+  > not: [a-zA-Z0-9_] !<< "!" EXPR
+  | bitNot: "~" EXPR
+  | uPlus: "+" !>> [\ \t] EXPR
+  > right exp: EXPR "**" EXPR
+  > uMin: "-" !>> [\ \t] EXPR
+  > left (mul: EXPR "*" EXPR
+    | div: EXPR "/" EXPR
+    | rem: EXPR "%" EXPR
   )
-  > left ( EXPR "+" EXPR
-    | EXPR "-" EXPR
+  > left (add: EXPR "+" EXPR
+    | sub: EXPR "-" EXPR
   )
-  > right ( EXPR "\<\<" EXPR // right?
-    | EXPR "\>\>" EXPR
+  > right (shleft: EXPR "\<\<" EXPR // right?
+    | shright: EXPR "\>\>" EXPR
   )
-  > left EXPR "&" EXPR // left?
-  > left ( EXPR "|" EXPR // left?
-    | EXPR "^" EXPR
+  > left bitAnd: EXPR "&" EXPR // left?
+  > left ( bitOr: EXPR "|" EXPR // left?
+    | bitXor: EXPR "^" EXPR
   )
-  > non-assoc ( EXPR "\>" EXPR // left? they are methods...
-    | EXPR "\>=" EXPR
-    | EXPR "\<" EXPR
-    | EXPR "\<=" EXPR
+  > non-assoc (gt: EXPR "\>" EXPR // left? they are methods...
+    | geq: EXPR "\>=" EXPR
+    | lt: EXPR "\<" EXPR
+    | leq: EXPR "\<=" EXPR
   )
-  > non-assoc ( EXPR "\<=\>" EXPR // left?
-    | EXPR "==" EXPR
-    | EXPR "===" EXPR
-    | EXPR "!=" EXPR
-    | EXPR "=~" EXPR
-    | EXPR "!~" EXPR
+  > non-assoc (\case: EXPR "\<=\>" EXPR // left?
+    | eq: EXPR "==" EXPR
+    | eeq: EXPR "===" EXPR
+    | neq: EXPR "!=" EXPR
+    | match: EXPR "=~" EXPR
+    | notMatch: EXPR "!~" EXPR
   )
-  > left EXPR "&&" EXPR
-  > left EXPR "||" EXPR
-  > non-assoc ( EXPR ".." EXPR
-    | EXPR "..." EXPR
+  > left and: EXPR "&&" EXPR
+  > left or: EXPR "||" EXPR
+  > non-assoc (range: EXPR ".." EXPR
+    | range3: EXPR "..." EXPR
   )
-  > EXPR [a-zA-Z0-9_] !<< "?" EXPR ":" EXPR
-  > LHS "=" EXPR
-  | LHS OP_ASGN EXPR
-  > "not" EXPR
-  > left (EXPR "and" EXPR 
-    | EXPR "or" EXPR
+  > triCond: EXPR [a-zA-Z0-9_] !<< "?" EXPR ":" EXPR
+  > not2: "not" EXPR
+  > left (and2: EXPR "and" EXPR 
+    | or2: EXPR "or" EXPR
   )
-  > left ( EXPR "if" EXPR
-    | EXPR "while" EXPR
-    | EXPR "unless" EXPR
-    | EXPR "until" EXPR
+  > assign: LHS "=" EXPR
+  | assign: LHS OP_ASGN EXPR
+  // raise "bla" if x ==> raise ("bla" if x) !!!
+  > left (ifMod: EXPR "if" EXPR
+    | whileMod: EXPR "while" EXPR
+    | unlessMod: EXPR "unless" EXPR
+    | untilMod: EXPR "until" EXPR
   )
 //  | bracket "(" EXPR ")"
 ;
     
  
-syntax OP_ASGN 
+lexical OP_ASGN 
   = "+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" 
   | "^=" | "\<\<=" | "\>\>=" | "&&=" | "||="
   ;
  
 syntax WHEN_ARGS   
-  = {EXPR ","}+ 
-  | {EXPR ","}+ "," STAR EXPR
-  | STAR EXPR
-  | /* empty */
+  = whenArgs: {EXPR ","}+ 
+  | whenArgs: {EXPR ","}+ "," STAR EXPR
+  | whenArgs: STAR EXPR
+  | whenArgs: /* empty */
   ;
 
 syntax BLOCK_VAR   
@@ -238,15 +258,20 @@ syntax MRHS
   | /* empty */
   ;
   
+  
+syntax CEXPR
+  = EXPR ! ifMod ! unlessMod ! whileMod ! untilMod
+  ;
+  
 
 syntax CALLARGS 
-  = {EXPR ","}+ "," KEYWORDS "," SPLAT "," BLOCKARG
-  | {EXPR ","}+ "," KEYWORDS "," SPLAT
-  | {EXPR ","}+ "," KEYWORDS
-  | {EXPR ","}+ "," SPLAT
-  | {EXPR ","}+ "," SPLAT "," BLOCKARG
-  | {EXPR ","}+ "," BLOCKARG
-  | {EXPR ","}+
+  = {CEXPR ","}+ "," KEYWORDS "," SPLAT "," BLOCKARG
+  | {CEXPR ","}+ "," KEYWORDS "," SPLAT
+  | {CEXPR ","}+ "," KEYWORDS
+  | {CEXPR ","}+ "," SPLAT
+  | {CEXPR ","}+ "," SPLAT "," BLOCKARG
+  | {CEXPR ","}+ "," BLOCKARG
+  | {CEXPR ","}+
   | KEYWORDS "," SPLAT "," BLOCKARG
   | KEYWORDS "," SPLAT
   | KEYWORDS
@@ -264,7 +289,6 @@ syntax KEYWORD = IDENTIFIER ":" EXPR;
 syntax STAR = "*" !>> [\ \t];
 syntax AMP = "&" !>> [\ \t];
 
-// TODO: default params.
 syntax ARGLIST     
   = {IDENTIFIER ","}+ ","  DEFAULTS "," STAR IDENTIFIER "," AMP IDENTIFIER
   | {IDENTIFIER ","}+ "," DEFAULTS "," STAR IDENTIFIER
@@ -289,7 +313,7 @@ syntax DEFAULTS
   ;
   
 syntax DEFAULT
-  = IDENTIFIER "=" EXPR
+  = IDENTIFIER id "=" EXPR expr
   ;
 
 syntax SINGLETON 
@@ -311,8 +335,16 @@ lexical Numeric
   ;
    
 lexical SYMBOL     
-  = [:] !<< ":" FNAME
+  = [:] !<< ":" FNAMENoReserved
   | [:] !<< ":" VARIABLE ! id // use :FNAME instead of :VARIABLE
+  ;
+    
+    
+syntax FNAMENoReserved
+  = OPERATIONNoReserved
+  | IDENTIFIER >> "=" "="
+  | ".." | "|" | "^" | "&" | "\<=\>" | "==" | "===" | "=~" | "\>" | "\>=" | "\<" | "\<="
+  | "+" | "-" | "*" | "/" | "%" | "**" | "\<\<" | "\>\>" | "~" | "+@" | "-@" | "[]" | "[]="
   ;
     
 syntax FNAME
@@ -325,6 +357,13 @@ syntax FNAME
 
 lexical OPERATION 
   = IDENTIFIER \ Reserved
+  | IDENTIFIER "!"
+  | IDENTIFIER "?"
+  ;
+
+
+lexical OPERATIONNoReserved 
+  = IDENTIFIER
   | IDENTIFIER "!"
   | IDENTIFIER "?"
   ;

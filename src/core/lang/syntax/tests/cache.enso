@@ -46,10 +46,10 @@ module Cache
 
   def self.find_json(name)
     cache_path = "cache/"
-    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      unless File.exists? cache_path
+      unless File.exists?(cache_path)
         Dir.mkdir cache_path
       end
       "#{cache_path}#{name.gsub('.','_')}.json"

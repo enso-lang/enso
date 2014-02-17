@@ -7,7 +7,8 @@ SOURCES = \
 	js/core/system/utils/find_model.js \
 	js/core/system/utils/paths.js \
 	js/core/system/library/schema.js \
-	js/core/schema/code/factory.js \
+  js/core/schema/code/factory.js \
+  js/core/schema/code/immutable.js \
 	js/core/schema/code/dynamic.js \
 	js/core/schema/tools/dumpjson.js \
 	js/core/schema/tools/union.js \

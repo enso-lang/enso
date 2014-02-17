@@ -171,7 +171,7 @@ module Diff
         j+=1
       end
     end
-    (j..o2.size-1).each do |n|
+    [j..o2.size-1].each do |n|
       difflist.unshift *diff_all(nil, o2[n], path.index(i), matches, ref)
     end
     difflist

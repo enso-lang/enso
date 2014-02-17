@@ -1,8 +1,8 @@
 class Exp
   subexpressions ! Exp*
   parent : Exp? / subexpressions
-  bindings : Let* = parent ? parent.newbindings + parent.bindings : []
   newbindings : Let* = []
+  bindings : Let* = parent ? parent.newbindings + parent.bindings : []
   
 class Num < Exp
   subexpressions ! Exp* = []
