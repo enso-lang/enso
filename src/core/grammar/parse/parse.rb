@@ -29,7 +29,7 @@ class Parse
     schema.factory.file_path.each  {|p| deps << p}
     imports = []
     # scan each line from the top of the file looking for 'import'
-    for i in 0..s.length-1
+    (0..s.length-1).each do |i|
       next if s[i].lstrip.empty?
       if s[i] =~ /import (?<file>\w+.\w+)( with(?<as>( \w+ as \w+)+))?/
         imp = $1; as = $2
@@ -90,38 +90,3 @@ class Parse
   
 end
 
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  require 'core/schema/code/factory'
-  require 'benchmark'
-  require 'ruby-prof'
-  grammar = Load::load('web.grammar')
-  ss = Load::load('web.schema')
-  factory = Factory::new(ss)
-  path = 'apps/web/models/prelude.web'
-  source = File.read(path)
-  org = Origins.new(source, path)
-  
-  puts "PARSING"
-  tree = nil
-
-  10.times do |x|
-    puts Benchmark.measure { tree = Parse.parse(source, grammar, org) }
-  end
-
-  result = RubyProf.profile do 
-    Build.build(tree, factory, org)
-  end
-
-  printer = RubyProf::FlatPrinter.new(result)
-  printer.print(STDOUT, {})
-
-
-
-#   puts "BUILDING"
-#   10.times do |x|
-#     puts Benchmark.measure { Build.build(tree, factory, org) }
-#   end
-  
-
-end

@@ -45,6 +45,15 @@ class SelectSingle < Widget
 
 class TextBox < Widget
 
+class Connector < Widget
+  ends! ConnectorEnd*
+
+class ConnectorEnd
+  label: Expr?
+  other_label: Expr?
+  part: Expr
+  arrow: str?
+
 // Additional expr 
 
 class InstanceOf < Expr
