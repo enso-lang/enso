@@ -1,6 +1,6 @@
 require 'core/system/load/load'
 require 'core/semantics/interpreters/debug'
-require 'core/semantics/test/parse'
+require '../demos/lambda/code/parse'
 
 Cache.clean('lambda.grammar') #need to clean cache to get origin tracking
 sm = Load::load('lambda.grammar')

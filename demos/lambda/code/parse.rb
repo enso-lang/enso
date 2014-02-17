@@ -44,17 +44,14 @@ module Parse2
 
     def parse_Sequence(obj)
       remaining_tokens = @D[:tokens]
- #     puts "\nParsing #{obj} on #{remaining_tokens}"
       result = nil
       obj.elements.each do |arg|
         res = nil
         dynamic_bind tokens: remaining_tokens do
- #         puts "  trying #{arg}"
           res = parse(arg)
         end
           if res.nil?
             result = nil
-#            puts "    -> FAIL"
             break
           end
           result |= res[0]
@@ -124,20 +121,24 @@ module Parse2
   class ParseGrammarC
     include ParseGrammar
   end
+
+  def self.parse(obj, input, factory)
+    interp = ParseGrammarC.new
+    interp.dynamic_bind input: input, factory: factory do
+      interp.parse(obj)
+    end
+  end
 end
 
 if __FILE__ == $0
-input = "(({|f| {|a| (f (f a))}} {|x| x}) y)"
+  input = "(({|f| {|a| (f (f a))}} {|x| x}) y)"
 
-type = "lambda"
-schema = Load::load("#{type}.schema")
-grammar = Load::load("#{type}.grammar")
-factory = Factory.new(schema)
+  type = "lambda"
+  schema = Load::load("#{type}.schema")
+  grammar = Load::load("#{type}.grammar")
+  factory = Factory.new(schema)
 
-interp = Parse2::ParseGrammarC.new
-ast = interp.dynamic_bind input: input, factory:factory do
-  interp.parse(grammar)
-end
-Print.print(ast)
+  ast = Parse2.parse(grammar, input, factory)
+  Print.print(ast)
 end
 
