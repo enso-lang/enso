@@ -15,8 +15,11 @@ class Point3D < Point
   z: int
 
 class Line
-   points! Point2D *
+  label# str
+  len: int?
+  pts! Point2D *
+  adj: Line?
 
 class Drawing
-   lines! Line *
+  lines! Line *
 

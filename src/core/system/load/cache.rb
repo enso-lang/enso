@@ -16,7 +16,6 @@ module Cache
 
   def self.load_cache(name, factory, input=find_json(name))
     type = name.split('.')[-1]
-    puts "## loading cache for: #{name} (#{input})"
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
@@ -52,15 +51,13 @@ module Cache
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
       index = name.rindex('/')
-	  if index
-        puts "SLASH #{name} => #{index}"
+	    if index
         dir = name[0, index].gsub('.','_')
         unless File.exists? "#{cache_path}#{dir}"
 	        puts "#### making #{cache_path}#{dir}"
           FileUtils.mkdir_p "#{cache_path}#{dir}"
         end
       end
-      puts "## loading chache #{cache_path}#{name.gsub('.','_')}.json"
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end
