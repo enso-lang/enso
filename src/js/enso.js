@@ -282,7 +282,7 @@ if (typeof window === 'undefined') {
   }
   
   Array.prototype.values = function() { return this; }
-  Array.prototype.empty_P = function() { return this.length > 0; }
+  Array.prototype.empty_P = function() { return this.length == 0; }
   Array.prototype.any_P = Array.prototype.some;
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
     var i;
