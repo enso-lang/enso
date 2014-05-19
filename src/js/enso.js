@@ -401,7 +401,9 @@ if (typeof window === 'undefined') {
     }
   }
   String.prototype._set = function(k, v) { raise("Strings are immutable"); }
-  String.prototype.gsub = String.prototype.replace;
+  //String.prototype.gsub = String.prototype.replace; //NOTE: gsub!=replace, gsub replaces ALL instances
+                                                      //  also, beware the use case of "aaa".gsub("a"," a ")
+  String.prototype.gsub = function(from, to) { return this.split(from).join(to) }
   String.prototype.index = String.prototype.indexOf;
   String.prototype.to_sym = function() { return this; }
   String.prototype.start_with_P = function(prefix) {
