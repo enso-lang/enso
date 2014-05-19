@@ -1,16 +1,51 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<!-- data-main attribute tells require.js to load
-		scripts/main.js after require.js loads. -->
-		<script src="lib/jquery-1.9.1.min.js"></script>
-		<script src="lib/require.js"></script>
-		<script>
-			requirejs(['stencil'], function(Stencil) {
-				Stencil.render('housing.ql')
-			})
-		</script>
-	</head>
-	<title></title>
-	<body>
+  <head>
+    <!-- data-main attribute tells require.js to load
+    scripts/main.js after require.js loads. -->
+    <script src="lib/jquery-1.9.1.min.js"></script>
+    <script src="lib/require.js"></script>
+    <!-- Initialize and layout -->
+    <script type="text/javascript">
+      $("html").css("height", "100%")
+      $("body").css("height", "100%")
+      $("body").css("margin", "0")
+
+      main = $("<div>")
+      main.css("width", "100%")
+      main.css("height", "100%")
+      main.css("float", "left")
+    </script>
+    <!-- Render questionaire -->
+    <script type="text/javascript">
+      requirejs([
+        "enso",
+        'core/system/load/load',
+        'core/diagram/code/construct',
+        'core/grammar/render/layout',
+        'core/schema/tools/print',
+        'core/expr/code/renderexp',
+        'diagram'
+      ],
+      function(Enso, Load, Construct, Layout, Print, RenderExp, Diagram) {
+        data_file = "housing.ql"
+        stencil_file = "ql.stencil"
+
+        data = Load.load(data_file)
+        stencil = Load.load(stencil_file)
+        modelmap = new EnsoHash({ })
+
+        diagram = Construct.eval(stencil, new EnsoHash({
+          data : data,
+          modelmap : modelmap
+        }))
+        main.append(Diagram.render(diagram, modelmap))
+        console.log("main in render is "+main)
+        $("title").text(diagram.title)
+        $("body").append(main);
+      })
+    </script>
+  </head>
+  <title></title>
+  <body>
 </html>
