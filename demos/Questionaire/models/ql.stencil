@@ -1,5 +1,5 @@
 diagram "Questionaire QL" (data) {
-	rule draw for elem:Group            pages([[elem.guard|data.all_elems]] ? 0 : 1) {
+  rule draw for elem:Group            pages([[elem.guard|data.all_elems]] ? 0 : 1) {
                                             vertical {
                                                 for elem : elem.elems
                                                     call draw for elem
@@ -7,34 +7,34 @@ diagram "Questionaire QL" (data) {
                                             --
                                         }
 
-	rule draw for elem:Question         horizontal {
+  rule draw for elem:Question         horizontal {
                                             text elem.qn
                                             call ans(elem.response.val) for elem.ans
                                         }
 
-	rule ans(val) for elem:TextBox      text? val elem.type
+  rule ans(val) for elem:TextBox      text? val elem.type
 
-	rule ans(val) for elem:CheckBox     multi val elem.choices.map(){|c|return c.string}
+  rule ans(val) for elem:CheckBox     multi val elem.choices.map(){|c|return c.string}
 
-	rule ans(val) for elem:MultiChoice  single val elem.choices.map(){|c|return c.string}
+  rule ans(val) for elem:MultiChoice  single val elem.choices.map(){|c|return c.string}
 
-	rule ans(val) for elem:Computed     text [[elem.expr|data.all_elems]]
+  rule ans(val) for elem:Computed     text [[elem.expr|data.all_elems]]
 
-	///////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////
 
-	//create the nodes (one for each class)
-	style [background="#feb97d", height="100%", width="100%"] {
-	vertical [background="#feb97d", padding="0px", 
-			height="100%", width="760px", margin="0 auto"] {
-		style [background="#943400", color="#fff", padding="18px 10px 6px", margin="0px",
-				"font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
-			text "Survey: "+data.title
-		}
-		style [background="#fff", height="100%", padding="20px 20px 0px", margin="0px auto auto"] {
-		grid [height="400px", width="100%",
-				"font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
-    		for elem : data.elems {
-				call draw for elem
-			}
-		}
-}	} }	}
+  //create the nodes (one for each class)
+  style [background="#feb97d", height="100%", width="100%"] {
+  vertical [background="#feb97d", padding="0px", 
+      height="100%", width="760px", margin="0 auto"] {
+    style [background="#943400", color="#fff", padding="18px 10px 6px", margin="0px",
+        "font-family"="Helvetica", "font-size"="160%", "font-weight"="bold"] {
+      text "Survey: "+data.title
+    }
+    style [background="#fff", height="100%", padding="20px 20px 0px", margin="0px auto auto"] {
+    grid [height="400px", width="100%",
+        "font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
+        for elem : data.elems {
+        call draw for elem
+      }
+    }
+} } } }

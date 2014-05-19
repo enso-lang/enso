@@ -125,10 +125,10 @@ if (typeof window === 'undefined') {
    return  Array.prototype.slice.call(arguments).join("");
   }
       
-  EnsoHash = function(init) {
-    var data = init;
-    this.has_key_P = function(key) { return data.hasOwnProperty(key); };
-    this._get = function(key) { 
+EnsoHash = function(init) {
+  var data = init;
+  this.has_key_P = function(key) { return data.hasOwnProperty(key); };
+  this._get = function(key) { 
       return data[key]; 
     };
     this.inspect = function() {

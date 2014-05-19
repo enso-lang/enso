@@ -158,6 +158,12 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
       return Load.load_text(type, factory, source, show);
     },
 
+    load_with_models: function(name, grammar, schema, encoding) {
+      var self = this; 
+      if (encoding === undefined) encoding = null;
+      return Load.Loader.load_with_models(name, grammar, schema, encoding);
+    },
+
     LoaderClass: LoaderClass,
     Loader: LoaderClass.new(),
 
