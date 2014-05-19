@@ -328,7 +328,7 @@ class CodeBuilder < Ripper::SexpBuilder
     token
   end
 
-  def on_params(params, optionals, rest, something, block)
+  def on_params(params, optionals, rest, something, keywords, keywords_rest, block)
     formals = []
     if params
       params.each do |x|
