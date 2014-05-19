@@ -393,7 +393,13 @@ if (typeof window === 'undefined') {
    }
   Array.prototype.first = function() { return this[0]; }
   String.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
-  Array.prototype._get = function(k) { if (k >= 0) { return this[k] } else { return this[this.length+k] } }
+  Array.prototype._get = function(k) {
+    if (System.test_type(k, Range)) {
+      return this.slice(k.$.a, this.length+1-(k.$.b*-1))
+    } else {
+      if (k >= 0) { return this[k] } else { return this[this.length+k] }
+    }
+  }
   String.prototype._set = function(k, v) { raise("Strings are immutable"); }
   String.prototype.gsub = String.prototype.replace;
   String.prototype.index = String.prototype.indexOf;
