@@ -2,6 +2,7 @@
 ### Tests for Enso basic functionality ###
 #  eg Schema, Grammar, Expr, etc
 #  (if these don't run, Enso won't start)
+require 'core/system/test/bootstrap.rb'
 require 'core/schema/test/test_copy.rb'
 require 'core/schema/test/test_model.rb'
 require 'core/grammar/test/parse.rb'
@@ -20,11 +21,14 @@ require 'test/unit/test_patch.rb'
 
 
 ### Applications tests ###
-#  (failure is local, but frequently use for demos)
+#  (failure is local, but frequently used for demos)
 
 # Piping
 require '../demos/Piping/test/test_simulator.rb'
 require '../demos/Piping/test/test_controller.rb'
+
+# Questionaire
+require '../demos/Questionaire/test/test_ql.rb'
 
 # EnsoSync
 
