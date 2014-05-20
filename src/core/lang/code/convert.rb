@@ -737,10 +737,14 @@ class CodeBuilder < Ripper::SexpBuilder
       raise "Only one top-level module allowed"
     end
     split1 = split[1].partition {|x| x.Require? }
-    requires = split1[0] 
-    if split1[1].size > 0
+    requires = split1[0]
+    # Bindings capture the environment when a meta-variable, eg __FILE__ is 
+    # used. In our context they only arise from "if __FILE__ ==" blocks
+    # which we don't parse. Bindings can't go into Seq since it is not an Expr
+    remainder = split1[1].select{|x| not x.is_a?(Binding) }
+    if remainder.size > 0
       @selfVar = nil
-      others = fixup_expr(@f.Seq(split1[1]))
+      others = fixup_expr(@f.Seq(remainder))
     else
       others = nil
     end
