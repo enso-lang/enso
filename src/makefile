@@ -7,8 +7,8 @@ SOURCES = \
 	js/core/system/utils/find_model.js \
 	js/core/system/utils/paths.js \
 	js/core/system/library/schema.js \
-  js/core/schema/code/factory.js \
-  js/core/schema/code/immutable.js \
+	js/core/schema/code/factory.js \
+	js/core/schema/code/immutable.js \
 	js/core/schema/code/dynamic.js \
 	js/core/schema/tools/dumpjson.js \
 	js/core/schema/tools/union.js \
@@ -31,6 +31,14 @@ SOURCES = \
 	js/core/diagram/code/evalexprstencil.js \
 	js/core/diagram/code/invert.js \
 
+JSONS_QL = \
+  housing.ql \
+  ql.stencil
+
+JSONS_PIPING = \
+  boiler.controller \
+  boiler.piping \
+  piping-sim.schema \
 
 main: $(SOURCES)
 
@@ -54,6 +62,15 @@ js/%.js: %.rb core/lang/models/code_js.grammar
 	mkdir -p `dirname $@`
 	ruby -I . core/lang/code/convert.rb $< $@ code_js
 
-#ruby -I . core/grammar/render/trans.rb $< code_js $@
+clean-json:
+	ruby -I . core/system/load/cache.rb
 
+load-json:
+	ruby -I . core/system/load/load.rb $(JSONS_QL) $(JSONS_PIPING)
+
+questionaire: main
+	ruby -I . core/system/load/load.rb $(JSONS_QL)
+
+piping: main
+	ruby -I . core/system/load/load.rb $(JSONS_PIPING)
 

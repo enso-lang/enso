@@ -2,7 +2,6 @@
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'
-require 'fileutils'
 
 module Cache
 
@@ -39,9 +38,27 @@ module Cache
   def self.clean(name=nil)
     cache_path = "cache/"
     if name.nil? #clean everything
-      File.delete("#{cache_path}*") if File.exists?("#{cache_path}*")
+      if File.exists?("#{cache_path}")
+        Dir.foreach("#{cache_path}") do |f|
+          if f.end_with? ".json"
+            File.delete("#{cache_path}#{f}")
+          end
+        end
+        true
+      else
+        false
+      end
     else
-      File.delete(find_json(name)) if File.exists?(find_json(name))
+      if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+        false
+      else
+        if File.exists?(find_json(name))
+          File.delete(find_json(name))
+          true
+        else
+          false
+        end
+      end
     end
   end
 
@@ -52,9 +69,9 @@ module Cache
     else
       index = name.rindex('/')
 	    if index
-        dir = name[0, index].gsub('.','_')
+        dir = name[0..index].gsub('.','_')
         unless File.exists? "#{cache_path}#{dir}"
-	        puts "#### making #{cache_path}#{dir}"
+	        #puts "#### making #{cache_path}#{dir}"
           FileUtils.mkdir_p "#{cache_path}#{dir}"
         end
       end
@@ -113,5 +130,22 @@ module Cache
     hashfun.to_s
   end
 
+end
+
+if __FILE__ == $0
+  data_file = ARGV[0]
+  if data_file.nil?
+    print "Clearing entire cache! Is this OK? (Y/N): "
+    resp = gets[0..-2]
+    if resp == "Yes" or resp == "yes" or resp == "Y" or resp == "y"
+      Cache::clean()
+    else
+      puts "Use: ruby cache.rb <model> if you to clean a specific file"
+    end
+  else
+    print "Cleaning #{data_file} JSON... "
+    success = Cache::clean(data_file)
+    puts (success ? "Success!" : "Failed")
+  end
 end
 

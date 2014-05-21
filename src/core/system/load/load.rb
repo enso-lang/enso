@@ -158,3 +158,13 @@ module Load
   end
 end
 
+if __FILE__ == $0
+  data_files = ARGV
+  if data_files.nil? or data_files.size <= 0
+    abort "Usage: ruby load.rb <model>"
+  end
+  data_files.each do |file|
+    begin; Load::load(file); rescue; end
+  end
+end
+

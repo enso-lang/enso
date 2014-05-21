@@ -2,7 +2,7 @@ To run the Questionaire demo (last edit 08apr13):
 
 From enso/src:
 
-1) Parse relevant to JSON: "ruby parseToJSON.rb"
+1) Parse relevant to JSON: "make questionaire"
 
 2) Start web server: "js/run-web.sh"
 

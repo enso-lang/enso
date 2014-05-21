@@ -741,7 +741,7 @@ class CodeBuilder < Ripper::SexpBuilder
     # Bindings capture the environment when a meta-variable, eg __FILE__ is 
     # used. In our context they only arise from "if __FILE__ ==" blocks
     # which we don't parse. Bindings can't go into Seq since it is not an Expr
-    remainder = split1[1].select{|x| not x.is_a?(Binding) }
+    remainder = split1[1].select{|x| not x.Binding? }
     if remainder.size > 0
       @selfVar = nil
       others = fixup_expr(@f.Seq(remainder))
