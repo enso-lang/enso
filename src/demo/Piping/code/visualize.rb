@@ -1,4 +1,4 @@
-require '../demos/Piping/code/system'
+require 'demo/Piping/code/system'
 require 'core/diagram/code/stencil'
 
 Wx::App.run do

@@ -1,5 +1,5 @@
-require '../demos/Piping/code/simulator'
-require '../demos/Piping/code/controller'
+require 'demo/Piping/code/simulator'
+require 'demo/Piping/code/controller'
 
 name = 'boiler'
 

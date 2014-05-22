@@ -1,7 +1,7 @@
 require 'test/unit'
 
 require 'core/system/load/load'
-require '../demos/Piping/code/controller'
+require 'demo/Piping/code/controller'
 
 class PipingControllerTest < Test::Unit::TestCase
 

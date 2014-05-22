@@ -24,8 +24,8 @@ require 'test/unit/test_patch.rb'
 #  (failure is local, but frequently used for demos)
 
 # Piping
-require '../demos/Piping/test/test_simulator.rb'
-require '../demos/Piping/test/test_controller.rb'
+require 'demo/Piping/test/test_simulator.rb'
+require 'demo/Piping/test/test_controller.rb'
 
 # Questionaire
 require '../demos/Questionaire/test/test_ql.rb'
