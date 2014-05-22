@@ -80,11 +80,11 @@ function(Dumpjson, FindModel, Sha1) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
         index = name.rindex("/");
-        if (index) {
-          dir = name._get(Range.new(0, index)).gsub(".", "_");
-          if (! File.exists_P(S(cache_path, dir))) {
-            FileUtils.mkdir_p(S(cache_path, dir));
-          }
+        dir = index
+          ? name._get(Range.new(0, index)).gsub(".", "_")
+          : "";
+        if (! File.exists_P(S(cache_path, dir))) {
+          Dir.mkdir(S(cache_path, dir));
         }
         return S(cache_path, name.gsub(".", "_"), ".json");
       }

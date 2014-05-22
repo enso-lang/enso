@@ -68,12 +68,9 @@ module Cache
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
       index = name.rindex('/')
-	    if index
-        dir = name[0..index].gsub('.','_')
-        unless File.exists? "#{cache_path}#{dir}"
-	        #puts "#### making #{cache_path}#{dir}"
-          FileUtils.mkdir_p "#{cache_path}#{dir}"
-        end
+      dir = index ? name[0..index].gsub('.','_') : ""
+      unless File.exists? "#{cache_path}#{dir}"
+        Dir.mkdir "#{cache_path}#{dir}"
       end
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
