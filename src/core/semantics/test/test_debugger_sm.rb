@@ -1,6 +1,6 @@
 require 'core/system/load/load'
 require 'core/semantics/interpreters/debug'
-require '../demos/StateMachine/code/state_machine_basic'
+require 'demo/StateMachine/code/state_machine_basic'
 
 Cache.clean('door.state_machine') #need to clean cache to get origin tracking
 sm = Load::load('door.state_machine')
