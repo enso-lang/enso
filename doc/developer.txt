@@ -1,0 +1,50 @@
+*** This is a developer guide. If you are trying to use Enso, see GETTING_STARTED.txt instead ***
+
+Enso Developer Guide
+====================
+
+This guide assumes knowledge of how Enso works and the use of schema and 
+grammar together with the interpreter framework. The purpose of this document
+is to help navigate its code base and how to do things 'the right way'.
+
+  ------------------------------------------------------------------------
+  | NOTE: before doing anything else, please immediately set up the      |
+  | commit hook to run gatekeeper tests!!! Instructions in pre-commit.sh.|
+  | Do it NOW!                                                           |
+  ------------------------------------------------------------------------
+
+
+1) Source code organization
+---------------------------
+Important locations in the source tree:
+
+src/          -- where the source code and the magic happens
+experimental/ -- experimental side-projects
+doc/          -- additional docs. Most modules have them
+lib/          -- compiled binaries that are depended on. Mostly Jaba stuff
+
+src/core         -- Core Enso modules. Include schema, grammar, stencil 
+                    (diagram), etc DSLs.
+src/core/system  -- Enso kernel, only part that is *not* a DSL. Self-hosting
+                    bootstrap module that loads the initial schema.schema quad
+                    diagram and handles the caching.
+src/core/semantics -- Interpreter framework for Enso. Currently also *not* a 
+                      DSL but it should be. Has to merge into core/lang/.
+
+src/app       -- Non-essential Enso modules. These are used by other modules 
+                 but some can be standalone apps as well.
+
+src/demo      -- Full-fledged applications for demo. No module should depend on
+                 anything in demo.
+
+
+2) Important Enso DSLs
+----------------------
+to do
+
+
+3) Testing
+----------
+to do
+
+

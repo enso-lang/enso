@@ -8,6 +8,9 @@ echo "============================================"
 echo "Running pre-commit tests from test/runall.rb"
 echo "============================================"
 echo
+echo "REMINDER: Does your change entail updating DOCUMENTATION?"
+echo "          If so, this might be a great time to do just that!"
+echo
 
 cd src
 ruby -I. test/runall.rb

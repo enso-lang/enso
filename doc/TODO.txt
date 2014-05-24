@@ -1,82 +1,55 @@
-PAPERS:
-* First International Workshop on Bidirectional Transformations (BX 2012) 
-     Paper submission: Mon, December 19, 2011
-     
-Errors to check
-* Inserting into computed many-valued field does not fail!  EG:   x.fields << y
-* Put an invariant on SchemaSchema.Class that the supertype relation must be asyclic
-* Deal with keys that change and need to be rehashed
+This is a general todo list because we don't use an issue tracker like 
+civilized folks do. Many many things are broken because we also don't use a
+test framework like civilized folks do. But now we have a pre-commit hook so
+use that!
 
-New core functionality
-* Composite keys
-* changing many to finite list (restriction)
-* invariants
-* wrap all single-valued fields
-* addresses as a general service
-* allow "listening" to changes 
-* REDO The differencing model
-   
+Due to lots of churn at the kernel level and not at all enough testing, many
+of the apps and demos do not actually work.
 
-Cleanup tasks
-* Finalize: seals from changes, run invariants (close to being right)
-* sanitize the loader namespace (remove boot stuff)
-* move "keys" to be computed attribute
-* get rid of check (its redundant with CheckedObject and finalize)
+Things that work:
+- Questionaire
+- Piping
+- Lambda
+- StateMachine
 
-Library (+ means done)
-  Core
-    +Schema
-    +Grammar
-    +Instance
-  Delta package
-    +Identify
-    ?Merge
-    Delta
-      DeltaSchema(S): given a schema, create a schema for deltas
-      DeltaGrammar(G) creates a grammar that can read/write deltas
-      diff: S:Schema -> a:S -> b:S -> DeltaSchema(S)
-      apply: S:Schema -> d:DeltaSchema(S) -> a:S -> S 
-    Query (ability to project/select a structure)
-  GenericGrammar (abstract grammars)
-    Grammar(S): given a schema, create a parameterized "grammar" for the schema
-    ConsistentInstantiation: checks if the instantiates are consistent in a grammar
-    render:  s:B -> g:Grammar(S) -> S
-        where ConsistentInstantiation(B, g)
-  Diagram
-    DiagramSchema
-    edit: S:Schema -> o:S -> g:Grammar(DiagramSchema) -> S
-       where ConsistentInstantiation(S, g)
-      edits and object o of type S using grammar Diagram grammar g    
-    SchemaDiagramGrammar : Grammar(DiagramSchema)
-      a grammar for editing schemas
-    DiagramGrammarDiagramGrammar : Grammar(DiagramSchema)
-      allows editing of SchemaDiagramGrammar (and itself)
-  Web
-    EnsoWeb language...
-  Securtiy
-    SecuryQuery (create projection queries based on security model)
-  SQL
-    generate tables
-    upgrade tables (diffs!)
-    SQL query generation
-  GUI
-    like Diagram, but for GUIs
-    
-
-Applications
-* graphical editors
-    (does Ruby have graphics binding?)
-* executable UML
-* database mapping
-* WebDSL mini-language
-* Unison
-* Implement a version of PLT redex?
-
-less important
-* derivative parsers?
-* other kind of parser?
+Things that don't work:
+- batches (update factory and interp. need to re-vitalize Jaba)
+- EnsoSync (lots of changes)
+- security (update factory and interp)
+- web (???)
+- Northwind (depend on web, security, AND batches. fix last)
+- Geometry (should be easy fix)
+- Todo
+- Petstore
 
 
+We need to fix the things that don't work (usually by renaming a path or class)
+and add their tests to test/runall.rb AND make sure *everybody* uses the 
+pre-commit hook to test before commiting.
 
-DONE
-* Distinguish "all_fields" (including computed) and "fields" (no computed fields)
+
+What to try when something doesn't work (generally in this order):
+
+- The path names are probably wrong. Things were moved around between the
+  following directories (all relative to enso/src):
+    > ../demos/
+    > apps/
+    > test/samples/
+
+  Soln: Check the requires path and update accordingly
+
+- Class names are wrong. Javascript translation requires all affected files to
+  contain exactly one Module. Many core files were affected (notably 
+  Factory::SchemaFactory) and references to them were not all updated.
+
+  Soln: Update class names correctly. Factory's methods were not changed.
+
+- Interpreter framework was changed. The core interpreter framework at
+  core/semantics/code/interpreter has been re-designed several times. All 
+  interpreters use it, but not every interpreter was updated to use the latest
+  one.
+
+  Soln: Very involved. Need to restructure interpreters to use the latest 
+  interpreter framework. The best example to copy lives in core/expr/code/eval.
+  You will need ${DIETY_OF_CHOICE}'s blessing in this Herculean task.
+
