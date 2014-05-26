@@ -34,7 +34,6 @@ function(Dumpjson, FindModel, Sha1) {
 
     check_dep: function(name) {
       var self = this; 
-      return true;
       var path, json;
       try {
         path = Cache.find_json(name);
@@ -53,23 +52,39 @@ function(Dumpjson, FindModel, Sha1) {
       var cache_path;
       cache_path = "cache/";
       if (name == null) {
-        if (File.exists_P(S(cache_path, "*"))) {
-          return File.delete(S(cache_path, "*"));
+        if (File.exists_P(cache_path)) {
+          Dir.foreach(function(f) {
+            if (f.end_with_P(".json")) {
+              return File.delete(S(cache_path, f));
+            }
+          }, cache_path);
+          return true;
+        } else {
+          return false;
         }
+      } else if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
+        return false;
       } else if (File.exists_P(Cache.find_json(name))) {
-        return File.delete(Cache.find_json(name));
+        File.delete(Cache.find_json(name));
+        return true;
+      } else {
+        return false;
       }
     },
 
     find_json: function(name) {
       var self = this; 
-      var cache_path;
+      var cache_path, index, dir;
       cache_path = "cache/";
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        if (! File.exists_P(cache_path)) {
-          Dir.mkdir(cache_path);
+        index = name.rindex("/");
+        dir = index
+          ? name._get(Range.new(0, index)).gsub(".", "_")
+          : "";
+        if (! File.exists_P(S(cache_path, dir))) {
+          Dir.mkdir(S(cache_path, dir));
         }
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
