@@ -1,7 +1,9 @@
+require 'FileUtils'
 
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'
+
 
 module Cache
 
@@ -63,27 +65,31 @@ module Cache
   end
 
   def self.find_json(name)
-    cache_path = "cache/"
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
-      index = name.rindex('/')
-      dir = index ? name[0..index].gsub('.','_') : ""
-      unless File.exists? "#{cache_path}#{dir}"
-        Dir.mkdir "#{cache_path}#{dir}"
-      end
+	    cache_path = "cache/"
+#      index = name.rindex('/')
+#      dir = index ? name[0..index].gsub('.','_') : ""
+#      unless File.exists? "#{cache_path}#{dir}"
+#        FileUtils.mkdir_p "#{cache_path}#{dir}"
+#      end
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end
   
   def self.check_file(element)
-    path = element['source']
-    checksum = element['checksum']
-    begin
-      readHash(path)==checksum
-    rescue
-      false
-    end
+    if Digest.nil?
+      true
+    else
+	    path = element['source']
+	    checksum = element['checksum']
+	    begin
+	      readHash(path)==checksum
+	    rescue
+	      false
+	    end
+	  end
   end
 
   def self.get_meta(name)

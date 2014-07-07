@@ -22,7 +22,11 @@ module Run
       # ask user for transition
       puts "\n>> current state: "+obj.name.to_s
       #@D._bind(:event, $stdin.gets)
-      @event = $stdin.gets.strip
+      @event = $stdin.gets
+      if @event.nil?
+      	exit
+      end
+      @event = @event.strip
       # fire applicable transition
       new = obj.out.detect do |trans|
         run(trans)

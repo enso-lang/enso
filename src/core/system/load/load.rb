@@ -70,10 +70,10 @@ module Load
 
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
 
-      update_json('schema.schema')
-      update_json('grammar.schema')
-      update_json('grammar.grammar')
-      update_json('schema.grammar')
+#      update_json('schema.schema')
+#      update_json('grammar.schema')
+#      update_json('grammar.grammar')
+#      update_json('schema.grammar')
     end
 
     def update_json(name)

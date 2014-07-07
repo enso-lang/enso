@@ -284,6 +284,7 @@ EnsoHash = function(init) {
   Array.prototype.values = function() { return this; }
   Array.prototype.empty_P = function() { return this.length == 0; }
   Array.prototype.any_P = Array.prototype.some;
+  Array.prototype.all_P = Array.prototype.every;
   Array.prototype.each = function(fun) {  // Array.prototype.forEach;
     var i;
     for (i = 0; i < this.length; i++) {

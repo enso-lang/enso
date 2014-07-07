@@ -184,6 +184,11 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         }
       };
 
+      this.inspect = function() {
+        var self = this; 
+        return self.to_s();
+      };
+
       this.__computed = function(fld) {
         var self = this; 
         var c, base, name, exp, fvInterp, val, fvs, key, collection;

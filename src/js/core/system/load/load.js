@@ -76,11 +76,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
-        Paths.Path.set_factory(Factory.new(ss));
-        self.update_json("schema.schema");
-        self.update_json("grammar.schema");
-        self.update_json("grammar.grammar");
-        return self.update_json("schema.grammar");
+        return Paths.Path.set_factory(Factory.new(ss));
       };
 
       this.update_json = function(name) {

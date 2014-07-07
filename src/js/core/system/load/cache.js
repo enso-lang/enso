@@ -1,9 +1,10 @@
 define([
+  "FileUtils",
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
   "digest/sha1"
 ],
-function(Dumpjson, FindModel, Sha1) {
+function(Fileutils, Dumpjson, FindModel, Sha1) {
   var Cache ;
 
   Cache = {
@@ -50,7 +51,7 @@ function(Dumpjson, FindModel, Sha1) {
       var self = this; 
       if (name === undefined) name = null;
       var cache_path;
-      cache_path = "cache/";
+      cache_path = "../cache/";
       if (name == null) {
         if (File.exists_P(cache_path)) {
           Dir.foreach(function(f) {
@@ -74,18 +75,11 @@ function(Dumpjson, FindModel, Sha1) {
 
     find_json: function(name) {
       var self = this; 
-      var cache_path, index, dir;
-      cache_path = "cache/";
+      var cache_path;
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        index = name.rindex("/");
-        dir = index
-          ? name._get(Range.new(0, index)).gsub(".", "_")
-          : "";
-        if (! File.exists_P(S(cache_path, dir))) {
-          Dir.mkdir(S(cache_path, dir));
-        }
+        cache_path = "../cache/";
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },
@@ -93,12 +87,16 @@ function(Dumpjson, FindModel, Sha1) {
     check_file: function(element) {
       var self = this; 
       var path, checksum;
-      path = element._get("source");
-      checksum = element._get("checksum");
-      try {
-        return Cache.readHash(path) == checksum;
-      } catch (DUMMY) {
-        return false;
+      if (Sha1 == null) {
+        return true;
+      } else {
+        path = element._get("source");
+        checksum = element._get("checksum");
+        try {
+          return Cache.readHash(path) == checksum;
+        } catch (DUMMY) {
+          return false;
+        }
       }
     },
 
@@ -135,7 +133,7 @@ function(Dumpjson, FindModel, Sha1) {
     readHash: function(path) {
       var self = this; 
       var hashfun, fullfilename, readBuf;
-      hashfun = Digest.SHA1.new();
+      hashfun = SHA1.new();
       fullfilename = path;
       Cache.open(function(io) {
         while (! io.eof()) {
