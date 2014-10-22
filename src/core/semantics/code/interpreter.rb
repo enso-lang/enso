@@ -57,6 +57,7 @@ module Interpreter
       if !@D
         @D = DynamicPropertyStack.new
       end
+      @indent = nil
     end
 
     def dynamic_bind fields={}, &block
@@ -116,7 +117,15 @@ module Interpreter
           raise "Missing method in interpreter for #{operation}_#{type.name}(#{obj})"
         end
       end
+      if @indent
+      	puts "#{' '*@indent}#{method}"
+      	@indent = @indent + 1
+     	end
       result = send(method, obj)
+      if @indent
+      	puts "#{' '*@indent}=#{result}"
+      	@indent = @indent - 1
+     	end
       if !init_done
         @init = false
       end

@@ -12,13 +12,25 @@ module Layout
   module RenderGrammar
     include Interpreter::Dispatcher
 
+		def init
+			super
+#			@indent = 0
+		end
+
     def render(pat)
       stream = @D[:stream]
       @stack ||= []
       pair = "#{pat.to_s}/#{stream.current}"  # have to use strings, for JavaScript!
       if !@stack.include?(pair) # avoid infinite loop on recursive grammars
         @stack << pair 
+	      if @indent
+		      puts " "*@indent + "#{pat}"  
+		      @indent = @indent + 1
+		    end
         val = dispatch_obj(:render, pat)
+	      if @indent
+		      @indent = @indent - 1
+		    end
         @stack.pop
         val
       end

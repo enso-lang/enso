@@ -523,7 +523,8 @@ module Factory
             raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
           end
           if !Schema::subclass?(mobj.schema_class, @field.type) then
-            raise "Invalid value for '#{@field.owner.name}.#{@field.name}': #{mobj} : #{mobj.schema_class.name}"
+            puts "TEST FOUND #{mobj.schema_class} EXPECTED #{@field.type}"
+            raise "Invalid value for #{@field.owner.name}.#{@field.name}:#{@field.type.name} found [#{mobj}]"
           end
           if mobj._graph_id != @owner._graph_id then
             raise "Inserting object #{mobj} into the wrong model"

@@ -1,0 +1,6 @@
+
+
+* If you don't specify the spine fields (!) correctly, then the object may not be written out completely 
+  and will fail on load
+  
+  

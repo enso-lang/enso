@@ -33,8 +33,7 @@ diagram "Questionaire QL" (data) {
     style [background="#fff", height="100%", padding="20px 20px 0px", margin="0px auto auto"] {
     grid [height="400px", width="100%",
         "font-family"="Helvetica", "font-size"="100%", color="#591F00"] {
-        for elem : data.elems {
-        call draw for elem
-      }
+        for elem : data.elems
+	        call draw for elem
     }
 } } } }

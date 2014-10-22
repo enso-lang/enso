@@ -28,6 +28,6 @@ graph {
     for field : class.defined_fields
      if (field.computed == nil)
       if (not (field.type is Primitive) and (field.inverse == nil or field._id <= field.inverse._id))
-        connector (field.name  : field.owner -- field.type : "" ) // field.inverse.name
+        connector (field.name : field.owner -- field.type : "" ) // field.inverse.name
  }
  
