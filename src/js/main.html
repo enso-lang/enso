@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- data-main attribute tells require.js to load
+    scripts/main.js after require.js loads. -->
+    <script src="lib/jquery-1.9.1.min.js"></script>
+    <script src="lib/require.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/URI.js/1.7.2/URI.min.js"></script>
+<!--    <script src="lib/URI.js"></script> -->
+    <!-- Initialize and layout -->
+    <script type="text/javascript">
+      $("html").css("height", "100%")
+      $("body").css("height", "100%")
+      $("body").css("margin", "0")
+
+      main = $("<div>")
+      main.css("width", "100%")
+      main.css("height", "100%")
+      main.css("float", "left")
+    </script>
+    <!-- Render questionaire -->
+    <script type="text/javascript">
+      requirejs([
+        "enso",
+        'core/system/load/load',
+        'core/diagram/code/construct',
+        'diagram',
+        'core/schema/tools/print',
+      ],
+      function(Enso, Load, Construct, Diagram, Print) {
+        q = window.location.href;
+        q = q.substr(q.indexOf("?"))
+        params = URI.parseQuery(q)
+        data_file =  params["data"] // "housing.ql"
+        stencil_file = data_file.split(".")[1] + ".stencil"
+				
+				// console.log(params);
+				console.log(data_file);
+				console.log(stencil_file);
+				
+        data = Load.load(data_file)
+        stencil = Load.load(stencil_file)
+        modelmap = new EnsoHash({ })
+
+        diagram = Construct.eval(stencil, new EnsoHash({
+          data : data,
+          modelmap : modelmap
+        }))
+        main.append(Diagram.render(diagram, modelmap))
+        $("title").text(diagram.title)
+        $("body").append(main);
+      })
+    </script>
+  </head>
+  <title></title>
+  <body>
+</html>
