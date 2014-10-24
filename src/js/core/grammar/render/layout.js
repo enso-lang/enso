@@ -10,6 +10,11 @@ define([
 function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
   var Layout ;
   var RenderGrammar = MakeMixin([Interpreter.Dispatcher], function() {
+    this.init = function() {
+      var self = this; 
+      return self.super();
+    };
+
     this.render = function(pat) {
       var self = this; 
       var stream, pair, val;
@@ -18,7 +23,14 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
       pair = S(pat.to_s(), "/", stream.current());
       if (! self.$.stack.include_P(pair)) {
         self.$.stack.push(pair);
+        if (self.$.indent) {
+          puts(" " * self.$.indent + pat);
+          self.$.indent = self.$.indent + 1;
+        }
         val = self.dispatch_obj("render", pat);
+        if (self.$.indent) {
+          self.$.indent = self.$.indent - 1;
+        }
         self.$.stack.pop();
         return val;
       }

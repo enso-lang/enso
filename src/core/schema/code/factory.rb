@@ -365,7 +365,7 @@ module Factory
 
   class Prim < Single
     def check(value)
-      if !@field.optional || value 
+      if !@field.optional || !value.nil? 
         ok = case @field.type.name
         when 'str' then
           value.is_a?(String)
@@ -380,7 +380,7 @@ module Factory
         when 'atom'
           value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
         end
-        raise "Invalid value for #{@field.name}:#{@field.type.name} = #{value}" if !ok 
+        raise "Invalid value for #{@field.name}:#{@field.type.name} = #{value} #{value.class}" if !ok 
       end
     end
 

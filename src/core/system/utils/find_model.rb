@@ -9,11 +9,11 @@ module FindModel
 
     def self.find_model(name, &block)
       if File.exists?(name)
-      block.call name
+        block.call name
       else
         path = file_map[name]
         raise "File not found #{name}" unless path
-      block.call path
+        block.call path
       end
     end
   end

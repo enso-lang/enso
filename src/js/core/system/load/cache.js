@@ -8,12 +8,14 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
   var Cache ;
 
   Cache = {
-    save_cache: function(name, model, out) {
+    save_cache: function(name, model, full) {
       var self = this; 
-      if (out === undefined) out = Cache.find_json(name);
-      var res;
+      if (full === undefined) full = false;
+      var out, res;
+      out = Cache.find_json(name);
+      puts(S("SAVING ", out));
       res = Cache.add_metadata(name, model);
-      res._set("model", Dumpjson.to_json(model, true));
+      res._set("model", Dumpjson.to_json(model, full));
       return File.open(function(f) {
         return f.write(JSON.pretty_generate(res, new EnsoHash ({ allow_nan: true, max_nesting: false })));
       }, out, "w+");
@@ -38,6 +40,7 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
       var path, json;
       try {
         path = Cache.find_json(name);
+        puts(S("CHECKING ", name, " -> ", path));
         json = System.readJSON(path);
         return Cache.check_file(json) && json._get("depends").all_P(function(e) {
           return Cache.check_file(e);
@@ -51,7 +54,7 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
       var self = this; 
       if (name === undefined) name = null;
       var cache_path;
-      cache_path = "../cache/";
+      cache_path = "cache/";
       if (name == null) {
         if (File.exists_P(cache_path)) {
           Dir.foreach(function(f) {
@@ -79,7 +82,7 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
         return S("core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        cache_path = "../cache/";
+        cache_path = "cache/";
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },
@@ -87,7 +90,7 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
     check_file: function(element) {
       var self = this; 
       var path, checksum;
-      if (Sha1 == null) {
+      if (Digest == null) {
         return true;
       } else {
         path = element._get("source");
@@ -133,7 +136,7 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
     readHash: function(path) {
       var self = this; 
       var hashfun, fullfilename, readBuf;
-      hashfun = SHA1.new();
+      hashfun = Digest.SHA1.new();
       fullfilename = path;
       Cache.open(function(io) {
         while (! io.eof()) {

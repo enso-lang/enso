@@ -5,7 +5,7 @@ start Stencil
 // To make text fields editable, add a "+" behind the name
 
 // diagrams
-Stencil ::= [Stencil] "diagram" (title:str)? "(". root:sym .")" body:Part
+Stencil ::= [Stencil] "diagram" (title:str)? "(". root:sym .")" / body:Part
 
 Part ::= [Container] Dir Props? "{" /> items:Part+@/ /< "}"
        | [Connector] "connector" Props? "(". ends:ConnectorEnd1 "--" ends:ConnectorEnd2 .")"

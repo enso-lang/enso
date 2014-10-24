@@ -54,14 +54,17 @@ function(Paths, Schema, MetaSchema, Json) {
 
       this.from_json = function(this_V) {
         var self = this; 
-        var obj, fname;
+        var obj, val, fname;
         if (this_V == null) {
           return null;
         } else {
           obj = self.$.factory._get(this_V._get("class"));
           obj.schema_class().fields().each(function(f) {
             if (f.type().Primitive_P()) {
-              return obj._set(f.name(), this_V._get(S(f.name(), "=")));
+              val = this_V._get(S(f.name(), "="));
+              if (! (val == null)) {
+                return obj._set(f.name(), val);
+              }
             } else if (! f.many()) {
               if (this_V._get(f.name()) == null) {
                 return obj._set(f.name(), null);
@@ -74,12 +77,14 @@ function(Paths, Schema, MetaSchema, Json) {
               fname = f.type().key()
                 ? S(f.name(), "#")
                 : f.name();
-              if (f.traversal()) {
-                return this_V._get(fname).each(function(o) {
-                  return obj._get(f.name()).push(self.from_json(o));
-                });
-              } else {
-                return self.$.fixups.push(Fixup.new(obj, f, this_V._get(fname)));
+              if (! (this_V._get(fname) == null)) {
+                if (f.traversal()) {
+                  return this_V._get(fname).each(function(o) {
+                    return obj._get(f.name()).push(self.from_json(o));
+                  });
+                } else {
+                  return self.$.fixups.push(Fixup.new(obj, f, this_V._get(fname)));
+                }
               }
             }
           });
@@ -121,7 +126,7 @@ function(Paths, Schema, MetaSchema, Json) {
               if (do_all || ef.size() > 0) {
                 return e._set(name, ef);
               }
-            } else if (do_all || val) {
+            } else if (do_all || ! (val == null)) {
               if (f.traversal()) {
                 return e._set(name, val && Dumpjson.to_json(val, do_all));
               } else {

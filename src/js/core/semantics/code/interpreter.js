@@ -64,8 +64,9 @@ function() {
     this.init = function() {
       var self = this; 
       if (! self.$.D) {
-        return self.$.D = DynamicPropertyStack.new();
+        self.$.D = DynamicPropertyStack.new();
       }
+      return self.$.indent = null;
     };
 
     this.dynamic_bind = function(block, fields) {
@@ -134,7 +135,15 @@ function() {
           self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
+      if (self.$.indent) {
+        puts(S(" " * self.$.indent, method));
+        self.$.indent = self.$.indent + 1;
+      }
       result = self.send(method, obj);
+      if (self.$.indent) {
+        puts(S(" " * self.$.indent, "=", result));
+        self.$.indent = self.$.indent - 1;
+      }
       if (! init_done) {
         self.$.init = false;
       }

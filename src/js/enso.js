@@ -8,7 +8,7 @@ var extendObjectPrototype = function(name, value) {
 }
 
 extendObjectPrototype('to_s', function() { return "<OBJECT>" })
-extendObjectPrototype('raise', function(msg) { puts(msg); return ERROR; })
+extendObjectPrototype('raise', function(msg) { puts(msg); throw "ERROR: " + msg; })
 extendObjectPrototype('instance_eval', function(fun) { fun.apply(this); })
 extendObjectPrototype('has_key_P', Object.prototype.hasOwnProperty)
 

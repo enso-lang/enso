@@ -3,6 +3,7 @@ require 'core/expr/code/env'
 require 'core/expr/code/env'
 require 'core/diagram/code/traceval'
 require 'core/schema/code/factory'
+require 'core/system/library/schema'
 
 module Evalexprstencil
 

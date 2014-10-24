@@ -445,7 +445,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.check = function(value) {
         var self = this; 
         var ok;
-        if (! self.$.field.optional() || value) {
+        if (! self.$.field.optional() || ! (value == null)) {
           ok = ((function() {
             switch (self.$.field.type().name()) {
               case "str":
@@ -463,7 +463,7 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             }
           })());
           if (! ok) {
-            return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value));
+            return self.raise(S("Invalid value for ", self.$.field.name(), ":", self.$.field.type().name(), " = ", value, " ", value.class()));
           }
         }
       };
@@ -641,7 +641,8 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
             self.raise(S("Cannot assign nil to non-optional field '", self.$.field.owner().name(), ".", self.$.field.name(), "'"));
           }
           if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
-            self.raise(S("Invalid value for '", self.$.field.owner().name(), ".", self.$.field.name(), "': ", mobj, " : ", mobj.schema_class().name()));
+            puts(S("TEST FOUND ", mobj.schema_class(), " EXPECTED ", self.$.field.type()));
+            self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
           }
           if (mobj._graph_id() != self.$.owner._graph_id()) {
             return self.raise(S("Inserting object ", mobj, " into the wrong model"));

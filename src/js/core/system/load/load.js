@@ -45,11 +45,6 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         return result.finalize();
       };
 
-      this.load_cache = function(name, obj) {
-        var self = this; 
-        return self.$.cache._set(name, obj);
-      };
-
       this._load = function(name, type) {
         var self = this; 
         var g, s, res;
@@ -62,7 +57,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
           s = self.load(S(type, ".schema"));
           res = self.load_with_models(name, g, s);
           System.stderr().push(S("## caching ", name, "...\n"));
-          Cache.save_cache(name, res);
+          Cache.save_cache(name, res, false);
           return res;
         }
       };
@@ -92,7 +87,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
           new_V = self.$.cache._get(name);
           self.$.cache._set(name, Union.Copy(Factory.new(self.load(S(type, ".schema"))), new_V));
           self.$.cache._get(name).factory().set_file_path(new_V.factory().file_path());
-          return Cache.save_cache(name, self.$.cache._get(name));
+          return Cache.save_cache(name, self.$.cache._get(name), true);
         }
       };
 
@@ -115,6 +110,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         var self = this; 
         if (encoding === undefined) encoding = null;
         return FindModel.FindModel.find_model(function(path) {
+          puts(S("FOUND PATH ", path));
           return self.load_path(path, grammar, schema, encoding);
         }, name);
       };

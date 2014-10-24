@@ -70,6 +70,7 @@ load-json:
 
 questionaire: main
 	ruby -I . core/system/load/load.rb $(JSONS_QL)
+	js/run-web.sh housing.ql
 
 piping: main
 	ruby -I . core/system/load/load.rb $(JSONS_PIPING)

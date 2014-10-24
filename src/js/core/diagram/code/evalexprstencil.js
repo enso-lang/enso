@@ -2,9 +2,10 @@ define([
   "core/expr/code/impl",
   "core/expr/code/env",
   "core/diagram/code/traceval",
-  "core/schema/code/factory"
+  "core/schema/code/factory",
+  "core/system/library/schema"
 ],
-function(Impl, Env, Traceval, Factory) {
+function(Impl, Env, Traceval, Factory, Schema) {
   var Evalexprstencil ;
   var EvalExprStencil = MakeMixin([Traceval.TracevalCommand], function() {
     this.eval_Rule = function(obj) {

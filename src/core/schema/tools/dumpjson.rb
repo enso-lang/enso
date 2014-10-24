@@ -34,7 +34,7 @@ module Dumpjson
               end
               e[name] = ef if do_all || ef.size > 0
             else
-              if do_all || val
+              if do_all || !val.nil?
                 if f.traversal then
                   e[name] = val && to_json(val, do_all)
                 else
@@ -98,7 +98,8 @@ module Dumpjson
         obj = @factory[this['class']]
         obj.schema_class.fields.each do |f|
           if f.type.Primitive?
-            obj[f.name] = this["#{f.name}="]
+            val = this["#{f.name}="]
+            obj[f.name] = val if !val.nil?
           elsif !f.many
             if this[f.name].nil?
               obj[f.name] = nil
@@ -111,13 +112,15 @@ module Dumpjson
             end
           else #multi-valued objects 
             fname = f.type.key ? "#{f.name}#" : f.name
-            if f.traversal
-              this[fname].each do |o|
-                obj[f.name] << from_json(o) 
-              end 
-            else
-              @fixups << Fixup.new(obj, f, this[fname])
-            end
+            if !this[fname].nil?
+	            if f.traversal
+	              this[fname].each do |o|
+	                obj[f.name] << from_json(o) 
+	              end 
+	            else
+	              @fixups << Fixup.new(obj, f, this[fname])
+	            end
+	          end
           end
         end
         obj
