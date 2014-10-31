@@ -1,0 +1,16 @@
+
+male Bob
+  parents smith1
+  
+female Jill
+  parents smith1
+  
+male John
+  spouse smith1
+
+female Sally
+  spouse smith1
+
+coupling smith1
+  mother Sally
+  father John

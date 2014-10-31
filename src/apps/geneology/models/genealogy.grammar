@@ -1,0 +1,14 @@
+start T
+
+T ::= [Genealogy] people:P* @/ couplings:C* @/
+
+P ::= [Person] ("male" {ismale==true} | "female" {ismale==false}) name:sym />
+	("parents" parents:<root.couplings[it]>)? /
+	spouses:("spouse" <root.couplings[it]>)* @/
+	/<
+	
+C ::= [Coupling] "coupling" name:sym />
+	"mother" mother:<root.people[it]> /
+	"father" father:<root.people[it]>
+	/<
+	

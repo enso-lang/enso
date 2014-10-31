@@ -1,0 +1,24 @@
+class Genealogy
+	people! Person*
+	couplings! Coupling*
+	
+class Person
+  name # str
+  ismale : bool
+  parents : Coupling?
+  spouses : Coupling*
+  
+class Coupling
+  name # str
+  mother : Person
+  father : Person
+  // start : date
+  // end : date
+  children : Person* / parents
+  // constraints
+  //   mother.sex = "F"
+  //   father.sex = "M"
+  
+primitive str
+primitive date
+primitive bool
