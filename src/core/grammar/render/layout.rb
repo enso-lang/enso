@@ -219,7 +219,7 @@ module Layout
       if !obj.nil?
         # TODO: this is complete cheating! we need to search the path
         key_field = obj.schema_class.key
-        output(obj[key_field.name()])
+        output(obj[key_field.name])
       end
     end
   
@@ -491,7 +491,7 @@ module Layout
       @collection.size - @index
     end
     def current
-      (@index < @collection.size) && @collection[@index]
+      (@index < @collection.size) ? @collection[@index] : nil
     end
     def next
       @index = @index + 1
