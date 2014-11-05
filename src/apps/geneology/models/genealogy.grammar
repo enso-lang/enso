@@ -3,7 +3,7 @@ start T
 T ::= [Genealogy] people:P* @/ couplings:C* @/
 
 P ::= [Person] ("male" {ismale==true} | "female" {ismale==false}) name:sym />
-	("parents" parents:<root.couplings[it]>)? /
+	parents:("parents" <root.couplings[it]>)? /
 	spouses:("spouse" <root.couplings[it]>)* @/
 	/<
 	

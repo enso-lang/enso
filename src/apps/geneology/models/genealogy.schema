@@ -10,8 +10,8 @@ class Person
   
 class Coupling
   name # str
-  mother : Person
-  father : Person
+  mother : Person / spouses
+  father : Person / spouses
   // start : date
   // end : date
   children : Person* / parents
