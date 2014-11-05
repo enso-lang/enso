@@ -4,10 +4,11 @@ D ::= "digraph G" "{" T "}"
 T ::= [Genealogy] people:P* @/ couplings:C* @/
 
 P ::= [Person] />
-	parents:(<root.couplings[it]> "->"  )? name:sym /
+	(parents:<root.couplings[it]> "->" name:sym  )?  /
 	/<
 	
 C ::= [Coupling] 
-   mother:<root.people[it]> "->" name:sym /
-   father:<root.people[it]> "->" name:sym /
+   name:sym "[label=_,fixedsize=true,width=.1,height=.1]"
+   mother:<root.people[it]> "->" name:sym "[label=M]" /
+   father:<root.people[it]> "->" name:sym "[label=F]" /
 	

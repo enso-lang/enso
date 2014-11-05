@@ -1,3 +1,3 @@
-bin/render.sh test.genealogy genealogy-dot > apps/geneology/test/test.dot
-dot -Tpdf apps/geneology/test/test.dot -o apps/geneology/test/test.pdf
-open apps/geneology/test/test.pdf
+bin/render.sh test.genealogy genealogy-dot > apps/genealogy/test/test.dot
+dot -Tpdf apps/genealogy/test/test.dot -o apps/genealogy/test/test.pdf
+open apps/genealogy/test/test.pdf
