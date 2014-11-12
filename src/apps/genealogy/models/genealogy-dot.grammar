@@ -4,6 +4,7 @@ D ::= "digraph G" "{" T "}"
 T ::= [Genealogy] people:P* @/ couplings:C* @/
 
 P ::= [Person] />
+  name:sym /
 	(parents:<root.couplings[it]> "->" name:sym  )?  /
 	/<
 	

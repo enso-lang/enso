@@ -1,4 +1,3 @@
-
 male Bob
   parents smith1
   
@@ -6,11 +5,27 @@ female Jill
   parents smith1
   
 male John
-  spouse smith1
 
 female Sally
-  spouse smith1
 
+male Bill
+  parents smith3
+  
+
+female June
+  
+male Sam
+  parents smith2 
+  
 coupling smith1
   mother Sally
   father John
+
+coupling smith2
+  mother June
+  father John
+
+coupling smith3
+  mother Jill
+  father Sam
+  
