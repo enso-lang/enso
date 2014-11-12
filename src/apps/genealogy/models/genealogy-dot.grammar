@@ -8,7 +8,7 @@ P ::= [Person] />
 	/<
 	
 C ::= [Coupling] 
-   name:sym "[label=_,fixedsize=true,width=.1,height=.1]"
+   name:sym "[label=_,fixedsize=true,width=.3,height=.3]"
    mother:<root.people[it]> "->" name:sym "[label=M]" /
    father:<root.people[it]> "->" name:sym "[label=F]" /
 	
