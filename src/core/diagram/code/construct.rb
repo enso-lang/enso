@@ -17,6 +17,7 @@ module Construct
     include Evalexprstencil::EvalExprStencil
 
     def eval_Stencil(obj)
+      @indent = 0
       factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       res = factory.Stencil(obj.title, obj.root)
       env = {}
@@ -52,7 +53,7 @@ module Construct
       factory = @D[:factory]
       res = factory[type.name]
       type.fields.each do |f|
-        if f.type.name=="Expr" # and res.schema_class.fields[f.name].type.name!="Expr"
+        if f.type.name == "Expr" # and res.schema_class.fields[f.name].type.name != "Expr"
           if obj[f.name].nil?
             res[f.name] = nil
           elsif !f.many

@@ -1,10 +1,9 @@
 define([
-  "FileUtils",
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
   "digest/sha1"
 ],
-function(Fileutils, Dumpjson, FindModel, Sha1) {
+function(Dumpjson, FindModel, Sha1) {
   var Cache ;
 
   Cache = {
@@ -13,7 +12,6 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
       if (full === undefined) full = false;
       var out, res;
       out = Cache.find_json(name);
-      puts(S("SAVING ", out));
       res = Cache.add_metadata(name, model);
       res._set("model", Dumpjson.to_json(model, full));
       return File.open(function(f) {
@@ -40,7 +38,6 @@ function(Fileutils, Dumpjson, FindModel, Sha1) {
       var path, json;
       try {
         path = Cache.find_json(name);
-        puts(S("CHECKING ", name, " -> ", path));
         json = System.readJSON(path);
         return Cache.check_file(json) && json._get("depends").all_P(function(e) {
           return Cache.check_file(e);

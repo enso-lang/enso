@@ -640,8 +640,12 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
           if (mobj == null) {
             self.raise(S("Cannot assign nil to non-optional field '", self.$.field.owner().name(), ".", self.$.field.name(), "'"));
           }
-          if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
-            puts(S("TEST FOUND ", mobj.schema_class(), " EXPECTED ", self.$.field.type()));
+          try {
+            if (! Schema.subclass_P(mobj.schema_class(), self.$.field.type())) {
+              puts(S("TEST FOUND ", mobj.schema_class(), " EXPECTED ", self.$.field.type()));
+              self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
+            }
+          } catch (DUMMY) {
             self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
           }
           if (mobj._graph_id() != self.$.owner._graph_id()) {

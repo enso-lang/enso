@@ -584,7 +584,11 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
 
       this.current = function() {
         var self = this; 
-        return self.$.index < self.$.collection.size() && self.$.collection._get(self.$.index);
+        if (self.$.index < self.$.collection.size()) {
+          return self.$.collection._get(self.$.index);
+        } else {
+          return null;
+        }
       };
 
       this.next = function() {

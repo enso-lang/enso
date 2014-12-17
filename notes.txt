@@ -3,4 +3,5 @@
 * If you don't specify the spine fields (!) correctly, then the object may not be written out completely 
   and will fail on load
   
-  
+* parsing   ("foo" manyvalued:P)* does not work, but manyvalued:("foo" P)* does!
+   Gives bad error message (crash)

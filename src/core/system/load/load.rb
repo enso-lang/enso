@@ -34,14 +34,10 @@ module Load
       result.finalize
     end
 
-    def load_cache(name, obj)
-      @cache[name] = obj
-    end
-
     def _load(name, type)
       type ||= name.split('.')[-1]
       #first check if cached XML version is still valid 
-      if Cache::check_dep(name)
+      if Parse.nil? || Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
         Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
@@ -50,7 +46,7 @@ module Load
         res = load_with_models(name, g, s)
         #dump it back to xml
         $stderr << "## caching #{name}...\n"
-        Cache::save_cache(name, res)
+        Cache::save_cache(name, res, false)
         res
       end
     end
@@ -70,10 +66,12 @@ module Load
 
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
 
-#      update_json('schema.schema')
-#      update_json('grammar.schema')
-#      update_json('grammar.grammar')
-#      update_json('schema.grammar')
+      if false
+	      update_json('schema.schema')
+	      update_json('grammar.schema')
+	      update_json('grammar.grammar')
+	      update_json('schema.grammar')
+	    end
     end
 
     def update_json(name)
@@ -92,7 +90,7 @@ module Load
         #patch_schema_pointers!(@cache[name], load("#{type}.schema"))
         #save to json
         @cache[name].factory.file_path = new.factory.file_path
-        Cache::save_cache(name, @cache[name])
+        Cache::save_cache(name, @cache[name], true)
       end
     end
 
@@ -125,7 +123,7 @@ module Load
       if path.end_with?(".json") then
         if schema.nil? then
           $stderr << "## booting #{path}...\n"
-          # this means we are loading schema_schema.xml for the first time.
+          # this means we are loading schema_schema.json for the first time.
           result = MetaSchema::load_path(path)
         else
           $stderr << "## fetching #{path}...\n"
@@ -133,6 +131,11 @@ module Load
           type = name.split('.')[-1]
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
+      elsif Parse.nil?
+        $stderr << "## fetching! #{path}...\n"
+        name = path.split("/")[-1]
+        type = name.split('.')[-1]
+        result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
         $stderr << "## loading #{path}...\n"
         result = Parse.load_file(path, grammar, schema, encoding)

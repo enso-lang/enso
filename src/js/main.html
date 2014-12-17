@@ -5,7 +5,7 @@
     scripts/main.js after require.js loads. -->
     <script src="lib/jquery-1.9.1.min.js"></script>
     <script src="lib/require.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/URI.js/1.7.2/URI.min.js"></script>
+    <script src="lib/URI.js"></script>
 <!--    <script src="lib/URI.js"></script> -->
     <!-- Initialize and layout -->
     <script type="text/javascript">
@@ -42,11 +42,15 @@
         stencil = Load.load(stencil_file)
         modelmap = new EnsoHash({ })
 
+				console.log("Constructing...")
         diagram = Construct.eval(stencil, new EnsoHash({
           data : data,
           modelmap : modelmap
         }))
-        main.append(Diagram.render(diagram, modelmap))
+				console.log("Rendering...")
+				html = Diagram.render(diagram, modelmap)
+				console.log(html)
+        main.append(html)
         $("title").text(diagram.title)
         $("body").append(main);
       })

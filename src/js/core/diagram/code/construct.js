@@ -18,6 +18,7 @@ function(Eval, Lvalue, Renderexp, Interpreter, Impl, Env, Factory, Load, Schema,
     this.eval_Stencil = function(obj) {
       var self = this; 
       var factory, res, env, src;
+      self.$.indent = 0;
       factory = Factory.SchemaFactory.new(Load.load("diagram.schema"));
       res = factory.Stencil(obj.title(), obj.root());
       env = new EnsoHash ({ });

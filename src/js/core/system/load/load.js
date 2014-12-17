@@ -49,7 +49,7 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         var self = this; 
         var g, s, res;
         type = type || name.split(".")._get(- 1);
-        if (Cache.check_dep(name)) {
+        if (Parse == null || Cache.check_dep(name)) {
           System.stderr().push(S("## fetching ", name, "...\n"));
           return Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
         } else {
@@ -71,7 +71,13 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         self.$.cache._set("grammar.schema", gs = self.load_with_models("grammar_schema.json", null, ss));
         self.$.cache._set("grammar.grammar", self.load_with_models("grammar_grammar.json", null, gs));
         self.$.cache._set("schema.grammar", self.load_with_models("schema_grammar.json", null, gs));
-        return Paths.Path.set_factory(Factory.new(ss));
+        Paths.Path.set_factory(Factory.new(ss));
+        if (false) {
+          self.update_json("schema.schema");
+          self.update_json("grammar.schema");
+          self.update_json("grammar.grammar");
+          return self.update_json("schema.grammar");
+        }
       };
 
       this.update_json = function(name) {
@@ -110,7 +116,6 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
         var self = this; 
         if (encoding === undefined) encoding = null;
         return FindModel.FindModel.find_model(function(path) {
-          puts(S("FOUND PATH ", path));
           return self.load_path(path, grammar, schema, encoding);
         }, name);
       };
@@ -129,6 +134,11 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
             type = name.split(".")._get(- 1);
             result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
           }
+        } else if (Parse == null) {
+          System.stderr().push(S("## fetching! ", path, "...\n"));
+          name = path.split("/")._get(- 1);
+          type = name.split(".")._get(- 1);
+          result = Cache.load_cache(name, Factory.new(self.load(S(type, ".schema"))));
         } else {
           System.stderr().push(S("## loading ", path, "...\n"));
           result = Parse.load_file(path, grammar, schema, encoding);

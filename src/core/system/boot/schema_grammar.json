@@ -1,74 +1,68 @@
 {
   "filename": "schema.grammar",
-  "source": "../src/core/schema/models/schema.grammar",
-  "date": "2013-08-29 19:09:29 -0500",
+  "source": "core/schema/models/schema.grammar",
+  "date": "2013-05-09 10:31:37 -0500",
   "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9",
   "depends": [
     {
       "filename": "grammar.grammar",
-      "source": "../src/core/grammar/models/grammar.grammar",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2013-05-09 10:31:37 -0500",
       "checksum": "37b5f8b06b0304dd545108cd1dd739e9eb195854"
     },
     {
       "filename": "grammar.schema",
-      "source": "../src/core/grammar/models/grammar.schema",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2013-10-29 15:38:45 -0500",
       "checksum": "86f09fda678b5032c17c88e04764b2e14463c123"
     },
     {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2013-05-09 10:31:37 -0500",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
       "filename": "schema.schema",
-      "source": "../src/core/schema/models/schema.schema",
-      "date": "2014-01-29 17:02:10 -0600",
+      "source": "core/schema/models/schema.schema",
+      "date": "2014-02-21 08:58:42 -0600",
       "checksum": "15e6c7145ba6486e9fa71e0666f32210f1da33ba"
     },
     {
       "filename": "impl.schema",
-      "source": "../src/core/expr/models/impl.schema",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/expr/models/impl.schema",
+      "date": "2013-05-09 10:31:37 -0500",
       "checksum": "e99aa95f05fdf5f6db162f382bce796600231d8a"
     },
     {
-      "filename": "schema.grammar",
-      "source": "../src/core/schema/models/schema.grammar",
-      "date": "2013-08-29 19:09:29 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
-    },
-    {
       "filename": "expr.schema",
-      "source": "../src/core/expr/models/expr.schema",
-      "date": "2013-08-29 19:09:29 -0500",
-      "checksum": "2de72f4f28f9d4efafbad9cf50e6171cc30f0eb7"
-    },
-    {
-      "filename": "expr.schema",
-      "source": "../src/core/expr/models/expr.schema",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/expr/models/expr.schema",
+      "date": "2013-10-29 15:38:45 -0500",
       "checksum": "2de72f4f28f9d4efafbad9cf50e6171cc30f0eb7"
     },
     {
       "filename": "impl.grammar",
-      "source": "../src/core/expr/models/impl.grammar",
-      "date": "2013-08-29 19:09:29 -0500",
-      "checksum": "3c07a1242e9c86f0f2e67364231e05bc442f8298"
+      "source": "core/expr/models/impl.grammar",
+      "date": "2014-10-24 01:50:57 -0500",
+      "checksum": "2a8e78d04c5a5594ac79bcb93d169adccd90ff63"
+    },
+    {
+      "filename": "expr.grammar",
+      "source": "core/expr/models/expr.grammar",
+      "date": "2013-10-29 15:38:45 -0500",
+      "checksum": "2ba0c750e19a2a002e2067e3c58831a6d01e043f"
     },
     {
       "filename": "grammar.grammar",
-      "source": "../src/core/grammar/models/grammar.grammar",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2013-05-09 10:31:37 -0500",
       "checksum": "37b5f8b06b0304dd545108cd1dd739e9eb195854"
     },
     {
       "filename": "grammar.schema",
-      "source": "../src/core/grammar/models/grammar.schema",
-      "date": "2013-08-29 19:09:29 -0500",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2013-10-29 15:38:45 -0500",
       "checksum": "86f09fda678b5032c17c88e04764b2e14463c123"
-    },
-    {
-      "filename": "expr.grammar",
-      "source": "../src/core/expr/models/expr.grammar",
-      "date": "2013-08-29 19:09:29 -0500",
-      "checksum": "2ba0c750e19a2a002e2067e3c58831a6d01e043f"
     }
   ],
   "model": {
@@ -796,6 +790,50 @@
       },
       {
         "class": "Rule",
+        "name=": "NLCommand",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[EBlock]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Break",
+                  "lines=": 1
+                },
+                {
+                  "class": "Indent",
+                  "indent=": 1
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Command]"
+                },
+                {
+                  "class": "Indent",
+                  "indent=": -1
+                },
+                {
+                  "class": "Break",
+                  "lines=": 1
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
         "name=": "EWhile",
         "grammar": "",
         "arg": {
@@ -824,7 +862,7 @@
                     "name=": "body",
                     "arg": {
                       "class": "Call",
-                      "rule": "rules[Command]"
+                      "rule": "rules[NLCommand]"
                     }
                   }
                 ]
@@ -875,7 +913,7 @@
                     "name=": "body",
                     "arg": {
                       "class": "Call",
-                      "rule": "rules[Command]"
+                      "rule": "rules[NLCommand]"
                     }
                   }
                 ]
@@ -914,7 +952,7 @@
                     "name=": "body",
                     "arg": {
                       "class": "Call",
-                      "rule": "rules[Command]"
+                      "rule": "rules[NLCommand]"
                     }
                   },
                   {
@@ -934,7 +972,7 @@
                               "name=": "body2",
                               "arg": {
                                 "class": "Call",
-                                "rule": "rules[Command]"
+                                "rule": "rules[NLCommand]"
                               }
                             }
                           ]
@@ -1008,8 +1046,14 @@
                     }
                   },
                   {
+                    "class": "NoSpace"
+                  },
+                  {
                     "class": "Lit",
                     "value=": "("
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Field",
@@ -1023,10 +1067,26 @@
                       "optional=": true,
                       "many=": true,
                       "sep": {
-                        "class": "Lit",
-                        "value=": ","
+                        "class": "Alt",
+                        "alts": [
+                          {
+                            "class": "Sequence",
+                            "elements": [
+                              {
+                                "class": "NoSpace"
+                              },
+                              {
+                                "class": "Lit",
+                                "value=": ","
+                              }
+                            ]
+                          }
+                        ]
                       }
                     }
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Lit",
@@ -1037,7 +1097,7 @@
                     "name=": "body",
                     "arg": {
                       "class": "Call",
-                      "rule": "rules[Command]"
+                      "rule": "rules[NLCommand]"
                     }
                   }
                 ]
@@ -1185,12 +1245,20 @@
                   "lines=": 1
                 },
                 {
+                  "class": "Indent",
+                  "indent=": 1
+                },
+                {
                   "class": "Call",
                   "rule": "rules[EBlock_nocurly]"
                 },
                 {
                   "class": "Break",
                   "lines=": 1
+                },
+                {
+                  "class": "Indent",
+                  "indent=": -1
                 },
                 {
                   "class": "Lit",
@@ -1258,7 +1326,7 @@
                       "class": "Regular",
                       "arg": {
                         "class": "Call",
-                        "rule": "rules[Command]"
+                        "rule": "rules[NLCommand]"
                       },
                       "optional=": true,
                       "many=": true,
@@ -1303,6 +1371,9 @@
                     "value=": "("
                   },
                   {
+                    "class": "NoSpace"
+                  },
+                  {
                     "class": "Field",
                     "name=": "params",
                     "arg": {
@@ -1314,10 +1385,26 @@
                       "optional=": true,
                       "many=": true,
                       "sep": {
-                        "class": "Lit",
-                        "value=": ","
+                        "class": "Alt",
+                        "alts": [
+                          {
+                            "class": "Sequence",
+                            "elements": [
+                              {
+                                "class": "NoSpace"
+                              },
+                              {
+                                "class": "Lit",
+                                "value=": ","
+                              }
+                            ]
+                          }
+                        ]
                       }
                     }
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Lit",
@@ -1431,6 +1518,9 @@
                               "value=": "|"
                             },
                             {
+                              "class": "NoSpace"
+                            },
+                            {
                               "class": "Field",
                               "name=": "formals",
                               "arg": {
@@ -1442,10 +1532,26 @@
                                 "optional=": false,
                                 "many=": true,
                                 "sep": {
-                                  "class": "Lit",
-                                  "value=": ","
+                                  "class": "Alt",
+                                  "alts": [
+                                    {
+                                      "class": "Sequence",
+                                      "elements": [
+                                        {
+                                          "class": "NoSpace"
+                                        },
+                                        {
+                                          "class": "Lit",
+                                          "value=": ","
+                                        }
+                                      ]
+                                    }
+                                  ]
                                 }
                               }
+                            },
+                            {
+                              "class": "NoSpace"
                             },
                             {
                               "class": "Lit",
@@ -1464,6 +1570,10 @@
                     "lines=": 1
                   },
                   {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
                     "class": "Field",
                     "name=": "body",
                     "arg": {
@@ -1472,12 +1582,16 @@
                     }
                   },
                   {
+                    "class": "Lit",
+                    "value=": "}"
+                  },
+                  {
                     "class": "Break",
                     "lines=": 1
                   },
                   {
-                    "class": "Lit",
-                    "value=": "}"
+                    "class": "Indent",
+                    "indent=": -1
                   }
                 ]
               }

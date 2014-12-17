@@ -1,5 +1,3 @@
-require 'FileUtils'
-
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'
@@ -7,9 +5,10 @@ require 'digest/sha1'
 
 module Cache
 
-  def self.save_cache(name, model, out=find_json(name))
+  def self.save_cache(name, model, full=false)
+    out = find_json(name)
     res = add_metadata(name, model)
-    res['model'] = Dumpjson::to_json(model, true)
+    res['model'] = Dumpjson::to_json(model, full)
     File.open(out, 'w+') do |f| 
       f.write(JSON.pretty_generate(res, allow_nan: true, max_nesting: false))
     end
@@ -69,11 +68,6 @@ module Cache
       "core/system/boot/#{name.gsub('.','_')}.json"
     else
 	    cache_path = "cache/"
-#      index = name.rindex('/')
-#      dir = index ? name[0..index].gsub('.','_') : ""
-#      unless File.exists? "#{cache_path}#{dir}"
-#        FileUtils.mkdir_p "#{cache_path}#{dir}"
-#      end
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end
@@ -143,7 +137,7 @@ if __FILE__ == $0
     if resp == "Yes" or resp == "yes" or resp == "Y" or resp == "y"
       Cache::clean()
     else
-      puts "Use: ruby cache.rb <model> if you to clean a specific file"
+      puts "Use: ruby cache.rb <model> if you need to clean a specific file"
     end
   else
     print "Cleaning #{data_file} JSON... "

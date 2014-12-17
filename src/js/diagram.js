@@ -1,9 +1,9 @@
 define([
-	"enso", 
+	'enso', 
 	'core/expr/code/eval', 
 	'core/expr/code/lvalue', 
 	'core/diagram/code/invert',
-	'core/expr/code/renderexp',
+	'core/expr/code/renderexp'
 ],
 function(Enso, Eval, Lvalue, Invert, RenderExp) {
 	var mm;

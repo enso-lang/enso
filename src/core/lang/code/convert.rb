@@ -655,7 +655,7 @@ class CodeBuilder < Ripper::SexpBuilder
   def on_method_add_arg(call, args)
     if args
       #puts "CALL #{call} #{args}"
-      args.normal.each do |arg|
+      args.normal.flatten.each do |arg|
         call.args << arg
       end
       raise "ARG PROBLEM" if args.rest && call.rest || args.block && call.block
