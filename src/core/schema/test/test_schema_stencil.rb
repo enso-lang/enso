@@ -4,7 +4,7 @@ require 'core/system/load/load'
 require 'core/diagram/code/construct'
 require 'core/diagram/code/render'
 
-class QuestionaireTest < Test::Unit::TestCase
+class SchemaTest < Test::Unit::TestCase
 
   def test_can_construct
     data_file = "schema.schema"

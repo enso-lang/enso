@@ -1,5 +1,5 @@
 require 'core/system/load/load'
-require 'applications/StateMachine/code/state_machine'
+require 'demo/StateMachine/code/state_machine'
 
 sm = Load::load("door.state_machine")
 

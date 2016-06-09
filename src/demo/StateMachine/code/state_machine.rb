@@ -1,11 +1,11 @@
 
 require 'core/system/load/load'
 require 'core/schema/tools/print'
-require 'core/diagram/code/stencil'
+#require 'core/diagram/code/stencil'
 
 def run_state_machine(sm)
 
-  Wx::App.run do
+  #Wx::App.run do
   
     current = sm.start
     puts "#{current.name}"
@@ -18,7 +18,7 @@ def run_state_machine(sm)
       current = trans.to if trans
       puts "#{current.name}"
     end
-  end
+  #end
 end
 
 if __FILE__ == $0
