@@ -216,10 +216,6 @@ module Factory
 
     def _graph_id; @factory end
 
-    def instance_of?(sym)
-      schema_class.name == sym.to_s
-    end
-
     def delete!; factory.delete!(self) end
 
     def __delete_obj(mobj)
