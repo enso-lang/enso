@@ -39,7 +39,7 @@ Method   ::= value:FunHeader value:FunBody
   Decl     ::= [Decl] name:sym ("=" default:Expr)?
   FunBody ::= [Fun] body:SeqBodyR </"}"
    
-Attribute ::= [Attribute] ({ kind=="attr_reader" } Reader | { kind=="attr_accessor" } Reader / Writer)
+Attribute ::= [Attribute] ({ kind=="attr_reader" } Reader | { kind=="attr_writer" } Writer | { kind=="attr_accessor" } Reader / Writer)
 Reader  ::= "this.". name:sym "=" "function()" "{" "return" "this"."."."$".".". name:sym "}" .";"
 Writer  ::= "this.". "set_".name:sym "=" "function(val)" "{" "this"."."."$".".". name:sym " = val" "}" .";"
 
@@ -91,7 +91,7 @@ EBinOp5 ::= [EBinOp] e1:EUnOp (op:"*" | op:"/" | op:"%") e2:EBinOp5
          | EUnOp
 EUnOp ::= [EUnOp] (op:"!" | op:"-") e:EUnOp
         | EBinOp6
-EBinOp6 ::= [EBinOp] e1:Primary op:"**" e2:EBinOp6
+EBinOp6 ::= [EBinOp] {op=="**"} "Math.pow(". e1:EOr ."," e2:EOr .")"
          | Primary
 
 
@@ -108,20 +108,20 @@ Record  ::= [Record] "new" "EnsoHash" "("."{" fields:Field* @(.",") "}".")"
   Field   ::= [Binding] name:sym .":" value:Expr
 Lit     ::= [Lit] value:atom
 
-Call     ::= SuperCall | CallRest | CallNorm
+Call      ::= SuperCall | CallRest | CallNorm
 CallRest  ::= [Call] Target .".apply(".target:Primary .", [". Args? ."].concat(". rest:Expr ."))"
 CallNorm  ::= [Call] Target."(". Args? .")"
-  Target ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
+  Target  ::= {method=="call"} target:Primary | (target:Primary .".".)? method:sym
   Args    ::= (block:Primary .",")? args:Expr+ @(.",") 
             | block:Primary
-SuperCall     ::= [Call] target:Super .".". method:sym (SuperRestArgs | SuperInvoke)
+SuperCall       ::= [Call] target:Super .".". method:sym (SuperRestArgs | SuperInvoke)
   SuperRestArgs ::= .".apply(self, [". Args? ."].concat(". rest:Expr ."))"
-  SuperInvoke ::= .".call(self" (."," Args)? .")"
+  SuperInvoke   ::= .".call(self" (."," Args)? .")"
   Super ::= [Super] "super$"
   
 Fun     ::= [Fun] "function(". Params .")" "{"/> args:Default* VarArg? body:SeqBodyR </"}"
 Params  ::=  (block:sym .",")? args:Param+ @(.",")
           | block:sym?
-Param     ::= [Decl] name:sym
-Default     ::= [Decl] ("if (". name:sym "=== undefined)" name:sym "=" default:Expr .";" /)?
+Param   ::= [Decl] name:sym
+Default ::= [Decl] ("if (". name:sym "=== undefined)" name:sym "=" default:Expr .";" /)?
   
