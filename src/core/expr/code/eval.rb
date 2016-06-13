@@ -14,31 +14,6 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-=begin
-      case obj.op
-      when "&"
-        eval(obj.e1) && eval(obj.e2)
-      when "|"
-        eval(obj.e1) || eval(obj.e2)
-      when "eql?"
-        eval(obj.e1) == eval(obj.e2)
-      when "+"
-        eval(obj.e1) + eval(obj.e2)
-      when "*"
-        eval(obj.e1) * eval(obj.e2)
-      when "-"
-        eval(obj.e1) - eval(obj.e2)
-      when "/"
-        eval(obj.e1) / eval(obj.e2)
-      when "<"
-        eval(obj.e1) < eval(obj.e2)
-      when ">"
-        eval(obj.e1) > eval(obj.e2)
-      when "<=" 
-        eval(obj.e1) <= eval(obj.e2)
-      when ">=" 
-        eval(obj.e1) >= eval(obj.e2)
-=end
       if obj.op == "&"
         eval(obj.e1) && eval(obj.e2)
       elsif obj.op == "|"
