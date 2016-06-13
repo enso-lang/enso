@@ -229,10 +229,12 @@ class CodeBuilder < Ripper::SexpBuilder
     if superclass
       if superclass.Var?
         superclass = @f.Ref(nil, superclass.name)
+      elsif superclass.Ref?
+        # do nothing
       elsif superclass.Call?
         superclass = @f.Ref(superclass.target.name, superclass.method)
       else
-        raise "Invalid superclass"
+        raise "Invalid superclass #{superclass}"
       end
     end
     @f.Class(const, parts[0], parts[1], parts[2], superclass)
@@ -328,16 +330,23 @@ class CodeBuilder < Ripper::SexpBuilder
     token
   end
 
-  def on_params(params, optionals, rest, something, keywords, keywords_rest, block)
+  def on_params(required, optional, rest, more, block)
+  # params, optionals, rest, something, keywords, keywords_rest=nil, block=nil)
     formals = []
-    if params
-      params.each do |x|
+    if required
+      required.each do |x|
         formals << @f.Decl(x)
       end
     end
-    if optionals
-      optionals.collect do |x|
+    if optional
+      optional.each do |x|
         formals << @f.Decl(x[0], x[1])
+      end
+    end
+    if more
+      put "ERRROR!!! 'more' args in on_params"
+      more.each do |x|
+        formals << @f.Decl(x)
       end
     end
     #puts "FORM #{formals} #{block}"
@@ -550,6 +559,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_dyna_symbol(symbol)
+    puts "DYNA #{symbol}"
     symbol.to_dyna_symbol
   end
 
@@ -808,7 +818,7 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_sclass(superclass, body)
     puts "RUNNINg #{superclass} #{body}"
-    Ruby::SingletonClass.new(superclass, body)
+    Ruby::Singleton.new(superclass, body)
   end
 
   def on_stmts_add(target, statement)
@@ -821,7 +831,7 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_string_add(base, content)
     #puts "STR #{base} #{content}"
-    if base.Lit? && base.value == ""
+    if base == [] || base.Lit? && base.value == ""
       content
     elsif content.Lit? && content.value == ""
       base
@@ -1031,11 +1041,11 @@ if __FILE__ == $0 then
   puts "Converting to JS: #{name}"
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")
-  #jj Dumpjson::to_json(m)
+  jj Dumpjson::to_json(m)
    
-  out = File.new(outname, "w")
-  $stdout << "## storing #{outname}\n"
-  Layout::DisplayFormat.print(g, m, out, false)
+  # out = File.new(outname, "w")
+  # $stdout << "## storing #{outname}\n"
+  # Layout::DisplayFormat.print(g, m, out, false)
 end
 
 
