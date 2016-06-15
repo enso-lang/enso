@@ -434,7 +434,7 @@ class CodeBuilder < Ripper::SexpBuilder
           o.method = @currentMethod
         end
       else
-        if @selfVar && !(o.method =~ /^[A-Z]/) && (o.method != "puts") 
+        if @selfVar && !(o.method =~ /^[A-Z]/) && (o.method != "puts") && !env.include?(o.method)
           o.target = @f.Var(@selfVar)
         end
       end
@@ -444,6 +444,9 @@ class CodeBuilder < Ripper::SexpBuilder
       o.rest = fixup_expr(o.rest, env)
       o.block = fixup_expr(o.block, env)
 
+	  when "Prop"
+	    o.target = fixup_expr(o.target, env)
+	    
     when "Fun"
       newvars = []
       o.args.each {|x| newvars << x.name}
@@ -608,6 +611,9 @@ class CodeBuilder < Ripper::SexpBuilder
     elsif method == "is_a_P"
       args = [target]+args
       @f.Call(@f.Var("System"), "test_type", args, nil, nil)
+    elsif method.end_with?("_") && args == [] && rest.nil? && block.nil?
+      method = method.slice(0..-2)
+      @f.Prop(target, method)
     else
       @f.Call(target, method, args, nil, fixup_block(block))
     end
@@ -1041,11 +1047,11 @@ if __FILE__ == $0 then
   puts "Converting to JS: #{name}"
   m = CodeBuilder.build(File.new(name, "r"))
   g = Load::load("#{grammar}.grammar")
-  jj Dumpjson::to_json(m)
+  # jj Dumpjson::to_json(m)
    
-  # out = File.new(outname, "w")
-  # $stdout << "## storing #{outname}\n"
-  # Layout::DisplayFormat.print(g, m, out, false)
+  out = File.new(outname, "w")
+  $stdout << "## storing #{outname}\n"
+  Layout::DisplayFormat.print(g, m, out, false)
 end
 
 

@@ -50,6 +50,10 @@ class Index < Expr
   base! Expr
   index! Expr
 
+class Prop < Expr
+  target! Expr
+  property: str
+  
 class Call < Expr
   target! Expr?
   method: str
