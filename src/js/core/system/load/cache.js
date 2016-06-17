@@ -75,11 +75,15 @@ function(Dumpjson, FindModel, Sha1) {
 
     find_json: function(name) {
       var self = this; 
-      var cache_path;
+      var prefix, cache_path;
+      prefix = "";
+      if (true) {
+        prefix = "../";
+      }
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) {
-        return S("core/system/boot/", name.gsub(".", "_"), ".json");
+        return S(prefix, "core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
-        cache_path = "cache/";
+        cache_path = S(prefix, "cache/");
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },

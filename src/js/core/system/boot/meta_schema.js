@@ -220,7 +220,11 @@ function(Factory, Union, Json, Enso) {
   MetaSchema = {
     load_path: function(path) {
       var self = this; 
-      return MetaSchema.load(System.readJSON(path)._get("model"));
+      var json, result;
+      json = System.readJSON(path);
+      result = MetaSchema.load(json._get("model"));
+      result.factory().file_path()._set(0, json._get("source"));
+      return result;
     },
 
     load: function(doc) {

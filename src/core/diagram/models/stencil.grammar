@@ -29,9 +29,6 @@ Props ::= "[" props:Assign* @"," "]"
 Assign ::= [Assign] loc:Expr "=" exp:Expr
 EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
 
-EBinOp1 ::= [InstanceOf] base:Expr "is" class_name:sym
-          | EBinOp1
-
 EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
          | EUnOp
 

@@ -16,7 +16,7 @@ require 'core/semantics/code/interpreter'
 require 'core/system/utils/paths'
 
 # require 'core/expr/code/render'
-# require 'yaml'
+# require 'json'
 
 module Stencil
 
@@ -24,7 +24,7 @@ module Stencil
 	
 	def self.RunStencilApp(path = ARGV[0])
 	  # Wx::App.run do
-	    win = StencilFrame.new(path)
+	    #win = StencilFrame.new(path)
 	    # win.show 
 	  # end
 	end
@@ -60,15 +60,17 @@ module Stencil
 	      self.set_title(@stencil.title)
 	    end
 	    @data = data
+	    build_diagram
 	    if data.factory.file_path[0]
 	      pos = "#{data.factory.file_path[0]}-positions"
 	      #puts "FINDING #{pos}"
 	      @position_map = {}
 	      if File.exists?(pos)
-	        @position_map = nil # YAML::load_file(pos)
+	        @position_map = System.readJSON(pos)
+	        #@position_map.each { |key, val|
+	          
 	      end
 	    end
-	    build_diagram
 	  end
 
 	  def rebuild_diagram
@@ -142,15 +144,15 @@ module Stencil
 	    @position_map = {}
 	    @position_map["*VERSION*"] = 2
 	
-	    size = get_size
+	    size = @conext.size
 	    @position_map['*WINDOW*'] = {'x'=>size.get_width, 'y'=>size.get_height}
 	
-	    obj_handler = lambda do |tag, obj, shape|
+	    obj_handler = Proc.new { |tag, obj, shape|
 	      @position_map[tag] = position(shape)
-	    end
-	    connector_handler = lambda do |tag, at1, at2|
+	    }
+	    connector_handler = Proc.new { |tag, at1, at2|
 	      @position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
-	    end
+	    }
 	    generate_saved_positions obj_handler, connector_handler, 9999 # no version on saving
 	  end
 	 
@@ -191,8 +193,44 @@ module Stencil
 	    
 	  def do_constraints
 	    super("FOO")
+	    @position_map.each do |key, pnt|
+	      #puts "CHECK #{key} #{pnt}"
+	      field = nil
+	      parts = key.split('.')
+	      if parts.size == 2
+	        key = parts[0]
+	        field = parts[1]
+	      end
+	      obj = @labelToShape[key]
+	      if !obj.isnil?
+		      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
+		      if field.nil?
+			      pos = @positions[obj]
+			      if !pos.isnil?
+				      #puts "   Has POS #{key} #{pnt}"
+				      pos.x.value = pnt.x
+				      pos.y.value = pnt.y
+				    end
+			    else
+			      obj.connectors.find do |ce|
+		          l = ce.label ? ce.label.string : ""
+			        #puts "   CHECKING #{l}"
+		          if field == l
+		            conn = ce.owner
+		            #puts "   Has ATTACH #{field}"
+		            conn.ends[0].attach.x = pnt[0].x
+		            conn.ends[0].attach.y = pnt[0].y
+		            conn.ends[1].attach.x = pnt[1].x
+		            conn.ends[1].attach.y = pnt[1].y
+		            true
+			        end
+			      end
+			    end
+			  end
+			end
+
 	    if @position_map
-		    obj_handler = lambda do |tag, obj, shape|
+		    obj_handler = Proc.new {|tag, obj, shape|
 		      pos = @positions[shape]  # using Diagram private member
 		      pnt = @position_map[tag]
 		      #puts "   Has POS #{obj} #{pos} #{pnt}"
@@ -200,8 +238,8 @@ module Stencil
 		        pos.x.value = pnt.x
 		        pos.y.value = pnt.y
 		      end
-		    end
-		    connector_handler = lambda do |tag, at1, at2|
+		    }
+		    connector_handler = Proc.new { |tag, at1, at2|
 		      pnt = @position_map[tag]
 		      if pnt
 		        at1.x = pnt[0].x
@@ -209,7 +247,7 @@ module Stencil
 		        at2.x = pnt[1].x
 		        at2.y = pnt[1].y
 		      end
-		    end
+		    }
 		    generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 1
 		  end
 	  end
@@ -291,7 +329,7 @@ module Stencil
 	    #Print.print(stencil)
 	    newEnv = env.clone
 	    stencil.props.each do |prop|
-	      val = eval(prop.exp, newEnv, true)
+	      val = eval(prop.exp, newEnv) # , true)
 	      #puts "SET #{prop.loc} = #{val}"
 	      case Interpreter(RenderExpr).render(prop.loc)
 	      when "font.size" then
@@ -575,107 +613,9 @@ module Stencil
 	  #### expressions
 	  
 	  def eval(exp, env)
-	    if exp.nil?
-	      nil
-	    else
-		    send("eval#{exp.schema_class.name}", exp, env)
-		  end
+	    Eval::eval(exp, :env=>env)
 	  end
-	     
-	  def evalEStrConst(this, env)
-	    this.val
-	  end
-
-	  def evalEIntConst(this, env)
-	    this.val
-	  end
-
-	  def evalEBoolConst(this, env)
-	    this.val
-	  end
-	
-	  def evalColor(this, env)
-	    @factory.Color(this.r, this.g, this.b)
-	  end
-
-		def evalENil(this, env)
-		  nil
-		end
-			  
-	  def evalEUnOp(this, env)
-	    op = this.op.to_sym
-	    arg = eval(this.e, env)
-	    val = arg.send(this.op.to_sym)
-	    #puts "UNARY #{arg}.#{this.op.to_sym} = #{val}"
-	    val
-	  end
-
-	  def evalEBinOp(this, env)
-	    op = this.op.to_sym
-	    case op
-	    when "|" then 
-	      val = [this.e1, this.e2].any? do |a|
-	        eval(a, env)
-	      end
-	      #puts "BINARY #{this.op.to_sym} = #{val}"
-	    when "&" then 
-	      val = [this.e1, this.e2].all? do |a|
-	        eval(a, env)
-	      end
-	      #puts "BINARY #{this.op.to_sym} = #{val}"
-	    else
-	      args = [eval(this.e1, env), eval(this.e2, env)]
-	      argsNotNil = args.select { |x| !x.nil? }
-	      if argsNotNil.size < 2 && [">", "<", ">=", "<=", "eql?"].include?(this.op) 
-	        #puts "BINARY NIL #{this.op}"
-	        nil
-	      else
-		      #puts "BINARY #{this.op.to_sym} (#{args})"
-		      a = args.shift
-		      val = a.send(this.op.to_sym, *args)
-		      #puts "BINARY #{a}.#{this.op.to_sym}(#{args}) = #{val}"
-		    end
-	    end
-	    val
-	  end
-
-	  def ETernOp(this, env)
-	    op = this.op1.to_sym
-	    case op
-	    when "?" then
-	      v = eval(this.e1, env)
-	      #puts "IF #{this.e1} ==> #{v}"
-	      if v
-	        val = eval(this.e2, env)
-	      else
-	        val = eval(this.e3, env)
-	      end
-	    end
-		end	 
-		 
-	  def evalEField(this, env)
-	    a = eval(this.e, env)
-	    #puts "EVAL FIELD #{this.e} => #{a}"
-	    if a.nil?  # NOTE THIS IS A HACK!!!
-	      nil
-	    elsif this.fname == "_id"
-		    a._id  # Address.new(a, this.fname) 
-	    else 
-	    	a[this.fname] # Address.new(a, this.fname)
-	    end
-	  end
-	    
-	  def evalInstanceOf(this, env)
-	    a = eval(this.base, env)
-	    a && Schema::subclass?(a.schema_class, this.class_name)
-	  end
-	    
-	  def evalEVar(this, env)
-	    # puts "VAR #{this.name} #{env}"
-	    raise "undefined variable '#{this.name}'" if !env.has_key?(this.name)
-	    env[this.name]
-	  end
-	
+	     	
 	  def lvalue(exp, env)
 	    @lval = Interpreter(LValueExpr) if @lval.nil?
 	    @lval.lvalue(exp, :env=>env, :factory=>@factory)

@@ -48,11 +48,12 @@ module Layout
       end
       @modelmap = {}
       out = render(this.start.arg)
+      #puts "RENDER #{this.start.arg.alts}"
       format = {}
       format[:lines] = 0
       format[:space] = false
       format[:indent] = 0
-      #puts @modelmap
+      # puts @modelmap
       combine out, format
     end
 
@@ -321,6 +322,8 @@ module Layout
       if obj == true
         # nothing
         ""
+      elsif obj.nil?
+        raise "#{format}"
       elsif obj.is_a?(Array)
 #        if @modelmap[obj]
 #          o = @modelmap[obj]

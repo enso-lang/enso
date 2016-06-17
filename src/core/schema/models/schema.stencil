@@ -2,8 +2,8 @@ diagram(schema)
 
 graph {
   // create the nodes (one for each class)
-  for class : data.classes 
-   //label class {  // declare the "identifier" of this node is a class
+  for class : schema.classes 
+     label class {  // declare the "identifier" of this node is a class
      box { 
        vertical {
           text class.name
@@ -17,14 +17,14 @@ graph {
                }
        }
     }
-  // }
+  }
   // create the subclass links
-  for class : data.classes
+  for class : schema.classes
     for super : class.supers
       connector (class --> super)
   
   // create the relationship edges that go between nodes
-  for class : data.classes
+  for class : schema.classes
     for field : class.defined_fields
      if (field.computed == nil)
       if (not (field.type is Primitive) and (field.inverse == nil or field._id <= field.inverse._id))

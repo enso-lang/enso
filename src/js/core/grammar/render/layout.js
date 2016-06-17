@@ -342,6 +342,8 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
       var res;
       if (obj == true) {
         return "";
+      } else if (obj == null) {
+        return self.raise(format);
       } else if (System.test_type(obj, Array)) {
         res = "";
         obj.each(function(x) {

@@ -102,6 +102,13 @@ function(Schema, Interpreter) {
       });
     };
 
+    this.eval_InstanceOf = function(obj) {
+      var self = this; 
+      var a;
+      a = self.eval(obj.base());
+      return a && Schema.subclass_P(a.schema_class(), obj.class_name());
+    };
+
     this.eval_EField = function(obj) {
       var self = this; 
       var target;

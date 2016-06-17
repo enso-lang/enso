@@ -589,8 +589,6 @@ module Factory
 
     def to_s; __value.to_s end
 
-    def clear; __value.clear end
-
     def connected?; @owner end
 
     def has_key?(key); keys.include?(key) end
@@ -631,6 +629,10 @@ module Factory
       super(owner, field)
       @value = {}
       @key = key
+    end
+
+    def clear
+    	@value = {} 
     end
 
     def each(&block); __value.each_value(&block) end
@@ -700,6 +702,10 @@ module Factory
 
     def initialize(owner, field)
       super(owner, field)
+      @value = []
+    end
+    
+    def clear
       @value = []
     end
 

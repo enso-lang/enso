@@ -1,59 +1,36 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!-- data-main attribute tells require.js to load
-    scripts/main.js after require.js loads. -->
-    <script src="lib/jquery-1.9.1.min.js"></script>
     <script src="lib/require.js"></script>
     <script src="lib/URI.js"></script>
-<!--    <script src="lib/URI.js"></script> -->
     <!-- Initialize and layout -->
-    <script type="text/javascript">
-      $("html").css("height", "100%")
-      $("body").css("height", "100%")
-      $("body").css("margin", "0")
-
-      main = $("<div>")
-      main.css("width", "100%")
-      main.css("height", "100%")
-      main.css("float", "left")
-    </script>
+    <canvas id="canvas" width="490" height="490"></canvas>
+    
     <!-- Render questionaire -->
     <script type="text/javascript">
       requirejs([
         "enso",
-        'core/system/load/load',
-        'core/diagram/code/construct',
-        'diagram',
-        'core/schema/tools/print',
+        'core/diagram/code/stencil'
       ],
-      function(Enso, Load, Construct, Diagram, Print) {
-        q = window.location.href;
+      function(Enso, Stencil) {
+        var q = window.location.href;
         q = q.substr(q.indexOf("?"))
-        params = URI.parseQuery(q)
-        data_file =  params["data"] // "housing.ql"
-        stencil_file = data_file.split(".")[1] + ".stencil"
+        var data_file =  "schema.schema" // params["data"] // "housing.ql"
+        var stencil_file = data_file.split(".")[1] + ".stencil"
 				
-				// console.log(params);
-				console.log(data_file);
-				console.log(stencil_file);
+var canvas = document.getElementById('canvas')
+var context = canvas.getContext('2d')
+ document.documentElement.appendChild(canvas)
+ canvas.onclick = function() { alert("HI!") }
 				
-        data = Load.load(data_file)
-        stencil = Load.load(stencil_file)
-        modelmap = new EnsoHash({ })
-
 				console.log("Constructing...")
-        diagram = Construct.eval(stencil, new EnsoHash({
-          data : data,
-          modelmap : modelmap
-        }))
+				context.set_fillStyle = function(x) { context.fillStyle = x }
+				context.set_strokeStyle = function(x) { context.strokeStyle = x }
+				
+			  var stencil = Stencil.StencilFrame.new(window, canvas, context)
+				stencil.set_path(data_file)			  
 				console.log("Rendering...")
-				html = Diagram.render(diagram, modelmap)
-				console.log(html)
-        main.append(html)
-        $("title").text(diagram.title)
-        $("body").append(main);
-      })
+	    })
     </script>
   </head>
   <title></title>

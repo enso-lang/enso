@@ -16,10 +16,10 @@ function walk(dir, block) {
 
 map = {}
 count = 0;
-walk(".", function(name, path) {
-  ext = name.slice(name.length - 3);
-  console.log("EXT:" + ext);
-  if (ext != ".rb" && ext != ".sh" && ext != ".js" && name[0] != ".") {
+walk("..", function(name, path) {
+  ext = name.slice(name.length - 5);
+  console.log("EXT="+ext)
+  if (ext == ".json") { // != ".rb" && ext != ".sh" && ext != ".js" && name[0] != ".") {
     if (path.slice(0,2) == "./")
       path = path.slice(2,1000);
     map[name] = path;

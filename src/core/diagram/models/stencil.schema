@@ -21,10 +21,6 @@ class Assign
   loc! Expr
   exp! Expr
 
-class InstanceOf < Expr
-  base! Expr
-  class_name: str
-
 class Color < Expr
   r! Expr
   g! Expr

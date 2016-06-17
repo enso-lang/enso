@@ -64,10 +64,12 @@ module Cache
   end
 
   def self.find_json(name)
+    prefix = ""
+    prefix = "../" if false # HACK TO GET ELECTRON RUNNING!!!
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
-      "core/system/boot/#{name.gsub('.','_')}.json"
+      "#{prefix}core/system/boot/#{name.gsub('.','_')}.json"
     else
-	    cache_path = "cache/"
+	    cache_path = "#{prefix}cache/"
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end

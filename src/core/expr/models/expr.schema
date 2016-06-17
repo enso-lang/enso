@@ -16,6 +16,10 @@ class EUnOp < Expr
   op: str
   e! Expr
 
+class InstanceOf < Expr
+  base! Expr
+  class_name: str
+
 class EFunCall < Expr
   fun! Expr
   params! Expr*

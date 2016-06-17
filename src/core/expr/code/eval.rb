@@ -81,6 +81,12 @@ module Eval
       end
     end
   
+    def eval_InstanceOf(obj)
+      a = eval(obj.base)
+      a && Schema::subclass?(a.schema_class, obj.class_name)
+    end
+
+  
     #reason for in_fc is to disambiguate between the following 2 cases:
     #  a.foo   -- (EField (Var 'a') (Str 'foo'))
     #  a.foo() -- (EFunCall (EField (Var 'a') (Str 'foo')))

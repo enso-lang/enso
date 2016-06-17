@@ -8,7 +8,6 @@ SOURCES = \
 	js/core/system/utils/paths.js \
 	js/core/system/library/schema.js \
 	js/core/schema/code/factory.js \
-	js/core/schema/code/immutable.js \
 	js/core/schema/code/dynamic.js \
 	js/core/schema/tools/dumpjson.js \
 	js/core/schema/tools/union.js \
@@ -25,11 +24,10 @@ SOURCES = \
 	js/core/expr/code/lvalue.js \
 	js/core/expr/code/renderexp.js \
 	js/core/expr/taint/proxy.js \
-	js/core/diagram/code/construct.js \
-	js/core/diagram/code/render.js \
-	js/core/diagram/code/traceval.js \
-	js/core/diagram/code/evalexprstencil.js \
-	js/core/diagram/code/invert.js \
+	js/core/diagram/code/diagram.js \
+	js/core/diagram/code/stencil.js \
+	js/core/diagram/code/constraints.js \
+	
 
 JSONS_QL = \
   housing.ql \

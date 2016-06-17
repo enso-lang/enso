@@ -244,11 +244,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.$.factory;
       };
 
-      this.instance_of_P = function(sym) {
-        var self = this; 
-        return self.schema_class().name() == sym.to_s();
-      };
-
       this.delete_in_place = function() {
         var self = this; 
         return self.factory().delete_in_place(self);
@@ -734,11 +729,6 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         return self.__value().size();
       };
 
-      this.clear = function() {
-        var self = this; 
-        return self.__value().clear();
-      };
-
       this.connected_P = function() {
         var self = this; 
         return self.$.owner;
@@ -794,6 +784,11 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
         super$.initialize.call(self, owner, field);
         self.$.value = new EnsoHash ({ });
         return self.$.key = key;
+      };
+
+      this.clear = function() {
+        var self = this; 
+        return self.$.value = new EnsoHash ({ });
       };
 
       this.each = function(block) {
@@ -892,6 +887,11 @@ function(Dynamic, Paths, Schema, Interpreter, Impl, Env, Freevar) {
       this.initialize = function(owner, field) {
         var self = this; 
         super$.initialize.call(self, owner, field);
+        return self.$.value = [];
+      };
+
+      this.clear = function() {
+        var self = this; 
         return self.$.value = [];
       };
 

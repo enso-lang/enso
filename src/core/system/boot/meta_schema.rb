@@ -15,7 +15,10 @@ require 'enso'
 
 module MetaSchema
   def self.load_path(path)
-    load(System.readJSON(path)['model'])
+    json = System.readJSON(path)
+    result = load(json['model'])
+    result.factory.file_path[0] = json['source']
+    result
   end
   
   def self.load(doc)

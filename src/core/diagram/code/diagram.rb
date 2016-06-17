@@ -227,23 +227,22 @@ module Diagram
 	    h = nil
 	    with_styles part do 
 	      if part.Connector?
-	        send(("constrain" + part.schema_class.name).to_sym, part)
+	        constrainConnector(part)
 	      else
 	        w = @cs.value(0)
 	        h = @cs.value(0)
-	    
 	        send(("constrain" + part.schema_class.name).to_sym, part, x, y, w, h)
 	        @positions[part] = EnsoRect.new(x, y, w, h)
 	      end
 	    end
-	    [w, h]
+	    [w, h] if !w.nil?
 	  end
 	
 	  def constrainContainer(part, basex, basey, width, height)
 	    pos = @cs.value(0)
 	    otherpos = @cs.value(0)
-	    x = basex.aDD(0)
-	    y = basey.aDD(0)
+	    x = basex.add(0)
+	    y = basey.add(0)
 	    #puts "CONTAINER #{width.to_s}, #{height.to_s}"
 	    part.items.each_with_index do |item, i|
 	      info = constrain(item, x, y)
@@ -253,71 +252,73 @@ module Diagram
 		      #puts "ITEM #{i}/#{part.items.size}"
 		      case part.direction
 		      when 1 then #vertical
-		        pos = pos.aDD(h)
-		        y = basey.aDD(pos)
-		        width.max w
+		        pos = pos.add(h)
+		        y = basey.add(pos)
+		        width.max(w)
 		      when 2 then #horizontal
-		        pos = pos.aDD(w)
-		        x = basex.aDD(pos)
-		        height.max h
+		        pos = pos.add(w)
+		        x = basex.add(pos)
+		        height.max(h)
 		      when 3 then #graph
 		        # compute the default positions!!
-		        pos = pos.aDD(w)
-		        otherpos = otherpos.aDD(h)
-		        x = basex.aDD(pos)
-		        y = basey.aDD(otherpos)
-		        width.max(x.aDD(w))
-		        height.max(y.aDD(h))
+		        pos = pos.add(w)
+		        otherpos = otherpos.add(h)
+		        x = basex.add(pos)
+		        y = basey.add(otherpos)
+		        width.max(x.add(w))
+		        height.max(y.add(h))
 		      end
 		    end
 	    end
 	    case part.direction
 	    when 1 then #vertical
-	      height.max pos
+	      height.max(pos)
 	    when 2 then #horizontal
-	      width.max pos
+	      width.max(pos)
 	    end
 	  end  
 	  
 	  def constrainShape(part, x, y, width, height)
 	    case part.kind 
 	    when "box"
-	      a = b = 0
+	      a = @cs.var("box1", 0)
+	      b = @cs.var("box2", 0)
 	    when "oval"
 	      a = @cs.var("pos1", 0)
 	      b = @cs.var("pos2", 0)
 	    when "rounded"
-	      a = b = 20
+	      a = @cs.var("rnd1", 20)
+	      b = @cs.var("rnd2", 20)
 	    end
 	    margin = @context.lineWidth_
-	    a = a + margin
-	    b = b + margin
-	    info = constrain(part.content, x.aDD(a), y.aDD(b))
+	    a = a.add(margin)
+	    b = b.add(margin)
+	    info = constrain(part.content, x.add(a), y.add(b))
 	    ow = info[0]
 	    oh = info[1]
 	    # position of sub-object depends on size of sub-object, so we
 	    # have to be careful about the circular dependencies
 	    if part.kind == "oval"
 	      sq2 = 2 * Math.sqrt(2.0)
-	      a.max (ow / sq2).round
-	      b.max (oh / sq2).round
-	      a.max b
+	      a.max(ow.div(sq2).round)
+	      b.max(oh.div(sq2).round)
+	      a.max(b)
 	    end
-	    width.max(ow.aDD(a * 2))
-	    height.max(oh.aDD(b * 2))
+	    width.max(ow.add(a.mul(2)))
+	    height.max(oh.add(b.mul(2)))
 	  end
 	
 	  def constrainText(part, x, y, width, height)
 	    info = @context.measureText(part.string)
-	    width.max info.width_
-	    height.max info.height_
+	    width.max(info.width_)
+	    height.max(15)  # doesn't include height!
 	  end
 	
 	  def constrainConnector(part)
 	    part.ends.each do |ce|
 	      to = @positions[ce.to]
-	      x = ( to.x.aDD(to.w.mUL(ce.attach.dynamic_update.x ))).round
-	      y = ( to.y.aDD(to.h.mUL(ce.attach.dynamic_update.y ))).round
+	      x = ( to.x.add(to.w.mul(ce.attach.dynamic_update.x ))).round
+	      y = ( to.y.add(to.h.mul(ce.attach.dynamic_update.y ))).round
 	      @positions[ce] = EnsoPoint.new(x, y)
 	      constrainConnectorEnd(ce, x, y)
 	    end
@@ -354,6 +355,7 @@ module Diagram
 	  end
 	  
 	  def draw(part)
+	    @context.textBaseline_ = "top"
 	    with_styles part do 
 	      send(("draw" + part.schema_class.name).to_sym, part)
 	    end
@@ -364,7 +366,7 @@ module Diagram
 		    r = boundary(part)
 		    @context.strokeRect(r.x, r.y, r.w, r.h)
 		  end
-	    (part.items.size-1).downto(0).each do |i|
+	    (part.items.size-1).downto(0) do |i|
 	      draw(part.items[i])
 	    end
 	  end  
@@ -375,12 +377,12 @@ module Diagram
 	    m2 = margin - (margin % 2)
 	    case shape.kind
 	    when "box"
-	      @context.strokeRect(r.x.add(margin / 2), r.y.add(margin / 2), r.w.add(-m2), r.h.add(-m2))
+	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	    when "oval"
-		    var rx            = r.w.dIV(2);        # The X radius
-		    var ry            = r.h.dIV(2);        # The Y radius
-        var x             = r.x.add(rx);        # The X coordinate
-		    var y             = r.y.add(ry);        # The Y cooordinate
+		    var rx            = r.w / 2;        # The X radius
+		    var ry            = r.h / 2;        # The Y radius
+        var x             = r.x + rx;        # The X coordinate
+		    var y             = r.y + ry;        # The Y cooordinate
 		    var rotation      = 0;          # The rotation of the ellipse (in radians)
 		    var start         = 0;          # The start angle (in radians)
 		    var finish        = 2 * Math.PI;# The end angle (in radians)
@@ -412,13 +414,13 @@ module Diagram
 	    ps.unshift(pFrom)
 	    ps << pTo
 	
-	    part.path.clear
-	    ps.each {|p| part.path << @factory.Point(p.x, p.y) }
-	#    @context.draw_lines(ps.collect {|p| [p.x, p.y] })
-	#    @context.draw_spline(ps.collect {|p| [p.x, p.y] })
+	#    part.path.clear
+	#    ps.each {|p| part.path << @factory.Point(p.x, p.y) }
+	#    @context.draw_lines(ps.map {|p| [p.x, p.y] })
+	#    @context.draw_spline(ps.map {|p| [p.x, p.y] })
 	
-	    drawEnd part.ends[0]
-	    drawEnd part.ends[1]
+	#    drawEnd part.ends[0]
+	#    drawEnd part.ends[1]
 	  end
 	
 	  def drawEnd(cend)
@@ -456,7 +458,7 @@ module Diagram
 			  end
 		    with_styles cend.other_label do 
 		      @context.save
-		      @context.translate(r.x.add(offset.x), r.y.add(offset.y))
+		      @context.translate(r.x + offset.x, r.y + offset.y)
 					@context.rotate(-Math.PI * angle / 180)
 					
 					@context.textAlign_ = 'right'
@@ -534,10 +536,15 @@ module Diagram
 	
 	  # sides are labeld top=0, right=1, bottom=2, left=3  
 	  def getSide(cend)
-	    0 if cend.y == 0 #top
-	    1 if cend.x == 1 #right
-	    2 if cend.y == 1 #bottom
-	    3 if cend.x == 0 #left
+	    if cend.y == 0 #top
+	      0 
+	    elsif cend.x == 1 #right
+	      1 
+	    elsif cend.y == 1 #bottom
+	      2 
+	    elsif cend.x == 0 #left
+	      3 
+	    end
 	  end
 	
 	  def drawText(text)
@@ -695,8 +702,8 @@ module Diagram
 	  def on_move(e, down)
 	    if down
 		    pos = @diagram.boundary(@ce.to)
-		    x = (e.x - (pos.x.add(pos.w / 2))) / Float(pos.w.dIV(2))
-		    y = (e.y - (pos.y.add(pos.h / 2))) / Float(pos.h.dIV(2))
+		    x = (e.x - pos.x + pos.w / 2) / (pos.w / Float(2))
+		    y = (e.y - pos.y + pos.h / 2) / (pos.h / Float(2))
 		    if x == 0 && y == 0
 		      nil
 		    else

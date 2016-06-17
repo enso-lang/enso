@@ -53,7 +53,6 @@ module Load
 
     def setup
       @cache = {}
-      $stderr << "Initializing...\n"
       
       # TODO: get rid of bootstrap models in memory
     

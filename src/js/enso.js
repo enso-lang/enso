@@ -79,47 +79,9 @@ puts = function(obj) {
   console.log("" + obj);
 }
 
-if (typeof window === 'undefined') {
 // running in node
   fs = require("fs");
   ARGV = process.argv.slice(2);
-} else {
-// running in browser
-  root_url = window.location.href;
-  var pos = root_url.indexOf("/js");
-  root_url = root_url.slice(0, pos + 1);
-  fs = {
-    readFileSync: function(path) {
-      var resource;
-      if(typeof ActiveXObject == 'undefined'){
-        resource = new XMLHttpRequest();
-      }
-      else{ // IE
-        resource = new ActiveXObject("Microsoft.XMLHTTP");
-      }
-      resource.open('GET', root_url + path, false);
-      resource.send(null);
-      return resource.responseText; // JavaScript waits for response
-    },
-    existsSync: function(path) {
-      return false;	//TODO: fix the following piece of code
-      var resource;
-      if(typeof ActiveXObject == 'undefined'){
-        resource = new XMLHttpRequest();
-      }
-      else{ // IE
-        resource = new ActiveXObject("Microsoft.XMLHTTP");
-      }
-      try {
-        resource.open('GET', root_url + path, false);
-        resource.send(null);
-        return true;
-      } catch(err) {
-      	return false;
-      }
-    }
-  }
-}
   
   S = function() {
    return  Array.prototype.slice.call(arguments).join("");
@@ -385,8 +347,17 @@ EnsoHash = function(init) {
   
   String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
+  String.prototype.rjust = function(len, char) { return (char.repeat(len)+this).slice(-len) }
   Number.prototype.to_i = function() { return this }
   Number.prototype.to_s = function() { return this.toString(); }
+  Number.prototype.to_hex = function() { return this.toString(16).toUpperCase() }
+  //console.log( (12).to_hex().rjust(2, "0"))
+  Number.prototype.abs = function() { return Math.abs(this) }
+  Number.prototype.downto = function(cb, t) {
+	  var i = this;	
+	  while (i >= t) { cb(i--); }
+	  return this;
+	};
   Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }
   String.prototype.casecmp = function(other) { 
      puts("COMP " + this + "=" + other + " => " + this.toUpperCase() === other.toUpperCase());
