@@ -46,7 +46,7 @@ data Statement
   | forIn(Expression left, Expression right, Statement body)
   | forOf(list[VariableDeclarator] decls, str kind, Expression right, Statement body)  
   | forOf(Expression left, Expression right, Statement body)
-  | let(list[tuple[Pattern id, Init init]], Statement body)
+  | let(list[tuple[Pattern id, Init init]] inits, Statement body)
   | debugger()  
   | functionDecl(str id, list[Pattern] params, 
   		list[Expression] defaults,
@@ -116,7 +116,7 @@ data Expression
   | generator(Expression expBody, list[ComprehensionBlock] blocks)
   | graph(int index, Literal expression)
   | graphIndex(int index)
-  | let(list[tuple[Pattern id, Init init]], Expression expBody)
+  | let(list[tuple[Pattern id, Init init]] inits, Expression expBody)
   // not in Spidermonkey's AST API?
   | variable(str name)
   | literal(Literal lit)

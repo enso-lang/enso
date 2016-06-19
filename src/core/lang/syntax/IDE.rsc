@@ -36,7 +36,7 @@ loc jsFile(loc src) {
 void compileAll() {
   println("Starting");
   for (/file(loc src) := crawl(root)) {
-    if (src.extension == "enso", /\/tests/ !:= src.path) {
+    if (src.extension == "rb", /\/tests/ !:= src.path) {
       try {
       println("Compiling <src.file>...");
       pt = parse(#start[Unit], src);

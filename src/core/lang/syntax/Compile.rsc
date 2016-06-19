@@ -9,14 +9,15 @@ import ParseTree;
 import Message;
 
 list[Statement] mainBody() = [
-  variableDeclaration([variableDeclarator(variable("requirejs"), 
-    expression(call(variable("require"), 
+  Statement::varDecl([variableDeclarator(Pattern::variable("requirejs"), 
+    Init::expression(call(Expression::variable("require"), 
           [literal(string("requirejs"))])))], "var"),
  // requirejs.config({ nodeRequire: require, baseUrl: 'js' });
-    call(member(variable("requirejs"), "config"), [
-           object([<id("nodeRequire"), variable("require"), "">,
+    call(member(Expression::variable("requirejs"), "config"), [
+           object([<id("nodeRequire"), Expression::variable("require"), "">,
                    <id("baseURL"), literal(string("js")), "">])]), 
     x];
+    
     
 set[Message] ERRS = {};
 
@@ -93,11 +94,11 @@ list[str] paths2modules(list[str] paths)
 
 
 list[Statement] declareModule(list[str] reqPaths, str name, STMTS body)
-  = [expression(call(variable("define"), [
+  = [expression(call(Expression::variable("define"), [
        array([ literal(string(p)) | p <- reqPaths]),
-       function("", [variable(n) | n <- paths2modules(reqPaths)], [], "",
+       function("", [Pattern::variable(n) | n <- paths2modules(reqPaths)], [], "",
          [
-           variableDeclaration(variableDeclarator(Pattern::variable(name), none()), "var"),
+           varDecl(variableDeclarator(Pattern::variable(name), Init::none()), "var"),
            stmts2js(body)
          ])
      ]))];
@@ -215,12 +216,12 @@ Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
        | EXPR e <- reverse([ e | e <- es ]) );
 
 Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>, <STAR _> <EXPR rest>`, str x)
-  = ( binary(\in(), variable(x), expr2js(rest)) 
+  = ( binary(\in(), Expression::variable(x), expr2js(rest)) 
        | logical(or(), binary(longEquals(), Expression::variable(x), expr2js(e)), it)
        | EXPR e <- reverse([ e | e <- es ]) );
 
 Expression whenArgs2Cond((WHEN_ARGS)`<STAR _> <EXPR rest>`, str x)
-  = binary(\in(), variable(x), expr2js(rest)); 
+  = binary(\in(), Expression::variable(x), expr2js(rest)); 
 
 Expression whenArgs2Cond((WHEN_ARGS)``, str x)
   = literal(boolean(false)); 
@@ -231,15 +232,15 @@ list[Statement] stmt2js(s:(STMT)`for <BLOCK_VAR bv> in <EXPR e> <DO _> <STMTS st
 str tryVar(STMT s) = "caught$<s@\loc.offset>";
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> ensure <STMTS ens> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x)), stmts2js(ens)))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, stmts2js(els), x)), stmts2js(ens)))
   when x := tryVar(t);
 
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x))))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, stmts2js(els), x))))
   when x := tryVar(t);
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> ensure <STMTS ens> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, empty(), x)), stmts2js(ens)))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, empty(), x)), stmts2js(ens)))
   when x := tryVar(t);
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> end`)
@@ -375,15 +376,15 @@ default str fixFname(str name) = fixOp(name);
 //  }
 //}
 
-list[Statement] addReturns([*ss, s]) = [*ss, addReturns(s)];
+list[Statement] addReturns([*list[Statement] ss, Statement s]) = [*ss, addReturns(s)];
 list[Statement] addReturns([]) = [];
 
 Statement addReturns(s:Statement::expression(x)) = \return(x);
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
 Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
-Statement addReturns(\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
-Statement addReturns(\try(s, h)) = \try(addReturns(s), addReturns(h));
+Statement addReturns(Statement \try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
+Statement addReturns(Statement \try(s, h)) = \try(addReturns(s), addReturns(h));
 Statement addReturns(\switch(e, cs)) =
   \switch(e, [ c[consequent=addReturns(c.consequent)] | c <- cs ]); 
 
@@ -401,7 +402,7 @@ Expression methodFunction__(str f, ARGLIST args, STMTS body) {
   func.name = "";
   func.statBody = 
     [Statement::varDecl([variableDeclarator(
-                Pattern::variable("self"), Init::expression(this()))
+                Pattern::Expression::variable("self"), Init::expression(this()))
                 ], "var"), *func.statBody];
                 
   formals = { x | Pattern::variable(x) <- func.params };
@@ -429,7 +430,7 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
   
   selfDecl = 
     [Statement::varDecl([variableDeclarator(
-                Pattern::variable("self"), Init::expression(this()))
+                Pattern::Expression::variable("self"), Init::expression(this()))
                 ], "var")];
   return makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});              
 }
@@ -584,7 +585,7 @@ list[Statement] reader(str name)
 
 list[Statement] writer(str name)
   = l(Statement::expression(assignment(assign(), member(this(), "set_" + name), 
-      Expression::function("", [Pattern::variable("val")], [], "", 
+      Expression::function("", [Pattern::Expression::variable("val")], [], "", 
           [Statement::expression(assignment(assign(), 
              member(member(this(), "$"), name), Expression::variable("val")))]))));
 
@@ -679,7 +680,7 @@ Expression expr2js((EXPR)`-<EXPR e>`) = unary(UnaryOperator::min(), true, expr2j
 Expression expr2js((EXPR)`not <EXPR e>`) = unary(UnaryOperator::not(), true, expr2js(e));
 
 Expression expr2js((EXPR)`<EXPR l> ** <EXPR r>`) 
-  = call(member(variable("Math"), "pow"), [expr2js(l), expr2js(r)]);
+  = call(member(Expression::variable("Math"), "pow"), [expr2js(l), expr2js(r)]);
 
 Expression expr2js((EXPR)`<EXPR l> * <EXPR r>`) = binary(times(), expr2js(l), expr2js(r));
 Expression expr2js((EXPR)`<EXPR l> / <EXPR r>`) = binary(div(), expr2js(l), expr2js(r));
@@ -967,7 +968,7 @@ Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`)
   
 Expression prim2js(p:(PRIMARY)`super()`) 
   = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "call"), 
-               [variable("self")]);   
+               [Expression::variable("self")]);   
 
 Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) = 
   new(Expression::variable("EnsoHash"), [Expression::object(ps)])
@@ -1023,7 +1024,7 @@ Expression blockvar2func((BLOCK_VAR)``) =
 default Expression blockvar2func(BLOCK_VAR x) = 
   { throw "Unsupported blockvar <x>."; };
 
-Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable("<v>");
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Expression::variable("<v>");
 default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
@@ -1049,12 +1050,12 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWO
              *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [//variable("self"),  
+  = <true, [//Expression::variable("self"),  
       call(member(Expression::array([expr2js(b)] + [ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>`)
-  = <true, [//variable("self"), 
+  = <true, [//Expression::variable("self"), 
       call(member(Expression::array([ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
@@ -1065,19 +1066,19 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>`)
   = <false, [ cexpr2js(e) | e <- args ]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [//variable("self"),  
+  = <true, [//Expression::variable("self"),  
       call(member(Expression::array([expr2js(b), keywords2obj(kws)]), "concat"), 
                [expr2js(s)])]>;
                
   
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
-  = <true, [/*variable("self"),*/ call(member(Expression::array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
+  = <true, [/*Expression::variable("self"),*/ call(member(Expression::array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
   = <false, [keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [/*variable("self"),*/ call(member(Expression::array([expr2js(b)]), "concat"), [expr2js(s)])]>;
+  = <true, [/*Expression::variable("self"),*/ call(member(Expression::array([expr2js(b)]), "concat"), [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>`)
   = <true, [/*Expression::variable("self"),*/ expr2js(s)]>;
@@ -1099,17 +1100,17 @@ list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
             expr2js(d.expr)))) | d <- ds ];
 
 list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
-  = [ Pattern::variable("<d.id>") | d <- ds ];
+  = [ Pattern::Expression::variable("<d.id>") | d <- ds ];
 
 // BUG:
-//list[Pattern] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
+//list[Pattern] params({IDENTIFIER ","}+ ids) = [ Expression::variable("<i>") | i <- ids ];
 list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable(fixVar("<i>")) | i <- ids ];
 
 // Rest params: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/rest_parameters
 //  var args = Array.prototype.slice.call(arguments, f.length);
 
 list[Statement] restInits(str f, IDENTIFIER rest)
-  = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
+  = [ Statement::varDecl( [ variableDeclarator(Pattern::Expression::variable("<rest>"), Init::expression(e)) ], "var") ]
   when 
     e :=  call(member(member(member(Expression::variable("Array"), "prototype"), "slice"), "call"), 
              [Expression::variable("arguments"), member(member(this(), f), "length")]);
