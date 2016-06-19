@@ -2,8 +2,8 @@ import impl.schema
 
 class Schema
   types! Type*
-  classes: Class* = types.select() { |t| return t.schema_class.name=="Class" }
-  primitives: Primitive* = types.select() { |t| return t.schema_class.name=="Primitive" }
+  classes: Class* = types.select() { |t| t is Class }
+  primitives: Primitive* = types.select() { |t| t is Primitive }
 
 class Type
   name# str
@@ -16,13 +16,15 @@ class Class < Type
   supers: Class*
   subclasses: Class* / supers
   defined_fields! Field*
-  key: Field? = fields.find() {|f| return f.key}
-  fields: Field = all_fields.select() {|f| return not f.computed}
-  all_fields: Field* = (supers.flat_map() {|s| return s.all_fields }).union(defined_fields)
+  key: Field? = fields.find() {|f| f.key}
+  fields: Field 
+    = all_fields.select() {|f| not f.computed}
+  all_fields: Field* 
+    = (supers.flat_map() {|s| s.all_fields }).union(defined_fields)
 
 class Field
   name# str
-  owner: Class / defined_fields
+  owner# Class / defined_fields
   type: Type
   optional: bool
   many: bool

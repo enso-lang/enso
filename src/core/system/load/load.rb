@@ -66,10 +66,10 @@ module Load
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
 
       if false
-	      update_json('schema.schema')
-	      update_json('grammar.schema')
 	      update_json('grammar.grammar')
 	      update_json('schema.grammar')
+	      update_json('schema.schema')
+	      update_json('grammar.schema')
 	    end
     end
 
@@ -157,16 +157,6 @@ module Load
 
   def self.load_with_models(name, grammar, schema, encoding = nil)
     Load::Loader.load_with_models(name, grammar, schema, encoding)
-  end
-end
-
-if __FILE__ == $0
-  data_files = ARGV
-  if data_files.nil? or data_files.size <= 0
-    abort "Usage: ruby load.rb <model>"
-  end
-  data_files.each do |file|
-    begin; Load::load(file); rescue; end
   end
 end
 

@@ -13,21 +13,12 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 # require 'core/expr/code/env'
 require 'core/semantics/code/interpreter'
-require 'core/system/utils/paths'
+#require 'core/system/utils/paths'
 
 # require 'core/expr/code/render'
 # require 'json'
 
 module Stencil
-
-	# render(Stencil, data) = diagram
-	
-	def self.RunStencilApp(path = ARGV[0])
-	  # Wx::App.run do
-	    #win = StencilFrame.new(path)
-	    # win.show 
-	  # end
-	end
 	
 	class StencilFrame < Diagram::DiagramFrame
 	  attr_reader :selection
@@ -67,8 +58,9 @@ module Stencil
 	      @position_map = {}
 	      if File.exists?(pos)
 	        @position_map = System.readJSON(pos)
-	        #@position_map.each { |key, val|
-	          
+#	        #@position_map.each { |key, val|
+#	          
+#	        }
 	      end
 	    end
 	  end
@@ -105,7 +97,7 @@ module Stencil
 	
 #	    refresh()
 	    puts "DONE"
-	    Print.print(@root)
+#	    Print.print(@root)
 	  end
 		
 		def lookup_shape(shape)
@@ -193,42 +185,43 @@ module Stencil
 	    
 	  def do_constraints
 	    super("FOO")
-	    @position_map.each do |key, pnt|
-	      #puts "CHECK #{key} #{pnt}"
-	      field = nil
-	      parts = key.split('.')
-	      if parts.size == 2
-	        key = parts[0]
-	        field = parts[1]
-	      end
-	      obj = @labelToShape[key]
-	      if !obj.isnil?
-		      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
-		      if field.nil?
-			      pos = @positions[obj]
-			      if !pos.isnil?
-				      #puts "   Has POS #{key} #{pnt}"
-				      pos.x.value = pnt.x
-				      pos.y.value = pnt.y
+	    if @position_map
+		    @position_map.each do |key, pnt|
+		      #puts "CHECK #{key} #{pnt}"
+		      field = nil
+		      parts = key.split('.')
+		      if parts.size == 2
+		        key = parts[0]
+		        field = parts[1]
+		      end
+		      obj = @labelToShape[key]
+		      if !obj.isnil?
+			      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
+			      if field.nil?
+				      pos = @positions[obj]
+				      if !pos.isnil?
+					      #puts "   Has POS #{key} #{pnt}"
+					      pos.x.value = pnt.x
+					      pos.y.value = pnt.y
+					    end
+				    else
+				      obj.connectors.find do |ce|
+			          l = ce.label ? ce.label.string : ""
+				        #puts "   CHECKING #{l}"
+			          if field == l
+			            conn = ce.owner
+			            #puts "   Has ATTACH #{field}"
+			            conn.ends[0].attach.x = pnt[0].x
+			            conn.ends[0].attach.y = pnt[0].y
+			            conn.ends[1].attach.x = pnt[1].x
+			            conn.ends[1].attach.y = pnt[1].y
+			            true
+				        end
+				      end
 				    end
-			    else
-			      obj.connectors.find do |ce|
-		          l = ce.label ? ce.label.string : ""
-			        #puts "   CHECKING #{l}"
-		          if field == l
-		            conn = ce.owner
-		            #puts "   Has ATTACH #{field}"
-		            conn.ends[0].attach.x = pnt[0].x
-		            conn.ends[0].attach.y = pnt[0].y
-		            conn.ends[1].attach.x = pnt[1].x
-		            conn.ends[1].attach.y = pnt[1].y
-		            true
-			        end
-			      end
-			    end
-			  end
+				  end
+				end
 			end
-
 	    if @position_map
 		    obj_handler = Proc.new {|tag, obj, shape|
 		      pos = @positions[shape]  # using Diagram private member
@@ -300,10 +293,10 @@ module Stencil
 	  end
 =end
 	
-	  def connection_other_end(ce)
-	    conn = ce.connection
-	    conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
-	  end    
+#	  def connection_other_end(ce)
+#	    conn = ce.connection
+#	    conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
+#	  end    
 	
 	  def on_export
 	    grammar = Loader.load("diagram.grammar")
@@ -655,17 +648,6 @@ module Stencil
 	    nil
 	  end
 	
-	  def on_mouse_down(e)
-	  end
-	
-	  def on_move(e, down)
-	  end
-	
-	  def on_paint(dc)
-	  end
-	  
-	  def is_selected(part)
-	  end
 	end
 	
 	class FindByTypeSelection
@@ -689,7 +671,7 @@ module Stencil
 	    @part == check
 	  end
 	  
-	  def on_paint(dc)
+	  def paint(dc)
 	  end
 	
 	  def on_mouse_down(e)
@@ -701,9 +683,5 @@ module Stencil
 	  end
 	end
 
-end
-
-if __FILE__ == $0 then
-  Stencil::RunStencilApp()
 end
 

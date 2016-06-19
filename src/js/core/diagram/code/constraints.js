@@ -136,9 +136,7 @@ function() {
 
       this.max = function(other) {
         var self = this; 
-        if (other == undefined) {
-          self.raise("MAX WITH UNDEFINED");
-        }
+        if (other === undefined) other = self.raise("MAX WITH UNDEFINED");
         if (System.test_type(other, Variable)) {
           other.add_listener(self);
         }
@@ -194,8 +192,8 @@ function() {
           case "mul":
             return values._get(0) * values._get(1);
           case "div":
-            values._get(0) / values._get(1);
-            self.csae("round");
+            return values._get(0) / values._get(1);
+          case "round":
             return values._get(0).round();
           case "to_int":
             return values._get(0).to_int();

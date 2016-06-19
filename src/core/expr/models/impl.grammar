@@ -10,7 +10,7 @@ Command ::= EWhile
           | EAssign
           | EImport
           | EBlock
-          | EReturn
+          | Expr
 
 NLCommand ::=	EBlock
 					  | /> Command </
@@ -22,7 +22,6 @@ ESwitch ::= [ESwitch] "switch" e:Expr
 EFunDef ::= [EFunDef] "def" name:sym . "(". formals:Formal* @(.",") .")" body:NLCommand
 EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
-EReturn ::= "return" Expr
 
 Formal ::= [Formal] name:sym
 

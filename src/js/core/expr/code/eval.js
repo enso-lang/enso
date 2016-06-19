@@ -118,6 +118,8 @@ function(Schema, Interpreter) {
       if (self.$.D._get("in_fc")) {
         return target.method(obj.fname().to_sym());
       } else {
+        if (target == undefined || target == null)
+          raise("BIG TROUBLE")
         return target.send(obj.fname());
       }
     };

@@ -11,7 +11,8 @@
 class Part 
   constraints: SizeConstraints?
   styles! Style*
-
+  location: Point?  // only used for graph shapes
+  
 class Container < Part
   direction: int
   items! Part*
@@ -23,7 +24,6 @@ class Text < Part
 class Shape < Part
   content! Part?
   kind: str
-  location: Point?  // only used for graph shapes
   connectors: ConnectorEnd* 
 
 class Connector < Part

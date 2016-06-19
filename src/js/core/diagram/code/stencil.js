@@ -5,12 +5,10 @@ define([
   "core/system/library/schema",
   "core/expr/code/eval",
   "core/expr/code/lvalue",
-  "core/semantics/code/interpreter",
-  "core/system/utils/paths"
+  "core/semantics/code/interpreter"
 ],
-function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
+function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
   var Stencil ;
-
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [],
     function() {
     },
@@ -82,8 +80,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
         self.construct(self.$.stencil.body(), env, null, Proc.new(function(x) {
           return self.set_root(x);
         }));
-        puts("DONE");
-        return Print.print(self.$.root);
+        return puts("DONE");
       };
 
       this.lookup_shape = function(shape) {
@@ -177,38 +174,40 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
         var self = this; 
         var field, parts, key, obj, pos, l, conn, pnt, obj_handler, connector_handler;
         super$.do_constraints.call(self, "FOO");
-/*        self.$.position_map.each(function(key, pnt) {
-          field = null;
-          parts = key.split(".");
-          if (parts.size() == 2) {
-            key = parts._get(0);
-            field = parts._get(1);
-          }
-          obj = self.$.labelToShape._get(key);
-          if (! obj.isnil_P()) {
-            if (field == null) {
-              pos = self.$.positions._get(obj);
-              if (! pos.isnil_P()) {
-                pos.x().set_value(pnt.x());
-                return pos.y().set_value(pnt.y());
-              }
-            } else {
-              return obj.connectors().find(function(ce) {
-                l = ce.label()
-                  ? ce.label().string()
-                  : "";
-                if (field == l) {
-                  conn = ce.owner();
-                  conn.ends()._get(0).attach().set_x(pnt._get(0).x());
-                  conn.ends()._get(0).attach().set_y(pnt._get(0).y());
-                  conn.ends()._get(1).attach().set_x(pnt._get(1).x());
-                  conn.ends()._get(1).attach().set_y(pnt._get(1).y());
-                  return true;
-                }
-              });
+        if (self.$.position_map) {
+          self.$.position_map.each(function(key, pnt) {
+            field = null;
+            parts = key.split(".");
+            if (parts.size() == 2) {
+              key = parts._get(0);
+              field = parts._get(1);
             }
-          }
-        });
+            obj = self.$.labelToShape._get(key);
+            if (! obj.isnil_P()) {
+              if (field == null) {
+                pos = self.$.positions._get(obj);
+                if (! pos.isnil_P()) {
+                  pos.x().set_value(pnt.x());
+                  return pos.y().set_value(pnt.y());
+                }
+              } else {
+                return obj.connectors().find(function(ce) {
+                  l = ce.label()
+                    ? ce.label().string()
+                    : "";
+                  if (field == l) {
+                    conn = ce.owner();
+                    conn.ends()._get(0).attach().set_x(pnt._get(0).x());
+                    conn.ends()._get(0).attach().set_y(pnt._get(0).y());
+                    conn.ends()._get(1).attach().set_x(pnt._get(1).x());
+                    conn.ends()._get(1).attach().set_y(pnt._get(1).y());
+                    return true;
+                  }
+                });
+              }
+            }
+          });
+        }
         if (self.$.position_map) {
           obj_handler = Proc.new(function(tag, obj, shape) {
             pos = self.$.positions._get(shape);
@@ -228,18 +227,6 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
             }
           });
           return self.generate_saved_positions(obj_handler, connector_handler, self.$.position_map._get("*VERSION*") || 1);
-        }
- */
-      };
-
-      this.connection_other_end = function(ce) {
-        var self = this; 
-        var conn;
-        conn = ce.connection();
-        if (conn.ends()._get(0) == ce) {
-          return conn.ends()._get(1);
-        } else {
-          return conn.ends()._get(0);
         }
       };
 
@@ -615,22 +602,6 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
         self.$.edit_control.destroy();
         return null;
       };
-
-      this.on_mouse_down = function(e) {
-        var self = this; 
-      };
-
-      this.on_move = function(e, down) {
-        var self = this; 
-      };
-
-      this.on_paint = function(dc) {
-        var self = this; 
-      };
-
-      this.is_selected = function(part) {
-        var self = this; 
-      };
     });
 
   var FindByTypeSelection = MakeClass("FindByTypeSelection", null, [],
@@ -659,7 +630,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
         return self.$.part == check;
       };
 
-      this.on_paint = function(dc) {
+      this.paint = function(dc) {
         var self = this; 
       };
 
@@ -677,11 +648,6 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Paths) {
     });
 
   Stencil = {
-    RunStencilApp: function(path) {
-      var self = this; 
-      if (path === undefined) path = ARGV._get(0);
-    },
-
     StencilFrame: StencilFrame,
     TextEditSelection: TextEditSelection,
     FindByTypeSelection: FindByTypeSelection,

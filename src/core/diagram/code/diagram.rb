@@ -54,13 +54,7 @@ module Diagram
       @canvas = canvas
       @context = context
 	    # super(title)
-	    # evt_paint :on_paint
-	    # evt_left_dclick :on_double_click
-	    # evt_left_down :on_mouse_down
-	    # evt_right_down :on_right_down
-	    # evt_motion :on_move
-	    # evt_left_up :on_mouse_up
-	
+
 	    @menu_id = 0
 	    @selection = nil
 	    @mouse_down = false
@@ -84,6 +78,14 @@ module Diagram
 	  end
 	  
 	  def set_root(root)
+	    @canvas.onmousedown_ = on_mouse_down
+	    @canvas.onmousemove_ = on_move
+	    @canvas.onmouseup_ = on_mouse_up
+	   # @canvas.ondblclick_ = on_double_click
+	    
+	    # evt_paint :paint
+	    # evt_right_down :on_right_down
+	
 	    #puts "ROOT #{root.class}"
 	    root.finalize
 	    #Print.print(root)
@@ -94,45 +96,53 @@ module Diagram
 	  def clear_refresh
 	    @cs = Constraints::ConstraintSystem.new
 	    @positions = {}
-	    on_paint()
+	    paint()
 	  end      
 	  
 	  # ------- event handling -------  
 	
-	  def on_mouse_down(e)
-	    #puts "DOWN #{e.x} #{e.y}"
-	    @mouse_down = true
-	    if @selection
-	      subselect = @selection.on_mouse_down(e)
-	      if subselect == :cancel
-	        @selection = nil
-	        # return
-	      end
-	      if subselect
-	        @selection = subselect
-	        # return
-	      end
-	    end
-	    select = find e do |x|
-	      #find something contained in a graph, which is dragable
-	      val = @find_container && @find_container.Container? && @find_container.direction == 3 
-	      #puts "#{x} => #{val}"
-	      val
-	    end
-	    #puts "FIND #{select}"
-	    set_selection(select, e)
+	  def on_mouse_down
+	    Proc.new { |e|
+			  pnt = factory.Point(e.pageX_, e.pageY_)
+		    #puts "DOWN #{e.x} #{e.y}"
+		    @mouse_down = true
+		    if @selection
+		      subselect = @selection.on_mouse_down(e)
+		      if subselect == :cancel
+		        @selection = nil
+		        # return
+		      end
+		      if subselect
+		        @selection = subselect
+		        # return
+		      end
+		    end
+		    select = find_in_ui pnt do |x|
+		      #find something contained in a graph, which is dragable
+		      val = @find_container && @find_container.Container? && @find_container.direction == 3 
+		      #puts "#{x} => #{val}"
+		      val
+		    end
+		    #puts "FIND #{select}"
+		    set_selection(select, e)
+		  }
 	  end
 	  
-	  def on_mouse_up(e)
-	    @mouse_down = false
+	  def on_mouse_up
+	    Proc.new { |e|
+		    @mouse_down = false
+		  }
 	  end
 	
-	  def on_move(e)
-	    @selection.on_move(e, @mouse_down) if @selection
+	  def on_move
+	    Proc.new { |e|
+		    @selection.on_move(e, @mouse_down) if @selection
+	  	}
 	  end
 	
-	  def on_key(e)
-	  
+	  def on_key
+	  	Proc.new { |e|
+	  	}
 	  end
 	
 	  # ------- selections -------      
@@ -151,15 +161,14 @@ module Diagram
 	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(e.x, e.y))
 	      end
 	    end
-	    refresh
 	  end
 	  
 	  # ---- finding ------
-	  def find(pnt, &filter)
+	  def find_in_ui(pnt, &filter)
 	    find1(@root, pnt, &filter)
 	  end
 	  
-	  def find1(part, pnt, &filter)
+    def find1(part, pnt, &filter)
 	    if part.Connector?
 	      findConnector(part, pnt, &filter)
 	    else
@@ -300,8 +309,8 @@ module Diagram
 	    # have to be careful about the circular dependencies
 	    if part.kind == "oval"
 	      sq2 = 2 * Math.sqrt(2.0)
-	      a.max(ow.div(sq2).round)
-	      b.max(oh.div(sq2).round)
+	      a.max(ow.div(sq2))
+	      b.max(oh.div(sq2))
 	      a.max(b)
 	    end
 	    width.max(ow.add(a.mul(2)))
@@ -317,8 +326,10 @@ module Diagram
 	  def constrainConnector(part)
 	    part.ends.each do |ce|
 	      to = @positions[ce.to]
-	      x = ( to.x.add(to.w.mul(ce.attach.dynamic_update.x ))).round
-	      y = ( to.y.add(to.h.mul(ce.attach.dynamic_update.y ))).round
+	      #x = ( to.x.add(to.w.mul(ce.attach.dynamic_update.x )))
+	      #y = ( to.y.add(to.h.mul(ce.attach.dynamic_update.y )))
+	      x = ( to.x.add(to.w.mul(ce.attach.x )))
+	      y = ( to.y.add(to.h.mul(ce.attach.y )))
 	      @positions[ce] = EnsoPoint.new(x, y)
 	      constrainConnectorEnd(ce, x, y)
 	    end
@@ -344,14 +355,28 @@ module Diagram
 	    @positions[shape].y.value = y
 	  end
 	  
-	  
+	  def between(a, b, c)
+		   (a - @DIST <= b && b <= c + @DIST) || (c - @DIST <= b && b <= a + @DIST)
+		end
+		
+		def rect_contains(rect, pnt)
+		  rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
+		  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
+		end
+		
+		# compute distance of pnt from line
+		def dist_line(p0, p1, p2)
+		  num = (p2.x - p1.x) * (p1.y - p0.y) - (p1.x - p0.x) * (p2.y - p1.y)
+		  den = (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
+		  num.abs / Math.sqrt(den)
+		end
 	  # ----- drawing --------    
 	  
-	  def on_paint()
+	  def paint()
       do_constraints() if @positions.size == 0
       # win.getBounds()
       draw(@root)
-	    # @selection.on_paint(dc) if @selection
+	    # @selection.paint(dc) if @selection
 	  end
 	  
 	  def draw(part)
@@ -379,18 +404,18 @@ module Diagram
 	    when "box"
 	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	    when "oval"
-		    var rx            = r.w / 2;        # The X radius
-		    var ry            = r.h / 2;        # The Y radius
-        var x             = r.x + rx;        # The X coordinate
-		    var y             = r.y + ry;        # The Y cooordinate
-		    var rotation      = 0;          # The rotation of the ellipse (in radians)
-		    var start         = 0;          # The start angle (in radians)
-		    var finish        = 2 * Math.PI;# The end angle (in radians)
-		    var anticlockwise = false;      # Whether the ellipse is drawn in a clockwise direction or
+		    rx            = r.w / 2;        # The X radius
+		    ry            = r.h / 2;        # The Y radius
+        x             = r.x + rx;        # The X coordinate
+		    y             = r.y + ry;        # The Y cooordinate
+		    rotation      = 0;          # The rotation of the ellipse (in radians)
+		    start         = 0;          # The start angle (in radians)
+		    finish        = 2 * Math.PI_;# The end angle (in radians)
+		    anticlockwise = false;      # Whether the ellipse is drawn in a clockwise direction or
 		                                    # anti-clockwise direction
     
     		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
-    		@context.stoke
+    		@context.stroke
 		  end
 	    draw(shape.content)
 	  end
@@ -414,13 +439,17 @@ module Diagram
 	    ps.unshift(pFrom)
 	    ps << pTo
 	
-	#    part.path.clear
-	#    ps.each {|p| part.path << @factory.Point(p.x, p.y) }
-	#    @context.draw_lines(ps.map {|p| [p.x, p.y] })
-	#    @context.draw_spline(ps.map {|p| [p.x, p.y] })
+	    part.path.clear
+	    ps.each {|p| part.path << factory.Point(p.x, p.y) }
+
+	    @context.beginPath
+	    ps.map { |p| 
+	      @context.lineTo(p.x, p.y)
+	    }
+	    @context.stroke
 	
-	#    drawEnd part.ends[0]
-	#    drawEnd part.ends[1]
+	    drawEnd part.ends[0]
+	    drawEnd part.ends[1]
 	  end
 	
 	  def drawEnd(cend)
@@ -449,7 +478,7 @@ module Diagram
 		    with_styles cend.label do 
 		      @context.save
 		      @context.translate(r.x, r.y)
-					@context.rotate(-Math.PI * angle / 180)
+					@context.rotate(-Math.PI_ * angle / 180)
 					
 					@context.textAlign_ = 'right'
 					@context.fillText(cend.label.string, 0, lineHeight / 2)
@@ -459,7 +488,7 @@ module Diagram
 		    with_styles cend.other_label do 
 		      @context.save
 		      @context.translate(r.x + offset.x, r.y + offset.y)
-					@context.rotate(-Math.PI * angle / 180)
+					@context.rotate(-Math.PI_ * angle / 180)
 					
 					@context.textAlign_ = 'right'
 					@context.fillText(cend.label.string, 0, lineHeight / 2)
@@ -479,8 +508,8 @@ module Diagram
 	      arrow = [ EnsoPoint.new(0,0), EnsoPoint.new(2,1), EnsoPoint.new(2,-1), EnsoPoint.new(0,0) ].each do |p|
 		      px = Math.cos(angle) * p.x - Math.sin(angle) * p.y
 					py = Math.sin(angle) * p.x + Math.cos(angle) * p.y
-					px = (px * size  + pos.x).round 
-					py = (py * size + pos.y).round
+					px = (px * size  + pos.x) 
+					py = (py * size + pos.y)
 					if index == 0
 					  @context.moveTo(px, py)
 					else
@@ -489,7 +518,7 @@ module Diagram
 					index = index + 1
 			  end
 			  @context.closePath
-			  @context.fillPath
+			  @context.fill
 	    end
 	  end
 	
@@ -572,7 +601,7 @@ module Diagram
 			      end
 			    end
 			 #   if @selection && @selection.is_selected(part)
-			 # 	  @context.set_pen(@factory.Pen(@select_color))
+			 # 	  @context.set_pen(factory.Pen(@select_color))
 			 # 	end
 			    block()
 			    @context.restore
@@ -611,18 +640,20 @@ module Diagram
 	    @move_base = @diagram.boundary(part)
 	  end
 	  
-	  def on_move(e, down)
-	    if down
-	      @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
-	      @diagram.refresh
-	    end
+	  def on_move
+	    Proc.new { |e, down|
+		    if down
+		      @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
+		      @diagram.clear_refresh
+		    end
+			}
 	  end
 	  
 	  def is_selected(check)
 	    @part == check
 	  end
 	  
-	  def on_paint(dc)
+	  def paint(dc)
 	  end
 	
 	  def on_mouse_down(e)
@@ -642,23 +673,24 @@ module Diagram
 	    @conn == check
 	  end
 	
-	  def on_paint(dc)
-		  dc.set_brush(@factory.Brush(@factory.Color(255, 0, 0)))
+	  def paint(dc)
+	    raise "SHOULD NOT BE HERE"
+		  dc.set_brush(factory.Brush(factory.Color(255, 0, 0)))
 		  dc.set_pen(NULL_PEN)
 		  size = 8
-		  p = @conn.path[0]
-	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
-		  p = @conn.path[-1]
-	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
+#		  p = @conn.path[0]
+#	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
+#		  p = @conn.path[-1]
+#	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
 	#    @conn.path.each do |p|
 	#	  end
 	  end
 	    
 	  def on_mouse_down(e)
 		  size = 8
-		  pnt = @diagram.factory.Point(e.x, e.y)
+		  pnt = factory.Point(e.x, e.y)
 		  p = @conn.path[0]
-	    r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
+	    r = factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
 	    if rect_contains(r, pnt)
 	      PointSelection.new(@diagram, @conn.ends[0], self, p)
 	    else
@@ -689,8 +721,8 @@ module Diagram
 	    @ce == check
 	  end
 	
-	  def on_paint(dc)
-		  dc.set_brush(@factory.Brush(@factory.Color(0, 0, 255)))
+	  def paint(dc)
+		  dc.set_brush(@diagram.factory.Brush(@diagram.factory.Color(0, 0, 255)))
 		  dc.set_pen(NULL_PEN)
 		  size = 8
 	    dc.draw_rectangle(@pnt.x - size / 2, @pnt.y - size / 2, size, size)
@@ -714,7 +746,7 @@ module Diagram
 			    #puts("   EDGE #{nx} #{ny}")
 					@ce.attach.x = nx
 					@ce.attach.y = ny
-			    @diagram.refresh
+			    @diagram.clear_refresh
 			    #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
 			  end
 		  end
@@ -754,29 +786,6 @@ module Diagram
 	  attr_accessor :x, :y, :w, :h  
 	end
 	
-	
-	def between(a, b, c)
-	   (a - @DIST <= b && b <= c + @DIST) || (c - @DIST <= b && b <= a + @DIST)
-	end
-	
-	def rect_contains(rect, pnt)
-	  rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
-	  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
-	end
-	
-	# compute distance of pnt from line
-	def dist_line(p0, p1, p2)
-	  num = (p2.x - p1.x) * (p1.y - p0.y) - (p1.x - p0.x) * (p2.y - p1.y)
-	  den = (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
-	  num.abs / Math.sqrt(den)
-	end
-	  
-	def RunDiagramApp(content = nil)
-	  #Wx::App.run do
-	    # win = DiagramFrame.new
-	    win.set_root content if content
-	    win.show 
-	  #end
-	end
-	
+
+	  	
 end

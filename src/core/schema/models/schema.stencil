@@ -1,7 +1,6 @@
 diagram(schema)
 
-graph {
-  // create the nodes (one for each class)
+graph {   // create the nodes (one for each class)
   for class : schema.classes 
      label class {  // declare the "identifier" of this node is a class
      box { 
@@ -14,10 +13,8 @@ graph {
                  text field.name // editable field name
                  text ": "
                  text field.type.name // drop-down for type
-               }
-       }
-    }
-  }
+               }}}}
+  
   // create the subclass links
   for class : schema.classes
     for super : class.supers
@@ -27,7 +24,8 @@ graph {
   for class : schema.classes
     for field : class.defined_fields
      if (field.computed == nil)
-      if (not (field.type is Primitive) and (field.inverse == nil or field._id <= field.inverse._id))
-        connector (field.name : field.owner -- field.type : "" ) // field.inverse.name
+      if (not (field.type is Primitive) 
+          and (field.inverse == nil or field._id <= field.inverse._id))
+        connector (field.name : field.owner -- field.type ) // : field.inverse.name 
  }
  

@@ -1,8 +1,6 @@
 require 'test/unit'
 
 require 'core/system/load/load'
-require 'core/diagram/code/construct'
-require 'core/diagram/code/render'
 
 class SchemaTest < Test::Unit::TestCase
 

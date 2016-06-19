@@ -6,14 +6,14 @@ class Questionaire
   title : str?
   elems ! Element*
   answers ! AnswerType*
-  all_elems : Question* = elems.flat_map() {|e| return e.all_elems}
+  all_elems : Question* = elems.flat_map() {|e| e.all_elems}
 
 class Element
 
 class Group < Element
   elems ! Element*
   guard ! Expr?
-  all_elems : Question* = elems.flat_map() {|e| return e.all_elems}
+  all_elems : Question* = elems.flat_map() {|e| e.all_elems}
 
 class Question < Element
   name # str

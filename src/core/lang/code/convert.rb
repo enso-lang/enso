@@ -953,8 +953,13 @@ class CodeBuilder < Ripper::SexpBuilder
         name = name[1..-1]
         kind = "@"
       end
+	    @f.Var(name, kind)
+    elsif name.end_with?("_")
+      name = name.slice(0..-2)
+      @f.Prop(@f.Var("self"), name)
+    else
+ 	    @f.Var(name, kind)
     end
-    @f.Var(name, kind)
   end
 
   def fixup_method_name(name)

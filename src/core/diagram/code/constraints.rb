@@ -105,8 +105,7 @@ module Constraints
 	  end
 		      
 	  # special case to implement MAX behavior
-	  def max(other)
-	    raise "MAX WITH UNDEFINED" if other == undefined
+	  def max(other = raise("MAX WITH UNDEFINED"))
 	    #puts "#{self} MAX #{other}"
 	    other.add_listener(self) if other.is_a?(Variable)
 	    @bounds << other
@@ -151,7 +150,7 @@ module Constraints
 		  	values[0] * values[1]
 		  when :div
 		  	values[0] / values[1]
-		  csae :round
+		  when :round
 		  	values[0].round
 		  when :to_int
 		  	values[0].to_int
