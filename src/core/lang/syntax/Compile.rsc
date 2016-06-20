@@ -376,8 +376,18 @@ default str fixFname(str name) = fixOp(name);
 //  }
 //}
 
-list[Statement] addReturns([*list[Statement] ss, Statement s]) = [*ss, addReturns(s)];
-list[Statement] addReturns([]) = [];
+//list[Statement] addReturns([*list[core::lang::\syntax::JavascriptAST::Statement] ss, core::lang::\syntax::JavascriptAST::Statement s]) 
+//  = [*ss, addReturns(s)];
+//
+//list[core::lang::\syntax::JavascriptAST::Statement] addReturns(list[core::lang::\syntax::JavascriptAST::Statement] xs) = []
+//  when xs == [];
+
+list[Statement] addReturns(list[Statement] ss) {
+  if (ss != []) {
+    return ss[0..-1] + [addReturns(ss[-1])];
+  }
+  return [];
+}
 
 Statement addReturns(s:Statement::expression(x)) = \return(x);
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
@@ -430,7 +440,7 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
   
   selfDecl = 
     [Statement::varDecl([variableDeclarator(
-                Pattern::Expression::variable("self"), Init::expression(this()))
+                Pattern::variable("self"), Init::expression(this()))
                 ], "var")];
   return makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});              
 }
@@ -585,7 +595,7 @@ list[Statement] reader(str name)
 
 list[Statement] writer(str name)
   = l(Statement::expression(assignment(assign(), member(this(), "set_" + name), 
-      Expression::function("", [Pattern::Expression::variable("val")], [], "", 
+      Expression::function("", [Pattern::variable("val")], [], "", 
           [Statement::expression(assignment(assign(), 
              member(member(this(), "$"), name), Expression::variable("val")))]))));
 
@@ -1024,7 +1034,7 @@ Expression blockvar2func((BLOCK_VAR)``) =
 default Expression blockvar2func(BLOCK_VAR x) = 
   { throw "Unsupported blockvar <x>."; };
 
-Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Expression::variable("<v>");
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable("<v>");
 default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
@@ -1100,7 +1110,7 @@ list[Statement] defaultInits((DEFAULTS)`<{DEFAULT ","}+ ds>`)
             expr2js(d.expr)))) | d <- ds ];
 
 list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
-  = [ Pattern::Expression::variable("<d.id>") | d <- ds ];
+  = [ Pattern::variable("<d.id>") | d <- ds ];
 
 // BUG:
 //list[Pattern] params({IDENTIFIER ","}+ ids) = [ Expression::variable("<i>") | i <- ids ];
@@ -1110,7 +1120,7 @@ list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable(fixVar("<i>")) 
 //  var args = Array.prototype.slice.call(arguments, f.length);
 
 list[Statement] restInits(str f, IDENTIFIER rest)
-  = [ Statement::varDecl( [ variableDeclarator(Pattern::Expression::variable("<rest>"), Init::expression(e)) ], "var") ]
+  = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
   when 
     e :=  call(member(member(member(Expression::variable("Array"), "prototype"), "slice"), "call"), 
              [Expression::variable("arguments"), member(member(this(), f), "length")]);
