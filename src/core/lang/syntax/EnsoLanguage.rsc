@@ -148,7 +148,9 @@ syntax HASH
   ;
   
 syntax NameValuePair
-  = nameValue: IDENTIFIER ":" EXPR;
+  = nameValue: IDENTIFIER ":" EXPR
+  | expValue: EXPR "=\>" EXPR
+  ;
 
 // Workaround
 syntax POPERATION1 = OPERATION;
@@ -390,7 +392,7 @@ lexical ESTR = "}" STRCHAR* [\"];
 lexical STRCHAR
   = ![\\\"#]
   | [#] !>> [{]
-  | [\\][\\\"nrtf]
+  | [\\][\\\"nrtf#]
   ;
   
 syntax TAIL

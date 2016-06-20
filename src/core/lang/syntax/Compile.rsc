@@ -362,7 +362,7 @@ list[Statement] stmt2js((STMT)`class <IDENTIFIER id> \< <IDENTIFIER sup> <STMTS 
   = declareClass("<id>", Expression::variable("<sup>"), body);
 
 
-str fixFname(/^<name:.*>=$/) = "set_<name>";
+str fixFname(/^<name:[a-zA-Z0-9_]*>=$/) = "set_<name>";
 str fixFname("[]") = "_get";
 str fixFname("[]=") = "_set";
 str fixFname("\<\<") = "push";
@@ -984,6 +984,10 @@ Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) =
   new(Expression::variable("EnsoHash"), [Expression::object(ps)])
   when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
+
+tuple[str, EXPR] destructure((NameValuePair)`<IDENTIFIER k>: <EXPR v>`) = <"<k>", v>;
+tuple[str, EXPR] destructure((NameValuePair)`<EXPR k> =\> <EXPR v>`) = <"<k>", v>;
+ 
 
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);

@@ -174,9 +174,9 @@ str jse2txt(Expression::function(str name, // "" = null
             list[Expression] defaults,
             str rest, // "" = null
             list[Statement] statBody)) 
- = "function <name>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {<for (s <- statBody) {>
+ = "(function <name>(<intercalate(", ", [ js2txt(p) | p <- params ])>) {<for (s <- statBody) {>
    '  <js2txt(s)><}>
-   '}"; 
+   '})"; 
 
 //str js2txt(function(str name, // "" = null 
 //            list[Pattern] params, 
@@ -210,7 +210,7 @@ str jse2txt(binary(BinaryOperator binaryOp, Expression left, Expression right))
   = "(<jse2txt(left)> <js2txt(binaryOp)> <jse2txt(right)>)";
 
 str jse2txt(assignment(AssignmentOperator assignOp, Expression left, Expression right)) 
-  = "<jse2txt(left)> <js2txt(assignOp)> <jse2txt(right)>";
+  = "(<jse2txt(left)> <js2txt(assignOp)> <jse2txt(right)>)";
   
 str jse2txt(update(UpdateOperator updateOp, Expression argument, true)) 
   = "(<js2txt(updateOp)><jse2txt(argument)>)";
@@ -278,6 +278,8 @@ str js2txt(catchClause(Pattern param, list[Statement] statBody))
 str escapeIt(str x) = escape(x, ("\"": "\\\"", "\n": "\\n", "\t": "\\t"));
   
 str js2txt(Literal::string(str strValue)) = "\"<escapeIt(strValue)>\"";
+  //when bprintln("STRLITERAl ----\> |<strValue>|");
+  
 str js2txt(Literal::boolean(bool boolValue)) = "<boolValue>";
 str js2txt(Literal::null()) = "null";
 str js2txt(Literal::number(num numValue)) = "<numValue>";
