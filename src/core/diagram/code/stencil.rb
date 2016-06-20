@@ -132,7 +132,7 @@ module Stencil
 	    @position_map["*VERSION*"] = 2
 	
 	    size = @conext.size
-	    @position_map['*WINDOW*'] = {'x'=>size.get_width, 'y'=>size.get_height}
+	    @position_map['*WINDOW*'] = {x: size.get_width, y: size.get_height}
 	
 	    obj_handler = Proc.new { |tag, obj, shape|
 	      @position_map[tag] = position(shape)
@@ -243,50 +243,50 @@ module Stencil
 	 
 	  
 	    # ------- event handling ------- 
-=begin 
-	  def on_double_click(e)
-	    clear_selection
-	    text = find e, &:Text?
-	    if text and text.editable
-	      address = @shapeToAddress[text]
-	      edit_address(address, text) if address
-	    end
-	  end
-		
-	  def edit_address(address, shape)
-	    if address.type.Primitive?
-				@selection = TextEditSelection.new(self, shape, address)
-		  else
-	      pop = Wx::Menu.new
-	      find_all_objects @data, address.field.type do |obj|
-	        name = ObjectKey(obj)
-	    		add_menu2 pop, name, name do |e| 
-	    			address.value = obj
-	    			shape.string = name
-	    	  end
-	      end
-		    r = boundary(shape)
-	      popup_menu(pop, Wx::Point.new(r.x, r.y))
-		  end
-	  end
-	  
-	
-	  def on_right_down(e)
-	    clear_selection
-	    actions = {}
-	    find e do |part|
-	      actions.update @actions[part] if @actions[part]
-			  false
-	    end      
-	    if actions != {}
-	      pop = Wx::Menu.new
-	      actions.each do |name, action|
-	    		add_menu(pop, name, name, action) 
-	      end
-	      popup_menu(pop, Wx::Point.new(e.x, e.y))
-	    end
-	  end
-=end
+#=begin 
+#	  def on_double_click(e)
+#	    clear_selection
+#	    text = find e, &:Text?
+#	    if text and text.editable
+#	      address = @shapeToAddress[text]
+#	      edit_address(address, text) if address
+#	    end
+#	  end
+#		
+#	  def edit_address(address, shape)
+#	    if address.type.Primitive?
+#				@selection = TextEditSelection.new(self, shape, address)
+#		  else
+#	      pop = Wx::Menu.new
+#	      find_all_objects @data, address.field.type do |obj|
+#	        name = ObjectKey(obj)
+#	    		add_menu2 pop, name, name do |e| 
+#	    			address.value = obj
+#	    			shape.string = name
+#	    	  end
+#	      end
+#		    r = boundary(shape)
+#	      popup_menu(pop, Wx::Point.new(r.x, r.y))
+#		  end
+#	  end
+#	  
+#	
+#	  def on_right_down(e)
+#	    clear_selection
+#	    actions = {}
+#	    find e do |part|
+#	      actions.update @actions[part] if @actions[part]
+#			  false
+#	    end      
+#	    if actions != {}
+#	      pop = Wx::Menu.new
+#	      actions.each do |name, action|
+#	    		add_menu(pop, name, name, action) 
+#	      end
+#	      popup_menu(pop, Wx::Point.new(e.x, e.y))
+#	    end
+#	  end
+#=end
 	
 #	  def connection_other_end(ce)
 #	    conn = ce.connection
@@ -300,7 +300,7 @@ module Stencil
 	    end
 	  end
 	
-		def add_action shape, name, &block
+		def add_action(shape, name, &block)
 		  @actions[shape] = {} if !@actions[shape]
 		  @actions[shape][name] = block
 		end
@@ -382,10 +382,10 @@ module Stencil
 	    source.each_with_index do |v, i|
 	      nenv[this.var] = v
 	      nenv[this.index] = i if this.index
-	      construct this.body, nenv, container, Proc.new { |shape|
+	      construct(this.body, nenv, container, Proc.new { |shape|
 	        if this.label
 	          action = is_traversal ? "Delete" : "Remove"
-		        add_action shape, "#{action} #{this.label}" do
+		        add_action(shape, "#{action} #{this.label}") do
 		          if is_traversal
 	  	          v.delete!
 	  	        else
@@ -395,7 +395,7 @@ module Stencil
 		        end
 		      end
 	     		proc.call shape
-	      }
+	      })
 	    end
 	    if this.label
 	      action = is_traversal ? "Create" : "Add"
@@ -405,7 +405,7 @@ module Stencil
 		    end
 		    shape = container if !shape
 		    #puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
-		    add_action shape, "#{action} #{this.label}" do
+		    add_action(shape, "#{action} #{this.label}") do
 		      if !is_traversal
 		      	# just add a reference!
 		      	#puts "ADD #{action}: #{address.field}"

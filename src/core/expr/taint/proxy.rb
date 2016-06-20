@@ -37,7 +37,8 @@ module Proxy
           id = [file,path.to_s].hash % 100000
           @_tree = @@factory.EVar
           @_tree.name = "@#{id}"
-          @_sources = {@_tree.name=>[file,path]}
+          @_sources = {}
+          @_sources[@_tree.name] = [file,path]
         end
       end
     end
@@ -52,7 +53,7 @@ module Proxy
       end
     end
     def method_missing(sym, *args, &block)
-      if @_val.is_a? Factory::MObject #object
+      if @_val.is_a?(Factory::MObject) #object
         if f = @_val.schema_class.all_fields[sym.to_s]
           if !f.many
             Proxy.new(@_val.send(sym), @_val.factory.file_path[0], @_val._path.field(sym.to_s))
@@ -77,19 +78,19 @@ module Proxy
       else
         if sym==:coerce
           [Proxy.new(args[0]), self]
-        elsif ops.include? sym
+        elsif ops.include?(sym)
           res = nil
           if args.empty?
             res = Proxy.new(@_val.send(sym, *args, &block))
-            if res.is_a? Proxy #TODO: non-proxies only come from bools (see init)
+            if res.is_a?(Proxy) #TODO: non-proxies only come from bools (see init)
               res._sources = @_sources
               res._tree = @@factory.EUnOp(op2str(sym), @_tree)
             end
           else
             other = Proxy.new(args[0])
             res = Proxy.new(@_val.send(sym, other._val, &block))
-            if res.is_a? Proxy #TODO: non-proxies only come from bools (see init)
-              if other.is_a? Proxy
+            if res.is_a?(Proxy) #TODO: non-proxies only come from bools (see init)
+              if other.is_a?(Proxy)
                 res._sources = @_sources.merge(other._sources)
                 res._tree = @@factory.EBinOp(op2str(sym), @_tree, other._tree)
               else
@@ -113,10 +114,18 @@ module Proxy
     def hash
       method_missing(:hash)
     end
-    def valueOf; @_val.valueOf end #[JS HACK] used for JS equality
-    def to_s; "#{@_val}" end
-    def eql?(other); @_val.eql?(other) end
-    def hash; @_val.hash end
+    def valueOf
+      @_val.valueOf 
+    end #[JS HACK] used for JS equality
+    def to_s
+      "#{@_val}" 
+    end
+    def eql?(other)
+      @_val.eql?(other) 
+    end
+    def hash
+      @_val.hash 
+    end
   end
 
   def proxify(obj)

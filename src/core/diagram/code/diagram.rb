@@ -370,8 +370,7 @@ module Diagram
 		end
 		
 		def rect_contains(rect, pnt)
-		  rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
-		  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
+		  rect.x <= pnt.x && pnt.x <= rect.x + rect.w  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
 		end
 		
 		# compute distance of pnt from line
@@ -401,7 +400,9 @@ module Diagram
 		    r = boundary(part)
 		    @context.strokeRect(r.x, r.y, r.w, r.h)
 		  end
-	    (part.items.size-1).downto(0) do |i|
+      len = part.items.size - 1
+      len.downto(0) do |i|
+	    # AMB:(part.items.size-1).downto(0) do |i|
 	      draw(part.items[i])
 	    end
 	  end  
@@ -414,14 +415,14 @@ module Diagram
 	    when "box"
 	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	    when "oval"
-		    rx            = r.w / 2;        # The X radius
-		    ry            = r.h / 2;        # The Y radius
-        x             = r.x + rx;        # The X coordinate
-		    y             = r.y + ry;        # The Y cooordinate
-		    rotation      = 0;          # The rotation of the ellipse (in radians)
-		    start         = 0;          # The start angle (in radians)
-		    finish        = 2 * Math.PI_;# The end angle (in radians)
-		    anticlockwise = false;      # Whether the ellipse is drawn in a clockwise direction or
+		    rx            = r.w / 2        # The X radius
+		    ry            = r.h / 2        # The Y radius
+        x             = r.x + rx        # The X coordinate
+		    y             = r.y + ry        # The Y cooordinate
+		    rotation      = 0          # The rotation of the ellipse (in radians)
+		    start         = 0          # The start angle (in radians)
+		    finish        = 2 * Math.PI_ # The end angle (in radians)
+		    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
 		                                    # anti-clockwise direction
     
     		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
