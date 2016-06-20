@@ -149,7 +149,6 @@ function(Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindMo
   Load = {
     load: function(name) {
       var self = this; 
-      var Loader;
       return Load.Loader.load(name);
     },
 

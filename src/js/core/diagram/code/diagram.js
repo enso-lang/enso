@@ -19,6 +19,7 @@ function(Load, Constraints, Factory) {
         self.$.selection = null;
         self.$.mouse_down = false;
         self.$.DIST = 4;
+        self.$.cs = Constraints.ConstraintSystem.new();
         self.$.factory = Factory.new(Load.load("diagram.schema"));
         return self.$.select_color = self.$.factory.Color(0, 255, 0);
       };
@@ -50,14 +51,17 @@ function(Load, Constraints, Factory) {
         self.$.canvas.onmousemove = self.on_move();
         self.$.canvas.onmouseup = self.on_mouse_up();
         root.finalize();
+        self.$.positions = new EnsoHash ({ });
         self.$.root = root;
         return self.clear_refresh();
       };
 
       this.clear_refresh = function() {
         var self = this; 
-        self.$.cs = Constraints.ConstraintSystem.new();
-        self.$.positions = new EnsoHash ({ });
+        self.$.context.fillStyle = "white";
+        self.$.context.fillRect(0, 0, 1000, 1000);
+        self.$.context.fillStyle = "black";
+        self.$.context.lineStyle = "red";
         return self.paint();
       };
 
@@ -66,9 +70,10 @@ function(Load, Constraints, Factory) {
         var pnt, subselect, val, select;
         return Proc.new(function(e) {
           pnt = self.factory().Point(e.pageX, e.pageY);
+          puts(S("DOWN ", pnt.x(), " ", pnt.y()));
           self.$.mouse_down = true;
           if (self.$.selection) {
-            subselect = self.$.selection.on_mouse_down(e);
+            subselect = self.$.selection.do_mouse_down(e);
             if (subselect == "cancel") {
               self.$.selection = null;
             }
@@ -87,15 +92,19 @@ function(Load, Constraints, Factory) {
       this.on_mouse_up = function() {
         var self = this; 
         return Proc.new(function(e) {
+          puts("MOUSE UP");
           return self.$.mouse_down = false;
         });
       };
 
       this.on_move = function() {
         var self = this; 
+        var pnt;
         return Proc.new(function(e) {
+          pnt = self.factory().Point(e.pageX, e.pageY);
+          puts(S("MOUSE move ", pnt.x(), ", ", pnt.y()));
           if (self.$.selection) {
-            return self.$.selection.on_move(e, self.$.mouse_down);
+            return self.$.selection.do_move(pnt, self.$.mouse_down);
           }
         });
       };
@@ -118,12 +127,11 @@ function(Load, Constraints, Factory) {
         self.clear_selection();
         if (select) {
           if (select.Connector_P()) {
-            self.$.selection = ConnectorSelection.new(self, select);
+            return self.$.selection = ConnectorSelection.new(self, select);
           } else {
-            self.$.selection = MoveShapeSelection.new(self, select, pnt);
+            return self.$.selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x(), pnt.y()));
           }
         }
-        return self.clear_refresh();
       };
 
       this.find_in_ui = function(filter, pnt) {
@@ -164,7 +172,7 @@ function(Load, Constraints, Factory) {
                 }
               }
             } catch (e) {
-              return puts(e.message());
+              return puts("ERROR DURING FIND!");
             }
           }
         }
@@ -335,7 +343,8 @@ function(Load, Constraints, Factory) {
       };
 
       this.set_position = function(shape, x, y) {
-        var self = this; 
+        var self = this;
+        console.log("MOVING PART TO " + x + ", " + y); 
         self.$.positions._get(shape).x().set_value(x);
         return self.$.positions._get(shape).y().set_value(y);
       };
@@ -397,14 +406,14 @@ function(Load, Constraints, Factory) {
             self.$.context.strokeRect(r.x() + margin / 2, r.y() + margin / 2, r.w() - m2, r.h() - m2);
             break;
           case "oval":
-            (rx = r.w() / 2);
-            (ry = r.h() / 2);
-            (x = r.x() + rx);
-            (y = r.y() + ry);
-            (rotation = 0);
-            (start = 0);
-            (finish = 2 * Math.PI);
-            (anticlockwise = false);
+            rx = r.w() / 2;
+            ry = r.h() / 2;
+            x = r.x() + rx;
+            y = r.y() + ry;
+            rotation = 0;
+            start = 0;
+            finish = 2 * Math.PI;
+            anticlockwise = false;
             self.$.context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise);
             self.$.context.stroke();
             break;
@@ -648,14 +657,12 @@ function(Load, Constraints, Factory) {
         return self.$.move_base = self.$.diagram.boundary(part);
       };
 
-      this.on_move = function() {
+      this.do_move = function(pnt, down) {
         var self = this; 
-        return Proc.new(function(e, down) {
-          if (down) {
-            self.$.diagram.set_position(self.$.part, self.$.move_base.x() + e.x() - self.$.down.x(), self.$.move_base.y() + e.y() - self.$.down.y());
-            return self.$.diagram.clear_refresh();
-          }
-        });
+        if (down) {
+          self.$.diagram.set_position(self.$.part, self.$.move_base.x() + pnt.x() - self.$.down.x(), self.$.move_base.y() + pnt.y() - self.$.down.y());
+          return self.$.diagram.clear_refresh();
+        }
       };
 
       this.is_selected = function(check) {
@@ -667,7 +674,7 @@ function(Load, Constraints, Factory) {
         var self = this; 
       };
 
-      this.on_mouse_down = function(e) {
+      this.do_mouse_down = function(e) {
         var self = this; 
       };
 
@@ -700,11 +707,11 @@ function(Load, Constraints, Factory) {
         return size = 8;
       };
 
-      this.on_mouse_down = function(e) {
+      this.do_mouse_down = function(pnt) {
         var self = this; 
         var size, pnt, p, r;
         size = 8;
-        pnt = self.factory().Point(e.x(), e.y());
+        pnt = self.factory().Point(pnt.x(), pnt.y());
         p = self.$.conn.path()._get(0);
         r = self.factory().Rect(p.x() - size / 2, p.y() - size / 2, size, size);
         if (self.rect_contains(r, pnt)) {
@@ -718,7 +725,7 @@ function(Load, Constraints, Factory) {
         }
       };
 
-      this.on_move = function(e, down) {
+      this.do_move = function(e, down) {
         var self = this; 
       };
 
@@ -753,17 +760,17 @@ function(Load, Constraints, Factory) {
         return dc.draw_rectangle(self.$.pnt.x() - size / 2, self.$.pnt.y() - size / 2, size, size);
       };
 
-      this.on_mouse_down = function(e) {
+      this.do_mouse_down = function(e) {
         var self = this; 
       };
 
-      this.on_move = function(e, down) {
+      this.do_move = function(pnt, down) {
         var self = this; 
         var pos, x, y, angle, nx, ny;
         if (down) {
           pos = self.$.diagram.boundary(self.$.ce.to());
-          x = ((e.x() - pos.x()) + pos.w() / 2) / pos.w() / Float(2);
-          y = ((e.y() - pos.y()) + pos.h() / 2) / pos.h() / Float(2);
+          x = ((pnt.x() - pos.x()) + pos.w() / 2) / pos.w() / Float(2);
+          y = ((pnt.y() - pos.y()) + pos.h() / 2) / pos.h() / Float(2);
           if (x == 0 && y == 0) {
             return null;
           } else {

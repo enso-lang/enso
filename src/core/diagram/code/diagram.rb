@@ -3,6 +3,8 @@ require 'core/diagram/code/constraints'
 require 'core/schema/code/factory'
 #require 'core/schema/tools/print'
 
+# Dialog = require('electron').remote.dialog
+
 # a path is specified by a constraint system
 #   the end is connected to a position on the part (h,w) 
 #       where (h==0 || h==1) || (w==0 || w==1)
@@ -59,6 +61,7 @@ module Diagram
 	    @selection = nil
 	    @mouse_down = false
 	    @DIST = 4
+	    @cs = Constraints::ConstraintSystem.new
 	    @factory = Factory.new(Load::load('diagram.schema'))
 	    @select_color = @factory.Color(0, 255, 0)
 	  end
@@ -94,8 +97,12 @@ module Diagram
 	  end
 	
 	  def clear_refresh
-	    @cs = Constraints::ConstraintSystem.new
 	    @positions = {}
+	    
+	    @context.fillStyle_ = "white";
+			@context.fillRect(0, 0, 1000, 1000);
+      @context.fillStyle_ = "black";
+      @context.lineStyle_ = "red";
 	    paint()
 	  end      
 	  
@@ -104,10 +111,10 @@ module Diagram
 	  def on_mouse_down
 	    Proc.new { |e|
 			  pnt = factory.Point(e.pageX_, e.pageY_)
-		    #puts "DOWN #{e.x} #{e.y}"
+		    puts "DOWN #{e.x} #{e.y}"
 		    @mouse_down = true
 		    if @selection
-		      subselect = @selection.on_mouse_down(e)
+		      subselect = @selection.do_mouse_down(e)
 		      if subselect == :cancel
 		        @selection = nil
 		        # return
@@ -124,19 +131,22 @@ module Diagram
 		      val
 		    end
 		    #puts "FIND #{select}"
-		    set_selection(select, e)
+		    set_selection(select, pnt)
 		  }
 	  end
 	  
 	  def on_mouse_up
 	    Proc.new { |e|
+	      puts "MOUSE UP"
 		    @mouse_down = false
 		  }
 	  end
 	
 	  def on_move
 	    Proc.new { |e|
-		    @selection.on_move(e, @mouse_down) if @selection
+			  pnt = factory.Point(e.pageX_, e.pageY_)
+	      puts "MOUSE move #{pnt.x}, #{pnt.y}"
+		    @selection.do_move(pnt, @mouse_down) if @selection
 	  	}
 	  end
 	
@@ -152,13 +162,13 @@ module Diagram
 		  end
 	  end
 	    
-	  def set_selection(select, e)
+	  def set_selection(select, pnt)
 	    clear_selection
 	    if select
 	      if select.Connector?
 	        @selection = ConnectorSelection.new(self, select)
 	      else
-	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(e.x, e.y))
+	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x, pnt.y))
 	      end
 	    end
 	  end
@@ -196,7 +206,7 @@ module Diagram
 		          end
 		        end
 		      rescue Exception => e  
-		        puts e.message
+		        puts "ERROR DURING FIND!"
 		      end
 		    end
 		  end
@@ -640,13 +650,11 @@ module Diagram
 	    @move_base = @diagram.boundary(part)
 	  end
 	  
-	  def on_move
-	    Proc.new { |e, down|
-		    if down
-		      @diagram.set_position(@part, @move_base.x + (e.x - @down.x), @move_base.y + (e.y - @down.y))
-		      @diagram.clear_refresh
-		    end
-			}
+	  def do_move(pnt, down)
+	    if down
+	      @diagram.set_position(@part, @move_base.x + (pnt.x - @down.x), @move_base.y + (pnt.y - @down.y))
+	      @diagram.clear_refresh
+	    end
 	  end
 	  
 	  def is_selected(check)
@@ -656,7 +664,7 @@ module Diagram
 	  def paint(dc)
 	  end
 	
-	  def on_mouse_down(e)
+	  def do_mouse_down(e)
 		end
 		 
 	  def clear
@@ -686,9 +694,9 @@ module Diagram
 	#	  end
 	  end
 	    
-	  def on_mouse_down(e)
+	  def do_mouse_down(pnt)
 		  size = 8
-		  pnt = factory.Point(e.x, e.y)
+		  pnt = factory.Point(pnt.x, pnt.y)
 		  p = @conn.path[0]
 	    r = factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
 	    if rect_contains(r, pnt)
@@ -702,7 +710,7 @@ module Diagram
 		  end
 	  end
 	
-	  def on_move(e, down)    
+	  def do_move(e, down)    
 	  end
 	  
 	  def clear
@@ -728,14 +736,14 @@ module Diagram
 	    dc.draw_rectangle(@pnt.x - size / 2, @pnt.y - size / 2, size, size)
 	  end
 	    
-	  def on_mouse_down(e)
+	  def do_mouse_down(e)
 	  end
 	
-	  def on_move(e, down)
+	  def do_move(pnt, down)
 	    if down
 		    pos = @diagram.boundary(@ce.to)
-		    x = (e.x - pos.x + pos.w / 2) / (pos.w / Float(2))
-		    y = (e.y - pos.y + pos.h / 2) / (pos.h / Float(2))
+		    x = (pnt.x - pos.x + pos.w / 2) / (pos.w / Float(2))
+		    y = (pnt.y - pos.y + pos.h / 2) / (pos.h / Float(2))
 		    if x == 0 && y == 0
 		      nil
 		    else

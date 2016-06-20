@@ -145,7 +145,7 @@ module Load
   end
   
   # define a singleton instance 
-  Loader = LoaderClass.new
+  Loader ||= LoaderClass.new
   
   def self.load(name)
     Load::Loader.load(name)

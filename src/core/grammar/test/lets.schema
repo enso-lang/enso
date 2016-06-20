@@ -1,7 +1,8 @@
 class Exp
   parent: Exp?
   scope: Exp = "@let || @parent.let"
-
+  let: Let
+  
 class Let < Exp
    bindings! Binding*
    body! Exp / let

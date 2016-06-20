@@ -131,20 +131,3 @@ module Cache
 
 end
 
-if __FILE__ == $0
-  data_file = ARGV[0]
-  if data_file.nil?
-    print "Clearing entire cache! Is this OK? (Y/N): "
-    resp = gets[0..-2]
-    if resp == "Yes" or resp == "yes" or resp == "Y" or resp == "y"
-      Cache::clean()
-    else
-      puts "Use: ruby cache.rb <model> if you need to clean a specific file"
-    end
-  else
-    print "Cleaning #{data_file} JSON... "
-    success = Cache::clean(data_file)
-    puts (success ? "Success!" : "Failed")
-  end
-end
-
