@@ -37,16 +37,4 @@
 		<nature>org.eclipse.pde.PluginNature</nature>
 		<nature>rascal_eclipse.term_nature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>eclipse</name>
-			<type>2</type>
-			<location>/Users/tvdstorm/CWI/enso/eclipse</location>
-		</link>
-		<link>
-			<name>std</name>
-			<type>2</type>
-			<location>/Users/tvdstorm/CWI/enso/std</location>
-		</link>
-	</linkedResources>
 </projectDescription>

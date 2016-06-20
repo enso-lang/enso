@@ -43,6 +43,7 @@ module Factory
       end
     end
 
+
     def __check_cylic_inheritance(schema)
       #check that schema supers have no cyclic dependencies
       # (this has led to difficult to debug errors in the past)
@@ -156,6 +157,7 @@ module Factory
         val = Schema.subclass? klass, cls
         define_singleton_value("#{cls.name}?", val)
       end
+      x = {a: b}
     end
         
     def __to_s(cls)

@@ -92,13 +92,11 @@ data Expression
   | arrow(list[Pattern] params, 
   			list[Expression] defaults,
             str rest, // "" = null
-            list[Statement] statBody,
-            bool generator = false) 
+            list[Statement] statBody) 
   | arrow(list[Pattern] params, 
   			list[Expression] defaults,
             str rest, // "" = null
-            Expression expBody,
-            bool generator = false)
+            Expression expBody)
   | sequence(list[Expression] expressions)
   | unary(UnaryOperator operator, bool prefix, Expression argument)
   | binary(BinaryOperator binaryOp, Expression left, Expression right)

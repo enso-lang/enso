@@ -148,7 +148,7 @@ class CodeBuilder < Ripper::SexpBuilder
   def on_binary(lvalue, operator, rvalue)
     operator = fix_op(operator)
     case operator
-    when "<<"
+    when ('<' + '<') # literal messes up emacs
       make_call(get_seq(lvalue), "push", [get_seq(rvalue)])
     else
       @f.EBinOp(operator, get_seq(lvalue), get_seq(rvalue))
@@ -160,7 +160,7 @@ class CodeBuilder < Ripper::SexpBuilder
     case operator
     when "|"
       raise "Can't use | operator"
-    when "&"
+    when '&'
       raise "Can't use & operator"
     when "and"
       "&&"
