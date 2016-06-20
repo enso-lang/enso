@@ -63,6 +63,11 @@ list[loc] ALL_FILES = [
 
 void compileAllSrcs() {
   for (src <- ALL_FILES) {
+     compileSrc(src);
+  }
+}
+
+void compileSrc(loc src) {
     try {
       println("Compiling <src.file>...");
       pt = parse(#start[Unit], src);
@@ -74,7 +79,6 @@ void compileAllSrcs() {
       catch value e: {
         println("Error <e>");
       }
-  }
 }
 
 void compileAll() {

@@ -371,9 +371,9 @@ lexical OPERATIONNoReserved
   ;
 
 lexical VARIABLE    
-  = "$" IDENTIFIER
-  | "@" IDENTIFIER
-  | "@@" IDENTIFIER
+  = global: "$" IDENTIFIER
+  | field: "@" IDENTIFIER
+  | class: "@@" IDENTIFIER
   | id: IDENTIFIER \ Reserved
   ;
 

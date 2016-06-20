@@ -115,6 +115,7 @@ default list[Statement] stmts2js(STMTS _) = [];
 default list[Statement] stmt2js(STMT x) = warning(x, "unhandled stmt"); 
 
 
+
 Statement blockOrNot([Statement s]) = s;
 default Statement blockOrNot(list[Statement] ss) = block(ss);
 
@@ -322,13 +323,17 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
   //for (m <- mods) {
   //  declareModuleBinding(m, Expression::variable(name));
   //}
+  
+  classStmts = classStmts2js(body);
+  //println("CLS: <classStmts>");
+  
+  CURRENT_METHOD = "";
   ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeClass"), 
                   [literal(string("<name>")), 
                   super,
                   Expression::array(mods),
-                  Expression::function("", [], [], "", classStmts2js(body) 
-                  )
+                  Expression::function("", [], [], "", classStmts)
                   ,
                   makeFunc([Pattern::variable("super$")], body, [], EMPTY, {})
                   ])))], "var"));
@@ -340,7 +345,7 @@ list[Statement] classStmts2js(STMTS stmts) =
   ( [] | it + classStmt2js(s) | s <- stmts.stmts );
   
   
-list[Statement] classStmt2js((STMT)`@@<IDENTIFIER x> = <EXPR e>`)
+list[Statement] classStmt2js(s:(STMT)`@@<IDENTIFIER x> = <EXPR e>`)
   = [Statement::expression(assignment(assign(), 
          member(member(this(), "$"), fixFname("<x>")), 
          expr2js(e)))];
@@ -442,7 +447,9 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
     [Statement::varDecl([variableDeclarator(
                 Pattern::variable("self"), Init::expression(this()))
                 ], "var")];
-  return makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});              
+  Expression theFunc = makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});
+  CURRENT_METHOD = "";
+  return theFunc;              
 }
 
 list[Statement] makeDecls(set[str] names) { 
@@ -631,11 +638,18 @@ list[Statement] stmt2js((STMT)`<PRIMARY p>::<OPERATION3 op> <CALLARGS args>`)
   = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
   
 list[Statement] stmt2js((STMT)`<EXPR e>`) 
-  = [Statement::expression(expr2js(e))];// when bprintln("e = <e>");
-  
-list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`)
-  = [Statement::expression(assignment(assign(), assignVar2js(var), 
+  = [Statement::expression(expr2js(e))]; // when bprintln("e = <e>");
+
+list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`) {
+  //println("var = <var>");
+  //println("var is class: <var is class>");
+  //println("Current: <CURRENT_METHOD>");
+  if (var is class && CURRENT_METHOD == "") {
+    return [];
+  }
+  return [Statement::expression(assignment(assign(), assignVar2js(var), 
           stmt2exp(s)))];
+}
 
 Expression stmt2exp((STMT)`<EXPR e>`) = exprjs(e);
 
@@ -724,8 +738,12 @@ Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = logical(or(), expr2js(l), exp
 Expression expr2js((EXPR)`<EXPR c> ? <EXPR t> : <EXPR e>`) 
   =  conditional(expr2js(c), expr2js(t), expr2js(e));
 
-Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`)
-  = assignment(assign(), assignVar2js(v), expr2js(r));
+Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`) {
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  return assignment(assign(), assignVar2js(v), expr2js(r));
+}
   
 Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)  
   = call(member(prim2js(p), "_set"), [expr2js(e), expr2js(r)]);
@@ -748,8 +766,16 @@ Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`)
   = assignment(assign(), ve, logical(or(), ve, expr2js(r)))
   when ve := assignVar2js(v);
 
-default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`)
-  = assignment(assignOp(op), assignVar2js(v), expr2js(r));
+default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`) {
+  //println("v = <v>");
+  //println("r = <r>");
+  //println("CURRENT: <CURRENT_METHOD>");
+  //println("v is class == <v is class>");
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  return assignment(assignOp(op), assignVar2js(v), expr2js(r));
+}
 
 Expression assignVar2js(v:(VARIABLE)`<IDENTIFIER x>`) {
   n = "<x>";
@@ -821,9 +847,9 @@ Expression lit2js((LITERAL)`<Numeric s>`) = literal(number(toReal("<s>")))
   when /^[0-9]+\.[0-9]+$/ := "<s>";
   
   
-str unescape(str x) 
-  = escape(x, ("\\\"": "\"", "\\\'": "\'", 
-               "\\n": "\n", "\\t": "\t", "\\r": "\r"));
+str unescape(str x) = x; 
+  //= escape(x, ("\\\"": "\"", "\\\'": "\'", 
+  //             "\\n": "\n", "\\t": "\t", "\\r": "\r"));
 
 Expression str2js((STRING)`<SSTR s>`) = literal(string(unescape("<s>"[1..-1])));
 Expression str2js((STRING)`<ISTR s>`) = literal(string(unescape("<s>"[1..-1])));
@@ -1038,7 +1064,7 @@ Expression blockvar2func((BLOCK_VAR)``) =
 default Expression blockvar2func(BLOCK_VAR x) = 
   { throw "Unsupported blockvar <x>."; };
 
-Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable("<v>");
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable(fixVar("<v>"));
 default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 

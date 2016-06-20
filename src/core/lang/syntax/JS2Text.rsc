@@ -275,7 +275,7 @@ str js2txt(catchClause(Pattern param, list[Statement] statBody))
 //str js2txt(comprehensionBlock(Pattern left, Expression right, bool each)) = "";
   
 
-str escapeIt(str x) = escape(x, ("\"": "\\\"", "\n": "\\n", "\t": "\\t"));
+str escapeIt(str x) = x; //escape(x, ("\"": "\\\"", "\n": "\\n", "\t": "\\t"));
   
 str js2txt(Literal::string(str strValue)) = "\"<escapeIt(strValue)>\"";
   //when bprintln("STRLITERAl ----\> |<strValue>|");
