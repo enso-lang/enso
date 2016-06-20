@@ -1,0 +1,20 @@
+{
+    "code_js_grammar.json": "../cache/code_js_grammar.json",
+    "code_schema.json": "../cache/code_schema.json",
+    "diagram_grammar.json": "../cache/diagram_grammar.json",
+    "diagram_schema.json": "../cache/diagram_schema.json",
+    "expr_grammar.json": "../cache/expr_grammar.json",
+    "expr_schema.json": "../cache/expr_schema.json",
+    "impl_grammar.json": "../cache/impl_grammar.json",
+    "impl_schema.json": "../cache/impl_schema.json",
+    "schema_stencil.json": "../cache/schema_stencil.json",
+    "state_machine_stencil.json": "../cache/state_machine_stencil.json",
+    "stencil_grammar.json": "../cache/stencil_grammar.json",
+    "stencil_schema.json": "../cache/stencil_schema.json",
+    "grammar_grammar.json": "../core/system/boot/grammar_grammar.json",
+    "grammar_schema.json": "../core/system/boot/grammar_schema.json",
+    "schema_grammar.json": "../core/system/boot/schema_grammar.json",
+    "schema_schema.json": "../core/system/boot/schema_schema.json",
+    "model_index.json": "../model_index.json",
+    "package.json": "../node_modules/requirejs/package.json"
+}
