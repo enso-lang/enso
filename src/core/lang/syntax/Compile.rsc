@@ -38,7 +38,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {};
+  names = {"Enumerable"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -320,9 +320,6 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
   declareModuleBinding(name, Expression::variable(name));
   pushModule();
   mods = includedModules(body);
-  //for (m <- mods) {
-  //  declareModuleBinding(m, Expression::variable(name));
-  //}
   
   classStmts = classStmts2js(body);
   //println("CLS: <classStmts>");
