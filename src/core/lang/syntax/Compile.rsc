@@ -410,7 +410,7 @@ Statement addReturns(block(ss)) = block(addReturns(ss));
 Statement addReturns(Statement \try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
 Statement addReturns(Statement \try(s, h)) = \try(addReturns(s), addReturns(h));
 Statement addReturns(\switch(e, cs)) =
-  \switch(e, [ c[consequent=addReturns(c.consequent)] | SwitchCase c <- cs, bprintln("Adding return to <c>") ]); 
+  \switch(e, [ c[consequent=addReturns(c.consequent)] | SwitchCase c <- cs ]); 
 
 default Statement addReturns(Statement s) = s;
 
@@ -899,6 +899,8 @@ Expression prim2js((PRIMARY)`yield()`)
   
 Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str name, list[Expression] blockIfAny) {
   switch (<apply, name>) {
+    case <false, "puts">:
+      return call(Expression::variable("puts"), args);
     case <false, "call">: 
       return call(trg, blockIfAny + args);
     case <false, _>:
