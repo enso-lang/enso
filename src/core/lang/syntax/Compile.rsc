@@ -42,7 +42,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {"Enumerable"};
+  names = {"Enumerable", "File", "System", "Array", "String"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -338,7 +338,7 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
                   Expression::array(mods),
                   Expression::function("", [], [], "", classStmts)
                   ,
-                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {})
+                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {}, class=true)
                   ])))], "var"));
   popScope();
   return ss;               
@@ -392,19 +392,25 @@ default str fixFname(str name) = fixOp(name);
 
 list[Statement] addReturns(list[Statement] ss) {
   if (ss != []) {
-    return ss[0..-1] + [addReturns(ss[-1])];
+    if (size(ss) > 1, ss[-1] is \break) {
+      return addReturns(ss[0..-1]);
+    }
+    else {
+      return ss[0..-1] + [addReturns(ss[-1])];
+    }
   }
   return [];
 }
 
 Statement addReturns(s:Statement::expression(x)) = \return(x);
+Statement addReturns(s:Statement::\break()) = \return();
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
 Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
 Statement addReturns(Statement \try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
 Statement addReturns(Statement \try(s, h)) = \try(addReturns(s), addReturns(h));
 Statement addReturns(\switch(e, cs)) =
-  \switch(e, [ c[consequent=addReturns(c.consequent)] | c <- cs ]); 
+  \switch(e, [ c[consequent=addReturns(c.consequent)] | SwitchCase c <- cs, bprintln("Adding return to <c>") ]); 
 
 default Statement addReturns(Statement s) = s;
 
@@ -538,7 +544,7 @@ void declareModuleBinding(str var, Expression exp) {
 Expression makeFunc(list[Pattern] formals, STMTS body, 
 					list[Statement] begin,
                     list[Statement]() end,
-                    set[str] implicits) {
+                    set[str] implicits, bool class = false) {
   pushScope();
   declareVars(implicits);
   names = { x | Pattern::variable(x) <- formals };
@@ -572,7 +578,7 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
   bodyStats += theStats;
   bodyStats += end();
   popScope();
-  return Expression::function("", formals, [], "", addReturns(bodyStats));
+  return Expression::function("", formals, [], "", class ? bodyStats : addReturns(bodyStats));
 }
 
 
@@ -944,11 +950,12 @@ Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`)
 Expression prim2js((PRIMARY)`<PRIMARY p>.nil?`)
   = binary(equals(), prim2js(p), literal(null()));
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
+Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
   = call( 
       member(Expression::variable("System"), "test_type"),
       [prim2js(p), *jargs])
   when "<op>" == "is_a?", // matching doesn't work ... 
+    //bprintln("Found is_a?: <x>"),
      <_, jargs> := callargs2js(args);
    
 
