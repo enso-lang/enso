@@ -424,6 +424,10 @@ EnsoHash = function(init) {
       return function() { 
         return self[m].apply(self, arguments); 
     }},
+    
+    p: function(arg) {
+	return arg.inspect().toString();
+    },
     to_s: function() {             
        var kind = this.__classname__;
        if (this.schema_class)
