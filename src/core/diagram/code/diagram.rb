@@ -99,10 +99,10 @@ module Diagram
 	  def clear_refresh
 	    @positions = {}
 	    
-	    @context.fillStyle_ = "white";
-			@context.fillRect(0, 0, 1000, 1000);
-      @context.fillStyle_ = "black";
-      @context.lineStyle_ = "red";
+	    @context.fillStyle_ = "white"
+			@context.fillRect(0, 0, 1000, 1000)
+      @context.fillStyle_ = "black"
+      @context.lineStyle_ = "red"
 	    paint()
 	  end      
 	  
