@@ -145,7 +145,7 @@ module Eval
 
   def self.eval(obj, args={env:{}})
     interp = EvalExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.eval(obj)
     end
   end

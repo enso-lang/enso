@@ -44,7 +44,7 @@ module Renderexp
 
   def self.render(obj, args={})
     interp = RenderExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.render(obj)
     end
   end

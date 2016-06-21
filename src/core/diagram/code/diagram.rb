@@ -244,7 +244,7 @@ module Diagram
 	  def constrain(part, x, y)
 	    w = nil
 	    h = nil
-	    with_styles part do 
+	    with_styles(part) do 
 	      if part.Connector?
 	        constrainConnector(part)
 	      else
@@ -390,7 +390,7 @@ module Diagram
 	  
 	  def draw(part)
 	    @context.textBaseline_ = "top"
-	    with_styles part do 
+	    with_styles(part) do 
 	      send(("draw" + part.schema_class.name).to_sym, part)
 	    end
 	  end
@@ -486,7 +486,7 @@ module Diagram
 		      offset = EnsoPoint.new(0, r.h)
 		    end
 		    lineHeight = 12
-		    with_styles cend.label do 
+		    with_styles(cend.label) do 
 		      @context.save
 		      @context.translate(r.x, r.y)
 					@context.rotate(-Math.PI_ * angle / 180)
@@ -496,7 +496,7 @@ module Diagram
 					
 					@context.restore
 			  end
-		    with_styles cend.other_label do 
+		    with_styles(cend.other_label) do 
 		      @context.save
 		      @context.translate(r.x + offset.x, r.y + offset.y)
 					@context.rotate(-Math.PI_ * angle / 180)
@@ -614,10 +614,10 @@ module Diagram
 			 #   if @selection && @selection.is_selected(part)
 			 # 	  @context.set_pen(factory.Pen(@select_color))
 			 # 	end
-			    block()
+			    block.call()
 			    @context.restore
 			  else
-			  	block()
+			  	block.call()
 			  end
 			end
 	  end

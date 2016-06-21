@@ -100,7 +100,7 @@ module Lvalue
 
   def self.lvalue(obj, args = {})
     interp = LValueExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.lvalue(obj)
     end
   end
