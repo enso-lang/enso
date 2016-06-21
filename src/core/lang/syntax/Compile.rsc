@@ -42,7 +42,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {"Enumerable", "File", "System", "Array", "String"};
+  names = {"Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -407,15 +407,15 @@ Statement addReturns(s:Statement::\break()) = \return();
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
 Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
-Statement addReturns(Statement \try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
-Statement addReturns(Statement \try(s, h)) = \try(addReturns(s), addReturns(h));
+Statement addReturns(Statement::\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
+Statement addReturns(Statement::\try(s, h)) = \try(addReturns(s), addReturns(h));
 Statement addReturns(\switch(e, cs)) =
   \switch(e, [ c[consequent=addReturns(c.consequent)] | SwitchCase c <- cs ]); 
 
 default Statement addReturns(Statement s) = s;
 
 CatchClause addReturns(catchClause(p, ss)) = catchClause(p, addReturns(ss)); 
-
+  
 
 str CURRENT_METHOD = "";
 Expression methodFunction__(str f, ARGLIST args, STMTS body) {
@@ -831,7 +831,8 @@ Expression prim2js((PRIMARY)`(<NL* _><EXPR e><NL* _>)`)
   = expr2js(e);
 
 Expression prim2js((PRIMARY)`(<NL* _><STMT s><NL* _>)`) 
-  = stmt2exp(s);
+  = stmt2exp(s)
+  when (STMT)`<EXPR e>` !:= s; 
 
 
 Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)`) 
