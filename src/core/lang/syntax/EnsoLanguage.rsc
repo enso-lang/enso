@@ -224,7 +224,7 @@ lexical OP_ASGN
   ;
  
 syntax WHEN_ARGS   
-  = whenArgs: {EXPR ","}+ 
+  = whenArgs: {EXPR ","}+ exprs 
   | whenArgs: {EXPR ","}+ "," STAR EXPR
   | whenArgs: STAR EXPR
   | whenArgs: /* empty */

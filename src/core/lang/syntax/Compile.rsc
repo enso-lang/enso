@@ -177,8 +177,8 @@ list[Statement] l(Statement x) = [x];
 list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
   = l(caseStat)
   when 
-     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
-       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     cases :=  [ switchCase(expr2js(exp), [*stmts2js(cstmts), Statement::\break()]) |
+       (WHEN)`when <{EXPR ","}+ exps> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]), exp <- exps ],  
      caseStat := \switch(stmts2exp(stmts), cases);
 
 
@@ -186,8 +186,8 @@ list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS eb
   = l(caseStat)
   when 
      ecase := switchCase(stmts2js(ebody)),
-     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
-       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     cases :=  [ switchCase(expr2js(exp), [*stmts2js(cstmts), Statement::\break()]) |
+       (WHEN)`when <{EXPR ","}+ exps> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]), exp <- exps ],  
      caseStat := \switch(stmts2exp(stmts), [*cases, ecase]);
   
 
@@ -209,12 +209,12 @@ list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS eb
 //  = l(); 
 
 
-Expression when2js((WHEN_ARGS)`<EXPR e>`) = expr2js(e);
-
-default Expression when2js(WHEN_ARGS w) {
-  error(w, "Unsupported when-clause");
-  return Expression::variable("UNSUPPORTED_WHEN_CLAUSE");
-}
+//Expression when2js((WHEN_ARGS)`<EXPR e>`) = expr2js(e);
+//
+//default Expression when2js(WHEN_ARGS w) {
+//  error(w, "Unsupported when-clause");
+//  return Expression::variable("UNSUPPORTED_WHEN_CLAUSE");
+//}
 
 
 Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
@@ -709,7 +709,7 @@ Expression var2js((VARIABLE)`<IDENTIFIER id>`)
   
   
 Expression expr2js((EXPR)`<PRIMARY p>`) {
-  //rprintln(p);
+  //println("P = <p>");
   return prim2js(p) ;
 }
 
@@ -1003,8 +1003,8 @@ Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
 bool isSpecialOp(str op) = op in { "is_a?", "nil?" };
 bool isProperty(str op) = endsWith(op, "_");
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
-  = member(prim2js(p), fixOp("<op>"))
+Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = member(prim2js(p), fixOp("<op>"[0..-1])) // todo: make helper toProp
   when isProperty("<op>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
