@@ -42,7 +42,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {"Math", "Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
+  names = {"Integer", "Math", "Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -84,6 +84,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
     return program(ss);
      
   }
+  
   // TODO: do the require.js stuff.
   return program(stmts2js(stmts));
 } 
@@ -938,6 +939,10 @@ Expression prim2js((PRIMARY)`yield()`)
   = { throw "Yield not supporteduse explicit block."; };
   
 Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str name, list[Expression] blockIfAny) {
+  if (isDeclared(name) && capitalize(name) == name) {
+    // dirty hack to capture Integer().
+    return call(Expression::variable(name), args);
+  }
   switch (<apply, name>) {
     case <false, "puts">:
       return call(Expression::variable("puts"), args);
