@@ -42,7 +42,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {"Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
+  names = {"Math", "Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -641,7 +641,8 @@ list[Statement] stmt2js(s:(STMT)`super <CALLARGS args>`)
   //makeCall(callargs2js(args), Expression::variable("super$"), fixVar("<op>"), []);
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>.<OPERATION2 op> <CALLARGS args>`)
-  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
+  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))]
+  when bprintln("OOPP = <op>");
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>::<OPERATION3 op> <CALLARGS args>`)
   = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
@@ -711,6 +712,16 @@ Expression expr2js((EXPR)`<PRIMARY p>`) {
   //rprintln(p);
   return prim2js(p) ;
 }
+
+Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = member(prim2js(p), "<op>"[0..-1])
+  when isProperty("<op>"), bprintln("OOPP = <op>");
+
+Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = call(member(prim2js(p), fixFname("<op>")), [])
+  when !isProperty("<op>"), bprintln("OOOOOPPPPPP: <op>");
+  
+
 Expression expr2js((EXPR)`!<EXPR e>`) = unary(not(), true, expr2js(e));
 Expression expr2js((EXPR)`~<EXPR e>`) = unary(bitNot(), true, expr2js(e));
 Expression expr2js((EXPR)`+<EXPR e>`) = unary(UnaryOperator::plus(), true, expr2js(e));
@@ -772,7 +783,14 @@ Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)
   
 Expression expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER x> = <EXPR r>`)  
   //= assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
-  = call(member(prim2js(p), fixFname("<x>=")), [expr2js(r)]);
+  = call(member(prim2js(p), fixFname("<x>=")), [expr2js(r)])
+  when !isProperty("<x>");
+
+Expression expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER x> = <EXPR r>`)  
+  //= assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
+  = assignment(assign(), member(prim2js(p), fixFname("<x>"[0..-1])), expr2js(r))
+  when isProperty("<x>");
+
   
 Expression expr2js((EXPR)`<VARIABLE v> **= <EXPR r>`)
   = assignment(assign(), ve, 
@@ -784,6 +802,7 @@ Expression expr2js((EXPR)`<VARIABLE v> &&= <EXPR r>`)
   when ve := assignVar2js(v);
    
 Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`) {
+  // TODO: factor out this logic and executed it consistently for all assignment kinds.
   if (v is class && CURRENT_METHOD == "") {
     return undefined();
   }
@@ -855,6 +874,9 @@ Expression prim2js((PRIMARY)`(<NL* _><STMT s><NL* _>)`)
 Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)`) 
   = stmts2exp((STMTS)`<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>`);
 
+
+Expression stms2exp((STMTS)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  =  expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`);
 
 Expression stmts2exp((STMTS)`<IDENTIFIER op> <CALLARGS args>`) 
   = expr2js((EXPR)`<IDENTIFIER op>(<CALLARGS args>)`);
@@ -936,7 +958,6 @@ Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str nam
 Expression prim2js((PRIMARY)`<OPERATION op>`) {
   v = fixVar("<op>");
   //println("V = <v>");
-  //println("vars = <assignedVars()>");
   if (isDeclared(v)) {
      return Expression::variable(fixVar("<op>"));
   }
@@ -980,10 +1001,16 @@ Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
    
 
 bool isSpecialOp(str op) = op in { "is_a?", "nil?" };
+bool isProperty(str op) = endsWith(op, "_");
+
+Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = member(prim2js(p), fixOp("<op>"))
+  when isProperty("<op>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [])
   when !isSpecialOp("<op>");
+
 
 Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) 
   = member(prim2js(p), fixVar("<op>"));
