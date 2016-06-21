@@ -81,10 +81,10 @@ module MetaSchema
         elsif value.is_a?(Array)
           keyed = (key[-1] == "#")
           name = if keyed then key.slice(0, key.size-1) else key end
-          if value.size == 0 || !(value[0].is_a? String)
+          if value.size == 0 || !(value[0].is_a?(String))
             _create_many(name, value.map {|a| MetaSchema.make_object(a, @root)}, keyed)
           end
-        elsif !(value.is_a? String)
+        elsif !(value.is_a?(String))
           define_singleton_value(key, MetaSchema.make_object(value, @root))
         end
       end
@@ -115,7 +115,7 @@ module MetaSchema
           if value.is_a?(Array) # why?
             keyed = (key[-1] == "#")
             name = if keyed then key.slice(0, key.size-1) else key end
-            if value.size > 0 && (value[0].is_a? String)
+            if value.size > 0 && (value[0].is_a?(String))
               _create_many(name, value.map {|a| MetaSchema::path_eval(a, @root) }, keyed)
             else
               self[name].each do |obj|

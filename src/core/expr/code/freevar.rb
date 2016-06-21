@@ -34,7 +34,7 @@ module Freevar
     def depends_ELambda(obj)
       bound2 = @D[:bound].clone
       obj.formals.each{|f|bound2<<depends(f)}
-      dynamic_bind bound: bound2 do
+      dynamic_bind(bound: bound2) do
         depends(obj.body)
       end
     end

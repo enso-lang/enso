@@ -14,7 +14,13 @@ module Cache
     end
   end
 
-  def self.load_cache(name, factory, input=find_json(name))
+  # this default param is currently not supported by the Rascal compiler.
+  # because it captures an earlier parameter.
+  #def self.load_cache(name, factory, input=find_json(name))
+  def self.load_cache(name, factory, input=nil)
+    if input.nil?
+      input = find_json(name)
+    end
     type = name.split('.')[-1]
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
