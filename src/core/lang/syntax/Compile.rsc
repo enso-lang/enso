@@ -783,9 +783,19 @@ Expression expr2js((EXPR)`<VARIABLE v> &&= <EXPR r>`)
   = assignment(assign(), ve, logical(and(), ve, expr2js(r)))
   when ve := assignVar2js(v);
    
-Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`)
-  = assignment(assign(), ve, logical(or(), ve, expr2js(r)))
-  when ve := assignVar2js(v);
+Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`) {
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  str x = "<v>";
+  ve = assignVar2js(v);
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    println("x = <x>");
+    declareModuleBinding(x, assignment(assign(),  ve, logical(or(), ve, expr2js(r))));
+    return undefined();
+  }
+  return assignment(assign(), ve, logical(or(), ve, expr2js(r)));
+}
 
 default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`) {
   //println("v = <v>");
@@ -795,6 +805,13 @@ default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`) {
   if (v is class && CURRENT_METHOD == "") {
     return undefined();
   }
+  str x = "<v>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    println("x = <x>");
+    declareModuleBinding(x, assignment(assignOp(op), assignVar2js(v), expr2js(r)));
+    return undefined();
+  }
+  
   return assignment(assignOp(op), assignVar2js(v), expr2js(r));
 }
 
