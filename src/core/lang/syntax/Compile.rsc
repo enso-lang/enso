@@ -8,6 +8,10 @@ import List;
 import ParseTree;
 import Message;
 
+/*
+ * This code assumes classes, modules and methods cannot be nested.
+ */
+
 list[Statement] mainBody() = [
   Statement::varDecl([variableDeclarator(Pattern::variable("requirejs"), 
     Init::expression(call(Expression::variable("require"), 
@@ -90,8 +94,10 @@ list[str] requiredPaths(STMTS body)
   = [ "<p>"[1..-1] | (STMT)`require <STRING p>` <- body.stmts ];
 
 list[str] paths2modules(list[str] paths)
-  = [ capitalize(split("/", p)[-1]) | p <- paths ];
+  = [ removeUnderscores(capitalize(split("/", p)[-1])) | p <- paths ];
 
+str removeUnderscores(str x)
+  = ( "" | it + capitalize(sub) | str sub <- split("_", x) );
 
 list[Statement] declareModule(list[str] reqPaths, str name, STMTS body)
   = [expression(call(Expression::variable("define"), [
@@ -644,6 +650,11 @@ list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`) {
   if (var is class && CURRENT_METHOD == "") {
     return [];
   }
+  str x = "<var>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    declareModuleBinding(x, stmt2exp(s));
+    return [];
+  }
   return [Statement::expression(assignment(assign(), assignVar2js(var), 
           stmt2exp(s)))];
 }
@@ -739,6 +750,13 @@ Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`) {
   if (v is class && CURRENT_METHOD == "") {
     return undefined();
   }
+  
+  str x = "<v>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    declareModuleBinding(x, expr2js(r));
+    return undefined();
+  }
+  
   return assignment(assign(), assignVar2js(v), expr2js(r));
 }
   
