@@ -330,7 +330,7 @@ class CodeBuilder < Ripper::SexpBuilder
     token
   end
 
-  def on_params(required, optional, rest, more, block)
+  def on_params(required, optional, rest, more, keywords, keywords_rest, block)
   # params, optionals, rest, something, keywords, keywords_rest=nil, block=nil)
     formals = []
     if required

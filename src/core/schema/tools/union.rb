@@ -36,8 +36,14 @@ module Union
         @memo[a._id] = new = b || @factory[a.schema_class.name]
         #puts "BUILD #{a} + #{b} ==> #{new}"
         new.schema_class.fields.each do |field|
-          a_val = begin a[field.name]; rescue; nil end
-          b_val = begin b[field.name]; rescue; nil end
+          a_val = begin a[field.name]
+          rescue 
+            nil 
+          end
+          b_val = begin b[field.name] 
+          rescue 
+            nil 
+          end
           if !a_val.nil? or !b_val.nil?
             if field.type.Primitive?
               if !a_val.nil?

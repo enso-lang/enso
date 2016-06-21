@@ -44,7 +44,7 @@ module Stencil
 	  end
 	 
 	  
-	  def setup extension, data
+	  def setup(extension, data)
 	    @extension = extension
 	    @stencil = Load::load("#{@extension}.stencil")
 	    if !@stencil.title.nil?
@@ -75,12 +75,7 @@ module Stencil
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 	
-	    env = {
-	      :font => @factory.Font(nil, nil, nil, 12, "swiss"),
-	      :pen => @factory.Pen(1, "solid", black),
-	      :brush => @factory.Brush(white),
-	      "nil" => nil
-	    }
+	    env = {font: @factory.Font(nil, nil, nil, 12, "swiss"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(white), nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing

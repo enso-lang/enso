@@ -112,7 +112,7 @@ module Impl
     end
 
     def eval_EFunCall(obj)
-      m = dynamic_bind in_fc: true do
+      m = dynamic_bind(in_fc: true) do
         eval(obj.fun)
       end
       if obj.lambda.nil?

@@ -13,7 +13,7 @@ module Proxy
       #deptree is an expression tree whose leaf nodes are vars in [sources]
     @@factory = nil
     def self.new(*args)
-      if args[0].is_a? TrueClass or args[0].is_a? FalseClass  #TODO: use delegates so that bools work
+      if args[0].is_a?(TrueClass) or args[0].is_a?(FalseClass) #TODO: use delegates so that bools work
         args[0]
       else
         super(*args)
@@ -23,7 +23,7 @@ module Proxy
       if @@factory.nil?
         @@factory = Factory::SchemaFactory.new(Load::load("expr.schema"))
       end
-      if val.is_a? Proxy
+      if val.is_a?(Proxy)
         @_val = val._val
         @_sources = val._sources
         @_tree = val._tree

@@ -236,7 +236,7 @@ module Layout
       obj = stream.current
       if this.expr.EBinOp? and this.expr.op=="eql?"
         rhs = Eval.eval(this.expr.e2, env: Env::ObjEnv.new(obj, @localEnv))
-        if rhs.is_a? Factory::MObject
+        if rhs.is_a?(Factory::MObject)
           lhs = Eval.eval(this.expr.e1, env: Env::ObjEnv.new(obj, @localEnv))
           lhs.schema_class == rhs.schema_class
         else

@@ -156,12 +156,11 @@ module Paths
       obj = owner.deref(root)
       fld = obj.schema_class.fields[last.name]
       if fld.type.Primitive? then
-        value = 
           case fld.type.name 
-          when 'str' then value.to_s
-          when 'int' then value.to_i
-          when 'bool' then (value.to_s == 'true') ? true : false
-          when 'real' then value.to_f
+          when 'str' then value = value.to_s
+          when 'int' then value = value.to_i
+          when 'bool' then value = (value.to_s == 'true') ? true : false
+          when 'real' then value = value.to_f
           else
             raise "Unknown primitive type: #{fld.type.name}"
           end

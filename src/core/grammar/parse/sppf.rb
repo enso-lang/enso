@@ -54,8 +54,7 @@ module SPPF
       start_column = orgs.column(starts)
       end_line = orgs.line(ends)
       end_column = orgs.column(ends)
-      Location.new(path, offset, size, start_line, 
-                   start_column, end_line, end_column)
+      Location.new(path, offset, size, start_line, start_column, end_line, end_column)
     end
 
     def eql?(o)

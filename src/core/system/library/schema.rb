@@ -21,7 +21,7 @@ module Schema
   def self.subclass?(a, b)
     if a.nil? || b.nil?
       false
-    elsif a.name == if b.is_a?(String) then b else b.name end
+    elsif a.name == (b.is_a?(String) ? b : b.name)
       true
     else 
       a.supers.any? do |sup|

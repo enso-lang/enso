@@ -41,7 +41,7 @@ module Cache
     if name.nil? #clean everything
       if File.exists?("#{cache_path}")
         Dir.foreach("#{cache_path}") do |f|
-          if f.end_with? ".json"
+          if f.end_with?(".json")
             File.delete("#{cache_path}#{f}")
           end
         end
@@ -50,7 +50,7 @@ module Cache
         false
       end
     else
-      if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+      if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
         false
       else
         if File.exists?(find_json(name))
@@ -66,13 +66,10 @@ module Cache
   def self.find_json(name)
     prefix = ""
     prefix = "../" if false # HACK TO GET ELECTRON RUNNING!!!
-    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
       "#{prefix}core/system/boot/#{name.gsub('.','_')}.json"
     else
-<<<<<<< HEAD
 	    cache_path = "#{prefix}cache/"
-=======
-      cache_path = "cache/"
 #      index = name.rindex('/')
 #      dir = index ? name[0..index].gsub('.','_') : ""
 #      unless File.exists? "#{cache_path}#{dir}"
@@ -83,13 +80,12 @@ module Cache
         puts "SLASH #{name} => #{index}"
         # dir = name[0,index].gsub('.', '_')
         dir = name[0..index].gsub('.','_')
-        unless File.exists? "#{cache_path}#{dir}"
+        unless File.exists?("#{cache_path}#{dir}")
 	        puts "#### making #{cache_path}#{dir}"
-          FileUtils.mkdir_p "#{cache_path}#{dir}"
+          FileUtils.mkdir_p("#{cache_path}#{dir}")
         end
       end
       puts "## loading chache #{cache_path}#{name.gsub('.','_')}.json"
->>>>>>> 7069f57... Resolved conflict
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end

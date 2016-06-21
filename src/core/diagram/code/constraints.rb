@@ -131,7 +131,7 @@ module Constraints
 	  end
 	  	  
 	  def define_result(m, *args)
-	    raise "undefiend method #{m}" unless [:add, :sub, :mul, :div, :round, :to_int].include? m 
+	    raise "undefined method #{m}" unless [:add, :sub, :mul, :div, :round, :to_int].include?(m) 
 	    var = Variable.new("p#{self.to_s}#{args.to_s}")
 	    #puts "#{var}=#{self.to_s}+#{args}"
 	    var.internal_define(self, *args) do |*values|

@@ -23,7 +23,8 @@ module Freevar
     end
     
     def depends_EField(obj)
-      [*depends(obj.e)] 
+      #[*depends(obj.e)]
+      depends(obj.e) 
     end
   
     def depends_EVar(obj)

@@ -122,7 +122,7 @@ module MetaSchema
                 obj._complete
               end
             end
-          elsif value.is_a? String
+          elsif value.is_a?(String)
             define_singleton_value(key, MetaSchema::path_eval(value, @root))
           else
             self[key]._complete

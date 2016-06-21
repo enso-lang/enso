@@ -26,7 +26,7 @@ module Interpreter
     end
     
     def _bind(field, value)
-      if @current.has_key? field
+      if @current.has_key?(field)
         old = @current[field]
       else
         old = :undefined
@@ -60,7 +60,7 @@ module Interpreter
       @indent = nil
     end
 
-    def dynamic_bind fields={}, &block
+    def dynamic_bind(fields={}, &block)
       if !@D
         @D = DynamicPropertyStack.new
       end
