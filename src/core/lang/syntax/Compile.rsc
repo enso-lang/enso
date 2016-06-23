@@ -588,7 +588,11 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
   }
   
   bool shadowed(v) =
-    v in ( {} | it + s | set[str] s <- STACK[0..-1] ); 
+    v in ( {} | it + s | method(set[str] s) <- STACK[0..-1] ); 
+  
+  for (v <- topScope().vars, shadowed(v)) {
+    println("Shadowing: <v>");
+  }
   
   bodyStats = begin; 
   bodyStats += makeDecls({ v | v <- topScope().vars - names - decls - implicits, !shadowed(v) }); 
