@@ -10,7 +10,18 @@ import Message;
 
 /*
  * This code assumes classes, modules and methods cannot be nested.
+ * Issues (?)
+ * def self.f: method call in such method to other module level
+ *   methods, are name qualified by convert, whereas we prepend self.
  */
+ 
+ /*
+  * syntax notes
+  * - always parens around args
+  * - never hash construct using => 
+  * - no semicolons
+  * - expressions cannot span multiple lines
+  */
 
 list[Statement] mainBody() = [
   Statement::varDecl([variableDeclarator(Pattern::variable("requirejs"), 
@@ -42,7 +53,11 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {"Integer", "Math", "Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
+  // globals
+  names = {"Integer", "Math", "Enumerable", "File", "System", 
+      "Array", "String", "TrueClass", "FalseClass", "Proc",
+      "EnsoProxyObject", "JSON", "Digest"};
+      
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -621,6 +636,11 @@ list[Statement] writer(str name)
 list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
   = ( [] | it + reader(x) | literal(string(x)) <- exps )
   when "<op>" == "attr_reader", <_, exps> := callargs2js(args);
+
+list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
+  = ( [] | it + writer(x) | literal(string(x)) <- exps )
+  when "<op>" == "attr_writer", <_, exps> := callargs2js(args);
+
 
 list[Statement] stmt2js((STMT)`<OPERATION1 op> <CALLARGS args>`)
   = ( [] | it + reader(x) + writer(x)  | literal(string(x)) <- exps )
@@ -1222,13 +1242,19 @@ list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable(fixVar("<i>")) 
 // Rest params: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/rest_parameters
 //  var args = Array.prototype.slice.call(arguments, f.length);
 
+/*
 list[Statement] restInits(str f, IDENTIFIER rest)
   = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
   when 
     e :=  call(member(member(member(Expression::variable("Array"), "prototype"), "slice"), "call"), 
              [Expression::variable("arguments"), member(member(this(), f), "length")]);
-  
+*/  
 
+list[Statement] restInits(str f, IDENTIFIER rest)
+  = [ Statement::varDecl( [ variableDeclarator(Pattern::variable("<rest>"), Init::expression(e)) ], "var") ]
+  when
+   e := call(Expression::variable("compute_rest_arguments"), [
+                                Expression::variable("arguments"), member(member(this(), f), "length")]);
 
 Expression arglist2func(str f, (ARGLIST)`<{IDENTIFIER ","}+ ids>, <DEFAULTS defs>, <STAR _> <IDENTIFIER rest>, <AMP _> <IDENTIFIER b>`) 
   = Expression::function(f, params([b]) + params([ i | i <- ids]) + defaultParams(defs), [], "", 
