@@ -613,9 +613,7 @@ module Stencil
 	    n = 3
 	    #puts r.x, r.y, r.w, r.h
 	    extraWidth = 10
-	    @edit_control = TextCtrl.new(diagram, 0, "", 
-	      Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n),
-	      0)  # Wx::TE_MULTILINE
+	    @edit_control = TextCtrl.new(diagram, 0, "", Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n), 0)  # Wx::TE_MULTILINE
 	    
 	    style = TextAttr.new()
 	    style.set_text_colour(diagram.makeColor(diagram.foreground))
