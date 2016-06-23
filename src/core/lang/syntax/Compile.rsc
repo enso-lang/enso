@@ -56,7 +56,7 @@ set[str] classesAndModules(STMTS stmts) {
   // globals
   names = {"Integer", "Math", "Enumerable", "File", "System", 
       "Array", "String", "TrueClass", "FalseClass", "Proc",
-      "EnsoProxyObject", "JSON", "Digest"};
+      "EnsoProxyObject", "JSON", "Digest", "Numeric", "DateTime"};
       
   for(STMT s <- stmts.stmts) {
     switch (s) {
