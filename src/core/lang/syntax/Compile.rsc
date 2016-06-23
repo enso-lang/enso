@@ -367,8 +367,9 @@ list[Statement] stmt2js((STMT)`class <IDENTIFIER id> <STMTS body> end`)
   = declareClass("<id>", literal(null()), body);
   
 
-list[Statement] stmt2js((STMT)`class <IDENTIFIER id> \< <IDENTIFIER sup> <STMTS body> end`)
-  = declareClass("<id>", Expression::variable("<sup>"), body);
+list[Statement] stmt2js((STMT)`class <IDENTIFIER id> \< <PRIMARY sup> <STMTS body> end`)
+//  = declareClass("<id>", Expression::variable("<sup>"), body);
+  = declareClass("<id>", prim2js(sup), body);
 
 
 str fixFname(/^<name:[a-zA-Z0-9_]*>=$/) = "set_<name>";
@@ -642,8 +643,7 @@ list[Statement] stmt2js(s:(STMT)`super <CALLARGS args>`)
   //makeCall(callargs2js(args), Expression::variable("super$"), fixVar("<op>"), []);
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>.<OPERATION2 op> <CALLARGS args>`)
-  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))]
-  when bprintln("OOPP = <op>");
+  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>::<OPERATION3 op> <CALLARGS args>`)
   = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
@@ -716,11 +716,11 @@ Expression expr2js((EXPR)`<PRIMARY p>`) {
 
 Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = member(prim2js(p), "<op>"[0..-1])
-  when isProperty("<op>"), bprintln("OOPP = <op>");
+  when isProperty("<op>");
 
 Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = call(member(prim2js(p), fixFname("<op>")), [])
-  when !isProperty("<op>"), bprintln("OOOOOPPPPPP: <op>");
+  when !isProperty("<op>");
   
 
 Expression expr2js((EXPR)`!<EXPR e>`) = unary(not(), true, expr2js(e));
@@ -810,7 +810,6 @@ Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`) {
   str x = "<v>";
   ve = assignVar2js(v);
   if (capitalize(x) == x && CURRENT_METHOD == "") {
-    println("x = <x>");
     declareModuleBinding(x, assignment(assign(),  ve, logical(or(), ve, expr2js(r))));
     return undefined();
   }
