@@ -49,6 +49,8 @@ syntax STMT
   | whileDo: "while" EXPR DO STMTS "end"
   | untilDo: "until" EXPR DO STMTS "end"
   | caseWhen: "case" STMTS WHEN+ ELSE? "end"
+  | \catch: "catch" EXPR DO STMTS "end"
+  | \throw: "throw" CALLARGS
   | forIn: "for" BLOCK_VAR "in" EXPR DO STMTS "end"
   | beginRescue: "begin" STMTS RESCUE+ ELSE? ENSURE? "end"
   | class: "class" IDENTIFIER EXTEND? STMTS "end" 
@@ -426,6 +428,6 @@ keyword Reserved
   = "yield" | "super" | "and" | "or" | "not" | "if" | "then" | "unless" | "else" 
   | "elsif" | "while" | "end" | "do" | "for" | "begin" | "class" | "case"
   | "module" | "def" | "when" | "rescue" | "ensure" | "until" | "nil" | "self"
-  | "true" | "false"
+  | "true" | "false" | "catch" | "throw"
   ;  
 
