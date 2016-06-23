@@ -93,12 +93,11 @@ module Diagram
 	    root.finalize
 	    #Print.print(root)
 	    @root = root
+	    @positions = {}
 	    clear_refresh
 	  end
 	
-	  def clear_refresh
-	    @positions = {}
-	    
+	  def clear_refresh	    
 	    @context.fillStyle_ = "white"
 			@context.fillRect(0, 0, 1000, 1000)
       @context.fillStyle_ = "black"

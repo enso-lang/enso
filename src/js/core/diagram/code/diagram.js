@@ -52,12 +52,12 @@ function(Load, Constraints, Factory) {
         self.$.canvas.onmouseup = self.on_mouse_up();
         root.finalize();
         self.$.root = root;
+        self.$.positions = new EnsoHash ({ });
         return self.clear_refresh();
       };
 
       this.clear_refresh = function() {
         var self = this; 
-        self.$.positions = new EnsoHash ({ });
         self.$.context.fillStyle = "white";
         self.$.context.fillRect(0, 0, 1000, 1000);
         self.$.context.fillStyle = "black";
