@@ -50,9 +50,10 @@ module Eval
     end
 
     def eval_EVar(obj)
-      raise "ERROR: environment not defined" unless @D[:env]
-      raise "ERROR: undefined variable #{obj.name} in #{@D[:env]}" unless @D[:env].has_key?(obj.name.to_s)
-      @D[:env][obj.name.to_s]
+      env = @D[:env]
+      raise "ERROR: environment not defined" unless env
+      raise "ERROR: undefined variable #{obj.name} in #{env}" unless env.has_key?(obj.name.to_s)
+      env[obj.name.to_s]
     end
   
     def eval_ESubscript(obj)

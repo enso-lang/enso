@@ -5,9 +5,10 @@ define([
   "core/system/library/schema",
   "core/expr/code/eval",
   "core/expr/code/lvalue",
-  "core/semantics/code/interpreter"
+  "core/semantics/code/interpreter",
+  "json"
 ],
-function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
+function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
   var Stencil ;
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [],
     function() {
@@ -53,15 +54,12 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
           pos = S(data.factory().file_path()._get(0), "-positions");
           self.$.position_map = new EnsoHash ({ });
           if (File.exists_P(pos)) {
-            return self.$.position_map = System.readJSON(pos);
+            self.$.position_map = System.readJSON(pos);
+            return self.$.position_map.each(function(key, val) {
+              return puts(S("LOC ", key, "=", val));
+            });
           }
         }
-      };
-
-      this.rebuild_diagram = function() {
-        var self = this; 
-        self.capture_positions();
-        return self.build_diagram();
       };
 
       this.build_diagram = function() {
@@ -112,7 +110,10 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
         File.open(function(output) {
           return DisplayFormat.print(grammar, self.$.data, 80, output);
         }, S(self.$.path, "-NEW"), "w");
-        return self.capture_positions();
+        self.capture_positions();
+        return File.open(function(output) {
+          return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
+        }, S(self.$.path, "-positions"), "w");
       };
 
       this.capture_positions = function() {
@@ -340,11 +341,10 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
                 : "Remove";
               self.add_action(function() {
                 if (is_traversal) {
-                  v.delete_in_place();
+                  return v.delete_in_place();
                 } else {
-                  self.addr().set_value(null);
+                  return self.addr().set_value(null);
                 }
-                return self.rebuild_diagram();
               }, shape, S(action, " ", this_V.label()));
             }
             return proc(shape);
@@ -364,8 +364,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
           return self.add_action(function() {
             if (! is_traversal) {
               return self.$.selection = FindByTypeSelection.new(function(x) {
-                self.address().value().push(x);
-                return self.rebuild_diagram();
+                return self.address().value().push(x);
               }, self, self.address().type());
             } else {
               factory = self.address().object().factory();
@@ -377,8 +376,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
                   return obj._set(field.name(), self.find_default_object(self.$.data, field.type()));
                 }
               });
-              self.address().value().push(obj);
-              return self.rebuild_diagram();
+              return self.address().value().push(obj);
             }
           }, shape, S(action, " ", this_V.label()));
         }
@@ -530,7 +528,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter) {
         var conn, ptemp, i, label, other_label, de, info, tag, obj, x;
         conn = self.$.factory.Connector();
         self.$.connectors.push(conn);
-        ptemp = [self.$.factory.EdgePos(0.5, 1), self.$.factory.EdgePos(0.5, 0)];
+        ptemp = [self.$.factory.EdgePos(0.5, 0), self.$.factory.EdgePos(0.5, 1)];
         i = 0;
         this_V.ends().each(function(e) {
           label = e.label() == null

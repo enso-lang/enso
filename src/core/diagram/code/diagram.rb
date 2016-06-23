@@ -99,6 +99,7 @@ module Diagram
 	  def clear_refresh
 	    @positions = {}
 	    
+	    @context.font_ = "14pt Sans";
 	    @context.fillStyle_ = "white";
 			@context.fillRect(0, 0, 1000, 1000);
       @context.fillStyle_ = "black";

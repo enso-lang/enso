@@ -4,6 +4,7 @@
     <script src="lib/require.js"></script>
     <script src="lib/URI.js"></script>
     <!-- Initialize and layout -->
+
     <canvas id="canvas" width="490" height="490"></canvas>
     
     <!-- Render questionaire -->
@@ -13,9 +14,8 @@
         'core/diagram/code/stencil'
       ],
       function(Enso, Stencil) {
-        var q = window.location.href;
-        q = q.substr(q.indexOf("?"))
-        var data_file =  "schema.schema" // params["data"] // "housing.ql"
+
+        var data_file =  "schema.schema" 
         var stencil_file = data_file.split(".")[1] + ".stencil"
 				
 var canvas = document.getElementById('canvas')
@@ -29,6 +29,18 @@ var context = canvas.getContext('2d')
 			  var stencil = Stencil.StencilFrame.new(window, canvas, context)
 				stencil.set_path(data_file)			  
 				console.log("Rendering...")
+				
+				const ipc = require('electron').ipcRenderer	
+				const saveBtn = document.getElementById('saveFile')
+				
+				//saveBtn.addEventListener('click', function (event) {
+				//  ipc.send('save-dialog')
+				//})
+				
+				ipc.on('saved-file', function (event, path) {
+				  if (!path) path = 'No path'
+				  console.log(path)
+				})				
 	    })
     </script>
   </head>

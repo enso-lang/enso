@@ -37,9 +37,6 @@ class ConnectorEnd
   other_label! Text?
   to: Shape / connectors
   attach: EdgePos
-  minOut: int
-  minLeft: int
-  minRight: int
   owner: Connector / ends
 
 class EdgePos

@@ -16,7 +16,7 @@ require 'core/semantics/code/interpreter'
 #require 'core/system/utils/paths'
 
 # require 'core/expr/code/render'
-# require 'json'
+require 'json'
 
 module Stencil
 	
@@ -58,18 +58,13 @@ module Stencil
 	      @position_map = {}
 	      if File.exists?(pos)
 	        @position_map = System.readJSON(pos)
-#	        #@position_map.each { |key, val|
-#	          
-#	        }
+	        @position_map.each { |key, val|
+						puts("LOC #{key}=#{val}")	          
+	        }
 	      end
 	    end
 	  end
 
-	  def rebuild_diagram
-	    capture_positions
-	    build_diagram
-	  end
-	  
 	  def build_diagram
 	    puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
@@ -92,7 +87,7 @@ module Stencil
 	
 #	    if !@position_map['*WINDOW*'].nil?
 #	      size = @position_map['*WINDOW*']
-#	      # set_size(Wx::Size.new(size['x'], size['y']))
+#	      # set_size(Size.new(size['x'], size['y']))
 #	    end
 	
 #	    refresh()
@@ -112,23 +107,27 @@ module Stencil
 	  end
 	
 	  def on_open
-	    dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*")
-	    if dialog.show_modal() == ID_OK
-	      self.path = dialog.get_path
-	    end
+	    Proc.new {
+		    dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*")
+		    if dialog.show_modal() == ID_OK
+		      self.path = dialog.get_path
+		    end
+		  }
 	  end
 	  
 	  def on_save
-	    grammar = Loader.load("#{@extension}.grammar")
-	    File.open("#{@path}-NEW", "w") do |output|
-	      DisplayFormat.print(grammar, @data, 80, output)
-	    end
-	
-	    capture_positions    
-	    #puts @position_map
-	 #   File.open("#{@path}-positions", "w") do |output|
-	 #     YAML.dump(@position_map, output)
-	 #   end
+	    Proc.new {
+		    grammar = Loader.load("#{@extension}.grammar")
+		    File.open("#{@path}-NEW", "w") do |output|
+		      DisplayFormat.print(grammar, @data, 80, output)
+		    end
+		
+		    capture_positions    
+		    #puts @position_map
+		    File.open("#{@path}-positions", "w") do |output|
+	        output.write(JSON.pretty_generate(position_map, allow_nan: true, max_nesting: false))
+		    end
+		  }
 	  end
 	  
 	  def capture_positions
@@ -262,7 +261,7 @@ module Stencil
 	    if address.type.Primitive?
 				@selection = TextEditSelection.new(self, shape, address)
 		  else
-	      pop = Wx::Menu.new
+	      pop = Menu.new
 	      find_all_objects @data, address.field.type do |obj|
 	        name = ObjectKey(obj)
 	    		add_menu2 pop, name, name do |e| 
@@ -271,7 +270,7 @@ module Stencil
 	    	  end
 	      end
 		    r = boundary(shape)
-	      popup_menu(pop, Wx::Point.new(r.x, r.y))
+	      popup_menu(pop, Point.new(r.x, r.y))
 		  end
 	  end
 	  
@@ -284,11 +283,11 @@ module Stencil
 			  false
 	    end      
 	    if actions != {}
-	      pop = Wx::Menu.new
+	      pop = Menu.new
 	      actions.each do |name, action|
 	    		add_menu(pop, name, name, action) 
 	      end
-	      popup_menu(pop, Wx::Point.new(e.x, e.y))
+	      popup_menu(pop, Point.new(e.x, e.y))
 	    end
 	  end
 =end
@@ -396,7 +395,6 @@ module Stencil
 	  	        else
 	  	          addr.value = nil
 	  	        end
-	  	        rebuild_diagram
 		        end
 		      end
 	     		proc.call shape
@@ -416,7 +414,6 @@ module Stencil
 		      	#puts "ADD #{action}: #{address.field}"
 		      	@selection = FindByTypeSelection.new self, address.type do |x|
 				      address.value << x
-							rebuild_diagram
 				    end
 		      else
 			      factory = address.object.factory
@@ -438,12 +435,10 @@ module Stencil
 	#		      	@selection = FindByTypeSelection.new self, addr.field.type do |x|
 	#		      	  obj[relateField.name] = x
 	#				      addr.insert obj
-	#							rebuild_diagram
 	#				    end
 	#	      	else
 				      address.value << obj
 				      #Print.print(@data)
-		  				rebuild_diagram
 	#	  		  end
 		      end
 		    end
@@ -626,11 +621,11 @@ module Stencil
 	    n = 3
 	    #puts r.x, r.y, r.w, r.h
 	    extraWidth = 10
-	    @edit_control = Wx::TextCtrl.new(diagram, 0, "", 
+	    @edit_control = TextCtrl.new(diagram, 0, "", 
 	      Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n),
 	      0)  # Wx::TE_MULTILINE
 	    
-	    style = Wx::TextAttr.new()
+	    style = TextAttr.new()
 	    style.set_text_colour(diagram.makeColor(diagram.foreground))
 	    style.set_font(diagram.makeFont(diagram.font))      
 	    @edit_control.set_default_style(style)

@@ -60,13 +60,15 @@ function(Schema, Interpreter) {
 
     this.eval_EVar = function(obj) {
       var self = this; 
-      if (! self.$.D._get("env")) {
+      var env;
+      env = self.$.D._get("env");
+      if (! env) {
         self.raise("ERROR: environment not defined");
       }
-      if (! self.$.D._get("env").has_key_P(obj.name().to_s())) {
-        self.raise(S("ERROR: undefined variable ", obj.name(), " in ", self.$.D._get("env")));
+      if (! env.has_key_P(obj.name().to_s())) {
+        self.raise(S("ERROR: undefined variable ", obj.name(), " in ", env));
       }
-      return self.$.D._get("env")._get(obj.name().to_s());
+      return env._get(obj.name().to_s());
     };
 
     this.eval_ESubscript = function(obj) {
@@ -118,8 +120,6 @@ function(Schema, Interpreter) {
       if (self.$.D._get("in_fc")) {
         return target.method(obj.fname().to_sym());
       } else {
-        if (target == undefined || target == null)
-          raise("BIG TROUBLE")
         return target.send(obj.fname());
       }
     };
