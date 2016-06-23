@@ -593,12 +593,12 @@ module Stencil
 	  #### expressions
 	  
 	  def eval(exp, env)
-	    Eval::eval(exp, :env=>env)
+	    Eval::eval(exp, env: env)
 	  end
 	     	
 	  def lvalue(exp, env)
 	    @lval = Interpreter(LValueExpr) if @lval.nil?
-	    @lval.lvalue(exp, :env=>env, :factory=>@factory)
+	    @lval.lvalue(exp, env: env, factory: @factory)
 	  end
 
 	end
