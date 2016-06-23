@@ -70,7 +70,7 @@ function(Load, Constraints, Factory) {
         var pnt, subselect, val, select;
         return Proc.new(function(e) {
           pnt = self.factory().Point(e.pageX, e.pageY);
-          puts(S("DOWN ", e.x(), " ", e.y()));
+          puts(S("DOWN ", pnt.x(), " ", pnt.y()));
           self.$.mouse_down = true;
           if (self.$.selection) {
             subselect = self.$.selection.do_mouse_down(e);

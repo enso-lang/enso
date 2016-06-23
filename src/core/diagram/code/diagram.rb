@@ -111,7 +111,7 @@ module Diagram
 	  def on_mouse_down
 	    Proc.new { |e|
 			  pnt = factory.Point(e.pageX_, e.pageY_)
-		    puts "DOWN #{e.x} #{e.y}"
+		    puts "DOWN #{pnt.x} #{pnt.y}"
 		    @mouse_down = true
 		    if @selection
 		      subselect = @selection.do_mouse_down(e)

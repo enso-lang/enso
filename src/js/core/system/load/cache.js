@@ -87,7 +87,7 @@ function(Dumpjson, FindModel, Sha1) {
       } else {
         cache_path = S(prefix, "cache/");
         index = name.rindex("/");
-        if (index) {
+        if (index >= 0) {
           puts(S("SLASH ", name, " => ", index));
           dir = name._get(Range.new(0, index)).gsub(".", "_");
           if (! File.exists_P(S(cache_path, dir))) {
