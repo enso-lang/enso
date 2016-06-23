@@ -46,7 +46,7 @@ module Constraints
 	  end
 	  
 	  def to_s
-	    value.to_s
+	    value.nil? ? "nil" : value.to_s
 	  end
 	  
 	  def to_str
