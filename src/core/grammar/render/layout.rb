@@ -65,7 +65,7 @@ module Layout
       stream = @D[:stream]
       if @avoid_optimization
         this.alts.find_first do |pat|
-          dynamic_bind stream: stream.copy do
+          dynamic_bind(stream: stream.copy) do
             render(pat)
           end
         end
@@ -78,7 +78,7 @@ module Layout
         this.extra_instance_data.find_first do |info|
           pred = info[0]
           if !pred || pred.call(stream.current, @localEnv)
-            dynamic_bind stream: stream.copy do
+            dynamic_bind(stream: stream.copy) do
               render(info[1])
             end
           end
@@ -116,7 +116,7 @@ module Layout
         @create_stack.pop(@need_pop)
         @need_pop = @success = 0
         @create_stack.push [this, obj]
-        res = dynamic_bind stream: SingletonStream.new(obj) do
+        res = dynamic_bind(stream: SingletonStream.new(obj)) do
           render(this.arg)
         end
         if res
@@ -160,7 +160,7 @@ module Layout
             data = SingletonStream.new(obj[this.name])
           end
         end
-        res = dynamic_bind stream: data do
+        res = dynamic_bind(stream: data) do
           render(this.arg)
         end
         if @add_tags and res!=nil
@@ -236,7 +236,7 @@ module Layout
       obj = stream.current
       if this.expr.EBinOp? and this.expr.op=="eql?"
         rhs = Eval.eval(this.expr.e2, env: Env::ObjEnv.new(obj, @localEnv))
-        if rhs.is_a? Factory::MObject
+        if rhs.is_a?(Factory::MObject)
           lhs = Eval.eval(this.expr.e1, env: Env::ObjEnv.new(obj, @localEnv))
           lhs.schema_class == rhs.schema_class
         else
@@ -440,7 +440,7 @@ module Layout
       else
         interp = Eval::EvalExprC.new
         lambda do |obj, env| 
-          interp.dynamic_bind env: Env::ObjEnv.new(obj, env) do
+          interp.dynamic_bind(env: Env::ObjEnv.new(obj, env)) do
             interp.eval(this.expr)
           end
         end
@@ -517,7 +517,7 @@ module Layout
       @avoid_optimization = true
       @out = output
       @add_tags = add_tags
-      res = dynamic_bind stream: SingletonStream.new(obj) do
+      res = dynamic_bind(stream: SingletonStream.new(obj)) do
         render(grammar)
       end
       output << res

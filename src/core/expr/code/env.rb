@@ -46,7 +46,7 @@ module Env
     
     def [](key)
       key = key.to_s
-      if @hash.has_key? key
+      if @hash.has_key?(key)
         @hash[key]
       else
         @parent && @parent[key]
@@ -55,7 +55,7 @@ module Env
 
     def []=(key, value)
       key = key.to_s
-      if @hash.has_key? key #if defined in current env
+      if @hash.has_key?(key) #if defined in current env
         @hash[key] = value
       elsif @parent && @parent.has_key?(key) #if defined in parent env
         @parent[key] = value
@@ -109,9 +109,7 @@ module Env
     end
     
     def has_key?(key)
-      key == "self" ||
-        @obj.schema_class.all_fields[key] ||
-        (@parent && @parent.has_key?(key))
+      key == "self" || @obj.schema_class.all_fields[key] || (@parent && @parent.has_key?(key))
     end
         
     def keys

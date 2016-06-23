@@ -10,7 +10,7 @@ module Lvalue
     def initialize(array, index)
       @array = array
       @index = index
-      unless @array.has_key? @index
+      unless @array.has_key?(@index)
         @array[@index] = nil
       end
     end
@@ -29,7 +29,10 @@ module Lvalue
             val = val.to_f
         end
       end
-      begin; @array[@index] = val; rescue; end
+      begin
+        @array[@index] = val
+      rescue
+      end
     end
     
     def set(val)
@@ -43,7 +46,10 @@ module Lvalue
             val = val.to_f
         end
       end
-      begin; @array[@index] = val; rescue; end
+      begin
+        @array[@index] = val
+      rescue
+      end
     end
 
     def value
@@ -94,7 +100,7 @@ module Lvalue
 
   def self.lvalue(obj, args = {})
     interp = LValueExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.lvalue(obj)
     end
   end

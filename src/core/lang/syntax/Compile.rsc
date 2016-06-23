@@ -8,15 +8,20 @@ import List;
 import ParseTree;
 import Message;
 
+/*
+ * This code assumes classes, modules and methods cannot be nested.
+ */
+
 list[Statement] mainBody() = [
-  variableDeclaration([variableDeclarator(variable("requirejs"), 
-    expression(call(variable("require"), 
+  Statement::varDecl([variableDeclarator(Pattern::variable("requirejs"), 
+    Init::expression(call(Expression::variable("require"), 
           [literal(string("requirejs"))])))], "var"),
  // requirejs.config({ nodeRequire: require, baseUrl: 'js' });
-    call(member(variable("requirejs"), "config"), [
-           object([<id("nodeRequire"), variable("require"), "">,
+    call(member(Expression::variable("requirejs"), "config"), [
+           object([<id("nodeRequire"), Expression::variable("require"), "">,
                    <id("baseURL"), literal(string("js")), "">])]), 
     x];
+    
     
 set[Message] ERRS = {};
 
@@ -37,7 +42,7 @@ list[Statement] warning(Tree t, str msg) {
 }
 
 set[str] classesAndModules(STMTS stmts) {
-  names = {};
+  names = {"Integer", "Math", "Enumerable", "File", "System", "Array", "String", "TrueClass", "FalseClass", "Proc"};
   for(STMT s <- stmts.stmts) {
     switch (s) {
       case (STMT)`class <IDENTIFIER x> <STMTS _> end`: names += {"<x>"};
@@ -79,6 +84,7 @@ Program unit2js((Unit)`<STMTS stmts>`) {
     return program(ss);
      
   }
+  
   // TODO: do the require.js stuff.
   return program(stmts2js(stmts));
 } 
@@ -89,15 +95,17 @@ list[str] requiredPaths(STMTS body)
   = [ "<p>"[1..-1] | (STMT)`require <STRING p>` <- body.stmts ];
 
 list[str] paths2modules(list[str] paths)
-  = [ capitalize(split("/", p)[-1]) | p <- paths ];
+  = [ removeUnderscores(capitalize(split("/", p)[-1])) | p <- paths ];
 
+str removeUnderscores(str x)
+  = ( "" | it + capitalize(sub) | str sub <- split("_", x) );
 
 list[Statement] declareModule(list[str] reqPaths, str name, STMTS body)
-  = [expression(call(variable("define"), [
+  = [expression(call(Expression::variable("define"), [
        array([ literal(string(p)) | p <- reqPaths]),
-       function("", [variable(n) | n <- paths2modules(reqPaths)], [], "",
+       function("", [Pattern::variable(n) | n <- paths2modules(reqPaths)], [], "",
          [
-           variableDeclaration(variableDeclarator(Pattern::variable(name), none()), "var"),
+           varDecl(variableDeclarator(Pattern::variable(name), Init::none()), "var"),
            stmts2js(body)
          ])
      ]))];
@@ -112,6 +120,7 @@ list[Statement] stmts2js((STMTS)`<NL* _><{STMT TERM}+ stmts><NL* _>`)
 default list[Statement] stmts2js(STMTS _) = [];
 
 default list[Statement] stmt2js(STMT x) = warning(x, "unhandled stmt"); 
+
 
 
 Statement blockOrNot([Statement s]) = s;
@@ -169,8 +178,8 @@ list[Statement] l(Statement x) = [x];
 list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> end`)
   = l(caseStat)
   when 
-     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
-       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     cases :=  [ switchCase(expr2js(exp), [*stmts2js(cstmts), Statement::\break()]) |
+       (WHEN)`when <{EXPR ","}+ exps> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]), exp <- exps ],  
      caseStat := \switch(stmts2exp(stmts), cases);
 
 
@@ -178,8 +187,8 @@ list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS eb
   = l(caseStat)
   when 
      ecase := switchCase(stmts2js(ebody)),
-     cases :=  [ switchCase(when2js(wa), [*stmts2js(cstmts), Statement::\break()]) |
-       (WHEN)`when <WHEN_ARGS wa> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]) ],  
+     cases :=  [ switchCase(expr2js(exp), [*stmts2js(cstmts), Statement::\break()]) |
+       (WHEN)`when <{EXPR ","}+ exps> <THEN _> <STMTS cstmts>` <- reverse([ w | w <- whens ]), exp <- exps ],  
      caseStat := \switch(stmts2exp(stmts), [*cases, ecase]);
   
 
@@ -201,12 +210,12 @@ list[Statement] stmt2js(t:(STMT)`case <STMTS stmts> <WHEN+ whens> else <STMTS eb
 //  = l(); 
 
 
-Expression when2js((WHEN_ARGS)`<EXPR e>`) = expr2js(e);
-
-default Expression when2js(WHEN_ARGS w) {
-  error(w, "Unsupported when-clause");
-  return Expression::variable("UNSUPPORTED_WHEN_CLAUSE");
-}
+//Expression when2js((WHEN_ARGS)`<EXPR e>`) = expr2js(e);
+//
+//default Expression when2js(WHEN_ARGS w) {
+//  error(w, "Unsupported when-clause");
+//  return Expression::variable("UNSUPPORTED_WHEN_CLAUSE");
+//}
 
 
 Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
@@ -215,12 +224,12 @@ Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>`, str x)
        | EXPR e <- reverse([ e | e <- es ]) );
 
 Expression whenArgs2Cond((WHEN_ARGS)`<{EXPR ","}+ es>, <STAR _> <EXPR rest>`, str x)
-  = ( binary(\in(), variable(x), expr2js(rest)) 
+  = ( binary(\in(), Expression::variable(x), expr2js(rest)) 
        | logical(or(), binary(longEquals(), Expression::variable(x), expr2js(e)), it)
        | EXPR e <- reverse([ e | e <- es ]) );
 
 Expression whenArgs2Cond((WHEN_ARGS)`<STAR _> <EXPR rest>`, str x)
-  = binary(\in(), variable(x), expr2js(rest)); 
+  = binary(\in(), Expression::variable(x), expr2js(rest)); 
 
 Expression whenArgs2Cond((WHEN_ARGS)``, str x)
   = literal(boolean(false)); 
@@ -231,15 +240,15 @@ list[Statement] stmt2js(s:(STMT)`for <BLOCK_VAR bv> in <EXPR e> <DO _> <STMTS st
 str tryVar(STMT s) = "caught$<s@\loc.offset>";
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> ensure <STMTS ens> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x)), stmts2js(ens)))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, stmts2js(els), x)), stmts2js(ens)))
   when x := tryVar(t);
 
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> else <STMTS els> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, stmts2js(els), x))))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, stmts2js(els), x))))
   when x := tryVar(t);
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> ensure <STMTS ens> end`)
-  = l(\try(stmts2js(stmts), catchClause(variable(x), rescues2ifs(rescues, empty(), x)), stmts2js(ens)))
+  = l(\try(stmts2js(stmts), catchClause(Pattern::variable(x), rescues2ifs(rescues, empty(), x)), stmts2js(ens)))
   when x := tryVar(t);
   
 list[Statement] stmt2js(t:(STMT)`begin <STMTS stmts> <RESCUE+ rescues> end`)
@@ -318,18 +327,19 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
   declareModuleBinding(name, Expression::variable(name));
   pushModule();
   mods = includedModules(body);
-  //for (m <- mods) {
-  //  declareModuleBinding(m, Expression::variable(name));
-  //}
+  
+  classStmts = classStmts2js(body);
+  //println("CLS: <classStmts>");
+  
+  CURRENT_METHOD = "";
   ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
                Init::expression(call(Expression::variable("MakeClass"), 
                   [literal(string("<name>")), 
                   super,
                   Expression::array(mods),
-                  Expression::function("", [], [], "", classStmts2js(body) 
-                  )
+                  Expression::function("", [], [], "", classStmts)
                   ,
-                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {})
+                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {}, class=true)
                   ])))], "var"));
   popScope();
   return ss;               
@@ -339,7 +349,7 @@ list[Statement] classStmts2js(STMTS stmts) =
   ( [] | it + classStmt2js(s) | s <- stmts.stmts );
   
   
-list[Statement] classStmt2js((STMT)`@@<IDENTIFIER x> = <EXPR e>`)
+list[Statement] classStmt2js(s:(STMT)`@@<IDENTIFIER x> = <EXPR e>`)
   = [Statement::expression(assignment(assign(), 
          member(member(this(), "$"), fixFname("<x>")), 
          expr2js(e)))];
@@ -361,7 +371,7 @@ list[Statement] stmt2js((STMT)`class <IDENTIFIER id> \< <IDENTIFIER sup> <STMTS 
   = declareClass("<id>", Expression::variable("<sup>"), body);
 
 
-str fixFname(/^<name:.*>=$/) = "set_<name>";
+str fixFname(/^<name:[a-zA-Z0-9_]*>=$/) = "set_<name>";
 str fixFname("[]") = "_get";
 str fixFname("[]=") = "_set";
 str fixFname("\<\<") = "push";
@@ -375,22 +385,38 @@ default str fixFname(str name) = fixOp(name);
 //  }
 //}
 
-list[Statement] addReturns([*ss, s]) = [*ss, addReturns(s)];
-list[Statement] addReturns([]) = [];
+//list[Statement] addReturns([*list[core::lang::\syntax::JavascriptAST::Statement] ss, core::lang::\syntax::JavascriptAST::Statement s]) 
+//  = [*ss, addReturns(s)];
+//
+//list[core::lang::\syntax::JavascriptAST::Statement] addReturns(list[core::lang::\syntax::JavascriptAST::Statement] xs) = []
+//  when xs == [];
+
+list[Statement] addReturns(list[Statement] ss) {
+  if (ss != []) {
+    if (size(ss) > 1, ss[-1] is \break) {
+      return addReturns(ss[0..-1]);
+    }
+    else {
+      return ss[0..-1] + [addReturns(ss[-1])];
+    }
+  }
+  return [];
+}
 
 Statement addReturns(s:Statement::expression(x)) = \return(x);
+Statement addReturns(s:Statement::\break()) = \return();
 Statement addReturns(\if(x, t, e)) = \if(x, addReturns(t), addReturns(e));
 Statement addReturns(\if(x, t)) = \if(x, addReturns(t));
 Statement addReturns(block(ss)) = block(addReturns(ss));
-Statement addReturns(\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
-Statement addReturns(\try(s, h)) = \try(addReturns(s), addReturns(h));
+Statement addReturns(Statement::\try(s, h, f)) = \try(addReturns(s), addReturns(h), addReturns(f));
+Statement addReturns(Statement::\try(s, h)) = \try(addReturns(s), addReturns(h));
 Statement addReturns(\switch(e, cs)) =
-  \switch(e, [ c[consequent=addReturns(c.consequent)] | c <- cs ]); 
+  \switch(e, [ c[consequent=addReturns(c.consequent)] | SwitchCase c <- cs ]); 
 
 default Statement addReturns(Statement s) = s;
 
 CatchClause addReturns(catchClause(p, ss)) = catchClause(p, addReturns(ss)); 
-
+  
 
 str CURRENT_METHOD = "";
 Expression methodFunction__(str f, ARGLIST args, STMTS body) {
@@ -401,7 +427,7 @@ Expression methodFunction__(str f, ARGLIST args, STMTS body) {
   func.name = "";
   func.statBody = 
     [Statement::varDecl([variableDeclarator(
-                Pattern::variable("self"), Init::expression(this()))
+                Pattern::Expression::variable("self"), Init::expression(this()))
                 ], "var"), *func.statBody];
                 
   formals = { x | Pattern::variable(x) <- func.params };
@@ -431,7 +457,9 @@ Expression methodFunction(str f, ARGLIST args, STMTS body) {
     [Statement::varDecl([variableDeclarator(
                 Pattern::variable("self"), Init::expression(this()))
                 ], "var")];
-  return makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});              
+  Expression theFunc = makeFunc(func.params, body, selfDecl + func.statBody, EMPTY, {});
+  CURRENT_METHOD = "";
+  return theFunc;              
 }
 
 list[Statement] makeDecls(set[str] names) { 
@@ -517,7 +545,7 @@ void declareModuleBinding(str var, Expression exp) {
 Expression makeFunc(list[Pattern] formals, STMTS body, 
 					list[Statement] begin,
                     list[Statement]() end,
-                    set[str] implicits) {
+                    set[str] implicits, bool class = false) {
   pushScope();
   declareVars(implicits);
   names = { x | Pattern::variable(x) <- formals };
@@ -551,7 +579,7 @@ Expression makeFunc(list[Pattern] formals, STMTS body,
   bodyStats += theStats;
   bodyStats += end();
   popScope();
-  return Expression::function("", formals, [], "", addReturns(bodyStats));
+  return Expression::function("", formals, [], "", class ? bodyStats : addReturns(bodyStats));
 }
 
 
@@ -614,17 +642,30 @@ list[Statement] stmt2js(s:(STMT)`super <CALLARGS args>`)
   //makeCall(callargs2js(args), Expression::variable("super$"), fixVar("<op>"), []);
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>.<OPERATION2 op> <CALLARGS args>`)
-  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
+  = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))]
+  when bprintln("OOPP = <op>");
 
 list[Statement] stmt2js((STMT)`<PRIMARY p>::<OPERATION3 op> <CALLARGS args>`)
   = [Statement::expression(makeCall(callargs2js(args), prim2js(p), fixOp("<op>"), []))];
   
 list[Statement] stmt2js((STMT)`<EXPR e>`) 
-  = [Statement::expression(expr2js(e))];// when bprintln("e = <e>");
-  
-list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`)
-  = [Statement::expression(assignment(assign(), assignVar2js(var), 
+  = [Statement::expression(expr2js(e))]; // when bprintln("e = <e>");
+
+list[Statement] stmt2js((STMT)`<VARIABLE var> = <STMT s>`) {
+  //println("var = <var>");
+  //println("var is class: <var is class>");
+  //println("Current: <CURRENT_METHOD>");
+  if (var is class && CURRENT_METHOD == "") {
+    return [];
+  }
+  str x = "<var>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    declareModuleBinding(x, stmt2exp(s));
+    return [];
+  }
+  return [Statement::expression(assignment(assign(), assignVar2js(var), 
           stmt2exp(s)))];
+}
 
 Expression stmt2exp((STMT)`<EXPR e>`) = exprjs(e);
 
@@ -669,9 +710,19 @@ Expression var2js((VARIABLE)`<IDENTIFIER id>`)
   
   
 Expression expr2js((EXPR)`<PRIMARY p>`) {
-  //rprintln(p);
+  //println("P = <p>");
   return prim2js(p) ;
 }
+
+Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = member(prim2js(p), "<op>"[0..-1])
+  when isProperty("<op>"), bprintln("OOPP = <op>");
+
+Expression expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = call(member(prim2js(p), fixFname("<op>")), [])
+  when !isProperty("<op>"), bprintln("OOOOOPPPPPP: <op>");
+  
+
 Expression expr2js((EXPR)`!<EXPR e>`) = unary(not(), true, expr2js(e));
 Expression expr2js((EXPR)`~<EXPR e>`) = unary(bitNot(), true, expr2js(e));
 Expression expr2js((EXPR)`+<EXPR e>`) = unary(UnaryOperator::plus(), true, expr2js(e));
@@ -679,7 +730,7 @@ Expression expr2js((EXPR)`-<EXPR e>`) = unary(UnaryOperator::min(), true, expr2j
 Expression expr2js((EXPR)`not <EXPR e>`) = unary(UnaryOperator::not(), true, expr2js(e));
 
 Expression expr2js((EXPR)`<EXPR l> ** <EXPR r>`) 
-  = call(member(variable("Math"), "pow"), [expr2js(l), expr2js(r)]);
+  = call(member(Expression::variable("Math"), "pow"), [expr2js(l), expr2js(r)]);
 
 Expression expr2js((EXPR)`<EXPR l> * <EXPR r>`) = binary(times(), expr2js(l), expr2js(r));
 Expression expr2js((EXPR)`<EXPR l> / <EXPR r>`) = binary(div(), expr2js(l), expr2js(r));
@@ -713,8 +764,19 @@ Expression expr2js((EXPR)`<EXPR l> or <EXPR r>`) = logical(or(), expr2js(l), exp
 Expression expr2js((EXPR)`<EXPR c> ? <EXPR t> : <EXPR e>`) 
   =  conditional(expr2js(c), expr2js(t), expr2js(e));
 
-Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`)
-  = assignment(assign(), assignVar2js(v), expr2js(r));
+Expression expr2js((EXPR)`<VARIABLE v> = <EXPR r>`) {
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  
+  str x = "<v>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    declareModuleBinding(x, expr2js(r));
+    return undefined();
+  }
+  
+  return assignment(assign(), assignVar2js(v), expr2js(r));
+}
   
 Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)  
   = call(member(prim2js(p), "_set"), [expr2js(e), expr2js(r)]);
@@ -722,7 +784,14 @@ Expression expr2js((EXPR)`<PRIMARY p>[<EXPR e>] = <EXPR r>`)
   
 Expression expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER x> = <EXPR r>`)  
   //= assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
-  = call(member(prim2js(p), fixFname("<x>=")), [expr2js(r)]);
+  = call(member(prim2js(p), fixFname("<x>=")), [expr2js(r)])
+  when !isProperty("<x>");
+
+Expression expr2js((EXPR)`<PRIMARY p>.<IDENTIFIER x> = <EXPR r>`)  
+  //= assignment(assign(), member(prim2js(p), "<x>"), expr2js(r));
+  = assignment(assign(), member(prim2js(p), fixFname("<x>"[0..-1])), expr2js(r))
+  when isProperty("<x>");
+
   
 Expression expr2js((EXPR)`<VARIABLE v> **= <EXPR r>`)
   = assignment(assign(), ve, 
@@ -733,12 +802,38 @@ Expression expr2js((EXPR)`<VARIABLE v> &&= <EXPR r>`)
   = assignment(assign(), ve, logical(and(), ve, expr2js(r)))
   when ve := assignVar2js(v);
    
-Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`)
-  = assignment(assign(), ve, logical(or(), ve, expr2js(r)))
-  when ve := assignVar2js(v);
+Expression expr2js((EXPR)`<VARIABLE v> ||= <EXPR r>`) {
+  // TODO: factor out this logic and executed it consistently for all assignment kinds.
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  str x = "<v>";
+  ve = assignVar2js(v);
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    println("x = <x>");
+    declareModuleBinding(x, assignment(assign(),  ve, logical(or(), ve, expr2js(r))));
+    return undefined();
+  }
+  return assignment(assign(), ve, logical(or(), ve, expr2js(r)));
+}
 
-default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`)
-  = assignment(assignOp(op), assignVar2js(v), expr2js(r));
+default Expression expr2js((EXPR)`<VARIABLE v> <OP_ASGN op> <EXPR r>`) {
+  //println("v = <v>");
+  //println("r = <r>");
+  //println("CURRENT: <CURRENT_METHOD>");
+  //println("v is class == <v is class>");
+  if (v is class && CURRENT_METHOD == "") {
+    return undefined();
+  }
+  str x = "<v>";
+  if (capitalize(x) == x && CURRENT_METHOD == "") {
+    println("x = <x>");
+    declareModuleBinding(x, assignment(assignOp(op), assignVar2js(v), expr2js(r)));
+    return undefined();
+  }
+  
+  return assignment(assignOp(op), assignVar2js(v), expr2js(r));
+}
 
 Expression assignVar2js(v:(VARIABLE)`<IDENTIFIER x>`) {
   n = "<x>";
@@ -773,12 +868,16 @@ Expression prim2js((PRIMARY)`(<NL* _><EXPR e><NL* _>)`)
   = expr2js(e);
 
 Expression prim2js((PRIMARY)`(<NL* _><STMT s><NL* _>)`) 
-  = stmt2exp(s);
+  = stmt2exp(s)
+  when (STMT)`<EXPR e>` !:= s; 
 
 
 Expression prim2js((PRIMARY)`(<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>)`) 
   = stmts2exp((STMTS)`<NL* n1><STMT s><TERM t><{STMT TERM}+ ss><NL* n2>`);
 
+
+Expression stms2exp((STMTS)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  =  expr2js((EXPR)`<PRIMARY p>.<OPERATIONNoReserved op>`);
 
 Expression stmts2exp((STMTS)`<IDENTIFIER op> <CALLARGS args>`) 
   = expr2js((EXPR)`<IDENTIFIER op>(<CALLARGS args>)`);
@@ -810,9 +909,9 @@ Expression lit2js((LITERAL)`<Numeric s>`) = literal(number(toReal("<s>")))
   when /^[0-9]+\.[0-9]+$/ := "<s>";
   
   
-str unescape(str x) 
-  = escape(x, ("\\\"": "\"", "\\\'": "\'", 
-               "\\n": "\n", "\\t": "\t", "\\r": "\r"));
+str unescape(str x) = x; 
+  //= escape(x, ("\\\"": "\"", "\\\'": "\'", 
+  //             "\\n": "\n", "\\t": "\t", "\\r": "\r"));
 
 Expression str2js((STRING)`<SSTR s>`) = literal(string(unescape("<s>"[1..-1])));
 Expression str2js((STRING)`<ISTR s>`) = literal(string(unescape("<s>"[1..-1])));
@@ -840,7 +939,13 @@ Expression prim2js((PRIMARY)`yield()`)
   = { throw "Yield not supporteduse explicit block."; };
   
 Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str name, list[Expression] blockIfAny) {
+  if (isDeclared(name) && capitalize(name) == name) {
+    // dirty hack to capture Integer().
+    return call(Expression::variable(name), args);
+  }
   switch (<apply, name>) {
+    case <false, "puts">:
+      return call(Expression::variable("puts"), args);
     case <false, "call">: 
       return call(trg, blockIfAny + args);
     case <false, _>:
@@ -858,7 +963,6 @@ Expression makeCall(<bool apply, list[Expression] args>, Expression trg, str nam
 Expression prim2js((PRIMARY)`<OPERATION op>`) {
   v = fixVar("<op>");
   //println("V = <v>");
-  //println("vars = <assignedVars()>");
   if (isDeclared(v)) {
      return Expression::variable(fixVar("<op>"));
   }
@@ -892,19 +996,26 @@ Expression prim2js((PRIMARY)`<PRIMARY p>[<{EXPR ","}* es>]`)
 Expression prim2js((PRIMARY)`<PRIMARY p>.nil?`)
   = binary(equals(), prim2js(p), literal(null()));
 
-Expression prim2js((PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
+Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<POPERATION3 op>(<CALLARGS args>)`)
   = call( 
       member(Expression::variable("System"), "test_type"),
       [prim2js(p), *jargs])
   when "<op>" == "is_a?", // matching doesn't work ... 
+    //bprintln("Found is_a?: <x>"),
      <_, jargs> := callargs2js(args);
    
 
 bool isSpecialOp(str op) = op in { "is_a?", "nil?" };
+bool isProperty(str op) = endsWith(op, "_");
+
+Expression prim2js(x:(PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
+  = member(prim2js(p), fixOp("<op>"[0..-1])) // todo: make helper toProp
+  when isProperty("<op>");
 
 Expression prim2js((PRIMARY)`<PRIMARY p>.<OPERATIONNoReserved op>`)
   = makeCall(<false, []>, prim2js(p), fixOp("<op>"), [])
   when !isSpecialOp("<op>");
+
 
 Expression prim2js((PRIMARY)`<PRIMARY p>::<OPERATIONNoReserved op>`) 
   = member(prim2js(p), fixVar("<op>"));
@@ -967,12 +1078,16 @@ Expression prim2js(p:(PRIMARY)`super(<CALLARGS args>)`)
   
 Expression prim2js(p:(PRIMARY)`super()`) 
   = call(member(member(Expression::variable("super$"), CURRENT_METHOD), "call"), 
-               [variable("self")]);   
+               [Expression::variable("self")]);   
 
 Expression prim2js((PRIMARY)`{<{NameValuePair ","}* kvs>}`) = 
   new(Expression::variable("EnsoHash"), [Expression::object(ps)])
   when ps := [ <id("<k>"), expr2js(v) , ""> | (NameValuePair)`<IDENTIFIER k>: <EXPR v>` <- kvs ];
 
+
+tuple[str, EXPR] destructure((NameValuePair)`<IDENTIFIER k>: <EXPR v>`) = <"<k>", v>;
+tuple[str, EXPR] destructure((NameValuePair)`<EXPR k> =\> <EXPR v>`) = <"<k>", v>;
+ 
 
 Expression block2closure(BLOCK_VAR bv, STMTS body) {
   f = blockvar2func(bv);
@@ -1023,7 +1138,7 @@ Expression blockvar2func((BLOCK_VAR)``) =
 default Expression blockvar2func(BLOCK_VAR x) = 
   { throw "Unsupported blockvar <x>."; };
 
-Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable("<v>");
+Pattern lhs2pattern((LHS)`<IDENTIFIER v>`) = Pattern::variable(fixVar("<v>"));
 default Pattern lhs2pattern(LHS x) = { throw "LHS <x> not supported."; };
 
 
@@ -1049,12 +1164,12 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <KEYWO
              *[ cexpr2js(a) | a <- args ], keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [//variable("self"),  
+  = <true, [//Expression::variable("self"),  
       call(member(Expression::array([expr2js(b)] + [ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>, <STAR _><EXPR s>`)
-  = <true, [//variable("self"), 
+  = <true, [//Expression::variable("self"), 
       call(member(Expression::array([ cexpr2js(a) | a <- args ]), "concat"), 
                [expr2js(s)])]>;
 
@@ -1065,19 +1180,19 @@ tuple[bool, list[Expression]] callargs2js((CALLARGS)`<{CEXPR ","}+ args>`)
   = <false, [ cexpr2js(e) | e <- args ]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [//variable("self"),  
+  = <true, [//Expression::variable("self"),  
       call(member(Expression::array([expr2js(b), keywords2obj(kws)]), "concat"), 
                [expr2js(s)])]>;
                
   
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>, <STAR _><EXPR s>`)
-  = <true, [/*variable("self"),*/ call(member(Expression::array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
+  = <true, [/*Expression::variable("self"),*/ call(member(Expression::array([keywords2obj(kws)]), "concat"), [expr2js(s)])]>;  
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<KEYWORDS kws>`)
   = <false, [keywords2obj(kws)]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>, <AMP _><EXPR b>`)
-  = <true, [/*variable("self"),*/ call(member(Expression::array([expr2js(b)]), "concat"), [expr2js(s)])]>;
+  = <true, [/*Expression::variable("self"),*/ call(member(Expression::array([expr2js(b)]), "concat"), [expr2js(s)])]>;
 
 tuple[bool, list[Expression]] callargs2js((CALLARGS)`<STAR _><EXPR s>`)
   = <true, [/*Expression::variable("self"),*/ expr2js(s)]>;
@@ -1102,7 +1217,7 @@ list[Pattern] defaultParams((DEFAULTS)`<{DEFAULT ","}+ ds>`)
   = [ Pattern::variable("<d.id>") | d <- ds ];
 
 // BUG:
-//list[Pattern] params({IDENTIFIER ","}+ ids) = [ variable("<i>") | i <- ids ];
+//list[Pattern] params({IDENTIFIER ","}+ ids) = [ Expression::variable("<i>") | i <- ids ];
 list[Pattern] params(list[IDENTIFIER] ids) = [ Pattern::variable(fixVar("<i>")) | i <- ids ];
 
 // Rest params: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/rest_parameters

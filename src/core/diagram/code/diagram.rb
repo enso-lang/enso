@@ -99,11 +99,10 @@ module Diagram
 	  def clear_refresh
 	    @positions = {}
 	    
-	    @context.font_ = "14pt Sans";
-	    @context.fillStyle_ = "white";
-			@context.fillRect(0, 0, 1000, 1000);
-      @context.fillStyle_ = "black";
-      @context.lineStyle_ = "red";
+	    @context.fillStyle_ = "white"
+			@context.fillRect(0, 0, 1000, 1000)
+      @context.fillStyle_ = "black"
+      @context.lineStyle_ = "red"
 	    paint()
 	  end      
 	  
@@ -245,7 +244,7 @@ module Diagram
 	  def constrain(part, x, y)
 	    w = nil
 	    h = nil
-	    with_styles part do 
+	    with_styles(part) do 
 	      if part.Connector?
 	        constrainConnector(part)
 	      else
@@ -371,8 +370,7 @@ module Diagram
 		end
 		
 		def rect_contains(rect, pnt)
-		  rect.x <= pnt.x && pnt.x <= rect.x + rect.w \
-		  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
+		  rect.x <= pnt.x && pnt.x <= rect.x + rect.w  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
 		end
 		
 		# compute distance of pnt from line
@@ -392,7 +390,7 @@ module Diagram
 	  
 	  def draw(part)
 	    @context.textBaseline_ = "top"
-	    with_styles part do 
+	    with_styles(part) do 
 	      send(("draw" + part.schema_class.name).to_sym, part)
 	    end
 	  end
@@ -402,7 +400,9 @@ module Diagram
 		    r = boundary(part)
 		    @context.strokeRect(r.x, r.y, r.w, r.h)
 		  end
-	    (part.items.size-1).downto(0) do |i|
+      len = part.items.size - 1
+      len.downto(0) do |i|
+	    # AMB:(part.items.size-1).downto(0) do |i|
 	      draw(part.items[i])
 	    end
 	  end  
@@ -415,14 +415,14 @@ module Diagram
 	    when "box"
 	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	    when "oval"
-		    rx            = r.w / 2;        # The X radius
-		    ry            = r.h / 2;        # The Y radius
-        x             = r.x + rx;        # The X coordinate
-		    y             = r.y + ry;        # The Y cooordinate
-		    rotation      = 0;          # The rotation of the ellipse (in radians)
-		    start         = 0;          # The start angle (in radians)
-		    finish        = 2 * Math.PI_;# The end angle (in radians)
-		    anticlockwise = false;      # Whether the ellipse is drawn in a clockwise direction or
+		    rx            = r.w / 2        # The X radius
+		    ry            = r.h / 2        # The Y radius
+        x             = r.x + rx        # The X coordinate
+		    y             = r.y + ry        # The Y cooordinate
+		    rotation      = 0          # The rotation of the ellipse (in radians)
+		    start         = 0          # The start angle (in radians)
+		    finish        = 2 * Math.PI_ # The end angle (in radians)
+		    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
 		                                    # anti-clockwise direction
     
     		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
@@ -486,7 +486,7 @@ module Diagram
 		      offset = EnsoPoint.new(0, r.h)
 		    end
 		    lineHeight = 12
-		    with_styles cend.label do 
+		    with_styles(cend.label) do 
 		      @context.save
 		      @context.translate(r.x, r.y)
 					@context.rotate(-Math.PI_ * angle / 180)
@@ -496,7 +496,7 @@ module Diagram
 					
 					@context.restore
 			  end
-		    with_styles cend.other_label do 
+		    with_styles(cend.other_label) do 
 		      @context.save
 		      @context.translate(r.x + offset.x, r.y + offset.y)
 					@context.rotate(-Math.PI_ * angle / 180)
@@ -614,10 +614,10 @@ module Diagram
 			 #   if @selection && @selection.is_selected(part)
 			 # 	  @context.set_pen(factory.Pen(@select_color))
 			 # 	end
-			    block()
+			    block.call()
 			    @context.restore
 			  else
-			  	block()
+			  	block.call()
 			  end
 			end
 	  end

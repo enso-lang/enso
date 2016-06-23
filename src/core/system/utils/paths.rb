@@ -75,7 +75,7 @@ module Paths
     end
 
     def deref(root)
-      dynamic_bind root: root do 
+      dynamic_bind(root: root) do 
         eval
       end
     end
@@ -105,11 +105,11 @@ module Paths
     def assign(root, val)
       obj = @path
       if obj.EField?
-        dynamic_bind root: root do
+        dynamic_bind(root: root) do
           eval(obj.e)[obj.fname] = val
         end
       elsif obj.ESubscript?
-        dynamic_bind root: root do 
+        dynamic_bind(root: root) do 
           eval(obj.e)[eval(obj.sub)] = val
         end
       end
@@ -119,11 +119,11 @@ module Paths
     def insert(root, val)
       obj = @path
       if obj.EField?
-        dynamic_bind root: root do
+        dynamic_bind(root: root) do
           eval(obj.e)[obj.fname] = val
         end
       elsif obj.ESubscript?
-        dynamic_bind root: root do 
+        dynamic_bind(root: root) do 
           eval(obj.e).insert(eval(obj.sub), val)
         end
       end
@@ -131,11 +131,11 @@ module Paths
     def delete(root)
       obj = @path
       if obj.EField?
-        dynamic_bind root: root do
+        dynamic_bind(root: root) do
           eval(obj.e)[obj.fname] = nil
         end
       elsif obj.ESubscript?
-        dynamic_bind root: root do
+        dynamic_bind(root: root) do
           eval(obj.e).delete(eval(obj))
         end
       end
@@ -143,7 +143,7 @@ module Paths
 
     def type(root, obj = @path)
       if obj.EField?
-        dynamic_bind root: root do
+        dynamic_bind(root: root) do
           eval(obj.e).schema_class.fields[obj.fname]
         end
       elsif obj.ESubscript?
@@ -156,12 +156,11 @@ module Paths
       obj = owner.deref(root)
       fld = obj.schema_class.fields[last.name]
       if fld.type.Primitive? then
-        value = 
           case fld.type.name 
-          when 'str' then value.to_s
-          when 'int' then value.to_i
-          when 'bool' then (value.to_s == 'true') ? true : false
-          when 'real' then value.to_f
+          when 'str' then value = value.to_s
+          when 'int' then value = value.to_i
+          when 'bool' then value = (value.to_s == 'true') ? true : false
+          when 'real' then value = value.to_f
           else
             raise "Unknown primitive type: #{fld.type.name}"
           end

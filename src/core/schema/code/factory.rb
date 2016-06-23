@@ -54,7 +54,7 @@ module Factory
     end
 
     def __check_cyclic_subtyping(c, subs)
-      if subs.include? c
+      if subs.include?(c)
         true
       else
         res = false
@@ -69,7 +69,7 @@ module Factory
       !@unsafe.nil? and @unsafe>0
     end
 
-    def unsafe_mode &body
+    def unsafe_mode(&body)
       @unsafe = @unsafe ? @unsafe+1 : 1
       body.call
       @unsafe -= 1
@@ -161,7 +161,7 @@ module Factory
     def __to_s(cls)
       k = cls.key || cls.fields.find{|f| f.type.Primitive? }
       if k then
-        define_singleton_method :to_s do
+        define_singleton_method(:to_s) do
           "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
         end
       else
@@ -190,7 +190,7 @@ module Factory
       val = nil
       define_singleton_method(name) do
         if val.nil?
-          fvs = fvInterp.dynamic_bind env: Env::ObjEnv.new(self), bound: [] do
+          fvs = fvInterp.dynamic_bind(env: Env::ObjEnv.new(self), bound: []) do
             fvInterp.depends(exp)
           end
           fvs.each do |fv|
@@ -214,9 +214,13 @@ module Factory
       end
     end
 
-    def _graph_id; @factory end
+    def _graph_id
+      @factory 
+    end
 
-    def delete!; factory.delete!(self) end
+    def delete! 
+      factory.delete!(self) 
+    end
 
     def __delete_obj(mobj)
       # traverse down spine until found, then delete!
@@ -257,13 +261,17 @@ module Factory
       @__shell = nval
     end
 
-    def _origin_of(name); __get(name)._origin end
+    def _origin_of(name)
+      __get(name)._origin 
+    end
 
     def _set_origin_of(name, org)
       __get(name)._origin = org
     end
 
-    def _path_of(name); _path.field(name) end
+    def _path_of(name)
+      _path.field(name) 
+    end
 
     def _path
       if @path.nil?
@@ -296,13 +304,17 @@ module Factory
       r
     end
 
-    def eql?(o); self == o end
+    def eql?(o)
+      self == o 
+    end
 
     def equals(o)
       o && o.is_a?(MObject) && _id == o._id
     end
 
-    def hash; @_id end
+    def hash
+      @_id 
+    end
 
     def finalize
       # TODO: check required fields etc.
@@ -337,7 +349,9 @@ module Factory
       # default: do nothing
     end
 
-    def to_s; ".#{@field.name} = #{@value}" end
+    def to_s
+      ".#{@field.name} = #{@value}" 
+    end
   end
 
   class Single < Field
@@ -352,11 +366,17 @@ module Factory
       @owner.notify(@field.name, value)
     end
 
-    def get; @value end
+    def get
+      @value 
+    end
 
-    def init(value); set(value) end
+    def init(value)
+      set(value) 
+    end
 
-    def default; nil end
+    def default 
+      nil 
+    end
   end
 
   class Prim < Single
@@ -397,7 +417,9 @@ module Factory
   end
 
   module SetUtils
-    def to_ary; @value.values end
+    def to_ary 
+      @value.values 
+    end
 
     def union(other)
       # left-biased: field is from self
@@ -455,9 +477,13 @@ module Factory
       end
     end
 
-    def __key; @key end
+    def __key 
+      @key 
+    end
 
-    def __keys; @value.keys end
+    def __keys
+      @value.keys 
+    end
 
     def __outer_join(other, &block)
       keys = __keys.union(other.__keys)
@@ -567,7 +593,9 @@ module Factory
     include RefHelpers
     include Enumerable
 
-    def get; self end
+    def get
+      self 
+    end
 
     def set
       raise "Cannot assign to many-valued field #{@field.name}"
@@ -579,19 +607,33 @@ module Factory
       end
     end
 
-    def __value; @value end
+    def __value
+      @value 
+    end
 
-    def [](key); __value[key] end
+    def [](key)
+      __value[key] 
+    end
 
-    def empty?; __value.empty? end
+    def empty?
+      __value.empty? 
+    end
 
-    def size; __value.size end
+    def size 
+      __value.size 
+    end
 
-    def to_s; __value.to_s end
+    def to_s 
+      __value.to_s 
+    end
 
-    def connected?; @owner end
+    def connected? 
+      @owner 
+    end
 
-    def has_key?(key); keys.include?(key) end
+    def has_key?(key) 
+      keys.include?(key)
+    end
 
     def check(mobj)
       if connected?
@@ -635,14 +677,25 @@ module Factory
     	@value = {} 
     end
 
-    def each(&block); __value.each_value(&block) end
+    def each(&block)
+      __value.each_value(&block) 
+    end
 
-    def each_pair(&block); __value.each_pair(&block) end
-    def find_first_pair(&block); __value.find_first_pair(&block) end
+    def each_pair(&block)
+      __value.each_pair(&block) 
+    end
+    
+    def find_first_pair(&block)
+      __value.find_first_pair(&block) 
+    end
 
-    def values; __value.values end
+    def values
+      __value.values 
+    end
 
-    def keys; __value.keys end
+    def keys 
+      __value.keys 
+    end
 
     # FIXME: poor programming practise but necessary
     # to support key changes in object
@@ -709,9 +762,13 @@ module Factory
       @value = []
     end
 
-    def [](key); __value[key.to_i] end
+    def [](key)
+      __value[key.to_i]
+    end
 
-    def each(&block); __value.each(&block) end
+    def each(&block)
+      __value.each(&block) 
+    end
 
     def each_pair(&block)
       __value.each_with_index do |item, i|
@@ -719,7 +776,9 @@ module Factory
       end
     end
 
-    def values; __value end
+    def values 
+      __value 
+    end
 
     def keys
       x = []

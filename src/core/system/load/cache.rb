@@ -14,7 +14,13 @@ module Cache
     end
   end
 
-  def self.load_cache(name, factory, input=find_json(name))
+  # this default param is currently not supported by the Rascal compiler.
+  # because it captures an earlier parameter.
+  #def self.load_cache(name, factory, input=find_json(name))
+  def self.load_cache(name, factory, input=nil)
+    if input.nil?
+      input = find_json(name)
+    end
     type = name.split('.')[-1]
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
@@ -41,7 +47,7 @@ module Cache
     if name.nil? #clean everything
       if File.exists?("#{cache_path}")
         Dir.foreach("#{cache_path}") do |f|
-          if f.end_with? ".json"
+          if f.end_with?(".json")
             File.delete("#{cache_path}#{f}")
           end
         end
@@ -50,7 +56,7 @@ module Cache
         false
       end
     else
-      if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+      if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
         false
       else
         if File.exists?(find_json(name))
@@ -66,10 +72,26 @@ module Cache
   def self.find_json(name)
     prefix = ""
     prefix = "../" if false # HACK TO GET ELECTRON RUNNING!!!
-    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include? name
+    if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
       "#{prefix}core/system/boot/#{name.gsub('.','_')}.json"
     else
 	    cache_path = "#{prefix}cache/"
+#      index = name.rindex('/')
+#      dir = index ? name[0..index].gsub('.','_') : ""
+#      unless File.exists? "#{cache_path}#{dir}"
+#        FileUtils.mkdir_p "#{cache_path}#{dir}"
+#      end
+      index = name.rindex('/')
+      if index
+        puts "SLASH #{name} => #{index}"
+        # dir = name[0,index].gsub('.', '_')
+        dir = name[0..index].gsub('.','_')
+        unless File.exists?("#{cache_path}#{dir}")
+	        puts "#### making #{cache_path}#{dir}"
+          FileUtils.mkdir_p("#{cache_path}#{dir}")
+        end
+      end
+      puts "## loading chache #{cache_path}#{name.gsub('.','_')}.json"
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end

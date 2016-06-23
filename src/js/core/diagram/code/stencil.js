@@ -97,23 +97,27 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
       this.on_open = function() {
         var self = this; 
         var dialog;
-        dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*");
-        if (dialog.show_modal() == ID_OK) {
-          return self.set_path(dialog.get_path());
-        }
+        return Proc.new(function() {
+          dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*");
+          if (dialog.show_modal() == ID_OK) {
+            return self.set_path(dialog.get_path());
+          }
+        });
       };
 
       this.on_save = function() {
         var self = this; 
         var grammar;
-        grammar = Loader.load(S(self.$.extension, ".grammar"));
-        File.open(function(output) {
-          return DisplayFormat.print(grammar, self.$.data, 80, output);
-        }, S(self.$.path, "-NEW"), "w");
-        self.capture_positions();
-        return File.open(function(output) {
-          return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
-        }, S(self.$.path, "-positions"), "w");
+        return Proc.new(function() {
+          grammar = Loader.load(S(self.$.extension, ".grammar"));
+          File.open(function(output) {
+            return DisplayFormat.print(grammar, self.$.data, 80, output);
+          }, S(self.$.path, "-NEW"), "w");
+          self.capture_positions();
+          return File.open(function(output) {
+            return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
+          }, S(self.$.path, "-positions"), "w");
+        });
       };
 
       this.capture_positions = function() {
@@ -528,7 +532,7 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
         var conn, ptemp, i, label, other_label, de, info, tag, obj, x;
         conn = self.$.factory.Connector();
         self.$.connectors.push(conn);
-        ptemp = [self.$.factory.EdgePos(0.5, 0), self.$.factory.EdgePos(0.5, 1)];
+        ptemp = [self.$.factory.EdgePos(0.5, 1), self.$.factory.EdgePos(0.5, 0)];
         i = 0;
         this_V.ends().each(function(e) {
           label = e.label() == null
@@ -581,8 +585,8 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
         r = diagram.boundary(self.$.edit_selection);
         n = 3;
         extraWidth = 10;
-        self.$.edit_control = Wx.TextCtrl.new(diagram, 0, "", Point.new(r.x() - n, r.y() - n), Size.new((r.w() + 2 * n) + extraWidth, r.h() + 2 * n), 0);
-        style = Wx.TextAttr.new();
+        self.$.edit_control = TextCtrl.new(diagram, 0, "", Point.new(r.x() - n, r.y() - n), Size.new((r.w() + 2 * n) + extraWidth, r.h() + 2 * n), 0);
+        style = TextAttr.new();
         style.set_text_colour(diagram.makeColor(diagram.foreground()));
         style.set_font(diagram.makeFont(diagram.font()));
         self.$.edit_control.set_default_style(style);

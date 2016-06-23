@@ -36,9 +36,9 @@ class Equals
             puts "fail2 #{a_val} #{b_val}"
             res = false
           end
-        elsif a_val.is_a? Factory::List
+        elsif a_val.is_a?(Factory::List)
           res = false if !equals_list(a_val, b_val)
-        elsif a_val.is_a? Factory::Set
+        elsif a_val.is_a?(Factory::Set)
           res = false if !equals_set(a_val, b_val)
         end
       end

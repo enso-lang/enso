@@ -44,7 +44,7 @@ module Stencil
 	  end
 	 
 	  
-	  def setup extension, data
+	  def setup(extension, data)
 	    @extension = extension
 	    @stencil = Load::load("#{@extension}.stencil")
 	    if !@stencil.title.nil?
@@ -70,12 +70,7 @@ module Stencil
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 	
-	    env = {
-	      :font => @factory.Font(nil, nil, nil, 12, "swiss"),
-	      :pen => @factory.Pen(1, "solid", black),
-	      :brush => @factory.Brush(white),
-	      "nil" => nil
-	    }
+	    env = {font: @factory.Font(nil, nil, nil, 12, "swiss"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(white), nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing
@@ -136,7 +131,7 @@ module Stencil
 	    @position_map["*VERSION*"] = 2
 	
 	    size = @conext.size
-	    @position_map['*WINDOW*'] = {'x'=>size.get_width, 'y'=>size.get_height}
+	    @position_map['*WINDOW*'] = {x: size.get_width, y: size.get_height}
 	
 	    obj_handler = Proc.new { |tag, obj, shape|
 	      @position_map[tag] = position(shape)
@@ -304,7 +299,7 @@ module Stencil
 	    end
 	  end
 	
-		def add_action shape, name, &block
+		def add_action(shape, name, &block)
 		  @actions[shape] = {} if !@actions[shape]
 		  @actions[shape][name] = block
 		end
@@ -386,10 +381,10 @@ module Stencil
 	    source.each_with_index do |v, i|
 	      nenv[this.var] = v
 	      nenv[this.index] = i if this.index
-	      construct this.body, nenv, container, Proc.new { |shape|
+	      construct(this.body, nenv, container, Proc.new { |shape|
 	        if this.label
 	          action = is_traversal ? "Delete" : "Remove"
-		        add_action shape, "#{action} #{this.label}" do
+		        add_action(shape, "#{action} #{this.label}") do
 		          if is_traversal
 	  	          v.delete!
 	  	        else
@@ -398,7 +393,7 @@ module Stencil
 		        end
 		      end
 	     		proc.call shape
-	      }
+	      })
 	    end
 	    if this.label
 	      action = is_traversal ? "Create" : "Add"
@@ -408,7 +403,7 @@ module Stencil
 		    end
 		    shape = container if !shape
 		    #puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
-		    add_action shape, "#{action} #{this.label}" do
+		    add_action(shape, "#{action} #{this.label}") do
 		      if !is_traversal
 		      	# just add a reference!
 		      	#puts "ADD #{action}: #{address.field}"

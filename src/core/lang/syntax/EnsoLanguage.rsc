@@ -148,7 +148,9 @@ syntax HASH
   ;
   
 syntax NameValuePair
-  = nameValue: IDENTIFIER ":" EXPR;
+  = nameValue: IDENTIFIER ":" EXPR
+  | expValue: EXPR "=\>" EXPR
+  ;
 
 // Workaround
 syntax POPERATION1 = OPERATION;
@@ -222,7 +224,7 @@ lexical OP_ASGN
   ;
  
 syntax WHEN_ARGS   
-  = whenArgs: {EXPR ","}+ 
+  = whenArgs: {EXPR ","}+ exprs 
   | whenArgs: {EXPR ","}+ "," STAR EXPR
   | whenArgs: STAR EXPR
   | whenArgs: /* empty */
@@ -369,9 +371,9 @@ lexical OPERATIONNoReserved
   ;
 
 lexical VARIABLE    
-  = "$" IDENTIFIER
-  | "@" IDENTIFIER
-  | "@@" IDENTIFIER
+  = global: "$" IDENTIFIER
+  | field: "@" IDENTIFIER
+  | class: "@@" IDENTIFIER
   | id: IDENTIFIER \ Reserved
   ;
 
@@ -390,7 +392,7 @@ lexical ESTR = "}" STRCHAR* [\"];
 lexical STRCHAR
   = ![\\\"#]
   | [#] !>> [{]
-  | [\\][\\\"nrtf]
+  | [\\][\\\"nrtf#]
   ;
   
 syntax TAIL

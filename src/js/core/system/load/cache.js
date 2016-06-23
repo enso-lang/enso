@@ -1,7 +1,8 @@
 define([
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
-  "digest/sha1"
+  "digest/sha1",
+  "fileutils"
 ],
 function(Dumpjson, FindModel, Sha1) {
   var Cache ;
@@ -24,6 +25,7 @@ function(Dumpjson, FindModel, Sha1) {
       if (input === undefined) input = Cache.find_json(name);
       var type, json, res;
       type = name.split(".")._get(- 1);
+      puts(S("## loading cache for: ", name, " (", input, ")"));
       json = System.readJSON(input);
       res = Dumpjson.from_json(factory, json._get("model"));
       res.factory().file_path()._set(0, json._get("source"));
@@ -84,6 +86,16 @@ function(Dumpjson, FindModel, Sha1) {
         return S(prefix, "core/system/boot/", name.gsub(".", "_"), ".json");
       } else {
         cache_path = S(prefix, "cache/");
+        index = name.rindex("/");
+        if (index) {
+          puts(S("SLASH ", name, " => ", index));
+          dir = name._get(Range.new(0, index)).gsub(".", "_");
+          if (! File.exists_P(S(cache_path, dir))) {
+            puts(S("#### making ", cache_path, dir));
+            FileUtils.mkdir_p(S(cache_path, dir));
+          }
+        }
+        puts(S("## loading chache ", cache_path, name.gsub(".", "_"), ".json"));
         return S(cache_path, name.gsub(".", "_"), ".json");
       }
     },

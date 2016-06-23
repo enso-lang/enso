@@ -23,7 +23,8 @@ module Freevar
     end
     
     def depends_EField(obj)
-      [*depends(obj.e)] 
+      #[*depends(obj.e)]
+      depends(obj.e) 
     end
   
     def depends_EVar(obj)
@@ -33,7 +34,7 @@ module Freevar
     def depends_ELambda(obj)
       bound2 = @D[:bound].clone
       obj.formals.each{|f|bound2<<depends(f)}
-      dynamic_bind bound: bound2 do
+      dynamic_bind(bound: bound2) do
         depends(obj.body)
       end
     end
@@ -66,7 +67,7 @@ module Freevar
 
   def self.depends(obj, args={})
     interp = FreeVarExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.depends(obj)
     end
   end

@@ -47,7 +47,8 @@ function createWindow() {
   
 };
 
-
+function doNew() {
+}
 
  var template = [{
     label: 'File',
@@ -55,7 +56,7 @@ function createWindow() {
       {
         label: 'New',
 		    accelerator: 'CmdOrCtrl+N',
-        click: function() { showNew(); }
+        click: function() { doNew(); }
 	  },{
         label: 'Open',
 		    accelerator: 'CmdOrCtrl+O',

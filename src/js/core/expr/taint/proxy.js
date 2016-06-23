@@ -53,7 +53,8 @@ function(Env, Eval, Factory, Load) {
             id = [file, path.to_s()].hash() % 100000;
             self.$._tree = self._class_.$.factory.EVar();
             self.$._tree.set_name(S("@", id));
-            return self.$._sources = new EnsoHash ({ name: [file, path] });
+            self.$._sources = new EnsoHash ({ });
+            return self.$._sources._set(self.$._tree.name(), [file, path]);
           }
         }
       };

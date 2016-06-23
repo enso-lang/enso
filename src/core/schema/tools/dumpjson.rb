@@ -49,7 +49,7 @@ module Dumpjson
     end
   end
 
-  def self.fixup_path obj
+  def self.fixup_path(obj)
     path = obj._path.to_s
     if path == "root"
       path = ""

@@ -69,7 +69,7 @@ module Eval
     end
   
     def eval_EFunCall(obj)
-      m = dynamic_bind in_fc: true do 
+      m = dynamic_bind(in_fc: true) do 
         eval(obj.fun)
       end
       m.call_closure(*(obj.params.map{|p|eval(p)}))
@@ -99,7 +99,7 @@ module Eval
     # case as an implicit function call. In Javascript, the first case
     # will (correctly) return the accessor method without calling it.
     def eval_EField(obj)
-      target = dynamic_bind in_fc: false do
+      target = dynamic_bind(in_fc: false) do
         eval(obj.e)
       end
       if @D[:in_fc]
@@ -146,7 +146,7 @@ module Eval
 
   def self.eval(obj, args={env:{}})
     interp = EvalExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.eval(obj)
     end
   end

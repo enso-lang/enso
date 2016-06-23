@@ -14,7 +14,7 @@ function(Eval, Lvalue, Interpreter) {
 
     this.depends_EField = function(obj) {
       var self = this; 
-      return [];
+      return self.depends(obj.e());
     };
 
     this.depends_EVar = function(obj) {
