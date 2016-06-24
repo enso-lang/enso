@@ -72,7 +72,7 @@ module AssertExpr
 
   def self.assert(obj, args={})
     interp = AssertExprC.new
-    interp.dynamic_bind args do
+    interp.dynamic_bind(args) do
       interp.assert(obj)
     end
   end
