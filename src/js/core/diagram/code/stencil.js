@@ -111,11 +111,11 @@ function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) 
         var grammar;
         grammar = Load.load(S(self.$.extension, ".grammar"));
         File.write(function(output) {
-          return Layout.DisplayFormat.print(grammar, self.$.data, 80, output);
+          return Layout.DisplayFormat.print(grammar, self.$.data, output);
         }, S(self.$.path, "-NEW"));
         self.capture_positions();
         return File.write(function(output) {
-          return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
+          return output.write(Json.pretty_generate(self.$.position_map, new EnsoHash ({ allow_nan: true, max_nesting: false })));
         }, S(self.$.path, "-positions"));
       };
 
@@ -124,8 +124,7 @@ function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) 
         var size, obj_handler, connector_handler;
         self.$.position_map = new EnsoHash ({ });
         self.$.position_map._set("*VERSION*", 2);
-        size = self.$.conext.size();
-        self.$.position_map._set("*WINDOW*", new EnsoHash ({ x: size.get_width(), y: size.get_height() }));
+        self.$.position_map._set("*WINDOW*", new EnsoHash ({ x: self.$.canvas.width, y: self.$.canvas.height }));
         obj_handler = Proc.new(function(tag, obj, shape) {
           return self.$.position_map._set(tag, self.position(shape));
         });
@@ -239,7 +238,7 @@ function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) 
         var grammar;
         grammar = Load.load("diagram.grammar");
         return File.write(function(output) {
-          return Layout.DisplayFormat.print(grammar, self.$.root, 80, output);
+          return Layout.DisplayFormat.print(grammar, self.$.root, output);
         }, S(self.$.path, "-diagram"));
       };
 

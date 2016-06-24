@@ -2,9 +2,10 @@
 if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/schema/tools/print'
-  M = ManagedData
+  require 'core/grammar/render/layout'
+
   ss = Load::load('schema.schema')
-  fact = M::Factory::new(ss)
+  fact = Factory::new(ss)
   puts "Schema"
   s = fact.Schema
   puts "CLass FOO"
@@ -34,7 +35,8 @@ if __FILE__ == $0 then
     puts "OWNER: #{fld.owner}"
     puts "TYPE: #{fld.type}"
   end
-  Print::Print.print(s)
+  sg = Load::load('schema.grammar')
+  Layout::DisplayFormat.print(sg, s)
 
   ss.classes.each do |cls|
     puts cls._origin

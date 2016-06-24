@@ -10,11 +10,6 @@ define([
 function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
   var Layout ;
   var RenderGrammar = MakeMixin([Interpreter.Dispatcher], function() {
-    this.init = function() {
-      var self = this; 
-      return self.super();
-    };
-
     this.render = function(pat) {
       var self = this; 
       var stream, pair, val;
@@ -195,8 +190,7 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
           case "sym":
             if (System.test_type(obj, String)) {
               if (self.$.slash_keywords && self.$.literals.include_P(obj)) {
-                self.output("\\\\" + obj);
-                return self.output(obj);
+                return self.output("\\\\" + obj);
               } else {
                 return self.output(obj);
               }
@@ -607,18 +601,17 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
 
   var DisplayFormat = MakeClass("DisplayFormat", null, [RenderGrammar],
     function() {
-      this.print = function() {
-        var self = this; 
-        var args = compute_rest_arguments(arguments, 0);
-        return Layout.DisplayFormat.new().print.apply(Layout.DisplayFormat.new(), [].concat(args));
-      };
-    },
-    function(super$) {
       this.print = function(grammar, obj, output, slash_keywords, add_tags) {
         var self = this; 
         if (output === undefined) output = System.stdout();
         if (slash_keywords === undefined) slash_keywords = true;
         if (add_tags === undefined) add_tags = false;
+        return Layout.DisplayFormat.new().print(grammar, obj, output, slash_keywords, add_tags);
+      };
+    },
+    function(super$) {
+      this.print = function(grammar, obj, output, slash_keywords, add_tags) {
+        var self = this; 
         var res;
         self.$.slash_keywords = slash_keywords;
         self.$.avoid_optimization = true;
@@ -627,8 +620,8 @@ function(Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
         res = self.dynamic_bind(function() {
           return self.render(grammar);
         }, new EnsoHash ({ stream: SingletonStream.new(obj) }));
-        output.push(res);
-        output.push("\n");
+        output.write(res);
+        output.write("\n");
         return res;
       };
     });

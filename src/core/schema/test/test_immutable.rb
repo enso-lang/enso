@@ -28,9 +28,9 @@ b = f.Point2D(9,-2)
 c = f.Point2D(-4, 0)
 
 
-l = f.Line([a, b, c])
+l = f.Line("test", [a, b, c])
 
-puts "LINE: #{l} #{l.points}"
+puts "LINE: #{l} #{l.len}"
 
 l.points.each do |p|
   puts "  * #{p}"

@@ -1,8 +1,7 @@
 define([
   "core/schema/tools/dumpjson",
   "core/system/utils/find_model",
-  "digest/sha1",
-  "fileutils"
+  "digest/sha1"
 ],
 function(Dumpjson, FindModel, Sha1) {
   var Cache ;

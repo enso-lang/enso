@@ -1,7 +1,7 @@
-  primitive \str
-  primitive \int
-  primitive \bool
-  primitive \real
+  primitive str
+  primitive int
+  primitive bool
+  primitive real
 
 class Point
 
@@ -16,10 +16,10 @@ class Point3D < Point
 
 class Line
   label# str
-  len: int?
-  pts! Point2D *
+  points! Point*
+  len: int = points.size
   adj: Line?
 
 class Drawing
-  lines! Line *
+  lines! Line*
 

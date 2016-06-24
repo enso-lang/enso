@@ -92,13 +92,13 @@ module ImmutableFactory
           if fld.many then
             # don't use << to insert into the collection, because it should be immutable.
             # create an indexed or non-indexed collection depending on fld.key
-            if key = Schema::class_key(fld.type)
+            if fld.key
               val = ImmutableSet.new(i < args.size ? args[i] : [])
             else
               val = ImmutableList.new(i < args.size ? args[i] : [])
             end
           else
-            val = i < args.size ? args[i] : interpreter.default_field_value(fld)
+            val = i < args.size ? args[i] : nil
           end
           instance_variable_set("@#{fld.name}", val)
         end

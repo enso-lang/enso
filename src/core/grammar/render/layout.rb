@@ -12,10 +12,10 @@ module Layout
   module RenderGrammar
     include Interpreter::Dispatcher
 
-		def init
-			super
+#		def init
+#			super
 #			@indent = 0
-		end
+#		end
 
     def render(pat)
       stream = @D[:stream]
@@ -325,16 +325,9 @@ module Layout
       elsif obj.nil?
         raise "#{format}"
       elsif obj.is_a?(Array)
-#        if @modelmap[obj]
-#          o = @modelmap[obj]
-#          @out << "<div id='<#{o.schema_class.name}:#{o._id}>' style='font-size: 48pt; color: fuchsia'>"
-#          obj.each {|x| combine x}
-#          @out << "</div>"
-#        else
           res = ""
           obj.each {|x| res = res + combine(x, format)}
           res
-#        end
       elsif obj.is_a?(String)
         res = ""
         if format[:lines] > 0
@@ -507,11 +500,11 @@ module Layout
   class DisplayFormat
     include RenderGrammar
 
-    def self.print(*args)
-      Layout::DisplayFormat.new.print(*args)
+    def self.print(grammar, obj, output=$stdout, slash_keywords = true, add_tags=false)
+      Layout::DisplayFormat.new.print(grammar, obj, output, slash_keywords, add_tags)
     end
 
-    def print(grammar, obj, output=$stdout, slash_keywords = true, add_tags=false)
+    def print(grammar, obj, output, slash_keywords, add_tags)
 #      interp = RenderGrammarC.new
       @slash_keywords = slash_keywords
       @avoid_optimization = true
@@ -520,8 +513,8 @@ module Layout
       res = dynamic_bind(stream: SingletonStream.new(obj)) do
         render(grammar)
       end
-      output << res
-      output << "\n"
+      output.write(res)
+      output.write("\n")
       res
     end
   end

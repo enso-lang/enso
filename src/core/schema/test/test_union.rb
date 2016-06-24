@@ -1,5 +1,7 @@
 
 require 'core/schema/tools/union'
+require 'core/system/load/load'
+require 'core/grammar/render/layout'
 
   gs = Load::load('grammar.schema')
   gg = Load::load('grammar.grammar')
@@ -8,11 +10,11 @@ require 'core/schema/tools/union'
   
   require 'core/schema/tools/print'
   
-  result = Union(Factory::new(ss), ss, gs)
+  result = Union.union(ss, gs)
   #Print::Print.print(result)
   Layout::DisplayFormat.print(sg, result)
   puts "-"*50
   
-  result = Union(Factory::new(gs), sg, gg)
+  result = Union.union(sg, gg)
   #Print::Print.print(result)
   Layout::DisplayFormat.print(gg, result)

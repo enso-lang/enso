@@ -114,13 +114,13 @@ module Stencil
 	  def on_save
 	    grammar = Load.load("#{@extension}.grammar")
 	    File.write("#{@path}-NEW") do |output|
-	      Layout::DisplayFormat.print(grammar, @data, 80, output)
+	      Layout::DisplayFormat.print(grammar, @data, output)
 	    end
 	
 	    capture_positions    
 	    #puts @position_map
 	    File.write("#{@path}-positions") do |output|
-        output.write(JSON.pretty_generate(position_map, allow_nan: true, max_nesting: false))
+        output.write(JSON.pretty_generate(@position_map, allow_nan: true, max_nesting: false))
 	    end
 	  end
 	  
@@ -129,8 +129,7 @@ module Stencil
 	    @position_map = {}
 	    @position_map["*VERSION*"] = 2
 	
-	    size = @conext.size
-	    @position_map['*WINDOW*'] = {x: size.get_width, y: size.get_height}
+	    @position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
 	
 	    obj_handler = Proc.new { |tag, obj, shape|
 	      @position_map[tag] = position(shape)
@@ -294,7 +293,7 @@ module Stencil
 	  def on_export
 	    grammar = Load.load("diagram.grammar")
 	    File.write("#{@path}-diagram") do |output|
-	      Layout::DisplayFormat.print(grammar, @root, 80, output)
+	      Layout::DisplayFormat.print(grammar, @root, output)
 	    end
 	  end
 	
