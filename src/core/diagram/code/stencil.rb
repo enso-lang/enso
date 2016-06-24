@@ -7,6 +7,7 @@
 require 'core/diagram/code/diagram'
 require 'core/schema/tools/print'
 require 'core/system/load/load'
+require 'core/grammar/render/layout'
 require 'core/system/library/schema'
 # require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
@@ -111,18 +112,16 @@ module Stencil
 	  end
 	  
 	  def on_save
-	    Proc.new {
-		    grammar = Loader.load("#{@extension}.grammar")
-		    File.open("#{@path}-NEW", "w") do |output|
-		      DisplayFormat.print(grammar, @data, 80, output)
-		    end
-		
-		    capture_positions    
-		    #puts @position_map
-		    File.open("#{@path}-positions", "w") do |output|
-	        output.write(JSON.pretty_generate(position_map, allow_nan: true, max_nesting: false))
-		    end
-		  }
+	    grammar = Load.load("#{@extension}.grammar")
+	    File.write("#{@path}-NEW") do |output|
+	      Layout::DisplayFormat.print(grammar, @data, 80, output)
+	    end
+	
+	    capture_positions    
+	    #puts @position_map
+	    File.write("#{@path}-positions") do |output|
+        output.write(JSON.pretty_generate(position_map, allow_nan: true, max_nesting: false))
+	    end
 	  end
 	  
 	  def capture_positions
@@ -293,9 +292,9 @@ module Stencil
 #	  end    
 	
 	  def on_export
-	    grammar = Loader.load("diagram.grammar")
-	    File.open("#{@path}-diagram", "w") do |output|
-	      DisplayFormat.print(grammar, @root, 80, output)
+	    grammar = Load.load("diagram.grammar")
+	    File.write("#{@path}-diagram") do |output|
+	      Layout::DisplayFormat.print(grammar, @root, 80, output)
 	    end
 	  end
 	

@@ -34,21 +34,9 @@ function createWindow() {
   });
 }
 
-
  var doNew = function() {
 	dialog.doOpenDialog({ properties: [ 'openFile'], filters: [{ name: 'GPX', extensions: ['gpx'] }]});
 };
-
- var doOpen = function() {
-	dialog.doOpenDialog({ properties: [ 'openFile'], filters: [{ name: 'GPX', extensions: ['gpx'] }]});
-};
-
- var doSave = function() {
-  
-};
-
-function doNew() {
-}
 
  var template = [{
     label: 'File',
@@ -56,15 +44,17 @@ function doNew() {
       {
         label: 'New',
 		    accelerator: 'CmdOrCtrl+N',
-        click: function() { doNew(); }
+        click: (menuItem, browserWindow, event) => {  browserWindow.webContents.send("do-new"); }
 	  },{
         label: 'Open',
 		    accelerator: 'CmdOrCtrl+O',
-        click: function() { doOpen(); }
+        click: (menuItem, browserWindow, event) => {  
+        		dialog.doOpenDialog({ properties: [ 'openFile'], filters: [{ name: 'GPX', extensions: ['gpx'] }]});
+        	  browserWindow.webContents.send("do-open"); }
 	  },{
         label: 'Save',
 		    accelerator: 'CmdOrCtrl+S',
-        click: function() { doSave(); }
+        click: (menuItem, browserWindow, event) => {  browserWindow.webContents.send("do-save"); }
 	  }]
 	}, {
   label: 'Edit',

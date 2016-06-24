@@ -18,28 +18,24 @@
         var data_file =  "schema.schema" 
         var stencil_file = data_file.split(".")[1] + ".stencil"
 				
-var canvas = document.getElementById('canvas')
-var context = canvas.getContext('2d')
- document.documentElement.appendChild(canvas)
+				var canvas = document.getElementById('canvas')
+				var context = canvas.getContext('2d')
+				//document.documentElement.appendChild(canvas)
 				
 				console.log("Constructing...")
-				context.set_fillStyle = function(x) { context.fillStyle = x }
-				context.set_strokeStyle = function(x) { context.strokeStyle = x }
 				
 			  var stencil = Stencil.StencilFrame.new(window, canvas, context)
 				stencil.set_path(data_file)			  
 				console.log("Rendering...")
 				
 				const ipc = require('electron').ipcRenderer	
-				const saveBtn = document.getElementById('saveFile')
 				
-				//saveBtn.addEventListener('click', function (event) {
-				//  ipc.send('save-dialog')
-				//})
-				
-				ipc.on('saved-file', function (event, path) {
-				  if (!path) path = 'No path'
-				  console.log(path)
+				ipc.on('do-new', (event, message) => {
+		      console.log(message);  // Prints "whoooooooh!"
+    		});
+    
+				ipc.on('do-save', function (event) {
+					stencil.on_save()
 				})				
 	    })
     </script>

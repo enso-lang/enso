@@ -2,13 +2,14 @@ define([
   "core/diagram/code/diagram",
   "core/schema/tools/print",
   "core/system/load/load",
+  "core/grammar/render/layout",
   "core/system/library/schema",
   "core/expr/code/eval",
   "core/expr/code/lvalue",
   "core/semantics/code/interpreter",
   "json"
 ],
-function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
+function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) {
   var Stencil ;
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [],
     function() {
@@ -108,16 +109,14 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
       this.on_save = function() {
         var self = this; 
         var grammar;
-        return Proc.new(function() {
-          grammar = Loader.load(S(self.$.extension, ".grammar"));
-          File.open(function(output) {
-            return DisplayFormat.print(grammar, self.$.data, 80, output);
-          }, S(self.$.path, "-NEW"), "w");
-          self.capture_positions();
-          return File.open(function(output) {
-            return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
-          }, S(self.$.path, "-positions"), "w");
-        });
+        grammar = Load.load(S(self.$.extension, ".grammar"));
+        File.write(function(output) {
+          return Layout.DisplayFormat.print(grammar, self.$.data, 80, output);
+        }, S(self.$.path, "-NEW"));
+        self.capture_positions();
+        return File.write(function(output) {
+          return output.write(JSON.pretty_generate(self.position_map(), new EnsoHash ({ allow_nan: true, max_nesting: false })));
+        }, S(self.$.path, "-positions"));
       };
 
       this.capture_positions = function() {
@@ -238,10 +237,10 @@ function(Diagram, Print, Load, Schema, Eval, Lvalue, Interpreter, Json) {
       this.on_export = function() {
         var self = this; 
         var grammar;
-        grammar = Loader.load("diagram.grammar");
-        return File.open(function(output) {
-          return DisplayFormat.print(grammar, self.$.root, 80, output);
-        }, S(self.$.path, "-diagram"), "w");
+        grammar = Load.load("diagram.grammar");
+        return File.write(function(output) {
+          return Layout.DisplayFormat.print(grammar, self.$.root, 80, output);
+        }, S(self.$.path, "-diagram"));
       };
 
       this.add_action = function(block, shape, name) {

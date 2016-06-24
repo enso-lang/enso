@@ -199,7 +199,18 @@ EnsoHash = function(init) {
         return data;
       else
         return data.substring(0, pos);
-    }
+    },
+    write: function(callback, path) {
+      stream = fs.createWriteStream(path, {
+			  flags: 'w',
+			  defaultEncoding: 'utf8',
+			  mode: 0o666,
+			  autoClose: true
+			});
+      callback(stream);
+      stream.close();
+      console.log('Written to ' + path);
+			}
   };
   
   Dir = {
