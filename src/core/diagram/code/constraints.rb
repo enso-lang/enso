@@ -1,5 +1,5 @@
 module Constraints
-		
+
 	class ConstraintSystem
 	  def initialize
 	    @vars = {}
@@ -30,13 +30,14 @@ module Constraints
 	    @value = val
 	  end
 	  
+	  
 	  def add_listener(l)
 	  end
 	  
 	  def internal_evaluate(path)
 	  	@value
 	  end
-	  
+
 	  def value
 	  	@value
 	  end

@@ -352,7 +352,7 @@ module Stencil
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
 	      #FIXME: handle Fields as well, by using the address field from eval
-	    lvalue(this.var, nenv).value = eval this.val, nenv
+	    lvalue(this.var, nenv).value = eval(this.val, nenv)
 	    construct this.body, nenv, container, proc
 	  end
 	
@@ -438,13 +438,14 @@ module Stencil
 		  end
 		end
 	
+	
 		def find_default_object(scan, type)
 		  catch :FoundObject do 
-			  find_all_objects scan, type do |x|  
+			  find_all_objects(scan, type) do |x|  
 			    throw :FoundObject, x
 			  end
 			end
-		end
+		end 
 		
 		def find_all_objects(scan, type, &block)
 		  if scan
