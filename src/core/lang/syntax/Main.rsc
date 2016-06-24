@@ -1,4 +1,3 @@
-@cachedParser{core.lang.syntax.EnsoParser}
 module core::lang::\syntax::Main
 
 import core::lang::\syntax::Compile;

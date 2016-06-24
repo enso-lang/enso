@@ -153,6 +153,22 @@ list[Statement] stmt2js((STMT)`if <EXPR e> <THEN _> <STMTS body> <ELSIF* eifs> e
   = [\if(expr2js(e), blockOrNot(stmts2js(body)), blockOrNot(elsifs2js(eifs, [])))]
   when [eif | eif <- eifs] != [];
 
+//  | \catch: "catch" EXPR DO STMTS "end"
+//  | \throw: "throw" CALLARGS
+
+/*
+function(str name, // "" = null 
+            list[Pattern] params, 
+            list[Expression] defaults,
+            str rest, // "" = null
+            list[Statement] statBody) // ,*/
+
+list[Statement] stmt2js((STMT)`catch <EXPR e> <DO _> <STMTS body> end`)
+  = [ Statement::expression(call(member(Expression::variable("self"), "catch"),
+       [function("", [], [], "", stmts2js(body)), expr2js(e)])) ];  
+
+list[Statement] stmt2js((STMT)`throw <CALLARGS args>`)
+  = [ Statement::expression(call(member(Expression::variable("self"), "catch"), callargs2js(args, [])[1])) ];
 
 default list[Statement] elsifs2js(ELSIF* eifs, list[Statement] els) 
   = [( blockOrNot(els) | \if(expr2js(e), blockOrNot(stmts2js(b)), it) 
