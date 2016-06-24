@@ -67,7 +67,7 @@ check:
 
 
 all2js: 
-	java -cp ../bin:rascal-shell-unstable.jar -Xmx1G -Xss32m \
+	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
 		org.rascalmpl.shell.RascalShell \
 		core/lang/syntax/Main.rsc \
 		-- $(RBSOURCES)
