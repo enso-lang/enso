@@ -22,6 +22,7 @@ module Cache
       input = find_json(name)
     end
     type = name.split('.')[-1]
+      puts("## loading cache for: #{name} (#{input})")
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
     res.factory.file_path[0] = json['source']
@@ -82,7 +83,7 @@ module Cache
 #        FileUtils.mkdir_p "#{cache_path}#{dir}"
 #      end
       index = name.rindex('/')
-      if index
+      if index && index >= 0
         puts "SLASH #{name} => #{index}"
         # dir = name[0,index].gsub('.', '_')
         dir = name[0..index].gsub('.','_')
