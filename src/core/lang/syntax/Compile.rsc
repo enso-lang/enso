@@ -168,7 +168,7 @@ list[Statement] stmt2js((STMT)`catch <EXPR e> <DO _> <STMTS body> end`)
        [function("", [], [], "", stmts2js(body)), expr2js(e)])) ];  
 
 list[Statement] stmt2js((STMT)`throw <CALLARGS args>`)
-  = [ Statement::expression(call(member(Expression::variable("self"), "catch"), callargs2js(args, [])[1])) ];
+  = [ Statement::expression(call(member(Expression::variable("self"), "throw"), callargs2js(args, [])[1])) ];
 
 default list[Statement] elsifs2js(ELSIF* eifs, list[Statement] els) 
   = [( blockOrNot(els) | \if(expr2js(e), blockOrNot(stmts2js(b)), it) 
