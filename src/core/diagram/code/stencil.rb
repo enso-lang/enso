@@ -14,6 +14,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 # require 'core/expr/code/env'
 require 'core/semantics/code/interpreter'
+require 'core/expr/code/renderexp'
 #require 'core/system/utils/paths'
 
 # require 'core/expr/code/render'
@@ -238,51 +239,51 @@ module Stencil
 
 	 
 	  
-	    # ------- event handling ------- 
-=begin 
-	  def on_double_click(e)
-	    clear_selection
-	    text = find e, &:Text?
-	    if text and text.editable
-	      address = @shapeToAddress[text]
-	      edit_address(address, text) if address
-	    end
-	  end
-		
-	  def edit_address(address, shape)
-	    if address.type.Primitive?
-				@selection = TextEditSelection.new(self, shape, address)
-		  else
-	      pop = Menu.new
-	      find_all_objects @data, address.field.type do |obj|
-	        name = ObjectKey(obj)
-	    		add_menu2 pop, name, name do |e| 
-	    			address.value = obj
-	    			shape.string = name
-	    	  end
-	      end
-		    r = boundary(shape)
-	      popup_menu(pop, Point.new(r.x, r.y))
-		  end
-	  end
-	  
-	
-	  def on_right_down(e)
-	    clear_selection
-	    actions = {}
-	    find e do |part|
-	      actions.update @actions[part] if @actions[part]
-			  false
-	    end      
-	    if actions != {}
-	      pop = Menu.new
-	      actions.each do |name, action|
-	    		add_menu(pop, name, name, action) 
-	      end
-	      popup_menu(pop, Point.new(e.x, e.y))
-	    end
-	  end
-=end
+#	    # ------- event handling ------- 
+#=begin 
+#	  def on_double_click(e)
+#	    clear_selection
+#	    text = find e, &:Text?
+#	    if text and text.editable
+#	      address = @shapeToAddress[text]
+#	      edit_address(address, text) if address
+#	    end
+#	  end
+#		
+#	  def edit_address(address, shape)
+#	    if address.type.Primitive?
+#				@selection = TextEditSelection.new(self, shape, address)
+#		  else
+#	      pop = Menu.new
+#	      find_all_objects @data, address.field.type do |obj|
+#	        name = ObjectKey(obj)
+#	    		add_menu2 pop, name, name do |e| 
+#	    			address.value = obj
+#	    			shape.string = name
+#	    	  end
+#	      end
+#		    r = boundary(shape)
+#	      popup_menu(pop, Point.new(r.x, r.y))
+#		  end
+#	  end
+#	  
+#	
+#	  def on_right_down(e)
+#	    clear_selection
+#	    actions = {}
+#	    find e do |part|
+#	      actions.update @actions[part] if @actions[part]
+#			  false
+#	    end      
+#	    if actions != {}
+#	      pop = Menu.new
+#	      actions.each do |name, action|
+#	    		add_menu(pop, name, name, action) 
+#	      end
+#	      popup_menu(pop, Point.new(e.x, e.y))
+#	    end
+#	  end
+#=end
 	
 #	  def connection_other_end(ce)
 #	    conn = ce.connection
@@ -315,7 +316,7 @@ module Stencil
 	    stencil.props.each do |prop|
 	      val = eval(prop.exp, newEnv) # , true)
 	      #puts "SET #{prop.loc} = #{val}"
-	      case Interpreter(RenderExpr).render(prop.loc)
+	      case Interpreter(Renderexp::RenderExpr).render(prop.loc)
 	      when "font.size" then
 	        #puts "FONT SIZE #{val}"
 	        newEnv[:font] = font = env[:font]._clone if !font
