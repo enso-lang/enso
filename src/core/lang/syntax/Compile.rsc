@@ -57,7 +57,7 @@ set[str] classesAndModules(STMTS stmts) {
   names = {"Integer", "Math", "Enumerable", "File", "System", 
       "Array", "String", "TrueClass", "FalseClass", "Proc",
       "EnsoProxyObject", "JSON", "Digest", "Numeric", "DateTime",
-      "FileUtils"};
+      "FileUtils", "Exception", "FileDialog"};
       
   for(STMT s <- stmts.stmts) {
     switch (s) {
