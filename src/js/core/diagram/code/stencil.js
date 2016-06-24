@@ -6,10 +6,9 @@ define([
   "core/system/library/schema",
   "core/expr/code/eval",
   "core/expr/code/lvalue",
-  "core/semantics/code/interpreter",
-  "json"
+  "core/semantics/code/interpreter"
 ],
-function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) {
+function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter) {
   var Stencil ;
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [],
     function() {
@@ -114,17 +113,15 @@ function(Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Json) 
           return Layout.DisplayFormat.print(grammar, self.$.data, output);
         }, S(self.$.path, "-NEW"));
         self.capture_positions();
-        return File.write(function(output) {
-          return output.write(Json.pretty_generate(self.$.position_map, new EnsoHash ({ allow_nan: true, max_nesting: false })));
-        }, S(self.$.path, "-positions"));
+        return System.writeJSON(S(self.$.path, "-positions"), self.$.position_map);
       };
 
       this.capture_positions = function() {
         var self = this; 
-        var size, obj_handler, connector_handler;
+        var obj_handler, connector_handler;
         self.$.position_map = new EnsoHash ({ });
         self.$.position_map._set("*VERSION*", 2);
-        self.$.position_map._set("*WINDOW*", new EnsoHash ({ x: self.$.canvas.width, y: self.$.canvas.height }));
+        self.$.position_map._set("*WINDOW*", new EnsoHash ({ x: self.$.win.width, y: self.$.win.height }));
         obj_handler = Proc.new(function(tag, obj, shape) {
           return self.$.position_map._set(tag, self.position(shape));
         });

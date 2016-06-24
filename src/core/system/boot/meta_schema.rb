@@ -1,7 +1,6 @@
 
 require 'core/schema/code/factory'
 require 'core/schema/tools/union'
-require 'json'
 require 'enso'
 
 #=begin

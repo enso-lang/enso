@@ -1,10 +1,9 @@
 define([
   "core/schema/code/factory",
   "core/schema/tools/union",
-  "json",
   "enso"
 ],
-function(Factory, Union, Json, Enso) {
+function(Factory, Union, Enso) {
   var MetaSchema ;
 
   var MObject = MakeClass("MObject", EnsoProxyObject, [],

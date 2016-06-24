@@ -17,7 +17,6 @@ require 'core/semantics/code/interpreter'
 #require 'core/system/utils/paths'
 
 # require 'core/expr/code/render'
-require 'json'
 
 module Stencil
 	
@@ -119,9 +118,9 @@ module Stencil
 	
 	    capture_positions    
 	    #puts @position_map
-	    File.write("#{@path}-positions") do |output|
-        output.write(JSON.pretty_generate(@position_map, allow_nan: true, max_nesting: false))
-	    end
+#	    File.write("#{@path}-positions") do |output|
+        System.writeJSON("#{@path}-positions", @position_map)
+#	    end
 	  end
 	  
 	  def capture_positions

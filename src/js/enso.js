@@ -226,6 +226,9 @@ EnsoHash = function(init) {
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
     },
+    writeJSON: function(path, data) {
+      fs.writeFileSync(path, JSON.stringify(data));
+    },
     test_type: function(obj, type) {
       if (obj == null)
         return false;
