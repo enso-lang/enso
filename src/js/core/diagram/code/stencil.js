@@ -61,7 +61,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (white = self.$.factory.Color(255, 255, 255));
       (black = self.$.factory.Color(0, 0, 0));
       (env = (new EnsoHash({
-        font: self.$.factory.Font(null, null, null, 12, "swiss"),
+        font: self.$.factory.Font(null, null, null, 14, "sans-serif"),
         pen: self.$.factory.Pen(1, "solid", black),
         brush: self.$.factory.Brush(black),
         nil: null
@@ -150,7 +150,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              return obj_handler(tag, obj, shape);
              
         }
-        catch (caught$4105) {
+        catch (caught$4111) {
           
         }
       }));
@@ -174,7 +174,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              return connector_handler(tag, ce1.attach(), ce2.attach());
              
         }
-        catch (caught$4474) {
+        catch (caught$4480) {
           
         }
       }));
@@ -364,7 +364,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$11265) {
+        catch (caught$11271) {
           
         }
         if ((!shape)) {

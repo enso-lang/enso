@@ -60,6 +60,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.context.fillRect(0, 0, 1000, 1000);
       (self.$.context.fillStyle = "black");
       (self.$.context.lineStyle = "red");
+      (self.$.context.font = "14pt sans-serif");
       return self.paint();
     }));
     (this.on_mouse_down = (function () {
@@ -172,12 +173,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$4638) {
+               catch (caught$4680) {
                  
-                   if ((caught$4638 instanceof Exception)) { 
+                   if ((caught$4680 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$4638); 
+                     })(caught$4680); 
                    }
                    else { 
                      ;

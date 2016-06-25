@@ -70,8 +70,8 @@ module Stencil
 	    puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
-	
-	    env = {font: @factory.Font(nil, nil, nil, 12, "swiss"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
+		
+	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing

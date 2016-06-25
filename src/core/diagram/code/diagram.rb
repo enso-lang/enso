@@ -98,10 +98,11 @@ module Diagram
 	  end
 	
 	  def clear_refresh	    
-	    @context.fillStyle_ = "white"
+      @context.fillStyle_ = "white"
 			@context.fillRect(0, 0, 1000, 1000)
       @context.fillStyle_ = "black"
       @context.lineStyle_ = "red"
+      @context.font_ = "14pt sans-serif"
 	    paint()
 	  end      
 	  
