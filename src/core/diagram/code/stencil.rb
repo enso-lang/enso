@@ -55,7 +55,7 @@ module Stencil
 	    build_diagram
 	    if data.factory.file_path[0]
 	      pos = "#{data.factory.file_path[0]}-positions"
-	      #puts "FINDING #{pos}"
+	      puts "FINDING #{pos}"
 	      @position_map = {}
 	      if File.exists?(pos)
 	        @position_map = System.readJSON(pos)
@@ -71,7 +71,7 @@ module Stencil
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 	
-	    env = {font: @factory.Font(nil, nil, nil, 12, "swiss"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(white), nil: nil}
+	    env = {font: @factory.Font(nil, nil, nil, 12, "swiss"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing
@@ -83,7 +83,7 @@ module Stencil
 	
 #	    if !@position_map['*WINDOW*'].nil?
 #	      size = @position_map['*WINDOW*']
-#	      # set_size(Size.new(size['x'], size['y']))
+#	      # set_size(size['x'], size['y'])
 #	    end
 	
 #	    refresh()
@@ -263,7 +263,7 @@ module Stencil
 #	    	  end
 #	      end
 #		    r = boundary(shape)
-#	      popup_menu(pop, Point.new(r.x, r.y))
+#	      popup_menu(pop, r.x, r.y)
 #		  end
 #	  end
 #	  
@@ -280,7 +280,7 @@ module Stencil
 #	      actions.each do |name, action|
 #	    		add_menu(pop, name, name, action) 
 #	      end
-#	      popup_menu(pop, Point.new(e.x, e.y))
+#	      popup_menu(pop, e.x, e.y)
 #	    end
 #	  end
 #=end
@@ -615,7 +615,7 @@ module Stencil
 	    n = 3
 	    #puts r.x, r.y, r.w, r.h
 	    extraWidth = 10
-	    @edit_control = TextCtrl.new(diagram, 0, "", Point.new(r.x - n, r.y - n), Size.new(r.w + 2 * n + extraWidth, r.h + 2 * n), 0)  # Wx::TE_MULTILINE
+	    @edit_control = TextCtrl.new(diagram, 0, "", r.x - n, r.y - n, r.w + 2 * n + extraWidth, r.h + 2 * n, 0)  # Wx::TE_MULTILINE
 	    
 	    style = TextAttr.new()
 	    style.set_text_colour(diagram.makeColor(diagram.foreground))

@@ -1,32 +1,34 @@
 .SUFFIXES: .rb .js .code
 
+DIR = js
+
 SOURCES = \
-	js2/core/system/boot/meta_schema.js \
-	js2/core/system/load/load.js \
-	js2/core/system/load/cache.js \
-	js2/core/system/utils/find_model.js \
-	js2/core/system/utils/paths.js \
-	js2/core/system/library/schema.js \
-	js2/core/schema/code/factory.js \
-	js2/core/schema/code/dynamic.js \
-	js2/core/schema/tools/dumpjson.js \
-	js2/core/schema/tools/union.js \
-	js2/core/schema/tools/print.js \
-	js2/core/schema/tools/equals.js \
-	js2/core/semantics/code/interpreter.js \
-	js2/core/grammar/render/layout.js \
-	js2/core/grammar/parse/sppf.js \
-	js2/core/grammar/parse/gss.js \
-	js2/core/expr/code/impl.js \
-	js2/core/expr/code/env.js \
-	js2/core/expr/code/freevar.js \
-	js2/core/expr/code/eval.js \
-	js2/core/expr/code/lvalue.js \
-	js2/core/expr/code/renderexp.js \
-	js2/core/expr/taint/proxy.js \
-	js2/core/diagram/code/diagram.js \
-	js2/core/diagram/code/stencil.js \
-	js2/core/diagram/code/constraints.js 
+	$(DIR)/core/system/boot/meta_schema.js \
+	$(DIR)/core/system/load/load.js \
+	$(DIR)/core/system/load/cache.js \
+	$(DIR)/core/system/utils/find_model.js \
+	$(DIR)/core/system/utils/paths.js \
+	$(DIR)/core/system/library/schema.js \
+	$(DIR)/core/schema/code/factory.js \
+	$(DIR)/core/schema/code/dynamic.js \
+	$(DIR)/core/schema/tools/dumpjson.js \
+	$(DIR)/core/schema/tools/union.js \
+	$(DIR)/core/schema/tools/print.js \
+	$(DIR)/core/schema/tools/equals.js \
+	$(DIR)/core/semantics/code/interpreter.js \
+	$(DIR)/core/grammar/render/layout.js \
+	$(DIR)/core/grammar/parse/sppf.js \
+	$(DIR)/core/grammar/parse/gss.js \
+	$(DIR)/core/expr/code/impl.js \
+	$(DIR)/core/expr/code/env.js \
+	$(DIR)/core/expr/code/freevar.js \
+	$(DIR)/core/expr/code/eval.js \
+	$(DIR)/core/expr/code/lvalue.js \
+	$(DIR)/core/expr/code/renderexp.js \
+	$(DIR)/core/expr/taint/proxy.js \
+	$(DIR)/core/diagram/code/diagram.js \
+	$(DIR)/core/diagram/code/stencil.js \
+	$(DIR)/core/diagram/code/constraints.js 
 
 
 RBSOURCES = \
@@ -72,10 +74,10 @@ all2js:
 		core/lang/syntax/Main.rsc \
 		-- $(RBSOURCES)
 
-js2/%.js: %.rb 
+$(DIR)/%.js: %.rb 
 	echo "GENERATING " $@
 	mkdir -p `dirname $@`
-	java -cp ../bin:rascal-shell-unstable.jar -Xmx1G -Xss32m \
+	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
 		org.rascalmpl.shell.RascalShell \
 		core/lang/syntax/Main.rsc \
 		$< > $@

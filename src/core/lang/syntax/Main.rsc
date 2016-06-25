@@ -26,7 +26,7 @@ void compileFile(str file) {
     return;
   }
   out = src[extension="js"];
-  out = |cwd:///js2/<out.path>|;
+  out = |cwd:///js/<out.path>|;
   println("output: <out>");
   writeFile(out, js2txt(ast));
 }

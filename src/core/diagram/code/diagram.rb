@@ -144,7 +144,7 @@ module Diagram
 	  def on_move
 	    Proc.new { |e|
 			  pnt = factory.Point(e.pageX_, e.pageY_)
-	      puts "MOUSE move #{pnt.x}, #{pnt.y}"
+	      #puts "MOUSE move #{pnt.x}, #{pnt.y}"
 		    @selection.do_move(pnt, @mouse_down) if @selection
 	  	}
 	  end

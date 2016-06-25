@@ -28,7 +28,7 @@ void moveToProperDirs() {
 loc jsFile(loc src) {
  rp = root.path;
  if (/^<rp>\/<rest:.*>$/ := src.path) {
-   return (root + "js2" + rest)[extension="js"];
+   return (root + "js" + rest)[extension="js"];
  }
  return src.path[extension="js"];
 }
