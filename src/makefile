@@ -29,6 +29,8 @@ SOURCES = \
 	js/core/diagram/code/constraints.js \
 
 MODELS = \
+	schema.stencil \
+	state_machine.stencil	\
 	genealogy-dot.grammar \
 	genealogy.grammar \
 	auth.grammar \
@@ -78,7 +80,7 @@ MODELS = \
 	template.schema \
 	gll.schema \
 	grammar.schema \
-  item.schema \
+  	item.schema \
 	itemize.schema \
 	layout.schema \
 	normalize.schema \
@@ -96,8 +98,6 @@ MODELS = \
 	ql.schema \
 	state_machine.schema \
 	door.state_machine \
-	schema.stencil \
-	state_machine.stencil	\
 	
 	
 JSONS_QL = \

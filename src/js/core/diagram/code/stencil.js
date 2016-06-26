@@ -273,8 +273,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       stencil.props().each((function (prop) {
         var val;
         (val = self.eval(prop.exp(), newEnv));
+        puts(S("SET ", prop.loc(), " = ", val, ""));
         switch ((function () {
-          return Interpreter(Renderexp.RenderExpr).render(prop.loc());
+          return Renderexp.render(prop.loc());
         })()) {
           case "fill.color":
            if ((!brush)) {
@@ -364,7 +365,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$11271) {
+        catch (caught$11245) {
           
         }
         if ((!shape)) {
@@ -570,10 +571,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.lvalue = (function (exp, env) {
       var self = this;
-      if ((self.$.lval == null)) {
-        (self.$.lval = Interpreter(self.LValueExpr()));
-      }
-      return self.$.lval.lvalue(exp, (new EnsoHash({
+      return Lvalue.lvalue(exp, (new EnsoHash({
         env: env,
         factory: self.$.factory
       })));

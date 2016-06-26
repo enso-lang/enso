@@ -5,7 +5,7 @@ graph {   // create the nodes (one for each class)
      label class {  // declare the "identifier" of this node is a class
      box { 
        vertical {
-          text class.name
+          text [font.size=16,font.weight="bold"] class.name
           for field : class.defined_fields
             if (field.computed == nil)
              if (field.type is Primitive)

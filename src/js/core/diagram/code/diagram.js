@@ -67,11 +67,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return Proc.new((function (e) {
         var pnt, select, subselect;
-        (pnt = self.factory().Point(e.pageX, e.pageY));
+        (pnt = self.$.factory.Point(e.pageX, e.pageY));
         puts(S("DOWN ", pnt.x(), " ", pnt.y(), ""));
         (self.$.mouse_down = true);
         if (self.$.selection) {
-          (subselect = self.$.selection.do_mouse_down(e));
+          (subselect = self.$.selection.do_mouse_down(pnt));
           if ((subselect == "cancel")) {
             (self.$.selection = null);
           }
@@ -98,7 +98,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return Proc.new((function (e) {
         var pnt;
-        (pnt = self.factory().Point(e.pageX, e.pageY));
+        (pnt = self.$.factory.Point(e.pageX, e.pageY));
         if (self.$.selection) {
           return self.$.selection.do_move(pnt, self.$.mouse_down);
         }
@@ -173,12 +173,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$4680) {
+               catch (caught$4684) {
                  
-                   if ((caught$4680 instanceof Exception)) { 
+                   if ((caught$4684 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$4680); 
+                     })(caught$4684); 
                    }
                    else { 
                      ;
@@ -189,22 +189,29 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.findConnector = (function (filter, part, pnt) {
       var self = this;
-      var from;
-      part.ends().each((function (e) {
-        var obj;
+      var from, obj;
+      (obj = part.ends().find((function (e) {
         if (e.label()) {
           (obj = self.find1(filter, e.label(), pnt));
-          return (obj = self.find1(filter, e.other_label(), pnt));
         }
-      }));
-      (from = null);
-      return part.path().each((function (to) {
-        if ((!(from == null))) {
-          if (((self.between(from.x(), pnt.x(), to.x()) && self.between(from.y(), pnt.y(), to.y())) && (self.dist_line(pnt, from, to) <= self.$.DIST))) {
+        if (((obj == null) && e.other_label())) {
+          (obj = self.find1(filter, e.other_label(), pnt));
+        }
+        return obj;
+      })));
+      if ((obj == null)) {
+        (from = null);
+        puts(S("FindCon ", part.path().size(), ""));
+        part.path().each((function (to) {
+          if ((!(from == null))) {
+            if (((self.between(from.x(), pnt.x(), to.x()) && self.between(from.y(), pnt.y(), to.y())) && (self.dist_line(pnt, from, to) <= self.$.DIST))) {
+              (obj = part);
+            }
           }
-        }
-        return (from = to);
-      }));
+          return (from = to);
+        }));
+      }
+      return obj;
     }));
     (this.do_constraints = (function () {
       var self = this;
@@ -451,7 +458,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       ps.push(pTo);
       part.path().clear();
       ps.each((function (p) {
-        return part.path().push(self.factory().Point(p.x(), p.y()));
+        return part.path().push(self.$.factory.Point(p.x(), p.y()));
       }));
       self.$.context.beginPath();
       ps.map((function (p) {
@@ -728,7 +735,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var size;
       self.raise("SHOULD NOT BE HERE");
-      dc.set_brush(self.factory().Brush(self.factory().Color(255, 0, 0)));
+      dc.set_brush(self.$.diagram.factory().Brush(self.$.diagram.factory().Color(255, 0, 0)));
       dc.set_pen(self.NULL_PEN());
       return (size = 8);
     }));
@@ -736,9 +743,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var size, p, r;
       (size = 8);
-      (pnt = self.factory().Point(pnt.x(), pnt.y()));
+      (pnt = self.$.diagram.factory().Point(pnt.x(), pnt.y()));
       (p = self.$.conn.path()._get(0));
-      (r = self.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
+      (r = self.$.diagram.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
       if (self.rect_contains(r, pnt)) { 
         return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(0), self, p); 
       } 

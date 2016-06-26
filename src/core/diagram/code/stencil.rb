@@ -315,8 +315,8 @@ module Stencil
 	    newEnv = env.clone
 	    stencil.props.each do |prop|
 	      val = eval(prop.exp, newEnv) # , true)
-	      #puts "SET #{prop.loc} = #{val}"
-	      case Interpreter(Renderexp::RenderExpr).render(prop.loc)
+	      puts "SET #{prop.loc} = #{val}"
+	      case Renderexp.render(prop.loc)
 	      when "font.size" then
 	        #puts "FONT SIZE #{val}"
 	        newEnv[:font] = font = env[:font]._clone if !font
@@ -599,8 +599,7 @@ module Stencil
 	  end
 	     	
 	  def lvalue(exp, env)
-	    @lval = Interpreter(LValueExpr) if @lval.nil?
-	    @lval.lvalue(exp, env: env, factory: @factory)
+	    Lvalue.lvalue(exp, env: env, factory: @factory)
 	  end
 
 	end

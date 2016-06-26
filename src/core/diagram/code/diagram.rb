@@ -110,11 +110,11 @@ module Diagram
 	
 	  def on_mouse_down
 	    Proc.new { |e|
-			  pnt = factory.Point(e.pageX_, e.pageY_)
+			  pnt = @factory.Point(e.pageX_, e.pageY_)
 		    puts "DOWN #{pnt.x} #{pnt.y}"
 		    @mouse_down = true
 		    if @selection
-		      subselect = @selection.do_mouse_down(e)
+		      subselect = @selection.do_mouse_down(pnt)
 		      if subselect == :cancel
 		        @selection = nil
 		        # return
@@ -144,7 +144,7 @@ module Diagram
 	
 	  def on_move
 	    Proc.new { |e|
-			  pnt = factory.Point(e.pageX_, e.pageY_)
+			  pnt = @factory.Point(e.pageX_, e.pageY_)
 	      #puts "MOUSE move #{pnt.x}, #{pnt.y}"
 		    @selection.do_move(pnt, @mouse_down) if @selection
 	  	}
@@ -213,26 +213,29 @@ module Diagram
 	  end
 	  	
 	  def findConnector(part, pnt, &filter)
-	    part.ends.each do |e|
+	    obj = part.ends.find do |e|
 	      if e.label
 	        obj = find1(e.label, pnt, &filter)
-	        # return obj if obj
-	        obj = find1(e.other_label, pnt, &filter)
-	        # return obj if obj
 	      end
+	      if obj.nil? && e.other_label
+	        obj = find1(e.other_label, pnt, &filter)
+	      end
+	      obj
 	    end
-	    from = nil
-	    #puts "FindCon #{part.path.size}"
-	    part.path.each do |to|
-	      if !from.nil?
-		      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
-		      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
-		        # return part
-		      end
+	    if obj.nil?
+		    from = nil
+		    puts "FindCon #{part.path.size}"
+		    part.path.each do |to|
+		      if !from.nil?
+			      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
+			      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
+			        obj = part
+			      end
+			    end
+					from = to
 		    end
-				from = to
-	    end
-	    # return nil
+		  end
+		  obj
 	  end
 	
 	  # ----- constrain -----
@@ -451,7 +454,7 @@ module Diagram
 	    ps << pTo
 	
 	    part.path.clear
-	    ps.each {|p| part.path << factory.Point(p.x, p.y) }
+	    ps.each {|p| part.path << @factory.Point(p.x, p.y) }
 
 	    @context.beginPath
 	    ps.map { |p| 
@@ -684,7 +687,7 @@ module Diagram
 	
 	  def paint(dc)
 	    raise "SHOULD NOT BE HERE"
-		  dc.set_brush(factory.Brush(factory.Color(255, 0, 0)))
+		  dc.set_brush(@diagram.factory.Brush(@diagram.factory.Color(255, 0, 0)))
 		  dc.set_pen(NULL_PEN)
 		  size = 8
 #		  p = @conn.path[0]
@@ -697,9 +700,9 @@ module Diagram
 	    
 	  def do_mouse_down(pnt)
 		  size = 8
-		  pnt = factory.Point(pnt.x, pnt.y)
+		  pnt = @diagram.factory.Point(pnt.x, pnt.y)
 		  p = @conn.path[0]
-	    r = factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
+	    r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
 	    if rect_contains(r, pnt)
 	      PointSelection.new(@diagram, @conn.ends[0], self, p)
 	    else

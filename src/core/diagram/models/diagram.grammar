@@ -1,17 +1,17 @@
 start Part
 
-Part ::= [Container] Dir Props "{" items:Part* "}"
-      | [Connector] "connector" Props "(" ends:(ConnectorEnd "--")+ ")" "path" path:Point*
+Part ::= [Container] Dir Props? "{" items:Part* "}"
+      | [Connector] "connector" Props? "(" ends:(ConnectorEnd "--")+ ")" "path" path:Point*
       | Text
-      | [Shape] "box" "#" _id:int Location? Props "{" content:Part? "}"
+      | [Shape] "box" "#" _id:int Location? Props? "{" content:Part? "}"
 Location ::= location:Point
-Text ::= [Text] "text" Props string:str
+Text ::= [Text] "text" Props? string:str
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph" {direction==3} | "do" {direction==4}
 
 ConnectorEnd ::= [ConnectorEnd] (label:Text ("," other_label:Text)? ":")? to:<root.items[it]> (arrow:"<" | arrow:"*")? 
 
-Props ::= styles:Style* Constraints?
+Props ::= "[" styles:Style* Constraints? "]"
 Style ::= 
     [Pen] "line" width:int? style:sym? color:Color?
   | [Brush] "fill" color:Color
