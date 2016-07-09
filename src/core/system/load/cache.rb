@@ -5,6 +5,14 @@ require 'digest/sha1'
 
 module Cache
 
+	def self.hack_prefix
+	  if false # HACK TO GET ELECTRON RUNNING!!!
+	    "../" 
+    else
+			""
+		end
+  end
+	
   def self.save_cache(name, model, full=false)
     out = find_json(name)
     res = add_metadata(name, model)
@@ -25,7 +33,7 @@ module Cache
       puts("## loading cache for: #{name} (#{input})")
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json['model'])
-    res.factory.file_path[0] = json['source']
+    res.factory.file_path[0] = hack_prefix + json['source']
     json['depends'].each {|dep| res.factory.file_path << dep['filename']}
     res
   end
@@ -71,12 +79,10 @@ module Cache
   end
 
   def self.find_json(name)
-    prefix = ""
-    prefix = "../" if false # HACK TO GET ELECTRON RUNNING!!!
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
-      "#{prefix}core/system/boot/#{name.gsub('.','_')}.json"
+      "#{hack_prefix}core/system/boot/#{name.gsub('.','_')}.json"
     else
-	    cache_path = "#{prefix}cache/"
+	    cache_path = "#{hack_prefix}cache/"
 #      index = name.rindex('/')
 #      dir = index ? name[0..index].gsub('.','_') : ""
 #      unless File.exists? "#{cache_path}#{dir}"

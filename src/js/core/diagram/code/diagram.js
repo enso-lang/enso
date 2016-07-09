@@ -12,21 +12,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.selection = null);
       (self.$.mouse_down = false);
       (self.$.DIST = 4);
+      (self.$.defaultConnectorDist = 20);
       (self.$.cs = Constraints.ConstraintSystem.new());
       (self.$.factory = Factory.new(Load.load("diagram.schema")));
       return (self.$.select_color = self.$.factory.Color(0, 255, 0));
-    }));
-    (this.listener = (function () {
-      return this.$.listener;
-    }));
-    (this.set_listener = (function (val) {
-      (this.$.listener = val);
     }));
     (this.factory = (function () {
       return this.$.factory;
     }));
     (this.set_factory = (function (val) {
       (this.$.factory = val);
+    }));
+    (this.context = (function () {
+      return this.$.context;
+    }));
+    (this.set_context = (function (val) {
+      (this.$.context = val);
     }));
     (this.on_open = (function () {
       var self = this;
@@ -63,34 +64,51 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.context.font = "14pt sans-serif");
       return self.paint();
     }));
+    (this.getCursorPosition = (function (event) {
+      var self = this;
+      var rect, x, y;
+      (rect = self.$.canvas.getBoundingClientRect());
+      (x = (event.clientX - rect.left));
+      (y = (event.clientY - rect.top));
+      return self.$.factory.Point(x, y);
+    }));
     (this.on_mouse_down = (function () {
       var self = this;
       return Proc.new((function (e) {
-        var pnt, select, subselect;
-        (pnt = self.$.factory.Point(e.pageX, e.pageY));
+        var done, pnt, select, subselect;
+        (pnt = self.getCursorPosition(e));
         puts(S("DOWN ", pnt.x(), " ", pnt.y(), ""));
+        (self.$.context.fillStyle = "#FF0000");
+        self.$.context.fillRect(pnt.x(), pnt.y(), 4, 4);
         (self.$.mouse_down = true);
+        (done = false);
         if (self.$.selection) {
           (subselect = self.$.selection.do_mouse_down(pnt));
           if ((subselect == "cancel")) {
             (self.$.selection = null);
+            (done = true);
           }
-          if (subselect) {
-            (self.$.selection = subselect);
+          else {
+            if (subselect) {
+              (self.$.selection = subselect);
+              (done = true);
+            } else {
+            }
           }
         }
-        (select = self.find_in_ui((function (x) {
-          var val;
-          (val = ((self.$.find_container && self.$.find_container.Container_P()) && (self.$.find_container.direction() == 3)));
-          return val;
-        }), pnt));
-        return self.set_selection(select, pnt);
+        if ((!done)) {
+          (select = self.find_in_ui((function (x) {
+            var val;
+            (val = ((self.$.find_container && self.$.find_container.Container_P()) && (self.$.find_container.direction() == 3)));
+            return val;
+          }), pnt));
+          return self.set_selection(select, pnt);
+        }
       }));
     }));
     (this.on_mouse_up = (function () {
       var self = this;
       return Proc.new((function (e) {
-        puts("MOUSE UP");
         return (self.$.mouse_down = false);
       }));
     }));
@@ -98,7 +116,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return Proc.new((function (e) {
         var pnt;
-        (pnt = self.$.factory.Point(e.pageX, e.pageY));
+        (pnt = self.getCursorPosition(e));
         if (self.$.selection) {
           return self.$.selection.do_move(pnt, self.$.mouse_down);
         }
@@ -111,8 +129,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.clear_selection = (function () {
       var self = this;
-      if (self.$.selection) {
-        return (self.$.selection = self.$.selection.clear());
+      if (self.$.selection) { 
+        return (self.$.selection = self.$.selection.clear()); 
+      }
+      else { 
+        return (self.$.selection = null);
       }
     }));
     (this.set_selection = (function (select, pnt) {
@@ -120,11 +141,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.clear_selection();
       if (select) {
         if (select.Connector_P()) { 
-          return (self.$.selection = ConnectorSelection.new(self, select)); 
+          (self.$.selection = ConnectorSelection.new(self, select)); 
         }
         else { 
-          return (self.$.selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x(), pnt.y())));
+          (self.$.selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x(), pnt.y())));
         }
+        return self.clear_refresh();
       }
     }));
     (this.find_in_ui = (function (filter, pnt) {
@@ -138,7 +160,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.findConnector(filter, part, pnt); 
       } 
       else {
-             (b = self.boundary(part));
+             (b = self.boundary_fixed(part));
              if ((!(b == null))) {
                try {if (self.rect_contains(b, pnt)) {
                  (old_container = self.$.find_container);
@@ -173,12 +195,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$4684) {
+               catch (caught$3666) {
                  
-                   if ((caught$4684 instanceof Exception)) { 
+                   if ((caught$3666 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$4684); 
+                     })(caught$3666); 
                    }
                    else { 
                      ;
@@ -194,14 +216,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         if (e.label()) {
           (obj = self.find1(filter, e.label(), pnt));
         }
-        if (((obj == null) && e.other_label())) {
-          (obj = self.find1(filter, e.other_label(), pnt));
-        }
         return obj;
       })));
       if ((obj == null)) {
         (from = null);
-        puts(S("FindCon ", part.path().size(), ""));
         part.path().each((function (to) {
           if ((!(from == null))) {
             if (((self.between(from.x(), pnt.x(), to.x()) && self.between(from.y(), pnt.y(), to.y())) && (self.dist_line(pnt, from, to) <= self.$.DIST))) {
@@ -211,7 +229,34 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           return (from = to);
         }));
       }
+      if (obj) {
+        puts(S("FindCon ", obj.to_s(), ""));
+      }
       return obj;
+    }));
+    (this.getSide = (function (cend) {
+      var self = this;
+      if ((cend.y() == 0)) { 
+        return 0; 
+      }
+      else { 
+        if ((cend.x() == 1)) { 
+          return 1; 
+        }
+        else { 
+          if ((cend.y() == 1)) { 
+            return 2; 
+          }
+          else { 
+            if ((cend.x() == 0)) { 
+              return 3; 
+            }
+            else { 
+              return puts("NO SIDE!!!!");
+            }
+          }
+        }
+      }
     }));
     (this.do_constraints = (function () {
       var self = this;
@@ -327,10 +372,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.constrainConnector = (function (part) {
       var self = this;
       return part.ends().each((function (ce) {
-        var x, y, to;
+        var x, y, to, dynamic;
         (to = self.$.positions._get(ce.to()));
-        (x = to.x().add(to.w().mul(ce.attach().x())));
-        (y = to.y().add(to.h().mul(ce.attach().y())));
+        (dynamic = ce.attach().dynamic_update());
+        (x = to.x().add(to.w().mul(dynamic.x())));
+        (y = to.y().add(to.h().mul(dynamic.y())));
         self.$.positions._set(ce, EnsoPoint.new(x, y));
         return self.constrainConnectorEnd(ce, x, y);
       }));
@@ -338,24 +384,29 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.constrainConnectorEnd = (function (e, x, y) {
       var self = this;
       if (e.label()) {
-        self.constrain(e.label(), x, y);
-      }
-      if (e.other_label()) {
-        return self.constrain(e.other_label(), x, y);
+        return self.constrain(e.label(), x, y);
       }
     }));
     (this.boundary = (function (shape) {
       var self = this;
+      return self.$.positions._get(shape);
+    }));
+    (this.boundary_fixed = (function (shape) {
+      var self = this;
       var r;
-      (r = self.$.positions._get(shape));
+      (r = self.boundary(shape));
       if ((!(r == null))) {
         return EnsoRect.new(r.x().value(), r.y().value(), r.w().value(), r.h().value());
       }
     }));
     (this.position = (function (shape) {
       var self = this;
+      return self.$.positions._get(shape);
+    }));
+    (this.position_fixed = (function (shape) {
+      var self = this;
       var p;
-      (p = self.$.positions._get(shape));
+      (p = self.position(shape));
       if ((!(p == null))) {
         return EnsoPoint.new(p.x().value(), p.y().value());
       }
@@ -385,7 +436,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       if ((self.$.positions.size() == 0)) {
         self.do_constraints();
       }
-      return self.draw(self.$.root);
+      self.draw(self.$.root);
+      if (self.$.selection) {
+        return self.$.selection.do_paint();
+      }
     }));
     (this.draw = (function (part) {
       var self = this;
@@ -398,7 +452,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var r, len;
       if ((part.direction() == 3)) {
-        (r = self.boundary(part));
+        (r = self.boundary_fixed(part));
         self.$.context.strokeRect(r.x(), r.y(), r.w(), r.h());
       }
       (len = (part.items().size() - 1));
@@ -409,7 +463,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.drawShape = (function (shape) {
       var self = this;
       var start, m2, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
-      (r = self.boundary(shape));
+      (r = self.boundary_fixed(shape));
       (margin = self.$.context.lineWidth);
       (m2 = (margin - (margin % 2)));
       switch ((function () {
@@ -436,11 +490,13 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawConnector = (function (part) {
       var self = this;
-      var sideFrom, ps, e1, sideTo, pFrom, e0, pTo;
+      var sideFrom, ps, e1, rTo, sideTo, pFrom, rFrom, e0, pTo;
       (e0 = part.ends()._get(0));
       (e1 = part.ends()._get(1));
-      (pFrom = self.position(e0));
-      (pTo = self.position(e1));
+      (rFrom = self.boundary_fixed(e0.to()));
+      (rTo = self.boundary_fixed(e1.to()));
+      (pFrom = EnsoPoint.new((rFrom.x() + (e0.attach().x() * rFrom.w())), (rFrom.y() + (e0.attach().y() * rFrom.h()))));
+      (pTo = EnsoPoint.new((rTo.x() + (e1.attach().x() * rTo.w())), (rTo.y() + (e1.attach().y() * rTo.h()))));
       (sideFrom = self.getSide(e0.attach()));
       (sideTo = self.getSide(e1.attach()));
       if ((sideFrom == sideTo)) { 
@@ -451,7 +507,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           (ps = self.simpleOppositeSide(pFrom, pTo, sideFrom)); 
         }
         else { 
-          (ps = self.simpleOrthogonalSide(pFrom, pTo, sideFrom));
+          if ((e0.to() == e1.to())) { 
+            (ps = self.sameObjectCorner(pFrom, pTo, sideFrom)); 
+          }
+          else { 
+            (ps = self.simpleOrthogonalSide(pFrom, pTo, sideFrom));
+          }
         }
       }
       ps.unshift(pFrom);
@@ -465,62 +526,54 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.context.lineTo(p.x(), p.y());
       }));
       self.$.context.stroke();
-      self.drawEnd(part.ends()._get(0));
-      return self.drawEnd(part.ends()._get(1));
+      self.drawEnd(e0);
+      return self.drawEnd(e1);
     }));
     (this.drawEnd = (function (cend) {
       var self = this;
-      var size, arrow, pos, side, lineHeight, r, index, offset, angle;
+      var size, align, arrow, angle, pos, side, lineHeight, rFrom, r, index;
       (side = self.getSide(cend.attach()));
-      (r = (self.boundary(cend.label()) || self.boundary(cend.other_label())));
+      (rFrom = self.boundary_fixed(cend.to()));
+      (r = EnsoPoint.new((rFrom.x() + (cend.attach().x() * rFrom.w())), (rFrom.y() + (cend.attach().y() * rFrom.h()))));
       if (r) {
         switch ((function () {
           return side;
         })()) {
           case 3:
            (angle = 0);
-           r.set_y((r.y() - r.h()));
-           r.set_x((r.x() - r.w()));
-           (offset = EnsoPoint.new(0, r.h()));
+           (align = "right");
            break;
           case 2:
            (angle = (-90));
-           (offset = EnsoPoint.new(r.h(), 0));
+           (align = "left");
            break;
           case 1:
            (angle = 0);
-           (offset = EnsoPoint.new(0, (-r.h())));
+           (align = "left");
            break;
           case 0:
            (angle = 90);
-           (offset = EnsoPoint.new((-r.h()), 0));
+           (align = "left");
            break;
         }
             
-        (lineHeight = 12);
+        (lineHeight = 10);
         self.with_styles((function () {
           self.$.context.save();
           self.$.context.translate(r.x(), r.y());
           self.$.context.rotate((((-Math.PI) * angle) / 180));
-          (self.$.context.textAlign = "right");
-          self.$.context.fillText(cend.label().string(), 0, (lineHeight / 2));
+          (self.$.context.textAlign = align);
+          self.$.context.fillText(cend.label().string(), 0, 0);
           return self.$.context.restore();
         }), cend.label());
-        self.with_styles((function () {
-          self.$.context.save();
-          self.$.context.translate((r.x() + offset.x()), (r.y() + offset.y()));
-          self.$.context.rotate((((-Math.PI) * angle) / 180));
-          (self.$.context.textAlign = "right");
-          self.$.context.fillText(cend.label().string(), 0, (lineHeight / 2));
-          return self.$.context.restore();
-        }), cend.other_label());
       }
       if (((cend.arrow() == ">") || (cend.arrow() == "<"))) {
         (size = 5);
         (angle = (((-Math.PI) * (1 - side)) / 2));
         self.$.context.beginPath();
         (index = 0);
-        (pos = self.position(cend));
+        (rFrom = self.boundary_fixed(cend.to()));
+        (pos = EnsoPoint.new((rFrom.x() + (cend.attach().x() * rFrom.w())), (rFrom.y() + (cend.attach().y() * rFrom.h()))));
         (arrow = [EnsoPoint.new(0, 0), EnsoPoint.new(2, 1), EnsoPoint.new(2, (-1)), EnsoPoint.new(0, 0)].each((function (p) {
           var px, py;
           (px = ((Math.cos(angle) * p.x()) - (Math.sin(angle) * p.y())));
@@ -546,16 +599,16 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return d;
       })()) {
         case 3:
-         (z = [(a.x() - 10), (b.x() - 10)].min());
+         (z = System.min((a.x() - self.$.defaultConnectorDist), (b.x() - self.$.defaultConnectorDist)));
          return [EnsoPoint.new(z, a.y()), EnsoPoint.new(z, b.y())];
+        case 2:
+         (z = System.max((a.y() + self.$.defaultConnectorDist), (b.y() + self.$.defaultConnectorDist)));
+         return [EnsoPoint.new(a.x(), z), EnsoPoint.new(b.x(), z)];
         case 1:
-         (z = [(a.x() + 10), (b.x() + 10)].max());
+         (z = System.max((a.x() + self.$.defaultConnectorDist), (b.x() + self.$.defaultConnectorDist)));
          return [EnsoPoint.new(z, a.y()), EnsoPoint.new(z, b.y())];
         case 0:
-         (z = [(a.y() - 10), (b.y() - 10)].min());
-         return [EnsoPoint.new(a.x(), z), EnsoPoint.new(b.x(), z)];
-        case 2:
-         (z = [(a.y() + 10), (b.y() + 10)].max());
+         (z = System.min((a.y() - self.$.defaultConnectorDist), (b.y() - self.$.defaultConnectorDist)));
          return [EnsoPoint.new(a.x(), z), EnsoPoint.new(b.x(), z)];
       }
           
@@ -585,6 +638,71 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return Integer(((m + n) / 2));
     }));
+    (this.sameObjectCorner = (function (a, b, d) {
+      var self = this;
+      var m, z;
+      switch ((function () {
+        return d;
+      })()) {
+        case 1:
+         if ((d == 1)) { 
+           (z = (a.x() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (z = (a.x() + self.$.defaultConnectorDist));
+         }
+         if ((a.y() > b.y())) { 
+           (m = (b.y() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (m = (b.y() + self.$.defaultConnectorDist));
+         }
+         return [EnsoPoint.new(z, a.y()), EnsoPoint.new(z, m), EnsoPoint.new(b.x(), m)];
+        case 3:
+         if ((d == 1)) { 
+           (z = (a.x() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (z = (a.x() + self.$.defaultConnectorDist));
+         }
+         if ((a.y() > b.y())) { 
+           (m = (b.y() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (m = (b.y() + self.$.defaultConnectorDist));
+         }
+         return [EnsoPoint.new(z, a.y()), EnsoPoint.new(z, m), EnsoPoint.new(b.x(), m)];
+        case 0:
+         if ((d == 0)) { 
+           (z = (a.y() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (z = (a.y() + self.$.defaultConnectorDist));
+         }
+         if ((a.x() > b.x())) { 
+           (m = (b.x() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (m = (b.x() + self.$.defaultConnectorDist));
+         }
+         return [EnsoPoint.new(a.x(), z), EnsoPoint.new(m, z), EnsoPoint.new(m, b.y())];
+        case 2:
+         if ((d == 0)) { 
+           (z = (a.y() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (z = (a.y() + self.$.defaultConnectorDist));
+         }
+         if ((a.x() > b.x())) { 
+           (m = (b.x() - self.$.defaultConnectorDist)); 
+         }
+         else { 
+           (m = (b.x() + self.$.defaultConnectorDist));
+         }
+         return [EnsoPoint.new(a.x(), z), EnsoPoint.new(m, z), EnsoPoint.new(m, b.y())];
+      }
+          
+    }));
     (this.simpleOrthogonalSide = (function (a, b, d) {
       var self = this;
       switch ((function () {
@@ -601,33 +719,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       }
           
     }));
-    (this.getSide = (function (cend) {
-      var self = this;
-      if ((cend.y() == 0)) { 
-        return 0; 
-      }
-      else { 
-        if ((cend.x() == 1)) { 
-          return 1; 
-        }
-        else { 
-          if ((cend.y() == 1)) { 
-            return 2; 
-          }
-          else { 
-            if ((cend.x() == 0)) { 
-              return 3; 
-            } 
-            else {
-                 }
-          }
-        }
-      }
-    }));
     (this.drawText = (function (text) {
       var self = this;
       var r;
-      (r = self.boundary(text));
+      (r = self.boundary_fixed(text));
       return self.$.context.fillText(text.string(), r.x(), r.y());
     }));
     (this.with_styles = (function (block, part) {
@@ -657,6 +752,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
               }
             }
           }));
+          if ((self.$.selection && self.$.selection.is_selected(part))) {
+            (self.$.context.stokeStyle = self.makeColor(self.$.select_color));
+          }
           block();
           return self.$.context.restore();
         }
@@ -697,7 +795,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.diagram = diagram);
       (self.$.part = part);
       (self.$.down = down);
-      return (self.$.move_base = self.$.diagram.boundary(part));
+      return (self.$.move_base = self.$.diagram.boundary_fixed(part));
     }));
     (this.do_move = (function (pnt, down) {
       var self = this;
@@ -710,8 +808,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return (self.$.part == check);
     }));
-    (this.paint = (function (dc) {
+    (this.do_paint = (function () {
       var self = this;
+      (self.$.diagram.context().strokeStyle = "#FF0000");
+      return self.$.diagram.draw(self.$.part);
     }));
     (this.do_mouse_down = (function (e) {
       var self = this;
@@ -731,13 +831,17 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return (self.$.conn == check);
     }));
-    (this.paint = (function (dc) {
+    (this.do_paint = (function () {
       var self = this;
-      var size;
-      self.raise("SHOULD NOT BE HERE");
-      dc.set_brush(self.$.diagram.factory().Brush(self.$.diagram.factory().Color(255, 0, 0)));
-      dc.set_pen(self.NULL_PEN());
-      return (size = 8);
+      var size, p;
+      (self.$.diagram.context().fillStyle = self.$.diagram.makeColor(self.$.diagram.factory().Color(255, 0, 0)));
+      (size = 8);
+      (p = self.$.conn.path()._get(0));
+      self.$.diagram.context().fillRect((p.x() + ((-size) / 2)), (p.y() + ((-size) / 2)), size, size);
+      (p = self.$.conn.path()._get((-1)));
+      self.$.diagram.context().fillRect((p.x() + ((-size) / 2)), (p.y() + ((-size) / 2)), size, size);
+      return self.$.conn.path().each((function (p) {
+      }));
     }));
     (this.do_mouse_down = (function (pnt) {
       var self = this;
@@ -746,14 +850,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (pnt = self.$.diagram.factory().Point(pnt.x(), pnt.y()));
       (p = self.$.conn.path()._get(0));
       (r = self.$.diagram.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
-      if (self.rect_contains(r, pnt)) { 
-        return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(0), self, p); 
+      if (self.$.diagram.rect_contains(r, pnt)) { 
+        return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(0), self); 
       } 
       else {
              (p = self.$.conn.path()._get((-1)));
              (r = self.$.diagram.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
-             if (self.rect_contains(r, pnt)) {
-               return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(1), self, p);
+             if (self.$.diagram.rect_contains(r, pnt)) {
+               return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(1), self);
              }
            }
     }));
@@ -766,39 +870,39 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
   }));
   var PointSelection = MakeClass("PointSelection", null, [], (function () {
   }), (function (super$) {
-    (this.initialize = (function (diagram, ce, selection, pnt) {
+    (this.initialize = (function (diagram, ce, selection) {
       var self = this;
       (self.$.diagram = diagram);
       (self.$.ce = ce);
-      (self.$.selection = selection);
-      return (self.$.pnt = pnt);
+      return (self.$.selection = selection);
     }));
     (this.is_selected = (function (check) {
       var self = this;
       return (self.$.ce == check);
     }));
-    (this.paint = (function (dc) {
+    (this.do_paint = (function () {
       var self = this;
-      var size;
-      dc.set_brush(self.$.diagram.factory().Brush(self.$.diagram.factory().Color(0, 0, 255)));
-      dc.set_pen(self.NULL_PEN());
+      var size, pos;
+      (self.$.diagram.context().fillStyle = self.$.diagram.makeColor(self.$.diagram.factory().Color(0, 0, 255)));
       (size = 8);
-      return dc.draw_rectangle((self.$.pnt.x() - (size / 2)), (self.$.pnt.y() - (size / 2)), size, size);
+      (pos = self.$.diagram.position_fixed(self.$.ce));
+      return self.$.diagram.context().fillRect((pos.x() - (size / 2)), (pos.y() - (size / 2)), size, size);
     }));
     (this.do_mouse_down = (function (e) {
       var self = this;
     }));
     (this.do_move = (function (pnt, down) {
       var self = this;
-      var nx, ny, angle, pos, x, y;
+      var nx, ny, angle, bounds, x, y;
       if (down) {
-        (pos = self.$.diagram.boundary(self.$.ce.to()));
-        (x = (((pnt.x() - pos.x()) + (pos.w() / 2)) / (pos.w() / self.Float(2))));
-        (y = (((pnt.y() - pos.y()) + (pos.h() / 2)) / (pos.h() / self.Float(2))));
+        (bounds = self.$.diagram.boundary_fixed(self.$.ce.to()));
+        (x = (pnt.x() - (bounds.x() + (bounds.w() / 2))));
+        (y = (pnt.y() - (bounds.y() + (bounds.h() / 2))));
         if (((x == 0) && (y == 0))) { 
           return null; 
         } 
         else {
+               puts(S("FROM ", x, " ", y, ""));
                (angle = Math.atan2(y, x));
                (nx = self.normalize(Math.cos(angle)));
                (ny = self.normalize(Math.sin(angle)));
@@ -811,8 +915,8 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.normalize = (function (n) {
       var self = this;
       (n = (n * Math.sqrt(2)));
-      (n = [(-1), n].max());
-      (n = [1, n].min());
+      (n = System.max((-1), n));
+      (n = System.min(1, n));
       (n = ((n + 1) / 2));
       return n;
     }));

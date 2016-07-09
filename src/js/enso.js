@@ -223,6 +223,9 @@ EnsoHash = function(init) {
     max: function(a, b) {
       return a > b ? a : b;
     },
+    min: function(a, b) {
+      return a > b ? b : a;
+    },
     readJSON: function(path) {
       return JSON.parse(fs.readFileSync(path));
     },

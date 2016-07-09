@@ -128,10 +128,6 @@ define([], (function () {
       var_V.internal_define(block, self);
       return var_V;
     }));
-    (this.eql_P = (function (x) {
-      var self = this;
-      return self.method_missing("eql?", x);
-    }));
     (this.define_result = (function (m) {
       var self = this;
       var args = compute_rest_arguments(arguments, this.define_result.length);
@@ -178,7 +174,7 @@ define([], (function () {
           return self.raise(S("Unbound variable ", v.toString(), "")); 
         }
         else { 
-          if (System.test_type(v, Constant)) { 
+          if ((System.test_type(v, Constant) || System.test_type(v, Variable))) { 
             return v; 
           }
           else { 

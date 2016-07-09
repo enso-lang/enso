@@ -1,13 +1,227 @@
 require 'core/system/load/load'
 require 'core/diagram/code/constraints'
 require 'core/schema/code/factory'
-#require 'core/schema/tools/print'
 
-# Dialog = require('electron').remote.dialog
 
+module Diagram
+
+	class DiagramFrame
+	  def initialize(win, canvas, context, title = 'Diagram')
+      @win = win
+      @canvas = canvas
+      @context = context
+
+	    @menu_id = 0
+	    @selection = nil
+	    @mouse_down = false
+	    @DIST = 4
+	    @defaultConnectorDist = 20
+	    @cs = Constraints::ConstraintSystem.new
+	    @factory = Factory.new(Load::load('diagram.schema'))
+	    @select_color = @factory.Color(0, 255, 0)
+	  end
+	  
+	  attr_accessor :factory
+	  attr_accessor :context
+	  
+	  def on_open
+	    dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;")
+	    if dialog.show_modal() == ID_OK
+	      path = dialog.get_path
+	      extension = File.extname(path)
+	      raise "File is not a diagram" if extension != "diagram"
+	      content = Load(dialog.get_path())
+	      set_root(content)
+	    end
+	  end
+	  
+	  def set_root(root)
+	    @canvas.onmousedown_ = on_mouse_down
+	    @canvas.onmousemove_ = on_move
+	    @canvas.onmouseup_ = on_mouse_up
+	   # @canvas.ondblclick_ = on_double_click
+	    
+	    root.finalize
+	    @root = root
+	    @positions = {}
+	    clear_refresh
+	  end
+	
+	  def clear_refresh	    
+      @context.fillStyle_ = "white"
+			@context.fillRect(0, 0, 1000, 1000)
+      @context.fillStyle_ = "black"
+      @context.lineStyle_ = "red"
+      @context.font_ = "14pt sans-serif"
+	    paint()
+	  end      
+	  
+	  # ------- event handling -------  
+	
+	  def getCursorPosition(event)
+	    rect = @canvas.getBoundingClientRect()
+	    x = event.clientX_ - rect.left_
+	    y = event.clientY_ - rect.top_
+	    @factory.Point(x, y)
+		end
+	
+	  def on_mouse_down
+	    Proc.new { |e|
+			  pnt = getCursorPosition(e)
+		    puts "DOWN #{pnt.x} #{pnt.y}"
+		    @context.fillStyle_ = "#FF0000"
+		    @context.fillRect(pnt.x, pnt.y, 4, 4)
+		    @mouse_down = true
+		    done = false
+		    if @selection
+		      subselect = @selection.do_mouse_down(pnt)
+		      if subselect == :cancel
+		        @selection = nil
+		        done = true
+		      elsif subselect
+		        @selection = subselect
+		        done = true
+		      end
+		    end
+		    if !done
+			    select = find_in_ui(pnt) do |x|
+			      #find something contained in a graph, which is dragable
+			      val = @find_container && @find_container.Container? && @find_container.direction == 3 
+			      #puts "#{x} => #{val}"
+			      val
+			    end
+			    #puts "FIND #{select}"
+			    set_selection(select, pnt)
+			  end
+		  }
+	  end
+	  
+	  def on_mouse_up
+	    Proc.new { |e|
+		    @mouse_down = false
+		  }
+	  end
+	
+	  def on_move
+	    Proc.new { |e|
+			  pnt = getCursorPosition(e)
+	      #puts "MOUSE move #{pnt.x}, #{pnt.y}"
+		    @selection.do_move(pnt, @mouse_down) if @selection
+	  	}
+	  end
+	
+	  def on_key
+	  	Proc.new { |e|
+	  	}
+	  end
+	
+	  # ------- selections -------      
+	  def clear_selection
+	   if @selection
+		    @selection = @selection.clear
+		  else
+			  @selection = nil
+		  end
+	  end
+	    
+	  def set_selection(select, pnt)
+	    clear_selection
+	    if select
+	      if select.Connector?
+	        @selection = ConnectorSelection.new(self, select)
+	      else
+	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x, pnt.y))
+	      end
+	      clear_refresh()
+	    end
+	  end
+	  
+	  # ---- finding ------
+	  def find_in_ui(pnt, &filter)
+	    find1(@root, pnt, &filter)
+	  end
+	  
+    def find1(part, pnt, &filter)
+	    if part.Connector?
+	      findConnector(part, pnt, &filter)
+	    else
+	      b = boundary_fixed(part)
+	      if !b.nil?
+		      #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
+		      begin
+		        if rect_contains(b, pnt)
+		          old_container = @find_container
+		          @find_container = part
+		          out = nil
+		          if part.Container?
+		            out = part.items.find do |sub|
+		              find1(sub, pnt, &filter)
+		            end
+		            out = part if !out && filter.call(part)
+		          elsif part.Shape?
+		            out = find1(part.content, pnt, &filter) if part.content
+		          end
+		          @find_container = old_container
+		          if out 
+		            out
+		          else
+		            part if filter.call(part)
+		          end
+		        end
+		      rescue Exception => e  
+		        puts "ERROR DURING FIND!"
+		      end
+		    end
+		  end
+	  end
+	  	
+	  def findConnector(part, pnt, &filter)
+	    obj = part.ends.find do |e|
+	      if e.label
+	        obj = find1(e.label, pnt, &filter)
+	      end
+#	      if obj.nil? && e.other_label
+#	        obj = find1(e.other_label, pnt, &filter)
+#	      end
+	      obj
+	    end
+	    if obj.nil?
+		    from = nil
+		    part.path.each do |to|
+		      if !from.nil?
+			      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
+			      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
+			        obj = part
+			      end
+			    end
+					from = to
+		    end
+		  end
+		  puts "FindCon #{obj.to_s}" if obj
+		  obj
+	  end
+	
+	  # ----- constrain -----
 # a path is specified by a constraint system
 #   the end is connected to a position on the part (h,w) 
 #       where (h==0 || h==1) || (w==0 || w==1)
+#   these define the "side" of the connection
+
+	  # sides are labeld top=0, right=1, bottom=2, left=3  
+	  def getSide(cend)
+	    if cend.y == 0 #top
+	      0 
+	    elsif cend.x == 1 #right
+	      1 
+	    elsif cend.y == 1 #bottom
+	      2 
+	    elsif cend.x == 0 #left
+	      3 
+	    else
+	    	puts "NO SIDE!!!!"
+	    end
+	  end
+	
 #   the path depends on the orientation. There are three cases:
 #     opp:   a--+
 #               |
@@ -46,199 +260,6 @@ require 'core/schema/code/factory'
 #                         +------+
 #
 #  but these can be in any orientation.
-#  Within each case there are some subcases
-
-module Diagram
-
-	class DiagramFrame
-	  def initialize(win, canvas, context, title = 'Diagram')
-      @win = win
-      @canvas = canvas
-      @context = context
-	    # super(title)
-
-	    @menu_id = 0
-	    @selection = nil
-	    @mouse_down = false
-	    @DIST = 4
-	    @cs = Constraints::ConstraintSystem.new
-	    @factory = Factory.new(Load::load('diagram.schema'))
-	    @select_color = @factory.Color(0, 255, 0)
-	  end
-	  
-	  attr_accessor :listener
-	  attr_accessor :factory
-	  
-	  def on_open
-	    dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;")
-	    if dialog.show_modal() == ID_OK
-	      path = dialog.get_path
-	      extension = File.extname(path)
-	      raise "File is not a diagram" if extension != "diagram"
-	      content = Load(dialog.get_path())
-	      set_root(content)
-	    end
-	  end
-	  
-	  def set_root(root)
-	    @canvas.onmousedown_ = on_mouse_down
-	    @canvas.onmousemove_ = on_move
-	    @canvas.onmouseup_ = on_mouse_up
-	   # @canvas.ondblclick_ = on_double_click
-	    
-	    # evt_paint :paint
-	    # evt_right_down :on_right_down
-	
-	    #puts "ROOT #{root.class}"
-	    root.finalize
-	    #Print.print(root)
-	    @root = root
-	    @positions = {}
-	    clear_refresh
-	  end
-	
-	  def clear_refresh	    
-      @context.fillStyle_ = "white"
-			@context.fillRect(0, 0, 1000, 1000)
-      @context.fillStyle_ = "black"
-      @context.lineStyle_ = "red"
-      @context.font_ = "14pt sans-serif"
-	    paint()
-	  end      
-	  
-	  # ------- event handling -------  
-	
-	  def on_mouse_down
-	    Proc.new { |e|
-			  pnt = @factory.Point(e.pageX_, e.pageY_)
-		    puts "DOWN #{pnt.x} #{pnt.y}"
-		    @mouse_down = true
-		    if @selection
-		      subselect = @selection.do_mouse_down(pnt)
-		      if subselect == :cancel
-		        @selection = nil
-		        # return
-		      end
-		      if subselect
-		        @selection = subselect
-		        # return
-		      end
-		    end
-		    select = find_in_ui(pnt) do |x|
-		      #find something contained in a graph, which is dragable
-		      val = @find_container && @find_container.Container? && @find_container.direction == 3 
-		      #puts "#{x} => #{val}"
-		      val
-		    end
-		    #puts "FIND #{select}"
-		    set_selection(select, pnt)
-		  }
-	  end
-	  
-	  def on_mouse_up
-	    Proc.new { |e|
-	      puts "MOUSE UP"
-		    @mouse_down = false
-		  }
-	  end
-	
-	  def on_move
-	    Proc.new { |e|
-			  pnt = @factory.Point(e.pageX_, e.pageY_)
-	      #puts "MOUSE move #{pnt.x}, #{pnt.y}"
-		    @selection.do_move(pnt, @mouse_down) if @selection
-	  	}
-	  end
-	
-	  def on_key
-	  	Proc.new { |e|
-	  	}
-	  end
-	
-	  # ------- selections -------      
-	  def clear_selection
-	   if @selection
-		    @selection = @selection.clear
-		  end
-	  end
-	    
-	  def set_selection(select, pnt)
-	    clear_selection
-	    if select
-	      if select.Connector?
-	        @selection = ConnectorSelection.new(self, select)
-	      else
-	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x, pnt.y))
-	      end
-	    end
-	  end
-	  
-	  # ---- finding ------
-	  def find_in_ui(pnt, &filter)
-	    find1(@root, pnt, &filter)
-	  end
-	  
-    def find1(part, pnt, &filter)
-	    if part.Connector?
-	      findConnector(part, pnt, &filter)
-	    else
-	      b = boundary(part)
-	      if !b.nil?
-		      #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-		      begin
-		        if rect_contains(b, pnt)
-		          old_container = @find_container
-		          @find_container = part
-		          out = nil
-		          if part.Container?
-		            out = part.items.find do |sub|
-		              find1(sub, pnt, &filter)
-		            end
-		            out = part if !out && filter.call(part)
-		          elsif part.Shape?
-		            out = find1(part.content, pnt, &filter) if part.content
-		          end
-		          @find_container = old_container
-		          if out 
-		            out
-		          else
-		            part if filter.call(part)
-		          end
-		        end
-		      rescue Exception => e  
-		        puts "ERROR DURING FIND!"
-		      end
-		    end
-		  end
-	  end
-	  	
-	  def findConnector(part, pnt, &filter)
-	    obj = part.ends.find do |e|
-	      if e.label
-	        obj = find1(e.label, pnt, &filter)
-	      end
-	      if obj.nil? && e.other_label
-	        obj = find1(e.other_label, pnt, &filter)
-	      end
-	      obj
-	    end
-	    if obj.nil?
-		    from = nil
-		    puts "FindCon #{part.path.size}"
-		    part.path.each do |to|
-		      if !from.nil?
-			      #puts "  LINE (#{from.x},#{from.y}) (#{to.x},#{to.y}) with (#{pnt.x},#{pnt.y})"
-			      if between(from.x, pnt.x, to.x) && between(from.y, pnt.y, to.y) && dist_line(pnt, from, to) <= @DIST
-			        obj = part
-			      end
-			    end
-					from = to
-		    end
-		  end
-		  obj
-	  end
-	
-	  # ----- constrain -----
 	  
 	  def do_constraints
 	    constrain(@root, @cs.value(0), @cs.value(0)) 
@@ -283,6 +304,7 @@ module Diagram
 		        height.max(h)
 		      when 3 then #graph
 		        # compute the default positions!!
+		        
 		        pos = pos.add(w)
 		        otherpos = otherpos.add(h)
 		        x = basex.add(pos)
@@ -339,10 +361,9 @@ module Diagram
 	  def constrainConnector(part)
 	    part.ends.each do |ce|
 	      to = @positions[ce.to]
-	      #x = ( to.x.add(to.w.mul(ce.attach.dynamic_update.x )))
-	      #y = ( to.y.add(to.h.mul(ce.attach.dynamic_update.y )))
-	      x = ( to.x.add(to.w.mul(ce.attach.x )))
-	      y = ( to.y.add(to.h.mul(ce.attach.y )))
+	      dynamic = ce.attach.dynamic_update
+	      x = to.x.add(to.w.mul(dynamic.x))
+	      y = to.y.add(to.h.mul(dynamic.y))
 	      @positions[ce] = EnsoPoint.new(x, y)
 	      constrainConnectorEnd(ce, x, y)
 	    end
@@ -350,16 +371,24 @@ module Diagram
 	  
 	  def constrainConnectorEnd(e, x, y)
 	    constrain(e.label, x, y) if e.label
-	    constrain(e.other_label, x, y) if e.other_label
+	    #constrain(e.other_label, x, y) if e.other_label
 	  end
 	  
 	  def boundary(shape)
-	    r = @positions[shape]
+	    @positions[shape]
+	  end
+
+	  def boundary_fixed(shape)
+	    r = boundary(shape)
 	    EnsoRect.new(r.x.value, r.y.value, r.w.value, r.h.value) if !r.nil?
 	  end
 	
 	  def position(shape)
-	    p = @positions[shape]
+	    @positions[shape]
+	  end
+	  
+	  def position_fixed(shape)
+	    p = position(shape)
 	    EnsoPoint.new(p.x.value, p.y.value) if !p.nil?
 	  end
 	  
@@ -380,15 +409,14 @@ module Diagram
 		def dist_line(p0, p1, p2)
 		  num = (p2.x - p1.x) * (p1.y - p0.y) - (p1.x - p0.x) * (p2.y - p1.y)
 		  den = (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2
-		  num.abs / Math.sqrt(den)
+		  num.abs() / Math.sqrt(den)
 		end
 	  # ----- drawing --------    
 	  
 	  def paint()
       do_constraints() if @positions.size == 0
-      # win.getBounds()
       draw(@root)
-	    # @selection.paint(dc) if @selection
+	    @selection.do_paint() if @selection
 	  end
 	  
 	  def draw(part)
@@ -400,7 +428,7 @@ module Diagram
 	
 	  def drawContainer(part)
 	    if part.direction == 3
-		    r = boundary(part)
+		    r = boundary_fixed(part)
 		    @context.strokeRect(r.x, r.y, r.w, r.h)
 		  end
       len = part.items.size - 1
@@ -411,7 +439,7 @@ module Diagram
 	  end  
 	  
 	  def drawShape(shape)
-	    r = boundary(shape)
+	    r = boundary_fixed(shape)
 	    margin = @context.lineWidth_
 	    m2 = margin - (margin % 2)
 	    case shape.kind
@@ -437,19 +465,27 @@ module Diagram
 	  def drawConnector(part)
 	    e0 = part.ends[0]
 	    e1 = part.ends[1]
-	    pFrom = position(e0)
-	    pTo = position(e1)
+	    rFrom = boundary_fixed(e0.to)
+	    rTo = boundary_fixed(e1.to)
+	
+		  pFrom = EnsoPoint.new(rFrom.x + e0.attach.x * rFrom.w, rFrom.y + e0.attach.y * rFrom.h)
+		  pTo = EnsoPoint.new(rTo.x + e1.attach.x * rTo.w, rTo.y + e1.attach.y * rTo.h)
 	
 	    sideFrom = getSide(e0.attach)
 	    sideTo = getSide(e1.attach)
+			# to and from are different	    
 	    if sideFrom == sideTo   # this it the "same" case
 	      ps = simpleSameSide(pFrom, pTo, sideFrom)
 	    elsif (sideFrom - sideTo).abs % 2 == 0  # this is the "opposite" case
-	      ps = simpleOppositeSide(pFrom, pTo, sideFrom)
+		    ps = simpleOppositeSide(pFrom, pTo, sideFrom)
 	    else  # this is the "orthogonal" case
-	      ps = simpleOrthogonalSide(pFrom, pTo, sideFrom)
+	      if e0.to == e1.to
+	        ps = sameObjectCorner(pFrom, pTo, sideFrom)
+	      else
+		      ps = simpleOrthogonalSide(pFrom, pTo, sideFrom)
+		    end
 	    end
-	    
+				    
 	    ps.unshift(pFrom)
 	    ps << pTo
 	
@@ -462,53 +498,52 @@ module Diagram
 	    }
 	    @context.stroke
 	
-	    drawEnd part.ends[0]
-	    drawEnd part.ends[1]
+	    drawEnd e0
+	    drawEnd e1
 	  end
 	
 	  def drawEnd(cend)
 	    side = getSide(cend.attach)
 	
 	    # draw the labels
-	    r = boundary(cend.label) || boundary(cend.other_label)
+	    rFrom = boundary_fixed(cend.to)
+		  r = EnsoPoint.new(rFrom.x + cend.attach.x * rFrom.w, rFrom.y + cend.attach.y * rFrom.h)
 	    if r
 		    case side
 		    when 0 # UP
 		      angle = 90
-		      offset = EnsoPoint.new(-r.h, 0)
-		    when 1 #RIGHT
+		      align = 'left'
+		    when 1 # RIGHT
 		    	angle = 0
-		      offset = EnsoPoint.new(0, -r.h)
+		      align = 'left'
 		    when 2 # DOWN
 		      angle = -90
-		      offset = EnsoPoint.new(r.h, 0)
+		      align = 'left'
 		    when 3 # LEFT
 		    	angle = 0
-		      r.y = r.y - r.h
-		      r.x = r.x - r.w
-		      offset = EnsoPoint.new(0, r.h)
+		    	align = 'right'
 		    end
-		    lineHeight = 12
+		    lineHeight = 10
 		    with_styles(cend.label) do 
 		      @context.save
 		      @context.translate(r.x, r.y)
 					@context.rotate(-Math.PI_ * angle / 180)
 					
-					@context.textAlign_ = 'right'
-					@context.fillText(cend.label.string, 0, lineHeight / 2)
+					@context.textAlign_ = align
+					@context.fillText(cend.label.string, 0, 0) # lineHeight / 2)
 					
 					@context.restore
 			  end
-		    with_styles(cend.other_label) do 
-		      @context.save
-		      @context.translate(r.x + offset.x, r.y + offset.y)
-					@context.rotate(-Math.PI_ * angle / 180)
-					
-					@context.textAlign_ = 'right'
-					@context.fillText(cend.label.string, 0, lineHeight / 2)
-					
-					@context.restore
-			  end
+#		    with_styles(cend.other_label) do 
+#		      @context.save
+#		      @context.translate(r.x + offset.x, r.y + offset.y)
+#					@context.rotate(-Math.PI_ * angle / 180)
+#					
+#					@context.textAlign_ = 'right'
+#					@context.fillText(cend.label.string, 0, lineHeight / 2)
+#					
+#					@context.restore
+#			  end
 			end
 	
 	    # draw the arrows
@@ -518,7 +553,9 @@ module Diagram
 	      @context.beginPath
 	      index = 0
 			  #puts "ARROW #{arrow}"
-	      pos = position(cend)
+	      rFrom = boundary_fixed(cend.to)	    
+		    pos = EnsoPoint.new(rFrom.x + cend.attach.x * rFrom.w, rFrom.y + cend.attach.y * rFrom.h)
+	      
 	      arrow = [ EnsoPoint.new(0,0), EnsoPoint.new(2,1), EnsoPoint.new(2,-1), EnsoPoint.new(0,0) ].each do |p|
 		      px = Math.cos(angle) * p.x - Math.sin(angle) * p.y
 					py = Math.sin(angle) * p.x + Math.cos(angle) * p.y
@@ -537,18 +574,18 @@ module Diagram
 	  end
 	
 	  def simpleSameSide(a, b, d)
-	    case d
-	    when 2 # DOWN
-	      z = [a.y + 10, b.y + 10].max
-	      [EnsoPoint.new(a.x, z), EnsoPoint.new(b.x, z)]
+	    case d # side from
 	    when 0 # UP
-	      z = [a.y - 10, b.y - 10].min
+	      z = System.min(a.y - @defaultConnectorDist, b.y - @defaultConnectorDist)
 	      [EnsoPoint.new(a.x, z), EnsoPoint.new(b.x, z)]
 	    when 1 # RIGHT
-	      z = [a.x + 10, b.x + 10].max
+	      z = System.max(a.x + @defaultConnectorDist, b.x + @defaultConnectorDist)
 	      [EnsoPoint.new(z, a.y), EnsoPoint.new(z, b.y)]
+	    when 2 # DOWN
+	      z = System.max(a.y + @defaultConnectorDist, b.y + @defaultConnectorDist)
+	      [EnsoPoint.new(a.x, z), EnsoPoint.new(b.x, z)]
 	    when 3 # LEFT
-	      z = [a.x - 10, b.x - 10].min
+	      z = System.min(a.x - @defaultConnectorDist, b.x - @defaultConnectorDist)
 	      [EnsoPoint.new(z, a.y), EnsoPoint.new(z, b.y)]
 	    end  
 	  end
@@ -568,6 +605,35 @@ module Diagram
 	    Integer((m + n) / 2)
 	  end
 	
+		def sameObjectCorner(a, b, d)
+	    case d
+	    when 0, 2  # UP, DOWN
+	      if d == 0
+		      z = a.y - @defaultConnectorDist
+		    else
+  	      z = a.y + @defaultConnectorDist
+		    end
+	      if a.x > b.x  # up and left
+	        m = b.x - @defaultConnectorDist
+		    else
+	        m = b.x + @defaultConnectorDist
+	      end
+        [EnsoPoint.new(a.x, z), EnsoPoint.new(m, z), EnsoPoint.new(m, b.y)]
+	    when 1, 3# LEFT, RIGHT
+	      if d == 1
+		      z = a.x - @defaultConnectorDist
+		    else
+  	      z = a.x + @defaultConnectorDist
+		    end
+	      if a.y > b.y  # up and left
+	        m = b.y - @defaultConnectorDist
+		    else
+	        m = b.y + @defaultConnectorDist
+	      end
+        [EnsoPoint.new(z, a.y), EnsoPoint.new(z, m), EnsoPoint.new(b.x, m)]
+			end		
+		end
+		
 	  def simpleOrthogonalSide(a, b, d)
 	    case d
 	    when 0, 2 # UP, DOWN
@@ -577,21 +643,8 @@ module Diagram
 	    end  
 	  end
 	
-	  # sides are labeld top=0, right=1, bottom=2, left=3  
-	  def getSide(cend)
-	    if cend.y == 0 #top
-	      0 
-	    elsif cend.x == 1 #right
-	      1 
-	    elsif cend.y == 1 #bottom
-	      2 
-	    elsif cend.x == 0 #left
-	      3 
-	    end
-	  end
-	
 	  def drawText(text)
-	    r = boundary(text)
+	    r = boundary_fixed(text)
 	    @context.fillText(text.string, r.x, r.y)
 	  end
 	 
@@ -614,9 +667,9 @@ module Diagram
 			        @context.fillStyle_ = makeColor(style.color)
 			      end
 			    end
-			 #   if @selection && @selection.is_selected(part)
-			 # 	  @context.set_pen(factory.Pen(@select_color))
-			 # 	end
+			    if @selection && @selection.is_selected(part)
+			  	  @context.stokeStyle_ = makeColor(@select_color)
+			   	end
 			    block.call()
 			    @context.restore
 			  else
@@ -651,7 +704,7 @@ module Diagram
 		  @diagram = diagram
 		  @part = part
 	    @down = down
-	    @move_base = @diagram.boundary(part)
+	    @move_base = @diagram.boundary_fixed(part)
 	  end
 	  
 	  def do_move(pnt, down)
@@ -665,7 +718,9 @@ module Diagram
 	    @part == check
 	  end
 	  
-	  def paint(dc)
+	  def do_paint()
+	    @diagram.context.strokeStyle_ = "#FF0000"
+	    @diagram.draw(@part)
 	  end
 	
 	  def do_mouse_down(e)
@@ -685,31 +740,30 @@ module Diagram
 	    @conn == check
 	  end
 	
-	  def paint(dc)
-	    raise "SHOULD NOT BE HERE"
-		  dc.set_brush(@diagram.factory.Brush(@diagram.factory.Color(255, 0, 0)))
-		  dc.set_pen(NULL_PEN)
+	  def do_paint()
+	    @diagram.context.fillStyle_ = @diagram.makeColor(@diagram.factory.Color(255, 0, 0))
 		  size = 8
-#		  p = @conn.path[0]
-#	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
-#		  p = @conn.path[-1]
-#	    dc.draw_rectangle(p.x.add(-size / 2), p.y.add(-size / 2), size, size)
-	#    @conn.path.each do |p|
-	#	  end
+		  p = @conn.path[0]
+	    @diagram.context.fillRect(p.x + (-size / 2), p.y + (-size / 2), size, size)
+		  p = @conn.path[-1]
+	    @diagram.context.fillRect(p.x + (-size / 2), p.y + (-size / 2), size, size)
+	    @conn.path.each do |p|
+		  end
 	  end
 	    
 	  def do_mouse_down(pnt)
 		  size = 8
 		  pnt = @diagram.factory.Point(pnt.x, pnt.y)
+
 		  p = @conn.path[0]
 	    r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
-	    if rect_contains(r, pnt)
-	      PointSelection.new(@diagram, @conn.ends[0], self, p)
+	    if @diagram.rect_contains(r, pnt)
+	      PointSelection.new(@diagram, @conn.ends[0], self)
 	    else
 			  p = @conn.path[-1]
 		    r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
-		    if rect_contains(r, pnt)
-		      PointSelection.new(@diagram, @conn.ends[1], self, p)
+		    if @diagram.rect_contains(r, pnt)
+		      PointSelection.new(@diagram, @conn.ends[1], self)
 		    end
 		  end
 	  end
@@ -722,22 +776,21 @@ module Diagram
 	end
 	
 	class PointSelection
-		def initialize(diagram, ce, selection, pnt)
+		def initialize(diagram, ce, selection)
 		  @diagram = diagram
 		  @ce = ce
 		  @selection = selection
-		  @pnt = pnt
 	  end
 	  
 	  def is_selected(check)
 	    @ce == check
 	  end
 	
-	  def paint(dc)
-		  dc.set_brush(@diagram.factory.Brush(@diagram.factory.Color(0, 0, 255)))
-		  dc.set_pen(NULL_PEN)
+	  def do_paint()
+		  @diagram.context.fillStyle_ = @diagram.makeColor(@diagram.factory.Color(0, 0, 255))
 		  size = 8
-	    dc.draw_rectangle(@pnt.x - size / 2, @pnt.y - size / 2, size, size)
+			pos = @diagram.position_fixed(@ce)
+	    @diagram.context.fillRect(pos.x - size / 2, pos.y - size / 2, size, size)
 	  end
 	    
 	  def do_mouse_down(e)
@@ -745,19 +798,20 @@ module Diagram
 	
 	  def do_move(pnt, down)
 	    if down
-		    pos = @diagram.boundary(@ce.to)
-		    x = (pnt.x - pos.x + pos.w / 2) / (pos.w / Float(2))
-		    y = (pnt.y - pos.y + pos.h / 2) / (pos.h / Float(2))
+		    bounds = @diagram.boundary_fixed(@ce.to)
+		    x = pnt.x - (bounds.x + bounds.w / 2)
+		    y = pnt.y - (bounds.y + bounds.h / 2)
 		    if x == 0 && y == 0
 		      nil
 		    else
-			    #puts("FROM #{x} #{y}")
+			    puts("FROM #{x} #{y}")
 			    angle = Math.atan2(y, x)
 			    nx = normalize(Math.cos(angle))
 			    ny = normalize(Math.sin(angle))
 			    #puts("   EDGE #{nx} #{ny}")
 					@ce.attach.x = nx
 					@ce.attach.y = ny
+					# @diagram.set_position(@ce, bounds.x + @ce.attach.x * bounds.w, bounds.y + @ce.attach.y * bounds.h)
 			    @diagram.clear_refresh
 			    #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
 			  end
@@ -766,8 +820,8 @@ module Diagram
 	  
 	  def normalize(n)
 	    n = n * Math.sqrt(2)
-	    n = [-1, n].max
-	    n = [1, n].min
+	    n = System.max(-1, n)
+	    n = System.min(1, n)
 	    n = (n + 1) / 2
 	    n
 	  end

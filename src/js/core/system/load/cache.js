@@ -49,6 +49,15 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
            }
       return e;
     }),
+    hack_prefix: (function () {
+      var self = this;
+      if (true) { 
+        return "../"; 
+      }
+      else { 
+        return "";
+      }
+    }),
     check_file: (function (element) {
       var self = this;
       var checksum, path;
@@ -61,7 +70,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3081) {
+             catch (caught$3136) {
                
                  return false;
              }
@@ -77,12 +86,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1024) {
+      catch (caught$1147) {
         
-          if ((caught$1024 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1147 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1024); 
+            })(caught$1147); 
           }
           else { 
             ;
@@ -133,7 +142,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       puts(S("## loading cache for: ", name, " (", input, ")"));
       (json = System.readJSON(input));
       (res = Dumpjson.from_json(factory, json._get("model")));
-      res.factory().file_path()._set(0, json._get("source"));
+      res.factory().file_path()._set(0, (self.hack_prefix() + json._get("source")));
       json._get("depends").each((function (dep) {
         return res.factory().file_path().push(dep._get("filename"));
       }));
@@ -154,16 +163,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
     }),
     find_json: (function (name) {
       var self = this;
-      var cache_path, dir, index, prefix;
-      (prefix = "");
-      if (true) {
-        (prefix = "../");
-      }
+      var cache_path, dir, index;
       if (["schema.schema", "schema.grammar", "grammar.schema", "grammar.grammar"].include_P(name)) { 
-        return S("", prefix, "core/system/boot/", name.gsub(".", "_"), ".json"); 
+        return S("", self.hack_prefix(), "core/system/boot/", name.gsub(".", "_"), ".json"); 
       } 
       else {
-             (cache_path = S("", prefix, "cache/"));
+             (cache_path = S("", self.hack_prefix(), "cache/"));
              (index = name.rindex("/"));
              if ((index && (index >= 0))) {
                puts(S("SLASH ", name, " => ", index, ""));

@@ -95,7 +95,6 @@ module Stencil
 			@shapeToModel[shape]
 		end
 
-
 	  def setup_menus()
 	    super("FOO")
 	    file = self.menu_bar.get_menu( self.menu_bar.find_menu("File") )
@@ -132,7 +131,7 @@ module Stencil
 	    @position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
 	
 	    obj_handler = Proc.new { |tag, obj, shape|
-	      @position_map[tag] = position(shape)
+	      @position_map[tag] = position_fixed(shape)
 	    }
 	    connector_handler = Proc.new { |tag, at1, at2|
 	      @position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
@@ -262,7 +261,7 @@ module Stencil
 #	    			shape.string = name
 #	    	  end
 #	      end
-#		    r = boundary(shape)
+#		    r = boundary_fixed(shape)
 #	      popup_menu(pop, r.x, r.y)
 #		  end
 #	  end
@@ -315,7 +314,7 @@ module Stencil
 	    newEnv = env.clone
 	    stencil.props.each do |prop|
 	      val = eval(prop.exp, newEnv) # , true)
-	      puts "SET #{prop.loc} = #{val}"
+	      #puts "SET #{prop.loc} = #{val}"
 	      case Renderexp.render(prop.loc)
 	      when "font.size" then
 	        #puts "FONT SIZE #{val}"
@@ -342,47 +341,47 @@ module Stencil
 	    shape.styles << (brush || env[:brush])
 	  end
 	
-	  def constructAlt(this, env, container, proc)
-	    this.alts.find do |alt|
+	  def constructAlt(obj, env, container, proc)
+	    obj.alts.find do |alt|
 	      construct(alt, env, container, proc)
 	    end
 	  end
 	
-	  def constructEAssign(this, env, container, proc)
+	  def constructEAssign(obj, env, container, proc)
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
 	      #FIXME: handle Fields as well, by using the address field from eval
-	    lvalue(this.var, nenv).value = eval(this.val, nenv)
-	    construct this.body, nenv, container, proc
+	    lvalue(obj.var, nenv).value = eval(obj.val, nenv)
+	    construct obj.body, nenv, container, proc
 	  end
 	
-	  def constructEImport(this, env, container, proc)
-	    #@fundefs.instance_eval(File.open(this.path, "r").read)
+	  def constructEImport(obj, env, container, proc)
+	    #@fundefs.instance_eval(File.open(obj.path, "r").read)
 	    #@fundefs.singleton_methods.each do |m|
 	    # env["#{m}"] = @fundefs.method(m)
 	    #end
 	  end
 	
-	  def constructEFor(this, env, container, proc)
-	    source = eval(this.list, env)
-	    # address = lvalue(this.list, env)
+	  def constructEFor(obj, env, container, proc)
+	    source = eval(obj.list, env)
+	    # address = lvalue(obj.list, env)
 	
 	    is_traversal = false
-	    if this.list.EField?
-	      lhs = eval(this.list.e, env)
-	      f = lhs.schema_class.all_fields[this.list.fname]
-	      raise "MISSING #{this.list.fname} on #{lhs.schema_class}" if !f
+	    if obj.list.EField?
+	      lhs = eval(obj.list.e, env)
+	      f = lhs.schema_class.all_fields[obj.list.fname]
+	      raise "MISSING #{obj.list.fname} on #{lhs.schema_class}" if !f
 	      is_traversal = f.traversal
 	    end
 	
 	    nenv = env.clone
 	    source.each_with_index do |v, i|
-	      nenv[this.var] = v
-	      nenv[this.index] = i if this.index
-	      construct(this.body, nenv, container, Proc.new { |shape|
-	        if this.label
+	      nenv[obj.var] = v
+	      nenv[obj.index] = i if obj.index
+	      construct(obj.body, nenv, container, Proc.new { |shape|
+	        if obj.label
 	          action = is_traversal ? "Delete" : "Remove"
-		        add_action(shape, "#{action} #{this.label}") do
+		        add_action(shape, "#{action} #{obj.label}") do
 		          if is_traversal
 	  	          v.delete!
 	  	        else
@@ -393,15 +392,15 @@ module Stencil
 	     		proc.call shape
 	      })
 	    end
-	    if this.label
+	    if obj.label
 	      action = is_traversal ? "Create" : "Add"
 	      begin
 		      shape = @tagModelToShape[addr.object.name]
 		    rescue
 		    end
 		    shape = container if !shape
-		    #puts "#{action} #{this.label} #{address.object}.#{address.field} #{shape}"
-		    add_action(shape, "#{action} #{this.label}") do
+		    #puts "#{action} #{obj.label} #{address.object}.#{address.field} #{shape}"
+		    add_action(shape, "#{action} #{obj.label}") do
 		      if !is_traversal
 		      	# just add a reference!
 		      	#puts "ADD #{action}: #{address.field}"
@@ -466,24 +465,24 @@ module Stencil
 	    end
 		end
 	
-	  def constructEIf(this, env, container, proc)
-	    test = eval(this.cond, env)
+	  def constructEIf(obj, env, container, proc)
+	    test = eval(obj.cond, env)
 	    if test
-	      construct(this.body, env, container, proc)
-	    elsif !this.body2.nil?
-	      construct(this.body2, env, container, proc)
+	      construct(obj.body, env, container, proc)
+	    elsif !obj.body2.nil?
+	      construct(obj.body2, env, container, proc)
 	    end
 	  end
 	
-	  def constructEBlock(this, env, container, proc)
-	    this.body.each do |command|
+	  def constructEBlock(obj, env, container, proc)
+	    obj.body.each do |command|
 	      construct(command, env, container, proc)
 	    end
 	  end
 	
-	  def constructLabel(this, env, container, proc)
-	    construct this.body, env, container, Proc.new { |shape|
-	      info = evallabel(this.label, env)
+	  def constructLabel(obj, env, container, proc)
+	    construct obj.body, env, container, Proc.new { |shape|
+	      info = evallabel(obj.label, env)
 	      tag = info[0] 
 	      obj = info[1]
 	      #puts "LABEL #{obj} => #{shape}"
@@ -507,27 +506,27 @@ module Stencil
 	  end
 	  
 	  # shapes
-	  def constructContainer(this, env, container, proc)
-	    if this.direction == 4
-	      this.items.each do |item|
+	  def constructContainer(obj, env, container, proc)
+	    if obj.direction == 4
+	      obj.items.each do |item|
 	        construct item, env, container, proc
 	      end
 	    else
 	      group = @factory.Container
-	      group.direction = this.direction
-	      this.items.each do |item|
+	      group.direction = obj.direction
+	      obj.items.each do |item|
 	        construct item, env, group, Proc.new { |x|
 	          group.items << x
 	        }
 	      end
-	      make_styles(this, group, env)
+	      make_styles(obj, group, env)
 	      proc.call group if proc
 	    end
 	  end
 	  
-	  def constructText(this, env, container, proc)
-	    val = eval(this.string, env) # , true)
-	    addr = nil # lvalue(this.string, env)
+	  def constructText(obj, env, container, proc)
+	    val = eval(obj.string, env) # , true)
+	    addr = nil # lvalue(obj.string, env)
 	    text = @factory.Text
 #	    if val.is_a? Variable
 #	      text.string = val.new_var_method do |a, *other|
@@ -536,22 +535,22 @@ module Stencil
 #	    else
 	      text.string = val.to_s
 #	    end
-	    text.editable = this.editable
-	    make_styles(this, text, env)
+	    text.editable = obj.editable
+	    make_styles(obj, text, env)
 	    if addr
 		    @shapeToAddress[text] = addr
 		  end
 	    proc.call text
 	  end
 	  
-	  def constructShape(this, env, container, proc)
+	  def constructShape(obj, env, container, proc)
 	    shape = @factory.Shape # not many!!!
-	    shape.kind = this.kind
-	    construct this.content, env, shape, Proc.new { |x|
+	    shape.kind = obj.kind
+	    construct obj.content, env, shape, Proc.new { |x|
 	      error "Shape can only have one element" if shape.content
 	      shape.content = x
 	    }
-	    make_styles(this, shape, env)
+	    make_styles(obj, shape, env)
 	    proc.call shape
 	  end
 	
@@ -565,20 +564,24 @@ module Stencil
 	    end
 	  end
 	  
-	  def constructConnector(this, env, container, proc)
+	  def constructConnector(obj, env, container, proc)
 	    conn = @factory.Connector
 	    @connectors << conn
-	    ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
+	    if obj.ends[0].label == obj.ends[1].label
+		    ptemp = [ @factory.EdgePos(1, 0.5), @factory.EdgePos(1, 0.75) ]
+	    else
+		    ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
+		  end
 	    i = 0
-	    this.ends.each do |e|
+	    obj.ends.each do |e|
 	      label = e.label.nil? ? nil : makeLabel(e.label, env)
 	      other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
 	      de = @factory.ConnectorEnd(e.arrow, label, other_label)
 	      info = evallabel(e.part, env)
 	      tag = info[0]
-	      obj = info[1]
-	      x = @tagModelToShape[[tag, obj]]
-	      fail("Shape #{[tag, obj]} does not exist in #{@tagModelToShape}") if x.nil?
+	      tagged_obj = info[1]
+	      x = @tagModelToShape[[tag, tagged_obj]]
+	      fail("Shape #{[tag, tagged_obj]} does not exist in #{@tagModelToShape}") if x.nil?
 	      de.to = x
 	      de.attach = ptemp[i]
 	      i = i + 1
@@ -588,7 +591,7 @@ module Stencil
 	    end
 	    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
 	    
-	    make_styles(this, conn, env)
+	    make_styles(obj, conn, env)
 	    proc.call conn
 	  end
 	
@@ -610,7 +613,7 @@ module Stencil
 	    @address = address
 	    @diagram = diagram  
 	    @edit_selection = edit
-	    r = diagram.boundary(@edit_selection)
+	    r = diagram.boundary_fixed(@edit_selection)
 	    n = 3
 	    #puts r.x, r.y, r.w, r.h
 	    extraWidth = 10

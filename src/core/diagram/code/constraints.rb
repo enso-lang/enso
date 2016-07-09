@@ -15,14 +15,6 @@ module Constraints
 	  def value(n)
 	    var("(#{n})", n)
 	  end
-	  
-#	  def [](name)
-#	    var = @vars[name]  
-#	    var = @vars[name] = self.var if !var
-#	    var
-#	  end
-
-
 	end
 	
 	class Constant
@@ -127,10 +119,6 @@ module Constraints
 	    var
 	  end
 	
-	  def eql?(x)
-	    method_missing(:eql?, x)
-	  end
-	  	  
 	  def define_result(m, *args)
 	    raise "undefined method #{m}" unless [:add, :sub, :mul, :div, :round, :to_int].include?(m) 
 	    var = Variable.new("p#{self.to_s}#{args.to_s}")
@@ -163,7 +151,7 @@ module Constraints
 	    @vars = vars.map do |v|
 	      if v.nil?
 			    raise "Unbound variable #{v.toString}"
-	      elsif v.is_a?(Constant) # or Variable
+	      elsif v.is_a?(Constant) || v.is_a?(Variable)
 	        v
 	      else
 	        Constant.new(v)
@@ -226,8 +214,5 @@ module Constraints
 	    #puts "EVAL #{@name}=#{@value}"
 	    @value
 	  end
-	  
-	  
 	end
-	  
 end

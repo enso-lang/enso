@@ -283,7 +283,7 @@ define(["core/schema/code/factory", "core/schema/tools/union", "enso"], (functio
       var json, result;
       (json = System.readJSON(path));
       (result = self.load(json._get("model")));
-      result.factory().file_path()._set(0, json._get("source"));
+      result.factory().file_path()._set(0, "../" + json._get("source"));
       return result;
     })
   });

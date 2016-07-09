@@ -128,7 +128,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         y: self.$.win.height
       })));
       (obj_handler = Proc.new((function (tag, obj, shape) {
-        return self.$.position_map._set(tag, self.position(shape));
+        return self.$.position_map._set(tag, self.position_fixed(shape));
       })));
       (connector_handler = Proc.new((function (tag, at1, at2) {
         return self.$.position_map._set(tag, [self.EnsoPoint().new(at1.x(), at1.y()), self.EnsoPoint().new(at2.x(), at2.y())]);
@@ -150,7 +150,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              return obj_handler(tag, obj, shape);
              
         }
-        catch (caught$4111) {
+        catch (caught$4116) {
           
         }
       }));
@@ -174,7 +174,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              return connector_handler(tag, ce1.attach(), ce2.attach());
              
         }
-        catch (caught$4480) {
+        catch (caught$4485) {
           
         }
       }));
@@ -273,7 +273,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       stencil.props().each((function (prop) {
         var val;
         (val = self.eval(prop.exp(), newEnv));
-        puts(S("SET ", prop.loc(), " = ", val, ""));
         switch ((function () {
           return Renderexp.render(prop.loc());
         })()) {
@@ -309,44 +308,44 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       shape.styles().push((pen || env._get("pen")));
       return shape.styles().push((brush || env._get("brush")));
     }));
-    (this.constructAlt = (function (this_V, env, container, proc) {
+    (this.constructAlt = (function (obj, env, container, proc) {
       var self = this;
-      return this_V.alts().find((function (alt) {
+      return obj.alts().find((function (alt) {
         return self.construct(alt, env, container, proc);
       }));
     }));
-    (this.constructEAssign = (function (this_V, env, container, proc) {
+    (this.constructEAssign = (function (obj, env, container, proc) {
       var self = this;
       var nenv;
       (nenv = env.clone());
-      self.lvalue(this_V.var(), nenv).set_value(self.eval(this_V.val(), nenv));
-      return self.construct(this_V.body(), nenv, container, proc);
+      self.lvalue(obj.var(), nenv).set_value(self.eval(obj.val(), nenv));
+      return self.construct(obj.body(), nenv, container, proc);
     }));
-    (this.constructEImport = (function (this_V, env, container, proc) {
+    (this.constructEImport = (function (obj, env, container, proc) {
       var self = this;
     }));
-    (this.constructEFor = (function (this_V, env, container, proc) {
+    (this.constructEFor = (function (obj, env, container, proc) {
       var self = this;
       var shape, f, is_traversal, action, lhs, source, nenv;
-      (source = self.eval(this_V.list(), env));
+      (source = self.eval(obj.list(), env));
       (is_traversal = false);
-      if (this_V.list().EField_P()) {
-        (lhs = self.eval(this_V.list().e(), env));
-        (f = lhs.schema_class().all_fields()._get(this_V.list().fname()));
+      if (obj.list().EField_P()) {
+        (lhs = self.eval(obj.list().e(), env));
+        (f = lhs.schema_class().all_fields()._get(obj.list().fname()));
         if ((!f)) {
-          self.raise(S("MISSING ", this_V.list().fname(), " on ", lhs.schema_class(), ""));
+          self.raise(S("MISSING ", obj.list().fname(), " on ", lhs.schema_class(), ""));
         }
         (is_traversal = f.traversal());
       }
       (nenv = env.clone());
       source.each_with_index((function (v, i) {
-        nenv._set(this_V.var(), v);
-        if (this_V.index()) {
-          nenv._set(this_V.index(), i);
+        nenv._set(obj.var(), v);
+        if (obj.index()) {
+          nenv._set(obj.index(), i);
         }
-        return self.construct(this_V.body(), nenv, container, Proc.new((function (shape) {
+        return self.construct(obj.body(), nenv, container, Proc.new((function (shape) {
           var action;
-          if (this_V.label()) {
+          if (obj.label()) {
             (action = (is_traversal ? "Delete" : "Remove"));
             self.add_action((function () {
               if (is_traversal) { 
@@ -355,24 +354,24 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
               else { 
                 return self.addr().set_value(null);
               }
-            }), shape, S("", action, " ", this_V.label(), ""));
+            }), shape, S("", action, " ", obj.label(), ""));
           }
           return proc(shape);
         })));
       }));
-      if (this_V.label()) {
+      if (obj.label()) {
         (action = (is_traversal ? "Create" : "Add"));
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$11245) {
+        catch (caught$11235) {
           
         }
         if ((!shape)) {
           (shape = container);
         }
         return self.add_action((function () {
-          var factory, obj;
+          var factory;
           if ((!is_traversal)) { 
             return (self.$.selection = FindByTypeSelection.new(self, self.address().type((function (x) {
               return self.address().value().push(x);
@@ -395,7 +394,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                  }));
                  return self.address().value().push(obj);
                }
-        }), shape, S("", action, " ", this_V.label(), ""));
+        }), shape, S("", action, " ", obj.label(), ""));
       }
     }));
     (this.find_default_object = (function (scan, type) {
@@ -426,32 +425,32 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         }));
       }
     }));
-    (this.constructEIf = (function (this_V, env, container, proc) {
+    (this.constructEIf = (function (obj, env, container, proc) {
       var self = this;
       var test;
-      (test = self.eval(this_V.cond(), env));
+      (test = self.eval(obj.cond(), env));
       if (test) { 
-        return self.construct(this_V.body(), env, container, proc); 
+        return self.construct(obj.body(), env, container, proc); 
       }
       else { 
-        if ((!(this_V.body2() == null))) { 
-          return self.construct(this_V.body2(), env, container, proc); 
+        if ((!(obj.body2() == null))) { 
+          return self.construct(obj.body2(), env, container, proc); 
         } 
         else {
              }
       }
     }));
-    (this.constructEBlock = (function (this_V, env, container, proc) {
+    (this.constructEBlock = (function (obj, env, container, proc) {
       var self = this;
-      return this_V.body().each((function (command) {
+      return obj.body().each((function (command) {
         return self.construct(command, env, container, proc);
       }));
     }));
-    (this.constructLabel = (function (this_V, env, container, proc) {
+    (this.constructLabel = (function (obj, env, container, proc) {
       var self = this;
-      return self.construct(this_V.body(), env, container, Proc.new((function (shape) {
-        var info, obj, tag;
-        (info = self.evallabel(this_V.label(), env));
+      return self.construct(obj.body(), env, container, Proc.new((function (shape) {
+        var info, tag;
+        (info = self.evallabel(obj.label(), env));
         (tag = info._get(0));
         (obj = info._get(1));
         self.$.tagModelToShape._set([tag, obj], shape);
@@ -475,54 +474,54 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (obj = self.eval(label, env));
       return [tag, obj];
     }));
-    (this.constructContainer = (function (this_V, env, container, proc) {
+    (this.constructContainer = (function (obj, env, container, proc) {
       var self = this;
       var group;
-      if ((this_V.direction() == 4)) { 
-        return this_V.items().each((function (item) {
+      if ((obj.direction() == 4)) { 
+        return obj.items().each((function (item) {
           return self.construct(item, env, container, proc);
         })); 
       } 
       else {
              (group = self.$.factory.Container());
-             group.set_direction(this_V.direction());
-             this_V.items().each((function (item) {
+             group.set_direction(obj.direction());
+             obj.items().each((function (item) {
                return self.construct(item, env, group, Proc.new((function (x) {
                  return group.items().push(x);
                })));
              }));
-             self.make_styles(this_V, group, env);
+             self.make_styles(obj, group, env);
              if (proc) {
                return proc(group);
              }
            }
     }));
-    (this.constructText = (function (this_V, env, container, proc) {
+    (this.constructText = (function (obj, env, container, proc) {
       var self = this;
       var val, text, addr;
-      (val = self.eval(this_V.string(), env));
+      (val = self.eval(obj.string(), env));
       (addr = null);
       (text = self.$.factory.Text());
       text.set_string(val.to_s());
-      text.set_editable(this_V.editable());
-      self.make_styles(this_V, text, env);
+      text.set_editable(obj.editable());
+      self.make_styles(obj, text, env);
       if (addr) {
         self.$.shapeToAddress._set(text, addr);
       }
       return proc(text);
     }));
-    (this.constructShape = (function (this_V, env, container, proc) {
+    (this.constructShape = (function (obj, env, container, proc) {
       var self = this;
       var shape;
       (shape = self.$.factory.Shape());
-      shape.set_kind(this_V.kind());
-      self.construct(this_V.content(), env, shape, Proc.new((function (x) {
+      shape.set_kind(obj.kind());
+      self.construct(obj.content(), env, shape, Proc.new((function (x) {
         if (shape.content()) {
           self.error("Shape can only have one element");
         }
         return shape.set_content(x);
       })));
-      self.make_styles(this_V, shape, env);
+      self.make_styles(obj, shape, env);
       return proc(shape);
     }));
     (this.makeLabel = (function (exp, env) {
@@ -536,31 +535,36 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         return label;
       }
     }));
-    (this.constructConnector = (function (this_V, env, container, proc) {
+    (this.constructConnector = (function (obj, env, container, proc) {
       var self = this;
       var ptemp, i, conn;
       (conn = self.$.factory.Connector());
       self.$.connectors.push(conn);
-      (ptemp = [self.$.factory.EdgePos(0.5, 1), self.$.factory.EdgePos(0.5, 0)]);
+      if ((obj.ends()._get(0).label() == obj.ends()._get(1).label())) { 
+        (ptemp = [self.$.factory.EdgePos(1, 0.5), self.$.factory.EdgePos(1, 0.75)]); 
+      }
+      else { 
+        (ptemp = [self.$.factory.EdgePos(0.5, 1), self.$.factory.EdgePos(0.5, 0)]);
+      }
       (i = 0);
-      this_V.ends().each((function (e) {
-        var de, other_label, info, label, obj, x, tag;
+      obj.ends().each((function (e) {
+        var de, tagged_obj, other_label, info, label, x, tag;
         (label = ((e.label() == null) ? null : self.makeLabel(e.label(), env)));
         (other_label = ((e.other_label() == null) ? null : self.makeLabel(e.other_label(), env)));
         (de = self.$.factory.ConnectorEnd(e.arrow(), label, other_label));
         (info = self.evallabel(e.part(), env));
         (tag = info._get(0));
-        (obj = info._get(1));
-        (x = self.$.tagModelToShape._get([tag, obj]));
+        (tagged_obj = info._get(1));
+        (x = self.$.tagModelToShape._get([tag, tagged_obj]));
         if ((x == null)) {
-          self.fail(S("Shape ", [tag, obj], " does not exist in ", self.$.tagModelToShape, ""));
+          self.fail(S("Shape ", [tag, tagged_obj], " does not exist in ", self.$.tagModelToShape, ""));
         }
         de.set_to(x);
         de.set_attach(ptemp._get(i));
         (i = (i + 1));
         return conn.ends().push(de);
       }));
-      self.make_styles(this_V, conn, env);
+      self.make_styles(obj, conn, env);
       return proc(conn);
     }));
     (this.eval = (function (exp, env) {
@@ -585,7 +589,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.address = address);
       (self.$.diagram = diagram);
       (self.$.edit_selection = edit);
-      (r = diagram.boundary(self.$.edit_selection));
+      (r = diagram.boundary_fixed(self.$.edit_selection));
       (n = 3);
       (extraWidth = 10);
       (self.$.edit_control = self.TextCtrl().new(diagram, 0, "", (r.x() - n), (r.y() - n), ((r.w() + (2 * n)) + extraWidth), (r.h() + (2 * n)), 0));
