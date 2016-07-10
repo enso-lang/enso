@@ -82,7 +82,7 @@ module Dumpjson
       @factory = factory
     end
     
-    def parse(this)
+    def decode(this)
       @fixups = []
       res = from_json(this)
       @fixups.each do |fix|
@@ -128,16 +128,8 @@ module Dumpjson
     end
   end
   
-  def self.from_json(factory, this)
-    FromJSON.new(factory).parse(this)
-  end
-  
-  def self.to_json_string(this)
-    JSON.pretty_generate(to_json(this, true))
-  end
-
-  def self.from_json_string(str)
-    from_json(JSON.parse(str))
+  def self.from_json(factory, text)
+    FromJSON.new(factory).decode(text)
   end
 
 end

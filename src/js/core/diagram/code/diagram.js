@@ -129,10 +129,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.clear_selection = (function () {
       var self = this;
-      if (self.$.selection) { 
-        return (self.$.selection = self.$.selection.clear()); 
+      if (self.$.selection) {
+        (self.$.selection = self.$.selection.clear());
+        return self.clear_refresh();
       }
-      else { 
+      else {
         return (self.$.selection = null);
       }
     }));
@@ -195,12 +196,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$3666) {
+               catch (caught$3691) {
                  
-                   if ((caught$3666 instanceof Exception)) { 
+                   if ((caught$3691 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$3666); 
+                     })(caught$3691); 
                    }
                    else { 
                      ;
@@ -436,6 +437,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       if ((self.$.positions.size() == 0)) {
         self.do_constraints();
       }
+      (self.$.context.textBaseline = "top");
       self.draw(self.$.root);
       if (self.$.selection) {
         return self.$.selection.do_paint();
@@ -443,7 +445,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.draw = (function (part) {
       var self = this;
-      (self.$.context.textBaseline = "top");
       return self.with_styles((function () {
         return self.send(("draw" + part.schema_class().name()).to_sym(), part);
       }), part);

@@ -1,15 +1,6 @@
-// what are the position/size operators
-// x/y: fixed | computed
-// height/width: 
-    // fixed: "300"
-    // variable: "x"
-    
-// every part has a container and an actual location
-//      minComputedWidth < wCONSTRAINT < actual.w
-//      minSpecWidth < wCONSTRAINT < actual.w
+// A data model for graphical diagrams.
 
 class Part 
-  constraints: SizeConstraints?
   styles! Style*
   location: Point?  // only used for graph shapes
   
@@ -90,13 +81,6 @@ class Rect < Point
   w: int
   h: int
 
-class SizeConstraints
-  width: Constraint
-  height: Constraint
-
-class Constraint
-  min: int?
-  var: str?
 
 primitive real
 primitive int

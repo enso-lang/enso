@@ -9,15 +9,10 @@ require 'core/schema/tools/print'
 require 'core/system/load/load'
 require 'core/grammar/render/layout'
 require 'core/system/library/schema'
-# require 'core/diagram/code/construct'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
-# require 'core/expr/code/env'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/renderexp'
-#require 'core/system/utils/paths'
-
-# require 'core/expr/code/render'
 
 module Stencil
 	
@@ -53,15 +48,21 @@ module Stencil
 	    end
 	    @data = data
 	    build_diagram
+
 	    if data.factory.file_path[0]
 	      pos = "#{data.factory.file_path[0]}-positions"
 	      puts "FINDING #{pos}"
 	      @position_map = {}
 	      if File.exists?(pos)
 	        @position_map = System.readJSON(pos)
-	        @position_map.each { |key, val|
-						puts("LOC #{key}=#{val}")	          
-	        }
+	      # @position_map.each { |key, val|
+				#		puts("LOC #{key}=#{val}")	          
+	      #  }
+				  set_positions()
+		#	    if !@position_map['*WINDOW*'].nil?
+		#	      size = @position_map['*WINDOW*']
+		#	      # set_size(size['x'], size['y'])
+		#     end
 	      end
 	    end
 	  end
@@ -80,15 +81,8 @@ module Stencil
 	    @tagModelToShape = {}
 	    @connectors = []
       construct @stencil.body, env, nil, Proc.new {|x| set_root(x)}
-	
-#	    if !@position_map['*WINDOW*'].nil?
-#	      size = @position_map['*WINDOW*']
-#	      # set_size(size['x'], size['y'])
-#	    end
-	
-#	    refresh()
+
 	    puts "DONE"
-#	    Print.print(@root)
 	  end
 		
 		def lookup_shape(shape)
@@ -113,14 +107,12 @@ module Stencil
 	  def on_save
 	    grammar = Load.load("#{@extension}.grammar")
 	    File.write("#{@path}-NEW") do |output|
-	      Layout::DisplayFormat.print(grammar, @data, output)
+	      Layout::DisplayFormat.print(grammar, @data, output, false) #false => dont slash_kwywords
 	    end
 	
 	    capture_positions    
 	    #puts @position_map
-#	    File.write("#{@path}-positions") do |output|
-        System.writeJSON("#{@path}-positions", @position_map)
-#	    end
+	    System.writeJSON("#{@path}-positions", @position_map)
 	  end
 	  
 	  def capture_positions
@@ -144,11 +136,7 @@ module Stencil
 	      label = tagObj[0]
 	      obj = tagObj[1]
 	      begin
-	        if version == 1
-	          tag = obj.name
-	        else
-	          tag = "#{label}:#{obj._path.to_s}"
-	        end
+          tag = "#{label}:#{obj._path.to_s}"
 	        obj_handler.call tag, obj, shape
 	      rescue
 	      end
@@ -159,35 +147,29 @@ module Stencil
 	      obj1 = @shapeToModel[ce1.to]
 	      obj2 = @shapeToModel[ce2.to]
 	      begin
-	        if version == 1
-	          k = obj1.name
-	          l = ce1.label.string if ce1.label
-	          tag = "#{k}.#{l}"
-	        else
-	          label = @shapeToTag[ce1.to]
-	          l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
-	          tag = "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}"
-	        end
+          label = @shapeToTag[ce1.to]
+          l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
+          tag = "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}"
 	        connector_handler.call tag, ce1.attach, ce2.attach
 	      rescue
 	      end
 	    end
 	  end
 	    
-	  def do_constraints
-	    super("FOO")
+	  def set_positions
 	    if @position_map
 		    @position_map.each do |key, pnt|
-		      #puts "CHECK #{key} #{pnt}"
+		      puts "CHECK #{key} #{pnt}"
 		      field = nil
 		      parts = key.split('.')
 		      if parts.size == 2
 		        key = parts[0]
 		        field = parts[1]
 		      end
-		      obj = @labelToShape[key]
+		      data = @tagModelToShape[key]
+		      obj = data[1]
 		      if !obj.isnil?
-			      #puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
+			      puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
 			      if field.nil?
 				      pos = @positions[obj]
 				      if !pos.isnil?
@@ -198,10 +180,10 @@ module Stencil
 				    else
 				      obj.connectors.find do |ce|
 			          l = ce.label ? ce.label.string : ""
-				        #puts "   CHECKING #{l}"
+				        puts "   CHECKING #{l}"
 			          if field == l
 			            conn = ce.owner
-			            #puts "   Has ATTACH #{field}"
+			            puts "   Has ATTACH #{field}"
 			            conn.ends[0].attach.x = pnt[0].x
 			            conn.ends[0].attach.y = pnt[0].y
 			            conn.ends[1].attach.x = pnt[1].x
@@ -232,7 +214,7 @@ module Stencil
 		        at2.y = pnt[1].y
 		      end
 		    }
-		    generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 1
+		    generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 2
 		  end
 	  end
 
@@ -306,7 +288,6 @@ module Stencil
 	  end
 	  
 	  def make_styles(stencil, shape, env)
-	    newEnv = nil
 	    font = nil
 	    pen = nil
 	    brush = nil
@@ -336,9 +317,9 @@ module Stencil
 	      end
 	    end
 	    # TODO: why do I need to set the style on every object????
-	    shape.styles << (font || env[:font])
-	    shape.styles << (pen || env[:pen])
-	    shape.styles << (brush || env[:brush])
+	    shape.styles << font if font
+	    shape.styles << pen if pen
+	    shape.styles << brush if brush
 	  end
 	
 	  def constructAlt(obj, env, container, proc)
@@ -485,8 +466,8 @@ module Stencil
 	      info = evallabel(obj.label, env)
 	      tag = info[0] 
 	      obj = info[1]
-	      #puts "LABEL #{obj} => #{shape}"
-	      @tagModelToShape[[tag, obj]] = shape
+	      puts "LABEL #{tag} / #{obj} => #{shape}"
+	      @tagModelToShape[info] = shape
 	      @shapeToModel[shape] = obj
 	      @shapeToTag[shape] = tag
 	      proc.call(shape)
@@ -578,10 +559,8 @@ module Stencil
 	      other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
 	      de = @factory.ConnectorEnd(e.arrow, label, other_label)
 	      info = evallabel(e.part, env)
-	      tag = info[0]
-	      tagged_obj = info[1]
-	      x = @tagModelToShape[[tag, tagged_obj]]
-	      fail("Shape #{[tag, tagged_obj]} does not exist in #{@tagModelToShape}") if x.nil?
+	      x = @tagModelToShape[info]
+	      fail("Shape #{info} does not exist in #{@tagModelToShape}") if x.nil?
 	      de.to = x
 	      de.attach = ptemp[i]
 	      i = i + 1

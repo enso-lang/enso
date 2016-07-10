@@ -118,7 +118,8 @@ module Diagram
 	  # ------- selections -------      
 	  def clear_selection
 	   if @selection
-		    @selection = @selection.clear
+		    @selection = @selection.clear()
+	      clear_refresh()
 		  else
 			  @selection = nil
 		  end
@@ -415,12 +416,12 @@ module Diagram
 	  
 	  def paint()
       do_constraints() if @positions.size == 0
+	    @context.textBaseline_ = "top"
       draw(@root)
 	    @selection.do_paint() if @selection
 	  end
 	  
 	  def draw(part)
-	    @context.textBaseline_ = "top"
 	    with_styles(part) do 
 	      send(("draw" + part.schema_class.name).to_sym, part)
 	    end

@@ -28,7 +28,7 @@ define(["core/system/utils/paths", "core/system/library/schema", "core/system/bo
       var self = this;
       return (self.$.factory = factory);
     }));
-    (this.parse = (function (this_V) {
+    (this.decode = (function (this_V) {
       var self = this;
       var res;
       (self.$.fixups = []);
@@ -88,10 +88,6 @@ define(["core/system/utils/paths", "core/system/library/schema", "core/system/bo
     }));
   }));
   (Dumpjson = {
-    to_json_string: (function (this_V) {
-      var self = this;
-      return JSON.pretty_generate(self.to_json(this_V, true));
-    }),
     to_json: (function (this_V, do_all) {
       var self = this;
       (do_all = (((typeof do_all) !== "undefined") ? do_all : false));
@@ -150,10 +146,6 @@ define(["core/system/utils/paths", "core/system/library/schema", "core/system/bo
     }),
     Fixup: Fixup,
     FromJSON: FromJSON,
-    from_json_string: (function (str) {
-      var self = this;
-      return self.from_json(JSON.parse(str));
-    }),
     fixup_path: (function (obj) {
       var self = this;
       var path;
@@ -165,9 +157,9 @@ define(["core/system/utils/paths", "core/system/library/schema", "core/system/bo
         return (path = path.slice(5, 999));
       }
     }),
-    from_json: (function (factory, this_V) {
+    from_json: (function (factory, text) {
       var self = this;
-      return FromJSON.new(factory).parse(this_V);
+      return FromJSON.new(factory).decode(text);
     })
   });
   return Dumpjson;

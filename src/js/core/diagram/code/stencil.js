@@ -48,9 +48,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         })));
         if (File.exists_P(pos)) {
           (self.$.position_map = System.readJSON(pos));
-          return self.$.position_map.each((function (key, val) {
-            return puts(S("LOC ", key, "=", val, ""));
-          }));
+          return self.set_positions();
         }
       }
     }));
@@ -111,7 +109,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       var grammar;
       (grammar = Load.load(S("", self.$.extension, ".grammar")));
       File.write((function (output) {
-        return Layout.DisplayFormat.print(grammar, self.$.data, output);
+        return Layout.DisplayFormat.print(grammar, self.$.data, output, false);
       }), S("", self.$.path, "-NEW"));
       self.capture_positions();
       return System.writeJSON(S("", self.$.path, "-positions"), self.$.position_map);
@@ -141,59 +139,48 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         var label, obj, tag;
         (label = tagObj._get(0));
         (obj = tagObj._get(1));
-        try {if ((version == 1)) { 
-          (tag = obj.name()); 
-        }
-        else { 
-          (tag = S("", label, ":", obj._path().to_s(), ""));
-        }
+        try {(tag = S("", label, ":", obj._path().to_s(), ""));
              return obj_handler(tag, obj, shape);
              
         }
-        catch (caught$4116) {
+        catch (caught$3937) {
           
         }
       }));
       return self.$.connectors.each((function (conn) {
-        var k, l, ce1, ce2, label, obj2, obj1, tag;
+        var l, ce1, ce2, label, obj2, obj1, tag;
         (ce1 = conn.ends()._get(0));
         (ce2 = conn.ends()._get(1));
         (obj1 = self.$.shapeToModel._get(ce1.to()));
         (obj2 = self.$.shapeToModel._get(ce2.to()));
-        try {if ((version == 1)) {
-          (k = obj1.name());
-          if (ce1.label()) {
-            (l = ce1.label().string());
-          }
-          (tag = S("", k, ".", l, ""));
-        } else {
-          (label = self.$.shapeToTag._get(ce1.to()));
-          (l = S("", (ce1.label() && ce1.label().string()), "*", (ce2.label() && ce2.label().string()), ""));
-          (tag = S("", label, ":", obj1._path().to_s(), ":", obj2._path().to_s(), "$", l, ""));
-        }
+        try {(label = self.$.shapeToTag._get(ce1.to()));
+             (l = S("", (ce1.label() && ce1.label().string()), "*", (ce2.label() && ce2.label().string()), ""));
+             (tag = S("", label, ":", obj1._path().to_s(), ":", obj2._path().to_s(), "$", l, ""));
              return connector_handler(tag, ce1.attach(), ce2.attach());
              
         }
-        catch (caught$4485) {
+        catch (caught$4227) {
           
         }
       }));
     }));
-    (this.do_constraints = (function () {
+    (this.set_positions = (function () {
       var self = this;
       var obj_handler, connector_handler;
-      super$.do_constraints.call(self, "FOO");
       if (self.$.position_map) {
         self.$.position_map.each((function (key, pnt) {
-          var parts, pos, obj, field;
+          var parts, data, pos, obj, field;
+          puts(S("CHECK ", key, " ", pnt, ""));
           (field = null);
           (parts = key.split("."));
           if ((parts.size() == 2)) {
             (key = parts._get(0));
             (field = parts._get(1));
           }
-          (obj = self.$.labelToShape._get(key));
+          (data = self.$.tagModelToShape._get(key));
+          (obj = data._get(1));
           if ((!obj.isnil_P())) {
+            puts(S("   Has OBJ ", key, " ", pnt, " ", obj.connectors(), ""));
             if ((field == null)) {
               (pos = self.$.positions._get(obj));
               if ((!pos.isnil_P())) {
@@ -205,8 +192,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
               return obj.connectors().find((function (ce) {
                 var l, conn;
                 (l = (ce.label() ? ce.label().string() : ""));
+                puts(S("   CHECKING ", l, ""));
                 if ((field == l)) {
                   (conn = ce.owner());
+                  puts(S("   Has ATTACH ", field, ""));
                   conn.ends()._get(0).attach().set_x(pnt._get(0).x());
                   conn.ends()._get(0).attach().set_y(pnt._get(0).y());
                   conn.ends()._get(1).attach().set_x(pnt._get(1).x());
@@ -238,7 +227,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             return at2.set_y(pnt._get(1).y());
           }
         })));
-        return self.generate_saved_positions(obj_handler, connector_handler, (self.$.position_map._get("*VERSION*") || 1));
+        return self.generate_saved_positions(obj_handler, connector_handler, (self.$.position_map._get("*VERSION*") || 2));
       }
     }));
     (this.on_export = (function () {
@@ -265,7 +254,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.make_styles = (function (stencil, shape, env) {
       var self = this;
       var newEnv, font, pen, brush;
-      (newEnv = null);
       (font = null);
       (pen = null);
       (brush = null);
@@ -304,9 +292,15 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         }
             
       }));
-      shape.styles().push((font || env._get("font")));
-      shape.styles().push((pen || env._get("pen")));
-      return shape.styles().push((brush || env._get("brush")));
+      if (font) {
+        shape.styles().push(font);
+      }
+      if (pen) {
+        shape.styles().push(pen);
+      }
+      if (brush) {
+        return shape.styles().push(brush);
+      }
     }));
     (this.constructAlt = (function (obj, env, container, proc) {
       var self = this;
@@ -364,7 +358,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$11235) {
+        catch (caught$10784) {
           
         }
         if ((!shape)) {
@@ -453,7 +447,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         (info = self.evallabel(obj.label(), env));
         (tag = info._get(0));
         (obj = info._get(1));
-        self.$.tagModelToShape._set([tag, obj], shape);
+        puts(S("LABEL ", tag, " / ", obj, " => ", shape, ""));
+        self.$.tagModelToShape._set(info, shape);
         self.$.shapeToModel._set(shape, obj);
         self.$.shapeToTag._set(shape, tag);
         return proc(shape);
@@ -548,16 +543,14 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       }
       (i = 0);
       obj.ends().each((function (e) {
-        var de, tagged_obj, other_label, info, label, x, tag;
+        var de, other_label, info, label, x;
         (label = ((e.label() == null) ? null : self.makeLabel(e.label(), env)));
         (other_label = ((e.other_label() == null) ? null : self.makeLabel(e.other_label(), env)));
         (de = self.$.factory.ConnectorEnd(e.arrow(), label, other_label));
         (info = self.evallabel(e.part(), env));
-        (tag = info._get(0));
-        (tagged_obj = info._get(1));
-        (x = self.$.tagModelToShape._get([tag, tagged_obj]));
+        (x = self.$.tagModelToShape._get(info));
         if ((x == null)) {
-          self.fail(S("Shape ", [tag, tagged_obj], " does not exist in ", self.$.tagModelToShape, ""));
+          self.fail(S("Shape ", info, " does not exist in ", self.$.tagModelToShape, ""));
         }
         de.set_to(x);
         de.set_attach(ptemp._get(i));
