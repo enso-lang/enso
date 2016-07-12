@@ -68,7 +68,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       return Proc.new((function (e) {
         var done, pnt, select, subselect;
         (pnt = self.getCursorPosition(e));
-        puts(S("DOWN ", pnt.x(), " ", pnt.y(), ""));
         self.$.context.save();
         (self.$.context.fillStyle = "#FF0000");
         self.$.context.fillRect(pnt.x(), pnt.y(), 4, 4);
@@ -186,12 +185,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$3472) {
+               catch (caught$3473) {
                  
-                   if ((caught$3472 instanceof Exception)) { 
+                   if ((caught$3473 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$3472); 
+                     })(caught$3473); 
                    }
                    else { 
                      ;
@@ -219,9 +218,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           }
           return (from = to);
         }));
-      }
-      if (obj) {
-        puts(S("FindCon ", obj.to_s(), ""));
       }
       return obj;
     }));
@@ -900,7 +896,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           return null; 
         } 
         else {
-               puts(S("FROM ", x, " ", y, ""));
                (angle = Math.atan2(y, x));
                (nx = self.normalize(Math.cos(angle)));
                (ny = self.normalize(Math.sin(angle)));

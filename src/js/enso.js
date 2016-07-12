@@ -220,6 +220,7 @@ EnsoHash = function(init) {
   }
   
   System = {
+    JSHASH: function() { return {} },
     max: function(a, b) {
       return a > b ? a : b;
     },
@@ -230,7 +231,7 @@ EnsoHash = function(init) {
       return JSON.parse(fs.readFileSync(path));
     },
     writeJSON: function(path, data) {
-      fs.writeFileSync(path, JSON.stringify(data));
+      fs.writeFileSync(path, JSON.stringify(data, null, 2));
     },
     test_type: function(obj, type) {
       if (obj == null)

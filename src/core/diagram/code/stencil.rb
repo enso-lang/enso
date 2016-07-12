@@ -51,7 +51,7 @@ module Stencil
 
 	    if data.factory.file_path[0]
 	      pos = "#{data.factory.file_path[0]}-positions"
-	      puts "FINDING #{pos}"
+	      #puts "FINDING #{pos}"
 	      if File.exists?(pos)
 	        position_map = System.readJSON(pos)
 				  set_positions(position_map)
@@ -135,7 +135,7 @@ module Stencil
 	  
 	  def capture_positions
 	    # save the position_map
-	    position_map = {}
+	    position_map = System.JSHASH()
 	    position_map["*VERSION*"] = 2
 	
 	    position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
@@ -144,11 +144,20 @@ module Stencil
 	      if shape.Connector?
 		      at1 = shape.ends[0].attach
 		      at2 = shape.ends[1].attach
-		      position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
+		      h1 = System.JSHASH()
+		      h2 = System.JSHASH()
+		      h1.x_ = at1.x
+		      h1.y_ = at1.y
+		      h2.x_ = at2.x
+		      h2.y_ = at2.y
+		      position_map[tag] = [ h1, h2 ]
 		    else
-		      position_map[tag] = position_fixed(shape)
+		      pos = position_fixed(shape)
+		      hash = System.JSHASH()
+		      hash.x_ = pos.x
+		      hash.y_ = pos.y
+		      position_map[tag] = hash
 	      end
-	      puts "GEN #{tag}"
 	    end
 	    
 	    position_map
@@ -425,7 +434,7 @@ module Stencil
 	  def constructLabel(obj, env, container, id, proc)
 	    construct obj.body, env, container, id, Proc.new { |shape, subid|
 	      tag = evallabel(obj.label, env)
-	      puts "LABEL #{tag} / #{obj} => #{shape}"
+	      # puts "LABEL #{tag} / #{obj} => #{shape}"
 	      @tagModelToShape[tag._path] = shape
 	      proc.call(shape, subid)
 	    }
@@ -456,7 +465,7 @@ module Stencil
 	          group.items << x
 	          if obj.direction == 3
  	            @graphShapes[subid] = x
-	            puts "GRAPH #{subid} --> #{x}"
+	            #puts "GRAPH #{subid} --> #{x}"
 	          end
 	        }
 	      end

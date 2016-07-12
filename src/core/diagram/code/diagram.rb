@@ -60,7 +60,7 @@ module Diagram
 	  def on_mouse_down
 	    Proc.new { |e|
 			  pnt = getCursorPosition(e)
-		    puts "DOWN #{pnt.x} #{pnt.y}"
+		    #puts "DOWN #{pnt.x} #{pnt.y}"
 		    @context.save
 		    @context.fillStyle_ = "#FF0000"
 		    @context.fillRect(pnt.x, pnt.y, 4, 4)
@@ -191,7 +191,7 @@ module Diagram
 					from = to
 		    end
 		  end
-		  puts "FindCon #{obj.to_s}" if obj
+		  #puts "FindCon #{obj.to_s}" if obj
 		  obj
 	  end
 	
@@ -810,7 +810,7 @@ module Diagram
 		    if x == 0 && y == 0
 		      nil
 		    else
-			    puts("FROM #{x} #{y}")
+			    #puts("FROM #{x} #{y}")
 			    angle = Math.atan2(y, x)
 			    nx = normalize(Math.cos(angle))
 			    ny = normalize(Math.sin(angle))

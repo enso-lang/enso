@@ -42,7 +42,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       self.build_diagram();
       if (data.factory().file_path()._get(0)) {
         (pos = S("", data.factory().file_path()._get(0), "-positions"));
-        puts(S("FINDING ", pos, ""));
         if (File.exists_P(pos)) {
           (position_map = System.readJSON(pos));
           self.set_positions(position_map);
@@ -135,25 +134,31 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.capture_positions = (function () {
       var self = this;
       var position_map;
-      (position_map = (new EnsoHash({
-        
-      })));
+      (position_map = System.JSHASH());
       position_map._set("*VERSION*", 2);
       position_map._set("*WINDOW*", (new EnsoHash({
         x: self.$.win.width,
         y: self.$.win.height
       })));
       self.$.graphShapes.each((function (tag, shape) {
-        var at1, at2;
+        var h1, h2, hash, pos, at1, at2;
         if (shape.Connector_P()) {
           (at1 = shape.ends()._get(0).attach());
           (at2 = shape.ends()._get(1).attach());
-          position_map._set(tag, [self.EnsoPoint().new(at1.x(), at1.y()), self.EnsoPoint().new(at2.x(), at2.y())]);
+          (h1 = System.JSHASH());
+          (h2 = System.JSHASH());
+          (h1.x = at1.x());
+          (h1.y = at1.y());
+          (h2.x = at2.x());
+          (h2.y = at2.y());
+          return position_map._set(tag, [h1, h2]);
+        } else {
+          (pos = self.position_fixed(shape));
+          (hash = System.JSHASH());
+          (hash.x = pos.x());
+          (hash.y = pos.y());
+          return position_map._set(tag, hash);
         }
-        else {
-          position_map._set(tag, self.position_fixed(shape));
-        }
-        return puts(S("GEN ", tag, ""));
       }));
       return position_map;
     }));
@@ -318,7 +323,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9523) {
+        catch (caught$9706) {
           
         }
         if ((!shape)) {
@@ -398,7 +403,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       return self.construct(obj.body(), env, container, id, Proc.new((function (shape, subid) {
         var tag;
         (tag = self.evallabel(obj.label(), env));
-        puts(S("LABEL ", tag, " / ", obj, " => ", shape, ""));
         self.$.tagModelToShape._set(tag._path(), shape);
         return proc(shape, subid);
       })));
@@ -424,7 +428,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                  group.items().push(x);
                  if ((obj.direction() == 3)) {
                    self.$.graphShapes._set(subid, x);
-                   return puts(S("GRAPH ", subid, " --> ", x, ""));
                  }
                })));
              }));
