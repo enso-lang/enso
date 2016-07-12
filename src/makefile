@@ -80,7 +80,7 @@ MODELS = \
 	template.schema \
 	gll.schema \
 	grammar.schema \
-  	item.schema \
+  item.schema \
 	itemize.schema \
 	layout.schema \
 	normalize.schema \

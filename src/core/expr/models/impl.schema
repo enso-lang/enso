@@ -6,18 +6,18 @@ class Expr < Command
 class Command 
 
 class EWhile < Command
-  cond!Expr
-  body!Command
+  cond! Expr
+  body! Command
 
 class EFor < Command
-  var:str
-  list!Expr
-  body!Command
+  var:  str
+  list! Expr
+  body! Command
 
 class EIf < Command
-  cond!Expr
-  body!Command
-  body2!Command?
+  cond!  Expr
+  body!  Command
+  body2! Command?
 
 //class ESwitch < Command
 //  e! Expr
@@ -26,30 +26,30 @@ class EIf < Command
 //
 
 class EBlock < Command
-  fundefs!EFunDef*
-  body!Command*
+  fundefs! EFunDef*
+  body!    Command*
 
 class EFunCall < Expr, Command
-  fun!Expr
-  params!Expr*
-  lambda!ELambda?
+  fun!    Expr
+  params! Expr*
+  lambda! ELambda?
 
 class ELambda
-  body!Command
-  formals!Formal*
+  body!    Command
+  formals! Formal*
 
 class EFunDef
-  name:str
-  formals!Formal*
-  body!Command
+  name:    str
+  formals! Formal*
+  body!    Command
 
 class Formal
-  name:str
+  name: str
 
 class EAssign < Command
-  var!Expr
-  val!Expr
+  var! Expr
+  val! Expr
 
 class EImport < Command
-  path:str
+  path: str
 

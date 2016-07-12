@@ -47,14 +47,6 @@ module Diagram
 	    clear_refresh
 	  end
 	
-	  def clear_refresh	    
-      @context.fillStyle_ = "white"
-			@context.fillRect(0, 0, 1000, 1000)
-      @context.fillStyle_ = "black"
-      @context.lineStyle_ = "red"
-      @context.font_ = "14pt sans-serif"
-	    paint()
-	  end      
 	  
 	  # ------- event handling -------  
 	
@@ -69,8 +61,11 @@ module Diagram
 	    Proc.new { |e|
 			  pnt = getCursorPosition(e)
 		    puts "DOWN #{pnt.x} #{pnt.y}"
+		    @context.save
 		    @context.fillStyle_ = "#FF0000"
 		    @context.fillRect(pnt.x, pnt.y, 4, 4)
+		    @context.restore
+		    
 		    @mouse_down = true
 		    done = false
 		    if @selection
@@ -120,8 +115,6 @@ module Diagram
 	   if @selection
 		    @selection = @selection.clear()
 	      clear_refresh()
-		  else
-			  @selection = nil
 		  end
 	  end
 	    
@@ -414,7 +407,13 @@ module Diagram
 		end
 	  # ----- drawing --------    
 	  
-	  def paint()
+	  def clear_refresh	    
+      @context.fillStyle_ = "white"
+			@context.fillRect(0, 0, 1000, 1000)
+      @context.fillStyle_ = "black"
+      @context.lineStyle_ = "red"
+      @context.font_ = "10pt sans-serif"
+
       do_constraints() if @positions.size == 0
 	    @context.textBaseline_ = "top"
       draw(@root)
@@ -445,6 +444,7 @@ module Diagram
 	    m2 = margin - (margin % 2)
 	    case shape.kind
 	    when "box"
+				#@context.fillRect(r.x, r.y, r.w, r.h)
 	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 	    when "oval"
 		    rx            = r.w / 2        # The X radius
@@ -456,8 +456,8 @@ module Diagram
 		    finish        = 2 * Math.PI_ # The end angle (in radians)
 		    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
 		                                    # anti-clockwise direction
-    
     		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
+    		#@context.fill
     		@context.stroke
 		  end
 	    draw(shape.content)
@@ -646,6 +646,7 @@ module Diagram
 	
 	  def drawText(text)
 	    r = boundary_fixed(text)
+			#@context.fillRect(r.x, r.y, r.w, r.h)
 	    @context.fillText(text.string, r.x, r.y)
 	  end
 	 
@@ -720,8 +721,10 @@ module Diagram
 	  end
 	  
 	  def do_paint()
+	    @diagram.context.save
 	    @diagram.context.strokeStyle_ = "#FF0000"
 	    @diagram.draw(@part)
+			@diagram.context.restore
 	  end
 	
 	  def do_mouse_down(e)
@@ -742,14 +745,16 @@ module Diagram
 	  end
 	
 	  def do_paint()
+	    @diagram.context.save
 	    @diagram.context.fillStyle_ = @diagram.makeColor(@diagram.factory.Color(255, 0, 0))
 		  size = 8
 		  p = @conn.path[0]
 	    @diagram.context.fillRect(p.x + (-size / 2), p.y + (-size / 2), size, size)
 		  p = @conn.path[-1]
 	    @diagram.context.fillRect(p.x + (-size / 2), p.y + (-size / 2), size, size)
-	    @conn.path.each do |p|
-		  end
+	    #@conn.path.each do |p|
+		  #end
+	    @diagram.context.restore
 	  end
 	    
 	  def do_mouse_down(pnt)
@@ -777,10 +782,10 @@ module Diagram
 	end
 	
 	class PointSelection
-		def initialize(diagram, ce, selection)
+		def initialize(diagram, ce, lastSelection)
 		  @diagram = diagram
 		  @ce = ce
-		  @selection = selection
+		  @lastSelection = lastSelection
 	  end
 	  
 	  def is_selected(check)
@@ -828,7 +833,7 @@ module Diagram
 	  end
 	  
 	  def clear
-	    @selection
+	    @lastSelection
 	  end
 	end
 	

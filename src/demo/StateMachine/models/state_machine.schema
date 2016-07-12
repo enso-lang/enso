@@ -9,7 +9,7 @@ class State
   \in: Trans*
 
 class Trans
-  event: str
+  event# str
   from: State / out
   to: State / \in
 

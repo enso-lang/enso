@@ -19,7 +19,7 @@ class Shape < Part
 
 class Connector < Part
   label: Text?
-  ends! ConnectorEnd*
+  ends! ConnectorEnd*  // always exactly 2 of them
   path: Point*
 
 class ConnectorEnd
@@ -53,7 +53,8 @@ class Font < Style
   weight: str?  // bold | light
   size: int
   family: str?   // font name or generic family (like "serif", "sans-serif", "cursive", "fantasy", "monospace")
-
+  color! Color?
+  
 class Baseline < Style
 	baseline: str
 	

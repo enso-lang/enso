@@ -52,19 +52,39 @@ module Stencil
 	    if data.factory.file_path[0]
 	      pos = "#{data.factory.file_path[0]}-positions"
 	      puts "FINDING #{pos}"
-	      @position_map = {}
 	      if File.exists?(pos)
-	        @position_map = System.readJSON(pos)
-	      # @position_map.each { |key, val|
-				#		puts("LOC #{key}=#{val}")	          
-	      #  }
-				  set_positions()
-		#	    if !@position_map['*WINDOW*'].nil?
-		#	      size = @position_map['*WINDOW*']
-		#	      # set_size(size['x'], size['y'])
-		#     end
+	        position_map = System.readJSON(pos)
+				  set_positions(position_map)
+			    if !position_map['*WINDOW*'].nil?
+			      size = position_map['*WINDOW*']
+			      # set_size(size['x'], size['y'])
+		      end
 	      end
 	    end
+	    clear_refresh
+	  end
+
+	  def set_positions(position_map)
+	    @graphShapes.each do |tag, shape|
+        pnt = position_map[tag]
+        if pnt
+		      if shape.Connector?
+			      at1 = shape.ends[0].attach
+			      at2 = shape.ends[1].attach
+		        at1.x = pnt[0].x_
+		        at1.y = pnt[0].y_
+		        at2.x = pnt[1].x_
+		        at2.y = pnt[1].y_
+					else
+			      pos = @positions[shape]  # using Diagram private member
+			      #puts "   Has POS #{pos} #{pnt}"
+			      if pos
+			        pos.x.value = pnt.x_
+			        pos.y.value = pnt.y_
+			      end
+			    end
+			  end
+		  end
 	  end
 
 	  def build_diagram
@@ -77,17 +97,16 @@ module Stencil
 	
 	    @shapeToAddress = {}  # used for text editing
 	    @shapeToModel = {}    # list of all created objects
-	    @shapeToTag = {}    # list of all created objects
+	 #   @shapeToTag = {}    # list of all created objects
 	    @tagModelToShape = {}
+	    @graphShapes = {}
 	    @connectors = []
-      construct @stencil.body, env, nil, Proc.new {|x| set_root(x)}
-
-	    puts "DONE"
+      construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
 	  end
 		
-		def lookup_shape(shape)
-			@shapeToModel[shape]
-		end
+#		def lookup_shape(shape)
+#			@shapeToModel[shape]
+#		end
 
 	  def setup_menus()
 	    super("FOO")
@@ -110,114 +129,32 @@ module Stencil
 	      Layout::DisplayFormat.print(grammar, @data, output, false) #false => dont slash_kwywords
 	    end
 	
-	    capture_positions    
-	    #puts @position_map
-	    System.writeJSON("#{@path}-positions", @position_map)
+	        
+	    System.writeJSON("#{@path}-positions", capture_positions())
 	  end
 	  
 	  def capture_positions
 	    # save the position_map
-	    @position_map = {}
-	    @position_map["*VERSION*"] = 2
+	    position_map = {}
+	    position_map["*VERSION*"] = 2
 	
-	    @position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
+	    position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
 	
-	    obj_handler = Proc.new { |tag, obj, shape|
-	      @position_map[tag] = position_fixed(shape)
-	    }
-	    connector_handler = Proc.new { |tag, at1, at2|
-	      @position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
-	    }
-	    generate_saved_positions obj_handler, connector_handler, 9999 # no version on saving
+	    @graphShapes.each do |tag, shape|
+	      if shape.Connector?
+		      at1 = shape.ends[0].attach
+		      at2 = shape.ends[1].attach
+		      position_map[tag] = [ EnsoPoint.new(at1.x, at1.y), EnsoPoint.new(at2.x, at2.y) ]
+		    else
+		      position_map[tag] = position_fixed(shape)
+	      end
+	      puts "GEN #{tag}"
+	    end
+	    
+	    position_map
 	  end
 	 
-	  def generate_saved_positions(obj_handler, connector_handler, version) 
-	    @tagModelToShape.each do |tagObj, shape|
-	      label = tagObj[0]
-	      obj = tagObj[1]
-	      begin
-          tag = "#{label}:#{obj._path.to_s}"
-	        obj_handler.call tag, obj, shape
-	      rescue
-	      end
-	    end
-	    @connectors.each do |conn|
-	      ce1 = conn.ends[0]
-	      ce2 = conn.ends[1]
-	      obj1 = @shapeToModel[ce1.to]
-	      obj2 = @shapeToModel[ce2.to]
-	      begin
-          label = @shapeToTag[ce1.to]
-          l = "#{ce1.label && ce1.label.string}*#{ce2.label && ce2.label.string}"
-          tag = "#{label}:#{obj1._path.to_s}:#{obj2._path.to_s}$#{l}"
-	        connector_handler.call tag, ce1.attach, ce2.attach
-	      rescue
-	      end
-	    end
-	  end
 	    
-	  def set_positions
-	    if @position_map
-		    @position_map.each do |key, pnt|
-		      puts "CHECK #{key} #{pnt}"
-		      field = nil
-		      parts = key.split('.')
-		      if parts.size == 2
-		        key = parts[0]
-		        field = parts[1]
-		      end
-		      data = @tagModelToShape[key]
-		      obj = data[1]
-		      if !obj.isnil?
-			      puts "   Has OBJ #{key} #{pnt} #{obj.connectors}"
-			      if field.nil?
-				      pos = @positions[obj]
-				      if !pos.isnil?
-					      #puts "   Has POS #{key} #{pnt}"
-					      pos.x.value = pnt.x
-					      pos.y.value = pnt.y
-					    end
-				    else
-				      obj.connectors.find do |ce|
-			          l = ce.label ? ce.label.string : ""
-				        puts "   CHECKING #{l}"
-			          if field == l
-			            conn = ce.owner
-			            puts "   Has ATTACH #{field}"
-			            conn.ends[0].attach.x = pnt[0].x
-			            conn.ends[0].attach.y = pnt[0].y
-			            conn.ends[1].attach.x = pnt[1].x
-			            conn.ends[1].attach.y = pnt[1].y
-			            true
-				        end
-				      end
-				    end
-				  end
-				end
-			end
-	    if @position_map
-		    obj_handler = Proc.new {|tag, obj, shape|
-		      pos = @positions[shape]  # using Diagram private member
-		      pnt = @position_map[tag]
-		      #puts "   Has POS #{obj} #{pos} #{pnt}"
-		      if pos && pnt
-		        pos.x.value = pnt.x
-		        pos.y.value = pnt.y
-		      end
-		    }
-		    connector_handler = Proc.new { |tag, at1, at2|
-		      pnt = @position_map[tag]
-		      if pnt
-		        at1.x = pnt[0].x
-		        at1.y = pnt[0].y
-		        at2.x = pnt[1].x
-		        at2.y = pnt[1].y
-		      end
-		    }
-		    generate_saved_positions obj_handler, connector_handler, @position_map["*VERSION*"] || 2
-		  end
-	  end
-
 	 
 	  
 #	    # ------- event handling ------- 
@@ -283,8 +220,8 @@ module Stencil
 		  @actions[shape][name] = block
 		end
 		    
-	  def construct(stencil, env, container, proc)
-	    send("construct#{stencil.schema_class.name}", stencil, env, container, proc)
+	  def construct(stencil, env, container, id, proc)
+	    send("construct#{stencil.schema_class.name}", stencil, env, container, id, proc)
 	  end
 	  
 	  def make_styles(stencil, shape, env)
@@ -302,17 +239,29 @@ module Stencil
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.size = val
 	      when "font.weight" then
-	        font = newEnv[:font] = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.weight = val
+	      when "font.style" then
+	        newEnv[:font] = font = env[:font]._clone if !font
+	        font.style = val
+	      when "font.variant" then
+	        newEnv[:font] = font = env[:font]._clone if !font
+	        font.variant = val
+	      when "font.family" then
+	        newEnv[:font] = font = env[:font]._clone if !font
+	        font.family = val
+	      when "font.color" then
+	        newEnv[:font] = font = env[:font]._clone if !font
+	        font.color = val
 	      when "line.width" then
 	        #puts "PEN #{val} for #{stencil}"
-	        pen = newEnv[:pen] = env[:pen]._clone if !pen
+	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.width = val
 	      when "line.color" then
-	        pen = newEnv[:pen] = env[:pen]._clone if !pen
+	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.color = val
 	      when "fill.color" then
-	        brush = newEnv[:brush] = env[:brush]._clone if !brush
+	        newEnv[:brush] = brush = env[:brush]._clone if !brush
 	        brush.color = val
 	      end
 	    end
@@ -322,28 +271,28 @@ module Stencil
 	    shape.styles << brush if brush
 	  end
 	
-	  def constructAlt(obj, env, container, proc)
+	  def constructAlt(obj, env, container, id, proc)
 	    obj.alts.find do |alt|
-	      construct(alt, env, container, proc)
+	      construct(alt, env, container, id, proc)
 	    end
 	  end
 	
-	  def constructEAssign(obj, env, container, proc)
+	  def constructEAssign(obj, env, container, id, proc)
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
 	      #FIXME: handle Fields as well, by using the address field from eval
 	    lvalue(obj.var, nenv).value = eval(obj.val, nenv)
-	    construct obj.body, nenv, container, proc
+	    construct obj.body, nenv, container, id, proc
 	  end
 	
-	  def constructEImport(obj, env, container, proc)
+	  def constructEImport(obj, env, container, id, proc)
 	    #@fundefs.instance_eval(File.open(obj.path, "r").read)
 	    #@fundefs.singleton_methods.each do |m|
 	    # env["#{m}"] = @fundefs.method(m)
 	    #end
 	  end
 	
-	  def constructEFor(obj, env, container, proc)
+	  def constructEFor(obj, env, container, id, proc)
 	    source = eval(obj.list, env)
 	    # address = lvalue(obj.list, env)
 	
@@ -359,7 +308,19 @@ module Stencil
 	    source.each_with_index do |v, i|
 	      nenv[obj.var] = v
 	      nenv[obj.index] = i if obj.index
-	      construct(obj.body, nenv, container, Proc.new { |shape|
+	      
+	      # make a location for each iteration
+	      if v.schema_class.key
+	        loc_name = v[v.schema_class.key.name]
+	        if id
+	        	newId = "#{id}.#{loc_name}"
+	        else
+	          newId = loc_name
+	        end
+	      else
+	        newId = id
+	      end  
+	      construct(obj.body, nenv, container, newId, Proc.new { |shape, subid|
 	        if obj.label
 	          action = is_traversal ? "Delete" : "Remove"
 		        add_action(shape, "#{action} #{obj.label}") do
@@ -370,7 +331,7 @@ module Stencil
 	  	        end
 		        end
 		      end
-	     		proc.call shape
+	     		proc.call shape, subid
 	      })
 	    end
 	    if obj.label
@@ -382,13 +343,13 @@ module Stencil
 		    shape = container if !shape
 		    #puts "#{action} #{obj.label} #{address.object}.#{address.field} #{shape}"
 		    add_action(shape, "#{action} #{obj.label}") do
-		      if !is_traversal
-		      	# just add a reference!
-		      	#puts "ADD #{action}: #{address.field}"
-		      	@selection = FindByTypeSelection.new self, address.type do |x|
-				      address.value << x
-				    end
-		      else
+#		      if !is_traversal
+#		      	# just add a reference!
+	#	      	#puts "ADD #{action}: #{address.field}"
+		#      	@selection = FindByTypeSelection.new self, address.type do |x|
+		#		      address.value << x
+		#		    end
+		 #     else
 			      factory = address.object.factory
 				    obj = factory[address.type.name]
 	#			    relateField = nil
@@ -401,7 +362,7 @@ module Stencil
 	#			        raise "Can't have two related field" if relateField
 	#			        relateField = field
 				      end
-				    end
+		#		    end
 		      	#puts "CREATE #{address.field} << #{obj}"
 	#	      	if relateField
 	#  	      	puts "ADD #{action}: #{addr.field}"
@@ -446,66 +407,65 @@ module Stencil
 	    end
 		end
 	
-	  def constructEIf(obj, env, container, proc)
+	  def constructEIf(obj, env, container, id, proc)
 	    test = eval(obj.cond, env)
 	    if test
-	      construct(obj.body, env, container, proc)
+	      construct(obj.body, env, container, id, proc)
 	    elsif !obj.body2.nil?
-	      construct(obj.body2, env, container, proc)
+	      construct(obj.body2, env, container, id, proc)
 	    end
 	  end
 	
-	  def constructEBlock(obj, env, container, proc)
+	  def constructEBlock(obj, env, container, id, proc)
 	    obj.body.each do |command|
-	      construct(command, env, container, proc)
+	      construct(command, env, container, id, proc)
 	    end
 	  end
 	
-	  def constructLabel(obj, env, container, proc)
-	    construct obj.body, env, container, Proc.new { |shape|
-	      info = evallabel(obj.label, env)
-	      tag = info[0] 
-	      obj = info[1]
+	  def constructLabel(obj, env, container, id, proc)
+	    construct obj.body, env, container, id, Proc.new { |shape, subid|
+	      tag = evallabel(obj.label, env)
 	      puts "LABEL #{tag} / #{obj} => #{shape}"
-	      @tagModelToShape[info] = shape
-	      @shapeToModel[shape] = obj
-	      @shapeToTag[shape] = tag
-	      proc.call(shape)
+	      @tagModelToShape[tag._path] = shape
+	      proc.call(shape, subid)
 	    }
 	  end
 	
 	  def evallabel(label, env)
-	    tag = "default"
-	    if label.ESubscript? # it has the form Loc[foo]
-	      tag = label.e
-	      label = label.sub
-	      raise "foo" if !tag.Var?
-	      tag = tag.name
-	    end
+#	    tag = "default"
+#	    if label.ESubscript? # it has the form Loc[foo]
+#	      tag = label.e
+#	      label = label.sub
+#	      raise "foo" if !tag.Var?
+#	      tag = tag.name
+#	    end
 	    obj = eval(label, env)
-	    [tag, obj]
 	  end
 	  
 	  # shapes
-	  def constructContainer(obj, env, container, proc)
+	  def constructContainer(obj, env, container, id, proc)
 	    if obj.direction == 4
 	      obj.items.each do |item|
-	        construct item, env, container, proc
+	        construct item, env, container, id, proc
 	      end
 	    else
 	      group = @factory.Container
 	      group.direction = obj.direction
 	      obj.items.each do |item|
-	        construct item, env, group, Proc.new { |x|
+	        construct item, env, group, id, Proc.new { |x, subid|
 	          group.items << x
+	          if obj.direction == 3
+ 	            @graphShapes[subid] = x
+	            puts "GRAPH #{subid} --> #{x}"
+	          end
 	        }
 	      end
 	      make_styles(obj, group, env)
-	      proc.call group if proc
+	      proc.call group, id if proc
 	    end
 	  end
 	  
-	  def constructText(obj, env, container, proc)
+	  def constructText(obj, env, container, id, proc)
 	    val = eval(obj.string, env) # , true)
 	    addr = nil # lvalue(obj.string, env)
 	    text = @factory.Text
@@ -521,18 +481,18 @@ module Stencil
 	    if addr
 		    @shapeToAddress[text] = addr
 		  end
-	    proc.call text
+	    proc.call text, id
 	  end
 	  
-	  def constructShape(obj, env, container, proc)
+	  def constructShape(obj, env, container, id, proc)
 	    shape = @factory.Shape # not many!!!
 	    shape.kind = obj.kind
-	    construct obj.content, env, shape, Proc.new { |x|
+	    construct obj.content, env, shape, nil, Proc.new { |x, subid|
 	      error "Shape can only have one element" if shape.content
 	      shape.content = x
 	    }
 	    make_styles(obj, shape, env)
-	    proc.call shape
+	    proc.call shape, id
 	  end
 	
 	  def makeLabel(exp, env)
@@ -545,7 +505,7 @@ module Stencil
 	    end
 	  end
 	  
-	  def constructConnector(obj, env, container, proc)
+	  def constructConnector(obj, env, container, id, proc)
 	    conn = @factory.Connector
 	    @connectors << conn
 	    if obj.ends[0].label == obj.ends[1].label
@@ -554,37 +514,56 @@ module Stencil
 		    ptemp = [ @factory.EdgePos(0.5, 1), @factory.EdgePos(0.5, 0) ]
 		  end
 	    i = 0
+	    info = nil
+	    label = nil
+	    cend = nil
 	    obj.ends.each do |e|
 	      label = e.label.nil? ? nil : makeLabel(e.label, env)
 	      other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
-	      de = @factory.ConnectorEnd(e.arrow, label, other_label)
+	      cend = @factory.ConnectorEnd(e.arrow, label, other_label)
 	      info = evallabel(e.part, env)
-	      x = @tagModelToShape[info]
-	      fail("Shape #{info} does not exist in #{@tagModelToShape}") if x.nil?
-	      de.to = x
-	      de.attach = ptemp[i]
-	      i = i + 1
-	      
-	      #puts "END #{labelStr}"
-	      conn.ends << de
+	      x = @tagModelToShape[info._path]
+	      fail("Shape #{info._path} does not exist in #{@tagModelToShape}") if x.nil?
+	      cend.to = x
+	      cend.attach = ptemp[i]
+	      i = i + 1	      
+	      conn.ends << cend
 	    end
+	    #tag = "#{info._path}:#{label.nil? ? "link" : label.string}"
+	    #puts "CONNECTOR #{tag}"
+	    #@tagModelToShape[tag] = cend
+	    
 	    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
 	    
 	    make_styles(obj, conn, env)
-	    proc.call conn
+	    proc.call conn, id
 	  end
 	
 	  #### expressions
 	  
-	  def eval(exp, env)
-	    Eval::eval(exp, env: env)
-	  end
-	     	
 	  def lvalue(exp, env)
 	    Lvalue.lvalue(exp, env: env, factory: @factory)
 	  end
 
+	  def eval(obj, env)
+	    interp = Stencil::EvalColorC.new(self)
+	    interp.dynamic_bind({env: env}) do
+	      interp.eval(obj)
+	    end
+	  end
+
 	end
+
+  class EvalColorC
+    include Eval::EvalExpr
+    def initialize(d)
+      @diagram = d
+    end
+    
+    def eval_Color(this)
+      @diagram.factory.Color(eval(this.r), eval(this.g), eval(this.b))
+  	end
+  end
 
 	
 	class TextEditSelection
@@ -618,38 +597,38 @@ module Stencil
 	
 	end
 	
-	class FindByTypeSelection
-		def initialize(diagram, kind, &action)
-		  @diagram = diagram
-		  @part = nil
-	    @kind = kind
-	    @action = action
-	  end
-	  
-	  def on_move(e, down)
-	    #puts "CHECKING"
-	    @part = @diagram.find e do |shape| 
-	      obj = @diagram.lookup_shape(shape)
-	      #obj && obj._subtypeOf(obj.schema_class, @kind)
-	      obj && Subclass?(obj.schema_class, @kind)
-	    end
-	  end
-	  
-	  def is_selected(check)
-	    @part == check
-	  end
-	  
-	  def paint(dc)
-	  end
-	
-	  def on_mouse_down(e)
-	    @action.call(@diagram.lookup_shape(@part)) if @part
-	    :cancel
-		end
-		 
-	  def clear
-	  end
-	end
+#	class FindByTypeSelection
+#		def initialize(diagram, kind, &action)
+#		  @diagram = diagram
+#		  @part = nil
+#	    @kind = kind
+#	    @action = action
+#	  end
+#	  
+#	  def on_move(e, down)
+#	    #puts "CHECKING"
+#	    @part = @diagram.find e do |shape| 
+#	      obj = @diagram.lookup_shape(shape)
+#	      #obj && obj._subtypeOf(obj.schema_class, @kind)
+#	      obj && Subclass?(obj.schema_class, @kind)
+#	    end
+#	  end
+#	  
+#	  def is_selected(check)
+#	    @part == check
+#	  end
+#	  
+#	  def do_paint(dc)
+#	  end
+#	
+#	  def on_mouse_down(e)
+#	    @action.call(@diagram.lookup_shape(@part)) if @part
+#	    :cancel
+#		end
+#		 
+#	  def clear
+#	  end
+#	end
 
 end
 

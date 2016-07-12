@@ -1,5 +1,7 @@
 import impl.schema
 
+// a data model for generic presentation / user interfaces
+
 class Command 
 class Expr 
 
@@ -29,7 +31,7 @@ class Color < Expr
 // DIAGRAMS
 
 class Container < Part
-  direction: int // 1=vert, 2=hoiz, 3=graph
+  direction: int // 1=vert, 2=hoiz, 3=graph, 4=include in parent
   items! Command*
 
 class Text < Part
@@ -50,12 +52,12 @@ class ConnectorEnd
   other_label! Expr?
   part! Expr
 
-class EAssign
-  var!Expr
-  val!Expr
-  body!Command
+class EAssign  // extends EAssign from impl.schema
+  var! Expr
+  val! Expr
+  body! Command
 
-class EFor
+class EFor  // extends EFor from impl.schema
   index: str?
   label: str?
 

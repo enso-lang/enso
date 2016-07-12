@@ -55,15 +55,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       })));
       return self.clear_refresh();
     }));
-    (this.clear_refresh = (function () {
-      var self = this;
-      (self.$.context.fillStyle = "white");
-      self.$.context.fillRect(0, 0, 1000, 1000);
-      (self.$.context.fillStyle = "black");
-      (self.$.context.lineStyle = "red");
-      (self.$.context.font = "14pt sans-serif");
-      return self.paint();
-    }));
     (this.getCursorPosition = (function (event) {
       var self = this;
       var rect, x, y;
@@ -78,8 +69,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         var done, pnt, select, subselect;
         (pnt = self.getCursorPosition(e));
         puts(S("DOWN ", pnt.x(), " ", pnt.y(), ""));
+        self.$.context.save();
         (self.$.context.fillStyle = "#FF0000");
         self.$.context.fillRect(pnt.x(), pnt.y(), 4, 4);
+        self.$.context.restore();
         (self.$.mouse_down = true);
         (done = false);
         if (self.$.selection) {
@@ -132,9 +125,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       if (self.$.selection) {
         (self.$.selection = self.$.selection.clear());
         return self.clear_refresh();
-      }
-      else {
-        return (self.$.selection = null);
       }
     }));
     (this.set_selection = (function (select, pnt) {
@@ -196,12 +186,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$3691) {
+               catch (caught$3472) {
                  
-                   if ((caught$3691 instanceof Exception)) { 
+                   if ((caught$3472 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$3691); 
+                     })(caught$3472); 
                    }
                    else { 
                      ;
@@ -432,8 +422,13 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (den = (Math.pow((p2.x() - p1.x()), 2) + Math.pow((p2.y() - p1.y()), 2)));
       return (num.abs() / Math.sqrt(den));
     }));
-    (this.paint = (function () {
+    (this.clear_refresh = (function () {
       var self = this;
+      (self.$.context.fillStyle = "white");
+      self.$.context.fillRect(0, 0, 1000, 1000);
+      (self.$.context.fillStyle = "black");
+      (self.$.context.lineStyle = "red");
+      (self.$.context.font = "10pt sans-serif");
       if ((self.$.positions.size() == 0)) {
         self.do_constraints();
       }
@@ -811,8 +806,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.do_paint = (function () {
       var self = this;
+      self.$.diagram.context().save();
       (self.$.diagram.context().strokeStyle = "#FF0000");
-      return self.$.diagram.draw(self.$.part);
+      self.$.diagram.draw(self.$.part);
+      return self.$.diagram.context().restore();
     }));
     (this.do_mouse_down = (function (e) {
       var self = this;
@@ -835,14 +832,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.do_paint = (function () {
       var self = this;
       var size, p;
+      self.$.diagram.context().save();
       (self.$.diagram.context().fillStyle = self.$.diagram.makeColor(self.$.diagram.factory().Color(255, 0, 0)));
       (size = 8);
       (p = self.$.conn.path()._get(0));
       self.$.diagram.context().fillRect((p.x() + ((-size) / 2)), (p.y() + ((-size) / 2)), size, size);
       (p = self.$.conn.path()._get((-1)));
       self.$.diagram.context().fillRect((p.x() + ((-size) / 2)), (p.y() + ((-size) / 2)), size, size);
-      return self.$.conn.path().each((function (p) {
-      }));
+      return self.$.diagram.context().restore();
     }));
     (this.do_mouse_down = (function (pnt) {
       var self = this;
@@ -871,11 +868,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
   }));
   var PointSelection = MakeClass("PointSelection", null, [], (function () {
   }), (function (super$) {
-    (this.initialize = (function (diagram, ce, selection) {
+    (this.initialize = (function (diagram, ce, lastSelection) {
       var self = this;
       (self.$.diagram = diagram);
       (self.$.ce = ce);
-      return (self.$.selection = selection);
+      return (self.$.lastSelection = lastSelection);
     }));
     (this.is_selected = (function (check) {
       var self = this;
@@ -923,7 +920,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.clear = (function () {
       var self = this;
-      return self.$.selection;
+      return self.$.lastSelection;
     }));
   }));
   var EnsoPoint = MakeClass("EnsoPoint", null, [], (function () {
