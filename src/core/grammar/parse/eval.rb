@@ -96,6 +96,7 @@ class GrammarEval
     gll.create(nxt) if nxt
     #TODO: arg is always Alt per the grammar
     #but this is not reflected in the schema
+    raise "Can't have a rule with no pattern" if !this.rule.arg || this.rule.arg.alts.size == 0
     this.rule.arg.alts.each do |alt|
      gll.add(alt)
     end
