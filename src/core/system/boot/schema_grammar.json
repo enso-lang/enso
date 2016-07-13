@@ -1,56 +1,50 @@
 {
   "filename": "schema.grammar",
   "source": "core/schema/models/schema.grammar",
-  "date": "2016-06-07 19:34:41 -0500",
+  "date": "2016-06-19 21:52:02 -0500",
   "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2016-06-07 19:34:41 -0500",
-      "checksum": "37b5f8b06b0304dd545108cd1dd739e9eb195854"
+      "date": "2016-07-12 23:24:19 -0500",
+      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2016-06-07 19:34:41 -0500",
-      "checksum": "86f09fda678b5032c17c88e04764b2e14463c123"
+      "date": "2016-07-12 23:25:55 -0500",
+      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2016-06-07 19:34:41 -0500",
+      "date": "2016-06-19 21:52:02 -0500",
       "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2016-06-18 22:01:08 -0500",
-      "checksum": "79b53742779f401a89bd58430eca59bdd2ef9820"
-    },
-    {
-      "filename": "impl.schema",
-      "source": "core/expr/models/impl.schema",
-      "date": "2016-06-07 19:34:41 -0500",
-      "checksum": "e99aa95f05fdf5f6db162f382bce796600231d8a"
+      "date": "2016-07-13 12:51:20 -0500",
+      "checksum": "bfa36771a578c2d6225c1dc060dfdd11653b9310"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2016-06-16 21:56:56 -0500",
-      "checksum": "f764bf5a6fca6c1709bc70a6e69a9dcd28fe5b13"
+      "date": "2016-07-13 12:50:32 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     },
     {
       "filename": "impl.grammar",
       "source": "core/expr/models/impl.grammar",
-      "date": "2016-06-18 21:28:11 -0500",
-      "checksum": "0365117c994231c9fef61cf21a134153e8fb475d"
+      "date": "2016-07-13 13:21:26 -0500",
+      "checksum": "bda0d5a0dbc441eda07d160a35729d7d65946b02"
     },
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2016-06-16 21:56:53 -0500",
-      "checksum": "ef41e2e5b094e8705fe2bbb7b2ad90194970d91a"
+      "date": "2016-07-13 12:50:32 -0500",
+      "checksum": "f8c3ee60a45aa3a1644d83321536fba73f7c2e76"
     }
   ],
   "model": {
@@ -1166,33 +1160,6 @@
       },
       {
         "class": "Rule",
-        "name=": "Formal",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "Formal",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "name",
-                    "arg": {
-                      "class": "Value",
-                      "kind=": "sym"
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
         "name=": "EBlock",
         "grammar": "",
         "arg": {
@@ -1300,263 +1267,6 @@
                         "lines=": 1
                       }
                     }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "EFunCall",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "EFunCall",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "fun",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EUnOp]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "params",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Expr]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Alt",
-                        "alts": [
-                          {
-                            "class": "Sequence",
-                            "elements": [
-                              {
-                                "class": "NoSpace"
-                              },
-                              {
-                                "class": "Lit",
-                                "value=": ","
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "lambda",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[ELambda]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "EFunCall",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "fun",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EUnOp]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "params",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Call",
-                        "rule": "rules[Expr]"
-                      },
-                      "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Alt",
-                        "alts": [
-                          {
-                            "class": "Sequence",
-                            "elements": [
-                              {
-                                "class": "NoSpace"
-                              },
-                              {
-                                "class": "Lit",
-                                "value=": ","
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "ELambda",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "ELambda",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "{"
-                  },
-                  {
-                    "class": "Regular",
-                    "arg": {
-                      "class": "Alt",
-                      "alts": [
-                        {
-                          "class": "Sequence",
-                          "elements": [
-                            {
-                              "class": "Lit",
-                              "value=": "|"
-                            },
-                            {
-                              "class": "NoSpace"
-                            },
-                            {
-                              "class": "Field",
-                              "name=": "formals",
-                              "arg": {
-                                "class": "Regular",
-                                "arg": {
-                                  "class": "Call",
-                                  "rule": "rules[Formal]"
-                                },
-                                "optional=": false,
-                                "many=": true,
-                                "sep": {
-                                  "class": "Alt",
-                                  "alts": [
-                                    {
-                                      "class": "Sequence",
-                                      "elements": [
-                                        {
-                                          "class": "NoSpace"
-                                        },
-                                        {
-                                          "class": "Lit",
-                                          "value=": ","
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            {
-                              "class": "NoSpace"
-                            },
-                            {
-                              "class": "Lit",
-                              "value=": "|"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    "optional=": true,
-                    "many=": false,
-                    "sep": null
-                  },
-                  {
-                    "class": "Break",
-                    "lines=": 1
-                  },
-                  {
-                    "class": "Indent",
-                    "indent=": 1
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[EBlock_nocurly]"
-                    }
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": "}"
-                  },
-                  {
-                    "class": "Break",
-                    "lines=": 1
-                  },
-                  {
-                    "class": "Indent",
-                    "indent=": -1
                   }
                 ]
               }
@@ -2176,6 +1886,232 @@
                   "rule": "rules[Primary]"
                 }
               ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "EFunCall",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "EFunCall",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "fun",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[EUnOp]"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "params",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Expr]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Alt",
+                        "alts": [
+                          {
+                            "class": "Sequence",
+                            "elements": [
+                              {
+                                "class": "NoSpace"
+                              },
+                              {
+                                "class": "Lit",
+                                "value=": ","
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "lambda",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[ELambda]"
+                      },
+                      "optional=": true,
+                      "many=": false,
+                      "sep": null
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "ELambda",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "ELambda",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "{"
+                  },
+                  {
+                    "class": "Regular",
+                    "arg": {
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            },
+                            {
+                              "class": "NoSpace"
+                            },
+                            {
+                              "class": "Field",
+                              "name=": "formals",
+                              "arg": {
+                                "class": "Regular",
+                                "arg": {
+                                  "class": "Call",
+                                  "rule": "rules[Formal]"
+                                },
+                                "optional=": false,
+                                "many=": true,
+                                "sep": {
+                                  "class": "Alt",
+                                  "alts": [
+                                    {
+                                      "class": "Sequence",
+                                      "elements": [
+                                        {
+                                          "class": "NoSpace"
+                                        },
+                                        {
+                                          "class": "Lit",
+                                          "value=": ","
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "class": "NoSpace"
+                            },
+                            {
+                              "class": "Lit",
+                              "value=": "|"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "optional=": true,
+                    "many=": false,
+                    "sep": null
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "body",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "}"
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Formal",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Formal",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  }
+                ]
+              }
             }
           ]
         }

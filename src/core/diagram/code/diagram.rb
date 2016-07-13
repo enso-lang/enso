@@ -669,9 +669,9 @@ module Diagram
 			        @context.fillStyle_ = makeColor(style.color)
 			      end
 			    end
-			    if @selection && @selection.is_selected(part)
-			  	  @context.stokeStyle_ = makeColor(@select_color)
-			   	end
+#			    if @selection && @selection.is_selected(part)
+#			  	  @context.stokeStyle_ = makeColor(@select_color)
+#			   	end
 			    block.call()
 			    @context.restore
 			  else

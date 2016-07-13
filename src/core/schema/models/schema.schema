@@ -1,4 +1,4 @@
-import impl.schema
+import expr.schema
 
 class Schema
   types! Type*

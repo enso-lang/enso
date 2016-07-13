@@ -34,21 +34,25 @@ module Load
       result.finalize
     end
 
-    def _load(name, type)
+    def _load(name, type = nil)
       type ||= name.split('.')[-1]
       #first check if cached XML version is still valid 
       if Parse.nil? || Cache::check_dep(name)
         $stderr << "## fetching #{name}...\n"
         Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
-        g = load("#{type}.grammar")
-        s = load("#{type}.schema")
-        res = load_with_models(name, g, s)
-        #dump it back to xml
-        $stderr << "## caching #{name}...\n"
-        Cache::save_cache(name, res, false)
-        res
+        res = parse_with_type(name, type)
+	      #dump it back to xml
+	      $stderr << "## caching #{name}...\n"
+	      Cache::save_cache(name, res, false)
+	      res
       end
+    end
+    
+    def parse_with_type(name, type)
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      res = load_with_models(name, g, s)
     end
 
     def setup
@@ -65,7 +69,7 @@ module Load
 
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
 
-      if false
+      if true
 	      update_json('grammar.grammar')
 	      update_json('schema.grammar')
 	      update_json('schema.schema')
@@ -149,6 +153,10 @@ module Load
   
   def self.load(name)
     Load::Loader.load(name)
+  end
+
+  def self.load!(name)
+    Load::Loader.load!(name)
   end
   
   def self.Load_text(type, factory, source, show = false)

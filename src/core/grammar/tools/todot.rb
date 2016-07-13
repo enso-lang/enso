@@ -12,9 +12,9 @@ class ToDot
 
   def to_dot
     @out << "digraph SPPF {\n"
-    nodes = ident(@sppf)
-    nodes(nodes)
-    edges(nodes)
+ #   nodes = ident(@sppf)
+ #   nodes(nodes)
+ #   edges(nodes)
     @out << "}\n"
   end
 

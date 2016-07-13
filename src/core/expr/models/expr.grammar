@@ -19,7 +19,10 @@ EUnOp ::= [EUnOp] "not" e:Expr {op == "!"}
         | EFunCall
         | EListComp
         | Primary
-EFunCall ::= [EFunCall] fun:EUnOp . "(". params:Expr* @(.",") .")"
+EFunCall ::= [EFunCall] fun:EUnOp . "(". params:Expr* @(.",") .")" lambda:ELambda?
+
+ELambda ::= [ELambda] "{" ("|". formals:Formal+ @(.",") ."|")? /> body:Expr "}" /< 
+Formal ::= [Formal] name:sym
 
 Primary ::= EConst
           | [EField] e:Primary .".". fname:sym

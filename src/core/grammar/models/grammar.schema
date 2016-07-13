@@ -62,3 +62,4 @@ class Indent < Pattern
 class Code < Terminal
   expr! Expr
  
+class Expr

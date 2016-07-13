@@ -1,5 +1,6 @@
 {
   "*VERSION*": 2,
+  "*WINDOW*": {},
   "Schema": {
     "x": 38,
     "y": 3

@@ -29,22 +29,10 @@ class EBlock < Command
   fundefs! EFunDef*
   body!    Command*
 
-class EFunCall < Expr, Command
-  fun!    Expr
-  params! Expr*
-  lambda! ELambda?
-
-class ELambda
-  body!    Command
-  formals! Formal*
-
 class EFunDef
   name:    str
   formals! Formal*
   body!    Command
-
-class Formal
-  name: str
 
 class EAssign < Command
   var! Expr

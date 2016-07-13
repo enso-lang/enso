@@ -1,8 +1,8 @@
 
 require 'core/grammar/parse/origins'
 require 'core/grammar/parse/gll'
-require 'core/grammar/parse/enso-gll'
-require 'core/grammar/parse/enso-build'
+#require 'core/grammar/parse/enso-gll'
+#require 'core/grammar/parse/enso-build'
 require 'core/grammar/parse/build'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
@@ -37,7 +37,7 @@ class Parse
         u = Load::load(imp)
         u.factory.file_path.each  {|p| deps << p}
         if as 
-          if imp.split('.')[1]=="schema" #we only know how to rename schemas right now
+          if imp.split('.')[1]=="schema" #we only know how to rename schemas and grammars right now
             u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
             as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
               rename_schema!(u, from, to)
@@ -74,8 +74,10 @@ class Parse
     # end
     Print.print(inst) if show
     if ENV['GLL'] == 'enso' then
+      puts "BUILD_GLL"
       EnsoBuild::build(tree, factory, org, imports)
     else
+      puts "BUILD_build"
       Build.build(tree, factory, org, imports)
     end
   end

@@ -23,6 +23,14 @@ class InstanceOf < Expr
 class EFunCall < Expr
   fun! Expr
   params! Expr*
+  lambda! ELambda?
+
+class ELambda
+  body!    Expr
+  formals! Formal*
+
+class Formal
+  name: str
 
 class EField < Expr
   e! Expr

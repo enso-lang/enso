@@ -29,12 +29,6 @@ SOURCES = \
 	js/core/diagram/code/constraints.js \
 
 MODELS = \
-	schema.stencil \
-	state_machine.stencil	\
-	genealogy-dot.grammar \
-	genealogy.grammar \
-	auth.grammar \
-	diagram.grammar \
 	stencil.grammar \
 	expr.grammar \
 	impl.grammar \
@@ -50,6 +44,12 @@ MODELS = \
 	unary.grammar \
 	code.grammar \
 	code_js.grammar \
+	schema.stencil \
+	state_machine.stencil	\
+	genealogy-dot.grammar \
+	genealogy.grammar \
+	auth.grammar \
+	diagram.grammar \
 	schema.grammar \
 	point.grammar \
 	lambda.grammar \
