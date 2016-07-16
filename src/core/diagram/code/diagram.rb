@@ -348,7 +348,7 @@ module Diagram
 	
 	  def constrainText(part, x, y, width, height)
 	    info = @context.measureText(part.string)
-	    width.max(info.width_)
+	    width.max(info.width_ + 4)
 	    height.max(15)  # doesn't include height!
 	  end
 	
@@ -499,53 +499,67 @@ module Diagram
 	    }
 	    @context.stroke
 	
-	    drawEnd e0
-	    drawEnd e1
+	    drawEnd e0, e1
+	    drawEnd e1, e0
 	  end
 	
-	  def drawEnd(cend)
+	  def drawEnd(cend, other_end)
 	    side = getSide(cend.attach)
-	
+			
 	    # draw the labels
 	    rFrom = boundary_fixed(cend.to)
+	    rTo = boundary_fixed(other_end.to)
 		  r = EnsoPoint.new(rFrom.x + cend.attach.x * rFrom.w, rFrom.y + cend.attach.y * rFrom.h)
-	    if r
-		    case side
-		    when 0 # UP
-		      angle = 90
-		      align = 'left'
-		    when 1 # RIGHT
-		    	angle = 0
-		      align = 'left'
-		    when 2 # DOWN
-		      angle = -90
-		      align = 'left'
-		    when 3 # LEFT
-		    	angle = 0
-		    	align = 'right'
-		    end
-		    lineHeight = 10
-		    with_styles(cend.label) do 
-		      @context.save
-		      @context.translate(r.x, r.y)
-					@context.rotate(-Math.PI_ * angle / 180)
-					
-					@context.textAlign_ = align
-					@context.fillText(cend.label.string, 0, 0) # lineHeight / 2)
-					
-					@context.restore
-			  end
-#		    with_styles(cend.other_label) do 
-#		      @context.save
-#		      @context.translate(r.x + offset.x, r.y + offset.y)
-#					@context.rotate(-Math.PI_ * angle / 180)
-#					
-#					@context.textAlign_ = 'right'
-#					@context.fillText(cend.label.string, 0, lineHeight / 2)
-#					
-#					@context.restore
-#			  end
-			end
+		  s = EnsoPoint.new(rTo.x + other_end.attach.x * rTo.w, rTo.y + other_end.attach.y * rTo.h)
+	    case side
+	    when 0 # UP
+	      angle = 90
+	      align = 'left'
+	      offsetX = 1
+	      if s.x < r.x  # going left
+	        offsetY = 0
+	      else
+	        offsetY = -1
+	      end
+	    when 1 # RIGHT
+	    	angle = 0
+	      align = 'left'
+	      offsetX = 1
+	      if s.y < r.y  # going up
+	        offsetY = 0
+	      else
+	        offsetY = -1
+	      end
+	    when 2 # DOWN
+	      angle = -90
+	      align = 'left'
+	      offsetX = 1
+	      if r.x < s.x  # going right
+	        offsetY = 0
+	      else
+	        offsetY = -1
+	      end
+	    when 3 # LEFT
+	    	angle = 0
+	    	align = 'right'
+	      offsetX = -1
+	      if s.y < r.y  # going up
+	        offsetY = 0
+	      else
+	        offsetY = -1
+	      end
+	    end
+	    with_styles(cend.label) do 
+	      @context.save
+	      @context.translate(r.x, r.y)
+				@context.rotate(-Math.PI_ * angle / 180)
+				
+				@context.textAlign_ = align
+				textHeight = 16
+				@context.fillText(cend.label.string, offsetX * 3, offsetY * textHeight) 
+				
+				@context.restore
+		  end
 	
 	    # draw the arrows
 	    if cend.arrow == ">" || cend.arrow == "<"
@@ -647,7 +661,7 @@ module Diagram
 	  def drawText(text)
 	    r = boundary_fixed(text)
 			#@context.fillRect(r.x, r.y, r.w, r.h)
-	    @context.fillText(text.string, r.x, r.y)
+	    @context.fillText(text.string, r.x + 2, r.y)
 	  end
 	 
 	  #  --- helper functions ---

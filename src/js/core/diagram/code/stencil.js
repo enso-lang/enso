@@ -124,12 +124,13 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.on_save = (function () {
       var self = this;
-      var grammar;
+      var grammar, pos;
       (grammar = Load.load(S("", self.$.extension, ".grammar")));
+      (pos = S("", self.$.data.factory().file_path()._get(0), ""));
       File.write((function (output) {
         return Layout.DisplayFormat.print(grammar, self.$.data, output, false);
-      }), S("", self.$.path, "-NEW"));
-      return System.writeJSON(S("", self.$.path, "-positions"), self.capture_positions());
+      }), S("", pos, "-NEW"));
+      return System.writeJSON(S("", pos, "-positions"), self.capture_positions());
     }));
     (this.capture_positions = (function () {
       var self = this;
@@ -323,7 +324,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9706) {
+        catch (caught$9739) {
           
         }
         if ((!shape)) {
@@ -427,7 +428,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                return self.construct(item, env, group, id, Proc.new((function (x, subid) {
                  group.items().push(x);
                  if ((obj.direction() == 3)) {
-                   self.$.graphShapes._set(subid, x);
+                   return self.$.graphShapes._set(subid, x);
                  }
                })));
              }));

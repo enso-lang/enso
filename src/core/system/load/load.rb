@@ -69,7 +69,7 @@ module Load
 
       Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
 
-      if true
+      if false
 	      update_json('grammar.grammar')
 	      update_json('schema.grammar')
 	      update_json('schema.schema')

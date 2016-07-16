@@ -353,7 +353,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.max(info.width);
+      width.max((info.width + 4));
       return height.max(15);
     }));
     (this.constrainConnector = (function (part) {
@@ -518,47 +518,76 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.context.lineTo(p.x(), p.y());
       }));
       self.$.context.stroke();
-      self.drawEnd(e0);
-      return self.drawEnd(e1);
+      self.drawEnd(e0, e1);
+      return self.drawEnd(e1, e0);
     }));
-    (this.drawEnd = (function (cend) {
+    (this.drawEnd = (function (cend, other_end) {
       var self = this;
-      var size, align, arrow, angle, pos, side, lineHeight, rFrom, r, index;
+      var size, offsetY, arrow, rTo, pos, side, rFrom, offsetX, align, r, index, s, angle;
       (side = self.getSide(cend.attach()));
       (rFrom = self.boundary_fixed(cend.to()));
+      (rTo = self.boundary_fixed(other_end.to()));
       (r = EnsoPoint.new((rFrom.x() + (cend.attach().x() * rFrom.w())), (rFrom.y() + (cend.attach().y() * rFrom.h()))));
-      if (r) {
-        switch ((function () {
-          return side;
-        })()) {
-          case 3:
-           (angle = 0);
-           (align = "right");
-           break;
-          case 2:
-           (angle = (-90));
-           (align = "left");
-           break;
-          case 1:
-           (angle = 0);
-           (align = "left");
-           break;
-          case 0:
-           (angle = 90);
-           (align = "left");
-           break;
-        }
-            
-        (lineHeight = 10);
-        self.with_styles((function () {
-          self.$.context.save();
-          self.$.context.translate(r.x(), r.y());
-          self.$.context.rotate((((-Math.PI) * angle) / 180));
-          (self.$.context.textAlign = align);
-          self.$.context.fillText(cend.label().string(), 0, 0);
-          return self.$.context.restore();
-        }), cend.label());
+      (s = EnsoPoint.new((rTo.x() + (other_end.attach().x() * rTo.w())), (rTo.y() + (other_end.attach().y() * rTo.h()))));
+      switch ((function () {
+        return side;
+      })()) {
+        case 3:
+         (angle = 0);
+         (align = "right");
+         (offsetX = (-1));
+         if ((s.y() < r.y())) { 
+           (offsetY = 0); 
+         }
+         else { 
+           (offsetY = (-1));
+         }
+         break;
+        case 2:
+         (angle = (-90));
+         (align = "left");
+         (offsetX = 1);
+         if ((r.x() < s.x())) { 
+           (offsetY = 0); 
+         }
+         else { 
+           (offsetY = (-1));
+         }
+         break;
+        case 1:
+         (angle = 0);
+         (align = "left");
+         (offsetX = 1);
+         if ((s.y() < r.y())) { 
+           (offsetY = 0); 
+         }
+         else { 
+           (offsetY = (-1));
+         }
+         break;
+        case 0:
+         (angle = 90);
+         (align = "left");
+         (offsetX = 1);
+         if ((s.x() < r.x())) { 
+           (offsetY = 0); 
+         }
+         else { 
+           (offsetY = (-1));
+         }
+         break;
       }
+          
+      self.with_styles((function () {
+        var textHeight;
+        self.$.context.save();
+        self.$.context.translate(r.x(), r.y());
+        self.$.context.rotate((((-Math.PI) * angle) / 180));
+        (self.$.context.textAlign = align);
+        (textHeight = 16);
+        self.$.context.fillText(cend.label().string(), (offsetX * 3), (offsetY * textHeight));
+        return self.$.context.restore();
+      }), cend.label());
       if (((cend.arrow() == ">") || (cend.arrow() == "<"))) {
         (size = 5);
         (angle = (((-Math.PI) * (1 - side)) / 2));
@@ -715,7 +744,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var r;
       (r = self.boundary_fixed(text));
-      return self.$.context.fillText(text.string(), r.x(), r.y());
+      return self.$.context.fillText(text.string(), (r.x() + 2), r.y());
     }));
     (this.with_styles = (function (block, part) {
       var self = this;
@@ -744,9 +773,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
               }
             }
           }));
-          if ((self.$.selection && self.$.selection.is_selected(part))) {
-            (self.$.context.stokeStyle = self.makeColor(self.$.select_color));
-          }
           block();
           return self.$.context.restore();
         }

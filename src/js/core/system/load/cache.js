@@ -70,7 +70,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3136) {
+             catch (caught$3086) {
                
                  return false;
              }
@@ -86,12 +86,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1147) {
+      catch (caught$1097) {
         
-          if ((caught$1147 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1097 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1147); 
+            })(caught$1097); 
           }
           else { 
             ;
@@ -131,9 +131,10 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
         }
       }
     }),
-    load_cache: (function (name, factory, input) {
+    load_cache: (function (name, factory, input, model) {
       var self = this;
       (input = (((typeof input) !== "undefined") ? input : null));
+      (model = (((typeof model) !== "undefined") ? model : "model"));
       var res, json, type;
       if ((input == null)) {
         (input = self.find_json(name));
@@ -141,7 +142,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       (type = name.split(".")._get((-1)));
       puts(S("## loading cache for: ", name, " (", input, ")"));
       (json = System.readJSON(input));
-      (res = Dumpjson.from_json(factory, json._get("model")));
+      (res = Dumpjson.from_json(factory, json._get(model)));
       res.factory().file_path()._set(0, (self.hack_prefix() + json._get("source")));
       json._get("depends").each((function (dep) {
         return res.factory().file_path().push(dep._get("filename"));

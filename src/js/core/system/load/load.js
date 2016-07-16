@@ -32,19 +32,25 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     }));
     (this._load = (function (name, type) {
       var self = this;
-      var res, g, s;
+      (type = (((typeof type) !== "undefined") ? type : null));
+      var res;
       (type = (type || name.split(".")._get((-1))));
       if (((Parse == null) || Cache.check_dep(name))) {
         System.stderr().push(S("## fetching ", name, "...\n"));
         return Cache.load_cache(name, Factory.new(self.load(S("", type, ".schema"))));
       } else {
-        (g = self.load(S("", type, ".grammar")));
-        (s = self.load(S("", type, ".schema")));
-        (res = self.load_with_models(name, g, s));
+        (res = self.parse_with_type(name, type));
         System.stderr().push(S("## caching ", name, "...\n"));
         Cache.save_cache(name, res, false);
         return res;
       }
+    }));
+    (this.parse_with_type = (function (name, type) {
+      var self = this;
+      var res, g, s;
+      (g = self.load(S("", type, ".grammar")));
+      (s = self.load(S("", type, ".schema")));
+      return (res = self.load_with_models(name, g, s));
     }));
     (this.setup = (function () {
       var self = this;
@@ -136,11 +142,6 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
   undefined;
   (Load = {
     LoaderClass: LoaderClass,
-    load_with_models: (function (name, grammar, schema, encoding) {
-      var self = this;
-      (encoding = (((typeof encoding) !== "undefined") ? encoding : null));
-      return Load.Loader.load_with_models(name, grammar, schema, encoding);
-    }),
     Loader: (Loader = (Loader || LoaderClass.new())),
     Load_text: (function (type, factory, source, show) {
       var self = this;
@@ -150,6 +151,15 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     load: (function (name) {
       var self = this;
       return Load.Loader.load(name);
+    }),
+    load_with_models: (function (name, grammar, schema, encoding) {
+      var self = this;
+      (encoding = (((typeof encoding) !== "undefined") ? encoding : null));
+      return Load.Loader.load_with_models(name, grammar, schema, encoding);
+    }),
+    load_C: (function (name) {
+      var self = this;
+      return Load.Loader.load_C(name);
     })
   });
   return Load;

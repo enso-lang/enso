@@ -11,7 +11,7 @@ graph {   // create the nodes (one for each class)
              if (field.type is Primitive)
                horizontal {
                  text field.name // editable field name
-                 text ": "
+                 text (field.key ? "#" : (field.auto ? "##" : ":"))
                  text field.type.name // drop-down for type
                  text (field.many ? "*" : (field.optional ? "?" : ""))
                }}}}
@@ -27,9 +27,9 @@ graph {   // create the nodes (one for each class)
      if (field.computed == nil)
       if (not (field.type is Primitive) 
           and (field.inverse == nil or field._id <= field.inverse._id))
-        connector (field.name + (field.many ? "*" : (field.optional ? "?" : "")) 
+        connector ((field.traversal ? "#" : "") + field.name + (field.many ? "*" : (field.optional ? "?" : ""))
         				  : field.owner -- field.type : 
-        				  (field.inverse == nil) ? "" : (field.inverse.name
-                							    + (field.inverse.many ? "*" : (field.inverse.optional ? "?" : "")))) 
+        				  (field.inverse == nil) ? "" : (field.inverse.name +
+        				  				(field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))
  }
  

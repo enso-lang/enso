@@ -125,12 +125,12 @@ module Stencil
 	  
 	  def on_save
 	    grammar = Load.load("#{@extension}.grammar")
-	    File.write("#{@path}-NEW") do |output|
+	    pos = "#{@data.factory.file_path[0]}"    
+	    File.write("#{pos}-NEW") do |output|
 	      Layout::DisplayFormat.print(grammar, @data, output, false) #false => dont slash_kwywords
 	    end
 	
-	        
-	    System.writeJSON("#{@path}-positions", capture_positions())
+	    System.writeJSON("#{pos}-positions", capture_positions())
 	  end
 	  
 	  def capture_positions
