@@ -458,31 +458,33 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var start, m2, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
       (r = self.boundary_fixed(shape));
-      (margin = self.$.context.lineWidth);
-      (m2 = (margin - (margin % 2)));
-      switch ((function () {
-        return shape.kind();
-      })()) {
-        case "oval":
-         (rx = (r.w() / 2));
-         (ry = (r.h() / 2));
-         (x = (r.x() + rx));
-         (y = (r.y() + ry));
-         (rotation = 0);
-         (start = 0);
-         (finish = (2 * Math.PI));
-         (anticlockwise = false);
-         self.$.context.save();
-         self.$.context.beginPath();
-         self.$.context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise);
-         self.$.context.stroke();
-         self.$.context.restore();
-         break;
-        case "box":
-         self.$.context.strokeRect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));
-         break;
+      if (r) {
+        (margin = self.$.context.lineWidth);
+        (m2 = (margin - (margin % 2)));
+        switch ((function () {
+          return shape.kind();
+        })()) {
+          case "oval":
+           (rx = (r.w() / 2));
+           (ry = (r.h() / 2));
+           (x = (r.x() + rx));
+           (y = (r.y() + ry));
+           (rotation = 0);
+           (start = 0);
+           (finish = (2 * Math.PI));
+           (anticlockwise = false);
+           self.$.context.save();
+           self.$.context.beginPath();
+           self.$.context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise);
+           self.$.context.stroke();
+           self.$.context.restore();
+           break;
+          case "box":
+           self.$.context.strokeRect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));
+           break;
+        }
+            
       }
-          
       return self.draw(shape.content());
     }));
     (this.drawConnector = (function (part) {

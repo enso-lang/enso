@@ -22,7 +22,7 @@ You may need:
  - bigdecimal gem
  - colored gem (for debugger)
  - rake (for web)
- - wxruby (for old stencil)
+ - Electron (for new stencil)
 
 You may want (only if you know you do):
  - Eclipse IDE. Suggested configuration files are kept in git.

@@ -439,28 +439,30 @@ module Diagram
 	  
 	  def drawShape(shape)
 	    r = boundary_fixed(shape)
-	    margin = @context.lineWidth_
-	    m2 = margin - (margin % 2)
-	    case shape.kind
-	    when "box"
-				#@context.fillRect(r.x, r.y, r.w, r.h)
-	      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
-	    when "oval"
-		    rx            = r.w / 2        # The X radius
-		    ry            = r.h / 2        # The Y radius
-        x             = r.x + rx        # The X coordinate
-		    y             = r.y + ry        # The Y cooordinate
-		    rotation      = 0          # The rotation of the ellipse (in radians)
-		    start         = 0          # The start angle (in radians)
-		    finish        = 2 * Math.PI_ # The end angle (in radians)
-		    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
-		                                    # anti-clockwise direction
-		    @context.save
-		    @context.beginPath()
-    		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
-    		#@context.fill
-    		@context.stroke
-		    @context.restore
+	    if r
+		    margin = @context.lineWidth_
+		    m2 = margin - (margin % 2)
+		    case shape.kind
+		    when "box"
+					#@context.fillRect(r.x, r.y, r.w, r.h)
+		      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+		    when "oval"
+			    rx            = r.w / 2        # The X radius
+			    ry            = r.h / 2        # The Y radius
+	        	x             = r.x + rx        # The X coordinate
+			    y             = r.y + ry        # The Y cooordinate
+			    rotation      = 0          # The rotation of the ellipse (in radians)
+			    start         = 0          # The start angle (in radians)
+			    finish        = 2 * Math.PI_ # The end angle (in radians)
+			    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
+			                                    # anti-clockwise direction
+			    @context.save
+			    @context.beginPath()
+	    		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
+	    		#@context.fill
+	    		@context.stroke
+			    @context.restore
+			end
 		  end
 	    draw(shape.content)
 	  end
