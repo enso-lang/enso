@@ -131,10 +131,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       var position_map;
       (position_map = System.JSHASH());
       position_map._set("*VERSION*", 2);
-      position_map._set("*WINDOW*", (new EnsoHash({
-        x: self.$.win.width,
-        y: self.$.win.height
-      })));
       self.$.graphShapes.each((function (tag, shape) {
         var h1, h2, hash, pos, at1, at2;
         if (shape.Connector_P()) {
@@ -318,7 +314,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9584) {
+        catch (caught$9586) {
           
         }
         if ((!shape)) {

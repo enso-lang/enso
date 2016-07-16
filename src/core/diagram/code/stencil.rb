@@ -132,7 +132,7 @@ module Stencil
 	    position_map = System.JSHASH()
 	    position_map["*VERSION*"] = 2
 	
-	    position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
+	    # position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
 	
 	    @graphShapes.each do |tag, shape|
 	      if shape.Connector?
