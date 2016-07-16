@@ -39,7 +39,6 @@ module Stencil
 	    setup ext, Load::load(@path)
 	  end
 	 
-	  
 	  def setup(extension, data)
 	    @extension = extension
 	    @stencil = Load::load("#{@extension}.stencil")
@@ -114,14 +113,14 @@ module Stencil
 	    add_menu(file, "&Export\tCmd-E", "Export Diagram", :on_export)
 	  end
 	
-	  def on_open
-	    Proc.new {
-		    dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*")
-		    if dialog.show_modal() == ID_OK
-		      self.path = dialog.get_path
-		    end
-		  }
-	  end
+		def on_open
+  		dialog = remote.require('dialog')
+  		dialog.showOpenDialog do |fileNames|
+			  if !fileNames.nil?
+			    self.path = dialog.get_path
+				end
+			end
+		end
 	  
 	  def on_save
 	    grammar = Load.load("#{@extension}.grammar")

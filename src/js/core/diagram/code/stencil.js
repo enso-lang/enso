@@ -114,10 +114,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.on_open = (function () {
       var self = this;
-      return Proc.new((function () {
-        var dialog;
-        (dialog = FileDialog.new(self, "Choose a file", "", "", "Model files (*.*)|*.*"));
-        if ((dialog.show_modal() == self.ID_OK())) {
+      var dialog;
+      (dialog = self.remote().require("dialog"));
+      return dialog.showOpenDialog((function (fileNames) {
+        if ((!(fileNames == null))) {
           return self.set_path(dialog.get_path());
         }
       }));
@@ -324,7 +324,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9739) {
+        catch (caught$9694) {
           
         }
         if ((!shape)) {

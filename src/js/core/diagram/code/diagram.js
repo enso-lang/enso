@@ -31,17 +31,20 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.on_open = (function () {
       var self = this;
-      var path, dialog, content, extension;
-      (dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;"));
-      if ((dialog.show_modal() == self.ID_OK())) {
-        (path = dialog.get_path());
-        (extension = File.extname(path));
-        if ((extension != "diagram")) {
-          self.raise("File is not a diagram");
+      var dialog;
+      (dialog = self.remote().require("dialog"));
+      return dialog.showOpenDialog((function (fileNames) {
+        var fileName;
+        if ((!(fileNames == null))) {
+          (fileName = fileNames._get(0));
+          return Load.load(fileName);
         }
-        (content = Load(dialog.get_path()));
-        return self.set_root(content);
-      }
+      }), (new EnsoHash({
+        filters: [(new EnsoHash({
+          name: "diagram",
+          extensions: ["diagram"]
+        }))]
+      })));
     }));
     (this.set_root = (function (root) {
       var self = this;
@@ -185,12 +188,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$3473) {
+               catch (caught$3368) {
                  
-                   if ((caught$3473 instanceof Exception)) { 
+                   if ((caught$3368 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$3473); 
+                     })(caught$3368); 
                    }
                    else { 
                      ;

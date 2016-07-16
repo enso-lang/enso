@@ -24,17 +24,16 @@ module Diagram
 	  attr_accessor :factory
 	  attr_accessor :context
 	  
-	  def on_open
-	    dialog = FileDialog.new(self, "Choose a file", "", "", "Diagrams (*.diagram;)|*.diagram;")
-	    if dialog.show_modal() == ID_OK
-	      path = dialog.get_path
-	      extension = File.extname(path)
-	      raise "File is not a diagram" if extension != "diagram"
-	      content = Load(dialog.get_path())
-	      set_root(content)
-	    end
-	  end
-	  
+		def on_open
+  		dialog = remote.require('dialog')
+  		dialog.showOpenDialog( filters: [{ name: 'diagram', extensions: ['diagram']}] ) do |fileNames|
+			  if !fileNames.nil?
+				  fileName = fileNames[0]
+				  Load::load(fileName)
+				end
+			end
+		end
+	  	  
 	  def set_root(root)
 	    @canvas.onmousedown_ = on_mouse_down
 	    @canvas.onmousemove_ = on_move

@@ -27,9 +27,10 @@ graph {   // create the nodes (one for each class)
      if (field.computed == nil)
       if (not (field.type is Primitive) 
           and (field.inverse == nil or field._id <= field.inverse._id))
-        connector ((field.traversal ? "#" : "") + field.name + (field.many ? "*" : (field.optional ? "?" : ""))
+        connector ((field == nil) ? "" : (field.traversal ? "#" : "") + field.name 
+        									+ (field.many ? "*" : (field.optional ? "?" : ""))
         				  : field.owner -- field.type : 
-        				  (field.inverse == nil) ? "" : (field.inverse.name +
-        				  				(field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))
+        				  (field.inverse == nil) ? "" : (field.inverse.name
+        				  				+ (field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))
  }
  
