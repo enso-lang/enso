@@ -112,15 +112,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (file = self.menu_bar().get_menu(self.menu_bar().find_menu("File")));
       return self.add_menu(file, "&Export\tCmd-E", "Export Diagram", "on_export");
     }));
-    (this.on_open = (function () {
+    (this.do_open = (function (file) {
       var self = this;
-      var dialog;
-      (dialog = self.remote().require("dialog"));
-      return dialog.showOpenDialog((function (fileNames) {
-        if ((!(fileNames == null))) {
-          return self.set_path(dialog.get_path());
-        }
-      }));
+      return self.set_path(file.split("/")._get((-1)));
     }));
     (this.on_save = (function () {
       var self = this;
@@ -324,7 +318,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9694) {
+        catch (caught$9584) {
           
         }
         if ((!shape)) {

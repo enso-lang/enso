@@ -1,39 +1,56 @@
---- 
-default:/states[Opened]: !ruby/object:EnsoPoint 
-  x: 13
-  y: 94
-default:/states[Closed]: !ruby/object:EnsoPoint 
-  x: 118
-  y: 19
-default:/states[Locked]: !ruby/object:EnsoPoint 
-  x: 237
-  y: 82
-default:/states[Opened]:/states[Closed]$close*: 
-- !ruby/object:EnsoPoint 
-  x: 0.46306337259854347
-  y: 0
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.6420618694350516
-default:/states[Closed]:/states[Opened]$open*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5
-default:/states[Closed]:/states[Locked]$lock*: 
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.6175776585368259
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-default:/states[Locked]:/states[Closed]$unlock*: 
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5000000000000001
-- !ruby/object:EnsoPoint 
-  x: 0.7065933848538857
-  y: 1
-"*VERSION*": 2
+{
+  "*VERSION*": 2,
+  "*WINDOW*": {},
+  "Opened": {
+    "x": 7,
+    "y": 15
+  },
+  "Closed": {
+    "x": 134.50797477916993,
+    "y": 44.60660171779821
+  },
+  "Locked": {
+    "x": 270.399879262836,
+    "y": 71.21320343559643
+  },
+  "Opened.close": [
+    {
+      "x": 1,
+      "y": 0.4738593054052138
+    },
+    {
+      "x": 0.5,
+      "y": 0
+    }
+  ],
+  "Closed.open": [
+    {
+      "x": 0,
+      "y": 0.5420728519291785
+    },
+    {
+      "x": 0.6617565858148883,
+      "y": 1
+    }
+  ],
+  "Closed.lock": [
+    {
+      "x": 1,
+      "y": 0.37160592418408017
+    },
+    {
+      "x": 0.6375100207075383,
+      "y": 0
+    }
+  ],
+  "Locked.unlock": [
+    {
+      "x": 0,
+      "y": 0.5706524709695544
+    },
+    {
+      "x": 0.5861858089911494,
+      "y": 1
+    }
+  ]
+}

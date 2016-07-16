@@ -47,7 +47,9 @@ function createWindow() {
 	        click: (menuItem, browserWindow, event) => {  
 	        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile', 'multiSelections']});  //[browserWindow, ]options[, callback]
 	            console.log("OPEN FILE");
-	        	  browserWindow.webContents.send("do-open", files[0]); }
+	            if (files.length > 0)
+		        	  browserWindow.webContents.send("do-open", files[0]); 
+		       }
 		  },{
 	        label: 'Save',
 			    accelerator: 'CmdOrCtrl+S',

@@ -125,8 +125,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.clear_selection = (function () {
       var self = this;
       if (self.$.selection) {
-        (self.$.selection = self.$.selection.clear());
-        return self.clear_refresh();
+        return (self.$.selection = self.$.selection.clear());
       }
     }));
     (this.set_selection = (function (select, pnt) {
@@ -188,12 +187,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                }
                     
                }
-               catch (caught$3368) {
+               catch (caught$3369) {
                  
-                   if ((caught$3368 instanceof Exception)) { 
+                   if ((caught$3369 instanceof Exception)) { 
                      return (function (e) {
                        puts("ERROR DURING FIND!");
-                     })(caught$3368); 
+                     })(caught$3369); 
                    }
                    else { 
                      ;
@@ -473,8 +472,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
          (start = 0);
          (finish = (2 * Math.PI));
          (anticlockwise = false);
+         self.$.context.save();
+         self.$.context.beginPath();
          self.$.context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise);
          self.$.context.stroke();
+         self.$.context.restore();
          break;
         case "box":
          self.$.context.strokeRect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));

@@ -1,38 +1,56 @@
---- 
-Machine: !ruby/object:EnsoPoint 
-  x: 22
-  y: 4
-State: !ruby/object:EnsoPoint 
-  x: 82
-  y: 83
-Transition: !ruby/object:EnsoPoint 
-  x: 150
-  y: 141
-Machine.start: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5305820407830857
-Machine.states: 
-- !ruby/object:EnsoPoint 
-  x: 0.885364958373689
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-State.out: 
-- !ruby/object:EnsoPoint 
-  x: 0.2856026378589088
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.3125667696150711
-State.in: 
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.37261218849620525
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
+{
+  "*VERSION*": 2,
+  "*WINDOW*": {},
+  "Machine": {
+    "x": 18,
+    "y": 14
+  },
+  "State": {
+    "x": 101,
+    "y": 37
+  },
+  "Trans": {
+    "x": 192.58106994628906,
+    "y": 37
+  },
+  "Machine.start": [
+    {
+      "x": 1,
+      "y": 0.48928495432384367
+    },
+    {
+      "x": 0.5,
+      "y": 0
+    }
+  ],
+  "Machine.states": [
+    {
+      "x": 0.25807332623128576,
+      "y": 1
+    },
+    {
+      "x": 0,
+      "y": 0.339728951552665
+    }
+  ],
+  "State.out": [
+    {
+      "x": 0.942032059786176,
+      "y": 1
+    },
+    {
+      "x": 0.4531493838881962,
+      "y": 1
+    }
+  ],
+  "State.in": [
+    {
+      "x": 0.9237484625295841,
+      "y": 0
+    },
+    {
+      "x": 0.5,
+      "y": 0
+    }
+  ]
+}

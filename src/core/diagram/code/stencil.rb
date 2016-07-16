@@ -113,13 +113,8 @@ module Stencil
 	    add_menu(file, "&Export\tCmd-E", "Export Diagram", :on_export)
 	  end
 	
-		def on_open
-  		dialog = remote.require('dialog')
-  		dialog.showOpenDialog do |fileNames|
-			  if !fileNames.nil?
-			    self.path = dialog.get_path
-				end
-			end
+		def do_open(file)
+	    self.path = file.split('/')[-1]
 		end
 	  
 	  def on_save

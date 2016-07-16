@@ -15,8 +15,7 @@
       ],
       function(Enso, Stencil) {
 
-        var data_file =  "schema.schema" 
-        var stencil_file = data_file.split(".")[1] + ".stencil"
+        var data_file = "door.state_machine" //  "state_machine.schema"; // "schema.schema" 
 				
 				var canvas = document.getElementById('canvas')
 				var context = canvas.getContext('2d')
@@ -34,6 +33,10 @@
 		      console.log(message);  // Prints "whoooooooh!"
     		});
     
+				ipc.on('do-open', function (event, file) {
+					stencil.do_open(file)
+				})				
+				
 				ipc.on('do-save', function (event) {
 					stencil.on_save()
 				})				

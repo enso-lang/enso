@@ -113,7 +113,7 @@ module Diagram
 	  def clear_selection
 	   if @selection
 		    @selection = @selection.clear()
-	      clear_refresh()
+	      #clear_refresh()
 		  end
 	  end
 	    
@@ -455,9 +455,12 @@ module Diagram
 		    finish        = 2 * Math.PI_ # The end angle (in radians)
 		    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
 		                                    # anti-clockwise direction
+		    @context.save
+		    @context.beginPath()
     		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
     		#@context.fill
     		@context.stroke
+		    @context.restore
 		  end
 	    draw(shape.content)
 	  end
