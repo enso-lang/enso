@@ -36,54 +36,57 @@ function createWindow() {
 
  var template = [{
     label: 'File',
-    submenu: [
-      {
+    submenu: [{
         label: 'New',
 		    accelerator: 'CmdOrCtrl+N',
-        click: (menuItem, browserWindow, event) => {  browserWindow.webContents.send("do-new"); }
+        click: (menuItem, browserWindow, event) => {  
+           browserWindow.webContents.send("do-new"); 
+        }
 		  },{
-	        label: 'Open',
-			    accelerator: 'CmdOrCtrl+O',
-	        click: (menuItem, browserWindow, event) => {  
-	        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile', 'multiSelections']});  //[browserWindow, ]options[, callback]
-	            console.log("OPEN FILE");
-	            if (files.length > 0)
-		        	  browserWindow.webContents.send("do-open", files[0]); 
-		       }
+        label: 'Open',
+		    accelerator: 'CmdOrCtrl+O',
+        click: (menuItem, browserWindow, event) => {  
+        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile', 'multiSelections']});  //[browserWindow, ]options[, callback]
+            console.log("OPEN FILE");
+            if (files.length > 0)
+	        	  browserWindow.webContents.send("do-open", files[0]); 
+	       }
 		  },{
-	        label: 'Save',
-			    accelerator: 'CmdOrCtrl+S',
-	        click: (menuItem, browserWindow, event) => {  browserWindow.webContents.send("do-save"); }
+        label: 'Save',
+		    accelerator: 'CmdOrCtrl+S',
+        click: (menuItem, browserWindow, event) => {  
+           browserWindow.webContents.send("do-save"); 
+        }
 		  }]
 		}, {
 		label: 'Edit',
 		submenu: [{
-		    label: 'Undo',
-		    accelerator: 'CmdOrCtrl+Z',
-		    click: (menuItem, browserWindow, event) => { console.log("UNDO!") }
-		  }, {
-		    label: 'Redo',
-		    accelerator: 'Shift+CmdOrCtrl+Z',
-		    click: (menuItem, browserWindow, event) => { console.log("REDO!") }
-		  }, {
-		    type: 'separator'
-		  }, {
-		    label: 'Cut',
-		    accelerator: 'CmdOrCtrl+X',
-		    click: (menuItem, browserWindow, event) => { console.log("Cut!") }
-		  }, {
-		    label: 'Copy',
-		    accelerator: 'CmdOrCtrl+C',
-		    click: (menuItem, browserWindow, event) => { console.log("Copy!") }
-		  }, {
-		    label: 'Paste',
-		    accelerator: 'CmdOrCtrl+V',
-		    click: (menuItem, browserWindow, event) => { console.log("Paste!") }
-		  }, {
-		    label: 'Select All',
-		    accelerator: 'CmdOrCtrl+A',
-		    click: (menuItem, browserWindow, event) => { console.log("Select All!") }
-		  }]
+	    label: 'Undo',
+	    accelerator: 'CmdOrCtrl+Z',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-undo") }
+	  }, {
+	    label: 'Redo',
+	    accelerator: 'Shift+CmdOrCtrl+Z',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-redo") }
+	  }, {
+	    type: 'separator'
+	  }, {
+	    label: 'Cut',
+	    accelerator: 'CmdOrCtrl+X',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-cut") }
+	  }, {
+	    label: 'Copy',
+	    accelerator: 'CmdOrCtrl+C',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-copy") }
+	  }, {
+	    label: 'Paste',
+	    accelerator: 'CmdOrCtrl+V',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-paste") }
+	  }, {
+	    label: 'Select All',
+	    accelerator: 'CmdOrCtrl+A',
+	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-select-all") }
+	  }]
 		}, {
 		label: 'View',
 		submenu: [{
@@ -133,7 +136,7 @@ function createWindow() {
     }
   }, {
     type: 'separator'
-  }, {
+	}, {
     label: 'App Menu Demo',
     click: function (item, focusedWindow) {
       if (focusedWindow) {

@@ -23,39 +23,44 @@ define(["core/system/library/schema", "core/semantics/code/interpreter"], (funct
             return (self.eval(obj.e1()) == self.eval(obj.e2())); 
           }
           else { 
-            if ((obj.op() == "+")) { 
-              return (self.eval(obj.e1()) + self.eval(obj.e2())); 
+            if ((obj.op() == "!=")) { 
+              return (self.eval(obj.e1()) != self.eval(obj.e2())); 
             }
             else { 
-              if ((obj.op() == "*")) { 
-                return (self.eval(obj.e1()) * self.eval(obj.e2())); 
+              if ((obj.op() == "+")) { 
+                return (self.eval(obj.e1()) + self.eval(obj.e2())); 
               }
               else { 
-                if ((obj.op() == "-")) { 
-                  return (self.eval(obj.e1()) - self.eval(obj.e2())); 
+                if ((obj.op() == "*")) { 
+                  return (self.eval(obj.e1()) * self.eval(obj.e2())); 
                 }
                 else { 
-                  if ((obj.op() == "/")) { 
-                    return (self.eval(obj.e1()) / self.eval(obj.e2())); 
+                  if ((obj.op() == "-")) { 
+                    return (self.eval(obj.e1()) - self.eval(obj.e2())); 
                   }
                   else { 
-                    if ((obj.op() == "<")) { 
-                      return (self.eval(obj.e1()) < self.eval(obj.e2())); 
+                    if ((obj.op() == "/")) { 
+                      return (self.eval(obj.e1()) / self.eval(obj.e2())); 
                     }
                     else { 
-                      if ((obj.op() == ">")) { 
-                        return (self.eval(obj.e1()) > self.eval(obj.e2())); 
+                      if ((obj.op() == "<")) { 
+                        return (self.eval(obj.e1()) < self.eval(obj.e2())); 
                       }
                       else { 
-                        if ((obj.op() == "<=")) { 
-                          return (self.eval(obj.e1()) <= self.eval(obj.e2())); 
+                        if ((obj.op() == ">")) { 
+                          return (self.eval(obj.e1()) > self.eval(obj.e2())); 
                         }
                         else { 
-                          if ((obj.op() == ">=")) { 
-                            return (self.eval(obj.e1()) >= self.eval(obj.e2())); 
+                          if ((obj.op() == "<=")) { 
+                            return (self.eval(obj.e1()) <= self.eval(obj.e2())); 
                           }
                           else { 
-                            return self.raise(S("Unknown operator (", obj.op().to_s(), ")"));
+                            if ((obj.op() == ">=")) { 
+                              return (self.eval(obj.e1()) >= self.eval(obj.e2())); 
+                            }
+                            else { 
+                              return self.raise(S("Unknown operator (", obj.op().to_s(), ")"));
+                            }
                           }
                         }
                       }

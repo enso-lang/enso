@@ -154,19 +154,16 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       else {
              (b = self.boundary_fixed(part));
              if ((!(b == null))) {
-               try {if (self.rect_contains(b, pnt)) {
+               if (self.rect_contains(b, pnt)) {
                  (old_container = self.$.find_container);
                  (self.$.find_container = part);
                  (out = null);
-                 if (part.Container_P()) {
+                 if (part.Container_P()) { 
                    (out = part.items().find((function (sub) {
                      return self.find1(filter, sub, pnt);
-                   })));
-                   if (((!out) && filter(part))) {
-                     (out = part);
-                   }
+                   }))); 
                  }
-                 else {
+                 else { 
                    if (part.Shape_P()) { 
                      if (part.content()) {
                        (out = self.find1(filter, part.content(), pnt));
@@ -184,19 +181,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                      return part;
                    }
                  }
-               }
-                    
-               }
-               catch (caught$3369) {
-                 
-                   if ((caught$3369 instanceof Exception)) { 
-                     return (function (e) {
-                       puts("ERROR DURING FIND!");
-                     })(caught$3369); 
-                   }
-                   else { 
-                     ;
-                   }
                }
              }
            }
@@ -489,13 +473,41 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawConnector = (function (part) {
       var self = this;
-      var sideFrom, ps, e1, rTo, sideTo, pFrom, rFrom, e0, pTo;
+      var sideFrom, ps, thetaFrom, e1, rTo, sideTo, thetaTo, pFrom, rFrom, e0, pTo;
       (e0 = part.ends()._get(0));
       (e1 = part.ends()._get(1));
       (rFrom = self.boundary_fixed(e0.to()));
       (rTo = self.boundary_fixed(e1.to()));
-      (pFrom = EnsoPoint.new((rFrom.x() + (e0.attach().x() * rFrom.w())), (rFrom.y() + (e0.attach().y() * rFrom.h()))));
-      (pTo = EnsoPoint.new((rTo.x() + (e1.attach().x() * rTo.w())), (rTo.y() + (e1.attach().y() * rTo.h()))));
+      switch ((function () {
+        return e0.to().kind();
+      })()) {
+        case "oval":
+         (thetaFrom = (-Math.atan2((e0.attach().y() - 0.5), (e0.attach().x() - 0.5))));
+         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * (0.5 + (Math.cos(thetaFrom) / 2)))), (rFrom.y() + (rFrom.h() * (0.5 - (Math.sin(thetaFrom) / 2))))));
+         break;
+        case "box":
+         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * e0.attach().x())), (rFrom.y() + (rFrom.h() * e0.attach().y()))));
+         break;
+        case "rounded":
+         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * e0.attach().x())), (rFrom.y() + (rFrom.h() * e0.attach().y()))));
+         break;
+      }
+          
+      switch ((function () {
+        return e1.to().kind();
+      })()) {
+        case "oval":
+         (thetaTo = (-Math.atan2((e1.attach().y() - 0.5), (e1.attach().x() - 0.5))));
+         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * (0.5 + (Math.cos(thetaTo) / 2)))), (rTo.y() + (rTo.h() * (0.5 - (Math.sin(thetaTo) / 2))))));
+         break;
+        case "box":
+         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * e1.attach().x())), (rTo.y() + (rTo.h() * e1.attach().y()))));
+         break;
+        case "rounded":
+         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * e1.attach().x())), (rTo.y() + (rTo.h() * e1.attach().y()))));
+         break;
+      }
+          
       (sideFrom = self.getSide(e0.attach()));
       (sideTo = self.getSide(e1.attach()));
       if ((sideFrom == sideTo)) { 
@@ -525,17 +537,15 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.context.lineTo(p.x(), p.y());
       }));
       self.$.context.stroke();
-      self.drawEnd(e0, e1);
-      return self.drawEnd(e1, e0);
+      self.drawEnd(e0, e1, pFrom, pTo);
+      return self.drawEnd(e1, e0, pTo, pFrom);
     }));
-    (this.drawEnd = (function (cend, other_end) {
+    (this.drawEnd = (function (cend, other_end, r, s) {
       var self = this;
-      var size, offsetY, arrow, rTo, pos, side, rFrom, offsetX, align, r, index, s, angle;
+      var size, offsetY, arrow, rTo, index, angle, side, rFrom, offsetX, align;
       (side = self.getSide(cend.attach()));
       (rFrom = self.boundary_fixed(cend.to()));
       (rTo = self.boundary_fixed(other_end.to()));
-      (r = EnsoPoint.new((rFrom.x() + (cend.attach().x() * rFrom.w())), (rFrom.y() + (cend.attach().y() * rFrom.h()))));
-      (s = EnsoPoint.new((rTo.x() + (other_end.attach().x() * rTo.w())), (rTo.y() + (other_end.attach().y() * rTo.h()))));
       switch ((function () {
         return side;
       })()) {
@@ -601,13 +611,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         self.$.context.beginPath();
         (index = 0);
         (rFrom = self.boundary_fixed(cend.to()));
-        (pos = EnsoPoint.new((rFrom.x() + (cend.attach().x() * rFrom.w())), (rFrom.y() + (cend.attach().y() * rFrom.h()))));
         (arrow = [EnsoPoint.new(0, 0), EnsoPoint.new(2, 1), EnsoPoint.new(2, (-1)), EnsoPoint.new(0, 0)].each((function (p) {
           var px, py;
           (px = ((Math.cos(angle) * p.x()) - (Math.sin(angle) * p.y())));
           (py = ((Math.sin(angle) * p.x()) + (Math.cos(angle) * p.y())));
-          (px = ((px * size) + pos.x()));
-          (py = ((py * size) + pos.y()));
+          (px = ((px * size) + r.x()));
+          (py = ((py * size) + r.y()));
           if ((index == 0)) { 
             self.$.context.moveTo(px, py); 
           }

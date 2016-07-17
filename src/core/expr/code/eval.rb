@@ -20,6 +20,8 @@ module Eval
         eval(obj.e1) || eval(obj.e2)
       elsif obj.op == "eql?"
         eval(obj.e1) == eval(obj.e2)
+      elsif obj.op == "!="
+        eval(obj.e1) != eval(obj.e2)
       elsif obj.op == "+"
         eval(obj.e1) + eval(obj.e2)
       elsif obj.op == "*"

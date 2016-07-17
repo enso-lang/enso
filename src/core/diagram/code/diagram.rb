@@ -140,8 +140,8 @@ module Diagram
 	    else
 	      b = boundary_fixed(part)
 	      if !b.nil?
-		      #puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
-		      begin
+		      # puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
+		      #begin
 		        if rect_contains(b, pnt)
 		          old_container = @find_container
 		          @find_container = part
@@ -150,7 +150,7 @@ module Diagram
 		            out = part.items.find do |sub|
 		              find1(sub, pnt, &filter)
 		            end
-		            out = part if !out && filter.call(part)
+		            # out = part if !out && filter.call(part)
 		          elsif part.Shape?
 		            out = find1(part.content, pnt, &filter) if part.content
 		          end
@@ -161,9 +161,9 @@ module Diagram
 		            part if filter.call(part)
 		          end
 		        end
-		      rescue Exception => e  
-		        puts "ERROR DURING FIND!"
-		      end
+		      #rescue Exception => e  
+		      #  puts "ERROR DURING FIND!"
+		      #end
 		    end
 		  end
 	  end
@@ -449,7 +449,7 @@ module Diagram
 		    when "oval"
 			    rx            = r.w / 2        # The X radius
 			    ry            = r.h / 2        # The Y radius
-	        	x             = r.x + rx        # The X coordinate
+	        x             = r.x + rx        # The X coordinate
 			    y             = r.y + ry        # The Y cooordinate
 			    rotation      = 0          # The rotation of the ellipse (in radians)
 			    start         = 0          # The start angle (in radians)
@@ -473,9 +473,21 @@ module Diagram
 	    rFrom = boundary_fixed(e0.to)
 	    rTo = boundary_fixed(e1.to)
 	
-		  pFrom = EnsoPoint.new(rFrom.x + e0.attach.x * rFrom.w, rFrom.y + e0.attach.y * rFrom.h)
-		  pTo = EnsoPoint.new(rTo.x + e1.attach.x * rTo.w, rTo.y + e1.attach.y * rTo.h)
-	
+		  case e0.to.kind 
+	    when "box", "rounded"
+			  pFrom = EnsoPoint.new(rFrom.x + rFrom.w * e0.attach.x, rFrom.y + rFrom.h * e0.attach.y)
+		  when "oval"
+		  	thetaFrom = -Math.atan2(e0.attach.y - 0.5, e0.attach.x - 0.5)
+			  pFrom = EnsoPoint.new(rFrom.x + rFrom.w * (0.5 + Math.cos(thetaFrom) / 2), rFrom.y + rFrom.h * (0.5 - Math.sin(thetaFrom) / 2))
+	    end
+		  case e1.to.kind 
+	    when "box", "rounded"
+			  pTo = EnsoPoint.new(rTo.x + rTo.w * e1.attach.x, rTo.y + rTo.h * e1.attach.y)
+	  	when "oval"
+		  	thetaTo = -Math.atan2(e1.attach.y - 0.5, e1.attach.x - 0.5)
+			  pTo = EnsoPoint.new(rTo.x + rTo.w * (0.5 + Math.cos(thetaTo) / 2), rTo.y + rTo.h * (0.5 - Math.sin(thetaTo) / 2))
+	    end
+		
 	    sideFrom = getSide(e0.attach)
 	    sideTo = getSide(e1.attach)
 			# to and from are different	    
@@ -503,18 +515,17 @@ module Diagram
 	    }
 	    @context.stroke
 	
-	    drawEnd e0, e1
-	    drawEnd e1, e0
+	    drawEnd e0, e1, pFrom, pTo
+	    drawEnd e1, e0, pTo, pFrom
 	  end
 	
-	  def drawEnd(cend, other_end)
+	  def drawEnd(cend, other_end, r, s)
 	    side = getSide(cend.attach)
 			
 	    # draw the labels
 	    rFrom = boundary_fixed(cend.to)
 	    rTo = boundary_fixed(other_end.to)
-		  r = EnsoPoint.new(rFrom.x + cend.attach.x * rFrom.w, rFrom.y + cend.attach.y * rFrom.h)
-		  s = EnsoPoint.new(rTo.x + other_end.attach.x * rTo.w, rTo.y + other_end.attach.y * rTo.h)
+
 	    case side
 	    when 0 # UP
 	      angle = 90
@@ -573,13 +584,12 @@ module Diagram
 	      index = 0
 			  #puts "ARROW #{arrow}"
 	      rFrom = boundary_fixed(cend.to)	    
-		    pos = EnsoPoint.new(rFrom.x + cend.attach.x * rFrom.w, rFrom.y + cend.attach.y * rFrom.h)
 	      
 	      arrow = [ EnsoPoint.new(0,0), EnsoPoint.new(2,1), EnsoPoint.new(2,-1), EnsoPoint.new(0,0) ].each do |p|
 		      px = Math.cos(angle) * p.x - Math.sin(angle) * p.y
 					py = Math.sin(angle) * p.x + Math.cos(angle) * p.y
-					px = (px * size  + pos.x) 
-					py = (py * size + pos.y)
+					px = (px * size  + r.x) 
+					py = (py * size + r.y)
 					if index == 0
 					  @context.moveTo(px, py)
 					else

@@ -7,13 +7,13 @@ graph {   // create the nodes (one for each class)
        vertical {
           text [font.size=16,font.weight="bold",fill.color=(10,20,10)] class.name
           for field : class.defined_fields
-            if (field.computed == nil)
-             if (field.type is Primitive)
+             if (field.type is Primitive or field.computed != nil)
                horizontal {
                  text field.name // editable field name
                  text (field.key ? "#" : (field.auto ? "##" : ":"))
                  text field.type.name // drop-down for type
                  text (field.many ? "*" : (field.optional ? "?" : ""))
+		             if (field.computed == nil) text "" else text "="
                }}}}
   
   // create the subclass links
