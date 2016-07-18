@@ -19,11 +19,39 @@ module Diagram
 	    @cs = Constraints::ConstraintSystem.new
 	    @factory = Factory.new(Load::load('diagram.schema'))
 	    @select_color = @factory.Color(0, 255, 0)
+
+			# Register an event listener to
+			# call the resizeCanvas() function each time
+			# the window is resized.
+			@win.addEventListener('resize', self.resizeCanvas(), false)
+
+			canvasWidth = @win.innerWidth_
+			canvasHeight = @win.innerHeight_
+			@canvas.width_ = canvasWidth
+			@canvas.height_ = canvasHeight
 	  end
 	  
 	  attr_accessor :factory
 	  attr_accessor :context
 	  
+		# Runs each time the DOM window resize event fires.
+	  # Resets the canvas dimensions to match window,
+		# then draws the new borders accordingly.
+		def resizeCanvas()
+		  Proc.new {
+				canvasWidth = @win.innerWidth_
+				canvasHeight = @win.innerHeight_
+				@canvas.width_ = canvasWidth
+				@canvas.height_ = canvasHeight
+				bounds = boundary(@root)
+				if bounds
+					bounds.w = @cs.value(canvasWidth)
+					bounds.h = @cs.value(canvasHeight)
+					clear_refresh()
+			  end
+		  }
+		end
+			  
 		def on_open
   		dialog = remote.require('dialog')
   		dialog.showOpenDialog( filters: [{ name: 'diagram', extensions: ['diagram']}] ) do |fileNames|
@@ -39,11 +67,13 @@ module Diagram
 	    @canvas.onmousemove_ = on_move
 	    @canvas.onmouseup_ = on_mouse_up
 	   # @canvas.ondblclick_ = on_double_click
-	    
+	    					    
 	    root.finalize
 	    @root = root
 	    @positions = {}
-	    clear_refresh
+      do_constraints()
+			# Draw canvas border for the first time.
+			resizeCanvas()
 	  end
 	
 	  
@@ -60,14 +90,14 @@ module Diagram
 	    Proc.new { |e|
 			  pnt = getCursorPosition(e)
 		    #puts "DOWN #{pnt.x} #{pnt.y}"
-		    @context.save
-		    @context.fillStyle_ = "#FF0000"
-		    @context.fillRect(pnt.x, pnt.y, 4, 4)
-		    @context.restore
 		    
 		    @mouse_down = true
 		    done = false
-		    if @selection
+		    if e.ctrlKey_ 
+		    	# do an inplace menu
+		    	on_right_down(pnt)
+		    	done = true
+			  elsif @selection
 		      subselect = @selection.do_mouse_down(pnt)
 		      if subselect == :cancel
 		        @selection = nil
@@ -298,8 +328,8 @@ module Diagram
 		      when 3 then #graph
 		        # compute the default positions!!
 		        
-		        pos = pos.add(w)
-		        otherpos = otherpos.add(h)
+		        pos = pos.add(w) #.add(10)
+		        otherpos = otherpos.add(h) #.add(10)
 		        x = basex.add(pos)
 		        y = basey.add(otherpos)
 		        width.max(x.add(w))
@@ -413,7 +443,6 @@ module Diagram
       @context.lineStyle_ = "red"
       @context.font_ = "10pt sans-serif"
 
-      do_constraints() if @positions.size == 0
 	    @context.textBaseline_ = "top"
       draw(@root)
 	    @selection.do_paint() if @selection
@@ -426,13 +455,8 @@ module Diagram
 	  end
 	
 	  def drawContainer(part)
-	    if part.direction == 3
-		    r = boundary_fixed(part)
-		    @context.strokeRect(r.x, r.y, r.w, r.h)
-		  end
-      len = part.items.size - 1
-      len.downto(0) do |i|
-	    # AMB:(part.items.size-1).downto(0) do |i|
+        len = part.items.size - 1
+        len.downto(0) do |i|
 	      draw(part.items[i])
 	    end
 	  end  

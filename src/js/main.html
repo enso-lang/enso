@@ -5,44 +5,89 @@
     <script src="lib/URI.js"></script>
     <!-- Initialize and layout -->
 
-    <canvas id="canvas" width="490" height="490"></canvas>
-    
-    <!-- Render questionaire -->
-    <script type="text/javascript">
-      requirejs([
-        "enso",
-        'core/diagram/code/stencil'
-      ],
-      function(Enso, Stencil) {
+ <style>
+	html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0px;
+	border: 0;
+	overflow: hidden; /*  Disable scrollbars */
+	display: block;  /* No floating content on sides */
+	}
+</style>
+</head>
 
-        var data_file = "door.state_machine" //  "state_machine.schema"; // "schema.schema" 
-				
-				var canvas = document.getElementById('canvas')
-				var context = canvas.getContext('2d')
-				//document.documentElement.appendChild(canvas)
-				
-				console.log("Constructing...")
-				
-			  var stencil = Stencil.StencilFrame.new(window, canvas, context)
-				stencil.set_path(data_file)			  
-				console.log("Rendering...")
-				
-				const ipc = require('electron').ipcRenderer	
-				
-				ipc.on('do-new', (event, message) => {
-		      console.log(message);  // Prints "whoooooooh!"
-    		});
-    
-				ipc.on('do-open', function (event, file) {
-					stencil.do_open(file)
-				})				
-				
-				ipc.on('do-save', function (event) {
-					stencil.on_save()
-				})				
-	    })
-    </script>
-  </head>
+<body>
+<canvas id='canvas' style = 'position: absolute; left: 0px; top: 0px;' />
+
+<script type="text/javascript">
+  requirejs([
+    "enso",
+    'core/diagram/code/stencil'
+  ],
+  function(Enso, Stencil) {
+
+    var data_file = "schema.schema"; // "door.state_machine" //  "state_machine.schema"; //  
+		
+		var canvas = document.getElementById('canvas')
+		var context = canvas.getContext('2d')
+		//document.documentElement.appendChild(canvas)
+		
+		//console.log("Constructing...")
+		
+	  var stencil = Stencil.StencilFrame.new(window, canvas, context)
+		stencil.set_path(data_file)			  
+		//console.log("Rendering...")
+
+		var electron = require('electron')
+		const ipc = electron.ipcRenderer	
+		var dialog = electron.remote.dialog
+		
+		ipc.on('do-new', (event, message) => {
+			dialog.showMessageBox({ 
+					message: "Make a new file! :-)",
+			    buttons: ["OK"] });
+		});
+
+		ipc.on('do-open', function (event, file) {
+			stencil.do_open(file)
+		})				
+		
+		ipc.on('do-save', function (event) {
+			stencil.do_save()
+		})				
+
+		ipc.on('do-export', function (event) {
+			stencil.on_export()
+		})				
+		
+		// edit menu
+		ipc.on('do-undo', function (event) {
+
+		})				
+
+		ipc.on('do-redo', function (event) {
+
+		})				
+
+		ipc.on('do-cut', function (event) {
+
+		})				
+
+		ipc.on('do-copy', function (event) {
+
+		})				
+
+		ipc.on('do-paste', function (event) {
+
+		})				
+
+		ipc.on('do-delete', function (event) {
+
+		})				
+
+  })
+	</script>
   <title></title>
   <body>
 </html>

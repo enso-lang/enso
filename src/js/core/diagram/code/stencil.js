@@ -67,6 +67,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             return at2.set_y(pnt._get(1).y);
           } else {
             (pos = self.$.positions._get(shape));
+            puts(S("   Has POS ", pos, " ", pnt, ""));
             if (pos) {
               pos.x().set_value(pnt.x);
               return pos.y().set_value(pnt.y);
@@ -100,23 +101,15 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.graphShapes = (new EnsoHash({
         
       })));
-      (self.$.connectors = []);
       return self.construct(self.$.stencil.body(), env, null, null, Proc.new((function (x, subid) {
         return self.set_root(x);
       })));
-    }));
-    (this.setup_menus = (function () {
-      var self = this;
-      var file;
-      super$.setup_menus.call(self, "FOO");
-      (file = self.menu_bar().get_menu(self.menu_bar().find_menu("File")));
-      return self.add_menu(file, "&Export\tCmd-E", "Export Diagram", "on_export");
     }));
     (this.do_open = (function (file) {
       var self = this;
       return self.set_path(file.split("/")._get((-1)));
     }));
-    (this.on_save = (function () {
+    (this.do_save = (function () {
       var self = this;
       var grammar, pos;
       (grammar = Load.load(S("", self.$.extension, ".grammar")));
@@ -153,12 +146,75 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       }));
       return position_map;
     }));
+    (this.on_double_click = (function (e) {
+      var self = this;
+      var text, address;
+      self.clear_selection();
+      (text = self.find("Text?", e));
+      if ((text && text.editable())) {
+        (address = self.$.shapeToAddress._get(text));
+        if (address) {
+          return self.edit_address(address, text);
+        }
+      }
+    }));
+    (this.edit_address = (function (address, shape) {
+      var self = this;
+      var pop, r;
+      if (address.type().Primitive_P()) { 
+        return (self.$.selection = TextEditSelection.new(self, shape, address)); 
+      } 
+      else {
+             (pop = self.Menu().new());
+             self.find_all_objects(self.$.data, address.field().type((function (obj) {
+               var name;
+               (name = self.ObjectKey(obj));
+               return self.add_menu2(pop, name, self.name((function (e) {
+                 address.set_value(obj);
+                 return shape.set_string(name);
+               })));
+             })));
+             (r = self.boundary_fixed(shape));
+             return self.popup_menu(pop, r.x(), r.y());
+           }
+    }));
+    (this.on_right_down = (function (pnt) {
+      var self = this;
+      var remote, m, menuItem, actions, menu;
+      (actions = (new EnsoHash({
+        
+      })));
+      self.find((function (part) {
+        if (self.$.actions._get(part)) {
+          (actions = actions.merge(self.$.actions._get(part)));
+        }
+        return false;
+      }), pnt);
+      if ((actions != (new EnsoHash({
+        
+      })))) {
+        (remote = self.require("remote"));
+        (menu = remote.require("menu"));
+        (menuItem = remote.require("menu-item"));
+        (m = menu.new());
+        actions.each((function (name, action) {
+          return m.append(self.MenuItem().new((new EnsoHash({
+            label: name,
+            click: action
+          }))));
+        }));
+        return self.window().addEventListener((function (e) {
+          e.preventDefault();
+          return m.popup(remote.getCurrentWindow());
+        }), "contextmenu");
+      }
+    }));
     (this.on_export = (function () {
       var self = this;
       var grammar;
       (grammar = Load.load("diagram.grammar"));
       return File.write((function (output) {
-        return Layout.DisplayFormat.print(grammar, self.$.root, output);
+        return Layout.DisplayFormat.print(grammar, self.$.root, output, false);
       }), S("", self.$.path, "-diagram"));
     }));
     (this.add_action = (function (block, shape, name) {
@@ -314,7 +370,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9586) {
+        catch (caught$9428) {
           
         }
         if ((!shape)) {
@@ -471,7 +527,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       var self = this;
       var ptemp, i, conn, info, label, cend;
       (conn = self.$.factory.Connector());
-      self.$.connectors.push(conn);
       if ((obj.ends()._get(0).label() == obj.ends()._get(1).label())) { 
         (ptemp = [self.$.factory.EdgePos(1, 0.5), self.$.factory.EdgePos(1, 0.75)]); 
       }

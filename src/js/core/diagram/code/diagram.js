@@ -5,6 +5,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.initialize = (function (win, canvas, context, title) {
       var self = this;
       (title = (((typeof title) !== "undefined") ? title : "Diagram"));
+      var canvasWidth, canvasHeight;
       (self.$.win = win);
       (self.$.canvas = canvas);
       (self.$.context = context);
@@ -15,7 +16,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.defaultConnectorDist = 20);
       (self.$.cs = Constraints.ConstraintSystem.new());
       (self.$.factory = Factory.new(Load.load("diagram.schema")));
-      return (self.$.select_color = self.$.factory.Color(0, 255, 0));
+      (self.$.select_color = self.$.factory.Color(0, 255, 0));
+      self.$.win.addEventListener("resize", self.resizeCanvas(), false);
+      (canvasWidth = self.$.win.innerWidth);
+      (canvasHeight = self.$.win.innerHeight);
+      (self.$.canvas.width = canvasWidth);
+      return (self.$.canvas.height = canvasHeight);
     }));
     (this.factory = (function () {
       return this.$.factory;
@@ -28,6 +34,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.set_context = (function (val) {
       (this.$.context = val);
+    }));
+    (this.resizeCanvas = (function () {
+      var self = this;
+      return Proc.new((function () {
+        var canvasWidth, bounds, canvasHeight;
+        (canvasWidth = self.$.win.innerWidth);
+        (canvasHeight = self.$.win.innerHeight);
+        (self.$.canvas.width = canvasWidth);
+        (self.$.canvas.height = canvasHeight);
+        (bounds = self.boundary(self.$.root));
+        if (bounds) {
+          bounds.set_w(self.$.cs.value(canvasWidth));
+          bounds.set_h(self.$.cs.value(canvasHeight));
+          return self.clear_refresh();
+        }
+      }));
     }));
     (this.on_open = (function () {
       var self = this;
@@ -56,7 +78,8 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.positions = (new EnsoHash({
         
       })));
-      return self.clear_refresh();
+      self.do_constraints();
+      return self.resizeCanvas();
     }));
     (this.getCursorPosition = (function (event) {
       var self = this;
@@ -71,24 +94,27 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       return Proc.new((function (e) {
         var done, pnt, select, subselect;
         (pnt = self.getCursorPosition(e));
-        self.$.context.save();
-        (self.$.context.fillStyle = "#FF0000");
-        self.$.context.fillRect(pnt.x(), pnt.y(), 4, 4);
-        self.$.context.restore();
         (self.$.mouse_down = true);
         (done = false);
-        if (self.$.selection) {
-          (subselect = self.$.selection.do_mouse_down(pnt));
-          if ((subselect == "cancel")) {
-            (self.$.selection = null);
-            (done = true);
-          }
-          else {
-            if (subselect) {
-              (self.$.selection = subselect);
+        if (e.ctrlKey) {
+          self.on_right_down(pnt);
+          (done = true);
+        }
+        else {
+          if (self.$.selection) {
+            (subselect = self.$.selection.do_mouse_down(pnt));
+            if ((subselect == "cancel")) {
+              (self.$.selection = null);
               (done = true);
-            } else {
             }
+            else {
+              if (subselect) {
+                (self.$.selection = subselect);
+                (done = true);
+              } else {
+              }
+            }
+          } else {
           }
         }
         if ((!done)) {
@@ -411,9 +437,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.context.fillStyle = "black");
       (self.$.context.lineStyle = "red");
       (self.$.context.font = "10pt sans-serif");
-      if ((self.$.positions.size() == 0)) {
-        self.do_constraints();
-      }
       (self.$.context.textBaseline = "top");
       self.draw(self.$.root);
       if (self.$.selection) {
@@ -428,11 +451,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawContainer = (function (part) {
       var self = this;
-      var r, len;
-      if ((part.direction() == 3)) {
-        (r = self.boundary_fixed(part));
-        self.$.context.strokeRect(r.x(), r.y(), r.w(), r.h());
-      }
+      var len;
       (len = (part.items().size() - 1));
       return len.downto((function (i) {
         return self.draw(part.items()._get(i));

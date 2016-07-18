@@ -96,10 +96,8 @@ module Stencil
 	
 	    @shapeToAddress = {}  # used for text editing
 	    @shapeToModel = {}    # list of all created objects
-	 #   @shapeToTag = {}    # list of all created objects
 	    @tagModelToShape = {}
 	    @graphShapes = {}
-	    @connectors = []
       construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
 	  end
 		
@@ -107,17 +105,11 @@ module Stencil
 #			@shapeToModel[shape]
 #		end
 
-	  def setup_menus()
-	    super("FOO")
-	    file = self.menu_bar.get_menu( self.menu_bar.find_menu("File") )
-	    add_menu(file, "&Export\tCmd-E", "Export Diagram", :on_export)
-	  end
-	
 		def do_open(file)
 	    self.path = file.split('/')[-1]
 		end
 	  
-	  def on_save
+	  def do_save
 	    grammar = Load.load("#{@extension}.grammar")
 	    pos = "#{@data.factory.file_path[0]}"    
 	    File.write("#{pos}-NEW") do |output|
@@ -160,61 +152,61 @@ module Stencil
 	    
 	 
 	  
-#	    # ------- event handling ------- 
-#=begin 
-#	  def on_double_click(e)
-#	    clear_selection
-#	    text = find e, &:Text?
-#	    if text and text.editable
-#	      address = @shapeToAddress[text]
-#	      edit_address(address, text) if address
-#	    end
-#	  end
-#		
-#	  def edit_address(address, shape)
-#	    if address.type.Primitive?
-#				@selection = TextEditSelection.new(self, shape, address)
-#		  else
-#	      pop = Menu.new
-#	      find_all_objects @data, address.field.type do |obj|
-#	        name = ObjectKey(obj)
-#	    		add_menu2 pop, name, name do |e| 
-#	    			address.value = obj
-#	    			shape.string = name
-#	    	  end
-#	      end
-#		    r = boundary_fixed(shape)
-#	      popup_menu(pop, r.x, r.y)
-#		  end
-#	  end
-#	  
-#	
-#	  def on_right_down(e)
-#	    clear_selection
-#	    actions = {}
-#	    find e do |part|
-#	      actions.update @actions[part] if @actions[part]
-#			  false
-#	    end      
-#	    if actions != {}
-#	      pop = Menu.new
-#	      actions.each do |name, action|
-#	    		add_menu(pop, name, name, action) 
-#	      end
-#	      popup_menu(pop, e.x, e.y)
-#	    end
-#	  end
-#=end
-	
-#	  def connection_other_end(ce)
-#	    conn = ce.connection
-#	    conn.ends[0] == ce ? conn.ends[1] : conn.ends[0]
-#	  end    
+	    # ------- event handling ------- 
+	  def on_double_click(e)
+	    clear_selection
+	    text = find e, &:Text?
+	    if text and text.editable
+	      address = @shapeToAddress[text]
+	      edit_address(address, text) if address
+	    end
+	  end
+		
+	  def edit_address(address, shape)
+	    if address.type.Primitive?
+				@selection = TextEditSelection.new(self, shape, address)
+		  else
+	      pop = Menu.new
+	      find_all_objects @data, address.field.type do |obj|
+	        name = ObjectKey(obj)
+	    		add_menu2 pop, name, name do |e| 
+	    			address.value = obj
+	    			shape.string = name
+	    	  end
+	      end
+		    r = boundary_fixed(shape)
+	      popup_menu(pop, r.x, r.y)
+		  end
+	  end
+	  
+	  def on_right_down(pnt)
+	    #clear_selection
+	    actions = {}
+	    find(pnt) do |part|
+	      actions = actions.merge(@actions[part]) if @actions[part]
+			  false
+	    end
+	    if actions != {}
+	      remote = require('remote')
+				menu = remote.require('menu')
+				menuItem = remote.require('menu-item')
+				
+				m = menu.new()
+	      actions.each do |name, action|
+					m.append(MenuItem.new({ label: name, click: action}))   # type: 'checkbox', 
+	      end
+				
+				window.addEventListener('contextmenu') do |e|
+					e.preventDefault()
+					m.popup(remote.getCurrentWindow())
+				end
+	    end
+	  end
 	
 	  def on_export
 	    grammar = Load.load("diagram.grammar")
 	    File.write("#{@path}-diagram") do |output|
-	      Layout::DisplayFormat.print(grammar, @root, output)
+	      Layout::DisplayFormat.print(grammar, @root, output, false) # false => don't slash keywords
 	    end
 	  end
 	
@@ -510,7 +502,6 @@ module Stencil
 	  
 	  def constructConnector(obj, env, container, id, proc)
 	    conn = @factory.Connector
-	    @connectors << conn
 	    if obj.ends[0].label == obj.ends[1].label
 		    ptemp = [ @factory.EdgePos(1, 0.5), @factory.EdgePos(1, 0.75) ]
 	    else

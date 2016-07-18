@@ -8,9 +8,6 @@ const ipc = electron.ipcMain
 const dialog = electron.dialog
 const Menu = electron.Menu
 
-console.log("DIALOG: " + dialog)
-console.log("MENU:   " + Menu)
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
@@ -40,15 +37,19 @@ function createWindow() {
         label: 'New',
 		    accelerator: 'CmdOrCtrl+N',
         click: (menuItem, browserWindow, event) => {  
-           browserWindow.webContents.send("do-new"); 
+        		files = dialog.showOpenDialog(browserWindow, {
+        			title: "New Model", 
+        			properties: ['openFile'],
+        			extensions: ['stencil']});  
+            if (files)
+	        	  browserWindow.webContents.send("do-new", files[0]); 
         }
 		  },{
         label: 'Open',
 		    accelerator: 'CmdOrCtrl+O',
         click: (menuItem, browserWindow, event) => {  
-        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile', 'multiSelections']});  //[browserWindow, ]options[, callback]
-            console.log("OPEN FILE");
-            if (files.length > 0)
+        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile']}); 
+            if (files)
 	        	  browserWindow.webContents.send("do-open", files[0]); 
 	       }
 		  },{
@@ -57,7 +58,14 @@ function createWindow() {
         click: (menuItem, browserWindow, event) => {  
            browserWindow.webContents.send("do-save"); 
         }
-		  }]
+		  }, /* {
+        label: 'Export',
+		    accelerator: 'CmdOrCtrl+E',
+        click: (menuItem, browserWindow, event) => {  
+           browserWindow.webContents.send("do-export"); 
+        }
+		  }*/ 
+		  ]
 		}, {
 		label: 'Edit',
 		submenu: [{
@@ -82,11 +90,12 @@ function createWindow() {
 	    label: 'Paste',
 	    accelerator: 'CmdOrCtrl+V',
 	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-paste") }
-	  }, {
-	    label: 'Select All',
-	    accelerator: 'CmdOrCtrl+A',
-	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-select-all") }
-	  }]
+	  }, // {
+//	    label: 'Select All',
+//	    accelerator: 'CmdOrCtrl+A',
+//	    click: (menuItem, browserWindow, event) => { browserWindow.webContents.send("do-select-all") }
+//	  }
+		]
 		}, {
 		label: 'View',
 		submenu: [{
