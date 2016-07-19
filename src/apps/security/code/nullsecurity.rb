@@ -1,8 +1,7 @@
-=begin
 
-A default security object that does not do any authentication
+# A default security object that does not do any authentication
 
-=end
+
 
 class NullSecurity
 

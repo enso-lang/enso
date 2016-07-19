@@ -1,33 +1,30 @@
-=begin
-
-Security model that reads in policies and checks for privileges at run-time
-
-See securefactory.rb for rule semantics
-
-=end
+# Security model that reads in policies and checks for privileges at run-time
+#
+# See securefactory.rb for rule semantics
 
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/eval'
+require 'core/schema/code/factory'
 
 module CheckPrivileges
   def check_Authentication(allowrules, denyrules, args=nil)
     obj = args[:obj]
 
     #verify that obj is part of root. if not, just return success
-    if not obj.is_a? Factory::MObject
-      [true, '']
+    if not obj.is_a?(Factory::MObject)
+      true
 
     #find at least one allow rule that holds
     elsif allowrules.none? {|r| check(r, args)}
-      [false, "Operation not allowed"]
+      false  # , "Operation not allowed"]
 
     #ensure no deny rule holds for this user
     else
       deny = denyrules.detect {|r| check(r, args)}
       if deny.nil?
-        [true, '']
+        true
       else
-        [false, deny.msg ? deny.msg : 'Permission denied']
+        false   # , deny.msg ? deny.msg : 'Permission denied']
       end
     end
   end
@@ -37,14 +34,14 @@ module CheckPrivileges
   end
 
   def check_Action(op, type, fields, allfields, args=nil)
-    if ! op.map{|op|op.schema_class.name}.include? args[:op]
+    if ! op.map{|op|op.schema_class.name}.include?(args[:op])
       false
     elsif type != args[:obj].schema_class.name
       false
     elsif args[:field].nil?
       fields.empty?
     else
-      allfields or fields.map{|f|f.name}.include? args[:field].to_s
+      allfields or fields.map{|f|f.name}.include?(args[:field].to_s)
     end
   end
 end
@@ -63,7 +60,7 @@ class Security
 
   # check if the current user has privileges to perform operatr on object obj or one of its field
   def check_privileges(op, obj, field=nil)
-    Interpreter.compose(CheckPrivileges).new.check(allrules, [op: op, :obj=>obj, :field=>field])
+    Interpreter.compose(CheckPrivileges).new.check(allrules, op: op, obj: obj, field: field)
   end
 
   # return the requirements the fields of the object must satisfy such that the operation is allowed for user

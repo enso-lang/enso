@@ -5,13 +5,15 @@ require 'core/schema/tools/print'
 require 'core/schema/tools/union'
 require 'core/schema/tools/equals'
 require 'apps/security/code/securefactory'
+require 'core/semantics/code/interpreter'
+
 
 class SecurityTest < Test::Unit::TestCase
 
   def setup
-    interp = Interpreter(FactorySchema, SecureFactory)
+    interp = SecureFactory.new
     schema = Load::load('todo.schema')
-    sfact = interp.Make(schema, rules: Load::load('todo.auth'), :fail_silent=>false)
+    sfact = interp.Make(schema, rules: Load::load('todo.auth'), fail_silent: false)
     @todo = sfact.make_secure(Load::load('test.todo'))
   end
 
@@ -61,23 +63,21 @@ class SecurityTest < Test::Unit::TestCase
     assert(@todo.todos.size == 1)
   end
 
-=begin
-  TODO: Interpreter model does not support constraints
-
-  def test_constraints
-    fact = Factory::new(Load::load("auth.schema"))
-
-    alice_const = fact.EBoolConst(true)
-    @todo.factory.user = 'Alice'
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), alice_const))
-
-    bob_const = fact.EField(fact.EVar("@self"), "done")
-    @todo.factory.user = 'Bob'
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), bob_const))
-
-    emily_const = fact.EUnOp("not", fact.EField(fact.EVar("@self"), "done"))
-    @todo.factory.user = 'Emily'
-    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), emily_const))
-  end
-=end
+#  TODO: Interpreter model does not support constraints
+#
+#  def test_constraints
+#    fact = Factory::new(Load::load("auth.schema"))
+#
+#    alice_const = fact.EBoolConst(true)
+#   @todo.factory.user = 'Alice'
+#    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), alice_const))
+#
+#   bob_const = fact.EField(fact.EVar("@self"), "done")
+#    @todo.factory.user = 'Bob'
+#    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), bob_const))
+#
+#    emily_const = fact.EUnOp("not", fact.EField(fact.EVar("@self"), "done"))
+#    @todo.factory.user = 'Emily'
+#    assert(Equals.equals(@todo.factory.get_allow_constraints("OpRead", "Todo"), emily_const))
+#  end
 end
