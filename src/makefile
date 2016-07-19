@@ -59,6 +59,7 @@ MODELS = \
 	ql.grammar \
 	state_machine.grammar \
 	todo.grammar \
+	todo.schema \
 	batch.schema \
 	dbext.schema \
 	esync.schema \
@@ -78,6 +79,9 @@ MODELS = \
 	grammar-template.schema \
 	template-expression.schema \
 	template.schema \
+  prelude.ql \
+	housing.ql \
+	ql.stencil \
 	gll.schema \
 	grammar.schema \
   item.schema \

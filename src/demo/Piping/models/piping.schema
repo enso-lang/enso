@@ -19,42 +19,44 @@ class Element < Attachable
 
 class OutputElement < Element
   outputs! Pipe* / input
-  output:Pipe = outputs[0]
+  output:  Pipe = outputs[0]
 
 class InputElement < Element
   inputs: Pipe* / output
-  input: Pipe = inputs[0]
+  input:  Pipe = inputs[0]
 
-class Joint < OutputElement, InputElement 
+class IO < OutputElement, InputElement
+
+class Joint < IO 
 
 class Source < OutputElement
   kind: str
 
 class Exhaust < InputElement 
 
-class Burner < OutputElement, InputElement
+class Burner < IO
   gas: Pipe
 
-class Radiator < OutputElement, InputElement
+class Radiator < IO
 
 class Room < Element
 
-class Vessel < OutputElement, InputElement
+class Vessel < IO
   capacity: real
 
-class Valve < OutputElement, InputElement
+class Valve < IO
 
-class Splitter < InputElement, OutputElement
+class Splitter < IO
   left:Pipe = outputs[0]
   right:Pipe = outputs[1]
 
-class Pump < OutputElement, InputElement
+class Pump < IO
 
 class Sensor
   name# str
   kind: str // temperature, pressure, flow
   controllable: bool
-  attach:Attachable / sensor
+  attach: Attachable / sensor
 
 primitive str
 primitive int
