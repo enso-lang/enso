@@ -5,7 +5,7 @@ graph {   // create the nodes (one for each class)
      label class {  // declare the "identifier" of this node is a class
      box { 
        vertical {
-          text [font.size=16,font.weight="bold",fill.color=(10,20,10)] class.name
+          text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
           for field : class.defined_fields
              if (field.type is Primitive or field.computed != nil)
                horizontal {
@@ -27,8 +27,9 @@ graph {   // create the nodes (one for each class)
      if (field.computed == nil)
       if (not (field.type is Primitive) 
           and (field.inverse == nil or field._id <= field.inverse._id))
-        connector ((field == nil) ? "" : (field.traversal ? "#" : "") + field.name 
-        									+ (field.many ? "*" : (field.optional ? "?" : ""))
+        connector [line.width=field.traversal ? 3 : 1] (
+                  (field == nil) ? "" : (field.name 
+        									+ (field.many ? "*" : (field.optional ? "?" : "")))
         				  : field.owner -- field.type : 
         				  (field.inverse == nil) ? "" : (field.inverse.name
         				  				+ (field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))

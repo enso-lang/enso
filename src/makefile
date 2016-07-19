@@ -81,7 +81,6 @@ MODELS = \
 	template.schema \
   prelude.ql \
 	housing.ql \
-	ql.stencil \
 	gll.schema \
 	grammar.schema \
   item.schema \

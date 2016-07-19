@@ -67,7 +67,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             return at2.set_y(pnt._get(1).y);
           } else {
             (pos = self.$.positions._get(shape));
-            puts(S("   Has POS ", pos, " ", pnt, ""));
             if (pos) {
               pos.x().set_value(pnt.x);
               return pos.y().set_value(pnt.y);
@@ -370,7 +369,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
              
         }
-        catch (caught$9428) {
+        catch (caught$9429) {
           
         }
         if ((!shape)) {

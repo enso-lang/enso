@@ -13,26 +13,14 @@
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2016-07-13 12:51:20 -0500",
-      "checksum": "bfa36771a578c2d6225c1dc060dfdd11653b9310"
+      "date": "2016-07-19 01:49:53 -0500",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
       "date": "2016-07-13 12:50:32 -0500",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
-    },
-    {
-      "filename": "schema.grammar",
-      "source": "core/schema/models/schema.grammar",
-      "date": "2016-06-19 21:52:02 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
-    },
-    {
-      "filename": "schema.schema",
-      "source": "core/schema/models/schema.schema",
-      "date": "2016-07-13 12:51:20 -0500",
-      "checksum": "bfa36771a578c2d6225c1dc060dfdd11653b9310"
     }
   ],
   "model": {

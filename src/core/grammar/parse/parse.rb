@@ -77,7 +77,6 @@ class Parse
       puts "BUILD_GLL"
       EnsoBuild::build(tree, factory, org, imports)
     else
-      puts "BUILD_build"
       Build.build(tree, factory, org, imports)
     end
   end
