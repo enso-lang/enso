@@ -43,13 +43,11 @@ class Shape < Part
   content! Command?
 
 class Connector < Part
-  label! Expr?
   ends! ConnectorEnd*
 
 class ConnectorEnd
   arrow: str?
   label! Expr?
-  other_label! Expr?
   part! Expr
 
 class EAssign  // extends EAssign from impl.schema

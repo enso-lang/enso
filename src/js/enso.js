@@ -213,13 +213,28 @@ EnsoHash = function(init) {
 			}
   };
   
-  Dir = {
-  	mkdir: function(path) {
-  		//stub
-  	}
-  }
-  
   System = {
+    popupMenu(items) {
+			const {remote} = require('electron');
+			const {Menu, MenuItem} = remote;
+			
+			const menu = new Menu();
+			for ( key_name in items) 
+        if (items.hasOwnProperty(key_name)) {
+          var val = items[key_name]
+				  if (val == null)
+	    			menu.append(new MenuItem({type: 'separator'}));
+	    	  else
+	  			  menu.append(new MenuItem({label: key_name, click() { val() }}));
+			   }
+			// menu.append(new MenuItem({label: 'MenuItem2', type: 'checkbox', checked: true}));
+			
+			window.addEventListener('contextmenu', (e) => {
+			  e.preventDefault();
+			  menu.popup(remote.getCurrentWindow());
+			}, false);
+		},
+
     JSHASH: function() { return {} },
     max: function(a, b) {
       return a > b ? a : b;
@@ -240,6 +255,7 @@ EnsoHash = function(init) {
         type = type.new;
       return obj.is_a_P(type); // TODO: why does this work, but "obj instanceof type" does not?
     },
+    assign: function(target, arg1) { return Object.assign(target, arg1) },
     stdout: function() { return new CompatStream(typeof process == 'undefined' ? true : process.stdout); },
     stderr: function() { return new CompatStream(typeof process == 'undefined' ? null : process.stderr); },
   }
@@ -374,6 +390,11 @@ EnsoHash = function(init) {
   Number.prototype.downto = function(cb, t) {
 	  var i = this;	
 	  while (i >= t) { cb(i--); }
+	  return this;
+	};
+  Number.prototype.upto = function(cb, t) {
+	  var i = this;	
+	  while (i <= t) { cb(i++); }
 	  return this;
 	};
   Array.prototype.to_s = function() { return "<ARRAY " + this.length + ">" }

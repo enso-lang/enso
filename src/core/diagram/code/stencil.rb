@@ -167,7 +167,7 @@ module Stencil
 				@selection = TextEditSelection.new(self, shape, address)
 		  else
 	      pop = Menu.new
-	      find_all_objects @data, address.field.type do |obj|
+	      find_all_objects @data, address.index.type do |obj|
 	        name = ObjectKey(obj)
 	    		add_menu2 pop, name, name do |e| 
 	    			address.value = obj
@@ -181,25 +181,15 @@ module Stencil
 	  
 	  def on_right_down(pnt)
 	    #clear_selection
-	    actions = {}
-	    find(pnt) do |part|
-	      actions = actions.merge(@actions[part]) if @actions[part]
+	    actions = System.JSHASH()
+	    find_in_ui(pnt) do |part|
+	      actions = System.assign(actions, @actions[part]) if @actions[part]
 			  false
 	    end
-	    if actions != {}
-	      remote = require('remote')
-				menu = remote.require('menu')
-				menuItem = remote.require('menu-item')
+	    if actions != System.JSHASH()
+	      puts "MENU #{actions}"
+				System.popupMenu(actions)
 				
-				m = menu.new()
-	      actions.each do |name, action|
-					m.append(MenuItem.new({ label: name, click: action}))   # type: 'checkbox', 
-	      end
-				
-				window.addEventListener('contextmenu') do |e|
-					e.preventDefault()
-					m.popup(remote.getCurrentWindow())
-				end
 	    end
 	  end
 	
@@ -211,7 +201,7 @@ module Stencil
 	  end
 	
 		def add_action(shape, name, &block)
-		  @actions[shape] = {} if !@actions[shape]
+		  @actions[shape] = System.JSHASH() if !@actions[shape]
 		  @actions[shape][name] = block
 		end
 		    
@@ -289,7 +279,7 @@ module Stencil
 	
 	  def constructEFor(obj, env, container, id, proc)
 	    source = eval(obj.list, env)
-	    # address = lvalue(obj.list, env)
+	    address = lvalue(obj.list, env)
 	
 	    is_traversal = false
 	    if obj.list.EField?
@@ -331,21 +321,21 @@ module Stencil
 	    end
 	    if obj.label
 	      action = is_traversal ? "Create" : "Add"
-	      begin
-		      shape = @tagModelToShape[addr.object.name]
-		    rescue
-		    end
-		    shape = container if !shape
-		    #puts "#{action} #{obj.label} #{address.object}.#{address.field} #{shape}"
+#	      begin
+#		      shape = @tagModelToShape[addr.object.name]
+	#	    rescue
+		#    end
+		    shape = container  # if !shape
+		    #puts "#{action} #{obj.label} #{address.array}.#{address.index} #{shape}"
 		    add_action(shape, "#{action} #{obj.label}") do
 #		      if !is_traversal
 #		      	# just add a reference!
-	#	      	#puts "ADD #{action}: #{address.field}"
+	#	      	#puts "ADD #{action}: #{address.index}"
 		#      	@selection = FindByTypeSelection.new self, address.type do |x|
 		#		      address.value << x
 		#		    end
 		 #     else
-			      factory = address.object.factory
+			      factory = address.array.factory
 				    obj = factory[address.type.name]
 	#			    relateField = nil
 				    obj.schema_class.fields.each do |field|
@@ -358,7 +348,7 @@ module Stencil
 	#			        relateField = field
 				      end
 		#		    end
-		      	#puts "CREATE #{address.field} << #{obj}"
+		      	#puts "CREATE #{address.index} << #{obj}"
 	#	      	if relateField
 	#  	      	puts "ADD #{action}: #{addr.field}"
 	#		      	@selection = FindByTypeSelection.new self, addr.field.type do |x|
@@ -513,8 +503,7 @@ module Stencil
 	    cend = nil
 	    obj.ends.each do |e|
 	      label = e.label.nil? ? nil : makeLabel(e.label, env)
-	      other_label = e.other_label.nil? ? nil : makeLabel(e.other_label, env)
-	      cend = @factory.ConnectorEnd(e.arrow, label, other_label)
+	      cend = @factory.ConnectorEnd(e.arrow, label)
 	      info = evallabel(e.part, env)
 	      x = @tagModelToShape[info._path]
 	      fail("Shape #{info._path} does not exist in #{@tagModelToShape}") if x.nil?

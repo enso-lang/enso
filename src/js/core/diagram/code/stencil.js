@@ -165,7 +165,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       } 
       else {
              (pop = self.Menu().new());
-             self.find_all_objects(self.$.data, address.field().type((function (obj) {
+             self.find_all_objects(self.$.data, address.index().type((function (obj) {
                var name;
                (name = self.ObjectKey(obj));
                return self.add_menu2(pop, name, self.name((function (e) {
@@ -179,33 +179,17 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.on_right_down = (function (pnt) {
       var self = this;
-      var remote, m, menuItem, actions, menu;
-      (actions = (new EnsoHash({
-        
-      })));
-      self.find((function (part) {
+      var actions;
+      (actions = System.JSHASH());
+      self.find_in_ui((function (part) {
         if (self.$.actions._get(part)) {
-          (actions = actions.merge(self.$.actions._get(part)));
+          (actions = System.assign(actions, self.$.actions._get(part)));
         }
         return false;
       }), pnt);
-      if ((actions != (new EnsoHash({
-        
-      })))) {
-        (remote = self.require("remote"));
-        (menu = remote.require("menu"));
-        (menuItem = remote.require("menu-item"));
-        (m = menu.new());
-        actions.each((function (name, action) {
-          return m.append(self.MenuItem().new((new EnsoHash({
-            label: name,
-            click: action
-          }))));
-        }));
-        return self.window().addEventListener((function (e) {
-          e.preventDefault();
-          return m.popup(remote.getCurrentWindow());
-        }), "contextmenu");
+      if ((actions != System.JSHASH())) {
+        puts(S("MENU ", actions, ""));
+        return System.popupMenu(actions);
       }
     }));
     (this.on_export = (function () {
@@ -219,9 +203,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.add_action = (function (block, shape, name) {
       var self = this;
       if ((!self.$.actions._get(shape))) {
-        self.$.actions._set(shape, (new EnsoHash({
-          
-        })));
+        self.$.actions._set(shape, System.JSHASH());
       }
       return self.$.actions._get(shape)._set(name, block);
     }));
@@ -318,8 +300,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructEFor = (function (obj, env, container, id, proc) {
       var self = this;
-      var shape, f, is_traversal, action, lhs, source, nenv;
+      var shape, f, is_traversal, address, action, lhs, source, nenv;
       (source = self.eval(obj.list(), env));
+      (address = self.lvalue(obj.list(), env));
       (is_traversal = false);
       if (obj.list().EField_P()) {
         (lhs = self.eval(obj.list().e(), env));
@@ -366,19 +349,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       }));
       if (obj.label()) {
         (action = (is_traversal ? "Create" : "Add"));
-        try {(shape = self.$.tagModelToShape._get(self.addr().object().name()));
-             
-        }
-        catch (caught$9429) {
-          
-        }
-        if ((!shape)) {
-          (shape = container);
-        }
+        (shape = container);
         return self.add_action((function () {
           var factory;
-          (factory = self.address().object().factory());
-          (obj = factory._get(self.address().type().name()));
+          (factory = address.array().factory());
+          (obj = factory._get(address.type().name()));
           return obj.schema_class().fields().each((function (field) {
             if (((field.key() && field.type().Primitive_P()) && (field.type().name() == "str"))) { 
               obj._set(field.name(), S("<", field.name(), ">")); 
@@ -390,7 +365,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
               else {
                    }
             }
-            return self.address().value().push(obj);
+            return address.value().push(obj);
           }));
         }), shape, S("", action, " ", obj.label(), ""));
       }
@@ -537,10 +512,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (label = null);
       (cend = null);
       obj.ends().each((function (e) {
-        var other_label, x;
+        var x;
         (label = ((e.label() == null) ? null : self.makeLabel(e.label(), env)));
-        (other_label = ((e.other_label() == null) ? null : self.makeLabel(e.other_label(), env)));
-        (cend = self.$.factory.ConnectorEnd(e.arrow(), label, other_label));
+        (cend = self.$.factory.ConnectorEnd(e.arrow(), label));
         (info = self.evallabel(e.part(), env));
         (x = self.$.tagModelToShape._get(info._path()));
         if ((x == null)) {

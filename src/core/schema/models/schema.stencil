@@ -1,37 +1,37 @@
 diagram(schema)
 
 graph {   // create the nodes (one for each class)
-  for class : schema.classes 
-     label class {  // declare the "identifier" of this node is a class
-     box { 
-       vertical {
-          text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
-          for field : class.defined_fields
-             if (field.type is Primitive or field.computed != nil)
-               horizontal {
-                 text field.name // editable field name
-                 text (field.key ? "#" : (field.auto ? "##" : ":"))
-                 text field.type.name // drop-down for type
-                 text (field.many ? "*" : (field.optional ? "?" : ""))
-		             if (field.computed == nil) text "" else text "="
-               }}}}
+  for "Class" class : schema.classes 
+    label class {  // declare the "identifier" of this node is a class
+      box { 
+        vertical {
+           text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
+           for field : class.defined_fields
+              if (field.type is Primitive or field.computed != nil)
+                horizontal {
+                  text field.name // editable field name
+                  text (field.key ? "#" : (field.auto ? "##" : ":"))
+                  text field.type.name // drop-down for type
+                  text (field.many ? "*" : (field.optional ? "?" : ""))
+                  if (field.computed == nil) text "" else text "="
+    }}}}
   
   // create the subclass links
   for class : schema.classes
-    for super : class.supers
+    for "Super" super : class.supers
       connector (class --> super)
   
   // create the relationship edges that go between nodes
   for class : schema.classes
-    for field : class.defined_fields
+    for "Field" field : class.defined_fields
      if (field.computed == nil)
       if (not (field.type is Primitive) 
           and (field.inverse == nil or field._id <= field.inverse._id))
         connector [line.width=field.traversal ? 3 : 1] (
                   (field == nil) ? "" : (field.name 
-        									+ (field.many ? "*" : (field.optional ? "?" : "")))
-        				  : field.owner -- field.type : 
-        				  (field.inverse == nil) ? "" : (field.inverse.name
-        				  				+ (field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))
+                          + (field.many ? "*" : (field.optional ? "?" : "")))
+                  : field.owner -- field.type : 
+                  (field.inverse == nil) ? "" : (field.inverse.name
+                          + (field.inverse.many ? "*" : (field.inverse.optional ? "?" : ""))))
  }
  

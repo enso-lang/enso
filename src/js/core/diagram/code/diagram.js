@@ -51,25 +51,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         }
       }));
     }));
-    (this.on_open = (function () {
-      var self = this;
-      var dialog;
-      (dialog = self.remote().require("dialog"));
-      return dialog.showOpenDialog((function (fileNames) {
-        var fileName;
-        if ((!(fileNames == null))) {
-          (fileName = fileNames._get(0));
-          return Load.load(fileName);
-        }
-      }), (new EnsoHash({
-        filters: [(new EnsoHash({
-          name: "diagram",
-          extensions: ["diagram"]
-        }))]
-      })));
-    }));
     (this.set_root = (function (root) {
       var self = this;
+      (self.$.context.font = "13px sans-serif");
+      (self.$.context.strokeStyle = "#000000");
+      (self.$.context.textBaseline = "top");
       (self.$.canvas.onmousedown = self.on_mouse_down());
       (self.$.canvas.onmousemove = self.on_move());
       (self.$.canvas.onmouseup = self.on_mouse_up());
@@ -92,7 +78,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.on_mouse_down = (function () {
       var self = this;
       return Proc.new((function (e) {
-        var done, pnt, select, subselect;
+        var done, clear, pnt, select, subselect;
         (pnt = self.getCursorPosition(e));
         (self.$.mouse_down = true);
         (done = false);
@@ -103,16 +89,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         else {
           if (self.$.selection) {
             (subselect = self.$.selection.do_mouse_down(pnt));
-            if ((subselect == "cancel")) {
-              (self.$.selection = null);
+            if (subselect) {
+              (self.$.selection = subselect);
               (done = true);
             }
             else {
-              if (subselect) {
-                (self.$.selection = subselect);
-                (done = true);
-              } else {
-              }
+              (clear = self.clear_selection());
             }
           } else {
           }
@@ -123,7 +105,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
             (val = ((self.$.find_container && self.$.find_container.Container_P()) && (self.$.find_container.direction() == 3)));
             return val;
           }), pnt));
-          return self.set_selection(select, pnt);
+          (done = self.set_selection(select, pnt));
+        }
+        if ((done || clear)) {
+          return self.clear_refresh();
         }
       }));
     }));
@@ -151,12 +136,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.clear_selection = (function () {
       var self = this;
       if (self.$.selection) {
-        return (self.$.selection = self.$.selection.clear());
+        (self.$.selection = self.$.selection.clear());
+        return true;
       }
     }));
     (this.set_selection = (function (select, pnt) {
       var self = this;
-      self.clear_selection();
       if (select) {
         if (select.Connector_P()) { 
           (self.$.selection = ConnectorSelection.new(self, select)); 
@@ -164,7 +149,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         else { 
           (self.$.selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x(), pnt.y())));
         }
-        return self.clear_refresh();
+        return true;
       }
     }));
     (this.find_in_ui = (function (filter, pnt) {
@@ -433,31 +418,29 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.clear_refresh = (function () {
       var self = this;
       (self.$.context.fillStyle = "white");
-      self.$.context.fillRect(0, 0, 1000, 1000);
+      self.$.context.fillRect(0, 0, 5000, 5000);
       (self.$.context.fillStyle = "black");
-      (self.$.context.lineStyle = "red");
-      (self.$.context.font = "10pt sans-serif");
-      (self.$.context.textBaseline = "top");
-      self.draw(self.$.root);
+      self.draw(self.$.root, 0);
       if (self.$.selection) {
         return self.$.selection.do_paint();
       }
     }));
-    (this.draw = (function (part) {
+    (this.draw = (function (part, n) {
       var self = this;
       return self.with_styles((function () {
-        return self.send(("draw" + part.schema_class().name()).to_sym(), part);
+        return self.send(("draw" + part.schema_class().name()).to_sym(), part, (n + 1));
       }), part);
     }));
-    (this.drawContainer = (function (part) {
+    (this.drawContainer = (function (part, n) {
       var self = this;
-      var len;
+      var start, len;
       (len = (part.items().size() - 1));
-      return len.downto((function (i) {
-        return self.draw(part.items()._get(i));
-      }), 0);
+      (start = 0);
+      return start.upto((function (i) {
+        return self.draw(part.items()._get(i), (n + 1));
+      }), len);
     }));
-    (this.drawShape = (function (shape) {
+    (this.drawShape = (function (shape, n) {
       var self = this;
       var start, m2, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
       (r = self.boundary_fixed(shape));
@@ -477,20 +460,33 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
            (finish = (2 * Math.PI));
            (anticlockwise = false);
            self.$.context.save();
+           (self.$.context.fillStyle = "Cornsilk");
+           (self.$.context.shadowColor = "#999");
+           (self.$.context.shadowBlur = 6);
+           (self.$.context.shadowOffsetX = 2);
+           (self.$.context.shadowOffsetY = 2);
            self.$.context.beginPath();
            self.$.context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise);
-           self.$.context.stroke();
+           self.$.context.fill();
            self.$.context.restore();
            break;
           case "box":
-           self.$.context.strokeRect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));
+           self.$.context.save();
+           self.$.context.rect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));
+           (self.$.context.fillStyle = "Cornsilk");
+           (self.$.context.shadowColor = "#999");
+           (self.$.context.shadowBlur = 6);
+           (self.$.context.shadowOffsetX = 2);
+           (self.$.context.shadowOffsetY = 2);
+           self.$.context.fill();
+           self.$.context.restore();
            break;
         }
             
       }
-      return self.draw(shape.content());
+      return self.draw(shape.content(), (n + 1));
     }));
-    (this.drawConnector = (function (part) {
+    (this.drawConnector = (function (part, n) {
       var self = this;
       var sideFrom, ps, thetaFrom, e1, rTo, sideTo, thetaTo, pFrom, rFrom, e0, pTo;
       (e0 = part.ends()._get(0));
@@ -551,11 +547,13 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       ps.each((function (p) {
         return part.path().push(self.$.factory.Point(p.x(), p.y()));
       }));
+      self.$.context.save();
       self.$.context.beginPath();
       ps.map((function (p) {
         return self.$.context.lineTo(p.x(), p.y());
       }));
       self.$.context.stroke();
+      self.$.context.restore();
       self.drawEnd(e0, e1, pFrom, pTo);
       return self.drawEnd(e1, e0, pTo, pFrom);
     }));
@@ -625,6 +623,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.context.restore();
       }), cend.label());
       if (((cend.arrow() == ">") || (cend.arrow() == "<"))) {
+        self.$.context.save();
         (size = 5);
         (angle = (((-Math.PI) * (1 - side)) / 2));
         self.$.context.beginPath();
@@ -645,7 +644,8 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           return (index = (index + 1));
         })));
         self.$.context.closePath();
-        return self.$.context.fill();
+        self.$.context.fill();
+        return self.$.context.restore();
       }
     }));
     (this.simpleSameSide = (function (a, b, d) {
@@ -775,11 +775,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       }
           
     }));
-    (this.drawText = (function (text) {
+    (this.drawText = (function (text, n) {
       var self = this;
       var r;
       (r = self.boundary_fixed(text));
-      return self.$.context.fillText(text.string(), (r.x() + 2), r.y());
+      self.$.context.beginPath();
+      (self.$.context.fillStyle = "black");
+      self.$.context.fillText(text.string(), (r.x() + 2), r.y(), 1000);
+      return self.$.context.fill();
     }));
     (this.with_styles = (function (block, part) {
       var self = this;
@@ -865,7 +868,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       self.$.diagram.context().save();
       (self.$.diagram.context().strokeStyle = "#FF0000");
-      self.$.diagram.draw(self.$.part);
+      self.$.diagram.draw(self.$.part, 0);
       return self.$.diagram.context().restore();
     }));
     (this.do_mouse_down = (function (e) {
@@ -873,6 +876,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.clear = (function () {
       var self = this;
+    }));
+    (this.to_s = (function () {
+      var self = this;
+      return S("MOVE_SEL ", self.$.part, "");
     }));
   }));
   var ConnectorSelection = MakeClass("ConnectorSelection", null, [], (function () {
@@ -922,6 +929,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.clear = (function () {
       var self = this;
     }));
+    (this.to_s = (function () {
+      var self = this;
+      return S("CONT_SEL ", self.$.conn, "");
+    }));
   }));
   var PointSelection = MakeClass("PointSelection", null, [], (function () {
   }), (function (super$) {
@@ -937,11 +948,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.do_paint = (function () {
       var self = this;
-      var size, pos;
-      (self.$.diagram.context().fillStyle = self.$.diagram.makeColor(self.$.diagram.factory().Color(0, 0, 255)));
-      (size = 8);
-      (pos = self.$.diagram.position_fixed(self.$.ce));
-      return self.$.diagram.context().fillRect((pos.x() - (size / 2)), (pos.y() - (size / 2)), size, size);
     }));
     (this.do_mouse_down = (function (e) {
       var self = this;
@@ -977,6 +983,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.clear = (function () {
       var self = this;
       return self.$.lastSelection;
+    }));
+    (this.to_s = (function () {
+      var self = this;
+      return S("PNT_SEL ", self.$.ce, "   ", self.$.lastSelection, "ss");
     }));
   }));
   var EnsoPoint = MakeClass("EnsoPoint", null, [], (function () {

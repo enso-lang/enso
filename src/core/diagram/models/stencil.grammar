@@ -21,8 +21,8 @@ Part ::= [Label] "label" Props? label:Expr body:EBlock
        | [Require] "require" path:str
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph"  {direction==3} | "do"  {direction==4}
-ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ("," other_label:Expr)? ":")? part:Expr (arrow:"<" | arrow:"*")?
-ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr ("," other_label:Expr)?)?
+ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ":")? part:Expr (arrow:"<" | arrow:"*")?
+ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr )?
 Index ::= "," index:sym
 
 Props ::= "[" props:Assign* @"," "]"

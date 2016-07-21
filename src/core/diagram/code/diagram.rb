@@ -51,18 +51,12 @@ module Diagram
 			  end
 		  }
 		end
-			  
-		def on_open
-  		dialog = remote.require('dialog')
-  		dialog.showOpenDialog( filters: [{ name: 'diagram', extensions: ['diagram']}] ) do |fileNames|
-			  if !fileNames.nil?
-				  fileName = fileNames[0]
-				  Load::load(fileName)
-				end
-			end
-		end
-	  	  
+			  	  	  
 	  def set_root(root)
+	    @context.font_ = "13px sans-serif"
+	    @context.strokeStyle_ = "#000000"
+	    @context.textBaseline_ = "top"
+	  
 	    @canvas.onmousedown_ = on_mouse_down
 	    @canvas.onmousemove_ = on_move
 	    @canvas.onmouseup_ = on_mouse_up
@@ -99,12 +93,12 @@ module Diagram
 		    	done = true
 			  elsif @selection
 		      subselect = @selection.do_mouse_down(pnt)
-		      if subselect == :cancel
-		        @selection = nil
-		        done = true
-		      elsif subselect
+			    #puts "SUB #{subselect}"
+		      if subselect
 		        @selection = subselect
 		        done = true
+		      else
+		        clear = clear_selection
 		      end
 		    end
 		    if !done
@@ -115,7 +109,10 @@ module Diagram
 			      val
 			    end
 			    #puts "FIND #{select}"
-			    set_selection(select, pnt)
+			    done = set_selection(select, pnt)
+			  end
+			  if done or clear
+			  	 clear_refresh()
 			  end
 		  }
 	  end
@@ -143,19 +140,18 @@ module Diagram
 	  def clear_selection
 	   if @selection
 		    @selection = @selection.clear()
-	      #clear_refresh()
+		    true
 		  end
 	  end
 	    
 	  def set_selection(select, pnt)
-	    clear_selection
 	    if select
 	      if select.Connector?
 	        @selection = ConnectorSelection.new(self, select)
 	      else
 	        @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x, pnt.y))
 	      end
-	      clear_refresh()
+	      true
 	    end
 	  end
 	  
@@ -203,9 +199,6 @@ module Diagram
 	      if e.label
 	        obj = find1(e.label, pnt, &filter)
 	      end
-#	      if obj.nil? && e.other_label
-#	        obj = find1(e.other_label, pnt, &filter)
-#	      end
 	      obj
 	    end
 	    if obj.nil?
@@ -377,6 +370,7 @@ module Diagram
 	
 	  def constrainText(part, x, y, width, height)
 	    info = @context.measureText(part.string)
+	    #puts "MEASURE #{part.string} #{info.width_} #{context.font_}"
 	    width.max(info.width_ + 4)
 	    height.max(15)  # doesn't include height!
 	  end
@@ -394,7 +388,6 @@ module Diagram
 	  
 	  def constrainConnectorEnd(e, x, y)
 	    constrain(e.label, x, y) if e.label
-	    #constrain(e.other_label, x, y) if e.other_label
 	  end
 	  
 	  def boundary(shape)
@@ -438,30 +431,28 @@ module Diagram
 	  
 	  def clear_refresh	    
       @context.fillStyle_ = "white"
-			@context.fillRect(0, 0, 1000, 1000)
+			@context.fillRect(0, 0, 5000, 5000)
       @context.fillStyle_ = "black"
-      @context.lineStyle_ = "red"
-      @context.font_ = "10pt sans-serif"
-
-	    @context.textBaseline_ = "top"
-      draw(@root)
+      draw(@root, 0)
 	    @selection.do_paint() if @selection
 	  end
 	  
-	  def draw(part)
-	    with_styles(part) do 
-	      send(("draw" + part.schema_class.name).to_sym, part)
+	  def draw(part, n)
+	    with_styles(part) do
+	      #puts "#{' '.repeat(n)}DRAW  #{part}"
+	      send(("draw" + part.schema_class.name).to_sym, part, n+1)
 	    end
 	  end
 	
-	  def drawContainer(part)
-        len = part.items.size - 1
-        len.downto(0) do |i|
-	      draw(part.items[i])
+	  def drawContainer(part, n)
+      len = part.items.size - 1
+      start = 0
+      start.upto(len) do |i|
+	      draw(part.items[i], n+1)
 	    end
 	  end  
 	  
-	  def drawShape(shape)
+	  def drawShape(shape, n)
 	    r = boundary_fixed(shape)
 	    if r
 		    margin = @context.lineWidth_
@@ -469,7 +460,18 @@ module Diagram
 		    case shape.kind
 		    when "box"
 					#@context.fillRect(r.x, r.y, r.w, r.h)
-		      @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+					
+					@context.save()
+					@context.rect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+		      @context.fillStyle_ = 'Cornsilk'
+		      @context.shadowColor_ = '#999'
+		      @context.shadowBlur_ = 6
+		      @context.shadowOffsetX_ = 2
+		      @context.shadowOffsetY_ = 2
+		      @context.fill()
+		      @context.restore()
+		      
+		      # @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 		    when "oval"
 			    rx            = r.w / 2        # The X radius
 			    ry            = r.h / 2        # The Y radius
@@ -481,17 +483,23 @@ module Diagram
 			    anticlockwise = false      # Whether the ellipse is drawn in a clockwise direction or
 			                                    # anti-clockwise direction
 			    @context.save
+		      @context.fillStyle_ = 'Cornsilk'
+		      @context.shadowColor_ = '#999'
+		      @context.shadowBlur_ = 6
+		      @context.shadowOffsetX_ = 2
+		      @context.shadowOffsetY_ = 2
+
 			    @context.beginPath()
 	    		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
-	    		#@context.fill
-	    		@context.stroke
+	    		@context.fill
+	    		#@context.stroke
 			    @context.restore
 			end
 		  end
-	    draw(shape.content)
+	    draw(shape.content, n+1)
 	  end
 	  
-	  def drawConnector(part)
+	  def drawConnector(part, n)
 	    e0 = part.ends[0]
 	    e1 = part.ends[1]
 	    rFrom = boundary_fixed(e0.to)
@@ -533,11 +541,13 @@ module Diagram
 	    part.path.clear
 	    ps.each {|p| part.path << @factory.Point(p.x, p.y) }
 
+			@context.save
 	    @context.beginPath
 	    ps.map { |p| 
 	      @context.lineTo(p.x, p.y)
 	    }
 	    @context.stroke
+			@context.restore
 	
 	    drawEnd e0, e1, pFrom, pTo
 	    drawEnd e1, e0, pTo, pFrom
@@ -602,6 +612,7 @@ module Diagram
 	
 	    # draw the arrows
 	    if cend.arrow == ">" || cend.arrow == "<"
+	      @context.save
 	      size = 5
 	      angle = -Math::PI * (1 - side) / 2
 	      @context.beginPath
@@ -623,6 +634,7 @@ module Diagram
 			  end
 			  @context.closePath
 			  @context.fill
+	      @context.restore
 	    end
 	  end
 	
@@ -696,10 +708,12 @@ module Diagram
 	    end  
 	  end
 	
-	  def drawText(text)
+	  def drawText(text, n)
 	    r = boundary_fixed(text)
-			#@context.fillRect(r.x, r.y, r.w, r.h)
-	    @context.fillText(text.string, r.x + 2, r.y)
+	    @context.beginPath
+			@context.fillStyle_ = "black"
+	    @context.fillText(text.string, r.x + 2, r.y, 1000)
+	    @context.fill
 	  end
 	 
 	  #  --- helper functions ---
@@ -775,7 +789,7 @@ module Diagram
 	  def do_paint()
 	    @diagram.context.save
 	    @diagram.context.strokeStyle_ = "#FF0000"
-	    @diagram.draw(@part)
+	    @diagram.draw(@part, 0)
 			@diagram.context.restore
 	  end
 	
@@ -783,6 +797,10 @@ module Diagram
 		end
 		 
 	  def clear
+	  end
+
+	  def to_s
+	    "MOVE_SEL #{@part}"
 	  end
 	end
 	
@@ -831,6 +849,10 @@ module Diagram
 	  
 	  def clear
 	  end
+	  
+	  def to_s
+	    "CONT_SEL #{@conn}"
+	  end
 	end
 	
 	class PointSelection
@@ -845,10 +867,6 @@ module Diagram
 	  end
 	
 	  def do_paint()
-		  @diagram.context.fillStyle_ = @diagram.makeColor(@diagram.factory.Color(0, 0, 255))
-		  size = 8
-			pos = @diagram.position_fixed(@ce)
-	    @diagram.context.fillRect(pos.x - size / 2, pos.y - size / 2, size, size)
 	  end
 	    
 	  def do_mouse_down(e)
@@ -886,6 +904,10 @@ module Diagram
 	  
 	  def clear
 	    @lastSelection
+	  end
+	  
+	  def to_s
+	  	"PNT_SEL #{@ce}   #{@lastSelection}ss"
 	  end
 	end
 	

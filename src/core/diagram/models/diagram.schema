@@ -25,7 +25,6 @@ class Connector < Part
 class ConnectorEnd
   arrow: str?
   label! Text?
-  other_label! Text?
   to: Shape / connectors
   attach: EdgePos
   owner: Connector / ends
