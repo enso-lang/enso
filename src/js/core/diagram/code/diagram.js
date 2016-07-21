@@ -427,6 +427,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.draw = (function (part, n) {
       var self = this;
+      (self.$.context.font = "13px sans-serif");
+      (self.$.context.strokeStyle = "#000000");
+      (self.$.context.textBaseline = "top");
       return self.with_styles((function () {
         return self.send(("draw" + part.schema_class().name()).to_sym(), part, (n + 1));
       }), part);
@@ -479,6 +482,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
            (self.$.context.shadowOffsetX = 2);
            (self.$.context.shadowOffsetY = 2);
            self.$.context.fill();
+           self.$.context.stroke();
            self.$.context.restore();
            break;
         }

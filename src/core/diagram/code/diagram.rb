@@ -47,7 +47,7 @@ module Diagram
 				if bounds
 					bounds.w = @cs.value(canvasWidth)
 					bounds.h = @cs.value(canvasHeight)
-					clear_refresh()
+					clear_refresh
 			  end
 		  }
 		end
@@ -65,16 +65,16 @@ module Diagram
 	    root.finalize
 	    @root = root
 	    @positions = {}
-      do_constraints()
+      do_constraints
 			# Draw canvas border for the first time.
-			resizeCanvas()
+			resizeCanvas
 	  end
 	
 	  
 	  # ------- event handling -------  
 	
 	  def getCursorPosition(event)
-	    rect = @canvas.getBoundingClientRect()
+	    rect = @canvas.getBoundingClientRect
 	    x = event.clientX_ - rect.left_
 	    y = event.clientY_ - rect.top_
 	    @factory.Point(x, y)
@@ -112,7 +112,7 @@ module Diagram
 			    done = set_selection(select, pnt)
 			  end
 			  if done or clear
-			  	 clear_refresh()
+			  	 clear_refresh
 			  end
 		  }
 	  end
@@ -139,7 +139,7 @@ module Diagram
 	  # ------- selections -------      
 	  def clear_selection
 	   if @selection
-		    @selection = @selection.clear()
+		    @selection = @selection.clear
 		    true
 		  end
 	  end
@@ -434,10 +434,14 @@ module Diagram
 			@context.fillRect(0, 0, 5000, 5000)
       @context.fillStyle_ = "black"
       draw(@root, 0)
-	    @selection.do_paint() if @selection
+	    @selection.do_paint if @selection
 	  end
 	  
 	  def draw(part, n)
+	    @context.font_ = "13px sans-serif"
+	    @context.strokeStyle_ = "#000000"
+	    @context.textBaseline_ = "top"
+
 	    with_styles(part) do
 	      #puts "#{' '.repeat(n)}DRAW  #{part}"
 	      send(("draw" + part.schema_class.name).to_sym, part, n+1)
@@ -461,15 +465,16 @@ module Diagram
 		    when "box"
 					#@context.fillRect(r.x, r.y, r.w, r.h)
 					
-					@context.save()
+					@context.save
 					@context.rect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 		      @context.fillStyle_ = 'Cornsilk'
 		      @context.shadowColor_ = '#999'
 		      @context.shadowBlur_ = 6
 		      @context.shadowOffsetX_ = 2
 		      @context.shadowOffsetY_ = 2
-		      @context.fill()
-		      @context.restore()
+		      @context.fill
+		      @context.stroke
+		      @context.restore
 		      
 		      # @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
 		    when "oval"
@@ -489,7 +494,7 @@ module Diagram
 		      @context.shadowOffsetX_ = 2
 		      @context.shadowOffsetY_ = 2
 
-			    @context.beginPath()
+			    @context.beginPath
 	    		@context.ellipse(x, y, rx, ry, rotation, start, finish, anticlockwise)
 	    		@context.fill
 	    		#@context.stroke
@@ -738,10 +743,10 @@ module Diagram
 #			    if @selection && @selection.is_selected(part)
 #			  	  @context.stokeStyle_ = makeColor(@select_color)
 #			   	end
-			    block.call()
+			    block.call
 			    @context.restore
 			  else
-			  	block.call()
+			  	block.call
 			  end
 			end
 	  end
