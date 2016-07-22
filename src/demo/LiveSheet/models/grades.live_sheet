@@ -7,7 +7,7 @@ data Entry
     category* :str / activity* :str
   rows
     maxScore :float
-    grade* :float / activity
+    grade* :float
     
 data Normalized
   all

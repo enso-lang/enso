@@ -2,28 +2,28 @@
 
 //////////////////////////////
 class Model
-  steps: Step*
+  steps! Step*
 
 class Step
-  name : str
-  specs : Spec*
+  name # str
+  specs ! Spec*
 
 class Spec
   direction : str  // all, rows, cols
-  calcs : Option*
+  calcs ! Option*
 
 class Option
-  variable : str
+  variable # str
 
 class Calculation < Option
-  expression : Expr
+  expression ! Expr
 
 class DataInput < Option
   value : atom
 
 class Correlated < Option
-  correlate : Expr
-  calcs : Option*
+  correlate ! Expr
+  calcs ! Option*
 
 primitive atom
 primitive str

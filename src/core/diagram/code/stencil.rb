@@ -35,7 +35,6 @@ module Stencil
 	    ext = path.substr(path.lastIndexOf('.')+1)
 	    raise "File has no extension" if ext.size < 2
 	    @path = path
-	    # set_title path
 	    setup ext, Load::load(@path)
 	  end
 	 
@@ -43,7 +42,7 @@ module Stencil
 	    @extension = extension
 	    @stencil = Load::load("#{@extension}.stencil")
 	    if !@stencil.title.nil?
-	      self.set_title(@stencil.title)
+	      @win.document.title_ = @stencil.title
 	    end
 	    @data = data
 	    build_diagram
@@ -173,6 +172,7 @@ module Stencil
 	    			address.value = obj
 	    			shape.string = name
 	    	  end
+	    	  false
 	      end
 		    r = boundary_fixed(shape)
 	      popup_menu(pop, r.x, r.y)
@@ -277,22 +277,22 @@ module Stencil
 	    #end
 	  end
 	
-	  def constructEFor(obj, env, container, id, proc)
-	    source = eval(obj.list, env)
-	    address = lvalue(obj.list, env)
+	  def constructEFor(efor, env, container, id, proc)
+	    source = eval(efor.list, env)
+	    address = lvalue(efor.list, env)
 	
 	    is_traversal = false
-	    if obj.list.EField?
-	      lhs = eval(obj.list.e, env)
-	      f = lhs.schema_class.all_fields[obj.list.fname]
-	      raise "MISSING #{obj.list.fname} on #{lhs.schema_class}" if !f
+	    if efor.list.EField?
+	      lhs = eval(efor.list.e, env)
+	      f = lhs.schema_class.all_fields[efor.list.fname]
+	      raise "MISSING #{efor.list.fname} on #{lhs.schema_class}" if !f
 	      is_traversal = f.traversal
 	    end
 	
 	    nenv = env.clone
 	    source.each_with_index do |v, i|
-	      nenv[obj.var] = v
-	      nenv[obj.index] = i if obj.index
+	      nenv[efor.var] = v
+	      nenv[efor.index] = i if efor.index
 	      
 	      # make a location for each iteration
 	      if v.schema_class.key
@@ -305,10 +305,10 @@ module Stencil
 	      else
 	        newId = id
 	      end  
-	      construct(obj.body, nenv, container, newId, Proc.new { |shape, subid|
-	        if obj.label
+	      construct(efor.body, nenv, container, newId, Proc.new { |shape, subid|
+	        if efor.label
 	          action = is_traversal ? "Delete" : "Remove"
-		        add_action(shape, "#{action} #{obj.label}") do
+		        add_action(container, "#{action} #{efor.label}") do
 		          if is_traversal
 	  	          v.delete!
 	  	        else
@@ -319,15 +319,15 @@ module Stencil
 	     		proc.call shape, subid
 	      })
 	    end
-	    if obj.label
+	    if efor.label
 	      action = is_traversal ? "Create" : "Add"
 #	      begin
 #		      shape = @tagModelToShape[addr.object.name]
 	#	    rescue
 		#    end
 		    shape = container  # if !shape
-		    #puts "#{action} #{obj.label} #{address.array}.#{address.index} #{shape}"
-		    add_action(shape, "#{action} #{obj.label}") do
+		  #  puts "#{action} #{efor.label} #{address.array}.#{address.index} #{shape}"
+		    add_action(shape, "#{action} #{efor.label}") do
 #		      if !is_traversal
 #		      	# just add a reference!
 	#	      	#puts "ADD #{action}: #{address.index}"
@@ -335,7 +335,7 @@ module Stencil
 		#		      address.value << x
 		#		    end
 		 #     else
-			      factory = address.array.factory
+			      factory = @data.factory
 				    obj = factory[address.type.name]
 	#			    relateField = nil
 				    obj.schema_class.fields.each do |field|
@@ -366,29 +366,31 @@ module Stencil
 	
 	
 		def find_default_object(scan, type)
-		  catch :FoundObject do 
-			  find_all_objects(scan, type) do |x|  
-			    throw :FoundObject, x
-			  end
-			end
+		  find_all_objects(scan, type) do |x|  
+		    scan
+		  end
 		end 
 		
 		def find_all_objects(scan, type, &block)
 		  if scan
 			  # puts "looking for #{type.name} as #{scan}"
-	      #block.call(scan) if scan._subtypeOf(scan.schema_class, type)
-	      block.call(scan) if Subclass?(scan.schema_class, type)
-	      scan.schema_class.fields.each do |field|
-	        if field.traversal
-	          if field.many
-	            scan[field.name].each do |x|
-	              find_all_objects(x, type, &block)
-	            end
-	          else
-	            find_all_objects(scan[field.name], type, &block)
-	          end
-	        end
-	      end
+			  if Schema.subclass?(scan.schema_class, type)
+		      if block.call(scan) 
+		      	scan
+		      else
+			      scan.schema_class.fields.each do |field|
+			        if field.traversal
+			          if field.many
+			            scan[field.name].find do |x|
+			              find_all_objects(x, type, &block)
+			            end
+			          else
+			            find_all_objects(scan[field.name], type, &block)
+			          end
+			        end
+			      end
+			    end
+			  end
 	    end
 		end
 	
@@ -525,7 +527,7 @@ module Stencil
 	  #### expressions
 	  
 	  def lvalue(exp, env)
-	    Lvalue.lvalue(exp, env: env, factory: @factory)
+	    Lvalue.lvalue(exp, env: env)
 	  end
 
 	  def eval(obj, env)
@@ -593,7 +595,7 @@ module Stencil
 #	    @part = @diagram.find e do |shape| 
 #	      obj = @diagram.lookup_shape(shape)
 #	      #obj && obj._subtypeOf(obj.schema_class, @kind)
-#	      obj && Subclass?(obj.schema_class, @kind)
+#	      obj && Schema.subclass?(obj.schema_class, @kind)
 #	    end
 #	  end
 #	  

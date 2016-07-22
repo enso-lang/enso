@@ -1,96 +1,30 @@
---- 
-"*VERSION*": 2
-"*WINDOW*": 
-  x: 768
-  y: 432
-"default:": !ruby/object:EnsoPoint 
-  x: 33
-  y: 15
-default:/states[IGNITE]: !ruby/object:EnsoPoint 
-  x: 283
-  y: 21
-default:/states[RAMPUP]: !ruby/object:EnsoPoint 
-  x: 260
-  y: 136
-default:/states[BOILER]: !ruby/object:EnsoPoint 
-  x: 47
-  y: 213
-default:/states[RADIATOR]: !ruby/object:EnsoPoint 
-  x: 469
-  y: 211
-default:/states[COOLDOWN]: !ruby/object:EnsoPoint 
-  x: 249
-  y: 291
-default:/states[RUNNING]: !ruby/object:EnsoPoint 
-  x: 339
-  y: 227
-default:/states[IGNITE]:/states[RAMPUP]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-default:/states[RAMPUP]:/states[RUNNING]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-default:/states[BOILER]:/states[RAMPUP]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5000000000000001
-default:/states[BOILER]:/states[RUNNING]$*: 
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.44127797804852953
-default:/states[RADIATOR]:/states[RAMPUP]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.43923002793693317
-default:/states[RADIATOR]:/states[RUNNING]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5568438788263668
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5
-default:/states[COOLDOWN]:/states[RUNNING]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 0
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-default:/states[COOLDOWN]:/states[RADIATOR]$*: 
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-default:/states[COOLDOWN]:/states[BOILER]$*: 
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5000000000000001
-- !ruby/object:EnsoPoint 
-  x: 0.5
-  y: 1
-default::/states[IGNITE]$*: 
-- !ruby/object:EnsoPoint 
-  x: 1
-  y: 0.5
-- !ruby/object:EnsoPoint 
-  x: 0
-  y: 0.5
+{
+  "default": {
+    "x": 33,
+    "y": 15
+  },
+  "IGNITE": {
+    "x": 283,
+    "y": 21
+  },
+  "RAMPUP": {
+    "x": 260,
+    "y": 136
+  },
+  "BOILER": {
+    "x": 47,
+    "y": 213
+  },
+  "RADIATOR": {
+    "x": 469,
+    "y": 211
+  },
+  "COOLDOWN": {
+    "x": 249,
+    "y": 291
+  },
+  "RUNNING": {
+    "x": 339,
+    "y": 227
+  }
+}

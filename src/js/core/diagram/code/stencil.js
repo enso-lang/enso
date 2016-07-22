@@ -36,7 +36,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.extension = extension);
       (self.$.stencil = Load.load(S("", self.$.extension, ".stencil")));
       if ((!(self.$.stencil.title() == null))) {
-        self.set_title(self.$.stencil.title());
+        (self.$.win.document().title = self.$.stencil.title());
       }
       (self.$.data = data);
       self.build_diagram();
@@ -168,10 +168,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              self.find_all_objects(self.$.data, address.index().type((function (obj) {
                var name;
                (name = self.ObjectKey(obj));
-               return self.add_menu2(pop, name, self.name((function (e) {
+               self.add_menu2(pop, name, self.name((function (e) {
                  address.set_value(obj);
                  return shape.set_string(name);
                })));
+               return false;
              })));
              (r = self.boundary_fixed(shape));
              return self.popup_menu(pop, r.x(), r.y());
@@ -298,26 +299,26 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.constructEImport = (function (obj, env, container, id, proc) {
       var self = this;
     }));
-    (this.constructEFor = (function (obj, env, container, id, proc) {
+    (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;
       var shape, f, is_traversal, address, action, lhs, source, nenv;
-      (source = self.eval(obj.list(), env));
-      (address = self.lvalue(obj.list(), env));
+      (source = self.eval(efor.list(), env));
+      (address = self.lvalue(efor.list(), env));
       (is_traversal = false);
-      if (obj.list().EField_P()) {
-        (lhs = self.eval(obj.list().e(), env));
-        (f = lhs.schema_class().all_fields()._get(obj.list().fname()));
+      if (efor.list().EField_P()) {
+        (lhs = self.eval(efor.list().e(), env));
+        (f = lhs.schema_class().all_fields()._get(efor.list().fname()));
         if ((!f)) {
-          self.raise(S("MISSING ", obj.list().fname(), " on ", lhs.schema_class(), ""));
+          self.raise(S("MISSING ", efor.list().fname(), " on ", lhs.schema_class(), ""));
         }
         (is_traversal = f.traversal());
       }
       (nenv = env.clone());
       source.each_with_index((function (v, i) {
         var loc_name, newId;
-        nenv._set(obj.var(), v);
-        if (obj.index()) {
-          nenv._set(obj.index(), i);
+        nenv._set(efor.var(), v);
+        if (efor.index()) {
+          nenv._set(efor.index(), i);
         }
         if (v.schema_class().key()) {
           (loc_name = v._get(v.schema_class().key().name()));
@@ -331,9 +332,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         else {
           (newId = id);
         }
-        return self.construct(obj.body(), nenv, container, newId, Proc.new((function (shape, subid) {
+        return self.construct(efor.body(), nenv, container, newId, Proc.new((function (shape, subid) {
           var action;
-          if (obj.label()) {
+          if (efor.label()) {
             (action = (is_traversal ? "Delete" : "Remove"));
             self.add_action((function () {
               if (is_traversal) { 
@@ -342,17 +343,17 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
               else { 
                 return self.addr().set_value(null);
               }
-            }), shape, S("", action, " ", obj.label(), ""));
+            }), container, S("", action, " ", efor.label(), ""));
           }
           return proc(shape, subid);
         })));
       }));
-      if (obj.label()) {
+      if (efor.label()) {
         (action = (is_traversal ? "Create" : "Add"));
         (shape = container);
         return self.add_action((function () {
-          var factory;
-          (factory = address.array().factory());
+          var factory, obj;
+          (factory = self.$.data.factory());
           (obj = factory._get(address.type().name()));
           return obj.schema_class().fields().each((function (field) {
             if (((field.key() && field.type().Primitive_P()) && (field.type().name() == "str"))) { 
@@ -367,35 +368,37 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             }
             return address.value().push(obj);
           }));
-        }), shape, S("", action, " ", obj.label(), ""));
+        }), shape, S("", action, " ", efor.label(), ""));
       }
     }));
     (this.find_default_object = (function (scan, type) {
       var self = this;
-      return self.catch((function () {
-        self.find_all_objects((function (x) {
-          return self.throw("FoundObject", x);
-        }), scan, type);
-      }), "FoundObject");
+      return self.find_all_objects((function (x) {
+        return scan;
+      }), scan, type);
     }));
     (this.find_all_objects = (function (block, scan, type) {
       var self = this;
       if (scan) {
-        if (self.Subclass_P(scan.schema_class(), type)) {
-          block(scan);
-        }
-        return scan.schema_class().fields().each((function (field) {
-          if (field.traversal()) {
-            if (field.many()) { 
-              return scan._get(field.name()).each((function (x) {
-                return self.find_all_objects(block, x, type);
-              })); 
-            }
-            else { 
-              return self.find_all_objects(block, scan._get(field.name()), type);
-            }
+        if (Schema.subclass_P(scan.schema_class(), type)) {
+          if (block(scan)) { 
+            return scan; 
           }
-        }));
+          else { 
+            return scan.schema_class().fields().each((function (field) {
+              if (field.traversal()) {
+                if (field.many()) { 
+                  return scan._get(field.name()).find((function (x) {
+                    return self.find_all_objects(block, x, type);
+                  })); 
+                }
+                else { 
+                  return self.find_all_objects(block, scan._get(field.name()), type);
+                }
+              }
+            }));
+          }
+        }
       }
     }));
     (this.constructEIf = (function (obj, env, container, id, proc) {
@@ -531,8 +534,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.lvalue = (function (exp, env) {
       var self = this;
       return Lvalue.lvalue(exp, (new EnsoHash({
-        env: env,
-        factory: self.$.factory
+        env: env
       })));
     }));
     (this.eval = (function (obj, env) {

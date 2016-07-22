@@ -1,19 +1,19 @@
-diagram "Piping & Instrumentation Controller" (controller)
+diagram (controller) // "Piping & Instrumentation Controller" 
 
-require "demo/Piping/code/controller-stencil-defs.rb"
+// require "demo/Piping/code/controller-stencil-defs.rb"
 
 graph [font.size=12,fill.color=(255,255,255)] {
   // create an "init" state
   label controller {
      box [line.width=1, fill.color=(255,228,181)] {
        vertical {
-        text [font.size=13,font.weight=600] "START"
+        text "START"
         for global : controller.globals
           horizontal {
-            text [font.size=8,font.weight=400] Layout_Global(global)
-            text [font.size=8,font.weight=400] ": "
+            text global
+            text  ": "
             let v = global.val in
-              text+ [font.size=8,font.weight=400] v.val
+              text  v.val
           }
        }
      }
@@ -21,22 +21,22 @@ graph [font.size=12,fill.color=(255,255,255)] {
   // create one state for each State
   for "State" state : controller.states
    label state {
-     box [fill.color=(getCurrState()==state.name ? (255,100,100): (255,228,181))] {
+     box [fill.color=(255,100,100)] {
        vertical {
-        text [font.size=13,font.weight=600] state.name
-        for "Command" command : state.commands
-          text [font.size=8,font.weight=400] Layout(command)
+       text state.name
+      //for "Command" command : state.commands
+      //    text  Layout(command)
        }
      }
    }
   // create the links
   for state : controller.states
     for "Transition" trans : state.transitions
-      let type = CheckConnect(state, trans) in
-        if (type == 1)
+     // let type = CheckConnect(state, trans) in
+     //   if (type == 1)
             connector (state --> trans.target)
-        else if (type == 2)
-            connector (state <--> trans.target)
+     //   else if (type == 2)
+       //     connector (state <--> trans.target)
 
   connector (controller --> controller.initial)
  }

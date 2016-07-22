@@ -7,7 +7,7 @@ graph [font.size=12,fill.color=(255,255,255)] {
      if (elem is Temperatured)
        oval [line.width=1,fill.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))] {
          vertical {
-           text [font.size=16,font.weight=700] elem.name
+           text [font.size=16,font.weight="bold"] elem.name
            if (elem is UserTemperature)
              text [font.size=10,font.weight=400] elem.user_temp
          }
@@ -15,9 +15,9 @@ graph [font.size=12,fill.color=(255,255,255)] {
      if not (elem is Temperatured)
        oval [line.width=1,fill.color=(200,200,200)] {
          if (elem is Valve)
-           text [font.size=12 + elem.flow * 4,font.weight=700] "elem.name"
+           text [font.size=12 + elem.flow * 4,font.weight="bold"] "elem.name"
          else
-           text [font.size=16,font.weight=700] elem.name
+           text [font.size=16,font.weight="bold"] elem.name
        }
     }
   // create the links

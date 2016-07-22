@@ -86,6 +86,10 @@ MODELS = \
   item.schema \
 	itemize.schema \
 	layout.schema \
+	boiler.controller \
+	controller.stencil \
+	boiler.piping \
+  piping.stencil \
 	normalize.schema \
 	parsing.schema \
 	binding.schema \

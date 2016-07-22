@@ -229,10 +229,7 @@ EnsoHash = function(init) {
 			   }
 			// menu.append(new MenuItem({label: 'MenuItem2', type: 'checkbox', checked: true}));
 			
-			window.addEventListener('contextmenu', (e) => {
-			  e.preventDefault();
 			  menu.popup(remote.getCurrentWindow());
-			}, false);
 		},
 
     JSHASH: function() { return {} },
@@ -381,6 +378,7 @@ EnsoHash = function(init) {
   
   String.prototype.size = function() { return this.length }
   String.prototype.to_s = function() { return this }
+  String.prototype.to_i = function() { return Number(this) }
   String.prototype.rjust = function(len, char) { return (char.repeat(len)+this).slice(-len) }
   Number.prototype.to_i = function() { return this }
   Number.prototype.to_s = function() { return this.toString(); }
