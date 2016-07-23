@@ -587,12 +587,14 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.clear = (function () {
       var self = this;
-      var new_text;
+      var new_text, pos;
       (new_text = self.$.diagram.input().value);
       self.$.address.set_value(new_text);
       self.$.edit_selection.set_string(new_text);
       (self.$.diagram.input().style.left = "-100px");
       (self.$.diagram.input().style.top = "-100px");
+      (pos = self.boundary(self.$.edit_selection));
+      self.constrainText(self.$.edit_selection, pos.x(), pos.y(), pos.w(), pos.h());
       return null;
     }));
     (this.do_move = (function () {

@@ -585,6 +585,8 @@ module Stencil
 	    @edit_selection.string = new_text
 			@diagram.input.style_.left_ = '-100px'
 			@diagram.input.style_.top_ = '-100px'
+			pos = boundary(@edit_selection)
+			constrainText(@edit_selection, pos.x, pos.y, pos.w, pos.h)
 	    nil
 	  end
 	

@@ -357,7 +357,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       return part.ends().each((function (ce) {
         var x, y, to, dynamic;
-        (to = self.$.positions._get(ce.to()._id()));
+        (to = self.boundary(ce.to()));
         (dynamic = ce.attach().dynamic_update());
         (x = to.x().add(to.w().mul(dynamic.x())));
         (y = to.y().add(to.h().mul(dynamic.y())));
@@ -398,7 +398,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.set_position = (function (shape, x, y) {
       var self = this;
       var r;
-      (r = self.$.positions._get(shape._id()));
+      (r = self.boundary(shape));
       r.x().set_value(x);
       return r.y().set_value(y);
     }));

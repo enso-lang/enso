@@ -368,7 +368,7 @@ module Diagram
   
     def constrainConnector(part)
       part.ends.each do |ce|
-        to = @positions[ce.to._id]
+        to = boundary(ce.to)
         dynamic = ce.attach.dynamic_update
         x = to.x.add(to.w.mul(dynamic.x))
         y = to.y.add(to.h.mul(dynamic.y))
@@ -400,7 +400,7 @@ module Diagram
     end
     
     def set_position(shape, x, y)
-      r = @positions[shape._id]
+      r = boundary(shape)
       r.x.value = x
       r.y.value = y
     end
