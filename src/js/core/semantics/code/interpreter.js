@@ -91,7 +91,7 @@ define([], (function () {
       (type = obj.schema_class());
       (method = S("", outer, "_", type.name(), "").to_s());
       if ((!self.respond_to_P(method))) {
-        (method = self.find(outer, type));
+        (method = self.find_op(outer, type));
       }
       if ((!method)) {
         (method = S("", outer, "_?").to_s());
@@ -119,7 +119,7 @@ define([], (function () {
       (type = obj.schema_class());
       (method = S("", operation, "_", type.name(), "").to_s());
       if ((!self.respond_to_P(method))) {
-        (method = self.find(operation, type));
+        (method = self.find_op(operation, type));
       }
       if ((!method)) {
         (method = S("", operation, "_?").to_s());
@@ -141,7 +141,7 @@ define([], (function () {
       }
       return result;
     }));
-    (this.find = (function (operation, type) {
+    (this.find_op = (function (operation, type) {
       var self = this;
       var method;
       (method = S("", operation, "_", type.name(), "").to_s());
@@ -150,7 +150,7 @@ define([], (function () {
       }
       else { 
         return type.supers().find_first((function (p) {
-          return self.find(operation, p);
+          return self.find_op(operation, p);
         }));
       }
     }));

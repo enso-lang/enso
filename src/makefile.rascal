@@ -82,9 +82,4 @@ $(DIR)/%.js: %.rb
 		core/lang/syntax/Main.rsc \
 		$< > $@
 
-clean-json:
-	ruby -I . core/system/load/cache.rb
-
-load-json:
-	ruby -I . core/system/load/load.rb $(JSONS_QL) $(JSONS_PIPING)
 

@@ -63,10 +63,10 @@ class Union
 
           d1ins = m1[k].select{|x| DeltaTransform.isInsertChange?(x)}
           d2ins = m2[k].select{|x| DeltaTransform.isInsertChange?(x)}
-          d1del = m1[k].find {|x| DeltaTransform.isDeleteChange?(x)}
-          d2del = m2[k].find {|x| DeltaTransform.isDeleteChange?(x)}
-          d1mod = m1[k].find {|x| DeltaTransform.isModifyChange?(x)}
-          d2mod = m2[k].find {|x| DeltaTransform.isModifyChange?(x)}
+          d1del = m1[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
+          d2del = m2[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
+          d1mod = m1[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
+          d2mod = m2[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
 
           if !d1ins.empty? and !d2ins.empty?
             for i in 0..[d1ins.size,d2ins.size].max-1

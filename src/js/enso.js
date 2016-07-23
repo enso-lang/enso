@@ -225,7 +225,7 @@ EnsoHash = function(init) {
 				  if (val == null)
 	    			menu.append(new MenuItem({type: 'separator'}));
 	    	  else
-	  			  menu.append(new MenuItem({label: key_name, click() { val() }}));
+	  			  menu.append(new MenuItem({label: key_name, click: val }));
 			   }
 			// menu.append(new MenuItem({label: 'MenuItem2', type: 'checkbox', checked: true}));
 			

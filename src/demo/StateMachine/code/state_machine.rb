@@ -12,7 +12,7 @@ def run_state_machine(sm)
     while $stdin.gets
 
       input = $_.strip
-      trans = current.out.find do |trans|
+      trans = current.out.find_first do |trans|
         trans.event == input
       end
       current = trans.to if trans

@@ -89,7 +89,7 @@ module Factory
     attr_accessor :_origin # source location
     attr_reader :_id
     attr_reader :factory
-    attr_accessor :extra_instance_data
+    attr_accessor :extra_instance_data  # these are used for rendering optimization which is turned off
     attr_reader :props
 
     @@_id = 0
@@ -219,7 +219,7 @@ module Factory
     end
 
     def delete! 
-      factory.delete!(self) 
+      factory.__delete_obj(self) 
     end
 
     def __delete_obj(mobj)
@@ -583,7 +583,7 @@ module Factory
 
     def __delete_obj(mobj)
       if get == mobj then
-        set(nil) # set takes case of inverses
+        set(nil) # set takes care of inverses
       end
     end
   end

@@ -249,7 +249,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
     }));
     (this.delete_C = (function () {
       var self = this;
-      return self.factory().delete_C(self);
+      return self.factory().__delete_obj(self);
     }));
     (this.__delete_obj = (function (mobj) {
       var self = this;
@@ -618,7 +618,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
           }
                
           }
-          catch (caught$12596) {
+          catch (caught$12666) {
             
               self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
           }

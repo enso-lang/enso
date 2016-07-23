@@ -17,7 +17,8 @@
 </head>
 
 <body>
-<canvas id='canvas' style = 'position: absolute; left: 0px; top: 0px;' />
+<input id='input' type=text style="font-size:13px; position: absolute; z-index: 1; left: -100px; top: -100px; width:100px; height:20px; padding-top:0px; padding-bottom:0px; margin-top:0px; margin-bottom:0px; border-width: 0px; background-color: Aquamarine " />
+<canvas id='canvas' style='position: absolute; z-index: 0; left: 0px; top: 0px;' />
 
 <script type="text/javascript">
   requirejs([
@@ -28,16 +29,12 @@
 
     var data_file = "schema.schema"; // "door.state_machine" //  "state_machine.schema"; //  
 		
-		var canvas = document.getElementById('canvas')
-		var context = canvas.getContext('2d')
-		//document.documentElement.appendChild(canvas)
+		canvas = document.getElementById('canvas')
+		input = document.getElementById('input')
 		
-		//console.log("Constructing...")
-		
-	  var stencil = Stencil.StencilFrame.new(window, canvas, context)
+	  var stencil = Stencil.StencilFrame.new(window, canvas, input)
 		stencil.set_path(data_file)			  
-		//console.log("Rendering...")
-
+		
 		var electron = require('electron')
 		const ipc = electron.ipcRenderer	
 		var dialog = electron.remote.dialog

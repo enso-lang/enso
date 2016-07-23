@@ -74,7 +74,7 @@ module Stencil
 		        at2.x = pnt[1].x_
 		        at2.y = pnt[1].y_
 					else
-			      pos = @positions[shape]  # using Diagram private member
+			      pos = @positions[shape._id]  # using Diagram private member
 			      #puts "   Has POS #{pos} #{pnt}"
 			      if pos
 			        pos.x.value = pnt.x_
@@ -152,37 +152,43 @@ module Stencil
 	 
 	  
 	    # ------- event handling ------- 
-	  def on_double_click(e)
-	    clear_selection
-	    text = find e, &:Text?
-	    if text and text.editable
-	      address = @shapeToAddress[text]
-	      edit_address(address, text) if address
-	    end
+	  def on_double_click
+	    Proc.new { |e|
+	      pnt = getCursorPosition(e)
+		    clear_selection
+		    text = find_in_ui(pnt) { |v| v.schema_class.name == "Text" }
+		    if text # and text.editable
+		      address = @shapeToAddress[text]
+		      edit_address(address, text) if address
+		    end
+		  }
 	  end
 		
 	  def edit_address(address, shape)
 	    if address.type.Primitive?
 				@selection = TextEditSelection.new(self, shape, address)
 		  else
-	      pop = Menu.new
-	      find_all_objects @data, address.index.type do |obj|
+		    actions = System.JSHASH()
+		    find_all_objects @data, address.index.type do |obj|
 	        name = ObjectKey(obj)
-	    		add_menu2 pop, name, name do |e| 
+	    		action = Proc.new { |e| 
 	    			address.value = obj
 	    			shape.string = name
-	    	  end
+	    	  }
+	    	  actions[name] = action
 	    	  false
-	      end
-		    r = boundary_fixed(shape)
-	      popup_menu(pop, r.x, r.y)
-		  end
+		    end
+		    if actions != System.JSHASH()
+		      puts "MENU #{actions}"
+					System.popupMenu(actions)
+			  end
+			end
 	  end
 	  
 	  def on_right_down(pnt)
 	    #clear_selection
 	    actions = System.JSHASH()
-	    find_in_ui(pnt) do |part|
+	    find_in_ui(pnt) do |part, container|
 	      actions = System.assign(actions, @actions[part]) if @actions[part]
 			  false
 	    end
@@ -257,7 +263,7 @@ module Stencil
 	  end
 	
 	  def constructAlt(obj, env, container, id, proc)
-	    obj.alts.find do |alt|
+	    obj.alts.find_first do |alt|
 	      construct(alt, env, container, id, proc)
 	    end
 	  end
@@ -381,7 +387,7 @@ module Stencil
 			      scan.schema_class.fields.each do |field|
 			        if field.traversal
 			          if field.many
-			            scan[field.name].find do |x|
+			            scan[field.name].find_first do |x|
 			              find_all_objects(x, type, &block)
 			            end
 			          else
@@ -454,7 +460,7 @@ module Stencil
 	  
 	  def constructText(obj, env, container, id, proc)
 	    val = eval(obj.string, env) # , true)
-	    addr = nil # lvalue(obj.string, env)
+	    addr = lvalue(obj.string, env)
 	    text = @factory.Text
 #	    if val.is_a? Variable
 #	      text.string = val.new_var_method do |a, *other|
@@ -552,34 +558,41 @@ module Stencil
 
 	
 	class TextEditSelection
-	  def initialize(diagram, edit, address)
+	  def initialize(diagram, shape, address)
 	    @address = address
 	    @diagram = diagram  
-	    @edit_selection = edit
-	    r = diagram.boundary_fixed(@edit_selection)
-	    n = 3
+	    @edit_selection = shape
+	    r = diagram.boundary_fixed(shape)
+	    n = 2
 	    #puts r.x, r.y, r.w, r.h
-	    extraWidth = 10
-	    @edit_control = TextCtrl.new(diagram, 0, "", r.x - n, r.y - n, r.w + 2 * n + extraWidth, r.h + 2 * n, 0)  # Wx::TE_MULTILINE
-	    
-	    style = TextAttr.new()
-	    style.set_text_colour(diagram.makeColor(diagram.foreground))
-	    style.set_font(diagram.makeFont(diagram.font))      
-	    @edit_control.set_default_style(style)
-	    
-	    @edit_control.append_text(@edit_selection.string)
-	    @edit_control.show
-	    @edit_control.set_focus
+	    extraWidth = 5
+			diagram.input.style_.left_ = (r.x - 1) + 'px'
+			diagram.input.style_.top_ = (r.y - 2)  + 'px'
+			diagram.input.style_.width_ = (r.w + n + extraWidth) + 'px'
+			diagram.input.style_.height_ = (r.h + n) + 'px'
+#	    style = TextAttr.new()
+#	    style.set_text_colour(diagram.makeColor(diagram.foreground))
+#	    style.set_font(diagram.makeFont(diagram.font))      
+#	    diagram.input.set_default_style(style)
+
+			diagram.input.value_ = shape.string
+	    diagram.input.focus
 	  end
 	
 	  def clear
-	    new_text = @edit_control.get_value()
+	    new_text = @diagram.input.value_
 	    @address.value = new_text
 	    @edit_selection.string = new_text
-	    @edit_control.destroy
+			@diagram.input.style_.left_ = '-100px'
+			@diagram.input.style_.top_ = '-100px'
 	    nil
 	  end
 	
+		def do_move
+		end
+		
+		def do_mouse_down
+		end
 	end
 	
 #	class FindByTypeSelection
@@ -592,7 +605,7 @@ module Stencil
 #	  
 #	  def on_move(e, down)
 #	    #puts "CHECKING"
-#	    @part = @diagram.find e do |shape| 
+#	    @part = @diagram.find_first e do |shape| 
 #	      obj = @diagram.lookup_shape(shape)
 #	      #obj && obj._subtypeOf(obj.schema_class, @kind)
 #	      obj && Schema.subclass?(obj.schema_class, @kind)

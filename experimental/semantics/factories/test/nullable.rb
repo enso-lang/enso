@@ -47,7 +47,7 @@ class Nullable
   def FindRule(sup)
     Class.new(sup) do 
       def find_rule(name)
-        @@grammar.rules.find {|r| r.name == name}
+        @@grammar.rules.find_first {|r| r.name == name}
       end
     end
   end

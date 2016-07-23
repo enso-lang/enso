@@ -155,7 +155,7 @@ module MetaSchema
       BootManyField.new(all_fields.select() {|f|!f.computed}, @root, true)
     end
     def key
-      fields.find {|f| f.key}
+      fields.find_first {|f| f.key}
     end
   end
 

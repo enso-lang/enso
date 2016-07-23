@@ -90,7 +90,7 @@ class BatchFactory
     #  return false
     #end
 
-    klass = @schema.classes.find {|t| t.table==table}
+    klass = @schema.classes.find_first {|t| t.table==table}
     keyfield = klass.key
     keycol = keyfield.column || keyfield.name
     #check if this is a relationship or an attribute.

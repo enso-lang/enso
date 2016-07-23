@@ -2,13 +2,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
   var Diagram;
   var DiagramFrame = MakeClass("DiagramFrame", null, [], (function () {
   }), (function (super$) {
-    (this.initialize = (function (win, canvas, context, title) {
+    (this.initialize = (function (win, canvas, input, title) {
       var self = this;
       (title = (((typeof title) !== "undefined") ? title : "Diagram"));
       var canvasWidth, canvasHeight;
       (self.$.win = win);
       (self.$.canvas = canvas);
-      (self.$.context = context);
+      (self.$.input = input);
+      (self.$.context = self.$.canvas.getContext("2d"));
       (self.$.menu_id = 0);
       (self.$.selection = null);
       (self.$.mouse_down = false);
@@ -35,6 +36,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.set_context = (function (val) {
       (this.$.context = val);
     }));
+    (this.input = (function () {
+      return this.$.input;
+    }));
+    (this.set_input = (function (val) {
+      (this.$.input = val);
+    }));
     (this.resizeCanvas = (function () {
       var self = this;
       return Proc.new((function () {
@@ -59,6 +66,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.canvas.onmousedown = self.on_mouse_down());
       (self.$.canvas.onmousemove = self.on_move());
       (self.$.canvas.onmouseup = self.on_mouse_up());
+      (self.$.canvas.ondblclick = self.on_double_click());
       root.finalize();
       (self.$.root = root);
       (self.$.positions = (new EnsoHash({
@@ -100,11 +108,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           }
         }
         if ((!done)) {
-          (select = self.find_in_ui((function (x) {
-            var val;
-            (val = ((self.$.find_container && self.$.find_container.Container_P()) && (self.$.find_container.direction() == 3)));
-            return val;
+          (select = self.find_in_ui((function (x, container) {
+            return ((container && container.Container_P()) && (container.direction() == 3));
           }), pnt));
+          puts(S("FIND ", select, ""));
           (done = self.set_selection(select, pnt));
         }
         if ((done || clear)) {
@@ -154,54 +161,47 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.find_in_ui = (function (filter, pnt) {
       var self = this;
-      return self.find1(filter, self.$.root, pnt);
+      return self.find1(filter, self.$.root, null, pnt);
     }));
-    (this.find1 = (function (filter, part, pnt) {
+    (this.find1 = (function (filter, part, container, pnt) {
       var self = this;
-      var b, old_container, out;
+      var b, out;
       if (part.Connector_P()) { 
-        return self.findConnector(filter, part, pnt); 
+        return self.findConnector(filter, part, container, pnt); 
       } 
       else {
              (b = self.boundary_fixed(part));
-             if ((!(b == null))) {
+             if (b) {
                if (self.rect_contains(b, pnt)) {
-                 (old_container = self.$.find_container);
-                 (self.$.find_container = part);
                  (out = null);
                  if (part.Container_P()) { 
-                   (out = part.items().find((function (sub) {
-                     return self.find1(filter, sub, pnt);
+                   (out = part.items().find_first((function (sub) {
+                     return self.find1(filter, sub, part, pnt);
                    }))); 
                  }
                  else { 
                    if (part.Shape_P()) { 
                      if (part.content()) {
-                       (out = self.find1(filter, part.content(), pnt));
+                       (out = self.find1(filter, part.content(), part, pnt));
                      } 
                    } 
                    else {
                         }
                  }
-                 (self.$.find_container = old_container);
-                 if (out) { 
-                   return out; 
+                 if (((!out) && filter(part, container))) {
+                   (out = part);
                  }
-                 else { 
-                   if (filter(part)) {
-                     return part;
-                   }
-                 }
+                 return out;
                }
              }
            }
     }));
-    (this.findConnector = (function (filter, part, pnt) {
+    (this.findConnector = (function (filter, part, container, pnt) {
       var self = this;
       var from, obj;
-      (obj = part.ends().find((function (e) {
+      (obj = part.ends().find_first((function (e) {
         if (e.label()) {
-          (obj = self.find1(filter, e.label(), pnt));
+          (obj = self.find1(filter, e.label(), container, pnt));
         }
         return obj;
       })));
@@ -259,7 +259,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                (w = self.$.cs.value(0));
                (h = self.$.cs.value(0));
                self.send(("constrain" + part.schema_class().name()).to_sym(), part, x, y, w, h);
-               return self.$.positions._set(part, EnsoRect.new(x, y, w, h));
+               return self.$.positions._set(part._id(), EnsoRect.new(x, y, w, h));
              }
       }), part);
       if ((!(w == null))) {
@@ -350,18 +350,18 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.max((info.width + 4));
+      width.max((info.width + 2));
       return height.max(15);
     }));
     (this.constrainConnector = (function (part) {
       var self = this;
       return part.ends().each((function (ce) {
         var x, y, to, dynamic;
-        (to = self.$.positions._get(ce.to()));
+        (to = self.$.positions._get(ce.to()._id()));
         (dynamic = ce.attach().dynamic_update());
         (x = to.x().add(to.w().mul(dynamic.x())));
         (y = to.y().add(to.h().mul(dynamic.y())));
-        self.$.positions._set(ce, EnsoPoint.new(x, y));
+        self.$.positions._set(ce._id(), EnsoPoint.new(x, y));
         return self.constrainConnectorEnd(ce, x, y);
       }));
     }));
@@ -373,7 +373,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.boundary = (function (shape) {
       var self = this;
-      return self.$.positions._get(shape);
+      return self.$.positions._get(shape._id());
     }));
     (this.boundary_fixed = (function (shape) {
       var self = this;
@@ -385,7 +385,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.position = (function (shape) {
       var self = this;
-      return self.$.positions._get(shape);
+      return self.$.positions._get(shape._id());
     }));
     (this.position_fixed = (function (shape) {
       var self = this;
@@ -397,8 +397,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.set_position = (function (shape, x, y) {
       var self = this;
-      self.$.positions._get(shape).x().set_value(x);
-      return self.$.positions._get(shape).y().set_value(y);
+      var r;
+      (r = self.$.positions._get(shape._id()));
+      r.x().set_value(x);
+      return r.y().set_value(y);
     }));
     (this.between = (function (a, b, c) {
       var self = this;

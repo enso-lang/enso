@@ -66,7 +66,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             at2.set_x(pnt._get(1).x);
             return at2.set_y(pnt._get(1).y);
           } else {
-            (pos = self.$.positions._get(shape));
+            (pos = self.$.positions._get(shape._id()));
             if (pos) {
               pos.x().set_value(pnt.x);
               return pos.y().set_value(pnt.y);
@@ -145,44 +145,52 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       }));
       return position_map;
     }));
-    (this.on_double_click = (function (e) {
+    (this.on_double_click = (function () {
       var self = this;
-      var text, address;
-      self.clear_selection();
-      (text = self.find("Text?", e));
-      if ((text && text.editable())) {
-        (address = self.$.shapeToAddress._get(text));
-        if (address) {
-          return self.edit_address(address, text);
+      return Proc.new((function (e) {
+        var text, address, pnt;
+        (pnt = self.getCursorPosition(e));
+        self.clear_selection();
+        (text = self.find_in_ui((function (v) {
+          return (v.schema_class().name() == "Text");
+        }), pnt));
+        if (text) {
+          (address = self.$.shapeToAddress._get(text));
+          if (address) {
+            return self.edit_address(address, text);
+          }
         }
-      }
+      }));
     }));
     (this.edit_address = (function (address, shape) {
       var self = this;
-      var pop, r;
+      var actions;
       if (address.type().Primitive_P()) { 
         return (self.$.selection = TextEditSelection.new(self, shape, address)); 
       } 
       else {
-             (pop = self.Menu().new());
+             (actions = System.JSHASH());
              self.find_all_objects(self.$.data, address.index().type((function (obj) {
-               var name;
+               var name, action;
                (name = self.ObjectKey(obj));
-               self.add_menu2(pop, name, self.name((function (e) {
+               (action = Proc.new((function (e) {
                  address.set_value(obj);
                  return shape.set_string(name);
                })));
+               actions._set(name, action);
                return false;
              })));
-             (r = self.boundary_fixed(shape));
-             return self.popup_menu(pop, r.x(), r.y());
+             if ((actions != System.JSHASH())) {
+               puts(S("MENU ", actions, ""));
+               return System.popupMenu(actions);
+             }
            }
     }));
     (this.on_right_down = (function (pnt) {
       var self = this;
       var actions;
       (actions = System.JSHASH());
-      self.find_in_ui((function (part) {
+      self.find_in_ui((function (part, container) {
         if (self.$.actions._get(part)) {
           (actions = System.assign(actions, self.$.actions._get(part)));
         }
@@ -285,7 +293,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructAlt = (function (obj, env, container, id, proc) {
       var self = this;
-      return obj.alts().find((function (alt) {
+      return obj.alts().find_first((function (alt) {
         return self.construct(alt, env, container, id, proc);
       }));
     }));
@@ -388,7 +396,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             return scan.schema_class().fields().each((function (field) {
               if (field.traversal()) {
                 if (field.many()) { 
-                  return scan._get(field.name()).find((function (x) {
+                  return scan._get(field.name()).find_first((function (x) {
                     return self.find_all_objects(block, x, type);
                   })); 
                 }
@@ -465,7 +473,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       var self = this;
       var val, text, addr;
       (val = self.eval(obj.string(), env));
-      (addr = null);
+      (addr = self.lvalue(obj.string(), env));
       (text = self.$.factory.Text());
       text.set_string(val.to_s());
       text.set_editable(obj.editable());
@@ -561,32 +569,37 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
   }));
   var TextEditSelection = MakeClass("TextEditSelection", null, [], (function () {
   }), (function (super$) {
-    (this.initialize = (function (diagram, edit, address) {
+    (this.initialize = (function (diagram, shape, address) {
       var self = this;
-      var n, style, r, extraWidth;
+      var n, r, extraWidth;
       (self.$.address = address);
       (self.$.diagram = diagram);
-      (self.$.edit_selection = edit);
-      (r = diagram.boundary_fixed(self.$.edit_selection));
-      (n = 3);
-      (extraWidth = 10);
-      (self.$.edit_control = self.TextCtrl().new(diagram, 0, "", (r.x() - n), (r.y() - n), ((r.w() + (2 * n)) + extraWidth), (r.h() + (2 * n)), 0));
-      (style = self.TextAttr().new());
-      style.set_text_colour(diagram.makeColor(diagram.foreground()));
-      style.set_font(diagram.makeFont(diagram.font()));
-      self.$.edit_control.set_default_style(style);
-      self.$.edit_control.append_text(self.$.edit_selection.string());
-      self.$.edit_control.show();
-      return self.$.edit_control.set_focus();
+      (self.$.edit_selection = shape);
+      (r = diagram.boundary_fixed(shape));
+      (n = 2);
+      (extraWidth = 5);
+      (diagram.input().style.left = ((r.x() - 1) + "px"));
+      (diagram.input().style.top = ((r.y() - 2) + "px"));
+      (diagram.input().style.width = (((r.w() + n) + extraWidth) + "px"));
+      (diagram.input().style.height = ((r.h() + n) + "px"));
+      (diagram.input().value = shape.string());
+      return diagram.input().focus();
     }));
     (this.clear = (function () {
       var self = this;
       var new_text;
-      (new_text = self.$.edit_control.get_value());
+      (new_text = self.$.diagram.input().value);
       self.$.address.set_value(new_text);
       self.$.edit_selection.set_string(new_text);
-      self.$.edit_control.destroy();
+      (self.$.diagram.input().style.left = "-100px");
+      (self.$.diagram.input().style.top = "-100px");
       return null;
+    }));
+    (this.do_move = (function () {
+      var self = this;
+    }));
+    (this.do_mouse_down = (function () {
+      var self = this;
     }));
   }));
   (Stencil = {

@@ -82,7 +82,7 @@ module Interpreter
       type = obj.schema_class
       method = "#{outer}_#{type.name}".to_s
       if !respond_to?(method)
-        method = find(outer, type)  # slow path
+        method = find_op(outer, type)  # slow path
       end
       if !method
         method = "#{outer}_?".to_s
@@ -109,7 +109,7 @@ module Interpreter
       type = obj.schema_class
       method = "#{operation}_#{type.name}".to_s
       if !respond_to?(method)
-        method = find(operation, type)  # slow path
+        method = find_op(operation, type)  # slow path
       end
       if !method
         method = "#{operation}_?".to_s
@@ -132,13 +132,13 @@ module Interpreter
       result
     end
 
-    def find(operation, type)
+    def find_op(operation, type)
       method = "#{operation}_#{type.name}".to_s
       if respond_to?(method)
         method
       else
         type.supers.find_first do |p| 
-          find(operation, p)
+          find_op(operation, p)
         end
       end
     end

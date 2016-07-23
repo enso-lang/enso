@@ -3,6 +3,5 @@ Bundle-ManifestVersion: 2
 Bundle-Name: enso
 Bundle-SymbolicName: enso
 Bundle-Version: 1.0.0
-Require-Bundle: org.eclipse.imp.pdb.values,
- rascal
+Require-Bundle: rascal
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
