@@ -90,18 +90,16 @@ module Diagram
         
         @mouse_down = true
         done = false
+        clear = @selection
         if e.ctrlKey_ 
           # do an inplace menu
           on_right_down(pnt)
           done = true
         elsif @selection
-          subselect = @selection.do_mouse_down(pnt)
-          #puts "SUB #{subselect}"
-          if subselect
-            @selection = subselect
+          if @selection.do_mouse_down(pnt)
             done = true
           else
-            clear = clear_selection
+            @selection = nil
           end
         end
         if !done
@@ -110,8 +108,8 @@ module Diagram
             container && container.Container? && container.direction == 3 
             #puts "#{x} => #{val}"
           end
-          puts "FIND #{select}"
-          done = set_selection(select, pnt)
+          #puts "FIND #{select}"
+          done = set_selected_part(select, pnt)
         end
         if done or clear
            clear_refresh
@@ -122,6 +120,7 @@ module Diagram
     def on_mouse_up
       Proc.new { |e|
         @mouse_down = false
+        @selection.do_mouse_up if @selection
       }
     end
   
@@ -139,14 +138,8 @@ module Diagram
     end
   
     # ------- selections -------      
-    def clear_selection
-     if @selection
-        @selection = @selection.clear
-        true
-      end
-    end
       
-    def set_selection(select, pnt)
+    def set_selected_part(select, pnt)
       if select
         if select.Connector?
           @selection = ConnectorSelection.new(self, select)
@@ -544,10 +537,10 @@ module Diagram
         @context.lineTo(p.x, p.y)
       }
       @context.stroke
-      @context.restore
   
       drawEnd e0, e1, pFrom, pTo
       drawEnd e1, e0, pTo, pFrom
+      @context.restore
     end
   
     def drawEnd(cend, other_end, r, s)
@@ -707,10 +700,12 @@ module Diagram
   
     def drawText(text, n)
       r = boundary_fixed(text)
+      @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
       @context.fillText(text.string, r.x + 2, r.y, 1000)
       @context.fill
+      @context.restore
     end
    
     #  --- helper functions ---
@@ -732,9 +727,6 @@ module Diagram
               @context.fillStyle_ = makeColor(style.color)
             end
           end
-#          if @selection && @selection.is_selected(part)
-#            @context.stokeStyle_ = makeColor(@select_color)
-#           end
           block.call
           @context.restore
         else
@@ -763,8 +755,21 @@ module Diagram
   end
   
   ############# selection #####
-  
-  class MoveShapeSelection
+  class Selection
+    def do_mouse_down(e)
+    end
+
+		def do_mouse_up
+		end
+		
+		def do_move(e, down)    
+    end
+    
+    def do_paint()
+    end
+	end
+	  
+  class MoveShapeSelection < Selection
     def initialize(diagram, part, down)
       @diagram = diagram
       @part = part
@@ -779,10 +784,6 @@ module Diagram
       end
     end
     
-    def is_selected(check)
-      @part == check
-    end
-    
     def do_paint()
       @diagram.context.save
       @diagram.context.strokeStyle_ = "#FF0000"
@@ -790,27 +791,18 @@ module Diagram
       @diagram.context.restore
     end
   
-    def do_mouse_down(e)
-    end
-     
-    def clear
-    end
-
     def to_s
       "MOVE_SEL #{@part}"
     end
   end
   
-  class ConnectorSelection
+  class ConnectorSelection < Selection
     def initialize(diagram, conn)
       @diagram = diagram
       @conn = conn
+      @ce = nil
     end
-    
-    def is_selected(check)
-      @conn == check
-    end
-  
+      
     def do_paint()
       @diagram.context.save
       @diagram.context.fillStyle_ = @diagram.makeColor(@diagram.factory.Color(255, 0, 0))
@@ -831,46 +823,21 @@ module Diagram
       p = @conn.path[0]
       r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
       if @diagram.rect_contains(r, pnt)
-        PointSelection.new(@diagram, @conn.ends[0], self)
+        @ce = @conn.ends[0]
       else
         p = @conn.path[-1]
         r = @diagram.factory.Rect(p.x - size / 2, p.y - size / 2, size, size)
         if @diagram.rect_contains(r, pnt)
-          PointSelection.new(@diagram, @conn.ends[1], self)
+          @ce = @conn.ends[1]
+        else
+          @ce = nil
         end
       end
+      @ce
     end
-  
-    def do_move(e, down)    
-    end
-    
-    def clear
-    end
-    
-    def to_s
-      "CONT_SEL #{@conn}"
-    end
-  end
-  
-  class PointSelection
-    def initialize(diagram, ce, lastSelection)
-      @diagram = diagram
-      @ce = ce
-      @lastSelection = lastSelection
-    end
-    
-    def is_selected(check)
-      @ce == check
-    end
-  
-    def do_paint()
-    end
-      
-    def do_mouse_down(e)
-    end
-  
+
     def do_move(pnt, down)
-      if down
+      if down and @ce
         bounds = @diagram.boundary_fixed(@ce.to)
         x = pnt.x - (bounds.x + bounds.w / 2)
         y = pnt.y - (bounds.y + bounds.h / 2)
@@ -899,9 +866,22 @@ module Diagram
       n
     end
     
-    def clear
-      @lastSelection
+		def do_mouse_up
+      @ce = nil
     end
+    
+    def to_s
+      "CONT_SEL #{@conn}"
+    end
+  end
+  
+  class PointSelection < Selection
+    def initialize(diagram, ce, lastSelection)
+      @diagram = diagram
+      @ce = ce
+      @lastSelection = lastSelection
+    end
+    
     
     def to_s
       "PNT_SEL #{@ce}   #{@lastSelection}ss"

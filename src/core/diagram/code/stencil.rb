@@ -155,7 +155,7 @@ module Stencil
 	  def on_double_click
 	    Proc.new { |e|
 	      pnt = getCursorPosition(e)
-		    clear_selection
+		    
 		    text = find_in_ui(pnt) { |v| v.schema_class.name == "Text" }
 		    if text # and text.editable
 		      address = @shapeToAddress[text]
@@ -186,7 +186,6 @@ module Stencil
 	  end
 	  
 	  def on_right_down(pnt)
-	    #clear_selection
 	    actions = System.JSHASH()
 	    find_in_ui(pnt) do |part, container|
 	      actions = System.assign(actions, @actions[part]) if @actions[part]
@@ -557,7 +556,7 @@ module Stencil
   end
 
 	
-	class TextEditSelection
+	class TextEditSelection < Diagram::Selection
 	  def initialize(diagram, shape, address)
 	    @address = address
 	    @diagram = diagram  
@@ -585,16 +584,10 @@ module Stencil
 	    @edit_selection.string = new_text
 			@diagram.input.style_.left_ = '-100px'
 			@diagram.input.style_.top_ = '-100px'
-			pos = boundary(@edit_selection)
-			constrainText(@edit_selection, pos.x, pos.y, pos.w, pos.h)
+			pos = @diagram.boundary(@edit_selection)
+			@diagram.constrainText(@edit_selection, pos.x, pos.y, pos.w, pos.h)
 	    nil
 	  end
-	
-		def do_move
-		end
-		
-		def do_mouse_down
-		end
 	end
 	
 #	class FindByTypeSelection
@@ -614,10 +607,6 @@ module Stencil
 #	    end
 #	  end
 #	  
-#	  def is_selected(check)
-#	    @part == check
-#	  end
-#	  
 #	  def do_paint(dc)
 #	  end
 #	
@@ -626,8 +615,6 @@ module Stencil
 #	    :cancel
 #		end
 #		 
-#	  def clear
-#	  end
 #	end
 
 end

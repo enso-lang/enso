@@ -86,33 +86,32 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.on_mouse_down = (function () {
       var self = this;
       return Proc.new((function (e) {
-        var done, clear, pnt, select, subselect;
+        var done, clear, pnt, select;
         (pnt = self.getCursorPosition(e));
         (self.$.mouse_down = true);
         (done = false);
+        (clear = self.$.selection);
         if (e.ctrlKey) {
           self.on_right_down(pnt);
           (done = true);
         }
         else {
-          if (self.$.selection) {
-            (subselect = self.$.selection.do_mouse_down(pnt));
-            if (subselect) {
-              (self.$.selection = subselect);
-              (done = true);
+          if (self.$.selection) { 
+            if (self.$.selection.do_mouse_down(pnt)) { 
+              (done = true); 
             }
-            else {
-              (clear = self.clear_selection());
-            }
-          } else {
-          }
+            else { 
+              (self.$.selection = null);
+            } 
+          } 
+          else {
+               }
         }
         if ((!done)) {
           (select = self.find_in_ui((function (x, container) {
             return ((container && container.Container_P()) && (container.direction() == 3));
           }), pnt));
-          puts(S("FIND ", select, ""));
-          (done = self.set_selection(select, pnt));
+          (done = self.set_selected_part(select, pnt));
         }
         if ((done || clear)) {
           return self.clear_refresh();
@@ -122,7 +121,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.on_mouse_up = (function () {
       var self = this;
       return Proc.new((function (e) {
-        return (self.$.mouse_down = false);
+        (self.$.mouse_down = false);
+        if (self.$.selection) {
+          return self.$.selection.do_mouse_up();
+        }
       }));
     }));
     (this.on_move = (function () {
@@ -140,14 +142,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       return Proc.new((function (e) {
       }));
     }));
-    (this.clear_selection = (function () {
-      var self = this;
-      if (self.$.selection) {
-        (self.$.selection = self.$.selection.clear());
-        return true;
-      }
-    }));
-    (this.set_selection = (function (select, pnt) {
+    (this.set_selected_part = (function (select, pnt) {
       var self = this;
       if (select) {
         if (select.Connector_P()) { 
@@ -559,9 +554,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.context.lineTo(p.x(), p.y());
       }));
       self.$.context.stroke();
-      self.$.context.restore();
       self.drawEnd(e0, e1, pFrom, pTo);
-      return self.drawEnd(e1, e0, pTo, pFrom);
+      self.drawEnd(e1, e0, pTo, pFrom);
+      return self.$.context.restore();
     }));
     (this.drawEnd = (function (cend, other_end, r, s) {
       var self = this;
@@ -785,10 +780,12 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var r;
       (r = self.boundary_fixed(text));
+      self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
       self.$.context.fillText(text.string(), (r.x() + 2), r.y(), 1000);
-      return self.$.context.fill();
+      self.$.context.fill();
+      return self.$.context.restore();
     }));
     (this.with_styles = (function (block, part) {
       var self = this;
@@ -850,7 +847,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       return s;
     }));
   }));
-  var MoveShapeSelection = MakeClass("MoveShapeSelection", null, [], (function () {
+  var Selection = MakeClass("Selection", null, [], (function () {
+  }), (function (super$) {
+    (this.do_mouse_down = (function (e) {
+      var self = this;
+    }));
+    (this.do_mouse_up = (function () {
+      var self = this;
+    }));
+    (this.do_move = (function (e, down) {
+      var self = this;
+    }));
+    (this.do_paint = (function () {
+      var self = this;
+    }));
+  }));
+  var MoveShapeSelection = MakeClass("MoveShapeSelection", Selection, [], (function () {
   }), (function (super$) {
     (this.initialize = (function (diagram, part, down) {
       var self = this;
@@ -866,10 +878,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return self.$.diagram.clear_refresh();
       }
     }));
-    (this.is_selected = (function (check) {
-      var self = this;
-      return (self.$.part == check);
-    }));
     (this.do_paint = (function () {
       var self = this;
       self.$.diagram.context().save();
@@ -877,27 +885,18 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.diagram.draw(self.$.part, 0);
       return self.$.diagram.context().restore();
     }));
-    (this.do_mouse_down = (function (e) {
-      var self = this;
-    }));
-    (this.clear = (function () {
-      var self = this;
-    }));
     (this.to_s = (function () {
       var self = this;
       return S("MOVE_SEL ", self.$.part, "");
     }));
   }));
-  var ConnectorSelection = MakeClass("ConnectorSelection", null, [], (function () {
+  var ConnectorSelection = MakeClass("ConnectorSelection", Selection, [], (function () {
   }), (function (super$) {
     (this.initialize = (function (diagram, conn) {
       var self = this;
       (self.$.diagram = diagram);
-      return (self.$.conn = conn);
-    }));
-    (this.is_selected = (function (check) {
-      var self = this;
-      return (self.$.conn == check);
+      (self.$.conn = conn);
+      return (self.$.ce = null);
     }));
     (this.do_paint = (function () {
       var self = this;
@@ -919,49 +918,24 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (p = self.$.conn.path()._get(0));
       (r = self.$.diagram.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
       if (self.$.diagram.rect_contains(r, pnt)) { 
-        return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(0), self); 
+        (self.$.ce = self.$.conn.ends()._get(0)); 
       } 
       else {
              (p = self.$.conn.path()._get((-1)));
              (r = self.$.diagram.factory().Rect((p.x() - (size / 2)), (p.y() - (size / 2)), size, size));
-             if (self.$.diagram.rect_contains(r, pnt)) {
-               return PointSelection.new(self.$.diagram, self.$.conn.ends()._get(1), self);
+             if (self.$.diagram.rect_contains(r, pnt)) { 
+               (self.$.ce = self.$.conn.ends()._get(1)); 
+             }
+             else { 
+               (self.$.ce = null);
              }
            }
-    }));
-    (this.do_move = (function (e, down) {
-      var self = this;
-    }));
-    (this.clear = (function () {
-      var self = this;
-    }));
-    (this.to_s = (function () {
-      var self = this;
-      return S("CONT_SEL ", self.$.conn, "");
-    }));
-  }));
-  var PointSelection = MakeClass("PointSelection", null, [], (function () {
-  }), (function (super$) {
-    (this.initialize = (function (diagram, ce, lastSelection) {
-      var self = this;
-      (self.$.diagram = diagram);
-      (self.$.ce = ce);
-      return (self.$.lastSelection = lastSelection);
-    }));
-    (this.is_selected = (function (check) {
-      var self = this;
-      return (self.$.ce == check);
-    }));
-    (this.do_paint = (function () {
-      var self = this;
-    }));
-    (this.do_mouse_down = (function (e) {
-      var self = this;
+      return self.$.ce;
     }));
     (this.do_move = (function (pnt, down) {
       var self = this;
       var nx, ny, angle, bounds, x, y;
-      if (down) {
+      if ((down && self.$.ce)) {
         (bounds = self.$.diagram.boundary_fixed(self.$.ce.to()));
         (x = (pnt.x() - (bounds.x() + (bounds.w() / 2))));
         (y = (pnt.y() - (bounds.y() + (bounds.h() / 2))));
@@ -986,9 +960,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (n = ((n + 1) / 2));
       return n;
     }));
-    (this.clear = (function () {
+    (this.do_mouse_up = (function () {
       var self = this;
-      return self.$.lastSelection;
+      return (self.$.ce = null);
+    }));
+    (this.to_s = (function () {
+      var self = this;
+      return S("CONT_SEL ", self.$.conn, "");
+    }));
+  }));
+  var PointSelection = MakeClass("PointSelection", Selection, [], (function () {
+  }), (function (super$) {
+    (this.initialize = (function (diagram, ce, lastSelection) {
+      var self = this;
+      (self.$.diagram = diagram);
+      (self.$.ce = ce);
+      return (self.$.lastSelection = lastSelection);
     }));
     (this.to_s = (function () {
       var self = this;
@@ -1052,6 +1039,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
   (Diagram = {
     EnsoRect: EnsoRect,
     EnsoPoint: EnsoPoint,
+    Selection: Selection,
     DiagramFrame: DiagramFrame,
     ConnectorSelection: ConnectorSelection,
     MoveShapeSelection: MoveShapeSelection,

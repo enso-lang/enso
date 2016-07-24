@@ -150,7 +150,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       return Proc.new((function (e) {
         var text, address, pnt;
         (pnt = self.getCursorPosition(e));
-        self.clear_selection();
         (text = self.find_in_ui((function (v) {
           return (v.schema_class().name() == "Text");
         }), pnt));
@@ -567,7 +566,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       return self.$.diagram.factory().Color(self.eval(this_V.r()), self.eval(this_V.g()), self.eval(this_V.b()));
     }));
   }));
-  var TextEditSelection = MakeClass("TextEditSelection", null, [], (function () {
+  var TextEditSelection = MakeClass("TextEditSelection", Diagram.Selection, [], (function () {
   }), (function (super$) {
     (this.initialize = (function (diagram, shape, address) {
       var self = this;
@@ -593,15 +592,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       self.$.edit_selection.set_string(new_text);
       (self.$.diagram.input().style.left = "-100px");
       (self.$.diagram.input().style.top = "-100px");
-      (pos = self.boundary(self.$.edit_selection));
-      self.constrainText(self.$.edit_selection, pos.x(), pos.y(), pos.w(), pos.h());
+      (pos = self.$.diagram.boundary(self.$.edit_selection));
+      self.$.diagram.constrainText(self.$.edit_selection, pos.x(), pos.y(), pos.w(), pos.h());
       return null;
-    }));
-    (this.do_move = (function () {
-      var self = this;
-    }));
-    (this.do_mouse_down = (function () {
-      var self = this;
     }));
   }));
   (Stencil = {
