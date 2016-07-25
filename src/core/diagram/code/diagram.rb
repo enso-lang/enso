@@ -99,6 +99,7 @@ module Diagram
           if @selection.do_mouse_down(pnt)
             done = true
           else
+            @selection.clear
             @selection = nil
           end
         end
@@ -765,7 +766,10 @@ module Diagram
 		def do_move(e, down)    
     end
     
-    def do_paint()
+    def do_paint
+    end
+    
+    def clear
     end
 	end
 	  
@@ -785,10 +789,6 @@ module Diagram
     end
     
     def do_paint()
-      @diagram.context.save
-      @diagram.context.strokeStyle_ = "#FF0000"
-      @diagram.draw(@part, 0)
-      @diagram.context.restore
     end
   
     def to_s

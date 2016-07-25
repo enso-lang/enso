@@ -99,10 +99,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           if (self.$.selection) { 
             if (self.$.selection.do_mouse_down(pnt)) { 
               (done = true); 
-            }
-            else { 
-              (self.$.selection = null);
             } 
+            else {
+                   self.$.selection.clear();
+                   (self.$.selection = null);
+                 } 
           } 
           else {
                }
@@ -861,6 +862,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.do_paint = (function () {
       var self = this;
     }));
+    (this.clear = (function () {
+      var self = this;
+    }));
   }));
   var MoveShapeSelection = MakeClass("MoveShapeSelection", Selection, [], (function () {
   }), (function (super$) {
@@ -880,10 +884,6 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.do_paint = (function () {
       var self = this;
-      self.$.diagram.context().save();
-      (self.$.diagram.context().strokeStyle = "#FF0000");
-      self.$.diagram.draw(self.$.part, 0);
-      return self.$.diagram.context().restore();
     }));
     (this.to_s = (function () {
       var self = this;
