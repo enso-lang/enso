@@ -178,7 +178,7 @@ module Layout
       stream = @D[:stream]
       obj = stream.current
       if !obj.nil?
-        if !(obj.is_a?(String) || obj.is_a?(Fixnum)  || obj.is_a?(Float))
+        if !(obj.is_a?(String) || obj.is_a?(Number)  || obj.is_a?(Float))
           raise "Data is not literal #{obj}"
         end
         case this.kind
@@ -195,7 +195,7 @@ module Layout
             end
           end
         when "int"
-          if obj.is_a?(Fixnum)
+          if obj.is_a?(Number)
             output(obj.to_s)
           end
         when "real"

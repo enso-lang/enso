@@ -46,13 +46,13 @@ class Grade
   grading: Grading / grades
   grade: float
   normal: float = grade / assignment.maximum * 100
-  curved: float = 
-  	normal == "" ? "" 
-    	: curve + normal * (- assignment.curve) * target * (- stdevN) / 
-    						(normal * (assignment.curve - stdevN) + (- assignment.curve) * stdevN)
+  curved: float = normal == "" ? "" : curve + normal * (1 - assignment.curve) * target * (1 - stdevN) / (normal * (assignment.curve - stdevN) + (1 - assignment.curve) * stdevN)
   combined: float = curved * assignment.category.percent
 
 primitive int
+
 primitive float
+
 primitive str
+
 primitive bool
