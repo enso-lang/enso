@@ -1,0 +1,58 @@
+class Grading
+  students! Student* / grading
+  categories! Category* / grading
+  assignments! Assignment*
+  grades! Grade* / grading
+
+class Student
+  grading: Grading / students
+  id# str
+  name: str
+  grades: Grade* / student
+  finalGrade: float = sum(grades.combined)
+
+class Category
+  grading: Grading / categories
+  name# str
+  assignments: Assignment* / category
+  points: float
+  count: int = count(assignments)
+  percent: float = points / count
+
+class Assignment
+  name# str
+  category: Category / assignments
+  grades: Grade* / assignment
+  increase_to_max: bool
+  max_points: float
+  highest_grade: float = max(grades.grade)
+  maximum: float = increase_to_max ? min(max_points, highest_grade) : max_points
+  averageN: float = average(grades.normal)
+  stdevN: float = stdev(grades.normal)
+  medianN: float = median(grades.normal)
+  maxGradeN: float = max(grades.normal)
+  minGradeN: float = min(grades.normal)
+  curve: float
+  target: float = stdevN * curve
+  averageC: float = average(grades.curved)
+  stdevC: float = stdev(grades.curved)
+  medianC: float = median(grades.curved)
+  maxGradeC: float = max(grades.curved)
+  minGradeC: float = min(grades.curved)
+
+class Grade
+  student# Student / grades
+  assignment# Assignment / grades
+  grading: Grading / grades
+  grade: float
+  normal: float = grade / assignment.maximum * 100
+  curved: float = 
+  	normal == "" ? "" 
+    	: curve + normal * (- assignment.curve) * target * (- stdevN) / 
+    						(normal * (assignment.curve - stdevN) + (- assignment.curve) * stdevN)
+  combined: float = curved * assignment.category.percent
+
+primitive int
+primitive float
+primitive str
+primitive bool
