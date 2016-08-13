@@ -116,6 +116,7 @@ module Impl
         eval(obj.fun)
       end
       if obj.lambda.nil?
+        
         m.call(*(obj.params.map{|p|eval(p)}))
       else
         b = eval(obj.lambda)
@@ -134,7 +135,104 @@ module Impl
     end
   end
 
+	LOCAL_FUNS = {
+	  	"MAX" => Proc.new { |*a|
+	  	  max = nil
+	  	  #puts "MAX #{a}"
+	  	  a.each do |b|
+		  	  if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      max = max.nil? ? v : [max, v].max
+		  	    end
+		  	  else
+		  	    max = max.nil? ? b : [max, b].max
+		  	  end
+		  	end
+		  	max
+	    },
+	  	"MIN" => Proc.new { |*a|
+	  	  min = nil
+	  	  #puts "MIN #{a}"
+	  	  a.each do |b|
+		  	  if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      min = min.nil? ? v : [min, v].min
+		  	    end
+		  	  else
+		  	    min = min.nil? ? b : [min, b].min
+		  	  end
+		  	end
+		  	min
+      },
+	  	"SUM" => Proc.new { |*a|
+        sum = 0
+	  	  a.each do |b|
+	  	    if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      sum = sum + v
+		  	    end
+		  	  else
+		  	    sum = sum + b
+		  	  end
+		  	end
+		  	sum
+	    },
+	  	"COUNT" => Proc.new { |*a|
+	  	  count = nil
+	  	  a.each do |b|
+		  	  if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      count = count.nil? ? 1 : count + 1
+		  	    end
+		  	  else
+		  	    count = count.nil? ? 1 : count + 1
+		  	  end
+		  	end
+		  	count
+	    },
+	  	"AVERAGE" => Proc.new { |*a|
+	  	  LOCAL_FUNS["SUM"].call(*a) / LOCAL_FUNS["COUNT"].call(*a)
+	    },
+	  	"STDEV" => Proc.new { |*a|
+	  	  average = LOCAL_FUNS["AVERAGE"].call(*a)
+	  	  sumvariance = 0
+	  	  count = 0
+	  	  a.each do |b|
+		  	  if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      p = v - average
+		  	      sumvariance = sumvariance + (p * p) 
+		  	      count = count + 1
+		  	    end
+		  	  else
+	  	      p = b - average
+	  	      sumvariance = sumvariance + (p * p)
+    	      count = count + 1
+		  	  end
+		  	end
+		  	Math.sqrt(sumvariance / count)
+	    },
+	  	"MEDIAN" => Proc.new { |*a|
+	  	  arr = []
+	  	  a.each do |b|
+		  	  if b.is_a?(Enumerable)
+		  	    b.each do |v|
+		  	      arr << v
+		  	    end
+		  	  else
+		  	    arr << b
+		  	  end
+		  	end
+			  mid = arr.length / 2
+			  sorted = arr.sort
+			  #puts "MID #{mid} #{sorted}"
+			  mid.odd? ? sorted[mid] : 0.5 * (sorted[mid] + sorted[mid - 1])
+	    }
+    }
+        
   def self.eval(obj, args = {env:{}})
+    nv = Env::HashEnv.new(LOCAL_FUNS, args[:env])
+    args[:env] = nv
     interp = EvalCommandC.new
     interp.dynamic_bind(args) do
       interp.eval(obj)

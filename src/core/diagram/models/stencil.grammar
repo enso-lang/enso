@@ -8,28 +8,36 @@ abstract Expr
 // To make text fields editable, add a "+" behind the name
 
 // diagrams
-Stencil ::= [Stencil] "diagram" (title:str)? "(" root:sym ")" body:Command
+Stencil ::= [Stencil] "diagram" (.title:str.)? "(".root:sym.")" body:NLCommand
 
 Command ::= Part
           | Command
 
 Part ::= [Label] "label" Props? label:Expr body:EBlock
+		   | [Page] "page" name:str /> part:Command /<
+		   | [Grid] "grid" / axes:AxisData*
        | [Container] Dir Props? items:EBlock
-       | [Connector] "connector" Props? "(" ends:ConnectorEnd1 "--" ends:ConnectorEnd2 ")"
-       | [Text] "text" ("+" {editable==true} | {editable==false}) Props? string:Expr
+       | [Connector] "connector" Props? "(".ends:ConnectorEnd1 "--" ends:ConnectorEnd2.")"
+       | [Text] "text" (."+" {editable==true} | {editable==false}) Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:EBlock
        | [Require] "require" path:str
-
-Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph"  {direction==3} | "do"  {direction==4}
+       
+AxisData ::= [AxisData] (direction:"columns" | direction:"rows" | direction:"body") /> source:Command /<
+			
+Dir ::= "vertical" {direction==1} 
+			| "horizontal" {direction==2} 
+			| "graph"  {direction==3} 
+			| "stack" {direction==5}
+			| "do"  {direction==4}
 ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ":")? part:Expr (arrow:"<" | arrow:"*")?
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr )?
 Index ::= "," index:sym
 
-Props ::= "[" props:Assign* @"," "]"
+Props ::= "[" props:Assign+ @"," "]"
 Assign ::= [Assign] loc:Expr "=" exp:Expr
-EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:Command
+EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:NLCommand
 
 EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
          | EUnOp
 
-EAssign ::= [EAssign] "let" var:Expr "=" val:Expr "in" body:Command
+EAssign ::= [EAssign] "let" var:Expr "=" val:Expr "in" body:NLCommand

@@ -68,6 +68,10 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
       var self = this;
       return (self.$.root = root);
     }));
+    (this.__delete_obj = (function (mobj) {
+      var self = this;
+      return self.$.root.__delete_obj(mobj);
+    }));
   }));
   var MObject = MakeClass("MObject", EnsoProxyObject, [], (function () {
     (this.$._id = 0);
@@ -249,7 +253,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
     }));
     (this.delete_C = (function () {
       var self = this;
-      return self.factory().__delete_obj(self);
+      return self.$.factory.__delete_obj(self);
     }));
     (this.__delete_obj = (function (mobj) {
       var self = this;
@@ -618,7 +622,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
           }
                
           }
-          catch (caught$12666) {
+          catch (caught$12735) {
             
               self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
           }

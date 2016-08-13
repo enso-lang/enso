@@ -106,8 +106,16 @@ module Eval
       end
       if @D[:in_fc]
         target.method(obj.fname.to_sym)
-      else
-        target.send(obj.fname)
+      elsif target.respond_to?(obj.fname)
+        r = target.send(obj.fname)
+        #puts "EFIELD #{target}.#{obj.fname} => #{r}"
+        r
+      elsif target.is_a?(Enumerable)
+        r = target.collect do |t|
+          t.send(obj.fname)
+        end
+        #puts "EFIELD* #{target}.#{obj.fname} => #{r}"
+        r
       end
     end
   end

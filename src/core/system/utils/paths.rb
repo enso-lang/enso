@@ -128,6 +128,7 @@ module Paths
         end
       end
     end
+    
     def delete(root)
       obj = @path
       if obj.EField?

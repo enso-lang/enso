@@ -45,6 +45,7 @@ module Stencil
 	      @win.document.title_ = @stencil.title
 	    end
 	    @data = data
+	    @data.finalize
 	    build_diagram
 
 	    if data.factory.file_path[0]
@@ -97,6 +98,7 @@ module Stencil
 	    @shapeToModel = {}    # list of all created objects
 	    @tagModelToShape = {}
 	    @graphShapes = {}
+	    @stencil.finalize
       construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
 	  end
 		
@@ -188,7 +190,7 @@ module Stencil
 	  def on_right_down(pnt)
 	    actions = System.JSHASH()
 	    find_in_ui(pnt) do |part, container|
-	      actions = System.assign(actions, @actions[part]) if @actions[part]
+	      actions = System.assign(actions, @actions[part._id]) if @actions[part._id]
 			  false
 	    end
 	    if actions != System.JSHASH()
@@ -206,8 +208,8 @@ module Stencil
 	  end
 	
 		def add_action(shape, name, &block)
-		  @actions[shape] = System.JSHASH() if !@actions[shape]
-		  @actions[shape][name] = block
+		  @actions[shape._id] = System.JSHASH() if !@actions[shape._id]
+		  @actions[shape._id][name] = block
 		end
 		    
 	  def construct(stencil, env, container, id, proc)
@@ -282,6 +284,32 @@ module Stencil
 	    #end
 	  end
 	
+	  def constructGrid(grid, env, container, id, proc)
+	    columns = []
+	    ncols = 0
+	    rows = []
+	    nrows = 0
+	    body = []
+	    dgrid = @factory.Grid
+	    grid.axes.each do |axis|
+	    	case axis.direction
+	    	when "columns"
+	    	  columns << []
+	    	  construct(axis.source, env, dgrid, i) do |item, ni|
+	    	  	columns[ncols] << item
+	    	  end
+	    	  ncols = ncols + 1
+	    	when "rows"
+	    	  rows << []
+	    	  construct(axis.source, env, dgrid, i) do |item, ni|
+	    	  	rows[nrows] << item
+	    	  end
+	    	  nrows = nrows + 1
+	    	when "body"
+	      end
+	    end	  
+	  end
+	  
 	  def constructEFor(efor, env, container, id, proc)
 	    source = eval(efor.list, env)
 	    address = lvalue(efor.list, env)
@@ -321,7 +349,7 @@ module Stencil
 	  	        end
 		        end
 		      end
-	     		proc.call shape, subid
+	     		proc.call shape, subid, v
 	      })
 	    end
 	    if efor.label
@@ -434,7 +462,7 @@ module Stencil
 	    obj = eval(label, env)
 	  end
 	  
-	  # shapes
+	  # shapes	  
 	  def constructContainer(obj, env, container, id, proc)
 	    if obj.direction == 4
 	      obj.items.each do |item|
@@ -446,7 +474,7 @@ module Stencil
 	      obj.items.each do |item|
 	        construct item, env, group, id, Proc.new { |x, subid|
 	          group.items << x
-	          if obj.direction == 3
+	          if obj.direction == 3 || obj.direction == 5
  	            @graphShapes[subid] = x
 	            #puts "GRAPH #{subid} --> #{x}"
 	          end
@@ -455,6 +483,17 @@ module Stencil
 	      make_styles(obj, group, env)
 	      proc.call group, id if proc
 	    end
+	  end
+	  
+	  def constructPage(obj, env, container, id, proc)
+		   make_styles(obj, group, env)
+		   page = @factory.Page
+		   page.name = eval(obj.namem, env)
+	     construct obj.part, env, container, id, Proc.new { |sub|
+	       raise "two content items in a page #{obj.content.to_s}" if obj.content
+	       obj.content = sub
+	     }
+		   proc.call page, id if proc
 	  end
 	  
 	  def constructText(obj, env, container, id, proc)

@@ -1,58 +1,55 @@
-class Grading
-  students! Student* / grading
-  categories! Category* / grading
+class Course
+  students! Student*
+  categories! Category*
   assignments! Assignment*
-  grades! Grade* / grading
+  check: real = SUM(assignments.contribution)
 
 class Student
-  grading: Grading / students
   id# str
   name: str
-  grades: Grade* / student
-  finalGrade: float = sum(grades.combined)
+  number: int
+  grades! Grade*
+  finalGrade: real = SUM(grades.combined)
 
 class Category
-  grading: Grading / categories
   name# str
-  assignments: Assignment* / category
-  points: float
-  count: int = count(assignments)
-  percent: float = points / count
+  assignments: Assignment*
+  points: real
+  number: int
 
 class Assignment
   name# str
   category: Category / assignments
-  grades: Grade* / assignment
+  grades: Grade*
+  percent: real
+  contribution: real = percent / category.number
   increase_to_max: bool
-  max_points: float
-  highest_grade: float = max(grades.grade)
-  maximum: float = increase_to_max ? min(max_points, highest_grade) : max_points
-  averageN: float = average(grades.normal)
-  stdevN: float = stdev(grades.normal)
-  medianN: float = median(grades.normal)
-  maxGradeN: float = max(grades.normal)
-  minGradeN: float = min(grades.normal)
-  curve: float
-  target: float = stdevN * curve
-  averageC: float = average(grades.curved)
-  stdevC: float = stdev(grades.curved)
-  medianC: float = median(grades.curved)
-  maxGradeC: float = max(grades.curved)
-  minGradeC: float = min(grades.curved)
+  points: real
+  highest_grade: real = MAX(grades.grade)
+  maximum: real = increase_to_max ? MIN(points, highest_grade) : points
+  averageN: real = AVERAGE(grades.normal)
+  stdevN: real = STDEV(grades.normal)
+  medianN: real = MEDIAN(grades.normal)
+  maxGradeN: real = MAX(grades.normal)
+  minGradeN: real = MIN(grades.normal)
+  curve: real
+  target: real = stdevN + curve
+  averageC: real = AVERAGE(grades.curved)
+  stdevC: real = STDEV(grades.curved)
+  medianC: real = MEDIAN(grades.curved)
+  maxGradeC: real = MAX(grades.curved)
+  minGradeC: real = MIN(grades.curved)
 
 class Grade
-  student# Student / grades
-  assignment# Assignment / grades
-  grading: Grading / grades
-  grade: float
-  normal: float = grade / assignment.maximum * 100
-  curved: float = normal == "" ? "" : curve + normal * (1 - assignment.curve) * target * (1 - stdevN) / (normal * (assignment.curve - stdevN) + (1 - assignment.curve) * stdevN)
-  combined: float = curved * assignment.category.percent
+  student: Student / grades      		// TODO: should be key
+  assignment: Assignment / grades   // TODO: should be key
+  grade: real?
+  normal: real = grade / assignment.maximum
+  // assignment.curve+(1-assignment.curve)*normal*assignment.target*(1-assignment.stdevN)/(normal*(assignment.target-assignment.stdevN)+(1-assignment.target)*assignment.stdevN)
+  curved: real = assignment.curve + normal * (1 - assignment.curve) * assignment.target * (1 - assignment.stdevN) / (normal * (assignment.target - assignment.stdevN) + (1 - assignment.target) * assignment.stdevN)
+  combined: real = curved * assignment.contribution
 
 primitive int
-
-primitive float
-
+primitive real
 primitive str
-
 primitive bool

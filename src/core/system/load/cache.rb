@@ -118,10 +118,15 @@ module Cache
 
   def self.get_meta(name)
     e = {filename: name}
-    FindModel::FindModel.find_model(name) do |path|
-      e['source'] = path
-      e['date'] = File.ctime(path)
-      e['checksum'] = readHash(path)
+    begin
+	    FindModel::FindModel.find_model(name) do |path|
+	      e['source'] = path
+	      e['date'] = File.ctime(path)
+	      e['checksum'] = readHash(path)
+	    end
+	  rescue
+      e['source'] = "SYNTHETIC"
+      e['date'] = Time.new
     end
     e
   end
@@ -139,7 +144,10 @@ module Cache
 
       #analyze horizontal dep
       #something to do with imports
-      model.factory.file_path[1..-1].each {|fn| deps << get_meta(fn.split("/")[-1])}
+      puts "METADATA #{model.factory.file_path}"
+      if model.factory.file_path.size > 0
+	      model.factory.file_path[1..-1].each {|fn| deps << get_meta(fn.split("/")[-1])}
+	    end
       e['depends'] = deps
     end
     e

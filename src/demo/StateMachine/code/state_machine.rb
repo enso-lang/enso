@@ -5,23 +5,19 @@ require 'core/schema/tools/print'
 
 def run_state_machine(sm)
 
-  #Wx::App.run do
-  
     current = sm.start
     puts "#{current.name}"
     while $stdin.gets
 
       input = $_.strip
-      trans = current.out.find_first do |trans|
+      trans = current.out.find do |trans|
         trans.event == input
       end
       current = trans.to if trans
       puts "#{current.name}"
     end
-  #end
+
 end
 
-if __FILE__ == $0
-  sm = Load::load(ARGV[0])
-  run_state_machine(sm)
-end
+sm = Load::load(ARGV[0])
+run_state_machine(sm)

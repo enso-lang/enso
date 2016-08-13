@@ -262,6 +262,9 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return [w, h];
       }
     }));
+    (this.constrainGrid = (function (part, basex, basey, width, height) {
+      var self = this;
+    }));
     (this.constrainContainer = (function (part, basex, basey, width, height) {
       var self = this;
       var otherpos, pos, x, y;
@@ -278,9 +281,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           switch ((function () {
             return part.direction();
           })()) {
+            case 5:
+             (x = basex.add(0));
+             (y = basey.add(0));
+             width.max(w);
+             return height.max(h);
             case 3:
-             (pos = pos.add(w));
-             (otherpos = otherpos.add(h));
+             (pos = pos.add(w).add(10));
+             (otherpos = otherpos.add(h).add(10));
              (x = basex.add(pos));
              (y = basey.add(otherpos));
              width.max(x.add(w));
@@ -346,7 +354,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.max((info.width + 2));
+      width.set_value((info.width + 2));
       return height.max(15);
     }));
     (this.constrainConnector = (function (part) {
@@ -434,12 +442,39 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawContainer = (function (part, n) {
       var self = this;
-      var start, len;
-      (len = (part.items().size() - 1));
-      (start = 0);
-      return start.upto((function (i) {
-        return self.draw(part.items()._get(i), (n + 1));
-      }), len);
+      var start, len, current;
+      if ((part.direction() == 5)) {
+        (current = (function () {
+          if ((part.curent() == null)) { 
+            return 0; 
+          }
+          else { 
+            return part.current();
+          }
+        })());
+        return self.draw(part.items()._get(current), (n + 1));
+      } else {
+        (len = (part.items().size() - 1));
+        (start = 0);
+        return start.upto((function (i) {
+          return self.draw(part.items()._get(i), (n + 1));
+        }), len);
+      }
+    }));
+    (this.drawPage = (function (shape, n) {
+      var self = this;
+      var r;
+      (r = self.boundary_fixed(shape));
+      self.$.context.save();
+      self.$.context.beginPath();
+      (self.$.context.fillStyle = "black");
+      self.$.context.fillText(shape.name(), (r.x() + 2), r.y(), 1000);
+      self.$.context.fill();
+      self.$.context.restore();
+      return self.draw(shape.content(), (n + 1));
+    }));
+    (this.drawGrid = (function (grid, n) {
+      var self = this;
     }));
     (this.drawShape = (function (shape, n) {
       var self = this;

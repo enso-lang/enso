@@ -2,21 +2,36 @@
 
 class Part 
   styles! Style*
-  location: Point?  // only used for graph shapes
   
 class Container < Part
-  direction: int
+  direction: int  // 1=vert, 2=hoiz, 3=graph, 5=pages
   items! Part*
+
+class Grid < Part
+  rows! Row*
+  
+class Row
+  columns: Part*
 
 class Text < Part
   string: str
   editable: bool
 
+class Page < Part
+  name# str
+  content: Part
+  
 class Shape < Part
   content! Part?
   kind: str
   connectors: ConnectorEnd* 
 
+class Grid < Part
+	row: Column*
+	
+class Column 
+  cols: Part* 
+	
 class Connector < Part
   label: Text?
   ends! ConnectorEnd*  // always exactly 2 of them

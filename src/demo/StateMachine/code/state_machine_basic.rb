@@ -17,7 +17,7 @@ module Run
         current = run(current)
       end
     end
-
+   
     def run_State(obj)
       # ask user for transition
       puts "\n>> current state: "+obj.name.to_s
@@ -55,8 +55,6 @@ def run_state_machine(sm)
   end
 end
 
-if __FILE__ == $0
-  sm = Load::load(ARGV[0])
-  run_state_machine(sm)
-end
+sm = Load::load(ARGV[0])
+run_state_machine(sm)
 

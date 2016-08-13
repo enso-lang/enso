@@ -3,8 +3,7 @@ start Part
 Part ::= [Container] Dir Props? "{" items:Part* "}"
       | [Connector] "connector" Props? "(" ends:(ConnectorEnd "--")+ ")" "path" path:Point*
       | Text
-      | [Shape] "box" "#" _id:int Location? Props? "{" content:Part? "}"
-Location ::= location:Point
+      | [Shape] "shape" kind:str "#" _id:int Props? "{" content:Part? "}"
 Text ::= [Text] "text" Props? string:str
 
 Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph" {direction==3} | "do" {direction==4}

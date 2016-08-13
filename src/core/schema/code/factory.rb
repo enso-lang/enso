@@ -83,6 +83,10 @@ module Factory
       #raise "Creating two roots" if @root
       @root = root
     end
+    
+    def __delete_obj(mobj)
+    	@root.__delete_obj(mobj)
+    end
   end
 
   class MObject < EnsoProxyObject
@@ -219,7 +223,7 @@ module Factory
     end
 
     def delete! 
-      factory.__delete_obj(self) 
+      @factory.__delete_obj(self) 
     end
 
     def __delete_obj(mobj)
@@ -318,7 +322,7 @@ module Factory
 
     def finalize
       # TODO: check required fields etc.
-      factory.register(self)
+      @factory.register(self)
 
       self
     end

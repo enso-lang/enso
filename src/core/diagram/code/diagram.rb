@@ -281,7 +281,12 @@ module Diagram
       end
       [w, h] if !w.nil?
     end
+
+    def constrainGrid(part, basex, basey, width, height)
   
+  
+  	end
+  	
     def constrainContainer(part, basex, basey, width, height)
       pos = @cs.value(0)
       otherpos = @cs.value(0)
@@ -304,14 +309,18 @@ module Diagram
             x = basex.add(pos)
             height.max(h)
           when 3 then #graph
-            # compute the default positions!!
-            
-            pos = pos.add(w) #.add(10)
-            otherpos = otherpos.add(h) #.add(10)
+            # compute the default positions!!            
+            pos = pos.add(w).add(10)
+            otherpos = otherpos.add(h).add(10)
             x = basex.add(pos)
             y = basey.add(otherpos)
             width.max(x.add(w))
             height.max(y.add(h))
+          when 5 then #pages
+            x = basex.add(0)
+			      y = basey.add(0)
+            width.max(w)
+            height.max(h)
           end
         end
       end
@@ -356,7 +365,8 @@ module Diagram
     def constrainText(part, x, y, width, height)
       info = @context.measureText(part.string)
       #puts "MEASURE #{part.string} #{info.width_} #{context.font_}"
-      width.max(info.width_ + 2)
+      width.value = info.width_ + 2
+      #width.max(info.width_ + 2)
       height.max(15)  # doesn't include height!
     end
   
@@ -435,12 +445,35 @@ module Diagram
     end
   
     def drawContainer(part, n)
-      len = part.items.size - 1
-      start = 0
-      start.upto(len) do |i|
-        draw(part.items[i], n+1)
-      end
+      if part.direction == 5
+        # its pages
+        current = if part.curent.nil? then 0 else part.current end
+        draw(part.items[current], n+1)
+      else
+	      len = part.items.size - 1
+	      start = 0
+	      start.upto(len) do |i|
+	        draw(part.items[i], n+1)
+	      end
+	    end
     end  
+    
+    def drawPage(shape, n)
+      r = boundary_fixed(shape)
+      @context.save
+      @context.beginPath
+      @context.fillStyle_ = "black"
+      @context.fillText(shape.name, r.x + 2, r.y, 1000)
+      @context.fill
+      @context.restore
+      draw(shape.content, n+1)
+    end
+    
+    def drawGrid(grid, n)
+      
+    
+    end
+    
     
     def drawShape(shape, n)
       r = boundary_fixed(shape)

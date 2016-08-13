@@ -193,7 +193,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
       (stream = self.$.D._get("stream"));
       (obj = stream.current());
       if ((!(obj == null))) {
-        if ((!((System.test_type(obj, String) || System.test_type(obj, Number)) || System.test_type(obj, self.Float())))) {
+        if ((!((System.test_type(obj, String) || System.test_type(obj, Numeric)) || System.test_type(obj, self.Float())))) {
           self.raise(S("Data is not literal ", obj, ""));
         }
         switch ((function () {
@@ -211,7 +211,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
              return self.output(obj.to_s());
            }
           case "int":
-           if (System.test_type(obj, Number)) {
+           if (System.test_type(obj, Numeric)) {
              return self.output(obj.to_s());
            }
           case "sym":

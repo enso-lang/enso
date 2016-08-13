@@ -155,12 +155,18 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       (e = (new EnsoHash({
         filename: name
       })));
-      FindModel.FindModel.find_model((function (path) {
+      try {return FindModel.FindModel.find_model((function (path) {
         e._set("source", path);
         e._set("date", File.ctime(path));
         return e._set("checksum", self.readHash(path));
       }), name);
-      return e;
+           
+      }
+      catch (caught$3227) {
+        
+          e._set("source", "SYNTHETIC");
+          return e._set("date", self.Time().new());
+      }
     }),
     find_json: (function (name) {
       var self = this;

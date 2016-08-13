@@ -39,6 +39,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         (self.$.win.document().title = self.$.stencil.title());
       }
       (self.$.data = data);
+      self.$.data.finalize();
       self.build_diagram();
       if (data.factory().file_path()._get(0)) {
         (pos = S("", data.factory().file_path()._get(0), "-positions"));
@@ -100,6 +101,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.graphShapes = (new EnsoHash({
         
       })));
+      self.$.stencil.finalize();
       return self.construct(self.$.stencil.body(), env, null, null, Proc.new((function (x, subid) {
         return self.set_root(x);
       })));
@@ -190,8 +192,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       var actions;
       (actions = System.JSHASH());
       self.find_in_ui((function (part, container) {
-        if (self.$.actions._get(part)) {
-          (actions = System.assign(actions, self.$.actions._get(part)));
+        if (self.$.actions._get(part._id())) {
+          (actions = System.assign(actions, self.$.actions._get(part._id())));
         }
         return false;
       }), pnt);
@@ -210,10 +212,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.add_action = (function (block, shape, name) {
       var self = this;
-      if ((!self.$.actions._get(shape))) {
-        self.$.actions._set(shape, System.JSHASH());
+      if ((!self.$.actions._get(shape._id()))) {
+        self.$.actions._set(shape._id(), System.JSHASH());
       }
-      return self.$.actions._get(shape)._set(name, block);
+      return self.$.actions._get(shape._id())._set(name, block);
     }));
     (this.construct = (function (stencil, env, container, id, proc) {
       var self = this;
@@ -306,6 +308,37 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.constructEImport = (function (obj, env, container, id, proc) {
       var self = this;
     }));
+    (this.constructGrid = (function (grid, env, container, id, proc) {
+      var self = this;
+      var ncols, body, nrows, dgrid, rows, columns;
+      (columns = []);
+      (ncols = 0);
+      (rows = []);
+      (nrows = 0);
+      (body = []);
+      (dgrid = self.$.factory.Grid());
+      return grid.axes().each((function (axis) {
+        switch ((function () {
+          return axis.direction();
+        })()) {
+          case "body":
+           return;
+          case "rows":
+           rows.push([]);
+           self.construct((function (item, ni) {
+             return rows._get(nrows).push(item);
+           }), axis.source(), env, dgrid, self.i());
+           return (nrows = (nrows + 1));
+          case "columns":
+           columns.push([]);
+           self.construct((function (item, ni) {
+             return columns._get(ncols).push(item);
+           }), axis.source(), env, dgrid, self.i());
+           return (ncols = (ncols + 1));
+        }
+            
+      }));
+    }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;
       var shape, f, is_traversal, address, action, lhs, source, nenv;
@@ -352,7 +385,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
               }
             }), container, S("", action, " ", efor.label(), ""));
           }
-          return proc(shape, subid);
+          return proc(shape, subid, v);
         })));
       }));
       if (efor.label()) {
@@ -457,7 +490,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              obj.items().each((function (item) {
                return self.construct(item, env, group, id, Proc.new((function (x, subid) {
                  group.items().push(x);
-                 if ((obj.direction() == 3)) {
+                 if (((obj.direction() == 3) || (obj.direction() == 5))) {
                    return self.$.graphShapes._set(subid, x);
                  }
                })));
@@ -467,6 +500,22 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                return proc(group, id);
              }
            }
+    }));
+    (this.constructPage = (function (obj, env, container, id, proc) {
+      var self = this;
+      var page;
+      self.make_styles(obj, self.group(), env);
+      (page = self.$.factory.Page());
+      page.set_name(self.eval(obj.namem(), env));
+      self.construct(obj.part(), env, container, id, Proc.new((function (sub) {
+        if (obj.content()) {
+          self.raise(S("two content items in a page ", obj.content().to_s(), ""));
+        }
+        return obj.set_content(sub);
+      })));
+      if (proc) {
+        return proc(page, id);
+      }
     }));
     (this.constructText = (function (obj, env, container, id, proc) {
       var self = this;
