@@ -354,7 +354,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.set_value((info.width + 2));
+      width.max((info.width + 2));
       return height.max(15);
     }));
     (this.constrainConnector = (function (part) {

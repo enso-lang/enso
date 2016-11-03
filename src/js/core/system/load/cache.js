@@ -42,9 +42,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              (type = name.split(".")._get((-1)));
              (deps = []);
              deps.push(self.get_meta(S("", type, ".grammar")));
-             model.factory().file_path()._get(Range.new(1, (-1))).each((function (fn) {
-               return deps.push(self.get_meta(fn.split("/")._get((-1))));
-             }));
+             puts(S("METADATA ", model.factory().file_path(), ""));
+             if ((model.factory().file_path().size() > 0)) {
+               model.factory().file_path()._get(Range.new(1, (-1))).each((function (fn) {
+                 return deps.push(self.get_meta(fn.split("/")._get((-1))));
+               }));
+             }
              e._set("depends", deps);
            }
       return e;
@@ -70,7 +73,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3086) {
+             catch (caught$3085) {
                
                  return false;
              }
@@ -86,12 +89,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1097) {
+      catch (caught$1096) {
         
-          if ((caught$1097 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1096 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1097); 
+            })(caught$1096); 
           }
           else { 
             ;
@@ -155,18 +158,19 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       (e = (new EnsoHash({
         filename: name
       })));
-      try {return FindModel.FindModel.find_model((function (path) {
+      try {FindModel.FindModel.find_model((function (path) {
         e._set("source", path);
         e._set("date", File.ctime(path));
         return e._set("checksum", self.readHash(path));
       }), name);
            
       }
-      catch (caught$3227) {
+      catch (caught$3226) {
         
           e._set("source", "SYNTHETIC");
-          return e._set("date", self.Time().new());
+          e._set("date", self.Time().new());
       }
+      return e;
     }),
     find_json: (function (name) {
       var self = this;

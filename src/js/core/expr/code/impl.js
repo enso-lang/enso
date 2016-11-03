@@ -174,7 +174,122 @@ define(["core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/int
           
         }))
       }))));
-      var interp;
+      var interp, nv, local_funs;
+      (local_funs = (new EnsoHash({
+        
+      })));
+      local_funs._set("MAX", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var max;
+        (max = null);
+        a.each((function (b) {
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              return (max = ((max == null) ? v : [max, v].max()));
+            })); 
+          }
+          else { 
+            return (max = ((max == null) ? b : [max, b].max()));
+          }
+        }));
+        return max;
+      })));
+      local_funs._set("MIN", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var min;
+        (min = null);
+        a.each((function (b) {
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              return (min = ((min == null) ? v : [min, v].min()));
+            })); 
+          }
+          else { 
+            return (min = ((min == null) ? b : [min, b].min()));
+          }
+        }));
+        return min;
+      })));
+      local_funs._set("SUM", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var sum;
+        (sum = 0);
+        a.each((function (b) {
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              return (sum = (sum + v));
+            })); 
+          }
+          else { 
+            return (sum = (sum + b));
+          }
+        }));
+        return sum;
+      })));
+      local_funs._set("COUNT", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var count;
+        (count = null);
+        a.each((function (b) {
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              return (count = ((count == null) ? 1 : (count + 1)));
+            })); 
+          }
+          else { 
+            return (count = ((count == null) ? 1 : (count + 1)));
+          }
+        }));
+        return count;
+      })));
+      local_funs._set("AVERAGE", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        return (local_funs._get("SUM").apply(local_funs._get("SUM"), [].concat(a)) / local_funs._get("COUNT").apply(local_funs._get("COUNT"), [].concat(a)));
+      })));
+      local_funs._set("STDEV", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var count, sumvariance, average;
+        (average = local_funs._get("AVERAGE").apply(local_funs._get("AVERAGE"), [].concat(a)));
+        (sumvariance = 0);
+        (count = 0);
+        a.each((function (b) {
+          var p;
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              var p;
+              (p = (v - average));
+              (sumvariance = (sumvariance + (p * p)));
+              return (count = (count + 1));
+            })); 
+          } 
+          else {
+                 (p = (b - average));
+                 (sumvariance = (sumvariance + (p * p)));
+                 return (count = (count + 1));
+               }
+        }));
+        return Math.sqrt((sumvariance / count));
+      })));
+      local_funs._set("MEDIAN", Proc.new((function () {
+        var a = compute_rest_arguments(arguments, 0);
+        var arr, mid, sorted;
+        (arr = []);
+        a.each((function (b) {
+          if (System.test_type(b, Enumerable)) { 
+            return b.each((function (v) {
+              return arr.push(v);
+            })); 
+          }
+          else { 
+            return arr.push(b);
+          }
+        }));
+        (mid = (arr.length() / 2));
+        (sorted = arr.sort());
+        return (mid.odd_P() ? sorted._get(mid) : (0.5 * (sorted._get(mid) + sorted._get((mid - 1)))));
+      })));
+      (nv = Env.HashEnv.new(local_funs, args._get("env")));
+      args._set("env", nv);
       (interp = EvalCommandC.new());
       return interp.dynamic_bind((function () {
         return interp.eval(obj);

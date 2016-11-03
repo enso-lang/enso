@@ -40,7 +40,7 @@ page "Normalized"
 			  text a.maxGradeN
 			  text a.minGradeN
 			}
-		  text+ a.curve
+		text+ a.curve
 	    text a.target
 	    label "After Curve" {
 			  text a.averageC

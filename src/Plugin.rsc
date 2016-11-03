@@ -8,7 +8,7 @@ import core::lang::\syntax::JS2Text;
 import IO;
 import Message;
 
-public loc root = |project://enso/src|;
+public loc root = |project://Enso/src|;
 
 loc jsFile(loc src) {
  rp = root.path;

@@ -365,7 +365,7 @@ module Diagram
     def constrainText(part, x, y, width, height)
       info = @context.measureText(part.string)
       #puts "MEASURE #{part.string} #{info.width_} #{context.font_}"
-      width.value = info.width_ + 2
+      width.max(info.width_ + 2)
       #width.max(info.width_ + 2)
       height.max(15)  # doesn't include height!
     end

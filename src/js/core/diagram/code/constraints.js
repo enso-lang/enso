@@ -78,7 +78,7 @@ define([], (function () {
       (self.$.name = name);
       (self.$.dependencies = []);
       (self.$.vars = []);
-      return (self.$.bounds = []);
+      return (self.$.bounds = null);
     }));
     (this.add = (function (other) {
       var self = this;
@@ -109,6 +109,9 @@ define([], (function () {
       (other = (((typeof other) !== "undefined") ? other : self.raise("MAX WITH UNDEFINED")));
       if (System.test_type(other, Variable)) {
         other.add_listener(self);
+      }
+      if ((self.$.bounds == null)) {
+        (self.$.bounds = []);
       }
       return self.$.bounds.push(other);
     }));
@@ -204,6 +207,11 @@ define([], (function () {
       self.internal_notify_change();
       return (self.$.value = x);
     }));
+    (this.redo_max = (function () {
+      var self = this;
+      (self.$.value = null);
+      return self.internal_notify_change();
+    }));
     (this.internal_notify_change = (function () {
       var self = this;
       self.$.dependencies.each((function (var_V) {
@@ -220,6 +228,9 @@ define([], (function () {
       if (path.include_P(self)) {
         self.raise(S("circular constraint ", path.map("to_s"), ""));
       }
+      if (self.$.bounds) {
+        (self.$.value = null);
+      }
       if (self.$.block) {
         path.push(self);
         (vals = self.$.vars.map((function (var_V) {
@@ -234,18 +245,20 @@ define([], (function () {
         path.pop();
         (self.$.value = self.$.block.apply(self.$.block, [].concat(vals)));
       }
-      self.$.bounds.each((function (b) {
-        var val;
-        if (System.test_type(b, Variable)) { 
-          (val = b.value()); 
-        }
-        else { 
-          (val = b);
-        }
-        if (((self.$.value == null) || (self.$.value < val))) {
-          return (self.$.value = val);
-        }
-      }));
+      if (self.$.bounds) {
+        self.$.bounds.each((function (b) {
+          var val;
+          if (System.test_type(b, Variable)) { 
+            (val = b.value()); 
+          }
+          else { 
+            (val = b);
+          }
+          if (((self.$.value == null) || (self.$.value < val))) {
+            return (self.$.value = val);
+          }
+        }));
+      }
       return self.$.value;
     }));
   }));

@@ -215,7 +215,7 @@ EnsoHash = function(init) {
   
   System = {
     popupMenu(items) {
-			const {remote} = require('electron');
+			const {remote} = window.require('electron');
 			const {Menu, MenuItem} = remote;
 			
 			const menu = new Menu();

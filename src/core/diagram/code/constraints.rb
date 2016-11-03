@@ -70,7 +70,7 @@ module Constraints
 	    @name = name
 	    @dependencies = []
 	    @vars = []
-	    @bounds = []
+	    @bounds = nil
 	  end
 		 
 	  def add(other)
@@ -101,6 +101,7 @@ module Constraints
 	  def max(other = raise("MAX WITH UNDEFINED"))
 	    #puts "#{self} MAX #{other}"
 	    other.add_listener(self) if other.is_a?(Variable)
+	    @bounds = [] if @bounds.nil?
 	    @bounds << other
 	  end
 	
@@ -180,6 +181,11 @@ module Constraints
 	    @value = x
 	  end
 
+		def redo_max 
+		  @value = nil
+		  internal_notify_change
+		end
+
 	  def internal_notify_change
 	    @dependencies.each do |var|
 	      var.internal_notify_change
@@ -190,6 +196,7 @@ module Constraints
 	    	  
 	  def internal_evaluate(path = [])
 	    raise "circular constraint #{path.map(&:to_s)}" if path.include?(self)
+	    @value = nil if @bounds
 	    if @block
 	      path << self
 	      vals = @vars.map do |var|
@@ -203,14 +210,16 @@ module Constraints
 	      path.pop
 	      @value = @block.call(*vals)
 	    end
-	    @bounds.each do |b|
-	      if b.is_a?(Variable) 
-	        val = b.value
-	      else
-	        val = b
-	      end
-	      @value = val if @value.nil? || @value < val
-	    end
+	    if @bounds
+		    @bounds.each do |b|
+		      if b.is_a?(Variable) 
+		        val = b.value
+		      else
+		        val = b
+		      end
+		      @value = val if @value.nil? || @value < val
+		    end
+		  end
 	    #puts "EVAL #{@name}=#{@value}"
 	    @value
 	  end

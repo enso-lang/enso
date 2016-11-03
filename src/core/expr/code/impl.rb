@@ -134,9 +134,11 @@ module Impl
     def initialize
     end
   end
+        
+  def self.eval(obj, args = {env:{}})
 
-	LOCAL_FUNS = {
-	  	"MAX" => Proc.new { |*a|
+  	local_funs = {}
+  	local_funs["MAX"] = Proc.new { |*a|
 	  	  max = nil
 	  	  #puts "MAX #{a}"
 	  	  a.each do |b|
@@ -149,8 +151,8 @@ module Impl
 		  	  end
 		  	end
 		  	max
-	    },
-	  	"MIN" => Proc.new { |*a|
+	    }
+  	local_funs["MIN"] = Proc.new { |*a|
 	  	  min = nil
 	  	  #puts "MIN #{a}"
 	  	  a.each do |b|
@@ -163,8 +165,8 @@ module Impl
 		  	  end
 		  	end
 		  	min
-      },
-	  	"SUM" => Proc.new { |*a|
+      }
+  	local_funs["SUM"] = Proc.new { |*a|
         sum = 0
 	  	  a.each do |b|
 	  	    if b.is_a?(Enumerable)
@@ -176,8 +178,8 @@ module Impl
 		  	  end
 		  	end
 		  	sum
-	    },
-	  	"COUNT" => Proc.new { |*a|
+	    }
+  	local_funs["COUNT"] = Proc.new { |*a|
 	  	  count = nil
 	  	  a.each do |b|
 		  	  if b.is_a?(Enumerable)
@@ -189,12 +191,12 @@ module Impl
 		  	  end
 		  	end
 		  	count
-	    },
-	  	"AVERAGE" => Proc.new { |*a|
-	  	  LOCAL_FUNS["SUM"].call(*a) / LOCAL_FUNS["COUNT"].call(*a)
-	    },
-	  	"STDEV" => Proc.new { |*a|
-	  	  average = LOCAL_FUNS["AVERAGE"].call(*a)
+	    }
+  	local_funs["AVERAGE"] = Proc.new { |*a|
+	  	  local_funs["SUM"].call(*a) / local_funs["COUNT"].call(*a)
+	    }
+  	local_funs["STDEV"] = Proc.new { |*a|
+	  	  average = local_funs["AVERAGE"].call(*a)
 	  	  sumvariance = 0
 	  	  count = 0
 	  	  a.each do |b|
@@ -211,8 +213,8 @@ module Impl
 		  	  end
 		  	end
 		  	Math.sqrt(sumvariance / count)
-	    },
-	  	"MEDIAN" => Proc.new { |*a|
+	    }
+  	local_funs["MEDIAN"] = Proc.new { |*a|
 	  	  arr = []
 	  	  a.each do |b|
 		  	  if b.is_a?(Enumerable)
@@ -228,10 +230,9 @@ module Impl
 			  #puts "MID #{mid} #{sorted}"
 			  mid.odd? ? sorted[mid] : 0.5 * (sorted[mid] + sorted[mid - 1])
 	    }
-    }
-        
-  def self.eval(obj, args = {env:{}})
-    nv = Env::HashEnv.new(LOCAL_FUNS, args[:env])
+    
+  
+    nv = Env::HashEnv.new(local_funs, args[:env])
     args[:env] = nv
     interp = EvalCommandC.new
     interp.dynamic_bind(args) do
