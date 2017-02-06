@@ -1,0 +1,115 @@
+{
+  "filename": "unary.grammar",
+  "source": "core/grammar/test/unary.grammar",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "4142738aae5f6a1465ff276d105baedb2e3fa9f7",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[Unary]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "Unary",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Unary",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "op",
+                    "arg": {
+                      "class": "Lit",
+                      "value=": "not"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "arg",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Unary]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[Primary]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Primary",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "("
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Unary]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ")"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

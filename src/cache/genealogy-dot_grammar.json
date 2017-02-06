@@ -1,0 +1,342 @@
+{
+  "filename": "genealogy-dot.grammar",
+  "source": "apps/genealogy/models/genealogy-dot.grammar",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "6eaedecae4453caef44bd1b728705c5770416b49",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[D]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "D",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "digraph G"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "{"
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[T]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "}"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "T",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Genealogy",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "people",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[P]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Break",
+                        "lines=": 1
+                      }
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "couplings",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[C]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Break",
+                        "lines=": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "P",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Person",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Regular",
+                    "arg": {
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "Field",
+                              "name=": "parents",
+                              "arg": {
+                                "class": "Ref",
+                                "path": {
+                                  "class": "ESubscript",
+                                  "e": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "root"
+                                    },
+                                    "fname=": "couplings"
+                                  },
+                                  "sub": {
+                                    "class": "EVar",
+                                    "name=": "it"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "class": "Lit",
+                              "value=": "->"
+                            },
+                            {
+                              "class": "Field",
+                              "name=": "name",
+                              "arg": {
+                                "class": "Value",
+                                "kind=": "sym"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "optional=": true
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "C",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Coupling",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "[label=_,fixedsize=true,width=.3,height=.3]"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "mother",
+                    "arg": {
+                      "class": "Ref",
+                      "path": {
+                        "class": "ESubscript",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "root"
+                          },
+                          "fname=": "people"
+                        },
+                        "sub": {
+                          "class": "EVar",
+                          "name=": "it"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "->"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "[label=M]"
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "father",
+                    "arg": {
+                      "class": "Ref",
+                      "path": {
+                        "class": "ESubscript",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "root"
+                          },
+                          "fname=": "people"
+                        },
+                        "sub": {
+                          "class": "EVar",
+                          "name=": "it"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "->"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "[label=F]"
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

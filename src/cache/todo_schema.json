@@ -1,0 +1,86 @@
+{
+  "filename": "todo.schema",
+  "source": "demo/ToDo/models/todo.schema",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "2ba3d0a2f013442d98cd73dd50861fcf1efa87c2",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Todos",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "todos",
+            "owner": "types[Todos]",
+            "type": "types[Todo]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Todo].defined_fields[owner]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Todo",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "owner",
+            "owner": "types[Todo]",
+            "type": "types[Todos]",
+            "inverse": "types[Todos].defined_fields[todos]"
+          },
+          {
+            "class": "Field",
+            "name=": "todo",
+            "owner": "types[Todo]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "done",
+            "owner": "types[Todo]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "related",
+            "owner": "types[Todo]",
+            "type": "types[Todo]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      }
+    ]
+  }
+}

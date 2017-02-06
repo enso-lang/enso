@@ -8,38 +8,17 @@
 
 bin
 
-# Rubymine noise
-.idea
-
 # Eclipse setup
 .project
-
-# Emacs noise
-*~
-\#*\#
-.\#*
-src/bla.dot
-src/sppf.dot
-
-*.swp
-
-# Cache
-src/cache/*
-
 
 # -NEWs
 *-NEW
 
 doc/papers/grammar/ensogrammars.bbl
-
 doc/papers/grammar/ensogrammars.blg
-
 doc/papers/grammar/sigplanconf-guide.pdf
-
 doc/papers/piping/piping.aux
-
 doc/papers/piping/piping.log
-
 doc/papers/piping/piping.pdf
 /src/sppf.eps
 /src/sppf.pdf

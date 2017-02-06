@@ -1,0 +1,121 @@
+{
+  "filename": "state_machine.schema",
+  "source": "demo/StateMachine/models/state_machine.schema",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "9d0093f1086b13d9c87a7a377a6ac2ec81b40703",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Machine",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "start",
+            "owner": "types[Machine]",
+            "type": "types[State]"
+          },
+          {
+            "class": "Field",
+            "name=": "states",
+            "owner": "types[Machine]",
+            "type": "types[State]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[State].defined_fields[machine]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "State",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "machine",
+            "owner": "types[State]",
+            "type": "types[Machine]",
+            "inverse": "types[Machine].defined_fields[states]"
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[State]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "out",
+            "owner": "types[State]",
+            "type": "types[Trans]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Trans].defined_fields[from]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "in",
+            "owner": "types[State]",
+            "type": "types[Trans]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Trans].defined_fields[to]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Trans",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "event",
+            "owner": "types[Trans]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "from",
+            "owner": "types[Trans]",
+            "type": "types[State]",
+            "inverse": "types[State].defined_fields[out]"
+          },
+          {
+            "class": "Field",
+            "name=": "to",
+            "owner": "types[Trans]",
+            "type": "types[State]",
+            "inverse": "types[State].defined_fields[in]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      }
+    ]
+  }
+}

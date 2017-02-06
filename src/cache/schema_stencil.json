@@ -1,0 +1,735 @@
+{
+  "filename": "schema.stencil",
+  "source": "core/schema/models/schema.stencil",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "e81d3e0806ba7914fc9082f0a8c2c15f3035fd46",
+  "depends": [
+    {
+      "filename": "stencil.grammar",
+      "source": "core/diagram/models/stencil.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "5ab89ee595b355af923d1f729b8ca4093a4b29e9"
+    },
+    {
+      "filename": "stencil.schema",
+      "source": "core/diagram/models/stencil.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "4e64a41eade5e1f56c5a83db8a44a98aa709031d"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    },
+    {
+      "filename": "impl.schema",
+      "source": "core/expr/models/impl.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "882efd782ef60fa860925dc1e0980abbd3ff182c"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Stencil",
+    "root=": "schema",
+    "body": {
+      "class": "Container",
+      "direction=": 3,
+      "items": [
+        {
+          "class": "EBlock",
+          "body": [
+            {
+              "class": "EFor",
+              "label=": "Class",
+              "var=": "class",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "schema"
+                },
+                "fname=": "classes"
+              },
+              "body": {
+                "class": "Label",
+                "label": {
+                  "class": "EVar",
+                  "name=": "class"
+                },
+                "body": {
+                  "class": "EBlock",
+                  "body": [
+                    {
+                      "class": "Shape",
+                      "kind=": "box",
+                      "content": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Container",
+                            "direction=": 1,
+                            "items": [
+                              {
+                                "class": "EBlock",
+                                "body": [
+                                  {
+                                    "class": "Text",
+                                    "props": [
+                                      {
+                                        "class": "Assign",
+                                        "loc": {
+                                          "class": "EField",
+                                          "e": {
+                                            "class": "EVar",
+                                            "name=": "font"
+                                          },
+                                          "fname=": "size"
+                                        },
+                                        "exp": {
+                                          "class": "EIntConst",
+                                          "val=": 16
+                                        }
+                                      },
+                                      {
+                                        "class": "Assign",
+                                        "loc": {
+                                          "class": "EField",
+                                          "e": {
+                                            "class": "EVar",
+                                            "name=": "font"
+                                          },
+                                          "fname=": "weight"
+                                        },
+                                        "exp": {
+                                          "class": "EStrConst",
+                                          "val=": "bold"
+                                        }
+                                      },
+                                      {
+                                        "class": "Assign",
+                                        "loc": {
+                                          "class": "EField",
+                                          "e": {
+                                            "class": "EVar",
+                                            "name=": "fill"
+                                          },
+                                          "fname=": "color"
+                                        },
+                                        "exp": {
+                                          "class": "Color",
+                                          "r": {
+                                            "class": "EIntConst",
+                                            "val=": 90
+                                          },
+                                          "g": {
+                                            "class": "EIntConst",
+                                            "val=": 80
+                                          },
+                                          "b": {
+                                            "class": "EIntConst",
+                                            "val=": 90
+                                          }
+                                        }
+                                      }
+                                    ],
+                                    "string": {
+                                      "class": "EField",
+                                      "e": {
+                                        "class": "EVar",
+                                        "name=": "class"
+                                      },
+                                      "fname=": "name"
+                                    }
+                                  },
+                                  {
+                                    "class": "EFor",
+                                    "var=": "field",
+                                    "list": {
+                                      "class": "EField",
+                                      "e": {
+                                        "class": "EVar",
+                                        "name=": "class"
+                                      },
+                                      "fname=": "defined_fields"
+                                    },
+                                    "body": {
+                                      "class": "EIf",
+                                      "cond": {
+                                        "class": "EBinOp",
+                                        "op=": "|",
+                                        "e1": {
+                                          "class": "InstanceOf",
+                                          "base": {
+                                            "class": "EField",
+                                            "e": {
+                                              "class": "EVar",
+                                              "name=": "field"
+                                            },
+                                            "fname=": "type"
+                                          },
+                                          "class_name=": "Primitive"
+                                        },
+                                        "e2": {
+                                          "class": "EBinOp",
+                                          "op=": "!=",
+                                          "e1": {
+                                            "class": "EField",
+                                            "e": {
+                                              "class": "EVar",
+                                              "name=": "field"
+                                            },
+                                            "fname=": "computed"
+                                          },
+                                          "e2": {
+                                            "class": "ENil"
+                                          }
+                                        }
+                                      },
+                                      "body": {
+                                        "class": "Container",
+                                        "direction=": 2,
+                                        "items": [
+                                          {
+                                            "class": "EBlock",
+                                            "body": [
+                                              {
+                                                "class": "Text",
+                                                "string": {
+                                                  "class": "EField",
+                                                  "e": {
+                                                    "class": "EVar",
+                                                    "name=": "field"
+                                                  },
+                                                  "fname=": "name"
+                                                }
+                                              },
+                                              {
+                                                "class": "Text",
+                                                "string": {
+                                                  "class": "ETernOp",
+                                                  "op1=": "?",
+                                                  "op2=": ":",
+                                                  "e1": {
+                                                    "class": "EField",
+                                                    "e": {
+                                                      "class": "EVar",
+                                                      "name=": "field"
+                                                    },
+                                                    "fname=": "key"
+                                                  },
+                                                  "e2": {
+                                                    "class": "EStrConst",
+                                                    "val=": "#"
+                                                  },
+                                                  "e3": {
+                                                    "class": "ETernOp",
+                                                    "op1=": "?",
+                                                    "op2=": ":",
+                                                    "e1": {
+                                                      "class": "EField",
+                                                      "e": {
+                                                        "class": "EVar",
+                                                        "name=": "field"
+                                                      },
+                                                      "fname=": "auto"
+                                                    },
+                                                    "e2": {
+                                                      "class": "EStrConst",
+                                                      "val=": "##"
+                                                    },
+                                                    "e3": {
+                                                      "class": "EStrConst",
+                                                      "val=": ":"
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "class": "Text",
+                                                "string": {
+                                                  "class": "EField",
+                                                  "e": {
+                                                    "class": "EField",
+                                                    "e": {
+                                                      "class": "EVar",
+                                                      "name=": "field"
+                                                    },
+                                                    "fname=": "type"
+                                                  },
+                                                  "fname=": "name"
+                                                }
+                                              },
+                                              {
+                                                "class": "Text",
+                                                "string": {
+                                                  "class": "ETernOp",
+                                                  "op1=": "?",
+                                                  "op2=": ":",
+                                                  "e1": {
+                                                    "class": "EField",
+                                                    "e": {
+                                                      "class": "EVar",
+                                                      "name=": "field"
+                                                    },
+                                                    "fname=": "many"
+                                                  },
+                                                  "e2": {
+                                                    "class": "EStrConst",
+                                                    "val=": "*"
+                                                  },
+                                                  "e3": {
+                                                    "class": "ETernOp",
+                                                    "op1=": "?",
+                                                    "op2=": ":",
+                                                    "e1": {
+                                                      "class": "EField",
+                                                      "e": {
+                                                        "class": "EVar",
+                                                        "name=": "field"
+                                                      },
+                                                      "fname=": "optional"
+                                                    },
+                                                    "e2": {
+                                                      "class": "EStrConst",
+                                                      "val=": "?"
+                                                    },
+                                                    "e3": {
+                                                      "class": "EStrConst",
+                                                      "val=": ""
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "class": "EIf",
+                                                "cond": {
+                                                  "class": "EBinOp",
+                                                  "op=": "eql?",
+                                                  "e1": {
+                                                    "class": "EField",
+                                                    "e": {
+                                                      "class": "EVar",
+                                                      "name=": "field"
+                                                    },
+                                                    "fname=": "computed"
+                                                  },
+                                                  "e2": {
+                                                    "class": "ENil"
+                                                  }
+                                                },
+                                                "body": {
+                                                  "class": "Text",
+                                                  "string": {
+                                                    "class": "EStrConst",
+                                                    "val=": ""
+                                                  }
+                                                },
+                                                "body2": {
+                                                  "class": "Text",
+                                                  "string": {
+                                                    "class": "EStrConst",
+                                                    "val=": "="
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "var=": "class",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "schema"
+                },
+                "fname=": "classes"
+              },
+              "body": {
+                "class": "EFor",
+                "label=": "Super",
+                "var=": "super",
+                "list": {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "class"
+                  },
+                  "fname=": "supers"
+                },
+                "body": {
+                  "class": "Connector",
+                  "ends": [
+                    {
+                      "class": "ConnectorEnd",
+                      "part": {
+                        "class": "EVar",
+                        "name=": "class"
+                      }
+                    },
+                    {
+                      "class": "ConnectorEnd",
+                      "arrow=": ">",
+                      "part": {
+                        "class": "EVar",
+                        "name=": "super"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "var=": "class",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "schema"
+                },
+                "fname=": "classes"
+              },
+              "body": {
+                "class": "EFor",
+                "label=": "Field",
+                "var=": "field",
+                "list": {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "class"
+                  },
+                  "fname=": "defined_fields"
+                },
+                "body": {
+                  "class": "EIf",
+                  "cond": {
+                    "class": "EBinOp",
+                    "op=": "eql?",
+                    "e1": {
+                      "class": "EField",
+                      "e": {
+                        "class": "EVar",
+                        "name=": "field"
+                      },
+                      "fname=": "computed"
+                    },
+                    "e2": {
+                      "class": "ENil"
+                    }
+                  },
+                  "body": {
+                    "class": "EIf",
+                    "cond": {
+                      "class": "EBinOp",
+                      "op=": "&",
+                      "e1": {
+                        "class": "EUnOp",
+                        "op=": "!",
+                        "e": {
+                          "class": "InstanceOf",
+                          "base": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "field"
+                            },
+                            "fname=": "type"
+                          },
+                          "class_name=": "Primitive"
+                        }
+                      },
+                      "e2": {
+                        "class": "EBinOp",
+                        "op=": "|",
+                        "e1": {
+                          "class": "EBinOp",
+                          "op=": "eql?",
+                          "e1": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "field"
+                            },
+                            "fname=": "inverse"
+                          },
+                          "e2": {
+                            "class": "ENil"
+                          }
+                        },
+                        "e2": {
+                          "class": "EBinOp",
+                          "op=": "<=",
+                          "e1": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "field"
+                            },
+                            "fname=": "_id"
+                          },
+                          "e2": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "field"
+                              },
+                              "fname=": "inverse"
+                            },
+                            "fname=": "_id"
+                          }
+                        }
+                      }
+                    },
+                    "body": {
+                      "class": "Connector",
+                      "props": [
+                        {
+                          "class": "Assign",
+                          "loc": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "line"
+                            },
+                            "fname=": "width"
+                          },
+                          "exp": {
+                            "class": "ETernOp",
+                            "op1=": "?",
+                            "op2=": ":",
+                            "e1": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "field"
+                              },
+                              "fname=": "traversal"
+                            },
+                            "e2": {
+                              "class": "EIntConst",
+                              "val=": 3
+                            },
+                            "e3": {
+                              "class": "EIntConst",
+                              "val=": 1
+                            }
+                          }
+                        }
+                      ],
+                      "ends": [
+                        {
+                          "class": "ConnectorEnd",
+                          "label": {
+                            "class": "ETernOp",
+                            "op1=": "?",
+                            "op2=": ":",
+                            "e1": {
+                              "class": "EBinOp",
+                              "op=": "eql?",
+                              "e1": {
+                                "class": "EVar",
+                                "name=": "field"
+                              },
+                              "e2": {
+                                "class": "ENil"
+                              }
+                            },
+                            "e2": {
+                              "class": "EStrConst",
+                              "val=": ""
+                            },
+                            "e3": {
+                              "class": "EBinOp",
+                              "op=": "+",
+                              "e1": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EVar",
+                                  "name=": "field"
+                                },
+                                "fname=": "name"
+                              },
+                              "e2": {
+                                "class": "ETernOp",
+                                "op1=": "?",
+                                "op2=": ":",
+                                "e1": {
+                                  "class": "EField",
+                                  "e": {
+                                    "class": "EVar",
+                                    "name=": "field"
+                                  },
+                                  "fname=": "many"
+                                },
+                                "e2": {
+                                  "class": "EStrConst",
+                                  "val=": "*"
+                                },
+                                "e3": {
+                                  "class": "ETernOp",
+                                  "op1=": "?",
+                                  "op2=": ":",
+                                  "e1": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "field"
+                                    },
+                                    "fname=": "optional"
+                                  },
+                                  "e2": {
+                                    "class": "EStrConst",
+                                    "val=": "?"
+                                  },
+                                  "e3": {
+                                    "class": "EStrConst",
+                                    "val=": ""
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "part": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "field"
+                            },
+                            "fname=": "owner"
+                          }
+                        },
+                        {
+                          "class": "ConnectorEnd",
+                          "label": {
+                            "class": "ETernOp",
+                            "op1=": "?",
+                            "op2=": ":",
+                            "e1": {
+                              "class": "EBinOp",
+                              "op=": "eql?",
+                              "e1": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EVar",
+                                  "name=": "field"
+                                },
+                                "fname=": "inverse"
+                              },
+                              "e2": {
+                                "class": "ENil"
+                              }
+                            },
+                            "e2": {
+                              "class": "EStrConst",
+                              "val=": ""
+                            },
+                            "e3": {
+                              "class": "EBinOp",
+                              "op=": "+",
+                              "e1": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EField",
+                                  "e": {
+                                    "class": "EVar",
+                                    "name=": "field"
+                                  },
+                                  "fname=": "inverse"
+                                },
+                                "fname=": "name"
+                              },
+                              "e2": {
+                                "class": "ETernOp",
+                                "op1=": "?",
+                                "op2=": ":",
+                                "e1": {
+                                  "class": "EField",
+                                  "e": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "field"
+                                    },
+                                    "fname=": "inverse"
+                                  },
+                                  "fname=": "many"
+                                },
+                                "e2": {
+                                  "class": "EStrConst",
+                                  "val=": "*"
+                                },
+                                "e3": {
+                                  "class": "ETernOp",
+                                  "op1=": "?",
+                                  "op2=": ":",
+                                  "e1": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EField",
+                                      "e": {
+                                        "class": "EVar",
+                                        "name=": "field"
+                                      },
+                                      "fname=": "inverse"
+                                    },
+                                    "fname=": "optional"
+                                  },
+                                  "e2": {
+                                    "class": "EStrConst",
+                                    "val=": "?"
+                                  },
+                                  "e3": {
+                                    "class": "EStrConst",
+                                    "val=": ""
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "part": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "field"
+                            },
+                            "fname=": "type"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

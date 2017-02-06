@@ -1,0 +1,139 @@
+{
+  "filename": "genealogy.schema",
+  "source": "apps/genealogy/models/genealogy.schema",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "6aecae3403e604b6903170a4131f8dabf61fd915",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Genealogy",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "people",
+            "owner": "types[Genealogy]",
+            "type": "types[Person]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "couplings",
+            "owner": "types[Genealogy]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Person",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Person]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "ismale",
+            "owner": "types[Person]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "parents",
+            "owner": "types[Person]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "inverse": "types[Coupling].defined_fields[children]"
+          },
+          {
+            "class": "Field",
+            "name=": "spouses",
+            "owner": "types[Person]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Coupling].defined_fields[father]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Coupling",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Coupling]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "mother",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "inverse": "types[Person].defined_fields[spouses]"
+          },
+          {
+            "class": "Field",
+            "name=": "father",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "inverse": "types[Person].defined_fields[spouses]"
+          },
+          {
+            "class": "Field",
+            "name=": "children",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Person].defined_fields[parents]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "date",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      }
+    ]
+  }
+}

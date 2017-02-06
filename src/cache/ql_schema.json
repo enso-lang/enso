@@ -1,0 +1,817 @@
+{
+  "filename": "ql.schema",
+  "source": "demo/Questionaire/models/ql.schema",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "cb7824d8b42c30b55853859f05ec6f054c1a13c1",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Questionaire",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "title",
+            "owner": "types[Questionaire]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "elems",
+            "owner": "types[Questionaire]",
+            "type": "types[Element]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "answers",
+            "owner": "types[Questionaire]",
+            "type": "types[AnswerType]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "all_elems",
+            "owner": "types[Questionaire]",
+            "type": "types[Question]",
+            "optional=": true,
+            "many=": true,
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "elems"
+                },
+                "fname=": "flat_map"
+              },
+              "lambda": {
+                "class": "ELambda",
+                "body": {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "e"
+                  },
+                  "fname=": "all_elems"
+                },
+                "formals": [
+                  {
+                    "class": "Formal",
+                    "name=": "e"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Element",
+        "schema": "",
+        "subclasses#": [
+          "types[Group]",
+          "types[Question]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Group",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elems",
+            "owner": "types[Group]",
+            "type": "types[Element]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "guard",
+            "owner": "types[Group]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "all_elems",
+            "owner": "types[Group]",
+            "type": "types[Question]",
+            "optional=": true,
+            "many=": true,
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "elems"
+                },
+                "fname=": "flat_map"
+              },
+              "lambda": {
+                "class": "ELambda",
+                "body": {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "e"
+                  },
+                  "fname=": "all_elems"
+                },
+                "formals": [
+                  {
+                    "class": "Formal",
+                    "name=": "e"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Question",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Question]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "qn",
+            "owner": "types[Question]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "desc",
+            "owner": "types[Question]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "ans",
+            "owner": "types[Question]",
+            "type": "types[AnswerType]"
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[Question]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EField",
+              "e": {
+                "class": "EVar",
+                "name=": "ans"
+              },
+              "fname=": "type"
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "all_elems",
+            "owner": "types[Question]",
+            "type": "types[Question]",
+            "optional=": true,
+            "many=": true,
+            "computed": {
+              "class": "EList",
+              "elems": [
+                {
+                  "class": "EVar",
+                  "name=": "self"
+                }
+              ]
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "response",
+            "owner": "types[Question]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "AnswerType",
+        "schema": "",
+        "subclasses#": [
+          "types[CheckBox]",
+          "types[MultiChoice]",
+          "types[TextBox]",
+          "types[Computed]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[AnswerType]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[AnswerType]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "CheckBox",
+        "schema": "",
+        "supers#": [
+          "types[AnswerType]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "choices",
+            "owner": "types[CheckBox]",
+            "type": "types[Label]",
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "MultiChoice",
+        "schema": "",
+        "supers#": [
+          "types[AnswerType]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "choices",
+            "owner": "types[MultiChoice]",
+            "type": "types[Label]",
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "TextBox",
+        "schema": "",
+        "supers#": [
+          "types[AnswerType]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Computed",
+        "schema": "",
+        "supers#": [
+          "types[AnswerType]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "expr",
+            "owner": "types[Computed]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Label",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "string",
+            "owner": "types[Label]",
+            "type": "types[str]",
+            "key=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Expr",
+        "schema": "",
+        "subclasses#": [
+          "types[ETernOp]",
+          "types[EBinOp]",
+          "types[EUnOp]",
+          "types[InstanceOf]",
+          "types[EFunCall]",
+          "types[EField]",
+          "types[EVar]",
+          "types[ESubscript]",
+          "types[EList]",
+          "types[EAddress]",
+          "types[ENew]",
+          "types[EConst]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ETernOp",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "op1",
+            "owner": "types[ETernOp]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "op2",
+            "owner": "types[ETernOp]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "e1",
+            "owner": "types[ETernOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "e2",
+            "owner": "types[ETernOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "e3",
+            "owner": "types[ETernOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EBinOp",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "op",
+            "owner": "types[EBinOp]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "e1",
+            "owner": "types[EBinOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "e2",
+            "owner": "types[EBinOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EUnOp",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "op",
+            "owner": "types[EUnOp]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "e",
+            "owner": "types[EUnOp]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "InstanceOf",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "base",
+            "owner": "types[InstanceOf]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "class_name",
+            "owner": "types[InstanceOf]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EFunCall",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "fun",
+            "owner": "types[EFunCall]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "params",
+            "owner": "types[EFunCall]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "lambda",
+            "owner": "types[EFunCall]",
+            "type": "types[ELambda]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ELambda",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[ELambda]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "formals",
+            "owner": "types[ELambda]",
+            "type": "types[Formal]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Formal",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Formal]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EField",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "e",
+            "owner": "types[EField]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "fname",
+            "owner": "types[EField]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EVar",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[EVar]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ESubscript",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "e",
+            "owner": "types[ESubscript]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "sub",
+            "owner": "types[ESubscript]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EList",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elems",
+            "owner": "types[EList]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EAddress",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "e",
+            "owner": "types[EAddress]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ENew",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "class",
+            "owner": "types[ENew]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EConst",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "subclasses#": [
+          "types[EStrConst]",
+          "types[EIntConst]",
+          "types[EBoolConst]",
+          "types[ERealConst]",
+          "types[ENil]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EStrConst",
+        "schema": "",
+        "supers#": [
+          "types[EConst]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "val",
+            "owner": "types[EStrConst]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[EStrConst]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "str"
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EIntConst",
+        "schema": "",
+        "supers#": [
+          "types[EConst]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "val",
+            "owner": "types[EIntConst]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[EIntConst]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "int"
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EBoolConst",
+        "schema": "",
+        "supers#": [
+          "types[EConst]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "val",
+            "owner": "types[EBoolConst]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[EBoolConst]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "bool"
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ERealConst",
+        "schema": "",
+        "supers#": [
+          "types[EConst]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "val",
+            "owner": "types[ERealConst]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[ERealConst]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "real"
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ENil",
+        "schema": "",
+        "supers#": [
+          "types[EConst]"
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "real",
+        "schema": ""
+      }
+    ]
+  }
+}

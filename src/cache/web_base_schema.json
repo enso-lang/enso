@@ -1,0 +1,671 @@
+{
+  "filename": "web_base.schema",
+  "source": "apps/web/models/web_base.schema",
+  "date": "2017-02-03 14:14:43 -0600",
+  "checksum": "bb872b70a88a97bd68dea757a07d4035e0cd845a",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2017-02-03 14:14:43 -0600",
+      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "real",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Web",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "toplevels",
+            "owner": "types[Web]",
+            "type": "types[Toplevel]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Toplevel",
+        "schema": "",
+        "subclasses#": [
+          "types[Def]",
+          "types[Import]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Abstraction",
+        "schema": "",
+        "subclasses#": [
+          "types[Def]",
+          "types[Cons]",
+          "types[Tail]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "formals",
+            "owner": "types[Abstraction]",
+            "type": "types[Formal]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "tail",
+            "owner": "types[Abstraction]",
+            "type": "types[Tail]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Def",
+        "schema": "",
+        "supers#": [
+          "types[Toplevel]",
+          "types[Abstraction]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Def]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[Def]",
+            "type": "types[Stat]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Import",
+        "schema": "",
+        "supers#": [
+          "types[Toplevel]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "module",
+            "owner": "types[Import]",
+            "type": "types[str]",
+            "key=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Stat",
+        "schema": "",
+        "subclasses#": [
+          "types[Do]",
+          "types[For]",
+          "types[If]",
+          "types[Switch]",
+          "types[Let]",
+          "types[Call]",
+          "types[Block]",
+          "types[Text]",
+          "types[Output]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Do",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "call",
+            "owner": "types[Do]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "cond",
+            "owner": "types[Do]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "For",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "var",
+            "owner": "types[For]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "iter",
+            "owner": "types[For]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[For]",
+            "type": "types[Stat]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "index",
+            "owner": "types[For]",
+            "type": "types[str]",
+            "optional=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "If",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "cond",
+            "owner": "types[If]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[If]",
+            "type": "types[Stat]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "else1",
+            "owner": "types[If]",
+            "type": "types[Stat]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Switch",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Switch]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "cases",
+            "owner": "types[Switch]",
+            "type": "types[Case]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "default",
+            "owner": "types[Switch]",
+            "type": "types[Stat]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Case",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Case]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[Case]",
+            "type": "types[Stat]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Let",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "decls",
+            "owner": "types[Let]",
+            "type": "types[Assign]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[Let]",
+            "type": "types[Stat]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Call",
+        "schema": "",
+        "supers#": [
+          "types[Stat]",
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Call]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "args",
+            "owner": "types[Call]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "block",
+            "owner": "types[Call]",
+            "type": "types[Stat]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Assign",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Assign]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Assign]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Block",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "stats",
+            "owner": "types[Block]",
+            "type": "types[Stat]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Text",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[Text]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Output",
+        "schema": "",
+        "supers#": [
+          "types[Stat]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Output]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Formal",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Formal]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "cons",
+            "owner": "types[Formal]",
+            "type": "types[Cons]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Cons",
+        "schema": "",
+        "supers#": [
+          "types[Abstraction]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Cons]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Tail",
+        "schema": "",
+        "supers#": [
+          "types[Abstraction]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Tail]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Expr",
+        "schema": "",
+        "subclasses#": [
+          "types[Call]",
+          "types[All]",
+          "types[Subscript]",
+          "types[Address]",
+          "types[Concat]",
+          "types[Equal]",
+          "types[In]",
+          "types[List]",
+          "types[New]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "All",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "klass",
+            "owner": "types[All]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Subscript",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "obj",
+            "owner": "types[Subscript]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Subscript]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Address",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[Address]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Concat",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "lhs",
+            "owner": "types[Concat]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "rhs",
+            "owner": "types[Concat]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Equal",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "lhs",
+            "owner": "types[Equal]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "rhs",
+            "owner": "types[Equal]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "In",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "lhs",
+            "owner": "types[In]",
+            "type": "types[Expr]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "rhs",
+            "owner": "types[In]",
+            "type": "types[Expr]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "List",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[List]",
+            "type": "types[Expr]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "New",
+        "schema": "",
+        "supers#": [
+          "types[Expr]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "class",
+            "owner": "types[New]",
+            "type": "types[str]"
+          }
+        ]
+      }
+    ]
+  }
+}
