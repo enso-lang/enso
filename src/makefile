@@ -1,32 +1,5 @@
 .SUFFIXES: .rb .js .code .schema .grammar .state_machine
 
-SOURCES = \
-	js/core/system/boot/meta_schema.js \
-	js/core/system/load/load.js \
-	js/core/system/load/cache.js \
-	js/core/system/utils/find_model.js \
-	js/core/system/utils/paths.js \
-	js/core/system/library/schema.js \
-	js/core/schema/code/factory.js \
-	js/core/schema/code/dynamic.js \
-	js/core/schema/tools/dumpjson.js \
-	js/core/schema/tools/union.js \
-	js/core/schema/tools/print.js \
-	js/core/schema/tools/equals.js \
-	js/core/semantics/code/interpreter.js \
-	js/core/grammar/render/layout.js \
-	js/core/grammar/parse/sppf.js \
-	js/core/grammar/parse/gss.js \
-	js/core/expr/code/impl.js \
-	js/core/expr/code/env.js \
-	js/core/expr/code/freevar.js \
-	js/core/expr/code/eval.js \
-	js/core/expr/code/lvalue.js \
-	js/core/expr/code/renderexp.js \
-	js/core/expr/taint/proxy.js \
-	js/core/diagram/code/diagram.js \
-	js/core/diagram/code/stencil.js \
-	js/core/diagram/code/constraints.js \
 
 MODELS = \
 	stencil.grammar \
@@ -105,6 +78,7 @@ MODELS = \
 	ql.schema \
 	state_machine.schema \
 	door.state_machine \
+	grades.schema \
 	
 	
 JSONS_QL = \
@@ -116,27 +90,17 @@ JSONS_PIPING = \
   boiler.piping \
   piping-sim.schema \
 
-main: $(SOURCES)
+main: buildcache rascal2js
 
+rascal2js:
+	make -f makefile.rascal
+	
+	
 check: 
 	ruby bin/check_requires.rb `find core | grep ".rb"`
 
 .SECONDARY:
 
-code/%.code: %.rb
-	echo "PROCESSING " $< " TO " $@
-	mkdir -p `dirname $@`
-	ruby -I . core/lang/code/convert.rb $< $@
-
-parse/%.code: %.rb
-	echo "PROCESSING " $< " TO " $@
-	mkdir -p `dirname $@`
-	ruby -I . core/lang/code/convert.rb $< $@
-
-js/%.js: %.rb core/lang/models/code_js.grammar
-	echo "GENERATING " $@
-	mkdir -p `dirname $@`
-	ruby -I . core/lang/code/convert.rb $< $@ code_js
 
 clean-json:
 	ruby -I . core/system/load/cache.rb
