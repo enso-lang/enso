@@ -6,7 +6,7 @@ require 'digest/sha1'
 module Cache
 
 	def self.hack_prefix
-	  if false # HACK TO GET ELECTRON RUNNING!!!
+	  if System.is_javascript() # HACK TO GET ELECTRON RUNNING!!!
 	    "../" 
     else
 			""

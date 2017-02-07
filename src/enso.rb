@@ -12,6 +12,9 @@ module System
   def self.max(a, b)
     if a > b then a else b end
   end
+  def self.is_javascript()
+    false
+  end
 end
 
 module Math

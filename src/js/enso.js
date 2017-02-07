@@ -232,6 +232,7 @@ EnsoHash = function(init) {
 			  menu.popup(remote.getCurrentWindow());
 		},
 
+    is_javascript: function() { return true },
     JSHASH: function() { return {} },
     max: function(a, b) {
       return a > b ? a : b;

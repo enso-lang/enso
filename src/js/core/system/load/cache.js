@@ -54,7 +54,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
     }),
     hack_prefix: (function () {
       var self = this;
-      if (true) { 
+      if (System.is_javascript()) { 
         return "../"; 
       }
       else { 
@@ -73,7 +73,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3085) {
+             catch (caught$3103) {
                
                  return false;
              }
@@ -89,12 +89,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1096) {
+      catch (caught$1114) {
         
-          if ((caught$1096 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1114 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1096); 
+            })(caught$1114); 
           }
           else { 
             ;
@@ -165,7 +165,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       }), name);
            
       }
-      catch (caught$3226) {
+      catch (caught$3244) {
         
           e._set("source", "SYNTHETIC");
           e._set("date", self.Time().new());
