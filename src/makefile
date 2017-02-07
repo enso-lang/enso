@@ -90,7 +90,7 @@ JSONS_PIPING = \
   boiler.piping \
   piping-sim.schema \
 
-main: buildcache rascal2js
+main: rascal2js buildcache 
 
 rascal2js:
 	make -f makefile.rascal
