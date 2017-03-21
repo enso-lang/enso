@@ -1,50 +1,50 @@
 {
   "filename": "schema.grammar",
   "source": "core/schema/models/schema.grammar",
-  "date": "2016-06-19 21:52:02 -0500",
+  "date": "2017-03-21 16:45:29 -0500",
   "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2016-07-12 23:24:19 -0500",
+      "date": "2017-03-21 16:45:38 -0500",
       "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2016-07-12 23:25:55 -0500",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2016-06-19 21:52:02 -0500",
+      "date": "2017-03-21 16:45:29 -0500",
       "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2016-07-19 01:49:53 -0500",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2016-07-13 12:50:32 -0500",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     },
     {
       "filename": "impl.grammar",
       "source": "core/expr/models/impl.grammar",
-      "date": "2016-07-13 13:21:26 -0500",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "bda0d5a0dbc441eda07d160a35729d7d65946b02"
     },
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2016-07-13 12:50:32 -0500",
-      "checksum": "f8c3ee60a45aa3a1644d83321536fba73f7c2e76"
+      "date": "2017-03-21 16:55:39 -0500",
+      "checksum": "c306232aa1717ed871f10f4a6e0ac4d579eda5b8"
     }
   ],
   "model": {
@@ -1629,7 +1629,7 @@
                   },
                   {
                     "class": "Lit",
-                    "value=": "is"
+                    "value=": "isa"
                   },
                   {
                     "class": "Field",
@@ -2359,7 +2359,7 @@
                   },
                   {
                     "class": "Lit",
-                    "value=": "in"
+                    "value=": ":"
                   },
                   {
                     "class": "Field",
@@ -2371,7 +2371,7 @@
                   },
                   {
                     "class": "Lit",
-                    "value=": ":"
+                    "value=": "|"
                   },
                   {
                     "class": "Field",
