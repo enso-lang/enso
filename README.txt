@@ -10,8 +10,8 @@ See http://enso-lang.org for more information.
 1) Installation
 ---------------
 Main Enso requires no installation but individual modules might have outside
-dependencies. There is a makefile for Javascript translation. It is not used 
-for normal Enso operation.
+dependencies. There is a makefile for Javascript translation. It is used
+for running GUIs in the browser.
 
 You need:
  - Ruby 1.9.3 (fully tested with 2.1.0)
@@ -48,14 +48,15 @@ are all aliases to existing Ruby files.
 --------------------
 Refer to README in individual sample for running instructions.
 
-* bin/render.sh <ModelName>
+* bin/render.sh <ModelName> [grammarName]
     where ModelName is any model in the system. Examples include:
       schema.schema grammar.grammar schema.grammar grammar.schema
       stencil.schema state_machine.schema door.state_machine
-      grades.schema 
+      grades.schema. The OPTIONAL grammar name says what grammar to use
+      to render the output.
       
 * Run GUI applications
-    a)  cd js
+    a)  cd {ENSO_HOME}/src/js
     b)  {path-to-electron}Electron .
       
       You can use CMD-O to open/edit many models. Examples include:
@@ -90,5 +91,3 @@ functional reactive programming (FRP).
   Two tests that run the examples in core/expr/test
 		ruby -I. core/expr/test/test_expr.rb
 		ruby -I. core/expr/test/test_impl.rb
-
-
