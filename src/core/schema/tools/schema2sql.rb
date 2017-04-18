@@ -112,9 +112,10 @@ class Scalar
 
   def type
     case @name 
-    when 'str' then return 'string'
-    when 'int' then return 'integer'
-    when 'bool' then return 'boolean'
+    when 'str' then 'string'
+    when 'int' then 'integer'
+    when 'real' then 'real'
+    when 'bool' then 'boolean'
     else
       raise "Unsupported primitive: #{@name}"
     end
@@ -122,9 +123,10 @@ class Scalar
 
   def default
     case @name 
-    when 'str' then return ''
-    when 'int' then return 0
-    when 'bool' then return false
+    when 'str' then ''
+    when 'int' then 0
+    when 'real' then 0.0
+    when 'bool' then false
     else
       raise "Unsupported primitive: #{@name}"
     end

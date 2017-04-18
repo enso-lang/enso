@@ -1,0 +1,24 @@
+
+
+start S
+
+S ::= [Schema] "set foreign_key_checks=0;" /2
+               classes:T* /2
+               "set foreign_key_checks=1"
+
+SYM ::= "`".sym."`"
+
+T ::= [Class] "CREATE TABLE" name:SYM "(" /> 
+                  "pk INT NOT NULL, PRIMARY KEY (pk)," /
+									defined_fields:F* </ 
+							");"/
+
+F ::= [Field] {computed != nil} 
+			| [Field] {many}
+			| [Field]  name:SYM type:TYPE OPT "," /
+			| [Field] name:SYM  "INT NOT NULL, FOREIGN KEY (".name:SYM.") REFERENCES" type:(name:SYM)."(pk)," /
+
+TYPE ::= [Primitive] { name == "int"} "INT"
+       | [Primitive] { name == "str"} "VARCHAR(255)"
+       
+OPT ::= { optional } "NULL" | "NOT NULL"

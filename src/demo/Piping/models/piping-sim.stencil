@@ -4,7 +4,7 @@ graph [font.size=12,fill.color=(255,255,255)] {
   // create the nodes (one for each class)
   for "Element" elem : system.elements
    label elem {
-     if (elem is Temperatured)
+     if elem is Temperatured then
        oval [line.width=1,fill.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))] {
          vertical {
            text [font.size=16,font.weight="bold"] elem.name
@@ -12,9 +12,9 @@ graph [font.size=12,fill.color=(255,255,255)] {
              text [font.size=10,font.weight=400] elem.user_temp
          }
        }
-     if not (elem is Temperatured)
+     if not (elem is Temperatured) then
        oval [line.width=1,fill.color=(200,200,200)] {
-         if (elem is Valve)
+         if elem is Valve then
            text [font.size=12 + elem.flow * 4,font.weight="bold"] "elem.name"
          else
            text [font.size=16,font.weight="bold"] elem.name
@@ -22,10 +22,10 @@ graph [font.size=12,fill.color=(255,255,255)] {
     }
   // create the links
   for "Input" elem : system.elements
-    if (elem is InputElement and not (elem is Joint))
+    if elem is InputElement and not (elem is Joint) then
         connector [line.width=3,line.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))] (elem <-- elem.input.input)
   for elem : system.elements
-    if (elem is Joint)
+    if elem is Joint then
         for "Connection" pipe : elem.inputs
            connector [line.width=3,line.color=(250,250-((elem.input.temperature-40)*6),250-((elem.input.temperature-40)*6))]  (elem <-- pipe.input)
 
@@ -38,14 +38,14 @@ graph [font.size=12,fill.color=(255,255,255)] {
            text [font.size=8,font.weight=400] sensor.kind
            horizontal {
             text [font.size=8,font.weight=400] "current:"
-            if sensor.kind == "temperature"
+            if sensor.kind == "temperature" then
               text [font.size=8,font.weight=400] sensor.attach.temperature
-            else if sensor.kind == "pressure"
+            else if sensor.kind == "pressure" then
               text [font.size=8,font.weight=400] sensor.attach.pressure
-            else if sensor.kind == "flow"
+            else if sensor.kind == "flow" then
               text [font.size=8,font.weight=400] sensor.attach.flow
            }
-           if sensor.controllable
+           if sensor.controllable then
              horizontal {
               text [font.size=8,font.weight=400] "desired: "
               text+ [font.size=8,font.weight=400] sensor.user

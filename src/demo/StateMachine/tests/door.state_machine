@@ -1,6 +1,6 @@
 
 
-start Opened
+start Closed
 
 state Opened
   on close go Closed

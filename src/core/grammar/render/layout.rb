@@ -252,11 +252,11 @@ module Layout
       if !this.many
         # optional
         render(this.arg) || true
-      else
+      else # many valued
         if stream.size > 0 || this.optional
           oldEnv = @localEnv
           @localEnv = Env::HashEnv.new
-          @localEnv['_size'] = stream.size
+         # @localEnv['_size'] = stream.size
           s = []
           i = 0
           ok = true

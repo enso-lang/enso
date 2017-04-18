@@ -42,7 +42,6 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              (type = name.split(".")._get((-1)));
              (deps = []);
              deps.push(self.get_meta(S("", type, ".grammar")));
-             puts(S("METADATA ", model.factory().file_path(), ""));
              if ((model.factory().file_path().size() > 0)) {
                model.factory().file_path()._get(Range.new(1, (-1))).each((function (fn) {
                  return deps.push(self.get_meta(fn.split("/")._get((-1))));
@@ -73,7 +72,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3103) {
+             catch (caught$3151) {
                
                  return false;
              }
@@ -89,12 +88,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1114) {
+      catch (caught$1142) {
         
-          if ((caught$1114 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1142 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1114); 
+            })(caught$1142); 
           }
           else { 
             ;
@@ -165,7 +164,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       }), name);
            
       }
-      catch (caught$3244) {
+      catch (caught$3292) {
         
           e._set("source", "SYNTHETIC");
           e._set("date", self.Time().new());
@@ -189,7 +188,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
                  FileUtils.mkdir_p(S("", cache_path, "", dir, ""));
                }
              }
-             puts(S("## loading chache ", cache_path, "", name.gsub(".", "_"), ".json"));
+             puts(S("## loading cache ", cache_path, "", name.gsub(".", "_"), ".json"));
              return S("", cache_path, "", name.gsub(".", "_"), ".json");
            }
     })

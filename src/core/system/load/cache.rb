@@ -1,7 +1,7 @@
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
 require 'digest/sha1'
-require 'fileutils'
+# require 'fileutils'
 
 module Cache
 
@@ -29,7 +29,7 @@ module Cache
       input = find_json(name)
     end
     type = name.split('.')[-1]
-    puts("## loading cache for: #{name} (#{input})")
+    STDERR.puts("## loading cache for: #{name} (#{input})")
     json = System.readJSON(input)
     res = Dumpjson::from_json(factory, json[model])
     res.factory.file_path[0] = hack_prefix + json['source']
@@ -89,15 +89,15 @@ module Cache
 #      end
       index = name.rindex('/')
       if index && index >= 0
-        puts "SLASH #{name} => #{index}"
+        STDERR.puts "SLASH #{name} => #{index}"
         # dir = name[0,index].gsub('.', '_')
         dir = name[0..index].gsub('.','_')
         unless File.exists?("#{cache_path}#{dir}")
-	        puts "#### making #{cache_path}#{dir}"
+	        STDERR.puts "#### making #{cache_path}#{dir}"
           FileUtils.mkdir_p("#{cache_path}#{dir}")
         end
       end
-      puts "## loading chache #{cache_path}#{name.gsub('.','_')}.json"
+      STDERR.puts "## loading cache #{cache_path}#{name.gsub('.','_')}.json"
       "#{cache_path}#{name.gsub('.','_')}.json"
     end
   end
@@ -144,7 +144,7 @@ module Cache
 
       #analyze horizontal dep
       #something to do with imports
-      puts "METADATA #{model.factory.file_path}"
+      # STDERR.puts "METADATA #{model.factory.file_path}"
       if model.factory.file_path.size > 0
 	      model.factory.file_path[1..-1].each {|fn| deps << get_meta(fn.split("/")[-1])}
 	    end

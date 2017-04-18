@@ -19,12 +19,6 @@ class EIf < Command
   body!  Command
   body2! Command?
 
-//class ESwitch < Command
-//  e! Expr
-//  cases! Case*
-//  default! Stat?
-//
-
 class EBlock < Command
   fundefs! EFunDef*
   body!    Command*

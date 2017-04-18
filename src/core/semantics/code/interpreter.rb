@@ -118,12 +118,12 @@ module Interpreter
         end
       end
       if @indent
-      	puts "#{' '*@indent}#{method}"
+      	STDERR.puts "#{' '*@indent}#{method}"
       	@indent = @indent + 1
      	end
       result = send(method, obj)
       if @indent
-      	puts "#{' '*@indent}=#{result}"
+      	STDERR.puts "#{' '*@indent}=#{result}"
       	@indent = @indent - 1
      	end
       if !init_done

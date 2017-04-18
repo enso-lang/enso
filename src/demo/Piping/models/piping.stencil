@@ -10,10 +10,10 @@ graph [font.size=12,fill.color=(255,255,255)] {
    }
   // create the links
   for "Input" elem : system.elements
-    if elem is InputElement and not (elem is Joint)
+    if elem is InputElement and not (elem is Joint) then
         connector (elem <-- elem.input.input)
   for elem : system.elements
-    if elem is Joint
+    if elem is Joint then
         for "Connection" pipe : elem.inputs
            connector (elem <-- pipe.input)
 

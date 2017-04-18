@@ -288,7 +288,6 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
         if (((stream.size() > 0) || this_V.optional())) {
           (oldEnv = self.$.localEnv);
           (self.$.localEnv = Env.HashEnv.new());
-          self.$.localEnv._set("_size", stream.size());
           (s = []);
           (i = 0);
           (ok = true);

@@ -17,13 +17,13 @@ NLCommand ::=	EBlock
 					  
 EWhile ::= [EWhile] "while" cond:Expr body:NLCommand
 EFor ::= [EFor] "for" var:sym ":" list:Expr body:NLCommand
-EIf ::= [EIf] "if" cond:Expr body:NLCommand ("else" body2:NLCommand)?
+EIf ::= [EIf] "if" cond:Expr "then" body:NLCommand ("else" body2:NLCommand)?
 ESwitch ::= [ESwitch] "switch" e:Expr
 EFunDef ::= [EFunDef] "def" name:sym . "(". formals:Formal* @(.",") .")" body:NLCommand
 EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
 
 EBlock ::= "{" /> EBlock_nocurly /< "}"
-EBlock_nocurly ::= [EBlock] (fundefs:EFunDef+@/ /)? body:NLCommand*@/ 
+EBlock_nocurly ::= [EBlock] (fundefs:EFunDef+@/ /)? body:NLCommand*@(.";"/) 
 
 abstract Expr

@@ -13,35 +13,41 @@ class Copy
   end
   
   def copy(source, *args)
-    return nil if source.nil?
-    target = @memo[source]
-    return target if target
-    #puts "COPY #{source} #{args}"
-    klass = source.schema_class
-    target = @factory[klass.name]
-
-	# copy the primitive fields first, so that our name is defined
-    klass.fields.each do |field|
-      if field.type.Primitive?
-        target[field.name] = source[field.name]
-      end
-    end
-
-    register(source, target)
-
-    klass.fields.each do |field|
-      next if field.type.Primitive? || (field.inverse && field.inverse.traversal)
-      #puts "  FIELD #{field.name} #{source[field.name].class} #{source[field.name]}"
-      if !field.many
-        target[field.name] = copy(source[field.name], *args)
-      else
-        source[field.name].each do |x|
-          target[field.name] << copy(x, *args)
-        end
-      end
-    end
-    return target
-  end
+    if source.nil?
+      nil
+    else
+	    target = @memo[source]
+	    if target
+	      target 
+	    else
+		    #puts "COPY #{source} #{args}"
+		    klass = source.schema_class
+		    target = @factory[klass.name]
+		
+			# copy the primitive fields first, so that our name is defined
+		    klass.fields.each do |field|
+		      if field.type.Primitive?
+		        target[field.name] = source[field.name]
+		      end
+		    end
+		
+		    register(source, target)
+		
+		    klass.fields.each do |field|
+		      next if field.type.Primitive? || (field.inverse && field.inverse.traversal)
+		      #puts "  FIELD #{field.name} #{source[field.name].class} #{source[field.name]}"
+		      if !field.many
+		        target[field.name] = copy(source[field.name], *args)
+		      else
+		        source[field.name].each do |x|
+		          target[field.name] << copy(x, *args)
+		        end
+		      end
+		    end
+		    target
+		  end
+		end
+	end
 end
 
 

@@ -28,7 +28,7 @@ require 'demo/Piping/test/test_simulator.rb'
 require 'demo/Piping/test/test_controller.rb'
 
 # Questionaire
-require 'demo/Questionaire/test/test_ql.rb'
+# require 'demo/Questionaire/test/test_ql.rb'
 
 # EnsoSync
 

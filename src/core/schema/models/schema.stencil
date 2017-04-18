@@ -7,13 +7,13 @@ graph {   // create the nodes (one for each class)
         vertical {
            text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
            for field : class.defined_fields
-              if (field.type is Primitive or field.computed != nil)
+              if field.type is Primitive or field.computed != nil then
                 horizontal {
                   text field.name // editable field name
                   text (field.key ? "#" : (field.auto ? "##" : ":"))
                   text field.type.name // drop-down for type
                   text (field.many ? "*" : (field.optional ? "?" : ""))
-                  if (field.computed == nil) text "" else text "="
+                  if field.computed == nil then text "" else text "="
     }}}}
   
   // create the subclass links
@@ -24,9 +24,9 @@ graph {   // create the nodes (one for each class)
   // create the relationship edges that go between nodes
   for class : schema.classes
     for "Field" field : class.defined_fields
-     if (field.computed == nil)
-      if (not (field.type is Primitive) 
-          and (field.inverse == nil or field._id <= field.inverse._id))
+     if field.computed == nil then
+      if not (field.type is Primitive) 
+          and (field.inverse == nil or field._id <= field.inverse._id) then
         connector [line.width=field.traversal ? 3 : 1] (
                   (field == nil) ? "" : (field.name 
                           + (field.many ? "*" : (field.optional ? "?" : "")))

@@ -7,14 +7,15 @@ class VisitFields
   end
 
   def finalize(obj)
-    return if obj.nil? || @memo[obj]
-    #puts " "*@indent + "#{@pass} #{obj}"
-    @indent += 1    
-    @memo[obj] = true
-    obj.schema_class.fields.each do |f|
-      Field(f, obj)
-    end
-    @indent -= 1
+    if !obj.nil? && !@memo[obj]
+	    #puts " "*@indent + "#{@pass} #{obj}"
+	    @indent += 1    
+	    @memo[obj] = true
+	    obj.schema_class.fields.each do |f|
+	      Field(f, obj)
+	    end
+	    @indent -= 1
+	  end
   end
   
   def Field(field, obj)
@@ -55,16 +56,17 @@ end
 
 class UpdateInverses < VisitFields
   def visitField(field, obj, val)
-    return if val.nil? || field.type.Primitive?
-    # update delayed inverses
-    if field.inverse && field.inverse.many
-      #puts " "*@indent + "INVERTED #{obj}.#{field.inverse.name}"
-      _each(field, val) do |val|
-        if !val[field.inverse.name].include?(obj)
-          #puts " "*@indent + "FIXING #{obj}.#{field.inverse.name}"
-          val[field.inverse.name] << obj
-        end
-      end
-    end
+    if !val.nil? && field.type.Class?
+	    # update delayed inverses
+	    if field.inverse && field.inverse.many
+	      #puts " "*@indent + "INVERTED #{obj}.#{field.inverse.name}"
+	      _each(field, val) do |val|
+	        if !val[field.inverse.name].include?(obj)
+	          #puts " "*@indent + "FIXING #{obj}.#{field.inverse.name}"
+	          val[field.inverse.name] << obj
+	        end
+	      end
+	    end
+	  end
   end
 end

@@ -2,6 +2,7 @@
 
 
 MODELS = \
+	fibo.impl \
 	stencil.grammar \
 	expr.grammar \
 	impl.grammar \

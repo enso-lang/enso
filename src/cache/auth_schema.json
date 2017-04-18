@@ -1,25 +1,25 @@
 {
   "filename": "auth.schema",
   "source": "apps/security/models/auth.schema",
-  "date": "2017-02-03 14:14:43 -0600",
+  "date": "2017-02-07 11:35:31 -0600",
   "checksum": "6d301087aa6b4f8fa350152e0ebe0eca1790bd39",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-03-21 16:45:29 -0500",
       "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     }
   ],

@@ -37,20 +37,8 @@
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2017-03-21 16:55:39 -0500",
-      "checksum": "c306232aa1717ed871f10f4a6e0ac4d579eda5b8"
-    },
-    {
-      "filename": "grammar.grammar",
-      "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-03-21 16:45:38 -0500",
-      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
-    },
-    {
-      "filename": "grammar.schema",
-      "source": "core/grammar/models/grammar.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
+      "date": "2017-04-08 21:48:03 -0500",
+      "checksum": "b6f87cc25dddacc29b395e62845d4e87d441a4b1"
     }
   ],
   "model": {
@@ -1034,7 +1022,7 @@
                   },
                   {
                     "class": "Lit",
-                    "value=": "isa"
+                    "value=": "is"
                   },
                   {
                     "class": "Field",

@@ -17,7 +17,6 @@ class Point3D < Point
 class Line
   label# str
   points! Point*
-  len: int = points.size
   adj: Line?
 
 class Drawing

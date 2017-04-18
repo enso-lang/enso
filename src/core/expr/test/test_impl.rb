@@ -9,16 +9,6 @@ class CommandTest < Test::Unit::TestCase
     obj = Load::load("test1.impl")
     g = Load::load("impl.grammar")
     str = ""
-#    Layout::DisplayFormat.print(g, obj, str)
-#    puts str
-#=begin
-#    assert_equal(str.squeeze(" "), "{
-#    x = 0 
-#    i = 0 
-#    j = 0 
-#    while i < 4 { j = 0 while j < 5 { x = x + 1 j = j + 1 } i = i + 1 } 
-#    return x".squeeze(" "))
-#=end
   end
 
   def test_impl1
@@ -32,6 +22,16 @@ class CommandTest < Test::Unit::TestCase
     assert_equal(57, Impl.eval(impl2, env: {'x'=>22, 'lst'=>[1,2,3,4,5]}))
   end
 
+  def test_fact
+    #test fun def and calls, if, recursion
+    interp = Impl::EvalCommandC.new
+    fib = Load::load("fact.impl")
+
+    interp.dynamic_bind env: {} do
+      assert_equal(120, interp.eval(fib))
+    end
+  end
+  
   def test_fib
     #test fun def and calls, if, recursion
     interp = Impl::EvalCommandC.new
@@ -41,7 +41,7 @@ class CommandTest < Test::Unit::TestCase
       assert_equal(34, interp.eval(fib))
     end
   end
-  
+
   def test_piggyback
     #test the ability to piggyback on top of ruby's libraries, incl procs
     interp = Impl::EvalCommandC.new

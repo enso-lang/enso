@@ -52,6 +52,12 @@ module Impl
     def eval(obj)
       dispatch_obj(:eval, obj)
     end
+
+    def eval_ESequence(obj)
+      obj.items.each do |block|
+        eval(block)
+      end
+    end
     
     def eval_EWhile(obj)
       while eval(obj.cond)

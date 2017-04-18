@@ -1,31 +1,31 @@
 {
   "filename": "stencil.schema",
   "source": "core/diagram/models/stencil.schema",
-  "date": "2017-02-03 14:14:43 -0600",
+  "date": "2017-02-07 11:35:31 -0600",
   "checksum": "4e64a41eade5e1f56c5a83db8a44a98aa709031d",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-03-21 16:45:29 -0500",
       "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "impl.schema",
       "source": "core/expr/models/impl.schema",
-      "date": "2017-02-03 14:14:43 -0600",
-      "checksum": "882efd782ef60fa860925dc1e0980abbd3ff182c"
+      "date": "2017-03-31 09:51:37 -0500",
+      "checksum": "581ca41a91b5f51b6bd12cd19966e9b2474fb4b5"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     }
   ],

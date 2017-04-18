@@ -1,25 +1,25 @@
 {
   "filename": "xml.schema",
   "source": "apps/web/models/xml.schema",
-  "date": "2017-02-03 14:14:43 -0600",
+  "date": "2017-02-07 11:35:31 -0600",
   "checksum": "ed08d79955e4ff7b4e8c7e091971c4fe5bc9492e",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-03-21 16:45:29 -0500",
       "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "element.schema",
       "source": "apps/web/models/element.schema",
-      "date": "2017-02-03 14:14:43 -0600",
+      "date": "2017-02-07 11:35:31 -0600",
       "checksum": "ec07a5b895b79041c266e29e9a837eee8653b93b"
     }
   ],

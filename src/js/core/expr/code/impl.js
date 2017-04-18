@@ -48,6 +48,12 @@ define(["core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/int
       var self = this;
       return self.dispatch_obj("eval", obj);
     }));
+    (this.eval_ESequence = (function (obj) {
+      var self = this;
+      return obj.items().each((function (block) {
+        return self.eval(block);
+      }));
+    }));
     (this.eval_EWhile = (function (obj) {
       var self = this;
       while (self.eval(obj.cond())) self.eval(obj.body());
