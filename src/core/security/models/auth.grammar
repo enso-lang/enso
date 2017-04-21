@@ -2,18 +2,18 @@ import expr.grammar
 
 start Auth
 
-Auth ::= [Authentication] rules:Rule*
+Auth ::= [Authentication] rules:Rule* @/2
 
 Rule ::= AllowRule | DenyRule
-AllowRule ::= [AllowRule] Strength? "allow" action:Action ("if" cond:Expr)?
-DenyRule  ::= [DenyRule]  Strength? "deny" Msg? action:Action ("if" cond:Expr)?
+AllowRule ::= [AllowRule] Strength? "allow" /> action:Action (/ "if" cond:Expr)? </
+DenyRule  ::= [DenyRule]  Strength? "deny" Msg? /> action:Action (/ "if" cond:Expr)? </
 Msg ::= msg:str
 
 Strength ::= "weak"     {strength==1}
            | "medium"   {strength==2}
            | "strong"   {strength==3}
 
-Action ::= [Action] op:Operation+ @"," "(" obj:sym ":" type:sym ("{" ("*" {allfields==true} | fields:Field+ @",") "}")? ")"
+Action ::= [Action] op:Operation+ @(.",") "(". obj:sym .":" type:sym ("{". ("*" {allfields==true} | fields:Field+ @(.",")) ."}")? .")"
 Operation ::= OpCreate | OpRead | OpUpdate | OpDelete
 OpCreate ::= [OpCreate] "create"
 OpRead   ::= [OpRead]   "read"

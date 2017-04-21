@@ -3,9 +3,15 @@ require 'core/system/utils/paths'
 module Diff
 
   #Values can be: classes, primitives, paths, or nil
-  def self.add; :add; end #add a new object
-  def self.del; :del; end #del an object
-  def self.mod; :mod; end #modify a primitive or reference value
+  def self.add
+  	:add
+  end #add a new object
+  def self.del
+  	:del
+  end #del an object
+  def self.mod
+  	:mod
+  end #modify a primitive or reference value
   class Op
     attr_reader :path, :value, :type
     def initialize(type, path, value)
@@ -64,15 +70,15 @@ module Diff
   def self.diff_all(o1, o2, path, matches, ref=false)
     return [] if o1==o2
     type = o1 || o2
-    if type.is_a? Factory::MObject
+    if type.is_a?(Factory::MObject)
       if !ref
         diff_obj(o1, o2, path, matches, ref)
       else
         diff_ref(o1, o2, path, matches, ref)
       end
-    elsif type.is_a? Factory::List
+    elsif type.is_a?(Factory::List)
       diff_array(o1, o2, path, matches, ref)
-    elsif type.is_a? Factory::Set
+    elsif type.is_a?(Factory::Set)
       diff_hash(o1, o2, path, matches, ref)
     else #primitive value
       diff_primitive(o1, o2, path, matches, ref)
@@ -140,7 +146,7 @@ module Diff
       end
     end
     o2.each do |i2|
-      next if found.include? i2
+      next if found.include?(i2)
       fpath = path.key(Schema::object_key(i2))
       difflist.concat diff_all(nil, i2, fpath, matches, ref)
     end
@@ -194,7 +200,7 @@ class Match
           if f.many
             if f.type.key
               list_matches = match_keyed_list(o1[f.name], o2[f.name])
-            elsif o1[f.name].is_a? Factory::List
+            elsif o1[f.name].is_a?(Factory::List)
               list_matches = match_ordered_list(o1[f.name], o2[f.name])
             else
               raise "Trying to match a field that is neither keyed nor ordered"

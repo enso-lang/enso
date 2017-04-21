@@ -8,16 +8,16 @@ module ImmutableFactory
       @items = items
     end
 
-    def each &block
+    def each(&block)
       @items.each &block      
     end
   end
   
 
   class ManagedObjectBase
-    class << self
-      public :define_method
-    end
+#    class << self
+#      public :define_method
+#    end
   end
 
   def self.new(schema)

@@ -15,7 +15,9 @@ class ExprTest < Test::Unit::TestCase
 
   class A
     attr_reader :f1
-    def initialize(f1); @f1=f1; end
+    def initialize(f1)
+    	@f1=f1
+    end
   end
 
   def test_funct
@@ -24,7 +26,7 @@ class ExprTest < Test::Unit::TestCase
     ex0 = Load::load("expr2.expr")
     a = A.new(2)
     x = 12
-    interp.dynamic_bind env: {'a'=>a, 'x'=>x} do 
+    interp.dynamic_bind(env: {'a'=>a, 'x'=>x}) do 
       assert_equal(12, interp.eval(ex0))
     end
   end

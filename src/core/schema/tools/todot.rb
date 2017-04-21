@@ -99,9 +99,7 @@ class ObjectToDot
 end
 
 
-if __FILE__ == $0 then
-  #x = Load::load('door.state_machine')
-  x = Load::load(ARGV[0])
-  t = ObjectToDot.new
-  t.todot(x, $stdout)
-end
+#x = Load::load('door.state_machine')
+x = Load::load(ARGV[0])
+t = ObjectToDot.new
+t.todot(x, $stdout)

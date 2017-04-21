@@ -19,8 +19,9 @@ module Loading
       return if !@old_cache[name]
       diffs = Diff.diff(@old_cache[name], @cache[name])
 
-      filename = name.split(/\//)[-1]
-      model, type = filename.split(/\./)
+      filename = name.split("/")[-1]
+      model = filename.split(".")[0]
+      type = filename.split(".")[1]
 
       if !Cache::check_dep(name)
         res = true
@@ -51,14 +52,11 @@ module Loading
   end
 end
 
-if __FILE__ == $0 then
-  dt1 = Load::load_dynamic("diff-test1.diff-point")
-  gets
+dt1 = Load::load_dynamic("diff-test1.diff-point")
+gets
 
-  #changing memory model
-  dt1.lines['Flamingo'].pts[0].x = 100
-  dt1.lines['Flamingo'].pts[0].y = 200
-  Loader.sync_dynamic("diff-test1.diff-point")
-
-end
+#changing memory model
+dt1.lines['Flamingo'].pts[0].x = 100
+dt1.lines['Flamingo'].pts[0].y = 200
+Loader.sync_dynamic("diff-test1.diff-point")
 

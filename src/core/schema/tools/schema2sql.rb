@@ -38,7 +38,8 @@ class Table
 
   def render_triggers(out = '')
     @spine_triggers.each do |parent_col, pair|
-      kid, kid_col = pair
+      kid = pair[0]
+      kid_col = pair[1]
       out << "create trigger delete_#{parent_col}\n"
       out << "\tbefore delete on #{table_name} for each row\n"
       out << "\tbegin delete from #{kid.table_name} where\n"
@@ -176,7 +177,7 @@ class Schema2SQL
         eval(f)
       end
       this.supers.each do |c|
-        tbl.foreign_key(super_column(c.name), eval(c));
+        tbl.foreign_key(super_column(c.name), eval(c))
         tbl.cascade(super_column(c.name))
       end
       this.subclasses.each do |c|
@@ -224,14 +225,11 @@ class Schema2SQL
 end
 
 
-if __FILE__ == $0 then
-  require 'core/system/load/load'
+require 'core/system/load/load'
 
-  ss = Load::load('schema.schema')
-  puts Schema2SQL.to_sql(ss).render
+ss = Load::load('schema.schema')
+puts Schema2SQL.to_sql(ss).render
 
-  #gs = Load::load('grammar.schema')
-  #puts Schema2SQL.to_sql(gs).render
+#gs = Load::load('grammar.schema')
+#puts Schema2SQL.to_sql(gs).render
   
-
-end

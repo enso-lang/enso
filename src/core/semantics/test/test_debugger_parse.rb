@@ -5,7 +5,7 @@ require 'demo/lambda/code/parse'
 Cache.clean('lambda.grammar') #need to clean cache to get origin tracking
 sm = Load::load('lambda.grammar')
 
-class Parse2::ParseGrammarC
+class ParseGrammarC
   include Debug::Debug
   def parse(obj)
     wrap(:parse, :debug, obj)
@@ -19,7 +19,7 @@ schema = Load::load("#{type}.schema")
 grammar = sm
 factory = Factory.new(schema)
 
-interp = Parse2::ParseGrammarC.new
+interp = ParseGrammarC.new
 ast = interp.dynamic_bind input: input, factory:factory do
   interp.parse(sm)
 end

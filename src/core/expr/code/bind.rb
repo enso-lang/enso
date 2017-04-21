@@ -9,7 +9,7 @@ module BindExpr
  # args
   def bind_EVar(obj)
     env = @D[:env]
-    if env.keys.include? obj.name
+    if env.keys.include?(obj.name)
       BindExpr.make_const(env[obj.name], @D[:factory])
     else
       obj

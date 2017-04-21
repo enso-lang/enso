@@ -14,7 +14,7 @@ module ControllerInterpreter
     end
 
     def run_Controller(obj)
-      if not @D.include? :current or @D[:current].nil?
+      if not @D.include?(:current) or @D[:current].nil?
         obj.globals.each do |g|
           run(g)
         end
@@ -78,25 +78,25 @@ class Controller
       @piping = piping
     end
     def has_key?(key)
-      if @piping.sensors.has_key? key
+      if @piping.sensors.has_key?(key)
         true
-      elsif @piping.elements.has_key? key
+      elsif @piping.elements.has_key?(key)
         true
       else
         @parent.nil? ? nil : @parent.has_key?(key)
       end
     end
     def [](key)
-      if @piping.sensors.has_key? key
+      if @piping.sensors.has_key?(key)
         @piping.sensors[key]
-      elsif @piping.elements.has_key? key
+      elsif @piping.elements.has_key?(key)
         @piping.elements[key]
       else
         @parent.nil? ? nil : @parent[key]
       end
     end
     def []=(key, value)
-      if @piping.elements.has_key? key
+      if @piping.elements.has_key?(key)
         @piping.elements[key] = value
       else
         @parent[key] = value

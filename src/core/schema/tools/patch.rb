@@ -25,7 +25,7 @@ module Patch
           when Diff.add
             fix.path.insert(o, val)
           when Diff.del
-            next unless fix.path.deref? o
+            next unless fix.path.deref?(o)
             fix.path.delete(o)
           when Diff.mod
             fix.path.assign(o, val)

@@ -21,7 +21,7 @@ interp = DebugEvalImplC.new
 #run it!
 exp1 = Load::load('expr1.expr')
 startt=Time.now
-interp.dynamic_bind env: {'f'=>10} do
+interp.dynamic_bind(env: {'f'=>10}) do
   puts interp.eval(fib)
 end
 puts "debug = #{Time.now-startt}"

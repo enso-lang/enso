@@ -35,20 +35,4 @@ class BootstrapTests < Test::Unit::TestCase
     ss = MetaSchema::load_path("core/system/boot/schema_schema.json")
     assert(ss.types['Field'] == ss.types['Class'].defined_fields['defined_fields'].type)
   end
-  
-  def test_6
-    ss = MetaSchema::load_path("core/system/boot/schema_schema.json")
-    realss = Load::load('schema.schema')
-    
-    #puts "Writing new metaschema"  
-    ss_path = 'schema_schema2.json'
-    File.open(ss_path, 'w+') do |f| 
-      f.write(JSON.pretty_generate(Dumpjson::to_json(realss, true)))
-    end
-    begin
-      assert( Equals.equals(realss, ss) )
-    ensure
-      File.delete(ss_path)
-    end
-  end
-end
+ end

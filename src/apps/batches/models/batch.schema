@@ -1,3 +1,5 @@
+import expr.schema
+
 primitive str
 primitive int
 primitive bool
@@ -12,43 +14,5 @@ class Field
   query! Query?
   owner: Query / fields
 
-class ComputedField < Field
-  expr!Expr
-
 class Expr 
-
-class EBinOp < Expr
-  op:str
-  e1!Expr
-  e2!Expr
-
-class EUnOp < Expr
-  op:str
-  e!Expr
-
-class EField < Expr
-  e!Expr
-  fname:str
-
-class EVar < Expr
-  name:str
-
-class EFunCall < Expr
-  fun:str
-  args!Expr*
-
-class EListComp < Expr
-  var:str
-  list!Expr
-  e!Expr
-
-class EConst < Expr 
-class EStrConst < EConst
-  val:str
-
-class EIntConst < EConst
-  val:int
-
-class EBoolConst < EConst
-  val:bool
 

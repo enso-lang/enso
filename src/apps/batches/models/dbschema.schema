@@ -1,4 +1,11 @@
-#ruby
+import schema.schema
 
-union(load('dbext.schema'),
-   load('schema.schema'))
+primitive str
+primitive bool
+
+class Class
+  table: str?
+
+class Field
+  column: str?
+

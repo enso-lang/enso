@@ -1,5 +1,4 @@
 
-if __FILE__ == $0 then
   require 'core/system/load/load'
   require 'core/schema/tools/print'
   require 'core/grammar/render/layout'
@@ -51,4 +50,3 @@ if __FILE__ == $0 then
       end
     end
  end
-end

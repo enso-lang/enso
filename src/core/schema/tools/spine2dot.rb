@@ -26,7 +26,7 @@ class SpineToDot
       next if fld.computed
       if fld.type.Primitive? then
         label = obj[fld.name].inspect.gsub('>', '&gt;').gsub('<', '&lt;').gsub('&', '&amp;')
-        label.gsub!(/"/, "\\\"")
+        label.gsub!("\"", "\\\"")
         n = node(obj) + "_#{fld.name} [label=\"#{label}\"]"
         @nodes.unshift(n)
         @edges << "#{node(obj)} -> #{n} [label=\"#{fld.name}\"]"
@@ -67,9 +67,7 @@ class SpineToDot
 end
 
 
-if __FILE__ == $0 then
-  #x = Load::load('door.state_machine')
-  x = Load::load(ARGV[0])
-  t = SpineToDot.new
-  t.todot(x, $stdout)
-end
+#x = Load::load('door.state_machine')
+x = Load::load(ARGV[0])
+t = SpineToDot.new
+t.todot(x, $stdout)

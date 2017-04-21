@@ -1,4 +1,11 @@
-#ruby
+import schema.grammar
 
-union(load('dbext.grammar'),
-   load('schema.grammar'))
+start Schema
+
+abstract Parent
+abstract TypeDef
+
+Schema ::= [Schema] "schema" root:sym types:TypeDef*
+ClassAnnot ::= Parent? TableName
+TableName ::= "table" "=" table:sym
+Annot ::= "column" "=" column:sym

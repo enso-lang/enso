@@ -21,7 +21,7 @@ Primary ::= [Nil] "nil"
 	 |  [New] "struct" "(" bindings:Binding+ @"," ")"
 	 |  [Tuple] "(" first:Exp "," rest:Exp+ @"," ")"
 	 |  [Call] name:sym "(" args:Exp* @"," ")"
-	 |  [Field] obj:Primary "->" name:sym ("(" args:Exp* @"," ")")?
+	 |  [Field] obj:Primary "." name:sym ("(" args:Exp* @"," ")")?
 	 |  [Subscript] obj:Primary "[" arg:Exp "]"
 	 |  [Slice] obj:Primary "[" from:Exp ":" to:Exp "]"
 	 |  "(" Exp ")"

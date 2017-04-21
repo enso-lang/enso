@@ -1,7 +1,7 @@
 
 start Todos
 
-Todos ::= [Todos] todos:Todo*
+Todos ::= [Todos] todos:Todo* @/
 
 Todo ::= [Todo] "todo" todo:str done:Done
 

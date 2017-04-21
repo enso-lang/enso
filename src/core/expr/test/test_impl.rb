@@ -27,7 +27,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Impl::EvalCommandC.new
     fib = Load::load("fact.impl")
 
-    interp.dynamic_bind env: {} do
+    interp.dynamic_bind(env: {}) do
       assert_equal(120, interp.eval(fib))
     end
   end
@@ -37,7 +37,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Impl::EvalCommandC.new
     fib = Load::load("fibo.impl")
 
-    interp.dynamic_bind env: {'f'=>10} do
+    interp.dynamic_bind(env: {'f'=>10}) do
       assert_equal(34, interp.eval(fib))
     end
   end
@@ -47,7 +47,7 @@ class CommandTest < Test::Unit::TestCase
     interp = Impl::EvalCommandC.new
     piggy = Load::load("ruby_piggyback.impl")
 
-    interp.dynamic_bind env: {'s'=>[1,2,3]} do
+    interp.dynamic_bind(env: {'s'=>[1,2,3]}) do
       assert_equal([2,3], interp.eval(piggy))
     end
   end

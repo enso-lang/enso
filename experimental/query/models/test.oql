@@ -1,5 +1,5 @@
 
 
-select c->name from root->classes as c 
-where root->classes["Exp"] in c->supers
+select c.name from root.classes as c 
+where root.classes["Exp"] in c.supers
 
