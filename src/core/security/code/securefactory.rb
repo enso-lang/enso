@@ -24,7 +24,7 @@
 
 
 require 'core/schema/code/factory'
-require 'apps/security/code/security'
+require 'core/security/code/security'
 
 module SecureFactory
 

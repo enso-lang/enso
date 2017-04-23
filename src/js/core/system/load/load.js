@@ -24,7 +24,7 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     (this.load_text = (function (type, factory, source, show) {
       var self = this;
       (show = (((typeof show) !== "undefined") ? show : false));
-      var g, s, result;
+      var g, result;
       (g = self.load(S("", type, ".grammar")));
       (s = self.load(S("", type, ".schema")));
       (result = Parse.load_raw(source, g, s, factory, show));
@@ -33,7 +33,6 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     (this._load = (function (name, type) {
       var self = this;
       (type = (((typeof type) !== "undefined") ? type : null));
-      var res;
       (type = (type || name.split(".")._get((-1))));
       if (((Parse == null) || Cache.check_dep(name))) {
         System.stderr().push(S("## fetching ", name, "...\n"));
@@ -47,14 +46,14 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     }));
     (this.parse_with_type = (function (name, type) {
       var self = this;
-      var res, g, s;
+      var g;
       (g = self.load(S("", type, ".grammar")));
       (s = self.load(S("", type, ".schema")));
       return (res = self.load_with_models(name, g, s));
     }));
     (this.setup = (function () {
       var self = this;
-      var ss, gs;
+      var gs;
       (self.$.cache = (new EnsoHash({
         
       })));

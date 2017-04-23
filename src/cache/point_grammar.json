@@ -1,8 +1,8 @@
 {
   "filename": "point.grammar",
   "source": "demo/geometry/point.grammar",
-  "date": "2017-02-07 11:35:31 -0600",
-  "checksum": "b28c26516be43deeef6aa553b507c11d8390bda9",
+  "date": "2017-04-21 15:47:00 -0500",
+  "checksum": "3fd85d320f972c9aad221e3208990c2bbfed3fcc",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -114,18 +114,6 @@
                     "arg": {
                       "class": "Value",
                       "kind=": "str"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "len",
-                    "arg": {
-                      "class": "Regular",
-                      "arg": {
-                        "class": "Value",
-                        "kind=": "int"
-                      },
-                      "optional=": true
                     }
                   },
                   {

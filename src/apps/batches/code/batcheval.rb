@@ -7,7 +7,7 @@ This class is a substitute for Render.rb from EnsoWeb, which, instead of evaluat
 =end
 
 require 'apps/web/code/closure'
-require 'apps/security/code/bind'
+require 'core/security/code/bind'
 require 'apps/web/code/renderable'
 require 'apps/web/code/render'
 

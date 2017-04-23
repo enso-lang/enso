@@ -2,7 +2,7 @@ import expr.grammar
 
   start Grammar
 
-  Grammar ::= [Grammar] "start" \start:<root.rules[it]> rules:Rule* @/2
+  Grammar ::= [Grammar] "start" \start:<root.rules[it]> /2 rules:Rule* @/2
 
   Rule ::= [Rule] name:sym "::=" arg:Alt
          | [Rule] "abstract" name:sym

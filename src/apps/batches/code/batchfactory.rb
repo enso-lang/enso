@@ -25,8 +25,8 @@ require 'apps/batches/code/result2object'
 require 'apps/batches/code/java_impl/schema'
 require 'apps/batches/code/securebatch'
 require 'apps/batches/code/secureschema'
-require 'apps/security/code/security'
-require 'apps/security/code/nullsecurity'
+require 'core/security/code/security'
+require 'core/security/code/nullsecurity'
 
 require "lib/runtime-1.0-SNAPSHOT.jar"
 require "lib/mysql-connector-java-5.1.10.jar"

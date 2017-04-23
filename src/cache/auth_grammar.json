@@ -1,14 +1,14 @@
 {
   "filename": "auth.grammar",
   "source": "core/security/models/auth.grammar",
-  "date": "2017-04-21 12:20:31 -0500",
-  "checksum": "f8a36746a74dc1fa34e8a2e7c239821de9376f59",
+  "date": "2017-04-23 14:47:42 -0500",
+  "checksum": "b083bf072ba32072a221225da5eaa5dd96b49b53",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-03-21 16:45:38 -0500",
-      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+      "date": "2017-04-23 14:50:54 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",
@@ -43,8 +43,8 @@
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-03-21 16:45:38 -0500",
-      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+      "date": "2017-04-23 14:50:54 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",

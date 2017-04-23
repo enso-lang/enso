@@ -15,9 +15,9 @@ module ImmutableFactory
   
 
   class ManagedObjectBase
-#    class << self
-#      public :define_method
-#    end
+    class << self
+      public :define_method
+    end
   end
 
   def self.new(schema)

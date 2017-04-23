@@ -5,8 +5,8 @@ Sit in tight loop waiting for someone to call me
 
 require 'applications/EnsoSync/code/io'
 require 'applications/EnsoSync/code/sync'
-require 'apps/security/code/securefactory'
-require 'apps/security/code/nullsecurity'
+require 'core/security/code/securefactory'
+require 'core/security/code/nullsecurity'
 require 'core/system/load/load'
 require 'socket'
 require 'yaml'
@@ -46,7 +46,7 @@ def esynchost(rootpath)
     #initiate contact
     login = client.gets[0..-2]
     puts "\n#{login} initiated sync..."
-#     sfactory = SecureFactory::new(schema, sec, true)
+#   #  sfactory = SecureFactory::new(schema, sec, true)
     sfactory = Interpreter(FactorySchema, SecureFactory).Make(schema, rules: rules, :fail_silent=>true)
     factory = Factory::new(schema)
 

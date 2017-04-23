@@ -4,14 +4,17 @@ require 'core/system/load/load'
 require 'core/schema/tools/print'
 require 'core/schema/tools/union'
 require 'core/schema/tools/equals'
-require 'apps/security/code/securefactory'
+require 'core/security/code/securefactory'
 require 'core/semantics/code/interpreter'
 
 
 class SecurityTest < Test::Unit::TestCase
 
   def setup
-    interp = SecureFactory.new
+    # interp = SecureFactory.new
+    sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
+    factory = Factory::new(schema)
+
     schema = Load::load('todo.schema')
     sfact = interp.Make(schema, rules: Load::load('todo.auth'), fail_silent: false)
     @todo = sfact.make_secure(Load::load('test.todo'))
