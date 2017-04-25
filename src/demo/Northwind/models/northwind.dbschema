@@ -1,4 +1,3 @@
-schema Northwind
 
 primitive int
 primitive str
@@ -6,29 +5,29 @@ primitive real
 primitive bool
 
 class Northwind table=Northwind
-	!Categories: Category*
-	!Products: Product*
-	!Suppliers: Supplier*
-	!Customers: Customer*
-	!Orders: Order*
-end
+	Categories! Category*
+	Products! Product*
+	Suppliers! Supplier*
+	Customers! Customer*
+	Orders! Order*
+
 
 class Category table=Categories
-    #CategoryID: int
+    CategoryID# int
     CategoryName: str
     Description: str
     Picture: str
-    Products: Product* / Product.Category
-end
+    Products: Product* / Category
+
 
 class Customer table=Customers
-	#CustomerID: str
+	CustomerID# str
 	CompanyName: str
 	ContactName: str
 	Country: str
-	Orders: Order* / Order.Customer
+	Orders: Order* / Customer
 	Region: str
-end
+
 
 class Order_Details table=Order_Details
 	Order: Order column=OrderID
@@ -36,20 +35,20 @@ class Order_Details table=Order_Details
 	UnitPrice: real
 	Quantity: int
 	Discount: real
-end
+
 
 class Order table=Orders
-	#OrderID: int
+	OrderID# int
 	OrderDate: int
     RequiredDate: int
     ShippedDate: int
 	Customer: Customer column=CustomerID
-	OrderDetails: Order_Details* / Order_Details.Order
+	OrderDetails: Order_Details* / Order
     Freight: int
-end
+
 
 class Product table=Products
-    #ProductID: int
+    ProductID# int
     ProductName: str
     QuantityPerUnit: str
     UnitPrice: real?
@@ -59,11 +58,11 @@ class Product table=Products
     Discontinued: int
     Category: Category? column=CategoryID
     Supplier: Supplier? column=SupplierID
-    OrderDetails: Order_Details* / Order_Details.Product
-end
+    OrderDetails: Order_Details* / Product
+
 
 class Supplier table=Suppliers
-	#SupplierID: int
+	SupplierID# int
 	CompanyName: str
 	ContactName: str
 	ContactTitle: str
@@ -75,5 +74,5 @@ class Supplier table=Suppliers
     Phone: str
     Fax: str
     HomePage: str
-    Products: Product* / Product.Supplier
-end
+    Products: Product* / Supplier
+

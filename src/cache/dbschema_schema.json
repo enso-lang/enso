@@ -1,8 +1,8 @@
 {
   "filename": "dbschema.schema",
   "source": "apps/batches/models/dbschema.schema",
-  "date": "2017-04-21 12:03:31 -0500",
-  "checksum": "49994f406b84ed3e5440bbc6f83513efd6c1c62b",
+  "date": "2017-04-21 12:05:24 -0500",
+  "checksum": "a1a43b0b8ec07757fa8f2cd1065658aefe894fe0",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -29,112 +29,6 @@
         "class": "Primitive",
         "name=": "bool",
         "schema": ""
-      },
-      {
-        "class": "Class",
-        "name=": "Schema",
-        "schema": "",
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "root",
-            "owner": "types[Schema]",
-            "type": "types[str]",
-            "optional=": true
-          },
-          {
-            "class": "Field",
-            "name=": "root_class",
-            "owner": "types[Schema]",
-            "type": "types[Class]",
-            "computed": {
-              "class": "EStrConst",
-              "val=": "@classes[@root]"
-            }
-          },
-          {
-            "class": "Field",
-            "name=": "types",
-            "owner": "types[Schema]",
-            "type": "types[Type]",
-            "optional=": true,
-            "many=": true,
-            "inverse": "types[Type].defined_fields[schema]",
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "classes",
-            "owner": "types[Schema]",
-            "type": "types[Class]",
-            "optional=": true,
-            "many=": true,
-            "computed": {
-              "class": "EFunCall",
-              "fun": {
-                "class": "EField",
-                "e": {
-                  "class": "EVar",
-                  "name=": "types"
-                },
-                "fname=": "select"
-              },
-              "lambda": {
-                "class": "ELambda",
-                "body": {
-                  "class": "InstanceOf",
-                  "base": {
-                    "class": "EVar",
-                    "name=": "t"
-                  },
-                  "class_name=": "Class"
-                },
-                "formals": [
-                  {
-                    "class": "Formal",
-                    "name=": "t"
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "class": "Field",
-            "name=": "primitives",
-            "owner": "types[Schema]",
-            "type": "types[Primitive]",
-            "optional=": true,
-            "many=": true,
-            "computed": {
-              "class": "EFunCall",
-              "fun": {
-                "class": "EField",
-                "e": {
-                  "class": "EVar",
-                  "name=": "types"
-                },
-                "fname=": "select"
-              },
-              "lambda": {
-                "class": "ELambda",
-                "body": {
-                  "class": "InstanceOf",
-                  "base": {
-                    "class": "EVar",
-                    "name=": "t"
-                  },
-                  "class_name=": "Primitive"
-                },
-                "formals": [
-                  {
-                    "class": "Formal",
-                    "name=": "t"
-                  }
-                ]
-              }
-            }
-          }
-        ]
       },
       {
         "class": "Class",
@@ -383,6 +277,95 @@
             "name=": "traversal",
             "owner": "types[Field]",
             "type": "types[bool]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Schema",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "types",
+            "owner": "types[Schema]",
+            "type": "types[Type]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Type].defined_fields[schema]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "classes",
+            "owner": "types[Schema]",
+            "type": "types[Class]",
+            "optional=": true,
+            "many=": true,
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "types"
+                },
+                "fname=": "select"
+              },
+              "lambda": {
+                "class": "ELambda",
+                "body": {
+                  "class": "InstanceOf",
+                  "base": {
+                    "class": "EVar",
+                    "name=": "t"
+                  },
+                  "class_name=": "Class"
+                },
+                "formals": [
+                  {
+                    "class": "Formal",
+                    "name=": "t"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "primitives",
+            "owner": "types[Schema]",
+            "type": "types[Primitive]",
+            "optional=": true,
+            "many=": true,
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "types"
+                },
+                "fname=": "select"
+              },
+              "lambda": {
+                "class": "ELambda",
+                "body": {
+                  "class": "InstanceOf",
+                  "base": {
+                    "class": "EVar",
+                    "name=": "t"
+                  },
+                  "class_name=": "Primitive"
+                },
+                "formals": [
+                  {
+                    "class": "Formal",
+                    "name=": "t"
+                  }
+                ]
+              }
+            }
           }
         ]
       },

@@ -5,7 +5,7 @@ start Schema
 abstract Parent
 abstract TypeDef
 
-Schema ::= [Schema] "schema" root:sym types:TypeDef*
+Schema ::= [Schema] types:TypeDef*
 ClassAnnot ::= Parent? TableName
 TableName ::= "table" "=" table:sym
 Annot ::= "column" "=" column:sym

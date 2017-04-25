@@ -30,7 +30,9 @@ module CheckPrivileges
   end
 
   def check_Rule(action, cond, args={})
-    check(action, args) and (cond.nil? or Interpreter(EvalExpr).eval(cond, args.merge({:env=>{"user"=>args[:user], action.obj=>args[:obj]}})))
+    check(action, args) and 
+       (cond.nil? or 
+          Interpreter(EvalExpr).eval(cond, args.merge({:env=>{"user"=>args[:user], action.obj=>args[:obj]}})))
   end
 
   def check_Action(op, type, fields, allfields, args=nil)
