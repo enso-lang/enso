@@ -35,7 +35,6 @@ MODELS = \
 	todo.grammar \
 	todo.schema \
 	batch.schema \
-	dbext.schema \
 	esync.schema \
 	genealogy.schema \
 	auth.schema \

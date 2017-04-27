@@ -1,19 +1,19 @@
 {
   "filename": "stencil.grammar",
   "source": "core/diagram/models/stencil.grammar",
-  "date": "2017-02-07 11:35:31 -0600",
+  "date": "2017-04-25 17:53:05 -0500",
   "checksum": "5ab89ee595b355af923d1f729b8ca4093a4b29e9",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-03-21 16:45:38 -0500",
-      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+      "date": "2017-04-25 17:53:05 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
@@ -25,37 +25,37 @@
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     },
     {
       "filename": "impl.grammar",
       "source": "core/expr/models/impl.grammar",
-      "date": "2017-04-17 13:15:26 -0500",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "2f959026b239ec52cc2155ce43e82d3d54e17346"
     },
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-03-21 16:45:38 -0500",
-      "checksum": "14375345eff1e67338d80658c660ca9ab178b188"
+      "date": "2017-04-25 17:53:05 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2017-04-17 13:11:37 -0500",
+      "date": "2017-04-25 17:53:05 -0500",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
     }
   ],
