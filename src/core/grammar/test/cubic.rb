@@ -15,7 +15,7 @@ class Gamma2 < GrammarGenerator
   end
 end
 
-if __FILE__ == $0 then
+#if __FILE__ == $0 then
   grammar = Gamma2.grammar
   org = Origins.new('', '-')
   1.step(50, 5) do |i|
@@ -23,4 +23,4 @@ if __FILE__ == $0 then
     t = Benchmark.realtime { GLL.parse(source, grammar, grammar.start, org) }
     puts "#{i} #{t}"
   end
-end
+#end

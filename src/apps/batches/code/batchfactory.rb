@@ -1,8 +1,4 @@
-=begin
-
-Note that unlike SecureFacotry, BatchFactory has nothing to do with the original factory class
-
-=end
+# Note that unlike SecureFacotry, BatchFactory has nothing to do with the original factory class
 
 include Java
 

@@ -69,7 +69,7 @@ class Result2Object
   end
 
   def coerce(val, type)
-    if val.is_a? Integer and type.name == "bool"
+    if val.is_a?(Integer) and type.name == "bool"
       val!=0
     else
       val

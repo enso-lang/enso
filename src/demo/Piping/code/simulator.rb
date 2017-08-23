@@ -4,33 +4,31 @@ require 'core/schema/tools/print'
 require 'core/grammar/render/layout'
 require 'core/semantics/interpreters/debug'
 
-=begin
-The SCIENCE!
-------------
-* Calculating pressure:
-
-Using kirchoff's law:
-At any point (elem), sum of (input pressure delta / input pipe length) = sum of (output pressure delta / output pipe length)
-
-hence,
-  sum( (Pn-P)/Ln ) = 0, where P is pressure at the opposite end of the pipe (Pn-P is negative for out pipes), 
-                              L is length, and 
-                              sum means sum over all pipes 1..n
-  sum( Pn/Ln - P/Ln) = 0
-  sum(Pn/Ln) - P * sum(1/Ln) = 0
-  P = sum(Pn/Ln) / sum(1/Ln)
-
-* Calculating heat flow:
-
-at each element, compute
-  - how much incoming water. flow is in length dimensions
-  - at what temperature (based on flow of incoming pipes)
-
-transfer to output pipes
-  - each pipe receives water based on its flow
-  - assume temperatures mix perfectly
-
-=end
+# The SCIENCE!
+# ------------
+# * Calculating pressure:
+# 
+# Using kirchoff's law:
+# At any point (elem), sum of (input pressure delta / input pipe length) = sum of (output pressure delta / output pipe length)
+# 
+# hence,
+#   sum( (Pn-P)/Ln ) = 0, where P is pressure at the opposite end of the pipe (Pn-P is negative for out pipes), 
+#                               L is length, and 
+#                               sum means sum over all pipes 1..n
+#   sum( Pn/Ln - P/Ln) = 0
+#   sum(Pn/Ln) - P * sum(1/Ln) = 0
+#   P = sum(Pn/Ln) / sum(1/Ln)
+# 
+# * Calculating heat flow:
+# 
+# at each element, compute
+#   - how much incoming water. flow is in length dimensions
+#   - at what temperature (based on flow of incoming pipes)
+# 
+# transfer to output pipes
+#   - each pipe receives water based on its flow
+#   - assume temperatures mix perfectly
+# 
 
 ROOM_TEMP = 50
 ERROR = 0.1
@@ -56,7 +54,7 @@ module SimulatorInterpreter
     end
 
     def run_System(obj)
-      dynamic_bind workqueue: [] do
+      dynamic_bind(workqueue: []) do
         # add just the pump to the workqueue
         obj.elements.each do |elem|
           if elem.Pump? or elem.Splitter?
@@ -75,7 +73,7 @@ module SimulatorInterpreter
     end
 
     def enqueue(elem)
-      if not @D[:workqueue].include? elem and not elem.nil?
+      if not @D[:workqueue].include?(elem) and not elem.nil?
         @D[:workqueue].push(elem)
       end
     end
@@ -109,19 +107,19 @@ module SimulatorInterpreter
 
     def calcPressure_Pump(elem)
       if elem.run
-=begin
-        # when running, exert a pressure difference between the two ends
-        # based on pump power (pressure) and pressure at in/out pipes
-        # basically same as normal computation except that in pressure 
-        # pretends to be higher by power units
-        num = elem.inputs.inject(0) {|memo, p| memo + (p.in_pressure+elem.power) / p.length} \
-            + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
-        dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} \
-            + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
-        new_out = (num / dem).round(1)
-        new_in = new_out - elem.power
-        pressurize_pipes(elem, new_in, new_out)
-=end
+
+#         # when running, exert a pressure difference between the two ends
+#         # based on pump power (pressure) and pressure at in/out pipes
+#         # basically same as normal computation except that in pressure 
+#         # pretends to be higher by power units
+#         num = elem.inputs.inject(0) {|memo, p| memo + (p.in_pressure+elem.power) / p.length} \
+#             + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
+#         dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} \
+#             + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
+#         new_out = (num / dem).round(1)
+#         new_in = new_out - elem.power
+#         pressurize_pipes(elem, new_in, new_out)
+
         #the code above is commented out for aesthetic purposes: I want 
         # pressure to only be positive numbers
         new_out = elem.power
@@ -139,19 +137,15 @@ module SimulatorInterpreter
       else 
         if splitter.position == 0.0 #turn left
           #left pipe behaves as the only pipe
-          num = splitter.input.in_pressure / splitter.input.length \
-              + splitter.outputs[0].out_pressure / splitter.outputs[0].length
-          dem = 1.0 / splitter.input.length \
-              + 1.0 / splitter.outputs[0].length
+          num = splitter.input.in_pressure / splitter.input.length + splitter.outputs[0].out_pressure / splitter.outputs[0].length
+          dem = 1.0 / splitter.input.length + 1.0 / splitter.outputs[0].length
           new_in = new_out0 = (num / dem).round(1)
           #right pipe behaves like it's sealed (ie pressure = other side)
           new_out1 = splitter.outputs[1].out_pressure
         elsif splitter.position == 1.0 #turn right
           #right pipe behaves as the only pipe
-          num = splitter.input.in_pressure / splitter.input.length \
-              + splitter.outputs[1].out_pressure / splitter.outputs[1].length
-          dem = 1.0 / splitter.input.length \
-              + 1.0 / splitter.outputs[1].length
+          num = splitter.input.in_pressure / splitter.input.length + splitter.outputs[1].out_pressure / splitter.outputs[1].length
+          dem = 1.0 / splitter.input.length + 1.0 / splitter.outputs[1].length
           new_in = new_out1 = (num / dem).round(1)
           #left pipe behaves like it's sealed (ie pressure = other side)
           new_out0 = splitter.outputs[0].out_pressure
@@ -172,10 +166,8 @@ module SimulatorInterpreter
     end
 
     def calcPressure_?(elem)
-      num = elem.inputs.inject(0) {|memo, p| memo + p.in_pressure / p.length} \
-          + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
-      dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} \
-          + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
+      num = elem.inputs.inject(0) {|memo, p| memo + p.in_pressure / p.length} + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
+      dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
       new_in = new_out = (num / dem).round(1)
       pressurize_pipes(elem, new_in, new_out)
     end
@@ -325,42 +317,5 @@ class Simulator
   end
 end
 
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  require 'core/semantics/interpreters/debug'
-
-  class SimulatorInterpreter::RunSimulatorC
-    include Debug::Debug
-    def run(obj)
-      wrap(:run, :debug, obj)
-    end
-    def calcPressure(obj)
-      wrap(:calcPressure, :debug, obj)
-    end
-  end
-
-  name = 'boiler'
-
-  Cache.clean("#{name}.piping-sim")
-
-  grammar = Load::load('piping.grammar')
-  schema = Load::load('piping-sim.schema')
-  pipes = Load::load_with_models("#{name}.piping", grammar, schema)
-  simulator = Simulator.new(pipes)
-
-  pipes.elements['Pump'].run = true
-  pipes.elements['Pump'].power = 200
-  pipes.elements['Burner'].ignite = true
-  pipes.elements['Burner'].temperature = 100
-
-  time = 0
-  while true
-    puts "\n========================="
-    puts "TIME: #{time+=1}\n"
-    simulator.run
-    simulator.display_state
-    sleep 1
-  end
-end
 
 

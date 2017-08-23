@@ -110,7 +110,7 @@ module Parse2
       if obj.kind == 'sym'
         #consume any token that starts with alpha
         next_token = @D[:tokens][0]
-        if next_token[0] =~ /[[:alpha:]]/
+        if Character.isLetter(next_token[0])
           [next_token, @D[:tokens][1..-1]]
         end
       elsif obj.kind == 'int'
@@ -130,15 +130,5 @@ module Parse2
   end
 end
 
-if __FILE__ == $0
-  input = "(({|f| {|a| (f (f a))}} {|x| x}) y)"
 
-  type = "lambda"
-  schema = Load::load("#{type}.schema")
-  grammar = Load::load("#{type}.grammar")
-  factory = Factory.new(schema)
-
-  ast = Parse2.parse(grammar, input, factory)
-  Print.print(ast)
-end
 

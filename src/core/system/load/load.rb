@@ -4,7 +4,6 @@ require 'core/system/boot/meta_schema'
 require 'core/schema/code/factory'
 require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
-require 'core/schema/tools/rename'
 require 'core/system/load/cache'
 require 'core/system/utils/paths'
 require 'core/system/utils/find_model'
@@ -38,12 +37,12 @@ module Load
       type ||= name.split('.')[-1]
       #first check if cached XML version is still valid 
       if Parse.nil? || Cache::check_dep(name)
-        $stderr << "## fetching #{name}...\n"
+        $stderr << "## fetching #{name}\n"
         Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
         res = parse_with_type(name, type)
 	      #dump it back to xml
-	      $stderr << "## caching #{name}...\n"
+	      $stderr << "## caching #{name}\n"
 	      Cache::save_cache(name, res, false)
 	      res
       end
@@ -125,22 +124,22 @@ module Load
     def load_path(path, grammar, schema, encoding = nil)
       if path.end_with?(".json") then
         if schema.nil? then
-          $stderr << "## booting #{path}...\n"
+          $stderr << "## booting #{path}\n"
           # this means we are loading schema_schema.json for the first time.
           result = MetaSchema::load_path(path)
         else
-          $stderr << "## fetching #{path}...\n"
+          $stderr << "## fetching #{path}\n"
           name = path.split("/")[-1].split(".")[0].gsub("_", ".")
           type = name.split('.')[-1]
           result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
         end
       elsif Parse.nil?
-        $stderr << "## fetching! #{path}...\n"
+        $stderr << "## fetching! #{path}\n"
         name = path.split("/")[-1]
         type = name.split('.')[-1]
         result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
       else
-        $stderr << "## loading #{path}...\n"
+        $stderr << "## loading #{path}\n"
         result = Parse.load_file(path, grammar, schema, encoding)
       end
       result

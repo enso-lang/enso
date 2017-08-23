@@ -33,8 +33,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   prods = {}
   db[:Product].all.each do |h|
     id = h[:productid]
-    prods[id] = fact.Product(id, h[:name], h[:description], 
-                             h[:imageurl])
+    prods[id] = fact.Product(id, h[:name], h[:description], h[:imageurl])
     cats[h[:categoryid]].products << prods[id]
   end
 
@@ -44,9 +43,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   adds = {}
   db[:Address].all.each do |h|
     id = h[:addressid]
-    adds[id] = fact.Address(id, h[:street1], h[:street2],
-                            h[:city], h[:state], h[:zip],
-                            h[:latitude], h[:longitude])
+    adds[id] = fact.Address(id, h[:street1], h[:street2], h[:city], h[:state], h[:zip], h[:latitude], h[:longitude])
   end
 
   #puts "ADDRESSES"
@@ -55,8 +52,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   cis = {}
   db[:SellerContactInfo].all.each do |h|
     id = h[:contactinfoid]
-    cis[id] = fact.SellerContactInfo(id, h[:lastname], h[:firstname],
-                                     h[:email])
+    cis[id] = fact.SellerContactInfo(id, h[:lastname], h[:firstname], h[:email])
   end
 
   #puts "CONTACTINFOS"
@@ -66,13 +62,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   items = {}
   db[:Item].all.each do |h|
     id = item_id(h[:itemid])
-    items[id] = fact.Item(id, prods[h[:productid]],
-                          h[:name], h[:description],
-                          h[:imageurl], h[:imagethumburl],
-                          (h[:price] * 100.0).to_i,
-                          adds[h[:address_addressid]],
-                          cis[h[:contactinfo_contactinfoid]]
-                          )
+    items[id] = fact.Item(id, prods[h[:productid]], h[:name], h[:description], h[:imageurl], h[:imagethumburl], (h[:price] * 100.0).to_i, adds[h[:address_addressid]], cis[h[:contactinfo_contactinfoid]])
     items[id].totalScore = h[:totalscore]
     items[id].numberOfVotes = h[:numberofvotes]
     items[id].disabled = h[:disabled]
@@ -125,7 +115,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   return catalog.finalize
 end
 
-if __FILE__ == $0 then
+#if __FILE__ == $0 then
   catalog = load_petstore
   Print.print(catalog)
-end
+#end

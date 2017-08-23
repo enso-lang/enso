@@ -12,7 +12,7 @@ class SecurityTest < Test::Unit::TestCase
 
   def setup
     # interp = SecureFactory.new
-    sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
+    # sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
     factory = Factory::new(schema)
 
     schema = Load::load('todo.schema')

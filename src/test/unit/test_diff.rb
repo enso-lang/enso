@@ -28,15 +28,13 @@ class DiffTest < Test::Unit::TestCase
   end  
 
   def test_diff2
-=begin
-    cons = Load::load('point.schema')
-  
-    ss = Load::load('schema.schema')
-    gs = Load::load('grammar.schema')
-    puts Diff.diff(ss, gs)
-
-    #TODO: not sure how to check if this test is producing the right output
-    #Print::Print.print(delta)
-=end
+#   cons = Load::load('point.schema')
+#  
+#    ss = Load::load('schema.schema')
+#    gs = Load::load('grammar.schema')
+#    puts Diff.diff(ss, gs)
+#
+#    #TODO: not sure how to check if this test is producing the right output
+#    #Print::Print.print(delta)
   end
 end
