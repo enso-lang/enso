@@ -1,20 +1,26 @@
 {
   "filename": "grades.schema",
   "source": "demo/LiveSheet/models/grades.schema",
-  "date": "2017-03-21 17:03:39 -0500",
-  "checksum": "dac3f0151fb78a47c7c98d98774a11479d9771f8",
+  "date": "2017-12-31 17:20:21 -0600",
+  "checksum": "d405537c3ed71262a827e7983c541899d4c0db06",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-03-21 16:45:29 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "gradeData.schema",
+      "source": "demo/LiveSheet/models/gradeData.schema",
+      "date": "2017-12-31 17:17:28 -0600",
+      "checksum": "5480bf0901e083e5a2694d16686745c49cd74675"
     }
   ],
   "model": {
@@ -25,6 +31,29 @@
         "name=": "Course",
         "schema": "",
         "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "check",
+            "owner": "types[Course]",
+            "type": "types[real]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "SUM"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "assignments"
+                  },
+                  "fname=": "contribution"
+                }
+              ]
+            }
+          },
           {
             "class": "Field",
             "name=": "students",
@@ -51,11 +80,18 @@
             "optional=": true,
             "many=": true,
             "traversal=": true
-          },
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Student",
+        "schema": "",
+        "defined_fields#": [
           {
             "class": "Field",
-            "name=": "check",
-            "owner": "types[Course]",
+            "name=": "finalGrade",
+            "owner": "types[Student]",
             "type": "types[real]",
             "computed": {
               "class": "EFunCall",
@@ -68,20 +104,13 @@
                   "class": "EField",
                   "e": {
                     "class": "EVar",
-                    "name=": "assignments"
+                    "name=": "grades"
                   },
-                  "fname=": "contribution"
+                  "fname=": "combined"
                 }
               ]
             }
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Student",
-        "schema": "",
-        "defined_fields#": [
+          },
           {
             "class": "Field",
             "name=": "id",
@@ -110,29 +139,6 @@
             "many=": true,
             "inverse": "types[Grade].defined_fields[student]",
             "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "finalGrade",
-            "owner": "types[Student]",
-            "type": "types[real]",
-            "computed": {
-              "class": "EFunCall",
-              "fun": {
-                "class": "EVar",
-                "name=": "SUM"
-              },
-              "params": [
-                {
-                  "class": "EField",
-                  "e": {
-                    "class": "EVar",
-                    "name=": "grades"
-                  },
-                  "fname=": "combined"
-                }
-              ]
-            }
           }
         ]
       },
@@ -141,6 +147,25 @@
         "name=": "Category",
         "schema": "",
         "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "number",
+            "owner": "types[Category]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "COUNT"
+              },
+              "params": [
+                {
+                  "class": "EVar",
+                  "name=": "assignments"
+                }
+              ]
+            }
+          },
           {
             "class": "Field",
             "name=": "name",
@@ -162,12 +187,6 @@
             "name=": "points",
             "owner": "types[Category]",
             "type": "types[real]"
-          },
-          {
-            "class": "Field",
-            "name=": "number",
-            "owner": "types[Category]",
-            "type": "types[int]"
           }
         ]
       },
@@ -176,35 +195,6 @@
         "name=": "Assignment",
         "schema": "",
         "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "name",
-            "owner": "types[Assignment]",
-            "type": "types[str]",
-            "key=": true
-          },
-          {
-            "class": "Field",
-            "name=": "category",
-            "owner": "types[Assignment]",
-            "type": "types[Category]",
-            "inverse": "types[Category].defined_fields[assignments]"
-          },
-          {
-            "class": "Field",
-            "name=": "grades",
-            "owner": "types[Assignment]",
-            "type": "types[Grade]",
-            "optional=": true,
-            "many=": true,
-            "inverse": "types[Grade].defined_fields[assignment]"
-          },
-          {
-            "class": "Field",
-            "name=": "percent",
-            "owner": "types[Assignment]",
-            "type": "types[real]"
-          },
           {
             "class": "Field",
             "name=": "contribution",
@@ -232,12 +222,6 @@
             "name=": "increase_to_max",
             "owner": "types[Assignment]",
             "type": "types[bool]"
-          },
-          {
-            "class": "Field",
-            "name=": "points",
-            "owner": "types[Assignment]",
-            "type": "types[real]"
           },
           {
             "class": "Field",
@@ -415,12 +399,6 @@
           },
           {
             "class": "Field",
-            "name=": "curve",
-            "owner": "types[Assignment]",
-            "type": "types[real]"
-          },
-          {
-            "class": "Field",
             "name=": "target",
             "owner": "types[Assignment]",
             "type": "types[real]",
@@ -551,6 +529,47 @@
                 }
               ]
             }
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Assignment]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "category",
+            "owner": "types[Assignment]",
+            "type": "types[Category]",
+            "inverse": "types[Category].defined_fields[assignments]"
+          },
+          {
+            "class": "Field",
+            "name=": "grades",
+            "owner": "types[Assignment]",
+            "type": "types[Grade]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Grade].defined_fields[assignment]"
+          },
+          {
+            "class": "Field",
+            "name=": "percent",
+            "owner": "types[Assignment]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "points",
+            "owner": "types[Assignment]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "curve",
+            "owner": "types[Assignment]",
+            "type": "types[real]"
           }
         ]
       },
@@ -559,27 +578,6 @@
         "name=": "Grade",
         "schema": "",
         "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "student",
-            "owner": "types[Grade]",
-            "type": "types[Student]",
-            "inverse": "types[Student].defined_fields[grades]"
-          },
-          {
-            "class": "Field",
-            "name=": "assignment",
-            "owner": "types[Grade]",
-            "type": "types[Assignment]",
-            "inverse": "types[Assignment].defined_fields[grades]"
-          },
-          {
-            "class": "Field",
-            "name=": "grade",
-            "owner": "types[Grade]",
-            "type": "types[real]",
-            "optional=": true
-          },
           {
             "class": "Field",
             "name=": "normal",
@@ -761,6 +759,27 @@
                 "fname=": "contribution"
               }
             }
+          },
+          {
+            "class": "Field",
+            "name=": "student",
+            "owner": "types[Grade]",
+            "type": "types[Student]",
+            "inverse": "types[Student].defined_fields[grades]"
+          },
+          {
+            "class": "Field",
+            "name=": "assignment",
+            "owner": "types[Grade]",
+            "type": "types[Assignment]",
+            "inverse": "types[Assignment].defined_fields[grades]"
+          },
+          {
+            "class": "Field",
+            "name=": "grade",
+            "owner": "types[Grade]",
+            "type": "types[real]",
+            "optional=": true
           }
         ]
       },

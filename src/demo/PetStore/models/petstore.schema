@@ -2,6 +2,7 @@ primitive int
 primitive float
 primitive str
 primitive bool
+primitive auto
 
 class Catalog
   categories! Category*
@@ -12,7 +13,7 @@ class Catalog
   tags! Tag*
 
 class Category
-  id## str
+  id# auto
   name: str
   description: str
   imageurl: str
@@ -20,7 +21,7 @@ class Category
   products: Product* / category
 
 class Product
-  id## str
+  id# auto
   name: str
   description: str
   imageURL: str
@@ -28,7 +29,7 @@ class Product
   items: Item* / product
 
 class Item
-  id## str
+  id# auto
   product: Product / items
   name: str
   description: str
@@ -43,7 +44,7 @@ class Item
   tags: Tag* / items
 
 class Address 
-  id## str
+  id# auto
   street1: str
   street2: str
   city: str
@@ -53,13 +54,13 @@ class Address
   longitude: float
 
 class SellerContactInfo
-  id## str
+  id# auto
   lastName: str
   firstName: str
   email: str
 
 class Tag
-  id## int
+  id# auto
   tag: str
   refCount: int
   items: Item* / tags

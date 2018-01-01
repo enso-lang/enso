@@ -15,7 +15,7 @@ class PipingControllerTest < Test::Unit::TestCase
     controller = Controller.new(control, pipes)
 
     #just make sure it runs 100 cycles
-    for i in 0..100
+    0.upto(100).each do
       controller.run
     end
   end

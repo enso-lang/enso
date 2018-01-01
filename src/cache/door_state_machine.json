@@ -1,26 +1,26 @@
 {
   "filename": "door.state_machine",
   "source": "demo/StateMachine/tests/door.state_machine",
-  "date": "2017-03-22 16:22:47 -0500",
-  "checksum": "5a6415abcdaf2147ca5aa17eec62ed738992e32d",
+  "date": "2017-12-31 16:07:47 -0600",
+  "checksum": "2c3fba5e30a33bbe007c7036eedc5c9aa071364a",
   "depends": [
     {
       "filename": "state_machine.grammar",
       "source": "demo/StateMachine/models/state_machine.grammar",
-      "date": "2017-03-15 15:22:50 -0500",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "4d0462367eb9c994d3f431a52eea185d615f6ae4"
     },
     {
       "filename": "state_machine.schema",
       "source": "demo/StateMachine/models/state_machine.schema",
-      "date": "2017-03-21 16:41:02 -0500",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "663607c72512d674818fe348f5e684a37ca46290"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],
   "model": {

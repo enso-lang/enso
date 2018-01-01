@@ -2,7 +2,7 @@ import expr.grammar
 
 start Auth
 
-Auth ::= [Authentication] rules:Rule* @/2
+Auth ::= [Authorization] rules:Rule* @/2
 
 Rule ::= AllowRule | DenyRule
 AllowRule ::= [AllowRule] Strength? "allow" /> action:Action (/ "if" cond:Expr)? </

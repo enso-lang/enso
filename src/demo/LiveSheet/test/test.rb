@@ -52,6 +52,9 @@ customers[0].each do |col|
     ncol = ncol + 1
   end
 end
+course.categories.each do |cat|
+  puts "CAT #{cat.name} #{cat.number}"
+end
 # read the points
 ncol = 0
 label = nil
@@ -78,26 +81,10 @@ customers[3].each do |col|
     ncol = ncol + 1
   end
 end
-# read the number
-label = nil
-customers[4].each do |col|
-	#puts "CAT '#{col}' #{col.nil?} "
-  if col.nil?
-    # skip it
-    ncol = ncol + 1
-  elsif label.nil?
-    label = col
-    ncol = 0
-  else
-    assignments[ncol].category.number = col.to_i
-    #puts "#{ncol} #{assignments[ncol]} = #{assignments[ncol].category.number}"
-    ncol = ncol + 1
-  end
-end
 # read the percent
 ncol = 0
 label = nil
-customers[5].each do |col|
+customers[4].each do |col|
   if col.nil?
     # skip it
   elsif label.nil?
@@ -109,7 +96,7 @@ customers[5].each do |col|
 end
 
 
-customers.slice(7,1000).each do |row|
+customers.slice(6,1000).each do |row|
   student = f["Student"]
   student.number = row[0].to_i
   student.name = row[1]
@@ -126,7 +113,7 @@ customers.slice(7,1000).each do |row|
   end
 end
 
-Cache.save_cache("cs345.grades", course)
+#Cache.save_cache("cs345.grades", course)
 #g = Load::load("grades.grammar")
 #$stderr << "## Printing #{ARGV[0]}...\n"
 #Layout::DisplayFormat.print(g, m, out, false)

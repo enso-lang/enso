@@ -1,0 +1,23 @@
+import web.schema
+import impl.schema with Command as Part
+
+// DIAGRAMS
+
+class Text < Part
+  string! Expr
+
+class SelectMulti < Widget
+  choices! Expr
+
+class SelectSingle < Widget
+  choices! Expr
+
+class Rule < EFunDef	//a rule is essentially a sugar-ed up function
+  obj:str
+  type:str
+
+class RuleCall < Expr, Part
+  name:str
+  obj!Expr
+  params!Expr*
+

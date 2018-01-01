@@ -7,7 +7,7 @@ graph [font.size=12] {
      oval [line.width=(state==machine.start ? 3 : 1)] { // this is the class rectangle
        text [font.size=16,font.weight="bold"] state.name
      }
-  }
+  };
   // create the links
   for state : machine.states
     for "Transition" trans : state.out

@@ -14,6 +14,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.selection = null);
       (self.$.mouse_down = false);
       (self.$.DIST = 4);
+      (self.$.text_margin = 4);
       (self.$.defaultConnectorDist = 20);
       (self.$.cs = Constraints.ConstraintSystem.new());
       (self.$.factory = Factory.new(Load.load("diagram.schema")));
@@ -335,7 +336,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
          break;
       }
           
-      (margin = self.$.context.lineWidth);
+      (margin = (self.$.context.lineWidth * 6));
       (a = a.add(margin));
       (b = b.add(margin));
       (info = self.constrain(part.content(), x.add(a), y.add(b)));
@@ -354,7 +355,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.max((info.width + 2));
+      width.max((info.width + self.$.text_margin));
       return height.max(15);
     }));
     (this.constrainConnector = (function (part) {
@@ -481,7 +482,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       var start, m2, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
       (r = self.boundary_fixed(shape));
       if (r) {
-        (margin = self.$.context.lineWidth);
+        (margin = (self.$.context.lineWidth * 6));
         (m2 = (margin - (margin % 2)));
         switch ((function () {
           return shape.kind();
@@ -819,7 +820,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
-      self.$.context.fillText(text.string(), (r.x() + 2), r.y(), 1000);
+      self.$.context.fillText(text.string(), (r.x() + (self.$.text_margin / 2)), (r.y() + (self.$.text_margin / 4)), 1000);
       self.$.context.fill();
       return self.$.context.restore();
     }));

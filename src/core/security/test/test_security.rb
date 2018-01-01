@@ -11,9 +11,9 @@ require 'core/semantics/code/interpreter'
 class SecurityTest < Test::Unit::TestCase
 
   def setup
-    # interp = SecureFactory.new
-    sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
-    factory = Factory::new(schema)
+    interp = SecureFactory.new
+    # sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
+    # factory = Factory::new(schema)
 
     schema = Load::load('todo.schema')
     sfact = interp.Make(schema, rules: Load::load('todo.auth'), fail_silent: false)

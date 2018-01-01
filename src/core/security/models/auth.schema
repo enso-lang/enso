@@ -4,7 +4,7 @@ primitive int
 primitive str
 primitive bool
 
-class Authentication
+class Authorization
   rules!      Rule*
   allowrules: Rule* = rules.select() { |r| r.schema_class.name=="AllowRule" }
   denyrules:  Rule* = rules.select() { |r| r.schema_class.name=="DenyRule" }

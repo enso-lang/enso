@@ -16,7 +16,6 @@ Super ::= <root.classes[it]>
 Field ::= [Field] name:sym.Kind type:<root.types[it]> Multiplicity? Annot?
 
 Kind ::= "#" { key == true }
-      |  "##" { (key == true) and (auto == true) }
       |  "!" { traversal == true }
       |  ":"
 

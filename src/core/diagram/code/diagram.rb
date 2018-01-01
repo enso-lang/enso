@@ -17,6 +17,7 @@ module Diagram
       @selection = nil
       @mouse_down = false
       @DIST = 4
+      @text_margin = 4
       @defaultConnectorDist = 20
       @cs = Constraints::ConstraintSystem.new
       @factory = Factory.new(Load::load('diagram.schema'))
@@ -344,7 +345,7 @@ module Diagram
         a = @cs.var("rnd1", 20)
         b = @cs.var("rnd2", 20)
       end
-      margin = @context.lineWidth_
+      margin = @context.lineWidth_ * 6
       a = a.add(margin)
       b = b.add(margin)
       info = constrain(part.content, x.add(a), y.add(b))
@@ -365,8 +366,8 @@ module Diagram
     def constrainText(part, x, y, width, height)
       info = @context.measureText(part.string)
       #puts "MEASURE #{part.string} #{info.width_} #{context.font_}"
-      width.max(info.width_ + 2)
-      #width.max(info.width_ + 2)
+      width.max(info.width_ + @text_margin)
+      #width.max(info.width_ + @text_margin)
       height.max(15)  # doesn't include height!
     end
   
@@ -478,7 +479,7 @@ module Diagram
     def drawShape(shape, n)
       r = boundary_fixed(shape)
       if r
-        margin = @context.lineWidth_
+        margin = @context.lineWidth_ * 6
         m2 = margin - (margin % 2)
         case shape.kind
         when "box"
@@ -737,7 +738,7 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      @context.fillText(text.string, r.x + 2, r.y, 1000)
+      @context.fillText(text.string, r.x + @text_margin / 2, r.y + @text_margin / 4, 1000)
       @context.fill
       @context.restore
     end

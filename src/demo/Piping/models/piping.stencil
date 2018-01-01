@@ -7,26 +7,26 @@ graph [font.size=12,fill.color=(255,255,255)] {
      oval [line.width=1] { // this is the class rectangle
        text  elem.name
      }
-   }
+   };
   // create the links
   for "Input" elem : system.elements
     if elem is InputElement and not (elem is Joint) then
-        connector (elem <-- elem.input.input)
+        connector (elem <-- elem.input.input);
   for elem : system.elements
     if elem is Joint then
         for "Connection" pipe : elem.inputs
-           connector (elem <-- pipe.input)
+           connector (elem <-- pipe.input);
 
   // create the sensors
   for "Sensor" sensor : system.sensors
     label sensor {
         box {  // this is the class rectangle
           vertical {
-           text  sensor.name
+           text  sensor.name;
            text  sensor.kind
           }
         }
-    }
+    };
 
   for "Sensor" sensor : system.sensors
     connector (sensor -- sensor.attach)

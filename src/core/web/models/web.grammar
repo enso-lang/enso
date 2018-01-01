@@ -1,0 +1,37 @@
+import expr.grammar
+
+// To make text fields editable, add a "+" behind the name
+
+two different ways to include something else:
+   as a sub-component
+   as a surrounding container
+   how to decide the "size" of a page?
+     and how to identify its boundaries?
+     
+  logo menu (shown as options if there is room)
+    page
+
+
+// diagrams
+start Web
+
+Web ::= [Web] "web" (title:str)? "(" root:sym ")" body:Part
+
+Part ::= [Container] Dir Props? "{" / items:Part+@/ / "}"
+       | [Text] "format" Props? string:Expr
+       | [SelectMulti] "multi" Props? value:Expr choices:Expr
+       | [SelectSingle] "single" Props? value:Expr choices:Expr
+       | [TextBox] "text" Editable Props? value:Expr type:Expr
+       | [Pages] "pages" ("(" current:Expr ")")? Props? "{" / items:Part+@/ / "}"
+Editable ::= "+" {editable==true} | {editable==false}
+
+Dir ::= "vertical" {direction==1} | "horizontal" {direction==2}
+
+Props ::= "[".props:Prop+.@"," "]"
+Prop ::= [Prop] (var:sym | var:str)."=".val:Expr
+
+// Extra expressions
+
+EUnOp ::= [Color] "(".r:Expr."," g:Expr."," b:Expr.")"
+         | [Eval] "[[" expr:Expr ("|" envs:Expr+ @",")? "]]"
+         | EUnOp

@@ -1,5 +1,3 @@
-
-
 # Sub-type of factory that creates secure checkobjects
 # Secure checkobjects have a security model attach that checks for permissions each time
 # 

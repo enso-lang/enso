@@ -133,36 +133,3 @@ class Controller
     @state.current
   end
 end
-
-if __FILE__ == $0 then
-  require 'core/system/load/load'
-  require 'core/semantics/interpreters/debug'
-
-  class ControllerInterpreter::RunControllerC
-    include Debug::Debug
-    def run(obj)
-      wrap(:run, :debug, obj)
-    end
-    def eval(obj)
-      wrap(:eval, :debug, obj)
-    end
-  end
-
-  name = 'boiler'
-
-  Cache.clean("#{name}.controller")
-
-  grammar = Load::load('piping.grammar')
-  schema = Load::load('piping-sim.schema')
-  control = Load::load("#{name}.controller")
-  pipes = Load::load_with_models("#{name}.piping", grammar, schema)
-  controller = Controller.new(control, pipes)
-
-  while true
-    controller.run
-    puts controller.current_state
-    sleep 2
-  end
-end
-
-

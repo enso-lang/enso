@@ -83,7 +83,7 @@ MODELS = \
 	
 JSONS_QL = \
   housing.ql \
-  ql.stencil
+  ql.web
 
 JSONS_PIPING = \
   boiler.controller \
@@ -110,7 +110,7 @@ load-json:
 
 questionaire: main
 	ruby -I . core/system/load/load.rb $(JSONS_QL)
-	js/run-web.sh housing.ql
+	html/run-web.sh housing.ql
 
 piping: main
 	ruby -I . core/system/load/load.rb $(JSONS_PIPING)

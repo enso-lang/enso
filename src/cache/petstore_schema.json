@@ -1,20 +1,20 @@
 {
   "filename": "petstore.schema",
   "source": "demo/PetStore/models/petstore.schema",
-  "date": "2017-02-07 11:35:31 -0600",
-  "checksum": "84971016551b672b433e740853b0721aff3c49c4",
+  "date": "2017-12-31 18:15:59 -0600",
+  "checksum": "0cea3c5fac30f9bab8d0b42cb8fa87c5da2e1690",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-03-21 16:45:29 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],
   "model": {
@@ -38,6 +38,11 @@
       {
         "class": "Primitive",
         "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "auto",
         "schema": ""
       },
       {
@@ -110,9 +115,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[Category]",
-            "type": "types[str]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",
@@ -158,9 +162,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[Product]",
-            "type": "types[str]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",
@@ -207,9 +210,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[Item]",
-            "type": "types[str]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",
@@ -298,9 +300,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[Address]",
-            "type": "types[str]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",
@@ -355,9 +356,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[SellerContactInfo]",
-            "type": "types[str]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",
@@ -388,9 +388,8 @@
             "class": "Field",
             "name=": "id",
             "owner": "types[Tag]",
-            "type": "types[int]",
-            "key=": true,
-            "auto=": true
+            "type": "types[auto]",
+            "key=": true
           },
           {
             "class": "Field",

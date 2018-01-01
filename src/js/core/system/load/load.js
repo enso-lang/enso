@@ -1,4 +1,4 @@
-define(["core/system/library/schema", "core/system/boot/meta_schema", "core/schema/code/factory", "core/grammar/parse/parse", "core/schema/tools/union", "core/schema/tools/rename", "core/system/load/cache", "core/system/utils/paths", "core/system/utils/find_model"], (function (Schema, MetaSchema, Factory, Parse, Union, Rename, Cache, Paths, FindModel) {
+define(["core/system/library/schema", "core/system/boot/meta_schema", "core/schema/code/factory", "core/grammar/parse/parse", "core/schema/tools/union", "core/system/load/cache", "core/system/utils/paths", "core/system/utils/find_model"], (function (Schema, MetaSchema, Factory, Parse, Union, Cache, Paths, FindModel) {
   var Load;
   var Loader;
   var LoaderClass = MakeClass("LoaderClass", null, [], (function () {
@@ -24,7 +24,7 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     (this.load_text = (function (type, factory, source, show) {
       var self = this;
       (show = (((typeof show) !== "undefined") ? show : false));
-      var g, result;
+      var g, s, result;
       (g = self.load(S("", type, ".grammar")));
       (s = self.load(S("", type, ".schema")));
       (result = Parse.load_raw(source, g, s, factory, show));
@@ -33,27 +33,28 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
     (this._load = (function (name, type) {
       var self = this;
       (type = (((typeof type) !== "undefined") ? type : null));
+      var res;
       (type = (type || name.split(".")._get((-1))));
       if (((Parse == null) || Cache.check_dep(name))) {
-        System.stderr().push(S("## fetching ", name, "...\n"));
+        System.stderr().push(S("## fetching ", name, "\n"));
         return Cache.load_cache(name, Factory.new(self.load(S("", type, ".schema"))));
       } else {
         (res = self.parse_with_type(name, type));
-        System.stderr().push(S("## caching ", name, "...\n"));
+        System.stderr().push(S("## caching ", name, "\n"));
         Cache.save_cache(name, res, false);
         return res;
       }
     }));
     (this.parse_with_type = (function (name, type) {
       var self = this;
-      var g;
+      var res, g, s;
       (g = self.load(S("", type, ".grammar")));
       (s = self.load(S("", type, ".schema")));
       return (res = self.load_with_models(name, g, s));
     }));
     (this.setup = (function () {
       var self = this;
-      var gs;
+      var ss, gs;
       (self.$.cache = (new EnsoHash({
         
       })));
@@ -115,10 +116,10 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
       var name, type, result;
       if (path.end_with_P(".json")) { 
         if ((schema == null)) {
-          System.stderr().push(S("## booting ", path, "...\n"));
+          System.stderr().push(S("## booting ", path, "\n"));
           (result = MetaSchema.load_path(path));
         } else {
-          System.stderr().push(S("## fetching ", path, "...\n"));
+          System.stderr().push(S("## fetching ", path, "\n"));
           (name = path.split("/")._get((-1)).split(".")._get(0).gsub("_", "."));
           (type = name.split(".")._get((-1)));
           (result = Cache.load_cache(name, Factory.new(self.load(S("", type, ".schema")))));
@@ -126,12 +127,12 @@ define(["core/system/library/schema", "core/system/boot/meta_schema", "core/sche
       }
       else { 
         if ((Parse == null)) {
-          System.stderr().push(S("## fetching! ", path, "...\n"));
+          System.stderr().push(S("## fetching! ", path, "\n"));
           (name = path.split("/")._get((-1)));
           (type = name.split(".")._get((-1)));
           (result = Cache.load_cache(name, Factory.new(self.load(S("", type, ".schema")))));
         } else {
-          System.stderr().push(S("## loading ", path, "...\n"));
+          System.stderr().push(S("## loading ", path, "\n"));
           (result = Parse.load_file(path, grammar, schema, encoding));
         }
       }

@@ -121,7 +121,12 @@ module Env
     end
     
     def type(fname)
-      @obj.schema_class.all_fields[fname].type
+      x = @obj.schema_class.all_fields[fname]
+      if x == nil then
+        raise "Unkown field #{fname} @{@obj.schema_class}"
+      else
+        x.type
+      end
     end
   end
   

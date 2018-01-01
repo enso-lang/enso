@@ -1,43 +1,43 @@
 {
   "filename": "normalize.schema",
   "source": "core/grammar/models/normalize.schema",
-  "date": "2017-02-07 11:35:31 -0600",
+  "date": "2017-07-06 12:39:11 -0500",
   "checksum": "a4b44817a5fcd37eca33e4f7b36c6fb15bd0b931",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-03-21 16:45:29 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-03-21 16:45:29 -0500",
-      "checksum": "a45c27d49e4bbbe8fcdce54c593a3bc6ff3e1af9"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-02-07 11:35:31 -0600",
-      "checksum": "eec4bbac59b2b126c448bf9ce1e5f18ed82a7e26"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2017-02-07 11:35:31 -0600",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     }
   ],

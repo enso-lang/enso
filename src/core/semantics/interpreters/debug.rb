@@ -50,7 +50,10 @@ module Debug
       this = obj
       stack = args[:stack] + ["in #{this}"]
       if (stack.size<=@stoplevel or @breakpts.include?(this._path))
-        @file ||= begin; IO.readlines(this._origin.path); rescue; end
+        begin
+        	@file ||= IO.readlines(this._origin.path)
+        rescue
+        end
         ready = false
         while !ready
           ready = true
@@ -61,7 +64,7 @@ module Debug
                #TODO: change this to a customizable debug message?
           $stderr << "--------------------------------------------\n"
           if @file.nil?
-            $stderr << "source file #{begin; this._origin.path; rescue; end} not available"
+            $stderr << "source file #{this._origin.path} not available"
           else
               src_indicator = "  >> "
               src_indent    = "     "
@@ -151,7 +154,7 @@ module Debug
       begin
         system("stty raw -echo")
         str = STDIN.getc
-      ensure
+      rescue
         system("stty -raw echo")
       end
       p str.chr

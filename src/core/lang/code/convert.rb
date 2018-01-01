@@ -8,7 +8,6 @@ require 'pp'
 # problems:
 # - is_a? works on nil in Ruby but not JS
 
-
 class Formals
   attr_accessor :normal, :block, :rest, :parens
   def initialize(normal = [], block = nil, rest = nil)
@@ -60,11 +59,11 @@ class CodeBuilder < Ripper::SexpBuilder
     vars
   end  
 
-  class << self
-    def build(src, filename=nil)
+#  class << self
+    def self.build(src, filename=nil)
       new(src, filename).parse
     end
-  end
+ # end
 
   def on_alias(new_name, old_name)
     raise "Variable aliases not supported"
@@ -251,9 +250,9 @@ class CodeBuilder < Ripper::SexpBuilder
   end
   
   def is_meta(d)
-    if d.is_a? MetaDef
+    if d.is_a?(MetaDef)
       return true
-    elsif d.is_a? ModuleDef
+    elsif d.is_a?(ModuleDef)
       return false
     elsif d.Assign?
       #puts "DEF #{d.to.name} #{d.to.kind}"
@@ -265,9 +264,9 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def fixup_defs(body)
     body.collect do |d|
-      if d.is_a? MetaDef
+      if d.is_a?(MetaDef)
         d.defn
-      elsif d.is_a? ModuleDef
+      elsif d.is_a?(ModuleDef)
         parts = split_meta(d.defs)
         @f.Mixin(d.name, *parts)
       elsif d.Assign?            
@@ -434,7 +433,7 @@ class CodeBuilder < Ripper::SexpBuilder
           o.method = @currentMethod
         end
       else
-        if @selfVar && !(o.method =~ /^[A-Z]/) && (o.method != "puts") && !env.include?(o.method)
+        if @selfVar && !(o.method[0] >= 'A' && o.method[0] <= 'Z') && (o.method != "puts") && !env.include?(o.method)
           o.target = @f.Var(@selfVar)
         end
       end
@@ -470,10 +469,10 @@ class CodeBuilder < Ripper::SexpBuilder
     when "Ref", "Attribute", "Super"
       
     when "Lit"
-      if o.value.is_a? String
+      if o.value.is_a?(String)
         o.value.gsub!('\\', "\\")
-        o.value.gsub!('\n', "\n")
-        o.value.gsub!('\"', "\"")
+        o.value.gsub!("\n", "\n")
+        o.value.gsub!("\"", "\"")
       end
 
     when "Assign"
@@ -504,7 +503,7 @@ class CodeBuilder < Ripper::SexpBuilder
     when "Var"
       if o.name[0] == "$"
         o = @f.Call(@f.Var("System"), o.name.slice(1,1000))
-      elsif @selfVar && !(o.name =~ /^[A-Z]/) && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
+      elsif @selfVar && !(o.name[0] >= 'A' && o.name[0] <= 'Z') && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
         o = @f.Call(@f.Var(@selfVar), o.name)
       else
         o.name = fixup_var_name(o.name)
@@ -525,7 +524,7 @@ class CodeBuilder < Ripper::SexpBuilder
   @@jskeywords = ["catch", "continue", "debugger", "default", "delete", "finally", "function", "new", "in", "instanceof", "switch", "this", "throw", "try", "typeof", "var", "void", "with"]
 
   def fixup_var_name(name)
-    if @@jskeywords.include? name
+    if @@jskeywords.include?(name)
       name = "#{name}_V"
     end
     return name
@@ -980,7 +979,9 @@ class CodeBuilder < Ripper::SexpBuilder
     return name
   end
   
-  alias on_vcall on_var_ref
+  def on_vcall(name)
+    on_var_ref(name)
+  end 
 
   def on_void_stmt
     nil
@@ -1036,27 +1037,9 @@ class CodeBuilder < Ripper::SexpBuilder
     raise "Yield not support... use an explicit block"
   end
 
-  def on_zsuper(*)
+  def on_zsuper(*foo)
     make_call(nil, "super")
   end
 
 end
-
-if __FILE__ == $0 then
-  name = ARGV[0]
-  outname = ARGV[1]
-  grammar = ARGV[2] || "code"
-  
-  #pp Ripper::SexpBuilder.new(File.new(name, "r")).parse
-  
-  puts "Converting to JS: #{name}"
-  m = CodeBuilder.build(File.new(name, "r"))
-  g = Load::load("#{grammar}.grammar")
-  # jj Dumpjson::to_json(m)
-   
-  out = File.new(outname, "w")
-  $stdout << "## storing #{outname}\n"
-  Layout::DisplayFormat.print(g, m, out, false)
-end
-
 

@@ -188,16 +188,16 @@ module Stencil
 	  end
 	  
 	  def on_right_down(pnt)
-	    actions = System.JSHASH()
+	    actions = []
 	    find_in_ui(pnt) do |part, container|
-	      actions = System.assign(actions, @actions[part._id]) if @actions[part._id]
+	      puts "ITEM #{part._id}  #{@actions[part._id]}"
+	      actions << @actions[part._id] if @actions[part._id]
 			  false
 	    end
-	    if actions != System.JSHASH()
-	      puts "MENU #{actions}"
-				System.popupMenu(actions)
-				
-	    end
+	    puts "ACTIONS #{actions}"
+#	    if actions._length > 0
+				System.popupMenu(actions)				
+#	    end
 	  end
 	
 	  def on_export

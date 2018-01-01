@@ -1,0 +1,69 @@
+import expr.schema
+
+class Stencil
+  title: str?
+  root: str
+  body! Part
+
+class Part
+  label: str
+  props! Prop*
+
+class Prop
+  var# str
+  val! Expr
+
+// DIAGRAMS
+
+class Container < Part
+  direction: int // 1=vert, 2=hoiz, 3=grid, 4=graph
+  items! Part*
+
+class Pages < Part
+  items! Part*
+  current! Expr?
+
+class Space < Part
+
+class Shape < Part
+  kind: str
+  content! Part?
+
+class Text < Part
+  string! Expr
+  editable: bool
+
+class Widget < Part
+  value! Expr?
+  type! Expr?
+
+class SelectMulti < Widget
+  choices! Expr*
+
+class SelectSingle < Widget
+  choices! Expr*
+
+class TextBox < Widget
+
+// Additional expr 
+
+class InstanceOf < Expr
+  base! Expr
+  class_name: str
+
+class Color < Expr
+  r! Expr
+  g! Expr
+  b! Expr
+
+class Eval < Expr
+  expr! Expr
+  envs! Expr*
+
+primitive int
+primitive str
+primitive bool
+primitive atom
+
+class Label
+  string # str

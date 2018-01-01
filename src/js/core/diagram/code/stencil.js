@@ -190,17 +190,16 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.on_right_down = (function (pnt) {
       var self = this;
       var actions;
-      (actions = System.JSHASH());
+      (actions = []);
       self.find_in_ui((function (part, container) {
+        puts(S("ITEM ", part._id(), "  ", self.$.actions._get(part._id()), ""));
         if (self.$.actions._get(part._id())) {
-          (actions = System.assign(actions, self.$.actions._get(part._id())));
+          actions.push(self.$.actions._get(part._id()));
         }
         return false;
       }), pnt);
-      if ((actions != System.JSHASH())) {
-        puts(S("MENU ", actions, ""));
-        return System.popupMenu(actions);
-      }
+      puts(S("ACTIONS ", actions, ""));
+      return System.popupMenu(actions);
     }));
     (this.on_export = (function () {
       var self = this;

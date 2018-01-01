@@ -1,30 +1,17 @@
+import gradeData.schema
+
 class Course
-  students! Student*
-  categories! Category*
-  assignments! Assignment*
   check: real = SUM(assignments.contribution)
 
 class Student
-  id# str
-  name: str
-  number: int
-  grades! Grade*
   finalGrade: real = SUM(grades.combined)
 
 class Category
-  name# str
-  assignments: Assignment*
-  points: real
-  number: int
+  number: int = COUNT(assignments)
 
 class Assignment
-  name# str
-  category: Category / assignments
-  grades: Grade*
-  percent: real
   contribution: real = percent / category.number
   increase_to_max: bool
-  points: real
   highest_grade: real = MAX(grades.grade)
   maximum: real = increase_to_max ? MIN(points, highest_grade) : points
   averageN: real = AVERAGE(grades.normal)
@@ -32,7 +19,6 @@ class Assignment
   medianN: real = MEDIAN(grades.normal)
   maxGradeN: real = MAX(grades.normal)
   minGradeN: real = MIN(grades.normal)
-  curve: real
   target: real = stdevN + curve
   averageC: real = AVERAGE(grades.curved)
   stdevC: real = STDEV(grades.curved)
@@ -41,15 +27,6 @@ class Assignment
   minGradeC: real = MIN(grades.curved)
 
 class Grade
-  student: Student / grades      		// TODO: should be key
-  assignment: Assignment / grades   // TODO: should be key
-  grade: real?
   normal: real = grade / assignment.maximum
-  // assignment.curve+(1-assignment.curve)*normal*assignment.target*(1-assignment.stdevN)/(normal*(assignment.target-assignment.stdevN)+(1-assignment.target)*assignment.stdevN)
   curved: real = assignment.curve + normal * (1 - assignment.curve) * assignment.target * (1 - assignment.stdevN) / (normal * (assignment.target - assignment.stdevN) + (1 - assignment.target) * assignment.stdevN)
   combined: real = curved * assignment.contribution
-
-primitive int
-primitive real
-primitive str
-primitive bool

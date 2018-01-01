@@ -2,11 +2,16 @@ primitive str
 primitive bool
 
 class Todos
+  users! User*
+
+class User
+  name# str
+  password: str
   todos! Todo*
 
 class Todo
-  owner: Todos / todos
+  owner: User / todos
   todo: str
   done: bool
-  related: Todo*
 
+  

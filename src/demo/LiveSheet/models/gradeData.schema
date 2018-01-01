@@ -1,0 +1,33 @@
+class Course
+  students! Student*
+  categories! Category*
+  assignments! Assignment*
+
+class Student
+  id# str
+  name: str
+  number: int
+  grades! Grade*
+
+class Category
+  name# str
+  assignments: Assignment*
+  points: real
+
+class Assignment
+  name# str
+  category: Category / assignments
+  grades: Grade*
+  percent: real
+  points: real
+  curve: real
+
+class Grade
+  student: Student / grades         // should be keys, but doesn't work  		
+  assignment: Assignment / grades   // should be keys, but doesn't work
+  grade: real?
+
+primitive int
+primitive real
+primitive str
+primitive bool

@@ -1,25 +1,23 @@
 def index {
-  html("Todos") {
+  access(data="Todo.schema");
+  html("Todos"
     form {
-      datatable(root.todos) {
-        column("Todo") { textedit(row.todo); }
-        column("Done") { checkbox(row.done); }
-        column("Delete") { delete_checkbox(row); }
-      }
-      submit("Submit", index());
-      navigate("New", todo_new());
+      datatable data.todos {
+        item "Todo" { textedit row.todo }
+        item "Done"  { checkbox row.done }
+        item "Delete" { button "x" delete(row) }
+      };
+      submit "Submit", go(index);
+      link "New" todo_new;
     }  
   }
 }
 
-def todo_new() {
-  let 
-   todo = new(Todo)
-  in {
+def todo_new {
+  let todo = new(Todo) {
     html("New Todo") {
       form {
         "Todo: " textedit(todo.todo);
-        insert(todo, root.todos);
         submit("Submit", todo_show(todo));
       }
     }
@@ -38,13 +36,11 @@ def insert(x, coll) {
 // the @Todo:23 path.
 
 def todo_show(todo) {
-  html("Created a todo") {
-   <ul>
-    <li>"Todo: " $todo.todo</li>
-    <li>"Done: " $todo.done</li>
-    <li>"Address: " $address(todo)</li>
-   </ul>
-   navigate("Index", index());
-  }
-}
+  html "Created a todo" {
+    list {
+      item "Todo: ".   text todo.todo
+      item "Done: ".   checkbox todo.done
+    }
+    button "Home" go(index)
+}}}
 
