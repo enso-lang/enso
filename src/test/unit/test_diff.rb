@@ -27,11 +27,7 @@ class DiffTest < Test::Unit::TestCase
     assert_equal(11, deltas.size) #FIXME: this is a genuine bug to do with refs
   end  
 
-<<<<<<< HEAD
 #  def test_diff2
-=======
-  def test_diff2
->>>>>>> 4bb88badc663b922729245f643c58f55443e730a
 #   cons = Load::load('point.schema')
 #  
 #    ss = Load::load('schema.schema')
@@ -40,9 +36,5 @@ class DiffTest < Test::Unit::TestCase
 #
 #    #TODO: not sure how to check if this test is producing the right output
 #    #Print::Print.print(delta)
-<<<<<<< HEAD
 #  end
-=======
-  end
->>>>>>> 4bb88badc663b922729245f643c58f55443e730a
 end
