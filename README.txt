@@ -22,7 +22,7 @@ You may need:
  - bigdecimal gem
  - colored gem (for debugger)
  - rake (for web)
- - Electron (for new stencil)
+ - electron (for new stencil)
 
 You may want (only if you know you do):
  - Eclipse IDE. Suggested configuration files are kept in git.
@@ -35,7 +35,7 @@ a) cd to {ENSO_HOME}/src
 
 b) Run: ruby -I. {SOME RUBY FILE}
 
-  eg. ruby -I. core/expr/eval.rb
+  eg. ruby -I. core/expr/code/eval.rb
 
 You can add the following to your .bashrc to avoid the -I switch:
 
@@ -58,6 +58,7 @@ Refer to README in individual sample for running instructions.
 * Run GUI applications
     a)  cd {ENSO_HOME}/src/js
     b)  {path-to-electron}Electron .
+    alt b) npm install; npm start
       
       You can use CMD-O to open/edit many models. Examples include:
 		      ../core/schema/models/schema.schema 
