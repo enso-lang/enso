@@ -1,0 +1,427 @@
+{
+  "filename": "store.grammar",
+  "source": "demo/Store/models/store.grammar",
+  "date": "2019-07-19 13:57:38 +0800",
+  "checksum": "f641356047077e1edd488a6e024a14bef0b20e61",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2019-07-18 16:09:47 +0800",
+      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[S]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "S",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Store",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "store"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "customers",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[C]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "products",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[P]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "C",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Customer",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "customer"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "id",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ":"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "first_name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "last_name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "shipping_address",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[A]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "orders",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[O]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "A",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Address",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "address"
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "street",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "city",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "zip",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": -1
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "O",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Order",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "order"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "id",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "items",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[I]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "I",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Item",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "item"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "quantity",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "int"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "product",
+                    "arg": {
+                      "class": "Ref",
+                      "path": {
+                        "class": "ESubscript",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "root"
+                          },
+                          "fname=": "products"
+                        },
+                        "sub": {
+                          "class": "EVar",
+                          "name=": "it"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "P",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Product",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "product"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "price",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "#"
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "inventory",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "int"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

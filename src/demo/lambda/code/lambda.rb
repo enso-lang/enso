@@ -28,7 +28,10 @@ module Lambda
     def eval_Lambda(obj)
       obj
     end
-
+    def eval_Paren(obj)
+      eval(obj.body)
+    end
+    
     def eval_Var(obj)
       @D[:env][obj.name]
     end
@@ -36,7 +39,9 @@ module Lambda
     def subst(obj)
       dispatch_obj(:subst, obj)
     end
-
+    def subst_Paren(obj)
+			obj.body = subst(obj.body)
+	  end
     def subst_App(obj)
       obj.fun = subst(obj.fun)
       obj.arg = subst(obj.arg)

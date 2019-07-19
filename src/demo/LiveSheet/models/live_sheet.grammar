@@ -1,0 +1,18 @@
+start A
+
+A ::= [App] name:sym / sheets:S*
+
+S ::= [Sheet] "sheet" name:sym body:G
+
+G ::= [Grid] "grid" >/
+                 "cols" / cols:Spec* /
+                 "rows" / rows:Spec* /
+                 "body" /> body:B
+                 <</
+
+Spec ::= F
+        | [Relation] "-" name:sym "{" >/ parts:F* /< "}"
+
+F ::= [Field] "." name:sym /
+
+B ::= [Start] / "base" name:sym / body:Spec /

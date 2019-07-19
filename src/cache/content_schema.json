@@ -1,19 +1,19 @@
 {
   "filename": "content.schema",
   "source": "apps/web/models/content.schema",
-  "date": "2017-07-06 12:39:11 -0500",
+  "date": "2018-01-01 08:47:35 +0800",
   "checksum": "e38e285b2982309f6edbafb98e313632689e4bfb",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-12-31 17:10:24 -0600",
-      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+      "date": "2019-07-18 16:09:47 +0800",
+      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-12-31 17:10:24 -0600",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],

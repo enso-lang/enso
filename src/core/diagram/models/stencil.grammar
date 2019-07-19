@@ -17,7 +17,7 @@ Part ::= [Label] "label" Props? label:Expr body:EBlock
 		   | [Page] "page" name:str /> part:Command /<
 		   | [Grid] "grid" / axes:AxisData*
        | [Container] Dir Props? items:EBlock
-       | [Connector] "connector" Props? "(".ends:ConnectorEnd1 "--" ends:ConnectorEnd2.")"
+       | [Connector] "connector" Props? /> "(".ends:ConnectorEnd1 /> "--" ends:ConnectorEnd2.")" </
        | [Text] "text" (."+" {editable==true} | {editable==false}) Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:EBlock
        | [Require] "require" path:str
@@ -37,7 +37,7 @@ Props ::= "[" props:Assign+ @"," "]"
 Assign ::= [Assign] loc:Expr "=" exp:Expr
 EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:NLCommand
 
-EUnOp ::= [Color] "(" r:Expr "," g:Expr "," b:Expr ")"
+EUnOp ::= [Color] "(". r:Expr ."," g:Expr ."," b:Expr .")"
          | EUnOp
 
 EAssign ::= [EAssign] "let" var:Expr "=" val:Expr "in" body:NLCommand

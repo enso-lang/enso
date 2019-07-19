@@ -173,16 +173,15 @@ module Stencil
 		    actions = System.JSHASH()
 		    find_all_objects @data, address.index.type do |obj|
 	        name = ObjectKey(obj)
-	    		action = Proc.new { |e| 
-	    			address.value = obj
-	    			shape.string = name
-	    	  }
-	    	  actions[name] = action
-	    	  false
+	    		  action = Proc.new { |e| 
+	    			  address.value = obj
+	    			  shape.string = name
+	    	    }
+	    	    actions[name] = action
 		    end
 		    if actions != System.JSHASH()
 		      puts "MENU #{actions}"
-					System.popupMenu(actions)
+			    System.popupMenu(actions)
 			  end
 			end
 	  end

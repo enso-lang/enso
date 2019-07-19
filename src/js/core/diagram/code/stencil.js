@@ -178,8 +178,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                  address.set_value(obj);
                  return shape.set_string(name);
                })));
-               actions._set(name, action);
-               return false;
+               return actions._set(name, action);
              })));
              if ((actions != System.JSHASH())) {
                puts(S("MENU ", actions, ""));

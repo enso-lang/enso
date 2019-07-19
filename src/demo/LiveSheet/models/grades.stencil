@@ -1,23 +1,22 @@
 diagram(course)
 
 stack {
-page "course"
+page "Raw Data" 
 	grid
 	  columns for a : course.assignments {
-	    text+ a.name
-	    text+ a.max_points
-	    text+ a.increase_to_maximum
+	    text a.name
+	    text a.points
 	    text a.maximum
 	  }
 	  rows for s : course.students {
 	    text s.number
-	    text+ s.name
-	    text+ s.id
+	    text s.name
+	    text s.id
 	  }    
 	  body for g : course.grades {
-			text+ g.grade
+		text g.grade
 	  }
-	  
+
 page "Normalized"
 	grid
 	  columns for a : course.assignments {
@@ -30,17 +29,17 @@ page "Normalized"
 	    text s.id
 	  }    
 	  body for g : course.grades {
-			text g.normal
+		text g.normal
 	  }
 	  columns for a : course.assignment {
 	    label "Before Curve" {
-				text a.averageN
+			  text a.averageN
 			  text a.stdevN
 			  text a.medianN
 			  text a.maxGradeN
 			  text a.minGradeN
 			}
-		text+ a.curve
+		text a.curve
 	    text a.target
 	    label "After Curve" {
 			  text a.averageC
@@ -62,6 +61,6 @@ page "Curved"
 	    text s.id
 	  }    
 	  body for g : course.grades {
-			text g.curved
+		text g.curved
 	  }
 }

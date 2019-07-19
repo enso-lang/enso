@@ -1,0 +1,67 @@
+class Store 
+ name: str 
+ products! Product*
+ customers! Customer* / store 
+
+class Customer
+ id# str
+ first_name: str
+ last_name: str
+ reviews! Review* / author
+ orders! Order* / customer
+ shipping_address! Address
+ billing_address! Address?
+ store: Store
+
+class Address
+ street: str
+ city: str
+ zip: str
+ country: Country?
+
+class Country
+ name# str
+ short_name: str
+
+class Product
+ name# str
+ store: Store / products
+ description: str?
+ price: real
+ rating: real = AVERAGE(reviews.rating)
+ inventory: int
+ reviews: Review* / product
+ items: Item* / product
+
+class Order 
+ id# str
+ tracking: int? 
+ total: real? = SUM(items.total)
+ items! Item* / order
+ customer: Customer
+ 
+class Item
+ order: Order
+ quantity: int
+ shipped: bool
+ product: Product
+ total: real = quantity * product.price
+ 
+class Review
+    comment: str
+    date: date
+    rating: int
+    product: Product
+    author: Customer
+    photos! Photo*
+    
+class Photo
+    review: Review / photos
+    image: bitmap
+
+primitive str
+primitive date
+primitive bool
+primitive int
+primitive real
+primitive bitmap

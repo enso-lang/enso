@@ -8,8 +8,8 @@ TypeDef ::= Primitive | Class
 
 Primitive ::= [Primitive] "primitive" name:sym
   
-Class ::= [Class] "class" name:sym ClassAnnot /> defined_fields:Field* @/ </
-ClassAnnot ::= Parent?
+Class ::= [Class] "class" name:sym Parent? /> 
+                     defined_fields:Field* @/ </
 Parent ::= "<" supers:Super+ @","
 Super ::= <root.classes[it]>
 

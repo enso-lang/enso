@@ -1,49 +1,49 @@
 {
   "filename": "stencil.grammar",
   "source": "core/diagram/models/stencil.grammar",
-  "date": "2017-07-06 12:39:11 -0500",
-  "checksum": "5ab89ee595b355af923d1f729b8ca4093a4b29e9",
+  "date": "2018-05-13 03:57:17 +0800",
+  "checksum": "8cf027320ed45a1e5dffa8ed1ee3fb0bf5a63d37",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2017-07-06 12:39:11 -0500",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2017-07-06 12:39:11 -0500",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2017-12-31 17:10:24 -0600",
-      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+      "date": "2019-07-18 16:09:47 +0800",
+      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2017-12-31 17:10:24 -0600",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2017-07-06 12:39:11 -0500",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     },
     {
       "filename": "impl.grammar",
       "source": "core/expr/models/impl.grammar",
-      "date": "2017-07-06 12:39:11 -0500",
+      "date": "2018-05-13 03:55:29 +0800",
       "checksum": "2f959026b239ec52cc2155ce43e82d3d54e17346"
     },
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2017-07-06 12:39:11 -0500",
+      "date": "2018-01-01 08:47:35 +0800",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
     }
   ],
@@ -470,6 +470,14 @@
                     "optional=": true
                   },
                   {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
+                  },
+                  {
                     "class": "Lit",
                     "value=": "("
                   },
@@ -483,6 +491,14 @@
                       "class": "Call",
                       "rule": "rules[ConnectorEnd1]"
                     }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": 1
                   },
                   {
                     "class": "Lit",
@@ -502,6 +518,14 @@
                   {
                     "class": "Lit",
                     "value=": ")"
+                  },
+                  {
+                    "class": "Indent",
+                    "indent=": -1
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
                   }
                 ]
               }
@@ -1335,12 +1359,18 @@
                     "value=": "("
                   },
                   {
+                    "class": "NoSpace"
+                  },
+                  {
                     "class": "Field",
                     "name=": "r",
                     "arg": {
                       "class": "Call",
                       "rule": "rules[Expr]"
                     }
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Lit",
@@ -1355,6 +1385,9 @@
                     }
                   },
                   {
+                    "class": "NoSpace"
+                  },
+                  {
                     "class": "Lit",
                     "value=": ","
                   },
@@ -1365,6 +1398,9 @@
                       "class": "Call",
                       "rule": "rules[Expr]"
                     }
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Lit",

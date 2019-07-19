@@ -1,31 +1,34 @@
 
-
-//////////////////////////////
-class Model
-  steps! Step*
-
-class Step
+class App
   name # str
-  specs ! Spec*
+  sheets : Sheet*
+  
+class Sheet
+  name # str
+  body: Grid
+  
+class Grid
+  cols : Command*
+  rows : Command*
+  body : Start
 
-class Spec
-  direction : str  // all, rows, cols
-  calcs ! Option*
+class Start
+  name # str
+  body : Command
 
-class Option
-  variable # str
+class Command
 
-class Calculation < Option
-  expression ! Expr
+class Text < Command
+  data : str
 
-class DataInput < Option
-  value : atom
+class Relation < Command
+  name : str
+  parts : Command*
 
-class Correlated < Option
-  correlate ! Expr
-  calcs ! Option*
-
-primitive atom
+class Field < Command
+  name # str
+  
 primitive str
 primitive int
-primitive float
+primitive bool
+primitive real
