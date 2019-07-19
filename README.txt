@@ -19,10 +19,10 @@ You need:
  - test-unit gem (required!)
 
 You may need:
+ - Electron (for showing pictures with stencils)
  - bigdecimal gem
  - colored gem (for debugger)
  - rake (for web)
- - electron (for new stencil)
 
 You may want (only if you know you do):
  - Eclipse IDE. Suggested configuration files are kept in git.
@@ -35,7 +35,15 @@ a) cd to {ENSO_HOME}/src
 
 b) Run: ruby -I. {SOME RUBY FILE}
 
-  eg. ruby -I. core/expr/code/eval.rb
+   # to print out a model file (schema, grammar, data anything)
+   ruby -I. core/grammar/render/render.rb <model-name>
+      where <model-name> is   schema.schema, grammar.schema, 
+                              store.schema, store.grammar
+                              Sample.store
+   # to run an excel sample
+   ruby -I.  demo/LiveSheet/test/test.rb
+                          
+  
 
 You can add the following to your .bashrc to avoid the -I switch:
 
@@ -44,7 +52,8 @@ You can add the following to your .bashrc to avoid the -I switch:
 There are several commonly used utility functions in the /bin directory. These
 are all aliases to existing Ruby files.
 
-3) Running the demos
+3) Running the demos (if you are on unix)
+Sorry, .sh files don't work on macs
 --------------------
 Refer to README in individual sample for running instructions.
 
@@ -58,7 +67,6 @@ Refer to README in individual sample for running instructions.
 * Run GUI applications
     a)  cd {ENSO_HOME}/src/js
     b)  {path-to-electron}Electron .
-    alt b) npm install; npm start
       
       You can use CMD-O to open/edit many models. Examples include:
 		      ../core/schema/models/schema.schema 
@@ -70,7 +78,8 @@ Refer to README in individual sample for running instructions.
 * demo/StateMachine
 Simple state machine example to demonstrate writing a schema, grammar, and 
 interpreter.
-   ruby -I. demo/StateMachine/tests/example.rb demo/StateMachine/tests/door.state_machine
+   ruby -I. demo/StateMachine/code/state_machine.rb door.state_machine
+
 Then type "open" "close" "lock" each on its own line (without quotes).
 
 * demo/LiveSheet
