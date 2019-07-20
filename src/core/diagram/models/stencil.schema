@@ -68,7 +68,7 @@ class Grid < Part
   
 class AxisData
   direction: str // row, column, body
-  source: Command
+  source! Command
 
 primitive int
 primitive str

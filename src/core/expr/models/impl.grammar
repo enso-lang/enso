@@ -13,7 +13,7 @@ Command ::= EWhile
           | Expr
 
 NLCommand ::=	EBlock
-					  | /> Command </
+					  | > Command </
 					  
 EWhile ::= [EWhile] "while" cond:Expr body:NLCommand
 EFor ::= [EFor] "for" var:sym ":" list:Expr body:NLCommand
@@ -24,6 +24,6 @@ EAssign ::= [EAssign] var:Expr "=" val:Expr
 EImport ::= [EImport] "require" path:str
 
 EBlock ::= "{" /> EBlock_nocurly /< "}"
-EBlock_nocurly ::= [EBlock] (fundefs:EFunDef+@/ /)? body:NLCommand*@(.";"/) 
+EBlock_nocurly ::= [EBlock] (fundefs:EFunDef+@/ /)? body:NLCommand* 
 
 abstract Expr

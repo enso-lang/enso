@@ -14,7 +14,7 @@ page "Raw Data"
 	    text s.id
 	  }    
 	  body for g : course.grades {
-		text g.grade
+  		text g.grade
 	  }
 
 page "Normalized"
@@ -29,7 +29,7 @@ page "Normalized"
 	    text s.id
 	  }    
 	  body for g : course.grades {
-		text g.normal
+		  text g.normal
 	  }
 	  columns for a : course.assignment {
 	    label "Before Curve" {
@@ -39,7 +39,7 @@ page "Normalized"
 			  text a.maxGradeN
 			  text a.minGradeN
 			}
-		text a.curve
+  		text a.curve
 	    text a.target
 	    label "After Curve" {
 			  text a.averageC
@@ -61,6 +61,6 @@ page "Curved"
 	    text s.id
 	  }    
 	  body for g : course.grades {
-		text g.curved
+  		text g.curved
 	  }
 }

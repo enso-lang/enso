@@ -1,7 +1,7 @@
 {
   "filename": "stencil.grammar",
   "source": "core/diagram/models/stencil.grammar",
-  "date": "2018-05-13 03:57:17 +0800",
+  "date": "2019-07-20 17:13:50 +0800",
   "checksum": "8cf027320ed45a1e5dffa8ed1ee3fb0bf5a63d37",
   "depends": [
     {
@@ -37,14 +37,26 @@
     {
       "filename": "impl.grammar",
       "source": "core/expr/models/impl.grammar",
-      "date": "2018-05-13 03:55:29 +0800",
-      "checksum": "2f959026b239ec52cc2155ce43e82d3d54e17346"
+      "date": "2019-07-20 17:35:42 +0800",
+      "checksum": "ee66aa1974acf181f33d092183e7e32e3151e739"
     },
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
       "date": "2018-01-01 08:47:35 +0800",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
+    },
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     }
   ],
   "model": {
@@ -1579,10 +1591,6 @@
               "class": "Sequence",
               "elements": [
                 {
-                  "class": "Break",
-                  "lines=": 1
-                },
-                {
                   "class": "Indent",
                   "indent=": 1
                 },
@@ -1916,28 +1924,7 @@
                         "rule": "rules[NLCommand]"
                       },
                       "optional=": true,
-                      "many=": true,
-                      "sep": {
-                        "class": "Alt",
-                        "alts": [
-                          {
-                            "class": "Sequence",
-                            "elements": [
-                              {
-                                "class": "NoSpace"
-                              },
-                              {
-                                "class": "Lit",
-                                "value=": ";"
-                              },
-                              {
-                                "class": "Break",
-                                "lines=": 1
-                              }
-                            ]
-                          }
-                        ]
-                      }
+                      "many=": true
                     }
                   }
                 ]
