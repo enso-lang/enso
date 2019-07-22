@@ -4,23 +4,27 @@ stack {
 page "Raw Data" 
 	grid
 	  columns for a : course.assignments {
+	    col a
+	    text a.category.name
 	    text a.name
 	    text a.points
 	    text a.maximum
 	  }
 	  rows for s : course.students {
+	    row s 
 	    text s.number
 	    text s.name
 	    text s.id
 	  }    
 	  body for g : course.grades {
+	    row g.student
+	    col g.assignment
   		text g.grade
 	  }
 
 page "Normalized"
 	grid
 	  columns for a : course.assignments {
-	    text a.category.name
 	    text a.name
 	  }
 	  rows for s : course.students {
@@ -39,7 +43,7 @@ page "Normalized"
 			  text a.maxGradeN
 			  text a.minGradeN
 			}
-  		text a.curve
+  		text+ a.curve
 	    text a.target
 	    label "After Curve" {
 			  text a.averageC
@@ -50,6 +54,20 @@ page "Normalized"
 			}
 	}
 page "Curved"
+	grid
+	  columns for a : course.assignments {
+	    text a.category.name
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+  		text g.curved
+	  }
+page "Combined"
 	grid
 	  columns for a : course.assignments {
 	    text a.category.name

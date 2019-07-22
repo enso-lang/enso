@@ -1,7 +1,7 @@
 class Course
   students! Student*
   categories! Category*
-  assignments! Assignment*
+  assignments: Assignment*
 
 class Student
   id# str
@@ -11,7 +11,7 @@ class Student
 
 class Category
   name# str
-  assignments: Assignment*
+  assignments! Assignment*
   points: real
 
 class Assignment

@@ -1,8 +1,8 @@
 {
   "filename": "stencil.schema",
   "source": "core/diagram/models/stencil.schema",
-  "date": "2019-07-20 17:25:19 +0800",
-  "checksum": "3f126e74347a580188d600a66a39d401a1aeaffb",
+  "date": "2019-07-21 20:09:30 +0800",
+  "checksum": "528251c7a8480500c26d5546164e3b5d24e50f63",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -166,6 +166,12 @@
           "types[Part]"
         ],
         "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "type",
+            "owner": "types[Label]",
+            "type": "types[str]"
+          },
           {
             "class": "Field",
             "name=": "label",

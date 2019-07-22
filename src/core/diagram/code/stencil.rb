@@ -285,28 +285,27 @@ module Stencil
 	
 	  def constructGrid(grid, env, container, id, proc)
 	    columns = []
-	    ncols = 0
 	    rows = []
-	    nrows = 0
 	    body = []
 	    dgrid = @factory.Grid
 	    grid.axes.each do |axis|
 	    	case axis.direction
 	    	when "columns"
-	    	  columns << []
-	    	  construct(axis.source, env, dgrid, i) do |item, ni|
-	    	  	columns[ncols] << item
+	      construct(efor.body, nenv, container, newId, Proc.new { |shape, subid|
+	    	  construct(axis.source, env, dgrid, id) do |item, ni|
+	    	  	columns << item
 	    	  end
-	    	  ncols = ncols + 1
 	    	when "rows"
-	    	  rows << []
-	    	  construct(axis.source, env, dgrid, i) do |item, ni|
-	    	  	rows[nrows] << item
+	    	  construct(axis.source, env, dgrid, id) do |item, ni|
+	    	  	rows << item
 	    	  end
-	    	  nrows = nrows + 1
 	    	when "body"
+	    	  construct(axis.source, env, dgrid, id) do |item, ni|
+	    	  	body << item
+	    	  end
 	      end
-	    end	  
+	    end	 
+	    puts "GRID\n  #{columns}\n  #{rows}\n  #{body}" 
 	  end
 	  
 	  def constructEFor(efor, env, container, id, proc)
@@ -485,9 +484,9 @@ module Stencil
 	  end
 	  
 	  def constructPage(obj, env, container, id, proc)
-		   make_styles(obj, group, env)
+		   #make_styles(obj, group, env)
 		   page = @factory.Page
-		   page.name = eval(obj.namem, env)
+		   page.name = obj.name
 	     construct obj.part, env, container, id, Proc.new { |sub|
 	       raise "two content items in a page #{obj.content.to_s}" if obj.content
 	       obj.content = sub

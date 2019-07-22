@@ -7,7 +7,7 @@ graph {   // create the nodes (one for each class)
         vertical {
            text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
            for field : class.defined_fields
-              if field.type is Primitive or field.computed != nil then
+              if field.type is Primitive or field.computed != nil then 
                 horizontal {
                   text field.name // editable field name
                   text (field.key ? "#" : ":")

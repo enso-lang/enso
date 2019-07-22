@@ -1,8 +1,8 @@
 {
   "filename": "impl.grammar",
   "source": "core/expr/models/impl.grammar",
-  "date": "2019-07-20 17:35:42 +0800",
-  "checksum": "ee66aa1974acf181f33d092183e7e32e3151e739",
+  "date": "2019-07-21 11:31:33 +0800",
+  "checksum": "9ed0097638a77ffe4b3b2fe85b3172243cffe933",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -251,6 +251,9 @@
                       "class": "Value",
                       "kind=": "sym"
                     }
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Lit",
@@ -634,7 +637,11 @@
                         "rule": "rules[NLCommand]"
                       },
                       "optional=": true,
-                      "many=": true
+                      "many=": true,
+                      "sep": {
+                        "class": "Break",
+                        "lines=": 1
+                      }
                     }
                   }
                 ]

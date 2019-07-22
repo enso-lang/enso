@@ -1,0 +1,854 @@
+{
+  "filename": "grades.stencil",
+  "source": "demo/LiveSheet/models/grades.stencil",
+  "date": "2019-07-21 20:16:18 +0800",
+  "checksum": "7420bd4f1d213d7831b6bedc93307ffc3e593d69",
+  "depends": [
+    {
+      "filename": "stencil.grammar",
+      "source": "core/diagram/models/stencil.grammar",
+      "date": "2019-07-21 20:09:12 +0800",
+      "checksum": "c68d47a55196f848f8358ea3dd7367f44a78c631"
+    },
+    {
+      "filename": "stencil.schema",
+      "source": "core/diagram/models/stencil.schema",
+      "date": "2019-07-21 20:09:30 +0800",
+      "checksum": "528251c7a8480500c26d5546164e3b5d24e50f63"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2019-07-18 16:09:47 +0800",
+      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "impl.schema",
+      "source": "core/expr/models/impl.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "581ca41a91b5f51b6bd12cd19966e9b2474fb4b5"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Stencil",
+    "root=": "course",
+    "body": {
+      "class": "Container",
+      "direction=": 5,
+      "items": [
+        {
+          "class": "EBlock",
+          "body": [
+            {
+              "class": "Page",
+              "name=": "Raw Data",
+              "part": {
+                "class": "Grid",
+                "axes": [
+                  {
+                    "class": "AxisData",
+                    "direction=": "columns",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "a",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "assignments"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Label",
+                            "type=": "col",
+                            "label": {
+                              "class": "EVar",
+                              "name=": "a"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EVar",
+                                  "name=": "a"
+                                },
+                                "fname=": "category"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "points"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "maximum"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "rows",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "s",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "students"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Label",
+                            "type=": "row",
+                            "label": {
+                              "class": "EVar",
+                              "name=": "s"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "number"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "id"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "body",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "g",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "grades"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Label",
+                            "type=": "row",
+                            "label": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "student"
+                            }
+                          },
+                          {
+                            "class": "Label",
+                            "type=": "col",
+                            "label": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "assignment"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "grade"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Page",
+              "name=": "Normalized",
+              "part": {
+                "class": "Grid",
+                "axes": [
+                  {
+                    "class": "AxisData",
+                    "direction=": "columns",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "a",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "assignments"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "name"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "rows",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "s",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "students"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "number"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "id"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "body",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "g",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "grades"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "normal"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "columns",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "a",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "assignment"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Label",
+                            "type=": "label",
+                            "label": {
+                              "class": "EStrConst",
+                              "val=": "Before Curve"
+                            },
+                            "body": {
+                              "class": "EBlock",
+                              "body": [
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "averageN"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "stdevN"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "medianN"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "maxGradeN"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "minGradeN"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "curve"
+                            },
+                            "editable=": true
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "target"
+                            }
+                          },
+                          {
+                            "class": "Label",
+                            "type=": "label",
+                            "label": {
+                              "class": "EStrConst",
+                              "val=": "After Curve"
+                            },
+                            "body": {
+                              "class": "EBlock",
+                              "body": [
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "averageC"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "stdevC"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "medianC"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "maxGradeC"
+                                  }
+                                },
+                                {
+                                  "class": "Text",
+                                  "string": {
+                                    "class": "EField",
+                                    "e": {
+                                      "class": "EVar",
+                                      "name=": "a"
+                                    },
+                                    "fname=": "minGradeC"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Page",
+              "name=": "Curved",
+              "part": {
+                "class": "Grid",
+                "axes": [
+                  {
+                    "class": "AxisData",
+                    "direction=": "columns",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "a",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "assignments"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EVar",
+                                  "name=": "a"
+                                },
+                                "fname=": "category"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "name"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "rows",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "s",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "students"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "number"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "id"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "body",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "g",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "grades"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "curved"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Page",
+              "name=": "Combined",
+              "part": {
+                "class": "Grid",
+                "axes": [
+                  {
+                    "class": "AxisData",
+                    "direction=": "columns",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "a",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "assignments"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EField",
+                                "e": {
+                                  "class": "EVar",
+                                  "name=": "a"
+                                },
+                                "fname=": "category"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "a"
+                              },
+                              "fname=": "name"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "rows",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "s",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "students"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "number"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "name"
+                            }
+                          },
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "s"
+                              },
+                              "fname=": "id"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "class": "AxisData",
+                    "direction=": "body",
+                    "source": {
+                      "class": "EFor",
+                      "var=": "g",
+                      "list": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "course"
+                        },
+                        "fname=": "grades"
+                      },
+                      "body": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "g"
+                              },
+                              "fname=": "curved"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

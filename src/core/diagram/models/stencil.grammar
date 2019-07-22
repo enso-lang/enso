@@ -8,15 +8,17 @@ abstract Expr
 // To make text fields editable, add a "+" behind the name
 
 // diagrams
-Stencil ::= [Stencil] "diagram" (.title:str.)? "(".root:sym.")" body:NLCommand
+Stencil ::= [Stencil] "diagram" (.title:str.)? "(".root:sym.")" / body:NLCommand
 
 Command ::= Part
           | Command
 
-Part ::= [Label] "label" Props? label:Expr body:EBlock
-		   | [Page] "page" name:str /> part:Command /<
+Part ::= [Page] "page" name:str /> part:Command /<
 		   | [Grid] "grid" / axes:AxisData*
-       | [Container] Dir Props? items:EBlock
+       | [Label] type:"row" label:Expr
+		   | [Label] type:"col" label:Expr
+		   | [Label] type:"label" Props? label:Expr body:EBlock
+		   | [Container] Dir Props? items:EBlock
        | [Connector] "connector" Props? /> "(".ends:ConnectorEnd1 /> "--" ends:ConnectorEnd2.")" </
        | [Text] "text" (."+" {editable==true} | {editable==false}) Props? string:Expr
        | [Shape] (kind:"box" | kind:"oval" | kind:"rounded") Props? content:EBlock

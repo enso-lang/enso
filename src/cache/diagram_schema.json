@@ -1,8 +1,8 @@
 {
   "filename": "diagram.schema",
   "source": "core/diagram/models/diagram.schema",
-  "date": "2018-01-01 08:47:35 +0800",
-  "checksum": "d0a97a1d6945e1841b7d92e62031dbd237d88b8c",
+  "date": "2019-07-21 17:41:41 +0800",
+  "checksum": "1cf89d8b9f7e91089ae6a5fcdfd782aef6a3c1d8",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -26,10 +26,10 @@
         "schema": "",
         "subclasses#": [
           "types[Container]",
-          "types[Grid]",
           "types[Text]",
           "types[Page]",
           "types[Shape]",
+          "types[Grid]",
           "types[Connector]"
         ],
         "defined_fields#": [
@@ -66,21 +66,6 @@
             "optional=": true,
             "many=": true,
             "traversal=": true
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Row",
-        "schema": "",
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "columns",
-            "owner": "types[Row]",
-            "type": "types[Part]",
-            "optional=": true,
-            "many=": true
           }
         ]
       },
@@ -172,9 +157,21 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "row",
+            "name=": "rows",
             "owner": "types[Grid]",
-            "type": "types[Column]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "columns",
+            "owner": "types[Grid]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "items",
+            "owner": "types[Grid]",
+            "type": "types[Positional]",
             "optional=": true,
             "many=": true
           }
@@ -182,16 +179,26 @@
       },
       {
         "class": "Class",
-        "name=": "Column",
+        "name=": "Positional",
         "schema": "",
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "cols",
-            "owner": "types[Column]",
-            "type": "types[Part]",
-            "optional=": true,
-            "many=": true
+            "name=": "row",
+            "owner": "types[Positional]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "col",
+            "owner": "types[Positional]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "contents",
+            "owner": "types[Positional]",
+            "type": "types[Part]"
           }
         ]
       },

@@ -20,6 +20,7 @@ class Assign
 // TEMPLATE STUFF
 
 class Label < Part
+  type: str
   label! Expr
   body! Command
 
@@ -43,7 +44,7 @@ class Text < Part
   editable: bool
 
 class Shape < Part
-  kind: str
+  kind: str // box, oval, rounded
   content! Command?
 
 class Connector < Part
