@@ -291,7 +291,6 @@ module Stencil
 	    grid.axes.each do |axis|
 	    	case axis.direction
 	    	when "columns"
-	      construct(efor.body, nenv, container, newId, Proc.new { |shape, subid|
 	    	  construct(axis.source, env, dgrid, id) do |item, ni|
 	    	  	columns << item
 	    	  end
