@@ -17,7 +17,8 @@ function createWindow() {
  win = new BrowserWindow({
   						webPreferences: {
     						nodeIntegration: true,
-    						webviewTag: true
+    						webviewTag: true,
+    						allowRunningInsecureContent: true
   						}
 				})
 
