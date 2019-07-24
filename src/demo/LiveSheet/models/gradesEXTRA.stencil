@@ -1,0 +1,83 @@
+diagram(course)
+
+stack {
+page "Raw Data" 
+	grid
+	  columns for a : course.assignments {
+	    col a
+	    text a.category.name
+	    text a.name
+	    text a.points
+	  }
+	  rows for s : course.students {
+	    row s
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.students.grades {
+	    row g.student
+	    col g.assignment
+  		text g.grade
+	  }
+
+page "Normalized"
+	grid
+	  columns for a : course.assignments {
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+		  text g.normal
+	  }
+	  columns for a : course.assignment {
+	    label "Before Curve" {
+			  text a.averageN
+			  text a.stdevN
+			  text a.medianN
+			  text a.maxGradeN
+			  text a.minGradeN
+			}
+  		text+ a.curve
+	    text a.target
+	    label "After Curve" {
+			  text a.averageC
+			  text a.stdevC
+			  text a.medianC
+			  text a.maxGradeC
+			  text a.minGradeC
+			}
+	}
+page "Curved"
+	grid
+	  columns for a : course.assignments {
+	    text a.category.name
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+  		text g.curved
+	  }
+page "Combined"
+	grid
+	  columns for a : course.assignments {
+	    text a.category.name
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+  		text g.curved
+	  }
+}

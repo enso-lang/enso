@@ -2,6 +2,7 @@ import gradeData.schema
 
 class Course
   check: real = SUM(assignments.contribution)
+  grades: Grade* = students.flat_map() {|s| s.grades }
 
 class Student
   finalGrade: real = SUM(grades.combined)

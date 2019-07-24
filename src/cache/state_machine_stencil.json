@@ -1,20 +1,20 @@
 {
   "filename": "state_machine.stencil",
   "source": "demo/StateMachine/models/state_machine.stencil",
-  "date": "2019-07-20 17:34:19 +0800",
+  "date": "2019-07-22 12:00:44 +0800",
   "checksum": "ac5d9c967adc649748ad1b328b35ff80c0b52f4a",
   "depends": [
     {
       "filename": "stencil.grammar",
       "source": "core/diagram/models/stencil.grammar",
-      "date": "2019-07-21 10:33:04 +0800",
-      "checksum": "d34e5781361470b99a7b10d8128759e092972a7e"
+      "date": "2019-07-21 20:09:12 +0800",
+      "checksum": "c68d47a55196f848f8358ea3dd7367f44a78c631"
     },
     {
       "filename": "stencil.schema",
       "source": "core/diagram/models/stencil.schema",
-      "date": "2019-07-21 19:50:58 +0800",
-      "checksum": "4a395bf47708c7f2e1963c71c32152240a7537d4"
+      "date": "2019-07-24 11:52:23 +0800",
+      "checksum": "f4455f706626533cda89737b1756b5dae1a41a7f"
     },
     {
       "filename": "schema.schema",
@@ -88,6 +88,7 @@
               },
               "body": {
                 "class": "Label",
+                "type=": "label",
                 "label": {
                   "class": "EVar",
                   "name=": "state"

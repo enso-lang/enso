@@ -450,14 +450,14 @@ module Factory
       each do |x|
         set = block.call(x)
         if new.nil? then
-          key = set.__key
-          new = Set.new(nil, @field, key)
+          # key = set.__key
+          new = List.new(nil, @field) #, key)
         end
         set.each do |y|
           new << y
         end
       end
-      new || Set.new(nil, @field, __key)
+      new || List.new(nil, @field) # , __key)
     end
 
     def hash_map(&block)
@@ -505,6 +505,18 @@ module Factory
           block.call( item, nil )
         end
       end
+    end
+
+    def union(other)
+      # left-biased: field is from self
+      result = List.new(nil, @field)
+      self.each do |x|
+        result << x
+      end
+      other.each do |x|
+        result << x
+      end
+      result
     end
 
     def flat_map(&block)

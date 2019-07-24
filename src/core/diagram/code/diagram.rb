@@ -283,8 +283,14 @@ module Diagram
       [w, h] if !w.nil?
     end
 
+    def constrainPage(part, basex, basey, width, height)
+       # not working!
+  	end
+
     def constrainGrid(part, basex, basey, width, height)
-  
+  		rows
+  		
+  		Array.new(4) {Hash.new}    #=> [{}, {}, {}, {}]
   
   	end
   	

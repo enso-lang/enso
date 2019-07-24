@@ -211,6 +211,12 @@ module Stencil
 		  @actions[shape._id][name] = block
 		end
 		    
+		# construct
+		#   stencil: a stencil object being constructed
+		#   env: an environment, used for variables defined in stencil
+		#   container: the source of model elements
+		#   id: a unique identifier for this object
+		#   proc: where to send the object that is constructed!
 	  def construct(stencil, env, container, id, proc)
 	    send("construct#{stencil.schema_class.name}", stencil, env, container, id, proc)
 	  end
@@ -262,12 +268,18 @@ module Stencil
 	    shape.styles << brush if brush
 	  end
 	
+	  # construxt an alternative. It returns the first
+	  # alternative construction that builds anything 
+	  # (doesn't get an error)
+	  # TODO: it should probably catch errors!
 	  def constructAlt(obj, env, container, id, proc)
 	    obj.alts.find_first do |alt|
 	      construct(alt, env, container, id, proc)
 	    end
 	  end
 	
+		# assigns (changes) a value of a variable. 
+		# This probably should never happen
 	  def constructEAssign(obj, env, container, id, proc)
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
@@ -276,6 +288,7 @@ module Stencil
 	    construct obj.body, nenv, container, id, proc
 	  end
 	
+	  # doesn't work right now... but it should import another stencil?
 	  def constructEImport(obj, env, container, id, proc)
 	    #@fundefs.instance_eval(File.open(obj.path, "r").read)
 	    #@fundefs.singleton_methods.each do |m|
@@ -283,30 +296,76 @@ module Stencil
 	    #end
 	  end
 	
+		# used to construct Excel-like grids. Not working yet!
 	  def constructGrid(grid, env, container, id, proc)
-	    columns = []
-	    rows = []
-	    body = []
-	    dgrid = @factory.Grid
+  	  # information on columns
+  	  @col_index = {}
+  	  @top_data = []  # two-dimensional
+  	  
+  	  # information on rows
+    	@row_index = {}
+    	@side_data = []  # two-dimensional
+    	
+    	dgrid = @factory.Grid
 	    grid.axes.each do |axis|
 	    	case axis.direction
 	    	when "columns"
-	    	  construct(axis.source, env, dgrid, id) do |item, ni|
-	    	  	columns << item
-	    	  end
+	    	  @grid_label_type = :define
+	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
+	    	  	 @top_data[@top_data.size-1] << item
+	    	  })
 	    	when "rows"
-	    	  construct(axis.source, env, dgrid, id) do |item, ni|
-	    	  	rows << item
-	    	  end
+	    	  @grid_label_type = :define
+	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
+	    	  	@side_data[@side_data.size-1] << item
+	    	  })
 	    	when "body"
-	    	  construct(axis.source, env, dgrid, id) do |item, ni|
-	    	  	body << item
-	    	  end
+	    	  @grid_label_type = :reference
+	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
+	    	    g = @factory.Positional
+	    	    g.col = @global_colNum
+	    	    g.row = @global_rowNum
+	    	    g.contents = item
+	    	    dgrid.items << g
+	    	  })
 	      end
 	    end	 
-	    puts "GRID\n  #{columns}\n  #{rows}\n  #{body}" 
+	    # we now have all the info! 
+	    c = 0
+  	  @top_data.each do |td|
+  	    r = -td.size
+  	    td.each do |item|
+     	    g = @factory.Positional
+	    	  g.col = c
+	    	  g.row = r
+	    	  g.contents = item
+	    	  dgrid.items << g
+  	      r = r + 1
+	    	end
+  	    c = c + 1
+	    end
+	    r = 0
+  	  @top_data.each do |td|
+  	    c = -td.size
+  	    td.each do |item|
+     	    g = @factory.Positional
+	    	  g.col = c
+	    	  g.row = r
+	    	  g.contents = item
+	  	    dgrid.items << g
+  	      c = c + 1
+	    	end
+  	    r = r + 1
+	    end
+   	  # puts "GRID #{dgrid.items}"
+   	  dgrid
 	  end
 	  
+	  # Use to iterate over a set of model elements
+	  # it requires the list to be defined by a Field o.f
+	  # it iterates constructing the for.body for each item from the list!
+	  # it should create Delete/Remove menus, and Create/Insert menues,
+	  # but they aren't working right now.
 	  def constructEFor(efor, env, container, id, proc)
 	    source = eval(efor.list, env)
 	    address = lvalue(efor.list, env)
@@ -424,6 +483,8 @@ module Stencil
 	    end
 		end
 	
+	  # evaluates a condition, and then makes one of two different
+	  # constructions
 	  def constructEIf(obj, env, container, id, proc)
 	    test = eval(obj.cond, env)
 	    if test
@@ -433,29 +494,48 @@ module Stencil
 	    end
 	  end
 	
+	  # evaluates a series of constructions on a container
 	  def constructEBlock(obj, env, container, id, proc)
 	    obj.body.each do |command|
 	      construct(command, env, container, id, proc)
 	    end
 	  end
 	
+	  # creates a label from the abstact world to the diagram shape
 	  def constructLabel(obj, env, container, id, proc)
-	    construct obj.body, env, container, id, Proc.new { |shape, subid|
-	      tag = evallabel(obj.label, env)
-	      # puts "LABEL #{tag} / #{obj} => #{shape}"
-	      @tagModelToShape[tag._path] = shape
-	      proc.call(shape, subid)
-	    }
+	    if obj.body # its a (label target body)
+		    construct obj.body, env, container, id, Proc.new { |shape, subid|
+		      target = evallabel(obj.label, env)
+		      # puts "LABEL #{target} / #{obj} => #{shape}"
+		      @tagModelToShape[target._path] = shape
+		      proc.call(shape, subid)
+		    }
+		  else # its a (row x) or (col y)
+		    # begin next col or row, depending on type
+		    target = evallabel(obj.label, env)
+		    case @grid_label_type
+		    when :define then
+		      case obj.type
+		      when "col" then
+			  	  @top_data << []  # make a new column
+			  	  @col_index[target] = @top_data.size() - 1
+		      when "row" then
+           	@side_data << []
+          	@row_index[target] = @side_data.size() - 1
+          end
+		    when :reference then 
+			    case obj.type
+	        when "col" then
+		        @global_colNum = @col_index[target] 
+		      when "row" then
+	          @global_rowNum = @row_index[target] 
+		      end
+		    end
+			end		        
 	  end
 	
+	  # evaluates a label, by calling eval
 	  def evallabel(label, env)
-#	    tag = "default"
-#	    if label.ESubscript? # it has the form Loc[foo]
-#	      tag = label.e
-#	      label = label.sub
-#	      raise "foo" if !tag.Var?
-#	      tag = tag.name
-#	    end
 	    obj = eval(label, env)
 	  end
 	  

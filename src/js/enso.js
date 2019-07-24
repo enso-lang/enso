@@ -81,6 +81,7 @@ puts = function(obj) {
 
 // running in node
   fs = require("fs");
+  //path = require("path");
   ARGV = process.argv.slice(2);
   
   S = function() {

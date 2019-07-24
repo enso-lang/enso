@@ -1,12 +1,14 @@
 {
   "filename": "cs345.grades",
-  "source": "SYNTHETIC",
-  "date": "2019-07-21 12:22:10 +0800",
+  "source": "demo/LiveSheet/test/cs345.grades",
+  "date": "2019-07-24 11:53:47 +0800",
+  "checksum": "02a01556f86f8920131e697ee7a8adc2ff90d662",
   "depends": [
     {
       "filename": "grades.grammar",
-      "source": "SYNTHETIC",
-      "date": "2019-07-21 12:22:10 +0800"
+      "source": "demo/LiveSheet/test/grades.grammar",
+      "date": "2019-07-24 13:40:41 +0800",
+      "checksum": "42bf08a8e57dc96d45be0faa31a550886039719b"
     }
   ],
   "model": {

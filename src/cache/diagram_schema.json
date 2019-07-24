@@ -1,8 +1,8 @@
 {
   "filename": "diagram.schema",
   "source": "core/diagram/models/diagram.schema",
-  "date": "2019-07-21 17:41:41 +0800",
-  "checksum": "1cf89d8b9f7e91089ae6a5fcdfd782aef6a3c1d8",
+  "date": "2019-07-24 14:00:08 +0800",
+  "checksum": "f3516288b94b010349f9af2aed4e50e15fed9242",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -157,23 +157,12 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "rows",
-            "owner": "types[Grid]",
-            "type": "types[int]"
-          },
-          {
-            "class": "Field",
-            "name=": "columns",
-            "owner": "types[Grid]",
-            "type": "types[int]"
-          },
-          {
-            "class": "Field",
             "name=": "items",
             "owner": "types[Grid]",
             "type": "types[Positional]",
             "optional=": true,
-            "many=": true
+            "many=": true,
+            "traversal=": true
           }
         ]
       },
@@ -198,7 +187,8 @@
             "class": "Field",
             "name=": "contents",
             "owner": "types[Positional]",
-            "type": "types[Part]"
+            "type": "types[Part]",
+            "traversal=": true
           }
         ]
       },

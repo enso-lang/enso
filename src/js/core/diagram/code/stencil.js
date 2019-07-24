@@ -308,31 +308,73 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructGrid = (function (grid, env, container, id, proc) {
       var self = this;
-      var body, dgrid, rows, columns;
-      (columns = []);
-      (rows = []);
-      (body = []);
+      var c, dgrid, r;
+      (self.$.col_index = (new EnsoHash({
+        
+      })));
+      (self.$.top_data = []);
+      (self.$.row_index = (new EnsoHash({
+        
+      })));
+      (self.$.side_data = []);
       (dgrid = self.$.factory.Grid());
       grid.axes().each((function (axis) {
         switch ((function () {
           return axis.direction();
         })()) {
           case "body":
-           return self.construct((function (item, ni) {
-             return body.push(item);
-           }), axis.source(), env, dgrid, id);
+           (self.$.grid_label_type = "reference");
+           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
+             var g;
+             (g = self.$.factory.Positional());
+             g.set_col(self.$.global_colNum);
+             g.set_row(self.$.global_rowNum);
+             g.set_contents(item);
+             return dgrid.items().push(g);
+           })));
           case "rows":
-           return self.construct((function (item, ni) {
-             return rows.push(item);
-           }), axis.source(), env, dgrid, id);
+           (self.$.grid_label_type = "define");
+           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
+             return self.$.side_data._get((self.$.side_data.size() - 1)).push(item);
+           })));
           case "columns":
-           return self.construct((function (item, ni) {
-             return columns.push(item);
-           }), axis.source(), env, dgrid, id);
+           (self.$.grid_label_type = "define");
+           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
+             return self.$.top_data._get((self.$.top_data.size() - 1)).push(item);
+           })));
         }
             
       }));
-      return puts(S("GRID\n  ", columns, "\n  ", rows, "\n  ", body, ""));
+      (c = 0);
+      self.$.top_data.each((function (td) {
+        var r;
+        (r = (-td.size()));
+        td.each((function (item) {
+          var g;
+          (g = self.$.factory.Positional());
+          g.set_col(c);
+          g.set_row(r);
+          g.set_contents(item);
+          dgrid.items().push(g);
+          return (r = (r + 1));
+        }));
+        return (c = (c + 1));
+      }));
+      (r = 0);
+      self.$.top_data.each((function (td) {
+        (c = (-td.size()));
+        td.each((function (item) {
+          var g;
+          (g = self.$.factory.Positional());
+          g.set_col(c);
+          g.set_row(r);
+          g.set_contents(item);
+          dgrid.items().push(g);
+          return (c = (c + 1));
+        }));
+        return (r = (r + 1));
+      }));
+      return dgrid;
     }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;
@@ -459,12 +501,45 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructLabel = (function (obj, env, container, id, proc) {
       var self = this;
-      return self.construct(obj.body(), env, container, id, Proc.new((function (shape, subid) {
-        var tag;
-        (tag = self.evallabel(obj.label(), env));
-        self.$.tagModelToShape._set(tag._path(), shape);
-        return proc(shape, subid);
-      })));
+      var target;
+      if (obj.body()) { 
+        return self.construct(obj.body(), env, container, id, Proc.new((function (shape, subid) {
+          var target;
+          (target = self.evallabel(obj.label(), env));
+          self.$.tagModelToShape._set(target._path(), shape);
+          return proc(shape, subid);
+        }))); 
+      } 
+      else {
+             (target = self.evallabel(obj.label(), env));
+             switch ((function () {
+               return self.$.grid_label_type;
+             })()) {
+               case "reference":
+                switch ((function () {
+                  return obj.type();
+                })()) {
+                  case "row":
+                   return (self.$.global_rowNum = self.$.row_index._get(target));
+                  case "col":
+                   return (self.$.global_colNum = self.$.col_index._get(target));
+                }
+                    
+               case "define":
+                switch ((function () {
+                  return obj.type();
+                })()) {
+                  case "row":
+                   self.$.side_data.push([]);
+                   return self.$.row_index._set(target, (self.$.side_data.size() - 1));
+                  case "col":
+                   self.$.top_data.push([]);
+                   return self.$.col_index._set(target, (self.$.top_data.size() - 1));
+                }
+                    
+             }
+                 
+           }
     }));
     (this.evallabel = (function (label, env) {
       var self = this;

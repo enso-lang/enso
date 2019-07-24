@@ -21,14 +21,16 @@ class Shape < Part
   connectors: ConnectorEnd* 
 
 class Grid < Part
-  rows: int
-  columns: int
-  items: Positional*
+//  rowMin: int = MIN(items.row)
+//  rowMax: int = MAX(items.row)
+//  colMin: int = MIN(items.col)
+//  colMax: int = MAX(items.col)
+  items! Positional*
 
 class Positional
   row: int
   col: int
-  contents: Part  
+  contents! Part
 	
 class Connector < Part
   label: Text?

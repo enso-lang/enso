@@ -263,8 +263,15 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return [w, h];
       }
     }));
+    (this.constrainPage = (function (part, basex, basey, width, height) {
+      var self = this;
+    }));
     (this.constrainGrid = (function (part, basex, basey, width, height) {
       var self = this;
+      self.rows();
+      return Array.new((function () {
+        return self.Hash().new();
+      }), 4);
     }));
     (this.constrainContainer = (function (part, basex, basey, width, height) {
       var self = this;

@@ -80,6 +80,7 @@ MODELS = \
 	door.state_machine \
 	grades.schema \
 	gradeData.schema \
+	grades.stencil \
 	store.grammar \
 	store.schema \
 	

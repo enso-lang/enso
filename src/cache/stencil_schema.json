@@ -1,8 +1,8 @@
 {
   "filename": "stencil.schema",
   "source": "core/diagram/models/stencil.schema",
-  "date": "2019-07-21 20:09:30 +0800",
-  "checksum": "528251c7a8480500c26d5546164e3b5d24e50f63",
+  "date": "2019-07-24 11:52:23 +0800",
+  "checksum": "f4455f706626533cda89737b1756b5dae1a41a7f",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -184,6 +184,7 @@
             "name=": "body",
             "owner": "types[Label]",
             "type": "types[Command]",
+            "optional=": true,
             "traversal=": true
           }
         ]

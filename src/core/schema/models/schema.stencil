@@ -5,7 +5,8 @@ graph {   // create the nodes (one for each class)
     label class {  // declare the "identifier" of this node is a class
       box { 
         vertical {
-           text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name
+           text [font.size=16,font.weight="bold",fill.color=(90,80,90)] 
+               class.name
            for field : class.defined_fields
               if field.type is Primitive or field.computed != nil then 
                 horizontal {
