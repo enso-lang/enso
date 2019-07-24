@@ -16,10 +16,7 @@ function createWindow() {
   // Create the browser window.
  win = new BrowserWindow({
   						webPreferences: {
-  						  contextIsolation:	false,
-    						nodeIntegration: true,
-    						webviewTag: true,
-    						allowRunningInsecureContent: true
+    						nodeIntegration: true
   						}
 				})
 
