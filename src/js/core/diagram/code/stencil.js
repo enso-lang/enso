@@ -234,9 +234,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         })()) {
           case "fill.color":
            if ((!brush)) {
-             newEnv._set("brush", (brush = env._get("brush")._clone()));
+             return newEnv._set("brush", (brush = self.$.factory.Brush(val)));
            }
-           return brush.set_color(val);
           case "line.color":
            if ((!pen)) {
              newEnv._set("pen", (pen = env._get("pen")._clone()));
@@ -272,6 +271,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
              newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_weight(val);
+          case "align":
+           if ((!align)) {
+             return newEnv._set("align", (align = self.$.factory.Align(val)));
+           }
           case "font.size":
            if ((!font)) {
              newEnv._set("font", (font = env._get("font")._clone()));

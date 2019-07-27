@@ -523,7 +523,7 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      @context.fillText(shape.name, r.x + 2, r.y, 1000)
+      @context.fillText(shape.name, r.x + 2, r.y)
       @context.fill
       @context.restore
       draw(shape.content, n+1)
@@ -799,16 +799,20 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      #case @context.textAlign_
-      #when "center" then
-      #  puts "drawing center"
-	    #  @context.fillText(text.string, r.x + r.w / 2, r.y + @text_margin / 4, 1000)
-      #when "right" then
-      #  puts "drawing right"
-	    #  @context.fillText(text.string, r.x + r.w + @text_margin / 2, r.y + @text_margin / 4, 1000)
-      #else
-        @context.fillText(text.string, r.x + @text_margin / 2, r.y + @text_margin / 4, 1000)
-	    #end
+      top = r.y + @text_margin / 4
+      case @context.textAlign_
+      when "center" then
+        puts "drawing center"
+        mid = r.x + r.w / 2
+	      @context.fillText(text.string, mid, top)
+      when "right" then
+        puts "drawing right"
+        right = r.x + r.w + @text_margin / 2
+	      @context.fillText(text.string, right, top)
+      else
+        left = r.x + @text_margin / 2
+        @context.fillText(text.string, left, top)
+	    end
       @context.fill
       @context.restore
     end
@@ -831,7 +835,7 @@ module Diagram
             elsif style.Brush?
               @context.fillStyle_ = makeColor(style.color)
             elsif style.Align?
-              # @context.textAlign_ = style.kind
+              @context.textAlign_ = style.kind
             end
             
           end

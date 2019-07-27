@@ -227,7 +227,7 @@ module Stencil
 	    send("construct#{stencil.schema_class.name}", stencil, env, container, id, proc)
 	  end
 	  
-	  def make_styles(stencil, shape, env)
+	  def make_styles(stencil, shape, env)  # puts styles on shape
 	    font = nil
 	    pen = nil
 	    brush = nil
@@ -242,10 +242,8 @@ module Stencil
 	        #puts "FONT SIZE #{val}"
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.size = val
-	    #  when "align" then
-	    #    newEnv[:align] = align = env[:align]._clone if !align
-	    #    align.kind = val
-	    #    puts "ALIGN=#{val}"
+	      when "align" then
+	        newEnv[:align] = align = @factory.Align(val) if !align
 	      when "font.weight" then
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.weight = val
@@ -268,11 +266,12 @@ module Stencil
 	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.color = val
 	      when "fill.color" then
-	        newEnv[:brush] = brush = env[:brush]._clone if !brush
-	        brush.color = val
+	        newEnv[:brush] = brush = @factory.Brush(val) if !brush
+	        #brush.color = val
 	      end
 	    end
-	    # TODO: why do I need to set the style on every object????
+	    # why do I need to set the style on every object????
+	    # because we are building a diagram!
 	    shape.styles << font if font
 	    shape.styles << pen if pen
 	    shape.styles << brush if brush
@@ -568,13 +567,13 @@ module Stencil
 	          end
 	        }
 	      end
-	      make_styles(obj, group, env)
+	      make_styles(obj, group, env)  # puts styles on group
 	      proc.call group, id if proc
 	    end
 	  end
 	  
 	  def constructPage(obj, env, container, id, proc)
-		   #make_styles(obj, group, env)
+		   #make_styles(obj, group, env)  # puts styles on group??
 		   page = @factory.Page
 		   page.name = obj.name
 	     construct obj.part, env, container, id, Proc.new { |sub|
@@ -588,15 +587,9 @@ module Stencil
 	    val = eval(obj.string, env) # , true)
 	    addr = lvalue(obj.string, env)
 	    text = @factory.Text
-#	    if val.is_a? Variable
-#	      text.string = val.new_var_method do |a, *other|
-#	        x = "#{a}"
-#	      end
-#	    else
-	      text.string = val.to_s
-#	    end
+	    text.string = val.to_s
 	    text.editable = obj.editable
-	    make_styles(obj, text, env)
+	    make_styles(obj, text, env) # puts styles on text
 	    if addr
 		    @shapeToAddress[text] = addr
 		  end
@@ -610,7 +603,7 @@ module Stencil
 	      error "Shape can only have one element" if shape.content
 	      shape.content = x
 	    }
-	    make_styles(obj, shape, env)
+	    make_styles(obj, shape, env)  # puts styles on shape
 	    proc.call shape, id
 	  end
 	
@@ -652,7 +645,7 @@ module Stencil
 	    
 	    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
 	    
-	    make_styles(obj, conn, env)
+	    make_styles(obj, conn, env)  # puts styles on conn
 	    proc.call conn, id
 	  end
 	

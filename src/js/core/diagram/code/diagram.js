@@ -540,7 +540,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
-      self.$.context.fillText(shape.name(), (r.x() + 2), r.y(), 1000);
+      self.$.context.fillText(shape.name(), (r.x() + 2), r.y());
       self.$.context.fill();
       self.$.context.restore();
       return self.draw(shape.content(), (n + 1));
@@ -891,12 +891,30 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawText = (function (text, n) {
       var self = this;
-      var r;
+      var left, mid, r, top, right;
       (r = self.boundary_fixed(text));
       self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
-      self.$.context.fillText(text.string(), (r.x() + (self.$.text_margin / 2)), (r.y() + (self.$.text_margin / 4)), 1000);
+      (top = (r.y() + (self.$.text_margin / 4)));
+      switch ((function () {
+        return self.$.context.textAlign;
+      })()) {
+        case "right":
+         puts("drawing right");
+         (right = ((r.x() + r.w()) + (self.$.text_margin / 2)));
+         self.$.context.fillText(text.string(), right, top);
+         break;
+        case "center":
+         puts("drawing center");
+         (mid = (r.x() + (r.w() / 2)));
+         self.$.context.fillText(text.string(), mid, top);
+         break;
+        default:
+         (left = (r.x() + (self.$.text_margin / 2)));
+         self.$.context.fillText(text.string(), left, top);
+      }
+          
       self.$.context.fill();
       return self.$.context.restore();
     }));
@@ -923,9 +941,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                   return (self.$.context.fillStyle = self.makeColor(style.color())); 
                 }
                 else { 
-                  if (style.Align_P()) {
-                  } else {
-                  }
+                  if (style.Align_P()) { 
+                    return (self.$.context.textAlign = style.kind()); 
+                  } 
+                  else {
+                       }
                 }
               }
             }
