@@ -28,7 +28,6 @@ grades[1].each do |col|
   else
     a = f["Assignment"]
     a.name = col
-    a.increase_to_max = true
     course.assignments << a
     assignments[nass] = a
     nass = nass + 1
@@ -107,7 +106,7 @@ grades.slice(6,1000).each do |row|
   course.students << student
   
   ncol = 0
-  row.slice(4,1000).each do |col|
+  row.slice(3,1000).each do |col|
     grade = f["Grade"]
     grade.grade = col.to_f
     grade.student = student

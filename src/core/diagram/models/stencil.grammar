@@ -35,8 +35,8 @@ ConnectorEnd1 ::= [ConnectorEnd] (label:Expr ":")? part:Expr (arrow:"<" | arrow:
 ConnectorEnd2 ::= [ConnectorEnd] (arrow:">" | arrow:"*")?  part:Expr (":" label:Expr )?
 Index ::= "," index:sym
 
-Props ::= "[" props:Assign+ @"," "]"
-Assign ::= [Assign] loc:Expr "=" exp:Expr
+Props ::= "[". props:Assign+ @(.",") ."]"
+Assign ::= [Assign] loc:Expr ."=". exp:Expr
 EFor ::= [EFor] "for" (label:str)? var:sym ":" list:Expr ("," index:sym)? body:NLCommand
 
 EUnOp ::= [Color] "(". r:Expr ."," g:Expr ."," b:Expr .")"

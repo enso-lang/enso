@@ -1,4 +1,4 @@
-define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/load/load", "core/grammar/render/layout", "core/system/library/schema", "core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/interpreter", "core/expr/code/renderexp"], (function (Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Renderexp) {
+define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/load/load", "core/grammar/render/layout", "core/system/library/schema", "core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/interpreter", "core/expr/code/renderexp", "core/expr/code/env"], (function (Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Renderexp, Env) {
   var Stencil;
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [], (function () {
   }), (function (super$) {
@@ -82,12 +82,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       puts("REBUILDING");
       (white = self.$.factory.Color(255, 255, 255));
       (black = self.$.factory.Color(0, 0, 0));
-      (env = (new EnsoHash({
-        font: self.$.factory.Font(null, null, null, 14, "sans-serif"),
-        pen: self.$.factory.Pen(1, "solid", black),
-        brush: self.$.factory.Brush(black),
-        nil: null
-      })));
+      (env = Env.HashEnv.new());
+      env._set("font", self.$.factory.Font(null, null, null, 14, "sans-serif"));
+      env._set("pen", self.$.factory.Pen(1, "solid", black));
+      env._set("brush", self.$.factory.Brush(black));
+      env._set("align", self.$.factory.Align("left"));
       env._set(self.$.stencil.root(), self.$.data);
       (self.$.shapeToAddress = (new EnsoHash({
         
@@ -221,10 +220,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.make_styles = (function (stencil, shape, env) {
       var self = this;
-      var newEnv, font, pen, brush;
+      var align, newEnv, font, pen, brush;
       (font = null);
       (pen = null);
       (brush = null);
+      (align = null);
       (newEnv = env.clone());
       stencil.props().each((function (prop) {
         var val;
@@ -287,7 +287,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         shape.styles().push(pen);
       }
       if (brush) {
-        return shape.styles().push(brush);
+        shape.styles().push(brush);
+      }
+      if (align) {
+        return shape.styles().push(align);
       }
     }));
     (this.constructAlt = (function (obj, env, container, id, proc) {
@@ -327,8 +330,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
            return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
              var g;
              (g = self.$.factory.Positional());
-             g.set_col(self.$.global_colNum);
              g.set_row(self.$.global_rowNum);
+             g.set_col(self.$.global_colNum);
              g.set_contents(item);
              return dgrid.items().push(g);
            })));
@@ -352,29 +355,29 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         td.each((function (item) {
           var g;
           (g = self.$.factory.Positional());
-          g.set_col(c);
           g.set_row(r);
+          g.set_col(c);
           g.set_contents(item);
-          dgrid.items().push(g);
+          dgrid.tops().push(g);
           return (r = (r + 1));
         }));
         return (c = (c + 1));
       }));
       (r = 0);
-      self.$.top_data.each((function (td) {
-        (c = (-td.size()));
-        td.each((function (item) {
+      self.$.side_data.each((function (sd) {
+        (c = (-sd.size()));
+        sd.each((function (item) {
           var g;
           (g = self.$.factory.Positional());
-          g.set_col(c);
           g.set_row(r);
+          g.set_col(c);
           g.set_contents(item);
-          dgrid.items().push(g);
+          dgrid.sides().push(g);
           return (c = (c + 1));
         }));
         return (r = (r + 1));
       }));
-      return dgrid;
+      return proc(dgrid, id);
     }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;

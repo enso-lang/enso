@@ -1,20 +1,19 @@
 diagram(course)
-
 	grid
 	  columns for a : course.assignments {
 	    col a
-	    text a.category.name
-	    text a.name
-	    text a.points
+	    text [align="center"] a.category.name
+	    text [align="center"] a.name
+	    text [align="right"]  a.points
 	  }
 	  rows for s : course.students {
 	    row s
-	    text s.number
+	    text [align="right"] s.number
 	    text s.name
-	    text s.id
+	    text [align="right"] s.id
 	  }    
 	  body for g : course.grades {
 	    row g.student
 	    col g.assignment
-  		text g.grade
+  		text [align="right"] g.grade
 	  }

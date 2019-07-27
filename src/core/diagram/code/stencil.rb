@@ -13,6 +13,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/renderexp'
+require 'core/expr/code/env'
 
 module Stencil
 	
@@ -91,9 +92,14 @@ module Stencil
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 		
-	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
+	    env = Env::HashEnv.new()
+	    env[:font] = @factory.Font(nil, nil, nil, 14, "sans-serif")
+      env[:pen] = @factory.Pen(1, "solid", black)
+      env[:brush] = @factory.Brush(black)
+      env[:align] = @factory.Align("left")
+      # env[nil] = nil
 	    env[@stencil.root] = @data
-	
+	    	
 	    @shapeToAddress = {}  # used for text editing
 	    @shapeToModel = {}    # list of all created objects
 	    @tagModelToShape = {}
@@ -225,6 +231,7 @@ module Stencil
 	    font = nil
 	    pen = nil
 	    brush = nil
+	    align = nil
 	    #Print.print(stencil)
 	    newEnv = env.clone
 	    stencil.props.each do |prop|
@@ -235,6 +242,10 @@ module Stencil
 	        #puts "FONT SIZE #{val}"
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.size = val
+	    #  when "align" then
+	    #    newEnv[:align] = align = env[:align]._clone if !align
+	    #    align.kind = val
+	    #    puts "ALIGN=#{val}"
 	      when "font.weight" then
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.weight = val
@@ -251,7 +262,6 @@ module Stencil
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.color = val
 	      when "line.width" then
-	        #puts "PEN #{val} for #{stencil}"
 	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.width = val
 	      when "line.color" then
@@ -266,6 +276,7 @@ module Stencil
 	    shape.styles << font if font
 	    shape.styles << pen if pen
 	    shape.styles << brush if brush
+	    shape.styles << align if align
 	  end
 	
 	  # construxt an alternative. It returns the first
@@ -295,7 +306,7 @@ module Stencil
 	    # env["#{m}"] = @fundefs.method(m)
 	    #end
 	  end
-	
+	  
 		# used to construct Excel-like grids. Not working yet!
 	  def constructGrid(grid, env, container, id, proc)
   	  # information on columns
@@ -305,7 +316,7 @@ module Stencil
   	  # information on rows
     	@row_index = {}
     	@side_data = []  # two-dimensional
-    	
+    	    	
     	dgrid = @factory.Grid
 	    grid.axes.each do |axis|
 	    	case axis.direction
@@ -323,8 +334,8 @@ module Stencil
 	    	  @grid_label_type = :reference
 	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
 	    	    g = @factory.Positional
-	    	    g.col = @global_colNum
 	    	    g.row = @global_rowNum
+	    	    g.col = @global_colNum
 	    	    g.contents = item
 	    	    dgrid.items << g
 	    	  })
@@ -336,29 +347,29 @@ module Stencil
   	    r = -td.size
   	    td.each do |item|
      	    g = @factory.Positional
-	    	  g.col = c
 	    	  g.row = r
+	    	  g.col = c
 	    	  g.contents = item
-	    	  dgrid.items << g
+	    	  dgrid.tops << g
   	      r = r + 1
 	    	end
   	    c = c + 1
 	    end
 	    r = 0
-  	  @top_data.each do |td|
-  	    c = -td.size
-  	    td.each do |item|
+  	  @side_data.each do |sd|
+  	    c = -sd.size
+  	    sd.each do |item|
      	    g = @factory.Positional
-	    	  g.col = c
 	    	  g.row = r
+	    	  g.col = c
 	    	  g.contents = item
-	  	    dgrid.items << g
+	  	    dgrid.sides << g
   	      c = c + 1
 	    	end
   	    r = r + 1
 	    end
    	  # puts "GRID #{dgrid.items}"
-   	  dgrid
+   	  proc.call(dgrid, id)
 	  end
 	  
 	  # Use to iterate over a set of model elements
@@ -531,7 +542,7 @@ module Stencil
 	          @global_rowNum = @row_index[target] 
 		      end
 		    end
-			end		        
+			end
 	  end
 	
 	  # evaluates a label, by calling eval

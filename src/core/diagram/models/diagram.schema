@@ -25,6 +25,8 @@ class Grid < Part
 //  rowMax: int = MAX(items.row)
 //  colMin: int = MIN(items.col)
 //  colMax: int = MAX(items.col)
+  tops! Positional*
+  sides! Positional*
   items! Positional*
 
 class Positional
@@ -72,8 +74,8 @@ class Font < Style
 class Baseline < Style
 	baseline: str
 	
-class Alignment < Style
-  align: str  // "center"| "left" | "right"
+class Align < Style
+  kind: str  // "center"| "left" | "right"
   
 class Dashes < Style
   dashes! Dash*

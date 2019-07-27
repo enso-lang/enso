@@ -1,14 +1,14 @@
 {
   "filename": "grades.stencil",
   "source": "demo/LiveSheet/models/grades.stencil",
-  "date": "2019-07-24 19:34:56 +0800",
-  "checksum": "39874a8cf5aa97c884b0a1f9630f126a38c902cc",
+  "date": "2019-07-27 14:14:03 +0800",
+  "checksum": "77130db10c72c0bef8cc88ad168aa45bc5340016",
   "depends": [
     {
       "filename": "stencil.grammar",
       "source": "core/diagram/models/stencil.grammar",
-      "date": "2019-07-21 20:09:12 +0800",
-      "checksum": "c68d47a55196f848f8358ea3dd7367f44a78c631"
+      "date": "2019-07-27 14:02:32 +0800",
+      "checksum": "0ecdf0a14d6a50d53aca424e2ad122c1c8ed0fa9"
     },
     {
       "filename": "stencil.schema",
@@ -74,6 +74,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "center"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {
@@ -89,6 +102,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "center"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {
@@ -100,6 +126,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "right"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {
@@ -140,6 +179,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "right"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {
@@ -162,6 +214,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "right"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {
@@ -218,6 +283,19 @@
                 },
                 {
                   "class": "Text",
+                  "props": [
+                    {
+                      "class": "Assign",
+                      "loc": {
+                        "class": "EVar",
+                        "name=": "align"
+                      },
+                      "exp": {
+                        "class": "EStrConst",
+                        "val=": "right"
+                      }
+                    }
+                  ],
                   "string": {
                     "class": "EField",
                     "e": {

@@ -1,8 +1,8 @@
 {
   "filename": "diagram.schema",
   "source": "core/diagram/models/diagram.schema",
-  "date": "2019-07-24 14:00:08 +0800",
-  "checksum": "f3516288b94b010349f9af2aed4e50e15fed9242",
+  "date": "2019-07-27 13:12:01 +0800",
+  "checksum": "afb07ec57de820053525b10d0ed10704b26a000e",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -157,6 +157,24 @@
         "defined_fields#": [
           {
             "class": "Field",
+            "name=": "tops",
+            "owner": "types[Grid]",
+            "type": "types[Positional]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "sides",
+            "owner": "types[Grid]",
+            "type": "types[Positional]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
             "name=": "items",
             "owner": "types[Grid]",
             "type": "types[Positional]",
@@ -297,7 +315,7 @@
           "types[Brush]",
           "types[Font]",
           "types[Baseline]",
-          "types[Alignment]",
+          "types[Align]",
           "types[Dashes]"
         ]
       },
@@ -420,7 +438,7 @@
       },
       {
         "class": "Class",
-        "name=": "Alignment",
+        "name=": "Align",
         "schema": "",
         "supers#": [
           "types[Style]"
@@ -428,8 +446,8 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "align",
-            "owner": "types[Alignment]",
+            "name=": "kind",
+            "owner": "types[Align]",
             "type": "types[str]"
           }
         ]

@@ -60,7 +60,8 @@ module Diagram
       @context.font_ = "13px sans-serif"
       @context.strokeStyle_ = "#000000"
       @context.textBaseline_ = "top"
-    
+      @context.textAlign_ = "left"
+      
       @canvas.onmousedown_ = on_mouse_down
       @canvas.onmousemove_ = on_move
       @canvas.onmouseup_ = on_mouse_up
@@ -287,12 +288,66 @@ module Diagram
        # not working!
   	end
 
-    def constrainGrid(part, basex, basey, width, height)
-  		rows
-  		
-  		Array.new(4) {Hash.new}    #=> [{}, {}, {}, {}]
-  
-  	end
+		def minimum(x, y)
+		  if x < y then x else y end
+		end
+		def maximum(x, y)
+		  if x > y then x else y end
+		end
+		
+    def constrainGrid(grid, basex, basey, width, height)
+      rowMax = -100000 
+      rowMin = 100000
+      colMax = -100000
+      colMin = 100000
+      [grid.tops, grid.sides, grid.items].each do |group|
+        group.each do |item|
+	        rowMax = maximum(rowMax, item.row)
+	        rowMin = minimum(rowMin, item.row)
+	        colMax = maximum(colMax, item.col)
+	        colMin = minimum(colMin, item.col)
+	      end
+	    end
+      numRows = rowMax - rowMin
+      numCols = colMax - colMin
+      
+      rowPos = []
+      start = 0
+      start.upto(numRows+1) do |i|
+        rowPos << @cs.var("r#{i}", 0)
+      end
+      colPos = []
+      start.upto(numCols+1) do |i|
+        colPos << @cs.var("c#{i}", 0)
+      end
+
+      [grid.sides, grid.tops, grid.items].each do |group|
+        group.each do |item|
+	        col = item.col - colMin
+	        row = item.row - rowMin
+	        x = colPos[col]
+	        y = rowPos[row]
+	        info = constrain(item.contents, x, y)
+	        if !info.nil?
+	          w = info[0]
+	          h = info[1]
+	        puts "ROWCOL #{row}, #{col}; #{w}, #{h}"
+	          colPos[col+1].max(colPos[col].add(w)) 
+	          rowPos[row+1].max(rowPos[row].add(h)) 
+	        else
+	          puts "NO INFO!!"
+	        end
+	      end
+	    end
+	    
+	    # debugging
+      start.upto(numRows+1) do |i|
+        puts "ROW-VAR i #{rowPos[i].inspect}"
+      end
+      start.upto(numCols+1) do |i|
+        puts "COL-VAR i #{colPos[i].inspect}"
+      end
+   	end
   	
     def constrainContainer(part, basex, basey, width, height)
       pos = @cs.value(0)
@@ -457,10 +512,8 @@ module Diagram
         current = if part.curent.nil? then 0 else part.current end
         draw(part.items[current], n+1)
       else
-	      len = part.items.size - 1
-	      start = 0
-	      start.upto(len) do |i|
-	        draw(part.items[i], n+1)
+        part.items.each do |item|
+	        draw(item, n+1)
 	      end
 	    end
     end  
@@ -477,8 +530,11 @@ module Diagram
     end
     
     def drawGrid(grid, n)
-      
-    
+      [grid.tops, grid.sides, grid.items].each do |group|
+        group.each do |item|
+	        draw(item.contents, n+1)
+	      end
+	    end
     end
     
     
@@ -633,7 +689,6 @@ module Diagram
         @context.save
         @context.translate(r.x, r.y)
         @context.rotate(-Math.PI_ * angle / 180)
-        
         @context.textAlign_ = align
         textHeight = 16
         @context.fillText(cend.label.string, offsetX * 3, offsetY * textHeight) 
@@ -744,7 +799,16 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      @context.fillText(text.string, r.x + @text_margin / 2, r.y + @text_margin / 4, 1000)
+      #case @context.textAlign_
+      #when "center" then
+      #  puts "drawing center"
+	    #  @context.fillText(text.string, r.x + r.w / 2, r.y + @text_margin / 4, 1000)
+      #when "right" then
+      #  puts "drawing right"
+	    #  @context.fillText(text.string, r.x + r.w + @text_margin / 2, r.y + @text_margin / 4, 1000)
+      #else
+        @context.fillText(text.string, r.x + @text_margin / 2, r.y + @text_margin / 4, 1000)
+	    #end
       @context.fill
       @context.restore
     end
@@ -766,7 +830,10 @@ module Diagram
               @context.font_ = makeFont(style)
             elsif style.Brush?
               @context.fillStyle_ = makeColor(style.color)
+            elsif style.Align?
+              # @context.textAlign_ = style.kind
             end
+            
           end
           block.call
           @context.restore

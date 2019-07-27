@@ -12,9 +12,8 @@ class Category
 
 class Assignment
   contribution: real = percent / category.number
-  increase_to_max: bool
   highest_grade: real = MAX(grades.grade)
-  maximum: real = increase_to_max ? MIN(points, highest_grade) : points
+  maximum: real = points
   averageN: real = AVERAGE(grades.normal)
   stdevN: real = STDEV(grades.normal)
   medianN: real = MEDIAN(grades.normal)

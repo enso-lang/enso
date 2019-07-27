@@ -1,15 +1,16 @@
 diagram(machine)
 
-graph [font.size=12] {
-  // create the nodes (one for each class)
+graph [font.size=16, font.weight="bold"] {
+  // create the nodes (one for each state)
   for "State" state : machine.states
    label state {
-     oval [line.width=(state==machine.start ? 3 : 1)] { // this is the class rectangle
-       text [font.size=16,font.weight="bold"] state.name
+     oval [line.width=(state==machine.start ? 3 : 1)]
+     {
+       text state.name
      }
   }
   // create the links
   for state : machine.states
     for "Transition" trans : state.out
-      connector (trans.event : trans.from --> trans.to)
+      connector (trans.event: trans.from-->trans.to)
  }
