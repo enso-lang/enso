@@ -71,7 +71,10 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.canvas.ondblclick = self.on_double_click());
       root.finalize();
       (self.$.root = root);
-      (self.$.positions = (new EnsoHash({
+      (self.$.boundaries = (new EnsoHash({
+        
+      })));
+      (self.$.gridData = (new EnsoHash({
         
       })));
       self.do_constraints();
@@ -240,195 +243,158 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         }
       }
     }));
+    (this.makeConstraintRect = (function () {
+      var self = this;
+      var left, bottom, top, right;
+      (left = self.$.cs.value(0));
+      (top = self.$.cs.value(0));
+      (right = self.$.cs.value(0));
+      (bottom = self.$.cs.value(0));
+      return EnsoRect.new(left, top, right, bottom);
+    }));
     (this.do_constraints = (function () {
       var self = this;
-      return self.constrain(self.$.root, self.$.cs.value(0), self.$.cs.value(0));
+      return self.constrain(self.$.root, self.makeConstraintRect());
     }));
-    (this.constrain = (function (part, x, y) {
+    (this.constrain = (function (part, rect) {
       var self = this;
-      var h, w;
-      (w = null);
-      (h = null);
-      self.with_styles((function () {
+      return self.with_styles((function () {
         if (part.Connector_P()) { 
           return self.constrainConnector(part); 
         } 
         else {
-               (w = self.$.cs.value(0));
-               (h = self.$.cs.value(0));
-               self.send(("constrain" + part.schema_class().name()).to_sym(), part, x, y, w, h);
-               return self.$.positions._set(part._id(), EnsoRect.new(x, y, w, h));
+               self.send(("constrain" + part.schema_class().name()).to_sym(), part, rect);
+               return self.$.boundaries._set(part._id(), rect);
              }
       }), part);
-      if ((!(w == null))) {
-        return [w, h];
-      }
     }));
-    (this.constrainPage = (function (part, basex, basey, width, height) {
+    (this.constrainPage = (function (part, rect) {
       var self = this;
+      return self.constrain(self.page().content(), rect);
     }));
-    (this.minimum = (function (x, y) {
+    (this.make_grid_constraints = (function (num) {
       var self = this;
-      if ((x < y)) { 
-        return x; 
-      }
-      else { 
-        return y;
-      }
-    }));
-    (this.maximum = (function (x, y) {
-      var self = this;
-      if ((x > y)) { 
-        return x; 
-      }
-      else { 
-        return y;
-      }
-    }));
-    (this.constrainGrid = (function (grid, basex, basey, width, height) {
-      var self = this;
-      var start, colMax, rowMax, colMin, colPos, rowMin, numCols, rowPos, numRows;
-      (rowMax = (-100000));
-      (rowMin = 100000);
-      (colMax = (-100000));
-      (colMin = 100000);
-      [grid.tops(), grid.sides(), grid.items()].each((function (group) {
-        return group.each((function (item) {
-          (rowMax = self.maximum(rowMax, item.row()));
-          (rowMin = self.minimum(rowMin, item.row()));
-          (colMax = self.maximum(colMax, item.col()));
-          return (colMin = self.minimum(colMin, item.col()));
-        }));
-      }));
-      (numRows = (rowMax - rowMin));
-      (numCols = (colMax - colMin));
-      (rowPos = []);
+      var oldVar, start, newVar, pos;
+      (pos = []);
+      (newVar = (oldVar = null));
       (start = 0);
       start.upto((function (i) {
-        return rowPos.push(self.$.cs.var(S("r", i, ""), 0));
-      }), (numRows + 1));
-      (colPos = []);
-      start.upto((function (i) {
-        return colPos.push(self.$.cs.var(S("c", i, ""), 0));
-      }), (numCols + 1));
-      [grid.sides(), grid.tops(), grid.items()].each((function (group) {
+        (newVar = self.$.cs.var(S("r", i, ""), 0));
+        if (oldVar) {
+          newVar.max(oldVar);
+        }
+        pos.push(newVar);
+        return (oldVar = newVar);
+      }), (num + 1));
+      return pos;
+    }));
+    (this.constrainGrid = (function (grid, rect) {
+      var self = this;
+      var colPos, rowPos;
+      (colPos = self.make_grid_constraints(grid.colNum()));
+      (rowPos = self.make_grid_constraints(grid.rowNum()));
+      return [grid.sides(), grid.tops(), grid.items()].each((function (group) {
         return group.each((function (item) {
-          var col, h, info, w, x, y, row;
-          (col = (item.col() - colMin));
-          (row = (item.row() - rowMin));
-          (x = colPos._get(col));
-          (y = rowPos._get(row));
-          (info = self.constrain(item.contents(), x, y));
-          if ((!(info == null))) {
-            (w = info._get(0));
-            (h = info._get(1));
-            puts(S("ROWCOL ", row, ", ", col, "; ", w, ", ", h, ""));
-            colPos._get((col + 1)).max(colPos._get(col).add(w));
-            return rowPos._get((row + 1)).max(rowPos._get(row).add(h));
-          }
-          else {
-            return puts("NO INFO!!");
-          }
+          var col, newRect, left, bottom, top, row, right;
+          (col = item.col());
+          (row = item.row());
+          (left = colPos._get(col));
+          (top = rowPos._get(row));
+          (right = colPos._get((col + 1)));
+          (bottom = rowPos._get((row + 1)));
+          (newRect = EnsoRect.new(left, top, right, bottom));
+          return self.constrain(item.contents(), newRect);
         }));
       }));
-      start.upto((function (i) {
-        return puts(S("ROW-VAR i ", rowPos._get(i).inspect(), ""));
-      }), (numRows + 1));
-      return start.upto((function (i) {
-        return puts(S("COL-VAR i ", colPos._get(i).inspect(), ""));
-      }), (numCols + 1));
     }));
-    (this.constrainContainer = (function (part, basex, basey, width, height) {
+    (this.constrainContainer = (function (part, rect) {
       var self = this;
-      var otherpos, pos, x, y;
-      (pos = self.$.cs.value(0));
-      (otherpos = self.$.cs.value(0));
-      (x = basex.add(0));
-      (y = basey.add(0));
-      part.items().each_with_index((function (item, i) {
-        var h, info, w;
-        (info = self.constrain(item, x, y));
-        if ((!(info == null))) {
-          (w = info._get(0));
-          (h = info._get(1));
-          switch ((function () {
-            return part.direction();
-          })()) {
-            case 5:
-             (x = basex.add(0));
-             (y = basey.add(0));
-             width.max(w);
-             return height.max(h);
-            case 3:
-             (pos = pos.add(w).add(10));
-             (otherpos = otherpos.add(h).add(10));
-             (x = basex.add(pos));
-             (y = basey.add(otherpos));
-             width.max(x.add(w));
-             return height.max(y.add(h));
-            case 2:
-             (pos = pos.add(w));
-             (x = basex.add(pos));
-             return height.max(h);
-            case 1:
-             (pos = pos.add(h));
-             (y = basey.add(pos));
-             return width.max(w);
-          }
-              
-        }
-      }));
+      var newRect, left, top;
+      (newRect = null);
       switch ((function () {
         return part.direction();
       })()) {
+        case 5:
+         return part.items().each((function (item) {
+           return self.constrain(item, rect);
+         }));
+        case 3:
+         (top = rect.top().add(0));
+         (left = rect.left().add(0));
+         return part.items().each((function (item) {
+           var bottom, right;
+           (bottom = self.$.cs.var(0));
+           (right = self.$.cs.var(0));
+           (newRect = EnsoRect.new(left, top, right, bottom));
+           self.constrain(item, newRect);
+           (top = top.add(30));
+           (left = left.add(20));
+           rect.bottom().max(newRect.bottom());
+           return rect.right().max(newRect.right());
+         }));
         case 2:
-         return width.max(pos);
+         (left = rect.left());
+         part.items().each((function (item) {
+           var right;
+           (right = self.$.cs.var());
+           right.max(left);
+           (newRect = EnsoRect.new(left, rect.top(), right, rect.bottom()));
+           self.constrain(item, newRect);
+           return (left = newRect.right());
+         }));
+         return rect.right().max(newRect.right());
         case 1:
-         return height.max(pos);
+         (top = rect.top());
+         part.items().each((function (item) {
+           var bottom;
+           (bottom = self.$.cs.var());
+           bottom.max(top);
+           (newRect = EnsoRect.new(rect.left(), top, rect.right(), bottom));
+           self.constrain(item, newRect);
+           return (top = newRect.bottom());
+         }));
+         return rect.bottom().max(newRect.bottom());
       }
           
     }));
-    (this.constrainShape = (function (part, x, y, width, height) {
+    (this.constrainShape = (function (part, rect) {
       var self = this;
-      var a, b, ow, sq2, oh, info, margin;
+      var a, b, newRect, left, bottom, margin, top, right;
+      (margin = (self.$.context.lineWidth * 6));
       switch ((function () {
         return part.kind();
       })()) {
         case "rounded":
-         (a = self.$.cs.var("rnd1", 20));
-         (b = self.$.cs.var("rnd2", 20));
+         (a = self.$.cs.var("rnd1", (20 + margin)));
+         (b = self.$.cs.var("rnd2", (20 + margin)));
          break;
         case "oval":
-         (a = self.$.cs.var("pos1", 0));
-         (b = self.$.cs.var("pos2", 0));
+         (a = self.$.cs.var("pos1", margin));
+         (b = self.$.cs.var("pos2", margin));
          break;
         case "box":
-         (a = self.$.cs.var("box1", 0));
-         (b = self.$.cs.var("box2", 0));
+         (a = self.$.cs.var("box1", margin));
+         (b = self.$.cs.var("box2", margin));
          break;
       }
           
-      (margin = (self.$.context.lineWidth * 6));
-      (a = a.add(margin));
-      (b = b.add(margin));
-      (info = self.constrain(part.content(), x.add(a), y.add(b)));
-      (ow = info._get(0));
-      (oh = info._get(1));
-      if ((part.kind() == "oval")) {
-        (sq2 = (2 * Math.sqrt(2.0)));
-        a.max(ow.div(sq2));
-        b.max(oh.div(sq2));
-        a.max(b);
-      }
-      width.max(ow.add(a.mul(2)));
-      return height.max(oh.add(b.mul(2)));
+      (top = rect.top());
+      (left = rect.left());
+      (bottom = self.$.cs.var());
+      bottom.max(top);
+      (right = self.$.cs.var());
+      right.max(left);
+      (newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom));
+      self.constrain(part.content(), newRect);
+      rect.bottom().max(bottom.add(a));
+      return rect.right().max(right.add(a));
     }));
-    (this.constrainText = (function (part, x, y, width, height) {
+    (this.constrainText = (function (part, rect) {
       var self = this;
       var info;
       (info = self.$.context.measureText(part.string()));
-      width.max((info.width + self.$.text_margin));
-      return height.max(15);
+      rect.right().max(rect.left().add((info.width + self.$.text_margin)));
+      return rect.bottom().max(rect.top().add(15));
     }));
     (this.constrainConnector = (function (part) {
       var self = this;
@@ -438,7 +404,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         (dynamic = ce.attach().dynamic_update());
         (x = to.x().add(to.w().mul(dynamic.x())));
         (y = to.y().add(to.h().mul(dynamic.y())));
-        self.$.positions._set(ce._id(), EnsoPoint.new(x, y));
+        self.$.boundaries._set(ce._id(), EnsoPoint.new(x, y));
         return self.constrainConnectorEnd(ce, x, y);
       }));
     }));
@@ -450,26 +416,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.boundary = (function (shape) {
       var self = this;
-      return self.$.positions._get(shape._id());
+      return self.$.boundaries._get(shape._id());
     }));
     (this.boundary_fixed = (function (shape) {
       var self = this;
       var r;
       (r = self.boundary(shape));
       if ((!(r == null))) {
-        return EnsoRect.new(r.x().value(), r.y().value(), r.w().value(), r.h().value());
+        return EnsoRect.new(r.left().value(), r.top().value(), r.right().value(), r.bottom().value());
       }
-    }));
-    (this.position = (function (shape) {
-      var self = this;
-      return self.$.positions._get(shape._id());
     }));
     (this.position_fixed = (function (shape) {
       var self = this;
       var p;
-      (p = self.position(shape));
+      (p = self.boundary(shape));
       if ((!(p == null))) {
-        return EnsoPoint.new(p.x().value(), p.y().value());
+        return EnsoPoint.new(p.top().value(), p.left().value());
       }
     }));
     (this.set_position = (function (shape, x, y) {
@@ -485,7 +447,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.rect_contains = (function (rect, pnt) {
       var self = this;
-      return ((((rect.x() <= pnt.x()) && (pnt.x() <= (rect.x() + rect.w()))) && (rect.y() <= pnt.y())) && (pnt.y() <= (rect.y() + rect.h())));
+      return ((((rect.left() <= pnt.x()) && (pnt.x() <= rect.right())) && (rect.top() <= pnt.y())) && (pnt.y() <= rect.bottom()));
     }));
     (this.dist_line = (function (p0, p1, p2) {
       var self = this;
@@ -553,13 +515,27 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         }));
       }));
     }));
+    (this.drawCanvasRect = (function (r, margin) {
+      var self = this;
+      var m2;
+      (m2 = (margin - (margin % 2)));
+      self.$.context.save();
+      self.$.context.rect((r.left() + (margin / 2)), (r.top() + (margin / 2)), (r.w() - m2), (r.h() - m2));
+      (self.$.context.fillStyle = "Cornsilk");
+      (self.$.context.shadowColor = "#999");
+      (self.$.context.shadowBlur = 6);
+      (self.$.context.shadowOffsetX = 2);
+      (self.$.context.shadowOffsetY = 2);
+      self.$.context.fill();
+      self.$.context.stroke();
+      return self.$.context.restore();
+    }));
     (this.drawShape = (function (shape, n) {
       var self = this;
-      var start, m2, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
+      var start, rx, ry, margin, anticlockwise, r, finish, x, y, rotation;
       (r = self.boundary_fixed(shape));
       if (r) {
         (margin = (self.$.context.lineWidth * 6));
-        (m2 = (margin - (margin % 2)));
         switch ((function () {
           return shape.kind();
         })()) {
@@ -584,16 +560,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
            self.$.context.restore();
            break;
           case "box":
-           self.$.context.save();
-           self.$.context.rect((r.x() + (margin / 2)), (r.y() + (margin / 2)), (r.w() - m2), (r.h() - m2));
-           (self.$.context.fillStyle = "Cornsilk");
-           (self.$.context.shadowColor = "#999");
-           (self.$.context.shadowBlur = 6);
-           (self.$.context.shadowOffsetX = 2);
-           (self.$.context.shadowOffsetY = 2);
-           self.$.context.fill();
-           self.$.context.stroke();
-           self.$.context.restore();
+           self.drawCanvasRect(r, margin);
            break;
         }
             
@@ -611,14 +578,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return e0.to().kind();
       })()) {
         case "oval":
-         (thetaFrom = (-Math.atan2((e0.attach().y() - 0.5), (e0.attach().x() - 0.5))));
-         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * (0.5 + (Math.cos(thetaFrom) / 2)))), (rFrom.y() + (rFrom.h() * (0.5 - (Math.sin(thetaFrom) / 2))))));
+         (thetaFrom = (-Math.atan2((e0.attach().top() - 0.5), (e0.attach().left() - 0.5))));
+         (pFrom = EnsoPoint.new((rFrom.left() + (rFrom.w() * (0.5 + (Math.cos(thetaFrom) / 2)))), (rFrom.top() + (rFrom.h() * (0.5 - (Math.sin(thetaFrom) / 2))))));
          break;
         case "box":
-         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * e0.attach().x())), (rFrom.y() + (rFrom.h() * e0.attach().y()))));
+         (pFrom = EnsoPoint.new((rFrom.top() + (rFrom.h() * e0.attach().x())), (rFrom.left() + (rFrom.w() * e0.attach().y()))));
          break;
         case "rounded":
-         (pFrom = EnsoPoint.new((rFrom.x() + (rFrom.w() * e0.attach().x())), (rFrom.y() + (rFrom.h() * e0.attach().y()))));
+         (pFrom = EnsoPoint.new((rFrom.top() + (rFrom.h() * e0.attach().x())), (rFrom.left() + (rFrom.w() * e0.attach().y()))));
          break;
       }
           
@@ -627,13 +594,13 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       })()) {
         case "oval":
          (thetaTo = (-Math.atan2((e1.attach().y() - 0.5), (e1.attach().x() - 0.5))));
-         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * (0.5 + (Math.cos(thetaTo) / 2)))), (rTo.y() + (rTo.h() * (0.5 - (Math.sin(thetaTo) / 2))))));
+         (pTo = EnsoPoint.new((rTo.left() + (rTo.w() * (0.5 + (Math.cos(thetaTo) / 2)))), (rTo.top() + (rTo.h() * (0.5 - (Math.sin(thetaTo) / 2))))));
          break;
         case "box":
-         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * e1.attach().x())), (rTo.y() + (rTo.h() * e1.attach().y()))));
+         (pTo = EnsoPoint.new((rTo.left() + (rTo.w() * e1.attach().x())), (rTo.top() + (rTo.h() * e1.attach().y()))));
          break;
         case "rounded":
-         (pTo = EnsoPoint.new((rTo.x() + (rTo.w() * e1.attach().x())), (rTo.y() + (rTo.h() * e1.attach().y()))));
+         (pTo = EnsoPoint.new((rTo.left() + (rTo.w() * e1.attach().x())), (rTo.top() + (rTo.h() * e1.attach().y()))));
          break;
       }
           
@@ -896,22 +863,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
-      (top = (r.y() + (self.$.text_margin / 4)));
+      (top = (r.top() + (self.$.text_margin / 4)));
       switch ((function () {
         return self.$.context.textAlign;
       })()) {
         case "right":
          puts("drawing right");
-         (right = ((r.x() + r.w()) + (self.$.text_margin / 2)));
+         (right = (r.right() - (self.$.text_margin / 2)));
          self.$.context.fillText(text.string(), right, top);
          break;
         case "center":
          puts("drawing center");
-         (mid = (r.x() + (r.w() / 2)));
+         (mid = ((r.left() + r.right()) / 2));
          self.$.context.fillText(text.string(), mid, top);
          break;
         default:
-         (left = (r.x() + (self.$.text_margin / 2)));
+         (left = (r.left() + (self.$.text_margin / 2)));
          self.$.context.fillText(text.string(), left, top);
       }
           
@@ -1139,36 +1106,44 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
   }));
   var EnsoRect = MakeClass("EnsoRect", null, [], (function () {
   }), (function (super$) {
-    (this.initialize = (function (x, y, w, h) {
+    (this.initialize = (function (l, t, r, b) {
       var self = this;
-      (self.$.x = x);
-      (self.$.y = y);
-      (self.$.w = w);
-      return (self.$.h = h);
+      (self.$.left = l);
+      (self.$.top = t);
+      (self.$.right = r);
+      return (self.$.bottom = b);
     }));
-    (this.x = (function () {
-      return this.$.x;
+    (this.left = (function () {
+      return this.$.left;
     }));
-    (this.set_x = (function (val) {
-      (this.$.x = val);
+    (this.set_left = (function (val) {
+      (this.$.left = val);
     }));
-    (this.y = (function () {
-      return this.$.y;
+    (this.top = (function () {
+      return this.$.top;
     }));
-    (this.set_y = (function (val) {
-      (this.$.y = val);
+    (this.set_top = (function (val) {
+      (this.$.top = val);
+    }));
+    (this.right = (function () {
+      return this.$.right;
+    }));
+    (this.set_right = (function (val) {
+      (this.$.right = val);
+    }));
+    (this.bottom = (function () {
+      return this.$.bottom;
+    }));
+    (this.set_bottom = (function (val) {
+      (this.$.bottom = val);
     }));
     (this.w = (function () {
-      return this.$.w;
-    }));
-    (this.set_w = (function (val) {
-      (this.$.w = val);
+      var self = this;
+      return (self.$.right - self.$.left);
     }));
     (this.h = (function () {
-      return this.$.h;
-    }));
-    (this.set_h = (function (val) {
-      (this.$.h = val);
+      var self = this;
+      return (self.$.bottom - self.$.top);
     }));
   }));
   (Diagram = {

@@ -41,18 +41,6 @@
       "checksum": "9ed0097638a77ffe4b3b2fe85b3172243cffe933"
     },
     {
-      "filename": "grammar.grammar",
-      "source": "core/grammar/models/grammar.grammar",
-      "date": "2018-01-01 08:47:35 +0800",
-      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
-    },
-    {
-      "filename": "grammar.schema",
-      "source": "core/grammar/models/grammar.schema",
-      "date": "2018-01-01 08:47:35 +0800",
-      "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
-    },
-    {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
       "date": "2019-07-27 18:04:10 +0800",

@@ -1,8 +1,8 @@
 {
   "filename": "diagram.schema",
   "source": "core/diagram/models/diagram.schema",
-  "date": "2019-07-27 13:12:01 +0800",
-  "checksum": "afb07ec57de820053525b10d0ed10704b26a000e",
+  "date": "2019-07-28 00:53:47 +0800",
+  "checksum": "b245ff2418a77928d633766133deca6c0a4529a0",
   "depends": [
     {
       "filename": "schema.grammar",
@@ -157,6 +157,18 @@
         "defined_fields#": [
           {
             "class": "Field",
+            "name=": "rowNum",
+            "owner": "types[Grid]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "colNum",
+            "owner": "types[Grid]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
             "name=": "tops",
             "owner": "types[Grid]",
             "type": "types[Positional]",
@@ -181,6 +193,35 @@
             "optional=": true,
             "many=": true,
             "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "colPositions",
+            "owner": "types[Grid]",
+            "type": "types[Position]",
+            "optional=": true,
+            "many=": true
+          },
+          {
+            "class": "Field",
+            "name=": "rowPositions",
+            "owner": "types[Grid]",
+            "type": "types[Position]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Position",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[Position]",
+            "type": "types[int]"
           }
         ]
       },
@@ -191,13 +232,13 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "row",
+            "name=": "col",
             "owner": "types[Positional]",
             "type": "types[int]"
           },
           {
             "class": "Field",
-            "name=": "col",
+            "name=": "row",
             "owner": "types[Positional]",
             "type": "types[int]"
           },

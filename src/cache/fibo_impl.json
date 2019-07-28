@@ -17,12 +17,6 @@
       "checksum": "581ca41a91b5f51b6bd12cd19966e9b2474fb4b5"
     },
     {
-      "filename": "schema.grammar",
-      "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
-    },
-    {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
       "date": "2018-01-01 08:47:35 +0800",

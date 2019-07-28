@@ -306,6 +306,13 @@ module Stencil
 	    #end
 	  end
 	  
+		def minimum(x, y)
+		  if x < y then x else y end
+		end
+		def maximum(x, y)
+		  if x > y then x else y end
+		end
+
 		# used to construct Excel-like grids. Not working yet!
 	  def constructGrid(grid, env, container, id, proc)
   	  # information on columns
@@ -340,7 +347,7 @@ module Stencil
 	    	  })
 	      end
 	    end	 
-	    # we now have all the info! 
+	    # we now have all the info! 	    
 	    c = 0
   	  @top_data.each do |td|
   	    r = -td.size
@@ -367,6 +374,28 @@ module Stencil
 	    	end
   	    r = r + 1
 	    end
+	    # last thing is to make everything zero-based and positive
+	    colMax = -100000
+	    colMin = 100000
+      rowMax = -100000 
+	    rowMin = 100000
+      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
+        group.each do |item|
+          colMax = maximum(colMax, item.col)
+		    	rowMax = maximum(rowMax, item.row)
+          colMin = minimum(colMin, item.col)
+		    	rowMin = minimum(rowMin, item.row)
+		    end
+			end 
+      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
+        group.each do |item|
+			    item.col = item.col - colMin
+			    item.row = item.row - rowMin
+			  end
+			end 
+			dgrid.colNum = colMax - colMin + 1
+			dgrid.rowNum = rowMax - rowMin + 1
+	    
    	  # puts "GRID #{dgrid.items}"
    	  proc.call(dgrid, id)
 	  end

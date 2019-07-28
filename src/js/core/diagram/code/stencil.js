@@ -312,9 +312,27 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.constructEImport = (function (obj, env, container, id, proc) {
       var self = this;
     }));
+    (this.minimum = (function (x, y) {
+      var self = this;
+      if ((x < y)) { 
+        return x; 
+      }
+      else { 
+        return y;
+      }
+    }));
+    (this.maximum = (function (x, y) {
+      var self = this;
+      if ((x > y)) { 
+        return x; 
+      }
+      else { 
+        return y;
+      }
+    }));
     (this.constructGrid = (function (grid, env, container, id, proc) {
       var self = this;
-      var c, dgrid, r;
+      var c, colMax, rowMin, rowMax, dgrid, r, colMin;
       (self.$.col_index = (new EnsoHash({
         
       })));
@@ -380,6 +398,26 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         }));
         return (r = (r + 1));
       }));
+      (colMax = (-100000));
+      (colMin = 100000);
+      (rowMax = (-100000));
+      (rowMin = 100000);
+      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
+        return group.each((function (item) {
+          (colMax = self.maximum(colMax, item.col()));
+          (rowMax = self.maximum(rowMax, item.row()));
+          (colMin = self.minimum(colMin, item.col()));
+          return (rowMin = self.minimum(rowMin, item.row()));
+        }));
+      }));
+      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
+        return group.each((function (item) {
+          item.set_col((item.col() - colMin));
+          return item.set_row((item.row() - rowMin));
+        }));
+      }));
+      dgrid.set_colNum(((colMax - colMin) + 1));
+      dgrid.set_rowNum(((rowMax - rowMin) + 1));
       return proc(dgrid, id);
     }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
