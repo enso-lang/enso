@@ -81,7 +81,7 @@ module Constraints
 	    @bounds = nil
 	  end
 
-	  def inspect()
+	  def foo
 	    "#{@name}=#{value} (#{@dependencies}|#{@vars}|#{@bounds})"
 	  end
 		 
@@ -221,7 +221,7 @@ module Constraints
 	      vals = @vars.map do |var|
 	        val = var.internal_evaluate(path)
 	        if val.nil?
-	          puts "WARNING: undefined variable '#{var}'"
+	          puts "WARNING: undefined variable #{var.foo}"
 	          val = 10
 	        end
 	        val

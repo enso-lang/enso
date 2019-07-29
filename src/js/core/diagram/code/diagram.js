@@ -52,11 +52,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         (self.$.canvas.width = canvasWidth);
         (self.$.canvas.height = canvasHeight);
         (bounds = self.boundary(self.$.root));
-        if (bounds) {
-          bounds.set_w(self.$.cs.value(canvasWidth));
-          bounds.set_h(self.$.cs.value(canvasHeight));
-          return self.clear_refresh();
-        }
+        return self.clear_refresh();
       }));
     }));
     (this.set_root = (function (root) {
@@ -78,6 +74,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         
       })));
       self.do_constraints();
+      self.load_positions();
       return self.resizeCanvas();
     }));
     (this.getCursorPosition = (function (event) {
@@ -259,12 +256,20 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     (this.constrain = (function (part, rect) {
       var self = this;
       return self.with_styles((function () {
+        var orig;
         if (part.Connector_P()) { 
           return self.constrainConnector(part); 
         } 
         else {
                self.send(("constrain" + part.schema_class().name()).to_sym(), part, rect);
-               return self.$.boundaries._set(part._id(), rect);
+               (orig = self.$.boundaries._get(part._id()));
+               if ((orig == null)) { 
+                 return self.$.boundaries._set(part._id(), rect); 
+               } 
+               else {
+                      rect.left().set_value(orig.left().value());
+                      return self.right().top().set_value(orig.top().value());
+                    }
              }
       }), part);
     }));
@@ -309,7 +314,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.constrainContainer = (function (part, rect) {
       var self = this;
-      var newRect, left, top;
+      var size, newRect, left, i, top, x, y;
       (newRect = null);
       switch ((function () {
         return part.direction();
@@ -319,39 +324,39 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
            return self.constrain(item, rect);
          }));
         case 3:
-         (top = rect.top().add(0));
-         (left = rect.left().add(0));
+         (x = (y = 0));
+         (size = (Math.round(Math.sqrt(part.items().size())) + 1));
+         (i = 0);
          return part.items().each((function (item) {
-           var bottom, right;
-           (bottom = self.$.cs.var(0));
-           (right = self.$.cs.var(0));
+           var left, bottom, top, right;
+           (left = self.$.cs.var("ga", (10 * (i % size))));
+           (top = self.$.cs.var("gb", (10 * (i / size))));
+           (right = self.$.cs.var("gc"));
+           (bottom = self.$.cs.var("gd"));
            (newRect = EnsoRect.new(left, top, right, bottom));
            self.constrain(item, newRect);
-           (top = top.add(30));
-           (left = left.add(20));
-           rect.bottom().max(newRect.bottom());
-           return rect.right().max(newRect.right());
+           return (i = (i + 1));
          }));
         case 2:
          (left = rect.left());
          part.items().each((function (item) {
            var right;
-           (right = self.$.cs.var());
+           (right = self.$.cs.var("h"));
            right.max(left);
            (newRect = EnsoRect.new(left, rect.top(), right, rect.bottom()));
            self.constrain(item, newRect);
-           return (left = newRect.right());
+           return (left = right);
          }));
          return rect.right().max(newRect.right());
         case 1:
          (top = rect.top());
          part.items().each((function (item) {
            var bottom;
-           (bottom = self.$.cs.var());
+           (bottom = self.$.cs.var("v"));
            bottom.max(top);
            (newRect = EnsoRect.new(rect.left(), top, rect.right(), bottom));
            self.constrain(item, newRect);
-           return (top = newRect.bottom());
+           return (top = bottom);
          }));
          return rect.bottom().max(newRect.bottom());
       }
@@ -380,14 +385,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           
       (top = rect.top());
       (left = rect.left());
-      (bottom = self.$.cs.var());
+      (bottom = self.$.cs.var("sa"));
       bottom.max(top);
-      (right = self.$.cs.var());
+      (right = self.$.cs.var("sb"));
       right.max(left);
-      (newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom));
-      self.constrain(part.content(), newRect);
       rect.bottom().max(bottom.add(a));
-      return rect.right().max(right.add(a));
+      rect.right().max(right.add(a));
+      (newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom));
+      return self.constrain(part.content(), newRect);
     }));
     (this.constrainText = (function (part, rect) {
       var self = this;
@@ -402,16 +407,18 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         var x, y, to, dynamic;
         (to = self.boundary(ce.to()));
         (dynamic = ce.attach().dynamic_update());
-        (x = to.x().add(to.w().mul(dynamic.x())));
-        (y = to.y().add(to.h().mul(dynamic.y())));
+        (x = to.left().add(self.$.cs.var("cc", to.w()).mul(dynamic.x())));
+        (y = to.top().add(self.$.cs.var("dd", to.h()).mul(dynamic.y())));
         self.$.boundaries._set(ce._id(), EnsoPoint.new(x, y));
         return self.constrainConnectorEnd(ce, x, y);
       }));
     }));
     (this.constrainConnectorEnd = (function (e, x, y) {
       var self = this;
+      var rect;
       if (e.label()) {
-        return self.constrain(e.label(), x, y);
+        (rect = EnsoRect.new(x, y, self.$.cs.var("ea"), self.$.cs.var("eb")));
+        return self.constrain(e.label(), rect);
       }
     }));
     (this.boundary = (function (shape) {
@@ -1112,6 +1119,22 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.top = t);
       (self.$.right = r);
       return (self.$.bottom = b);
+    }));
+    (this.left = (function () {
+      var self = this;
+      return self.$.left;
+    }));
+    (this.top = (function () {
+      var self = this;
+      return self.$.top;
+    }));
+    (this.right = (function () {
+      var self = this;
+      return self.$.right;
+    }));
+    (this.bottom = (function () {
+      var self = this;
+      return self.$.bottom;
     }));
     (this.left = (function () {
       return this.$.left;

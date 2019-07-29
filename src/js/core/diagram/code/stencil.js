@@ -32,7 +32,6 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.setup = (function (extension, data) {
       var self = this;
-      var size, position_map, pos;
       (self.$.extension = extension);
       (self.$.stencil = Load.load(S("", self.$.extension, ".stencil")));
       if ((!(self.$.stencil.title() == null))) {
@@ -41,22 +40,23 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.data = data);
       self.$.data.finalize();
       self.build_diagram();
-      if (data.factory().file_path()._get(0)) {
-        (pos = S("", data.factory().file_path()._get(0), "-positions"));
+      return self.clear_refresh();
+    }));
+    (this.load_positions = (function () {
+      var self = this;
+      var position_map, pos;
+      if (self.$.data.factory().file_path()._get(0)) {
+        (pos = S("", self.$.data.factory().file_path()._get(0), "-positions"));
         if (File.exists_P(pos)) {
           (position_map = System.readJSON(pos));
-          self.set_positions(position_map);
-          if ((!(position_map._get("*WINDOW*") == null))) {
-            (size = position_map._get("*WINDOW*"));
-          }
+          return self.set_positions(position_map);
         }
       }
-      return self.clear_refresh();
     }));
     (this.set_positions = (function (position_map) {
       var self = this;
       return self.$.graphShapes.each((function (tag, shape) {
-        var pos, pnt, at1, at2;
+        var rect, pnt, at1, at2;
         (pnt = position_map._get(tag));
         if (pnt) {
           if (shape.Connector_P()) {
@@ -67,11 +67,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             at2.set_x(pnt._get(1).x);
             return at2.set_y(pnt._get(1).y);
           } else {
-            (pos = self.$.positions._get(shape._id()));
-            if (pos) {
-              pos.x().set_value(pnt.x);
-              return pos.y().set_value(pnt.y);
-            }
+            puts(S("Has POS ", shape._id(), " ", pnt, ""));
+            (rect = self.$.boundaries._get(shape._id()));
+            rect.left().set_value(pnt.x);
+            return rect.top().set_value(pnt.y);
           }
         }
       }));
@@ -220,64 +219,63 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.make_styles = (function (stencil, shape, env) {
       var self = this;
-      var align, newEnv, font, pen, brush;
+      var align, font, pen, brush;
       (font = null);
       (pen = null);
       (brush = null);
       (align = null);
-      (newEnv = env.clone());
       stencil.props().each((function (prop) {
         var val;
-        (val = self.eval(prop.exp(), newEnv));
+        (val = self.eval(prop.exp(), env));
         switch ((function () {
           return Renderexp.render(prop.loc());
         })()) {
+          case "align":
+           if ((!align)) {
+             return (align = self.$.factory.Align(val));
+           }
           case "fill.color":
            if ((!brush)) {
-             return newEnv._set("brush", (brush = self.$.factory.Brush(val)));
+             return (brush = self.$.factory.Brush(val));
            }
           case "line.color":
            if ((!pen)) {
-             newEnv._set("pen", (pen = env._get("pen")._clone()));
+             (pen = env._get("pen")._clone());
            }
            return pen.set_color(val);
           case "line.width":
            if ((!pen)) {
-             newEnv._set("pen", (pen = env._get("pen")._clone()));
+             (pen = env._get("pen")._clone());
            }
            return pen.set_width(val);
           case "font.color":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_color(val);
           case "font.family":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_family(val);
           case "font.variant":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_variant(val);
           case "font.style":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_style(val);
           case "font.weight":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_weight(val);
-          case "align":
-           if ((!align)) {
-             return newEnv._set("align", (align = self.$.factory.Align(val)));
-           }
           case "font.size":
            if ((!font)) {
-             newEnv._set("font", (font = env._get("font")._clone()));
+             (font = env._get("font")._clone());
            }
            return font.set_size(val);
         }

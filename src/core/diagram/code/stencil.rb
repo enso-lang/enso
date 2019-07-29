@@ -76,17 +76,20 @@ module Stencil
 		        at2.x = pnt[1].x_
 		        at2.y = pnt[1].y_
 					else
-			      pos = @positions[shape._id]  # using Diagram private member
-			      #puts "   Has POS #{pos} #{pnt}"
-			      if pos
-			        pos.x.value = pnt.x_
-			        pos.y.value = pnt.y_
-			      end
+			      puts "Has POS #{shape._id} #{pnt}"
+			      # using Diagram private member!!!
+			      rect = @boundaries[shape._id]
+			      rect.left.value = pnt.x_
+			      rect.top.value = pnt.y_
 			    end
 			  end
 		  end
 	  end
 
+
+    # this code builds a diagram by combining a stencil and a data model
+    # note that constraints are not everated until after the 
+    # previous file positions have beeen loaded
 	  def build_diagram
 	    puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
@@ -98,14 +101,16 @@ module Stencil
       env[:brush] = @factory.Brush(black)
       env[:align] = @factory.Align("left")
       # env[nil] = nil
-	    env[@stencil.root] = @data
+		  env[@stencil.root] = @data
 	    	
 	    @shapeToAddress = {}  # used for text editing
 	    @shapeToModel = {}    # list of all created objects
 	    @tagModelToShape = {}
 	    @graphShapes = {}
 	    @stencil.finalize
-      construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
+      construct(@stencil.body, env, nil, nil, Proc.new {|x, subid| 
+      	set_root(x) # this function initializes the constraints in diagram
+      })
 	  end
 		
 #		def lookup_shape(shape)
@@ -232,42 +237,39 @@ module Stencil
 	    pen = nil
 	    brush = nil
 	    align = nil
-	    #Print.print(stencil)
-	    newEnv = env.clone
 	    stencil.props.each do |prop|
-	      val = eval(prop.exp, newEnv) # , true)
+	      val = eval(prop.exp, env) # , true)
 	      #puts "SET #{prop.loc} = #{val}"
 	      case Renderexp.render(prop.loc)
 	      when "font.size" then
-	        #puts "FONT SIZE #{val}"
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.size = val
-	      when "align" then
-	        newEnv[:align] = align = @factory.Align(val) if !align
 	      when "font.weight" then
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.weight = val
 	      when "font.style" then
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.style = val
 	      when "font.variant" then
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.variant = val
 	      when "font.family" then
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.family = val
 	      when "font.color" then
-	        newEnv[:font] = font = env[:font]._clone if !font
+	        font = env[:font]._clone if !font
 	        font.color = val
 	      when "line.width" then
-	        newEnv[:pen] = pen = env[:pen]._clone if !pen
+	        pen = env[:pen]._clone if !pen
 	        pen.width = val
 	      when "line.color" then
-	        newEnv[:pen] = pen = env[:pen]._clone if !pen
+	        pen = env[:pen]._clone if !pen
 	        pen.color = val
 	      when "fill.color" then
-	        newEnv[:brush] = brush = @factory.Brush(val) if !brush
+	        brush = @factory.Brush(val) if !brush
 	        #brush.color = val
+	      when "align" then
+	        align = @factory.Align(val) if !align
 	      end
 	    end
 	    # why do I need to set the style on every object????

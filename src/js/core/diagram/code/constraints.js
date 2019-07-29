@@ -80,7 +80,7 @@ define([], (function () {
       (self.$.vars = []);
       return (self.$.bounds = null);
     }));
-    (this.inspect = (function () {
+    (this.foo = (function () {
       var self = this;
       return S("", self.$.name, "=", self.value(), " (", self.$.dependencies, "|", self.$.vars, "|", self.$.bounds, ")");
     }));
@@ -242,7 +242,7 @@ define([], (function () {
           var val;
           (val = var_V.internal_evaluate(path));
           if ((val == null)) {
-            puts(S("WARNING: undefined variable '", var_V, "'"));
+            puts(S("WARNING: undefined variable ", var_V.foo(), ""));
             (val = 10);
           }
           return val;

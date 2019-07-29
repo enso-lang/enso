@@ -87,6 +87,10 @@ define([], (function () {
       var self = this;
       return S("", self.$.hash.to_s(), "-", self.$.parent, "");
     }));
+    (this.clone = (function () {
+      var self = this;
+      return self;
+    }));
   }));
   var ObjEnv = MakeClass("ObjEnv", null, [BaseEnv], (function () {
   }), (function (super$) {
@@ -120,7 +124,7 @@ define([], (function () {
       try {return self.$.obj._set(key, value);
            
       }
-      catch (caught$2053) {
+      catch (caught$2091) {
         
           return (self.$.parent && self.$.parent._set(key, value));
       }
@@ -139,7 +143,14 @@ define([], (function () {
     }));
     (this.type = (function (fname) {
       var self = this;
-      return self.$.obj.schema_class().all_fields()._get(fname).type();
+      var x;
+      (x = self.$.obj.schema_class().all_fields()._get(fname));
+      if ((x == null)) { 
+        return self.raise(S("Unkown field ", fname, " @{@obj.schema_class}")); 
+      }
+      else { 
+        return x.type();
+      }
     }));
   }));
   var LambdaEnv = MakeClass("LambdaEnv", null, [BaseEnv], (function () {

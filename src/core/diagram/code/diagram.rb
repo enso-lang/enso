@@ -71,7 +71,11 @@ module Diagram
       @root = root
       @boundaries = {}
       @gridData = {}
+      
       do_constraints
+      
+      load_positions
+            
       # Draw canvas border for the first time.
       resizeCanvas
     end
@@ -288,6 +292,12 @@ module Diagram
         else
           send(("constrain" + part.schema_class.name).to_sym, part, rect)
           @boundaries[part._id] = rect
+#          if orig.nil?
+ #            @boundaries[part._id] = rect
+  #        else
+	 #          rect.left.value = orig.left.value
+	  #         right.top.value = orig.top.value
+	   #     end
         end
       end
     end
@@ -328,42 +338,44 @@ module Diagram
 	    end
    	end
   	
+  	# constrains everything inside the container to be 
+  	# inside the rectangle
     def constrainContainer(part, rect)
       newRect = nil
       case part.direction
       when 1 then          # vertical
         top = rect.top
         part.items.each do |item|
-          bottom = @cs.var
+          bottom = @cs.var("v")
           bottom.max(top)
           newRect = EnsoRect.new(rect.left, top, rect.right, bottom)
           constrain(item, newRect)
-          top = newRect.bottom
+          top = bottom
         end
         rect.bottom.max(newRect.bottom)
       when 2 then #horizontal
         left = rect.left
         part.items.each do |item|
-          right = @cs.var
+          right = @cs.var("h")
           right.max(left)
           newRect = EnsoRect.new(left, rect.top, right, rect.bottom)
           constrain(item, newRect)
-          left = newRect.right
+          left = right
         end
         rect.right.max(newRect.right)
       when 3 then #graph
         # compute the default positions!!            
-        top = rect.top.add(0)
-        left = rect.left.add(0)
+        x = y = 0
+        size = Math.round(Math.sqrt(part.items.size)) + 1
+        i = 0
         part.items.each do |item|
-          bottom = @cs.var(0)
-          right = @cs.var(0)
+          left = @cs.var("ga", 10 * (i % size))
+          top = @cs.var("gb", 10 * (i / size))
+          right = @cs.var("gc")
+          bottom = @cs.var("gd")
           newRect = EnsoRect.new(left, top, right, bottom)
           constrain(item, newRect)
-          top = top.add(30)
-          left = left.add(20)
-	        rect.bottom.max(newRect.bottom)
-	        rect.right.max(newRect.right)
+          i = i + 1
         end
       when 5 then #pages
         part.items.each do |item|
@@ -387,14 +399,14 @@ module Diagram
       end
       top = rect.top
       left = rect.left
-      bottom = @cs.var
+      bottom = @cs.var("sa")
       bottom.max(top)
-      right = @cs.var
+      right = @cs.var("sb")
       right.max(left)
-      newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom)
-      constrain(part.content, newRect)
       rect.bottom.max(bottom.add(a))   #always makes a new variable
       rect.right.max(right.add(a))
+      newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom)
+      constrain(part.content, newRect)
       
 #      if part.kind == "oval"
 #        sq2 = 2 * Math.sqrt(2.0)
@@ -412,18 +424,23 @@ module Diagram
     end
   
     def constrainConnector(part)
-      part.ends.each do |ce|
-        to = boundary(ce.to)
-        dynamic = ce.attach.dynamic_update
-        x = to.x.add(to.w.mul(dynamic.x))
-        y = to.y.add(to.h.mul(dynamic.y))
+       part.ends.each do |ce|
+         to = boundary(ce.to)
+         dynamic = ce.attach.dynamic_update
+         x = to.left.add(@cs.var("cc", to.w).mul(dynamic.x))
+         y = to.top.add(@cs.var("dd", to.h).mul(dynamic.y))
+      #  x = @cs.var("c", to.left)
+      #  y = @cs.var("c", to.top)
         @boundaries[ce._id] = EnsoPoint.new(x, y)
         constrainConnectorEnd(ce, x, y)
       end
     end
     
     def constrainConnectorEnd(e, x, y)
-      constrain(e.label, x, y) if e.label
+      if e.label
+	      rect = EnsoRect.new(x, y, @cs.var("ea"), @cs.var("eb"))
+	      constrain(e.label, rect) 
+	    end
     end
     
     def boundary(shape)
@@ -446,6 +463,8 @@ module Diagram
       r.x.value = x
       r.y.value = y
     end
+
+
     
     def between(a, b, c)
        (a - @DIST <= b && b <= c + @DIST) || (c - @DIST <= b && b <= a + @DIST)
@@ -947,7 +966,7 @@ module Diagram
           #puts("   EDGE #{nx} #{ny}")
           @ce.attach.x = nx
           @ce.attach.y = ny
-          # @diagram.set_position(@ce, bounds.x + @ce.attach.x * bounds.w, bounds.y + @ce.attach.y * bounds.h)
+          # @diagram.set_position(@ce, bounds.left + @ce.attach.x * bounds.w, bounds.top + @ce.attach.y * bounds.h)
           @diagram.clear_refresh
           #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
         end
@@ -1001,6 +1020,18 @@ module Diagram
       @top = t
       @right = r
       @bottom = b
+    end
+    def left
+      @left
+    end
+    def top
+      @top
+    end
+    def right
+      @right
+    end
+    def bottom
+      @bottom
     end
     attr_accessor :left, :top, :right, :bottom  
     def w
