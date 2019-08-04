@@ -113,7 +113,8 @@ define([], (function () {
       if ((self.$.bounds == null)) {
         (self.$.bounds = []);
       }
-      return self.$.bounds.push(other);
+      self.$.bounds.push(other);
+      return self.redo_max();
     }));
     (this.test = (function (a, b) {
       var self = this;
@@ -138,7 +139,7 @@ define([], (function () {
       if ((!["add", "sub", "mul", "div", "round", "to_int"].include_P(m))) {
         self.raise(S("undefined method ", m, ""));
       }
-      (var_V = Variable.new(S("p", self.to_s(), "", args.to_s(), "")));
+      (var_V = Variable.new(S("p", self.to_s(), "", m, "", args.to_s(), "")));
       var_V.internal_define.apply(var_V, [(function () {
         var values = compute_rest_arguments(arguments, 0);
         return self.do_op.apply(self, [m].concat(values));
