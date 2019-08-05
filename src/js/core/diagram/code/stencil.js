@@ -67,7 +67,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             at2.set_x(pnt._get(1).x);
             return at2.set_y(pnt._get(1).y);
           } else {
-            (pos = self.$.positions._get(shape._id()));
+            (pos = self.boundary(shape));
             if (pos) {
               pos.x().set_value(pnt.x);
               return pos.y().set_value(pnt.y);
@@ -86,6 +86,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         font: self.$.factory.Font(null, null, null, 14, "sans-serif"),
         pen: self.$.factory.Pen(1, "solid", black),
         brush: self.$.factory.Brush(black),
+        align: "left",
         nil: null
       })));
       env._set(self.$.stencil.root(), self.$.data);
@@ -221,10 +222,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.make_styles = (function (stencil, shape, env) {
       var self = this;
-      var newEnv, font, pen, brush;
+      var align, newEnv, font, pen, brush;
       (font = null);
       (pen = null);
       (brush = null);
+      (align = null);
       (newEnv = env.clone());
       stencil.props().each((function (prop) {
         var val;
@@ -232,6 +234,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         switch ((function () {
           return Renderexp.render(prop.loc());
         })()) {
+          case "align":
+           if ((!align)) {
+             newEnv._set("align", (align = env._get("align")._clone()));
+           }
+           return align.set_value(val);
           case "fill.color":
            if ((!brush)) {
              newEnv._set("brush", (brush = env._get("brush")._clone()));
@@ -287,7 +294,10 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         shape.styles().push(pen);
       }
       if (brush) {
-        return shape.styles().push(brush);
+        shape.styles().push(brush);
+      }
+      if (align) {
+        return shape.styles().push(align);
       }
     }));
     (this.constructAlt = (function (obj, env, container, id, proc) {
@@ -308,7 +318,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructGrid = (function (grid, env, container, id, proc) {
       var self = this;
-      var c, dgrid, r;
+      var c, colMax, rowMin, rowMax, dgrid, r, colMin;
       (self.$.col_index = (new EnsoHash({
         
       })));
@@ -327,8 +337,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
            return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
              var g;
              (g = self.$.factory.Positional());
-             g.set_col(self.$.global_colNum);
              g.set_row(self.$.global_rowNum);
+             g.set_col(self.$.global_colNum);
              g.set_contents(item);
              return dgrid.items().push(g);
            })));
@@ -352,29 +362,49 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         td.each((function (item) {
           var g;
           (g = self.$.factory.Positional());
-          g.set_col(c);
           g.set_row(r);
+          g.set_col(c);
           g.set_contents(item);
-          dgrid.items().push(g);
+          dgrid.tops().push(g);
           return (r = (r + 1));
         }));
         return (c = (c + 1));
       }));
       (r = 0);
-      self.$.top_data.each((function (td) {
-        (c = (-td.size()));
-        td.each((function (item) {
+      self.$.side_data.each((function (sd) {
+        (c = (-sd.size()));
+        sd.each((function (item) {
           var g;
           (g = self.$.factory.Positional());
-          g.set_col(c);
           g.set_row(r);
+          g.set_col(c);
           g.set_contents(item);
-          dgrid.items().push(g);
+          dgrid.sides().push(g);
           return (c = (c + 1));
         }));
         return (r = (r + 1));
       }));
-      return dgrid;
+      (colMax = (-100000));
+      (colMin = 100000);
+      (rowMax = (-100000));
+      (rowMin = 100000);
+      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
+        return group.each((function (item) {
+          (colMax = System.max(colMax, item.col()));
+          (rowMax = System.max(rowMax, item.row()));
+          (colMin = System.min(colMin, item.col()));
+          return (rowMin = System.min(rowMin, item.row()));
+        }));
+      }));
+      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
+        return group.each((function (item) {
+          item.set_col((item.col() - colMin));
+          return item.set_row((item.row() - rowMin));
+        }));
+      }));
+      dgrid.set_colNum(((colMax - colMin) + 1));
+      dgrid.set_rowNum(((rowMax - rowMin) + 1));
+      return proc(dgrid, id);
     }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;

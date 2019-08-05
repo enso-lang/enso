@@ -64,13 +64,17 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       (self.$.context.font = "13px sans-serif");
       (self.$.context.strokeStyle = "#000000");
       (self.$.context.textBaseline = "top");
+      (self.$.context.textAlign = "left");
       (self.$.canvas.onmousedown = self.on_mouse_down());
       (self.$.canvas.onmousemove = self.on_move());
       (self.$.canvas.onmouseup = self.on_mouse_up());
       (self.$.canvas.ondblclick = self.on_double_click());
       root.finalize();
       (self.$.root = root);
-      (self.$.positions = (new EnsoHash({
+      (self.$.boundaries = (new EnsoHash({
+        
+      })));
+      (self.$.gridData = (new EnsoHash({
         
       })));
       self.do_constraints();
@@ -256,22 +260,54 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
                (w = self.$.cs.value(0));
                (h = self.$.cs.value(0));
                self.send(("constrain" + part.schema_class().name()).to_sym(), part, x, y, w, h);
-               return self.$.positions._set(part._id(), EnsoRect.new(x, y, w, h));
+               return self.$.boundaries._set(part._id(), EnsoRect.new(x, y, w, h));
              }
       }), part);
       if ((!(w == null))) {
         return [w, h];
       }
     }));
-    (this.constrainPage = (function (part, basex, basey, width, height) {
+    (this.constrainPage = (function (part, x, y) {
       var self = this;
+      return self.constrain(self.page().content(), x, y);
     }));
-    (this.constrainGrid = (function (part, basex, basey, width, height) {
+    (this.make_grid_constraints = (function (num) {
       var self = this;
-      self.rows();
-      return Array.new((function () {
-        return self.Hash().new();
-      }), 4);
+      var oldVar, start, newVar, pos;
+      (pos = []);
+      (newVar = (oldVar = null));
+      (start = 0);
+      start.upto((function (i) {
+        (newVar = self.$.cs.var(S("r", i, ""), 0));
+        if (oldVar) {
+          newVar.max(oldVar);
+        }
+        pos.push(newVar);
+        return (oldVar = newVar);
+      }), (num + 1));
+      return pos;
+    }));
+    (this.constrainGrid = (function (grid, x, y, width, height) {
+      var self = this;
+      var colPos, rowPos;
+      (colPos = self.make_grid_constraints(grid.colNum()));
+      (rowPos = self.make_grid_constraints(grid.rowNum()));
+      [grid.sides(), grid.tops(), grid.items()].each((function (group) {
+        return group.each((function (item) {
+          var col, left, h, sizes, top, w, row;
+          (col = item.col());
+          (row = item.row());
+          (left = colPos._get(col));
+          (top = rowPos._get(row));
+          (sizes = self.constrain(item.contents(), left, top));
+          (w = sizes._get(0));
+          (h = sizes._get(1));
+          colPos._get((col + 1)).max(left.add(w));
+          return rowPos._get((row + 1)).max(top.add(h));
+        }));
+      }));
+      width.max(colPos._get((colPos.size() - 1)));
+      return height.max(rowPos._get((rowPos.size() - 1)));
     }));
     (this.constrainContainer = (function (part, basex, basey, width, height) {
       var self = this;
@@ -373,7 +409,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         (dynamic = ce.attach().dynamic_update());
         (x = to.x().add(to.w().mul(dynamic.x())));
         (y = to.y().add(to.h().mul(dynamic.y())));
-        self.$.positions._set(ce._id(), EnsoPoint.new(x, y));
+        self.$.boundaries._set(ce._id(), EnsoPoint.new(x, y));
         return self.constrainConnectorEnd(ce, x, y);
       }));
     }));
@@ -385,7 +421,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.boundary = (function (shape) {
       var self = this;
-      return self.$.positions._get(shape._id());
+      return self.$.boundaries._get(shape._id());
     }));
     (this.boundary_fixed = (function (shape) {
       var self = this;
@@ -395,14 +431,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
         return EnsoRect.new(r.x().value(), r.y().value(), r.w().value(), r.h().value());
       }
     }));
-    (this.position = (function (shape) {
+    (this.boundary = (function (shape) {
       var self = this;
-      return self.$.positions._get(shape._id());
+      return self.$.boundaries._get(shape._id());
     }));
     (this.position_fixed = (function (shape) {
       var self = this;
       var p;
-      (p = self.position(shape));
+      (p = self.boundary(shape));
       if ((!(p == null))) {
         return EnsoPoint.new(p.x().value(), p.y().value());
       }
@@ -450,7 +486,7 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
     }));
     (this.drawContainer = (function (part, n) {
       var self = this;
-      var start, len, current;
+      var current;
       if ((part.direction() == 5)) {
         (current = (function () {
           if ((part.curent() == null)) { 
@@ -461,12 +497,11 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
           }
         })());
         return self.draw(part.items()._get(current), (n + 1));
-      } else {
-        (len = (part.items().size() - 1));
-        (start = 0);
-        return start.upto((function (i) {
-          return self.draw(part.items()._get(i), (n + 1));
-        }), len);
+      }
+      else {
+        return part.items().each((function (item) {
+          return self.draw(item, (n + 1));
+        }));
       }
     }));
     (this.drawPage = (function (shape, n) {
@@ -476,13 +511,18 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
       self.$.context.save();
       self.$.context.beginPath();
       (self.$.context.fillStyle = "black");
-      self.$.context.fillText(shape.name(), (r.x() + 2), r.y(), 1000);
+      self.$.context.fillText(shape.name(), (r.x() + 2), r.y());
       self.$.context.fill();
       self.$.context.restore();
       return self.draw(shape.content(), (n + 1));
     }));
     (this.drawGrid = (function (grid, n) {
       var self = this;
+      return [grid.tops(), grid.sides(), grid.items()].each((function (group) {
+        return group.each((function (item) {
+          return self.draw(item.contents(), (n + 1));
+        }));
+      }));
     }));
     (this.drawShape = (function (shape, n) {
       var self = this;
@@ -852,9 +892,14 @@ define(["core/system/load/load", "core/diagram/code/constraints", "core/schema/c
               else { 
                 if (style.Brush_P()) { 
                   return (self.$.context.fillStyle = self.makeColor(style.color())); 
-                } 
-                else {
-                     }
+                }
+                else { 
+                  if (style.Align_P()) { 
+                    return (self.$.context.textAlign = style.kind()); 
+                  } 
+                  else {
+                       }
+                }
               }
             }
           }));

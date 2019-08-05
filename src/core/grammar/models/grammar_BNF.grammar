@@ -24,7 +24,7 @@ import expr.grammar
     | [Value] kind:"sym"
     | [Value] kind:"atom"
     | [Code] "{" expr:Expr "}"
-    | [Ref] "sym"
+    | [Ref] "<".path:Expr.">"
     | [Lit] value:str
     | [Call] rule:<root.rules[it]>
     | [Regular] arg:Pattern."*" Sep? { (optional == true) and (many == true) }

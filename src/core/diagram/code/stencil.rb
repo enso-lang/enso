@@ -75,7 +75,7 @@ module Stencil
 		        at2.x = pnt[1].x_
 		        at2.y = pnt[1].y_
 					else
-			      pos = @positions[shape._id]  # using Diagram private member
+			      pos = boundary(shape) 
 			      #puts "   Has POS #{pos} #{pnt}"
 			      if pos
 			        pos.x.value = pnt.x_
@@ -86,12 +86,16 @@ module Stencil
 		  end
 	  end
 
+
+    # this code builds a diagram by combining a stencil and a data model
+    # note that constraints are not everated until after the 
+    # previous file positions have beeen loaded
 	  def build_diagram
 	    puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 		
-	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
+	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), align: "left", nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing
@@ -99,7 +103,9 @@ module Stencil
 	    @tagModelToShape = {}
 	    @graphShapes = {}
 	    @stencil.finalize
-      construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
+        construct(@stencil.body, env, nil, nil, Proc.new {|x, subid| 
+      	  set_root(x) # this function initializes the constraints in diagram
+        })
 	  end
 		
 #		def lookup_shape(shape)
@@ -221,11 +227,12 @@ module Stencil
 	    send("construct#{stencil.schema_class.name}", stencil, env, container, id, proc)
 	  end
 	  
+	   # puts styles on shape
 	  def make_styles(stencil, shape, env)
 	    font = nil
 	    pen = nil
 	    brush = nil
-	    #Print.print(stencil)
+	    align = nil
 	    newEnv = env.clone
 	    stencil.props.each do |prop|
 	      val = eval(prop.exp, newEnv) # , true)
@@ -260,12 +267,17 @@ module Stencil
 	      when "fill.color" then
 	        newEnv[:brush] = brush = env[:brush]._clone if !brush
 	        brush.color = val
+	      when "align" then
+	        newEnv[:align] = align = env[:align]._clone if !align
+	        align.value = val
 	      end
 	    end
-	    # TODO: why do I need to set the style on every object????
+	    # why do I need to set the style on every object????
+	    # because we are building a diagram!
 	    shape.styles << font if font
 	    shape.styles << pen if pen
 	    shape.styles << brush if brush
+	    shape.styles << align if align
 	  end
 	
 	  # construxt an alternative. It returns the first
@@ -323,8 +335,8 @@ module Stencil
 	    	  @grid_label_type = :reference
 	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
 	    	    g = @factory.Positional
-	    	    g.col = @global_colNum
 	    	    g.row = @global_rowNum
+	    	    g.col = @global_colNum
 	    	    g.contents = item
 	    	    dgrid.items << g
 	    	  })
@@ -336,29 +348,51 @@ module Stencil
   	    r = -td.size
   	    td.each do |item|
      	    g = @factory.Positional
-	    	  g.col = c
 	    	  g.row = r
+	    	  g.col = c
 	    	  g.contents = item
-	    	  dgrid.items << g
+	    	  dgrid.tops << g
   	      r = r + 1
 	    	end
   	    c = c + 1
 	    end
 	    r = 0
-  	  @top_data.each do |td|
-  	    c = -td.size
-  	    td.each do |item|
+  	  @side_data.each do |sd|
+  	    c = -sd.size
+  	    sd.each do |item|
      	    g = @factory.Positional
-	    	  g.col = c
 	    	  g.row = r
+	    	  g.col = c
 	    	  g.contents = item
-	  	    dgrid.items << g
+	  	    dgrid.sides << g
   	      c = c + 1
 	    	end
   	    r = r + 1
 	    end
+	    # last thing is to make everything zero-based and positive
+	    colMax = -100000
+	    colMin = 100000
+      rowMax = -100000 
+	    rowMin = 100000
+      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
+        group.each do |item|
+          colMax = System.max(colMax, item.col)
+		    	rowMax = System.max(rowMax, item.row)
+          colMin = System.min(colMin, item.col)
+		    	rowMin = System.min(rowMin, item.row)
+		    end
+			end 
+      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
+        group.each do |item|
+			    item.col = item.col - colMin
+			    item.row = item.row - rowMin
+			  end
+			end 
+			dgrid.colNum = colMax - colMin + 1
+			dgrid.rowNum = rowMax - rowMin + 1
+	    
    	  # puts "GRID #{dgrid.items}"
-   	  dgrid
+   	  proc.call(dgrid, id)
 	  end
 	  
 	  # Use to iterate over a set of model elements
@@ -557,13 +591,13 @@ module Stencil
 	          end
 	        }
 	      end
-	      make_styles(obj, group, env)
+	      make_styles(obj, group, env)  # puts styles on group
 	      proc.call group, id if proc
 	    end
 	  end
 	  
 	  def constructPage(obj, env, container, id, proc)
-		   #make_styles(obj, group, env)
+		   #make_styles(obj, group, env)  # puts styles on group??
 		   page = @factory.Page
 		   page.name = obj.name
 	     construct obj.part, env, container, id, Proc.new { |sub|
@@ -577,15 +611,9 @@ module Stencil
 	    val = eval(obj.string, env) # , true)
 	    addr = lvalue(obj.string, env)
 	    text = @factory.Text
-#	    if val.is_a? Variable
-#	      text.string = val.new_var_method do |a, *other|
-#	        x = "#{a}"
-#	      end
-#	    else
-	      text.string = val.to_s
-#	    end
+	    text.string = val.to_s
 	    text.editable = obj.editable
-	    make_styles(obj, text, env)
+	    make_styles(obj, text, env) # puts styles on text
 	    if addr
 		    @shapeToAddress[text] = addr
 		  end
@@ -599,7 +627,7 @@ module Stencil
 	      error "Shape can only have one element" if shape.content
 	      shape.content = x
 	    }
-	    make_styles(obj, shape, env)
+	    make_styles(obj, shape, env)  # puts styles on shape
 	    proc.call shape, id
 	  end
 	
@@ -641,7 +669,7 @@ module Stencil
 	    
 	    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
 	    
-	    make_styles(obj, conn, env)
+	    make_styles(obj, conn, env)  # puts styles on conn
 	    proc.call conn, id
 	  end
 	

@@ -1,8 +1,8 @@
 {
   "filename": "stencil.grammar",
   "source": "core/diagram/models/stencil.grammar",
-  "date": "2019-07-21 20:09:12 +0800",
-  "checksum": "c68d47a55196f848f8358ea3dd7367f44a78c631",
+  "date": "2019-08-05 16:02:08 +0800",
+  "checksum": "0ecdf0a14d6a50d53aca424e2ad122c1c8ed0fa9",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -19,7 +19,7 @@
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
+      "date": "2019-08-05 14:52:31 +0800",
       "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
     },
     {
@@ -55,7 +55,7 @@
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2019-07-27 18:04:10 +0800",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
     }
   ],
@@ -1208,6 +1208,9 @@
                   "value=": "["
                 },
                 {
+                  "class": "NoSpace"
+                },
+                {
                   "class": "Field",
                   "name=": "props",
                   "arg": {
@@ -1218,10 +1221,26 @@
                     },
                     "many=": true,
                     "sep": {
-                      "class": "Lit",
-                      "value=": ","
+                      "class": "Alt",
+                      "alts": [
+                        {
+                          "class": "Sequence",
+                          "elements": [
+                            {
+                              "class": "NoSpace"
+                            },
+                            {
+                              "class": "Lit",
+                              "value=": ","
+                            }
+                          ]
+                        }
+                      ]
                     }
                   }
+                },
+                {
+                  "class": "NoSpace"
                 },
                 {
                   "class": "Lit",
@@ -1254,8 +1273,14 @@
                     }
                   },
                   {
+                    "class": "NoSpace"
+                  },
+                  {
                     "class": "Lit",
                     "value=": "="
+                  },
+                  {
+                    "class": "NoSpace"
                   },
                   {
                     "class": "Field",

@@ -1,8 +1,8 @@
 {
   "filename": "grammar_BNF.grammar",
   "source": "core/grammar/models/grammar_BNF.grammar",
-  "date": "2018-01-01 08:47:35 +0800",
-  "checksum": "6623c2a0730a6e4751514fdbe1d075bba454d63b",
+  "date": "2019-08-05 14:48:51 +0800",
+  "checksum": "5c127f623d8083a3c55f8c3a336a374508802573",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -19,7 +19,7 @@
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
+      "date": "2019-08-05 14:52:31 +0800",
       "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
     },
     {
@@ -37,7 +37,7 @@
     {
       "filename": "expr.grammar",
       "source": "core/expr/models/expr.grammar",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2019-07-27 18:04:10 +0800",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
     }
   ],
@@ -453,7 +453,25 @@
                 "elements": [
                   {
                     "class": "Lit",
-                    "value=": "sym"
+                    "value=": "<"
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "path",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Expr]"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ">"
                   }
                 ]
               }

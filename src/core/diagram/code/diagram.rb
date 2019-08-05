@@ -60,6 +60,7 @@ module Diagram
       @context.font_ = "13px sans-serif"
       @context.strokeStyle_ = "#000000"
       @context.textBaseline_ = "top"
+      @context.textAlign_ = "left"
     
       @canvas.onmousedown_ = on_mouse_down
       @canvas.onmousemove_ = on_move
@@ -68,7 +69,9 @@ module Diagram
                     
       root.finalize
       @root = root
-      @positions = {}
+      @boundaries = {}
+      @gridData = {}
+      
       do_constraints
       # Draw canvas border for the first time.
       resizeCanvas
@@ -262,7 +265,7 @@ module Diagram
 #                         +------+
 #
 #  but these can be in any orientation.
-    
+    		    
     def do_constraints
       constrain(@root, @cs.value(0), @cs.value(0)) 
     end
@@ -277,23 +280,53 @@ module Diagram
           w = @cs.value(0)
           h = @cs.value(0)
           send(("constrain" + part.schema_class.name).to_sym, part, x, y, w, h)
-          @positions[part._id] = EnsoRect.new(x, y, w, h)
+          @boundaries[part._id] = EnsoRect.new(x, y, w, h)
         end
       end
       [w, h] if !w.nil?
     end
 
-    def constrainPage(part, basex, basey, width, height)
-       # not working!
+	  # pages are pretty simple
+    def constrainPage(part, x, y)
+      constrain(page.content, x, y)
   	end
 
-    def constrainGrid(part, basex, basey, width, height)
-  		rows
+    def make_grid_constraints(num)
+      pos = []
+      newVar = oldVar = nil
+      start = 0
+      start.upto(num + 1) do |i|
+        newVar = @cs.var("r#{i}", 0)
+        newVar.max(oldVar) if oldVar
+        pos << newVar
+        oldVar = newVar
+      end
+      pos
+    end
   		
-  		Array.new(4) {Hash.new}    #=> [{}, {}, {}, {}]
+    def constrainGrid(grid, x, y, width, height)
+      colPos = make_grid_constraints(grid.colNum)
+      rowPos = make_grid_constraints(grid.rowNum)
   
-  	end
+      [grid.sides, grid.tops, grid.items].each do |group|
+        group.each do |item|
+          col = item.col
+	        row = item.row
+	        left = colPos[col]
+	        top = rowPos[row]
+	        sizes = constrain(item.contents, left, top)
+	        w = sizes[0]
+	        h = sizes[1]
+	        colPos[col+1].max(left.add(w))
+	        rowPos[row+1].max(top.add(h))  
+  			end
+	  	end
+		  width.max(colPos[colPos.size - 1])
+		  height.max(rowPos[rowPos.size - 1])
+   	end
   	
+  	# constrains everything inside the container to be 
+  	# inside the rectangle
     def constrainContainer(part, basex, basey, width, height)
       pos = @cs.value(0)
       otherpos = @cs.value(0)
@@ -383,7 +416,7 @@ module Diagram
         dynamic = ce.attach.dynamic_update
         x = to.x.add(to.w.mul(dynamic.x))
         y = to.y.add(to.h.mul(dynamic.y))
-        @positions[ce._id] = EnsoPoint.new(x, y)
+        @boundaries[ce._id] = EnsoPoint.new(x, y)
         constrainConnectorEnd(ce, x, y)
       end
     end
@@ -393,7 +426,7 @@ module Diagram
     end
     
     def boundary(shape)
-      @positions[shape._id]
+      @boundaries[shape._id]
     end
 
     def boundary_fixed(shape)
@@ -401,12 +434,12 @@ module Diagram
       EnsoRect.new(r.x.value, r.y.value, r.w.value, r.h.value) if !r.nil?
     end
   
-    def position(shape)
-      @positions[shape._id]
+    def boundary(shape)
+      @boundaries[shape._id]
     end
     
     def position_fixed(shape)
-      p = position(shape)
+      p = boundary(shape)
       EnsoPoint.new(p.x.value, p.y.value) if !p.nil?
     end
     
@@ -457,10 +490,8 @@ module Diagram
         current = if part.curent.nil? then 0 else part.current end
         draw(part.items[current], n+1)
       else
-	      len = part.items.size - 1
-	      start = 0
-	      start.upto(len) do |i|
-	        draw(part.items[i], n+1)
+        part.items.each do |item|
+	        draw(item, n+1)
 	      end
 	    end
     end  
@@ -470,15 +501,27 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      @context.fillText(shape.name, r.x + 2, r.y, 1000)
+      @context.fillText(shape.name, r.x + 2, r.y)
       @context.fill
       @context.restore
       draw(shape.content, n+1)
     end
     
     def drawGrid(grid, n)
-      
-    
+#      data = @gridData[grid]
+#      colPos = data[0]
+#      rowPos = data[1]
+      [grid.tops, grid.sides, grid.items].each do |group|
+        group.each do |item|
+ #         l = colPos[item.col].value # get the position of the left side
+#          r = colPos[item.col+1].value # get the position of the right side
+#          t = rowPos[item.row].value # get the position of the top
+#          b = rowPos[item.row+1].value # get the position of the bottom
+#          bounds = EnsoRect.new(l, t, r, b)
+#          drawCanvasRect(bounds, 0)
+	        draw(item.contents, n+1)
+	      end
+	    end
     end
     
     
@@ -766,6 +809,8 @@ module Diagram
               @context.font_ = makeFont(style)
             elsif style.Brush?
               @context.fillStyle_ = makeColor(style.color)
+            elsif style.Align?
+              @context.textAlign_ = style.kind
             end
           end
           block.call
