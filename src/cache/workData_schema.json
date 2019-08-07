@@ -1,0 +1,579 @@
+{
+  "filename": "workData.schema",
+  "source": "demo/WorkSched/workData.schema",
+  "date": "2019-08-06 11:15:13 +0800",
+  "checksum": "fe6e7a847cbe426f972dfdf150b1ee2ea8dc2502",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2019-08-05 14:52:31 +0800",
+      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2018-01-01 08:47:35 +0800",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Person",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Person]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "personTimes",
+            "owner": "types[Person]",
+            "type": "types[PersonTime]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[PersonTime].defined_fields[person]"
+          },
+          {
+            "class": "Field",
+            "name=": "total",
+            "owner": "types[Person]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "SUM"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "personTimes"
+                  },
+                  "fname=": "total"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "PersonTime",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "person",
+            "owner": "types[PersonTime]",
+            "type": "types[Person]",
+            "key=": true,
+            "inverse": "types[Person].defined_fields[personTimes]"
+          },
+          {
+            "class": "Field",
+            "name=": "time",
+            "owner": "types[PersonTime]",
+            "type": "types[Week]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "assignments",
+            "owner": "types[PersonTime]",
+            "type": "types[Assignment]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Assignment].defined_fields[personTime]"
+          },
+          {
+            "class": "Field",
+            "name=": "total",
+            "owner": "types[PersonTime]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "SUM"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "assignments"
+                  },
+                  "fname=": "amount"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Project",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Project]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "activities",
+            "owner": "types[Project]",
+            "type": "types[Activity]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Activity].defined_fields[project]"
+          },
+          {
+            "class": "Field",
+            "name=": "master",
+            "owner": "types[Project]",
+            "type": "types[Project]",
+            "optional=": true,
+            "inverse": "types[Project].defined_fields[subProjects]"
+          },
+          {
+            "class": "Field",
+            "name=": "subProjects",
+            "owner": "types[Project]",
+            "type": "types[Project]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Project].defined_fields[master]"
+          },
+          {
+            "class": "Field",
+            "name=": "actTotal",
+            "owner": "types[Project]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "SUM"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "activities"
+                  },
+                  "fname=": "total"
+                }
+              ]
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "total",
+            "owner": "types[Project]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "+",
+              "e1": {
+                "class": "EVar",
+                "name=": "actTotal"
+              },
+              "e2": {
+                "class": "EFunCall",
+                "fun": {
+                  "class": "EVar",
+                  "name=": "SUM"
+                },
+                "params": [
+                  {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "subProjects"
+                    },
+                    "fname=": "total"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "underfunded",
+            "owner": "types[Project]",
+            "type": "types[bool]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "<",
+              "e1": {
+                "class": "EVar",
+                "name=": "total"
+              },
+              "e2": {
+                "class": "EVar",
+                "name=": "estimate"
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "outofbounds",
+            "owner": "types[Project]",
+            "type": "types[bool]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "|",
+              "e1": {
+                "class": "EBinOp",
+                "op=": "<",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "start"
+                },
+                "e2": {
+                  "class": "EVar",
+                  "name=": "startGoal"
+                }
+              },
+              "e2": {
+                "class": "EBinOp",
+                "op=": ">",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "end"
+                },
+                "e2": {
+                  "class": "EVar",
+                  "name=": "endGoal"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Activity",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Activity]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "project",
+            "owner": "types[Activity]",
+            "type": "types[Project]",
+            "inverse": "types[Project].defined_fields[activities]"
+          },
+          {
+            "class": "Field",
+            "name=": "assignments",
+            "owner": "types[Activity]",
+            "type": "types[Assignment]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Assignment].defined_fields[activity]"
+          },
+          {
+            "class": "Field",
+            "name=": "startGoal",
+            "owner": "types[Activity]",
+            "type": "types[Week]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "endGoal",
+            "owner": "types[Activity]",
+            "type": "types[Week]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "estimate",
+            "owner": "types[Activity]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "total",
+            "owner": "types[Activity]",
+            "type": "types[int]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "SUM"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EVar",
+                    "name=": "assignments"
+                  },
+                  "fname=": "amount"
+                }
+              ]
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "start",
+            "owner": "types[Activity]",
+            "type": "types[Week]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "MIN"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "assignents"
+                    },
+                    "fname=": "personTime"
+                  },
+                  "fname=": "time"
+                }
+              ]
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "end",
+            "owner": "types[Activity]",
+            "type": "types[Week]",
+            "computed": {
+              "class": "EFunCall",
+              "fun": {
+                "class": "EVar",
+                "name=": "MAX"
+              },
+              "params": [
+                {
+                  "class": "EField",
+                  "e": {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "assignents"
+                    },
+                    "fname=": "personTime"
+                  },
+                  "fname=": "time"
+                }
+              ]
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "underfunded",
+            "owner": "types[Activity]",
+            "type": "types[bool]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "<",
+              "e1": {
+                "class": "EVar",
+                "name=": "total"
+              },
+              "e2": {
+                "class": "EVar",
+                "name=": "estimate"
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "outofbounds",
+            "owner": "types[Activity]",
+            "type": "types[bool]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "|",
+              "e1": {
+                "class": "EBinOp",
+                "op=": "<",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "start"
+                },
+                "e2": {
+                  "class": "EVar",
+                  "name=": "startGoal"
+                }
+              },
+              "e2": {
+                "class": "EBinOp",
+                "op=": ">",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "end"
+                },
+                "e2": {
+                  "class": "EVar",
+                  "name=": "endGoal"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Year",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "index",
+            "owner": "types[Year]",
+            "type": "types[int]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "months",
+            "owner": "types[Year]",
+            "type": "types[Month]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Month].defined_fields[year]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Month",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "index",
+            "owner": "types[Month]",
+            "type": "types[int]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "year",
+            "owner": "types[Month]",
+            "type": "types[Year]",
+            "inverse": "types[Year].defined_fields[months]"
+          },
+          {
+            "class": "Field",
+            "name=": "weeks",
+            "owner": "types[Month]",
+            "type": "types[Week]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Week].defined_fields[month]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Week",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "index",
+            "owner": "types[Week]",
+            "type": "types[int]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "month",
+            "owner": "types[Week]",
+            "type": "types[Month]",
+            "inverse": "types[Month].defined_fields[weeks]"
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Week]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Assignment",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "personTime",
+            "owner": "types[Assignment]",
+            "type": "types[PersonTime]",
+            "key=": true,
+            "inverse": "types[PersonTime].defined_fields[assignments]"
+          },
+          {
+            "class": "Field",
+            "name=": "activity",
+            "owner": "types[Assignment]",
+            "type": "types[Activity]",
+            "key=": true,
+            "inverse": "types[Activity].defined_fields[assignments]"
+          },
+          {
+            "class": "Field",
+            "name=": "amount",
+            "owner": "types[Assignment]",
+            "type": "types[float]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "float",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      }
+    ]
+  }
+}

@@ -83,6 +83,7 @@ MODELS = \
 	grades.stencil \
 	store.grammar \
 	store.schema \
+	workData.schema \
 	
 JSONS_QL = \
   housing.ql \
