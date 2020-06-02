@@ -9,6 +9,7 @@ end
 class Pair < Node
   attr_reader :l, :r
   def initialize(l, r)
+    super()
     @l = l
     @r = r
   end
@@ -22,6 +23,7 @@ end
 class Leaf < Node
   attr_reader :n
   def initialize(n)
+    super()
     @n = n
   end
   

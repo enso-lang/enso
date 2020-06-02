@@ -1,30 +1,6 @@
-def S(*args)
-  args.join
-end
-
-module System
-  def self.readJSON(path)
-    JSON.parse(File.read(path), allow_nan: true, max_nesting: false)
-  end
-  def raise(error)
-    raise error
-  end
-  def self.max(a, b)
-    if a > b then a else b end
-  end
-  def self.is_javascript()
-    false
-  end
-end
-
-module Math
-  def self.round(r)
-    r.round
-  end
-end
 
 class File
-  def self.create_file_map
+  def self.load_file_map
     result = {}
     Dir["**/*.*"].each do |p|
       ext = File.extname(p)
@@ -38,26 +14,6 @@ class File
   
   def self.read_header(path)
     File.open(path, &:readline)
-  end
-end
-
-module Enumerable
-  def find_first
-    each do |x|
-      val = yield x
-      return val if val
-    end
-    return nil
-  end
-
-  def find_first_with_index
-    i = 0
-    each do |x|
-      val = yield x, i
-      return val if val
-      i += 1
-    end
-    return nil
   end
 end
 
@@ -99,13 +55,117 @@ class Array
   alias :plus :+ 
 end
 
+module Enso
+
+TrueClass = TrueClass
+FalseClass = FalseClass
+
+@builtin = method("puts")
+def self.puts(*args)
+   @builtin.call(*args)
+end
+
+module System
+  def self.readJSON(path)
+    JSON.parse(File.read(path), allow_nan: true, max_nesting: false)
+  end
+
+  def self.raise(error)
+    raise error
+  end
+
+  def self.max(a, b)
+    if a > b then a else b end
+  end
+
+  def self.is_javascript()
+    false
+  end
+end
+
+def S(*args)
+  args.join
+end
+
+
+module Math
+  def self.round(r)
+    r.round
+  end
+end
+
+
+module Enumerable
+
+  def each_with_index
+    i = 0
+    self.each do |x|
+      yield x, i
+      i = i + 1
+    end
+  end
+  
+  def find_first
+    each do |x|
+      val = yield x
+      return val if val
+    end
+    return nil
+  end
+
+  def find_first_with_index
+    i = 0
+    each do |x|
+      val = yield x, i
+      return val if val
+      i += 1
+    end
+    return nil
+  end
+  
+  def any?
+    each do |x|
+      return x if yield x
+    end
+    return nil
+  end
+  
+  def all?
+    each do |x|
+      return nil if !yield x
+    end
+    return true
+  end
+
+  def find(&block)
+    any?(&block)
+  end
+  
+  def map
+    r = []
+    each do |x|
+      y = yield x
+      r << y
+    end
+    r
+  end
+end
+
+
 class EnsoBaseClass
   begin
-    undef_method :lambda, :methods, :method
+    undef_method :lambda, :methods
   rescue
   end
   def to_ary
     nil
+  end
+  def is_a?(type)
+    if type.is_a?(String)
+      false
+    else
+      super.is_a?(type)
+    end
   end
 end
 
@@ -119,7 +179,7 @@ class EnsoProxyObject < EnsoBaseClass
   end
   
   def define_singleton_value(name, value)
-    define_singleton_method name do
+    define_singleton_method(name) do
       value
     end
   end
@@ -135,8 +195,6 @@ class EnsoProxyObject < EnsoBaseClass
       accessor.set(val)
     end
   end
+end
 
-  def to_str
-    to_s
-  end
 end

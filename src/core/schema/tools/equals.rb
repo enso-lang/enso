@@ -3,9 +3,10 @@
 #Deep equality based on object tree structure and primitive values
 
 #=end
+require 'enso'
 
 module Equals
-class Equals 
+class EqualsClass
 
   def initialize()
     @memo = {}
@@ -29,7 +30,7 @@ class Equals
       a.schema_class.fields.each do |field|
         a_val = a[field.name]
         b_val = b[field.name]
-        if field.type.Primitive?
+        if field.type.is_a?("Primitive")
           res = false if a_val != b_val
         elsif !field.many
           if !equals(a_val, b_val)
@@ -72,7 +73,7 @@ class Equals
 end
 
 def self.equals(a,b)
-  Equals.equals(a, b)
+  EqualsClass.equals(a, b)
 end
 
 end

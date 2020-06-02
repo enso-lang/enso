@@ -63,7 +63,7 @@ class Query2Batch
     end
     env1 = env.merge({"@self" => env[pname]})
     body = @factory.Prim(Jaba::Op::SEQ,
-                         query.fields.map {|f| f.ComputedField? ? e2b_ComputedField(f, pname, env1) : e2b_Field(f, pname, env1)})
+                         query.fields.map {|f| f.is_a?("ComputedField") ? e2b_ComputedField(f, pname, env1) : e2b_Field(f, pname, env1)})
     if !query.filter.nil?
       body = @factory.If(
                 e2b(query.filter, env1),

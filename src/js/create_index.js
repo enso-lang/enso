@@ -18,10 +18,11 @@ map = {}
 count = 0;
 walk("..", function(name, path) {
   ext = name.slice(name.length - 5);
-  console.log("EXT="+ext)
   if (ext == ".json") { // != ".rb" && ext != ".sh" && ext != ".js" && name[0] != ".") {
     if (path.slice(0,2) == "./")
       path = path.slice(2,1000);
+    name = name.slice(0, name.length - 5)
+    console.log("SET ", name, path)
     map[name] = path;
     count = count + 1;
   }

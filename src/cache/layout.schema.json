@@ -1,0 +1,173 @@
+{
+  "filename": "layout.schema",
+  "source": "core/grammar/models/layout.schema",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "30a657a701717748c88268c2e198b5c55e089f49",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Format",
+        "schema": "",
+        "subclasses#": [
+          "types[Sequence]",
+          "types[Group]",
+          "types[Nest]",
+          "types[Break]",
+          "types[Text]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Sequence",
+        "schema": "",
+        "supers#": [
+          "types[Format]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[Sequence]",
+            "type": "types[Format]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Group",
+        "schema": "",
+        "supers#": [
+          "types[Format]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Group]",
+            "type": "types[Format]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Nest",
+        "schema": "",
+        "supers#": [
+          "types[Format]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Nest]",
+            "type": "types[Format]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "indent",
+            "owner": "types[Nest]",
+            "type": "types[int]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Break",
+        "schema": "",
+        "supers#": [
+          "types[Format]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "optional",
+            "owner": "types[Break]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "indent",
+            "owner": "types[Break]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "sep",
+            "owner": "types[Break]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Text",
+        "schema": "",
+        "supers#": [
+          "types[Format]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[Text]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      }
+    ]
+  }
+}

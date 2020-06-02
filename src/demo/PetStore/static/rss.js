@@ -1,7 +1,7 @@
 /* Copyright 2006 Sun Microsystems, Inc. All rights reserved. You may not modify, use, reproduce, or distribute this software except in compliance with the terms of the License at: http://developer.sun.com/berkeley_license.html
 $Id: rss.js,v 1.3 2006-05-31 19:13:03 basler Exp $ */
 
-dojo.require("dojo.io.*");
+dojo.require("./dojo.io.*");
 
 if (bpui = 'undefined') {
 	bpui = new Object();

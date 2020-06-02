@@ -1,0 +1,125 @@
+{
+  "filename": "todo.schema",
+  "source": "demo/ToDo/models/todo.schema",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "be34c575f575beb0bf06903581f96453a36d5e03",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Todos",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "users",
+            "owner": "types[Todos]",
+            "type": "types[User]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "User",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[User]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "password",
+            "owner": "types[User]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "todos",
+            "owner": "types[User]",
+            "type": "types[Todo]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Todo].defined_fields[owner]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Todo",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "owner",
+            "owner": "types[Todo]",
+            "type": "types[User]",
+            "inverse": "types[User].defined_fields[todos]"
+          },
+          {
+            "class": "Field",
+            "name=": "todo",
+            "owner": "types[Todo]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "done",
+            "owner": "types[Todo]",
+            "type": "types[bool]"
+          }
+        ]
+      }
+    ]
+  }
+}

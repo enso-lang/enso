@@ -24,7 +24,7 @@ class ToDot
     todo = [sppf]
     while !todo.empty? do
       node = todo.shift
-      if node.Pack? then
+      if node.is_a?("Pack") then
         if node.left then
           if !nodes[node.left] then
             nodes[node.left] = id += 1
@@ -35,7 +35,7 @@ class ToDot
           nodes[node.right] = id += 1
           todo << node.right
         end
-      elsif node.Node? then
+      elsif node.is_a?("Node") then
         nodes[node] = id += 1
         node.kids.each do |k|
           if !nodes[k] then
@@ -56,10 +56,10 @@ class ToDot
 
   def edges(nodes)
     nodes.each do |n, id|
-      if n.Pack? then
+      if n.is_a?("Pack") then
         @out << "#{node(n, id)} -> #{node(n.left, nodes[n.left])}\n" if n.left
         @out << "#{node(n, id)} -> #{node(n.right, nodes[n.right])}\n" 
-      elsif n.Node? then
+      elsif n.is_a?("Node") then
         n.kids.each do |k|
           @out << "#{node(n, id)} -> #{node(k, nodes[k])}\n"
         end
@@ -76,9 +76,9 @@ class ToDot
   end
 
   def label_(n)
-    if n.Leaf? then
+    if n.is_a?("Leaf") then
       n.value.to_s + " (#{n.starts}, #{n.ends})"
-    elsif n.Node? then
+    elsif n.is_a?("Node") then
       if n.type.schema_class.name == 'Rule' 
         "rule #{n.type.name}" + " (#{n.starts}, #{n.ends})"
       elsif n.type.schema_class.name == 'Create'
@@ -92,23 +92,23 @@ class ToDot
       else
         n.type.to_s + " (#{n.starts}, #{n.ends})"
       end
-    elsif n.Pack? then
+    elsif n.is_a?("Pack") then
       "#{n.pivot}, #{n.type}"
     end
   end
 
   def shape(n)
-    if n.Leaf? then
+    if n.is_a?("Leaf") then
       'plaintext'
-    elsif n.Node? then
+    elsif n.is_a?("Node") then
       if n.kids.size > 1 then
         'diamond'
       else
         'box'
       end
-    elsif n.Pack? then
+    elsif n.is_a?("Pack") then
       'ellipse'
-    elsif n.Empty? then
+    elsif n.is_a?("Empty") then
       'none'
     else
       raise "Unsupported node!"

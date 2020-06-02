@@ -90,9 +90,9 @@ JSONS_PIPING = \
   boiler.piping \
   piping-sim.schema \
 
-main: rascal2js buildcache 
+main: js buildcache 
 
-rascal2js:
+js:
 	make -f makefile.rascal
 	
 	
@@ -101,6 +101,8 @@ check:
 
 .SECONDARY:
 
+clean: clean-json 
+	make -f makefile.rascal clean
 
 clean-json:
 	ruby -I . core/system/load/cache.rb

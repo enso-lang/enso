@@ -19,7 +19,7 @@ class ParseTest < Test::Unit::TestCase
 #    s = File.new("JUNK", "w")
 #    Layout::DisplayFormat.print(gg, gg, s)
     
-    s = File.new("JUNK", "r")
+    #s = File.new("JUNK", "r")
     grammar1 = Parse.load_file("core/schema/models/schema.grammar", gg, gs)
     grammar2 = Parse.load_file("core/schema/models/schema.grammar", gg, gs)
     assert_equal([], Diff::diff(grammar1, grammar2))

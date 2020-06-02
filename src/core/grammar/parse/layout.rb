@@ -4,7 +4,7 @@ module LayoutGrammar
   # assumes normalized, deformatted
 
   def self.layout(grammar)
-    fact = grammar._graph_id
+    fact = grammar.graph_identity
     grammar.rules.each do |rule|
       rule.arg.alts.each do |alt|
         # assume alt is a seq because of normalization        

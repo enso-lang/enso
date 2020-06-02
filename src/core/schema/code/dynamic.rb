@@ -2,8 +2,9 @@
 require "enso"
 
 module Dynamic
-  class DynamicUpdateProxy < EnsoProxyObject
+  class DynamicUpdateProxy < Enso::EnsoProxyObject
     def initialize(obj)
+      super()
       @obj = obj
       @fields = {}
       @obj.schema_class.fields.each do |fld|
@@ -12,11 +13,11 @@ module Dynamic
       end
     end
     
-    def _get(name)
+    def get(name)
       #puts "DYNAMIC #{@obj}.#{name}"
-      var = @fields[name]
-      if var
-        var
+      variable = @fields[name]
+      if variable
+        variable
       elsif !name.is_a?(Variable) && name.start_with?("_")
         @obj.send(name.to_sym)
       else
@@ -34,11 +35,11 @@ module Dynamic
         else
           val = @obj[name]
           val = val.dynamic_update if val.is_a?(Factory::MObject)
-          @fields[name] = var = Variable.new("#{@obj}.#{name}", val)
+          @fields[name] = variable = Variable.new("#{@obj}.#{name}", val)
           @obj.add_listener name do |val|
-            var.value = val
+            variable.value = val
           end
-          var
+          variable
         end
       end
     end

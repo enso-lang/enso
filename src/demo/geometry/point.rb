@@ -9,7 +9,7 @@ puts Load::load('schema.schema')
 
 puts "-"*50
 
-f = Factory::new(point_schema)
+f = Factory::SchemaFactory.new(point_schema)
 p = f.Point(3,4)
 
 puts "-"*50

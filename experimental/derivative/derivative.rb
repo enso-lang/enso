@@ -32,7 +32,7 @@ end
 
 class OptimizingGrammarFactory
   def initialize
-    @factory = Factory::new(Load::load("grammar.schema"))
+    @factory = Factory::SchemaFactory.new(Load::load("grammar.schema"))
     @epsilon = @factory.Sequence()
   end
 
@@ -50,6 +50,10 @@ class OptimizingGrammarFactory
 end
 
 class NullTest < CyclicMapNew
+  def initialize
+    super()
+  end
+
   def recurse(obj)
     x = @memo[obj]
     return x unless x.nil?
@@ -115,7 +119,7 @@ class RuleCopy < Copy
     @indent += 1
     #puts "#{' '*@indent}COPY #{source.to_s}"
     rule = super(source)
-    if source.Rule?
+    if source.is_a?("Rule")
       @grammar.rules << rule
     end
     @indent -= 1
@@ -173,7 +177,7 @@ class Derivative < CyclicMapNew
       first = recurse(from.elements[i])
       if first
         p = @factory.Sequence()
-        p.elements << first unless first.Epsilon?
+        p.elements << first unless first.is_a?("Epsilon")
         for j in i+1...n
           p.elements << @copier.copy(from.elements[j])
         end

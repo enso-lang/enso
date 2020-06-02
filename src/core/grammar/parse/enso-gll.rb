@@ -27,7 +27,7 @@ module EnsoGLL
     def initialize(grammar, fact = GLLFactory::new)
       @fact = fact
       if fact.is_a?(GLLFactory::GLLFactoryClass) then
-        @gfact = Factory::new(Load::load('itemize.schema'))
+        @gfact = Factory::SchemaFactory.new(Load::load('itemize.schema'))
       else
         @gfact = fact
       end
@@ -144,7 +144,7 @@ module EnsoGLL
       #puts "TERMINAL prev: #{type.prev}"
       #puts "TERMINAL next: #{type.nxt}"
 
-      if type.prev.nil? && !type.nxt.End? then
+      if type.prev.nil? && !type.nxt.is_a?("End") then
         @cn = cr
       else
         @cn = make_node(type.nxt, @cn, cr)
@@ -260,8 +260,8 @@ module EnsoGLL
       #if item.dot == 1 && item.elements.size > 1 then
       # a . b c 
       return false if item.prev.nil?
-      #item.prev.Terminal? && 
-      item.prev.prev.nil? && !item.End?
+      #item.prev.is_a?("Terminal") && 
+      item.prev.prev.nil? && !item.is_a?("End")
     end
       
     def make_node(item, z, w)
@@ -274,7 +274,7 @@ module EnsoGLL
       #puts "z = #{z}"
       #puts "w = #{w}"
       t = item
-      if item.End? then
+      if item.is_a?("End") then
         t = item.nxt # the rule
         raise "Item.nxt = nil" if t.nil?
       end
@@ -338,7 +338,7 @@ if __FILE__ == $0 then
             ps.classes["GSS"],
             ps.classes["Edge"]]
 
-  # parser = EnsoGLL::EnsoGLLParser.new(gg, SharingFactory.new(ps, shares))
+  # parser = EnsoGLL::EnsoGLLParser.new(gg, SharingFactory::SchemaFactory.new(ps, shares))
   parser = EnsoGLL::EnsoGLLParser.new(gg)
 
   #RubyProf.start
@@ -350,7 +350,7 @@ if __FILE__ == $0 then
     ToDot.to_dot(x, f)
   end
   
-  obj = EnsoBuild::build(x, SharingFactory.new(ps, shares), org, [])
+  obj = EnsoBuild::build(x, SharingFactory::SchemaFactory.new(ps, shares), org, [])
 
   require 'core/grammar/render/layout'
   Layout::DisplayFormat.print(gg, obj, $stdout, false)
@@ -373,7 +373,7 @@ if __FILE__ == $0 then
 
 
   ss = Load::load('grammar.schema')
-  f = Factory::new(ss)
+  f = Factory::SchemaFactory.new(ss)
   grammar = f.Grammar
   rule = f.Rule
   rule.name = "X"

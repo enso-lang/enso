@@ -1,6 +1,7 @@
 require 'core/system/load/load'
 require 'core/schema/tools/diff'
 require 'core/diff/code/patch'
+require 'enso'
 
 module Loading
   class Loader
@@ -19,7 +20,8 @@ module Loading
       return if !@old_cache[name]
       diffs = Diff.diff(@old_cache[name], @cache[name])
 
-      filename = name.split("/")[-1]
+      parts = name.split("/")
+      filename = parts[parts.size() - 1]
       model = filename.split(".")[0]
       type = filename.split(".")[1]
 

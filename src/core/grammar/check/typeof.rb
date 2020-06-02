@@ -128,9 +128,9 @@ class TypeOf
   def Ref(this, klass, in_field, comb)
     t = DerefSchema.new(@schema, @root).deref(this.path, klass)
     return unit(comb) if t.nil?
-    if t.Class? then
+    if t.is_a?("Class") then
       TM.new(Klass.new(t), ONE)
-    elsif t.Primitive? then
+    elsif t.is_a?("Primitive") then
       TM.new(Primitive.new(t), ONE)
     else
       raise "Inconsistent type: #{t}"
@@ -155,7 +155,7 @@ class TypeOf
   def yield_objects(model, &block)
     return if model.nil?
     model.schema_class.fields.each do |fld|
-      next if fld.type.Primitive? || !fld.traversal 
+      next if fld.type.is_a?("Primitive") || !fld.traversal 
       if fld.many then
         model[fld.name].each do |x|
           yield x
@@ -184,7 +184,7 @@ module Bla
   def yield_objects(model, &block)
     return if model.nil?
     model.schema_class.fields.each do |fld|
-      next if fld.type.Primitive? || !fld.traversal 
+      next if fld.type.is_a?("Primitive") || !fld.traversal 
       if fld.many then
         model[fld.name].each do |x|
           yield x
@@ -229,8 +229,8 @@ if __FILE__ == $0 then
 
   yield_objects(g) do |x|
     next if x.nil?
-    next if x.Lit?
-    next if x.Call?
+    next if x.is_a?("Lit")
+    next if x.is_a?("Call")
     tm = to.type_of(x, test_class, true, :*)
     if tm.type != GrammarTypes::VOID then
       puts "#{x}: #{tm}"
@@ -243,12 +243,12 @@ if __FILE__ == $0 then
     puts "RULE #{rule.name}: #{to.type_of(rule, test_class, true, :*)}"
     # rule.arg.alts.each do |alt|
     #   puts "\tALT: #{to.type_of(alt, test_class, true, :*)}"
-    #   if alt.Sequence? then
+    #   if alt.is_a?("Sequence") then
     #     alt.elements.each do |elt|
     #       puts "\t\tELT: #{to.type_of(elt, test_class, true, :*)}"
     #     end
     #   end
-    #   if alt.Create? && alt.arg.elements[0].Field? then
+    #   if alt.is_a?("Create") && alt.arg.elements[0].is_a?("Field") then
     #     puts "\t\tFIELD: #{to.type_of(alt.arg.elements[0].arg, test_class, true, :*)}"
     #   end
     # end

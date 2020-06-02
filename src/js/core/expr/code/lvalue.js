@@ -1,128 +1,146 @@
-define(["core/expr/code/eval", "core/semantics/code/interpreter", "core/expr/code/env"], (function (Eval, Interpreter, Env) {
-  var Lvalue;
-  var Address = MakeClass("Address", null, [], (function () {
-  }), (function (super$) {
-    (this.initialize = (function (array, index) {
-      var self = this;
-      (self.$.array = array);
-      (self.$.index = index);
-      if ((!self.$.array.has_key_P(self.$.index))) {
-        return self.$.array._set(self.$.index, null);
+'use strict'
+
+//// Lvalue ////
+
+var cwd = process.cwd() + '/';
+var Eval = require(cwd + "core/expr/code/eval.js");
+var Interpreter = require(cwd + "core/semantics/code/interpreter.js");
+var Env = require(cwd + "core/expr/code/env.js");
+var Enso = require(cwd + "enso.js");
+
+var Lvalue;
+
+var lvalue = function(obj, args = Enso.EMap.new()) {
+  var self = this, interp;
+  interp = LValueExprC.new();
+  return interp.dynamic_bind(function() {
+    return interp.lvalue(obj);
+  }, args);
+};
+
+class Address {
+  static new(...args) { return new Address(...args) };
+
+  constructor(array, index) {
+    var self = this;
+    self.array$ = array;
+    self.index$ = index;
+    if (! self.array$.has_key_P(self.index$)) {
+      self.array$ .set$(self.index$, null);
+    }
+  };
+
+  array() { return this.array$ };
+
+  index() { return this.index$ };
+
+  set_value(val) {
+    var self = this, val;
+    if (self.type()) {
+      switch (self.type().name()) {
+        case "int":
+          val = val.to_i();
+          break;
+        case "str":
+          val = val.to_s();
+          break;
+        case "real":
+          val = val.to_f();
+          break;
       }
-    }));
-    (this.array = (function () {
-      return this.$.array;
-    }));
-    (this.index = (function () {
-      return this.$.index;
-    }));
-    (this.set_value = (function (val) {
-      var self = this;
-      if (self.type()) {
-        switch ((function () {
-          return self.type().name();
-        })()) {
-          case "real":
-           (val = val.to_f());
-           break;
-          case "str":
-           (val = val.to_s());
-           break;
-          case "int":
-           (val = val.to_i());
-           break;
-        }
-            
+    }
+    try {
+      return self.array$ .set$(self.index$, val);
+    } catch (DUMMY) {
+    }
+  };
+
+  set(val) {
+    var self = this, val;
+    if (self.type()) {
+      switch (self.type().name()) {
+        case "int":
+          val = val.to_i();
+          break;
+        case "str":
+          val = val.to_s();
+          break;
+        case "real":
+          val = val.to_f();
+          break;
       }
-      try {return self.$.array._set(self.$.index, val);
-           
-      }
-      catch (caught$848) {
-        
-      }
-    }));
-    (this.set = (function (val) {
-      var self = this;
-      if (self.type()) {
-        switch ((function () {
-          return self.type().name();
-        })()) {
-          case "real":
-           (val = val.to_f());
-           break;
-          case "str":
-           (val = val.to_s());
-           break;
-          case "int":
-           (val = val.to_i());
-           break;
-        }
-            
-      }
-      try {return self.$.array._set(self.$.index, val);
-           
-      }
-      catch (caught$1146) {
-        
-      }
-    }));
-    (this.value = (function () {
-      var self = this;
-      return self.$.array._get(self.$.index);
-    }));
-    (this.get = (function () {
-      var self = this;
-      return self.$.array._get(self.$.index);
-    }));
-    (this.to_s = (function () {
-      var self = this;
-      return S("", self.$.array, "[", self.$.index, "]");
-    }));
-    (this.type = (function () {
-      var self = this;
-      return (System.test_type(self.$.array, Env.ObjEnv) ? self.$.array.type(self.$.index) : null);
-    }));
-    (this.object = (function () {
-      var self = this;
-      return (System.test_type(self.$.array, Env.ObjEnv) ? self.$.array.obj() : null);
-    }));
-  }));
-  var LValueExpr = MakeMixin([Eval.EvalExpr, Interpreter.Dispatcher], (function () {
-    (this.lvalue = (function (obj) {
+    }
+    try {
+      return self.array$ .set$(self.index$, val);
+    } catch (DUMMY) {
+    }
+  };
+
+  value() {
+    var self = this;
+    return self.array$.get$(self.index$);
+  };
+
+  get() {
+    var self = this;
+    return self.array$.get$(self.index$);
+  };
+
+  to_s() {
+    var self = this;
+    return Enso.S(self.array$, "[", self.index$, "]");
+  };
+
+  type() {
+    var self = this;
+    if (Enso.System.test_type(self.array$, Env.ObjEnv)) {
+      return self.array$.type(self.index$);
+    } else {
+      return null;
+    }
+  };
+
+  object() {
+    var self = this;
+    if (Enso.System.test_type(self.array$, Env.ObjEnv)) {
+      return self.array$.obj();
+    } else {
+      return null;
+    }
+  };
+};
+
+function LValueExpr(parent) {
+  return class extends Enso.mix(parent, Eval.EvalExpr, Interpreter.Dispatcher) {
+    lvalue(obj) {
       var self = this;
       return self.dispatch_obj("lvalue", obj);
-    }));
-    (this.lvalue_EField = (function (obj) {
+    };
+
+    lvalue_EField(obj) {
       var self = this;
-      return Address.new(Env.ObjEnv.new(self.eval(obj.e())), obj.fname());
-    }));
-    (this.lvalue_EVar = (function (obj) {
+      return Address.new(Env.ObjEnv.new(self.eval_M(obj.e())), obj.fname());
+    };
+
+    lvalue_EVar(obj) {
       var self = this;
-      return Address.new(self.$.D._get("env"), obj.name());
-    }));
-    (this.lvalue__P = (function (obj) {
+      return Address.new(self.D$.get$("env"), obj.name());
+    };
+
+    lvalue__P(obj) {
       var self = this;
       return null;
-    }));
-  }));
-  var LValueExprC = MakeClass("LValueExprC", null, [LValueExpr], (function () {
-  }), (function (super$) {
-  }));
-  (Lvalue = {
-    lvalue: (function (obj, args) {
-      var self = this;
-      (args = (((typeof args) !== "undefined") ? args : (new EnsoHash({
-        
-      }))));
-      var interp;
-      (interp = LValueExprC.new());
-      return interp.dynamic_bind((function () {
-        return interp.lvalue(obj);
-      }), args);
-    }),
-    LValueExprC: LValueExprC,
-    Address: Address,
-    LValueExpr: LValueExpr
-  });
-  return Lvalue;
-}));
+    }; }};
+
+class LValueExprC extends Enso.mix(Enso.EnsoBaseClass, LValueExpr) {
+  static new(...args) { return new LValueExprC(...args) };
+
+};
+
+Lvalue = {
+  lvalue: lvalue,
+  Address: Address,
+  LValueExpr: LValueExpr,
+  LValueExprC: LValueExprC,
+};
+module.exports = Lvalue ;

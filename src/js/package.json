@@ -7,6 +7,16 @@
     "start": "electron ."
   },
   "devDependencies": {
-    "electron": "^3.0.4"
+    "electron": "^8.2.5"
   }
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "fs": "0.0.1-security"
+  },
+   "keywords": [],
+  "author": "",
+  "license": "ISC",
 }

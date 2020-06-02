@@ -8,6 +8,25 @@ define([
   'diagram'
 ], 
 function(Enso, Load, Construct, Layout, Print, RenderExp, Diagram) {
+  class StringBuilder {
+    constructor(s) {
+      this.s = s;
+    }
+  	inner = "";
+  	push(s) {
+  		this.inner = this.inner + s
+  	}
+  	toString() {
+  		return this.inner
+  	}
+  	valueOf() { 
+  	  return this.toString;
+  	}
+  	toDocument() {
+  		return this.toString().replace(/</g, "&lt").replace(/>/, "&gt").replace(/ /g, "&nbsp;").replace(/\n/, "<br>")
+  	}
+  }
+
   var Stencil = {
     render : function(data_file, stencil_file) {
       var filetype = data_file.split('.')[1];

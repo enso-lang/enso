@@ -182,10 +182,10 @@ module GrammarTypes
     File.open(file, 'w') do |f|
       f.puts "digraph bla {"
       alg.each do |e1|
-        f.puts "n#{e1.object_id} [label=\"#{e1}\"]"
+        f.puts "n#{e1.objectidentity} [label=\"#{e1}\"]"
         alg.each do |e2|
           if e1 <= e2 then
-            f.puts "n#{e2.object_id} -> n#{e1.object_id} [dir=back]"
+            f.puts "n#{e2.objectidentity} -> n#{e1.objectidentity} [dir=back]"
           end
         end
       end

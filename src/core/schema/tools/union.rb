@@ -7,6 +7,7 @@ require 'core/schema/code/factory'
 #objects of both A and B. 
 
 #=end
+require 'enso'
 
 module Union
   
@@ -33,7 +34,7 @@ module Union
     def build(a, b)
       if !a.nil?
         raise "Union of incompatible objects #{a} and #{b}" if a && b && a.schema_class.name != b.schema_class.name
-        @memo[a._id] = new = b || @factory[a.schema_class.name]
+        @memo[a.identity] = new = b || @factory[a.schema_class.name]
         #puts "BUILD #{a} + #{b} ==> #{new}"
         new.schema_class.fields.each do |field|
           a_val = begin a[field.name]
@@ -45,7 +46,7 @@ module Union
             nil 
           end
           if !a_val.nil? or !b_val.nil?
-            if field.type.Primitive?
+            if field.type.is_a?("Primitive")
               if !a_val.nil?
                 if a && b && a_val != b_val then
                   puts "UNION WARNING: changing #{new}.#{field.name} from '#{b_val}' to '#{a_val}'"
@@ -76,7 +77,7 @@ module Union
       if a.nil?
         b 
       else
-        new = @memo[a._id]
+        new = @memo[a.identity]
         #puts "LINK #{a} + #{b} ==> #{new}"
         if !new
           p @memo
@@ -86,7 +87,7 @@ module Union
           a.schema_class.fields.each do |field|
             a_val = a[field.name]
             b_val = b && b[field.name]
-            if !field.type.Primitive?
+            if !field.type.is_a?("Primitive")
               if !field.many
                 val = link(field.traversal, a_val, b_val)
                 new[field.name] = val
@@ -126,7 +127,7 @@ module Union
   end   
   
   def self.union(a, b)
-    f = Factory::new(a._graph_id.schema)
+    f = Factory::SchemaFactory.new(a.graph_identity.schema)
     Union(f, a, b)
   end
 end

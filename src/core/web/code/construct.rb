@@ -17,7 +17,7 @@ module Construct
     include Evalexprstencil::EvalExprStencil
 
     def eval_Stencil(obj)
-      factory = Factory::SchemaFactory.new(Load::load('web.schema'))
+      factory = Factory::SchemaFactory::SchemaFactory.new(Load::load('web.schema'))
       res = factory.Stencil(obj.title, obj.root)
       env = {}
       env["data"] = @D[:data]
@@ -72,7 +72,7 @@ module Construct
             end
           end
         else
-          if f.type.Primitive?
+          if f.type.is_a?("Primitive")
             res[f.name] = obj[f.name]
           elsif !f.many
             res[f.name] = eval(obj[f.name])

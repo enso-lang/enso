@@ -11,7 +11,7 @@ require 'core/grammar/check/multiplicity'
 
 class ExtractSchema
   def initialize(ss = Load::load('schema.schema'))
-    @fact = Factory::new(ss)
+    @fact = Factory::SchemaFactory.new(ss)
     @anon_counter = 0
   end
 
@@ -175,9 +175,9 @@ class ExtractSchema
     return t1 if t2.nil?
     return t2 if t1.nil?
     return t1 if t1 == t2
-    if t1.Primitive? && t2.Primitive? then
+    if t1.is_a?("Primitive") && t2.is_a?("Primitive") then
       return primitive('atom')
-    elsif t1.Class? && t2.Class? then
+    elsif t1.is_a?("Class") && t2.is_a?("Class") then
       x = class_lub(t1, t2)
       return x if x
       anon_class = @fact.Class(anon!)
@@ -312,10 +312,10 @@ if __FILE__ == $0 then
         lts.transitions << Transition.new(kls, "<:", sup)
       end
       kls.fields.each do |fld|
-        if !fld.computed && !fld.type.Primitive? then
+        if !fld.computed && !fld.type.is_a?("Primitive") then
           lts.transitions << Transition.new(kls, fld.name, fld.type)
         end
-        if fld.type.Primitive? then
+        if fld.type.is_a?("Primitive") then
           lts.transitions << Transition.new(kls, fld.name + ":" + fld.type.name, kls)
         end
       end
@@ -328,12 +328,12 @@ if __FILE__ == $0 then
         lts.transitions << Transition.new(a, "<:", b)
       end
       kls.fields.each do |fld|
-        if !fld.computed && !fld.type.Primitive? then
+        if !fld.computed && !fld.type.is_a?("Primitive") then
           a = goal_s.classes[kls.name] || kls
           b = goal_s.classes[fld.type.name] || fld.type
           lts.transitions << Transition.new(a, fld.name, b)
         end
-        if fld.type.Primitive? then
+        if fld.type.is_a?("Primitive") then
           a = goal_s.classes[kls.name] || kls
           lts.transitions << Transition.new(a, fld.name + ":" + fld.type.name, a)
         end

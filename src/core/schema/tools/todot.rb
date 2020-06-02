@@ -31,7 +31,7 @@ class ObjectToDot
     prims = []
     obj.schema_class.all_fields.each do |fld|
       next if fld.computed
-      if fld.type.Primitive? then
+      if fld.type.is_a?("Primitive") then
         label = obj[fld.name].inspect.gsub('>', '&gt;').gsub('<', '&lt;').gsub('&', '&amp;')
         prims << "<TR><TD>#{fld.name}:</TD><TD>#{label}</TD></TR>\n"
       else
@@ -42,7 +42,7 @@ class ObjectToDot
         
         if fld.many then
           next if obj[fld.name].empty?
-          from = "coll#{obj[fld.name].object_id}"
+          from = "coll#{obj[fld.name].objectidentity}"
           @nodes << "#{from} [shape=point,label=\"\"]"
           edge = "#{node(obj)} -> #{from} [dir=both,label="
           if fld.inverse then
@@ -88,13 +88,13 @@ class ObjectToDot
         end
       end
     end
-    head = "<TR><TD COLSPAN=\"2\" ALIGN=\"CENTER\"><U>#{obj._id}:#{obj.schema_class.name}</U></TD></TR>"
+    head = "<TR><TD COLSPAN=\"2\" ALIGN=\"CENTER\"><U>#{obj.identity}:#{obj.schema_class.name}</U></TD></TR>"
     @nodes.unshift("#{node(obj)} [label=<<TABLE STYLE=\"ROUNDED\" CELLBORDER=\"0\">#{head}#{prims.join}</TABLE>>]")
     node(obj)
   end
 
   def node(obj)
-    "n#{obj._id}"
+    "n#{obj.identity}"
   end
 end
 

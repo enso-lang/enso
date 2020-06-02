@@ -2,14 +2,14 @@
 
 module ItemizeGrammar
   def self.itemize(grammar)
-    fact = grammar._graph_id
+    fact = grammar.graph_identity
     grammar.rules.each do |rule|
       rule.arg.alts.each do |alt|
         # assume alt is a seq because of normalization
         n = alt.elements.size
         if n == 0 then
           alt.elements << fact.EpsilonEnd(nil, rule)
-          # elsif n == 1 && alt.elements[0].Terminal? then
+          # elsif n == 1 && alt.elements[0].is_a?("Terminal") then
           #   term = fact.TerminalEnd
           #   term.nxt = rule
           #   alt.elements[0].nxt = term

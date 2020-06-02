@@ -69,7 +69,7 @@ module SecureFactory
       raise SecurityError, msg if !auth1 and !@fail_silent
       field = schema_class.fields[name]
       auth2 = true
-      if !field.type.Primitive? and field.traversal
+      if !field.type.is_a?("Primitive") and field.traversal
         old = self[name]
         auth2 = check_privileges("OpDelete", old)
         raise SecurityError, msg if !auth2 and !@fail_silent

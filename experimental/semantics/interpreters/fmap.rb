@@ -11,7 +11,7 @@ module Fmap
       f = type.all_fields[k]
       next unless f.traversal
       if !f.many
-        if f.type.Primitive?
+        if f.type.is_a?("Primitive")
           #do nothing
         else
           append(v)

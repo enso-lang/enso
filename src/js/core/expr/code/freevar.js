@@ -1,75 +1,89 @@
-define(["core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/interpreter"], (function (Eval, Lvalue, Interpreter) {
-  var Freevar;
-  var FreeVarExpr = MakeMixin([Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher], (function () {
-    (this.depends = (function (obj) {
+'use strict'
+
+//// Freevar ////
+
+var cwd = process.cwd() + '/';
+var Eval = require(cwd + "core/expr/code/eval.js");
+var Lvalue = require(cwd + "core/expr/code/lvalue.js");
+var Interpreter = require(cwd + "core/semantics/code/interpreter.js");
+var Enso = require(cwd + "enso.js");
+
+var Freevar;
+
+var depends = function(obj, args = Enso.EMap.new()) {
+  var self = this, interp;
+  interp = FreeVarExprC.new();
+  return interp.dynamic_bind(function() {
+    return interp.depends(obj);
+  }, args);
+};
+
+function FreeVarExpr(parent) {
+  return class extends Enso.mix(parent, Eval.EvalExpr, Lvalue.LValueExpr, Interpreter.Dispatcher) {
+    depends(obj) {
       var self = this;
       return self.dispatch_obj("depends", obj);
-    }));
-    (this.depends_EField = (function (obj) {
+    };
+
+    depends_EField(obj) {
       var self = this;
       return self.depends(obj.e());
-    }));
-    (this.depends_EVar = (function (obj) {
+    };
+
+    depends_EVar(obj) {
       var self = this;
-      return ((self.$.D._get("bound").include_P(obj.name()) || (obj.name() == "self")) ? [] : [Lvalue.Address.new(self.$.D._get("env"), obj.name())]);
-    }));
-    (this.depends_ELambda = (function (obj) {
-      var self = this;
-      var bound2;
-      (bound2 = self.$.D._get("bound").clone());
-      obj.formals().each((function (f) {
+      if (self.D$.get$("bound").include_P(obj.name()) || obj.name() == "self") {
+        return [];
+      } else {
+        return [Lvalue.Address.new(self.D$.get$("env"), obj.name())];
+      }
+    };
+
+    depends_ELambda(obj) {
+      var self = this, bound2;
+      bound2 = self.D$.get$("bound").clone();
+      obj.formals().each(function(f) {
         return bound2.push(self.depends(f));
-      }));
-      return self.dynamic_bind((function () {
+      });
+      return self.dynamic_bind(function() {
         return self.depends(obj.body());
-      }), (new EnsoHash({
-        bound: bound2
-      })));
-    }));
-    (this.depends_Formal = (function (obj) {
+      }, Enso.EMap.new({bound: bound2}));
+    };
+
+    depends_Formal(obj) {
       var self = this;
       return obj.name();
-    }));
-    (this.depends__P = (function (obj) {
-      var self = this;
-      var res, type;
-      (res = []);
-      (type = obj.schema_class());
-      type.fields().each((function (f) {
-        if (((f.traversal() && (!f.type().Primitive_P())) && obj._get(f.name()))) {
-          if ((!f.many())) { 
-            return (res = res.concat(self.depends(obj._get(f.name())))); 
-          }
-          else { 
-            return obj._get(f.name()).each((function (o) {
-              return (res = res.concat(self.depends(o)));
-            }));
+    };
+
+    depends__P(obj) {
+      var self = this, res, type;
+      res = [];
+      type = obj.schema_class();
+      type.fields().each(function(f) {
+        if ((f.traversal() && ! Enso.System.test_type(f.type(), "Primitive")) && obj.get$(f.name())) {
+          if (! f.many()) {
+            return res = res.concat(self.depends(obj.get$(f.name())));
+          } else {
+            return obj.get$(f.name()).each(function(o) {
+              return res = res.concat(self.depends(o));
+            });
           }
         }
-      }));
+      });
       return res;
-    }));
-  }));
-  var FreeVarExprC = MakeClass("FreeVarExprC", null, [FreeVarExpr], (function () {
-  }), (function (super$) {
-    (this.initialize = (function () {
-      var self = this;
-    }));
-  }));
-  (Freevar = {
-    depends: (function (obj, args) {
-      var self = this;
-      (args = (((typeof args) !== "undefined") ? args : (new EnsoHash({
-        
-      }))));
-      var interp;
-      (interp = FreeVarExprC.new());
-      return interp.dynamic_bind((function () {
-        return interp.depends(obj);
-      }), args);
-    }),
-    FreeVarExpr: FreeVarExpr,
-    FreeVarExprC: FreeVarExprC
-  });
-  return Freevar;
-}));
+    }; }};
+
+class FreeVarExprC extends Enso.mix(Enso.EnsoBaseClass, FreeVarExpr) {
+  static new(...args) { return new FreeVarExprC(...args) };
+
+  constructor() {
+    super();
+  };
+};
+
+Freevar = {
+  depends: depends,
+  FreeVarExpr: FreeVarExpr,
+  FreeVarExprC: FreeVarExprC,
+};
+module.exports = Freevar ;

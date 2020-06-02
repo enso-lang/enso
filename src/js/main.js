@@ -14,7 +14,12 @@ let win;
 
 function createWindow() {
   // Create the browser window.
-  win = new BrowserWindow({width: 800, height: 600});
+  win = new BrowserWindow({width: 800, height: 600, 
+                 webPreferences: {
+                   nodeIntegration: true,
+                   contextIsolation: false,
+                   webviewTag: true
+                 }});
 
   // and load the index.html of the app.
   win.loadURL(`file://${__dirname}/main.html`);
@@ -48,7 +53,7 @@ function createWindow() {
         label: 'Open',
 		    accelerator: 'CmdOrCtrl+O',
         click: (menuItem, browserWindow, event) => {  
-        		files = dialog.showOpenDialog(browserWindow, {properties: ['openFile']}); 
+        		var files = dialog.showOpenDialogSync(browserWindow, {properties: ['openFile']}); 
             if (files)
 	        	  browserWindow.webContents.send("do-open", files[0]); 
 	       }
@@ -183,7 +188,7 @@ function createWindow() {
 	}]
 
 	if (process.platform === 'darwin') {
-	  const name = electron.app.getName()
+	  const name = electron.app.name;
 	  template.unshift({
 	    label: name,
 	    submenu: [{

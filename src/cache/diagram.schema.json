@@ -1,0 +1,581 @@
+{
+  "filename": "diagram.schema",
+  "source": "core/diagram/models/diagram.schema",
+  "date": "2020-05-11 14:32:15 -0500",
+  "checksum": "efa34faa54763f6530c088097fef714578957efc",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-10 21:25:24 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-05-31 10:07:33 -0500",
+      "checksum": "1baf97f433daa98cd244a5e340c7e75b4d6df05d"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-05-31 15:31:14 -0500",
+      "checksum": "eb2d518a4df48e791d3c1ba5d4ba1450e874f161"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Part",
+        "schema": "",
+        "subclasses#": [
+          "types[Container]",
+          "types[Grid]",
+          "types[Text]",
+          "types[Page]",
+          "types[Shape]",
+          "types[Connector]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "styles",
+            "owner": "types[Part]",
+            "type": "types[Style]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Container",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "direction",
+            "owner": "types[Container]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "items",
+            "owner": "types[Container]",
+            "type": "types[Part]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Row",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "columns",
+            "owner": "types[Row]",
+            "type": "types[Part]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Text",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "string",
+            "owner": "types[Text]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "editable",
+            "owner": "types[Text]",
+            "type": "types[bool]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Page",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Page]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "content",
+            "owner": "types[Page]",
+            "type": "types[Part]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Shape",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "content",
+            "owner": "types[Shape]",
+            "type": "types[Part]",
+            "optional=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "kind",
+            "owner": "types[Shape]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "connectors",
+            "owner": "types[Shape]",
+            "type": "types[ConnectorEnd]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[ConnectorEnd].defined_fields[to]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Grid",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "row",
+            "owner": "types[Grid]",
+            "type": "types[Column]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Column",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "cols",
+            "owner": "types[Column]",
+            "type": "types[Part]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Connector",
+        "schema": "",
+        "supers#": [
+          "types[Part]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "label",
+            "owner": "types[Connector]",
+            "type": "types[Text]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "ends",
+            "owner": "types[Connector]",
+            "type": "types[ConnectorEnd]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[ConnectorEnd].defined_fields[owner]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "path",
+            "owner": "types[Connector]",
+            "type": "types[Point]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ConnectorEnd",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "arrow",
+            "owner": "types[ConnectorEnd]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "label",
+            "owner": "types[ConnectorEnd]",
+            "type": "types[Text]",
+            "optional=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "to",
+            "owner": "types[ConnectorEnd]",
+            "type": "types[Shape]",
+            "inverse": "types[Shape].defined_fields[connectors]"
+          },
+          {
+            "class": "Field",
+            "name=": "attach",
+            "owner": "types[ConnectorEnd]",
+            "type": "types[EdgePos]"
+          },
+          {
+            "class": "Field",
+            "name=": "owner",
+            "owner": "types[ConnectorEnd]",
+            "type": "types[Connector]",
+            "inverse": "types[Connector].defined_fields[ends]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "EdgePos",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "x",
+            "owner": "types[EdgePos]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "y",
+            "owner": "types[EdgePos]",
+            "type": "types[real]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Style",
+        "schema": "",
+        "subclasses#": [
+          "types[Pen]",
+          "types[Brush]",
+          "types[Font]",
+          "types[Baseline]",
+          "types[Alignment]",
+          "types[Dashes]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Pen",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "width",
+            "owner": "types[Pen]",
+            "type": "types[int]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "style",
+            "owner": "types[Pen]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "color",
+            "owner": "types[Pen]",
+            "type": "types[Color]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Brush",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "color",
+            "owner": "types[Brush]",
+            "type": "types[Color]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Font",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "style",
+            "owner": "types[Font]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "variant",
+            "owner": "types[Font]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "weight",
+            "owner": "types[Font]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "points",
+            "owner": "types[Font]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "family",
+            "owner": "types[Font]",
+            "type": "types[str]",
+            "optional=": true
+          },
+          {
+            "class": "Field",
+            "name=": "color",
+            "owner": "types[Font]",
+            "type": "types[Color]",
+            "optional=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Baseline",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "baseline",
+            "owner": "types[Baseline]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Alignment",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "align",
+            "owner": "types[Alignment]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Dashes",
+        "schema": "",
+        "supers#": [
+          "types[Style]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "dashes",
+            "owner": "types[Dashes]",
+            "type": "types[Dash]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Dash",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "length",
+            "owner": "types[Dash]",
+            "type": "types[int]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Color",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "r",
+            "owner": "types[Color]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "g",
+            "owner": "types[Color]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "b",
+            "owner": "types[Color]",
+            "type": "types[int]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Point",
+        "schema": "",
+        "subclasses#": [
+          "types[Rect]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "x",
+            "owner": "types[Point]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "y",
+            "owner": "types[Point]",
+            "type": "types[int]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Rect",
+        "schema": "",
+        "supers#": [
+          "types[Point]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "w",
+            "owner": "types[Rect]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "h",
+            "owner": "types[Rect]",
+            "type": "types[int]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "real",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      }
+    ]
+  }
+}

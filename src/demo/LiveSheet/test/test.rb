@@ -3,11 +3,11 @@ require 'core/schema/code/factory'
 require 'csv'
 
 
-f = Factory::new(Load::load("grades.schema"))
+f = Factory::SchemaFactory.new(Load::load("grades.schema"))
 
 customers = CSV.read('demo/LiveSheet/test/grades.csv')
 
-course = f["Course"]
+course = f.Course
 
 # categories
 # assignments
@@ -25,7 +25,7 @@ customers[1].each do |col|
   elsif label.nil?
     label = col
   else
-    a = f["Assignment"]
+    a = f.Assignment
     a.name = col
     a.increase_to_max = true
     course.assignments << a
@@ -44,7 +44,7 @@ customers[0].each do |col|
   else
     cat = course.categories[col]
     if cat.nil?
-      cat = f["Category"]
+      cat = f.Category
       cat.name = col
 	    course.categories << cat
     end
@@ -97,7 +97,7 @@ end
 
 
 customers.slice(6,1000).each do |row|
-  student = f["Student"]
+  student = f.Student
   student.number = row[0].to_i
   student.name = row[1]
   student.id = row[2]
@@ -105,7 +105,7 @@ customers.slice(6,1000).each do |row|
   
   ncol = 0
   row.slice(4,1000).each do |col|
-    grade = f["Grade"]
+    grade = f.Grade
     grade.grade = col.to_f
     grade.student = student
     grade.assignment = assignments[ncol]

@@ -140,7 +140,7 @@ class Restrict
   end
 end
 
-# TypeLift? Meta?
+# is_a?("TypeLift") is_a?("Meta")
 # "interpret a structure in terms of its type (as indicated by some field)"
 class Lift
   include Operators
@@ -157,7 +157,7 @@ class Lift
 
   def lookup(cls, sup)
     f = cls.fields[@field]
-    if f.type.Primitive? then
+    if f.type.is_a?("Primitive") then
       raise "Cannot lift primitive field #{@field}" 
     else
       @fact.lookup(f.type, sup)

@@ -30,7 +30,7 @@ class Member_Enso
   end
 
   def self.make(field)
-    if field.type.Primitive?
+    if field.type.is_a?("Primitive")
       Attribute_Enso.new(field)
     else
       Relationship_Enso.new(field)

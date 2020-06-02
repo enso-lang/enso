@@ -4,7 +4,7 @@ $Id: main.js,v 1.9 2006-05-03 22:00:33 inder Exp $ */
 var isIE;
 var bodyRowText;
 
-dojo.require("dojo.widget.FisheyeList");
+dojo.require("./dojo.widget.FisheyeList");
 init();
 
 function browse(category) {

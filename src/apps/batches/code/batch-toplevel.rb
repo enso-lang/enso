@@ -83,7 +83,7 @@ class BatchWeb::EnsoWeb
     mod_eval = Mod.new(@env)
     mod_eval.eval(web)
 
-    @bfact = BatchFactory::new(web, schema, auth, database, dbuser, password)
+    @bfact = BatchFactory::SchemaFactory.new(web, schema, auth, database, dbuser, password)
   end
 
   def handle(req, out)
@@ -121,7 +121,7 @@ class BatchWeb::EnsoWeb
 
   def bind_to_db(form)
 #    store = Store.new(root._graph_id)
-    form.each do |k, v|
+    form.each do |v, k|
       k.to_s =~ /^(.*)\[(.*)\](.*)$/
       typ = $1[1..$1.size]
       key = $2

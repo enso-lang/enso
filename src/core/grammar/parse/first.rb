@@ -118,7 +118,7 @@ if __FILE__ == $0 then
 
 #   gg.rules.each do |rule|
 #     rule.arg.alts.each do |alt|
-#       if alt.Create? then
+#       if alt.is_a?("Create") then
 #         seq = alt.arg.elements
 #       else
 #         seq = alt.elements

@@ -13,7 +13,7 @@ class SecurityTest < Test::Unit::TestCase
   def setup
     # interp = SecureFactory.new
     # sfactory = Interpreter(FactorySchema, SecureFactory.SecureFactoryMixin).Make(schema, rules: rules, :fail_silent=>true)
-    factory = Factory::new(schema)
+    factory = Factory::SchemaFactory.new(schema)
 
     schema = Load::load('todo.schema')
     sfact = interp.Make(schema, rules: Load::load('todo.auth'), fail_silent: false)
@@ -69,7 +69,7 @@ class SecurityTest < Test::Unit::TestCase
 #  TODO: Interpreter model does not support constraints
 #
 #  def test_constraints
-#    fact = Factory::new(Load::load("auth.schema"))
+#    fact = Factory::SchemaFactory.new(Load::load("auth.schema"))
 #
 #    alice_const = fact.EBoolConst(true)
 #   @todo.factory.user = 'Alice'

@@ -1,4 +1,5 @@
-require 'core/system/utils/paths'
+require 'core/system/utils/schemapath'
+require 'enso'
 
 module Diff
 
@@ -38,7 +39,7 @@ module Diff
   # rather than the schema class the objects actually are 
   def self.diff(o1, o2)
     matches = Match.new.match(o1, o2)
-    diff_all(o1, o2, Paths::Path.new, matches)
+    diff_all(o1, o2, Schemapath::Path.new, matches)
   end
 
   #return 1 or 2 depending on which is the subpath. 0 if neither
@@ -50,7 +51,7 @@ module Diff
     elsif p2.elts.empty?
       2
     else
-      p1.elts != p2.elts ? false : subpath(Path.new(p1.elts[1..-1]), Path.new(p2.elts[1..-1]))
+      p1.elts != p2.elts ? false : subpath(Schemapath.make(p1.elts[1..-1]), Schemapath.make(p2.elts[1..-1]))
     end
   end
 
@@ -196,11 +197,11 @@ class Match
         
       o1.schema_class.fields.each do |f|
         next unless f.traversal
-        if not f.type.Primitive?  #FIXME: list of primitives require matching of some kind as well
+        if not f.type.is_a?("Primitive")  #FIXME: list of primitives require matching of some kind as well
           if f.many
             if f.type.key
               list_matches = match_keyed_list(o1[f.name], o2[f.name])
-            elsif o1[f.name].is_a?(Factory::List)
+            elsif true # o1[f.name].is_a?(Factory::List)
               list_matches = match_ordered_list(o1[f.name], o2[f.name])
             else
               raise "Trying to match a field that is neither keyed nor ordered"
@@ -309,7 +310,7 @@ class Match
   
     # iterate over all fields to verify equivalence
     schema_class.fields.each do |f|
-      if f.type.Primitive?
+      if f.type.is_a?("Primitive")
         if o1.method(f.name).call != o2.method(f.name).call 
           return false
         end
@@ -350,7 +351,7 @@ class Match
     # iterate over key fields of the type to verify equivalence
     num_keys = 0
     schema_class.defined_fields.each do |f|
-      if f.key and f.type.Primitive?
+      if f.key and f.type.is_a?("Primitive")
         if o1[f.name] != o2[f.name]
           return false
         end
@@ -362,7 +363,7 @@ class Match
     if num_keys == 0
       schema_class.fields.each do |f|
         next if f.computed
-        if f.type.Primitive?
+        if f.type.is_a?("Primitive")
           if o1[f.name] != o2[f.name] 
             return false
           end
@@ -389,7 +390,7 @@ class Match
   
     # iterate over primitive fields of the type to verify equivalence
     schema_class.fields.each do |f|
-      if f.type.Primitive?
+      if f.type.is_a?("Primitive")
         if o1[f.name] != o2[f.name]
           return false
         end

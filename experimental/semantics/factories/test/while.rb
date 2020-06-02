@@ -27,6 +27,7 @@ class If < Stm
   def self.fields; [:body1, :body2] end
 
   def initialize(exp, body1, body2)
+    super()
     @exp = exp
     @body1 = body1
     @body2 = body2
@@ -56,6 +57,7 @@ class Return < Stm
   def self.fields; [] end
 
   def initialize(exp)
+    super()
     @exp = exp
   end
 
@@ -69,6 +71,7 @@ class Block < Stm
   def self.fields; [:stms] end
 
   def initialize(stms)
+    super()
     @stms = stms
   end
 

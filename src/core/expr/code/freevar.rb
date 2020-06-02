@@ -1,6 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
+require 'enso'
 
 module Freevar
   module FreeVarExpr
@@ -47,7 +48,7 @@ module Freevar
       res = []
       type = obj.schema_class
       type.fields.each do |f|
-        if f.traversal && !f.type.Primitive? && obj[f.name]
+        if f.traversal && !f.type.is_a?("Primitive") && obj[f.name]
           if !f.many
             res = res.concat( depends(obj[f.name]) )
           else
@@ -62,6 +63,7 @@ module Freevar
   class FreeVarExprC
     include FreeVarExpr  
     def initialize
+      super()
     end
   end
 

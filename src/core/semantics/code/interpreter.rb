@@ -6,6 +6,8 @@
 # - method: name of method for {o:operation X t:type} eg eval_BinaryOp()
 #=end
 
+require 'enso'
+
 module Interpreter
   class DynamicPropertyStack
     def initialize
@@ -65,7 +67,6 @@ module Interpreter
         @D = DynamicPropertyStack.new
       end
       fields.each do |key, value|
-        puts "BIND #{key}=#{value}" if @debug
         @D._bind(key, value)
       end
       result = block.call

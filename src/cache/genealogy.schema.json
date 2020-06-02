@@ -1,0 +1,157 @@
+{
+  "filename": "genealogy.schema",
+  "source": "apps/genealogy/models/genealogy.schema",
+  "date": "2020-04-27 10:58:19 -0500",
+  "checksum": "6aecae3403e604b6903170a4131f8dabf61fd915",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Class",
+        "name=": "Genealogy",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "people",
+            "owner": "types[Genealogy]",
+            "type": "types[Person]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "couplings",
+            "owner": "types[Genealogy]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Person",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Person]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "ismale",
+            "owner": "types[Person]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "parents",
+            "owner": "types[Person]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "inverse": "types[Coupling].defined_fields[children]"
+          },
+          {
+            "class": "Field",
+            "name=": "spouses",
+            "owner": "types[Person]",
+            "type": "types[Coupling]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Coupling].defined_fields[father]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Coupling",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Coupling]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "mother",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "inverse": "types[Person].defined_fields[spouses]"
+          },
+          {
+            "class": "Field",
+            "name=": "father",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "inverse": "types[Person].defined_fields[spouses]"
+          },
+          {
+            "class": "Field",
+            "name=": "children",
+            "owner": "types[Coupling]",
+            "type": "types[Person]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Person].defined_fields[parents]"
+          }
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "date",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      }
+    ]
+  }
+}

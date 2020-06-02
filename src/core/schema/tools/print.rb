@@ -33,11 +33,11 @@ module Print
         @output << "nil\n"
       else
         klass = obj.schema_class   # TODO: pass as an argument for partial evaluation
-        @output << "#{klass.name} #{obj._id}\n"
+        @output << "#{klass.name} #{obj.identity}\n"
         indent += 2
         klass.fields.each do |field|
           if field != back_link
-            if field.type.Primitive?
+            if field.type.is_a?("Primitive")
               data = (field.type.name == "str") ? "\"#{obj[field.name]}\"" : obj[field.name]
               @output << "#{' '.repeat(indent)}#{field.name}: #{data}\n"
             else

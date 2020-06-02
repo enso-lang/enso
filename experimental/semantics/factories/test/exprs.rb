@@ -8,6 +8,7 @@ end
 class Add < Expr
   attr_reader :lhs, :rhs
   def initialize(lhs, rhs)
+    super()
     @lhs = lhs
     @rhs = rhs
   end
@@ -16,6 +17,7 @@ end
 class Const < Expr
   attr_reader :value
   def initialize(value)
+    super()
     @value = value
   end
 end

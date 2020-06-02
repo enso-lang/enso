@@ -4,7 +4,7 @@
   require 'core/grammar/render/layout'
 
   ss = Load::load('schema.schema')
-  fact = Factory::new(ss)
+  fact = Factory::SchemaFactory.new(ss)
   puts "Schema"
   s = fact.Schema
   puts "CLass FOO"
@@ -12,7 +12,7 @@
   puts "c.schema = s"
   c.schema = s
 
-  puts "Primitiv str"
+  puts "Primitive str"
   p = fact.Primitive('str')
 
   puts "p.schema = s"
@@ -34,8 +34,8 @@
     puts "OWNER: #{fld.owner}"
     puts "TYPE: #{fld.type}"
   end
-  sg = Load::load('schema.grammar')
-  Layout::DisplayFormat.print(sg, s)
+  #sg = Load::load('schema.grammar')
+  #Layout::DisplayFormat.print(sg, s)
 
   ss.classes.each do |cls|
     puts cls._origin

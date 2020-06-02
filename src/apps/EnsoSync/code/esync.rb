@@ -17,7 +17,7 @@ def esync(server_host, name, rootpath)
   sourcename = name
 
   domain_str =  File.open("#{rootpath}/.source.esync", "rb") { |f| f.read }
-  domain = Parse.load_raw(domain_str, grammar, schema, Factory::new(schema), false).finalize
+  domain = Parse.load_raw(domain_str, grammar, schema, Factory::SchemaFactory.new(schema), false).finalize
 
   s1 = domain.sources[sourcename]
   newbase = read_from_fs(rootpath, s1.path, s1.factory)
@@ -55,7 +55,7 @@ def esync(server_host, name, rootpath)
     path = "#{rootpath}/#{k}"
     case v[0..1]
       when ['+','F']
-        puts " #{fileExists?(path) ? "Modified" : "Created"} file #{path}"
+        puts " #{fileis_a?("Exists")(path) ? "Modified" : "Created"} file #{path}"
         writeFile(path, v[2])
       when ['-','F']
         puts " Deleted file #{path}"

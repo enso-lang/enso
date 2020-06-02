@@ -155,7 +155,7 @@ class FieldsOf
     fs = {}
     yield_objects(this.expr) do |x|
       next if x.nil?
-      if x.EVar? then
+      if x.is_a?("EVar") then
         # buggy, need to really use klass
         fs[x.name] = TM.new(GrammarTypes::Primitive.new(@schema.types['bool']), 
                             Multiplicity::ONE)
@@ -190,7 +190,7 @@ end
 def yield_objects(model, &block)
   return if model.nil?
   model.schema_class.fields.each do |fld|
-    next if fld.type.Primitive? || !fld.traversal 
+    next if fld.type.is_a?("Primitive") || !fld.traversal 
     if fld.many then
       model[fld.name].each do |x|
         yield x
@@ -225,7 +225,7 @@ if __FILE__ == $0 then
 
   yield_objects(g) do |x|
     next if x.nil?
-    if x.Create? then
+    if x.is_a?("Create") then
       if s.classes[x.name].nil? then
         puts "WARNING: no class for #{x.name}"
       else
@@ -241,7 +241,7 @@ if __FILE__ == $0 then
   #   puts "RULE #{rule.name}: #{to.fields_of(rule, nil)}"
   #   rule.arg.alts.each do |alt|
   #     puts "\tALT: #{to.fields_of(alt, nil)}"
-  #     if alt.Sequence? then
+  #     if alt.is_a?("Sequence") then
   #       alt.elements.each do |elt|
   #         puts "\t\tELT: #{to.fields_of(elt, nil)}"
   #       end

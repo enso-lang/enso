@@ -25,7 +25,7 @@ class VisitFields
     @indent += 1
 
     visitField(field, obj, val)
-    if !(field.type.Primitive? || val.nil?)
+    if !(field.type.is_a?("Primitive") || val.nil?)
       # check the field values    
       _each(field, val) do |val|
         finalize(val)
@@ -56,7 +56,7 @@ end
 
 class UpdateInverses < VisitFields
   def visitField(field, obj, val)
-    if !val.nil? && field.type.Class?
+    if !val.nil? && field.type.is_a?("Class")
 	    # update delayed inverses
 	    if field.inverse && field.inverse.many
 	      #puts " "*@indent + "INVERTED #{obj}.#{field.inverse.name}"

@@ -1,56 +1,71 @@
-define(["core/semantics/code/interpreter"], (function (Interpreter) {
-  var Renderexp;
-  var RenderExpr = MakeMixin([Interpreter.Dispatcher], (function () {
-    (this.render = (function (obj) {
+'use strict'
+
+//// Renderexp ////
+
+var cwd = process.cwd() + '/';
+var Interpreter = require(cwd + "core/semantics/code/interpreter.js");
+var Enso = require(cwd + "enso.js");
+
+var Renderexp;
+
+var render = function(obj, args = Enso.EMap.new()) {
+  var self = this, interp;
+  interp = RenderExprC.new();
+  return interp.dynamic_bind(function() {
+    return interp.render(obj);
+  }, args);
+};
+
+function RenderExpr(parent) {
+  return class extends Enso.mix(parent, Interpreter.Dispatcher) {
+    render(obj) {
       var self = this;
       return self.dispatch_obj("render", obj);
-    }));
-    (this.render_EBinOp = (function (obj) {
+    };
+
+    render_EBinOp(obj) {
       var self = this;
-      return S("", self.render(obj.e1()), " ", obj.op(), " ", self.render(obj.e2()), "");
-    }));
-    (this.render_EUnOp = (function (obj) {
+      return Enso.S(self.render(obj.e1()), " ", obj.op(), " ", self.render(obj.e2()));
+    };
+
+    render_EUnOp(obj) {
       var self = this;
-      return S("", obj.op(), " ", self.render(obj.e()), "");
-    }));
-    (this.render_EField = (function (obj) {
+      return Enso.S(obj.op(), " ", self.render(obj.e()));
+    };
+
+    render_EField(obj) {
       var self = this;
-      return S("", self.render(obj.e()), ".", obj.fname(), "");
-    }));
-    (this.render_ESubscript = (function (obj) {
+      return Enso.S(self.render(obj.e()), ".", obj.fname());
+    };
+
+    render_ESubscript(obj) {
       var self = this;
-      return S("", self.render(obj.e()), "[", self.render(obj.sub()), "]");
-    }));
-    (this.render_EVar = (function (obj) {
+      return Enso.S(self.render(obj.e()), "[", self.render(obj.sub()), "]");
+    };
+
+    render_EVar(obj) {
       var self = this;
-      return S("", obj.name(), "");
-    }));
-    (this.render_EConst = (function (obj) {
+      return obj.name();
+    };
+
+    render_EConst(obj) {
       var self = this;
-      return S("", obj.val(), "");
-    }));
-    (this.render_ENil = (function () {
+      return obj.val();
+    };
+
+    render_ENil() {
       var self = this;
       return "";
-    }));
-  }));
-  var RenderExprC = MakeClass("RenderExprC", null, [RenderExpr], (function () {
-  }), (function (super$) {
-  }));
-  (Renderexp = {
-    RenderExpr: RenderExpr,
-    render: (function (obj, args) {
-      var self = this;
-      (args = (((typeof args) !== "undefined") ? args : (new EnsoHash({
-        
-      }))));
-      var interp;
-      (interp = RenderExprC.new());
-      return interp.dynamic_bind((function () {
-        return interp.render(obj);
-      }), args);
-    }),
-    RenderExprC: RenderExprC
-  });
-  return Renderexp;
-}));
+    }; }};
+
+class RenderExprC extends Enso.mix(Enso.EnsoBaseClass, RenderExpr) {
+  static new(...args) { return new RenderExprC(...args) };
+
+};
+
+Renderexp = {
+  render: render,
+  RenderExpr: RenderExpr,
+  RenderExprC: RenderExprC,
+};
+module.exports = Renderexp ;

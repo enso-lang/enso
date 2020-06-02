@@ -13,7 +13,7 @@ def load_petstore(file = 'applications/petstore/data/petstore.db')
   db = Sequel.sqlite(file)
 
   ps = Load::load('petstore.schema')
-  fact = Factory::new(ps)
+  fact = Factory::SchemaFactory.new(ps)
 
   cats = {}
   db[:Category].all.each do |h|

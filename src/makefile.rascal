@@ -2,41 +2,39 @@
 
 DIR = js
 
-SOURCES = \
-	$(DIR)/core/system/boot/meta_schema.js \
+JSSOURCES = \
 	$(DIR)/core/system/load/load.js \
 	$(DIR)/core/system/load/cache.js \
 	$(DIR)/core/system/utils/find_model.js \
-	$(DIR)/core/system/utils/paths.js \
+	$(DIR)/core/system/utils/schemapath.js \
 	$(DIR)/core/system/library/schema.js \
 	$(DIR)/core/schema/code/factory.js \
 	$(DIR)/core/schema/code/dynamic.js \
 	$(DIR)/core/schema/tools/dumpjson.js \
-	$(DIR)/core/schema/tools/union.js \
 	$(DIR)/core/schema/tools/print.js \
-	$(DIR)/core/schema/tools/equals.js \
 	$(DIR)/core/semantics/code/interpreter.js \
 	$(DIR)/core/grammar/render/layout.js \
-	$(DIR)/core/grammar/parse/sppf.js \
-	$(DIR)/core/grammar/parse/gss.js \
+	$(DIR)/core/grammar/render/render.js \
 	$(DIR)/core/expr/code/impl.js \
 	$(DIR)/core/expr/code/env.js \
 	$(DIR)/core/expr/code/freevar.js \
 	$(DIR)/core/expr/code/eval.js \
 	$(DIR)/core/expr/code/lvalue.js \
 	$(DIR)/core/expr/code/renderexp.js \
-	$(DIR)/core/expr/taint/proxy.js \
 	$(DIR)/core/diagram/code/diagram.js \
 	$(DIR)/core/diagram/code/stencil.js \
-	$(DIR)/core/diagram/code/constraints.js 
-
+	$(DIR)/core/diagram/code/constraints.js \
+  $(DIR)/core/system/boot/meta_schema.js \
+  $(DIR)/core/schema/tools/equals.js \
+  $(DIR)/core/schema/tools/union.js \
+	
 
 RBSOURCES = \
 	core/system/boot/meta_schema.rb \
 	core/system/load/load.rb \
 	core/system/load/cache.rb \
 	core/system/utils/find_model.rb \
-	core/system/utils/paths.rb \
+	core/system/utils/schemapath.rb \
 	core/system/library/schema.rb \
 	core/schema/code/factory.rb \
 	core/schema/code/dynamic.rb \
@@ -46,40 +44,43 @@ RBSOURCES = \
 	core/schema/tools/equals.rb \
 	core/semantics/code/interpreter.rb \
 	core/grammar/render/layout.rb \
-	core/grammar/parse/sppf.rb \
-	core/grammar/parse/gss.rb \
+	core/grammar/render/render.rb \
 	core/expr/code/impl.rb \
 	core/expr/code/env.rb \
 	core/expr/code/freevar.rb \
 	core/expr/code/eval.rb \
 	core/expr/code/lvalue.rb \
 	core/expr/code/renderexp.rb \
-	core/expr/taint/proxy.rb \
 	core/diagram/code/diagram.rb \
 	core/diagram/code/stencil.rb \
 	core/diagram/code/constraints.rb 
 
-
-main: $(SOURCES)
+main: $(JSSOURCES)
 
 check: 
 	ruby bin/check_requires.rb `find core | grep ".rb"`
 
-.SECONDARY:
+testjs:
+	node $(JSSOURCES)
+   
+#.SECONDARY:
 
+js: $(JSSOURCES)
+ 
+#	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
+#		org.rascalmpl.shell.RascalShell \
+#		core/lang/syntax/Main.rsc \
+#		-- $(RBSOURCES)
 
-all2js: 
-	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
-		org.rascalmpl.shell.RascalShell \
-		core/lang/syntax/Main.rsc \
-		-- $(RBSOURCES)
-
-$(DIR)/%.js: %.rb 
-	echo "GENERATING " $@
+$(DIR)/%.js: %.rb core/lang/models/code_js.grammar core/lang/code/convert.rb
 	mkdir -p `dirname $@`
-	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
-		org.rascalmpl.shell.RascalShell \
-		core/lang/syntax/Main.rsc \
-		$< > $@
+	ruby -I. core/lang/test/convert_test.rb $< $@ code_js
 
+#	java -cp ../bin:../lib/rascal-shell-unstable.jar -Xmx1G -Xss32m \
+# 	org.rascalmpl.shell.RascalShell \
+# 	core/lang/syntax/Main.rsc \
+# 	$< > $@
+
+clean:
+	rm  $(JSSOURCES)
 
