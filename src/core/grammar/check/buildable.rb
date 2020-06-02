@@ -18,7 +18,7 @@ class Buildable
   def check_fields(fs, klass, create)
     fields = klass.fields
     fs.each do |fn, tm|
-      #puts "Checking #{fn}: #{tm} against #{fields[fn]}"
+      puts "Checking #{fn}: #{tm} against #{fields[fn]}"
       if fields[fn].nil? then
         error("No field #{fn} in #{klass.name}")
       elsif tm.type.klass? && !Schema::subclass?(tm.type.klass, fields[fn].type) then

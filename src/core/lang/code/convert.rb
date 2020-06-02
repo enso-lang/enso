@@ -14,6 +14,7 @@ class Formals
     @normal = normal
     @block = block
     @rest = rest
+    @parens = false
   end
   def to_s
     "FORMALS #{normal} *#{rest} &#{block}" 
@@ -46,10 +47,10 @@ end
 
 class CodeBuilder < Ripper::SexpBuilder
    def initialize(src, filename=nil, lineno=nil)
-    super
+    super # No Parens or it doesn't work
     schema = Load::load('code.schema')
     @predefined = ["self", "nil", "true", "false", "raise", "puts"]
-    @f = Factory::new(schema)
+    @f = Factory::SchemaFactory.new(schema)
     reset_assigned_vars()
   end
   
@@ -57,13 +58,11 @@ class CodeBuilder < Ripper::SexpBuilder
     vars = @assignedVariables
     @assignedVariables = []
     vars
-  end  
+  end
 
-#  class << self
     def self.build(src, filename=nil)
       new(src, filename).parse
     end
- # end
 
   def on_alias(new_name, old_name)
     raise "Variable aliases not supported"
@@ -99,7 +98,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_args_new
-    Formals.new
+    Formals.new()
   end
 
   def on_array(args)
@@ -107,9 +106,11 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_assign(lvalue, rvalue)
-    if lvalue.Var?
-      if !lvalue.kind && !@predefined.include?(lvalue.name) && !@assignedVariables.include?(lvalue.name)
+    if lvalue.is_a?("Var")
+      c = lvalue.name[0]
+      if !lvalue.kind && 'a' <= c && c <= 'z' && !@predefined.include?(lvalue.name) && !@assignedVariables.include?(lvalue.name)
         @assignedVariables << lvalue.name
+        #puts "ASSIGNMENT TO #{lvalue.name}"
       end
     end
     @f.Assign(lvalue, get_seq(rvalue))
@@ -118,9 +119,9 @@ class CodeBuilder < Ripper::SexpBuilder
   def on_assoc_new(key, value)
     if key.is_a?(String) then 
       name = key 
-    elsif key.Lit? then 
+    elsif key.is_a?("Lit") then 
       name = key.value 
-    elsif key.Call? then 
+    elsif key.is_a?("Call") then 
       name = key.method 
     else 
       name = key.name
@@ -141,6 +142,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_begin(body)
+    #puts "on_begin: #{body}"
     body
   end
 
@@ -223,15 +225,16 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_class(const, superclass, body)
-    #puts "CLASS #{const} < #{superclass} : #{body}"
     parts = split_meta(body)
+    #puts "CLASS #{const} < #{superclass} : #{parts}"
     if superclass
-      if superclass.Var?
-        superclass = @f.Ref(nil, superclass.name)
-      elsif superclass.Ref?
+      if superclass.is_a?("Var")
+        superclass = make_ref(nil, superclass.name)
+      elsif superclass.is_a?("Ref")
         # do nothing
-      elsif superclass.Call?
-        superclass = @f.Ref(superclass.target.name, superclass.method)
+      elsif superclass.is_a?("Call")
+        superclass = make_ref(superclass.target.name, superclass.method)
+        #puts "SUPER CLASS CALL #{superclass.name}"
       else
         raise "Invalid superclass #{superclass}"
       end
@@ -243,7 +246,7 @@ class CodeBuilder < Ripper::SexpBuilder
   def split_meta(body)
     #puts "META #{body.flatten}"
     metas = body.flatten.partition {|x| is_meta(x)}
-    others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.Ref? || x.Require?) }
+    others = metas[1].partition {|x| !x.is_a?(ModuleDef) && (x.is_a?("Ref") || x.is_a?("Require")) }
     parts = [ fixup_defs(metas[0]), fixup_defs(others[1]), others[0] ]
     #puts "PARTS #{parts}"
     return parts
@@ -254,7 +257,7 @@ class CodeBuilder < Ripper::SexpBuilder
       return true
     elsif d.is_a?(ModuleDef)
       return false
-    elsif d.Assign?
+    elsif d.is_a?("Assign")
       #puts "DEF #{d.to.name} #{d.to.kind}"
       return d.to.kind == "@@"
     else
@@ -269,8 +272,9 @@ class CodeBuilder < Ripper::SexpBuilder
       elsif d.is_a?(ModuleDef)
         parts = split_meta(d.defs)
         @f.Mixin(d.name, *parts)
-      elsif d.Assign?            
-        @f.Binding(fixup_method_name(d.to.name), d.from)
+      elsif d.is_a?("Assign")
+        #puts "ASSIGN #{d} name=#{d.to.name}"   
+        @f.Binding(fixup_method_name(d.to.name), fixup_expr(d.from))
       else
         d
       end
@@ -284,15 +288,24 @@ class CodeBuilder < Ripper::SexpBuilder
   def on_command(name, args)
     if name == "require"
       path = args.normal[0].value
+      # get the actual module name from the last component
       mod = path.split("/")[-1]
       mod = mod.split("_").map(&:capitalize).join
       #puts "REQUIRE #{mod} #{path}"
+      #if path[0] != "." && path[0] != "/"
+      #  path = "./" + path
+      #end
+      if !path.end_with?(".js")
+        path = path + ".js"
+      end
       @f.Require(mod, path)
     elsif name == "include"
       path = args.normal[0]
-      if path.Var?
-        @f.Ref(nil, path.name)
+      if path.is_a?("Var")
+        #puts "VAR PATH #{path} #{args}"
+        make_ref(nil, path.name)
       else
+        #puts "UNKNOWN PATH #{path}  #{args}"
         path
       end
     elsif name == "attr_reader" || name == "attr_writer" || name == "attr_accessor"
@@ -301,6 +314,7 @@ class CodeBuilder < Ripper::SexpBuilder
         @f.Attribute(var.value, name)
       end
     else
+        #puts "UNKNOWN COMMAND #{path}"
       make_call_formals(nil, name, args)
     end
   end
@@ -314,13 +328,19 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_const_path_field(namespace, const)
-    @f.Ref(namespace, const)
+    make_ref(namespace, const)
   end
 
   def on_const_path_ref(namespace, const)
-    @f.Ref(namespace.name, const)
+    make_ref(namespace.name, const)
   end
 
+	def make_ref(target, name)
+		ref = @f.Ref(target, name)
+    #puts("MAKE REF (#{target}, #{name}) #{ref}")
+    return ref
+  end
+  
   def on_const_ref(const)
     const
   end
@@ -329,7 +349,7 @@ class CodeBuilder < Ripper::SexpBuilder
     token
   end
 
-  def on_params(required, optional, rest, more, block)
+  def on_params(required, optional, rest, more, keywords, keywords_rest=nil, block=nil)
   # params, optionals, rest, something, keywords, keywords_rest=nil, block=nil)
     formals = []
     if required
@@ -345,6 +365,18 @@ class CodeBuilder < Ripper::SexpBuilder
     if more
       put "ERRROR!!! 'more' args in on_params"
       more.each do |x|
+        formals << @f.Decl(x)
+      end
+    end
+    if keywords
+      put "ERRROR!!! 'keywords' args in on_params"
+      keywords.each do |x|
+        formals << @f.Decl(x)
+      end
+    end
+    if keywords_rest
+      put "ERRROR!!! 'keywords_rest' args in on_params"
+      keywords.each do |x|
         formals << @f.Decl(x)
       end
     end
@@ -370,18 +402,22 @@ class CodeBuilder < Ripper::SexpBuilder
     vars = reset_assigned_vars()
     #puts "DEF #{name} #{params} #{vars}"
     if ["==", "is_a?"].include?(name)
-      puts "ERROR: can't redefine #{name}"
+      #puts "ERROR: can't redefine #{name}"
     else
       name = fixup_method_name(name)
-      @f.Binding(name, make_simple_fun(params, body, vars.map {|v| @f.Decl(v) }))
+      fun = make_simple_fun(params, body, vars.map {|v| @f.Decl(v) })
+      #puts "MAIN BINDING #{name}(#{fun.locals})"
+      @f.Binding(name, fun)
     end
   end
 
   def make_simple_fun(params, body, vars=[])
     if params
+      #puts("VARS1 #{vars}")
       make_fun(params.normal, params.block, params.rest, vars, get_seq(body))
     else
-      make_fun([], nil, nil, [], get_seq(body))
+      #puts("VARS2 #{vars}")
+      make_fun([], nil, nil, vars, get_seq(body)) # SHOULD THIS INCLUDE is_a?("VARS")?
     end
   end
   
@@ -389,7 +425,7 @@ class CodeBuilder < Ripper::SexpBuilder
     @f.Fun(normal, block, rest, locals, body)
   end
   
-  def fixup_expr(o, env=[])
+  def fixup_expr(o, env=[], extra = false)
     return nil if !o
     case o.schema_class.name
     when "Module"
@@ -400,19 +436,22 @@ class CodeBuilder < Ripper::SexpBuilder
       
     when "Class", "Mixin"
       @selfVar = "self"
-      if o.schema_class.name == "Class"
-        @currentParent = o.parent
-      end
       o.defs.each { |d| fixup_expr(d, env) }
       o.meta.each { |d| fixup_expr(d, env) }
       
     when "Binding"
-      if o.value.Fun?
+      wasInConstructor = @inConstructor
+      extra = false
+      if o.value.is_a?("Fun")
         @currentMethod = o.name
+        wasInConstructor = @inConstructor
+        @inConstructor = (@currentMethod == "constructor")
         #puts "FIXUP_METHOD #{@currentMethod} #{@selfVar}"
+        extra = true
       end
-      o.value = fixup_expr(o.value, env)
-  
+      o.value = fixup_expr(o.value, env, extra)
+      @inConstructor = wasInConstructor
+			
     when "EBinOp"
       o.e1 = fixup_expr(o.e1, env)
       o.e2 = fixup_expr(o.e2, env)
@@ -428,14 +467,15 @@ class CodeBuilder < Ripper::SexpBuilder
       o.index = fixup_expr(o.index, env)
 
     when "Call"
-      if o.target
-        if o.target.Super?
-          o.method = @currentMethod
-        end
-      else
-        if @selfVar && !(o.method[0] >= 'A' && o.method[0] <= 'Z') && (o.method != "puts") && !env.include?(o.method)
+      if o.method == "super"
+	      if !@inConstructor && o.target == nil
+	        #puts "CALL #{o.target}.#{o.method}"
+	        o.method = @currentMethod
+	        o.target = @f.Super() 
+	      end
+        # nothing to do
+      elsif @selfVar && !o.target && !(o.method[0] >= 'A' && o.method[0] <= 'Z') && (o.method != "puts") && !env.include?(o.method)
           o.target = @f.Var(@selfVar)
-        end
       end
       raise "Cannot use 'length'.. use 'size' instead" if o.method == "length"
       o.target = fixup_expr(o.target, env)
@@ -443,8 +483,8 @@ class CodeBuilder < Ripper::SexpBuilder
       o.rest = fixup_expr(o.rest, env)
       o.block = fixup_expr(o.block, env)
 
-	  when "Prop"
-	    o.target = fixup_expr(o.target, env)
+    when "Prop"
+      o.target = fixup_expr(o.target, env)
 	    
     when "Fun"
       newvars = []
@@ -459,9 +499,28 @@ class CodeBuilder < Ripper::SexpBuilder
       o.block = fixup_var_name(o.block)
       o.rest = fixup_var_name(o.rest)
       o.locals.each{|decl| fixup_expr(decl, newEnv) }
-
       o.body = fixup_expr(o.body, newEnv)
-
+      if extra  # its a top-level method/constructor
+	      if !@inConstructor
+	        thisDecl = @f.Decl("self", @f.Var("this"))
+	        o.locals.insert(0, thisDecl) 
+	      else 
+	        # this is a total hack to get self to be DECLARED, in a construtor
+	        # and after the call to super
+	        thisAssign = @f.Assign(@f.Var("var self"), @f.Var("this"))
+	        if o.body.is_a?("Seq") && o.body.statements.size > 0
+	          offset = 0
+	          first = o.body.statements[0]
+	          if first.is_a?("Call") && first.method == "super"
+	            offset = 1
+	          end
+	          o.body.statements.insert(offset, thisAssign) if o.body.statements.size >= offset
+	        elsif !o.body.is_a?("Call") || o.body.method != "super"
+	          o.body = @f.Seq([thisAssign, o.body])
+	        end
+	      end
+     end
+      
     when "Decl"
       o.name = fixup_var_name(o.name)
       o.default = fixup_expr(o.default, env)
@@ -502,7 +561,10 @@ class CodeBuilder < Ripper::SexpBuilder
 
     when "Var"
       if o.name[0] == "$"
-        o = @f.Call(@f.Var("System"), o.name.slice(1,1000))
+        o = @f.Call(@f.Var("Enso.System"), o.name.slice(1,1000))
+      elsif @inConstructor
+        # constructors don't have this renamed to self
+        o.name = fixup_var_name(o.name)
       elsif @selfVar && !(o.name[0] >= 'A' && o.name[0] <= 'Z') && !o.kind && !env.include?(o.name) && !@predefined.include?(o.name)
         o = @f.Call(@f.Var(@selfVar), o.name)
       else
@@ -518,14 +580,22 @@ class CodeBuilder < Ripper::SexpBuilder
     else
       raise "Unknown expression type #{o.schema_class.name}"
     end 
-    o
+    o # this returns the object
   end      
   
-  @@jskeywords = ["catch", "continue", "debugger", "default", "delete", "finally", "function", "new", "in", "instanceof", "switch", "this", "throw", "try", "typeof", "var", "void", "with"]
+  ##############################################################
+  @@jskeywords = ["constructor", "catch", "continue", "debugger", "case", \
+     "default", "delete", "finally", "function", "in", "instanceof", "eval", \
+     "switch", "this", "throw", "try", "typeof", "void", "with", \
+     "slice", "split", "rindex","size" ]
+  @@jsmethods = [ "new" ] 
+  ##############################################################
 
   def fixup_var_name(name)
-    if @@jskeywords.include?(name)
+    if @@jskeywords.include?(name) || @@jsmethods.include?(name)
       name = "#{name}_V"
+    elsif ["TrueClass", "FalseClass", "File", "Integer", "Numeric"].include?(name)
+      name = "Enso.#{name}"
     end
     return name
   end
@@ -538,7 +608,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_defs(target, separator, name, params, body)
-    if !(target.Var? && target.name == "self")
+    if !(target.is_a?("Var") && target.name == "self")
       raise "only self meta-methods allowed"
     end
     MetaDef.new(make_def_binding(name, params, body))
@@ -561,7 +631,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_dyna_symbol(symbol)
-    puts "DYNA #{symbol}"
+    #puts "DYNA #{symbol}"
     symbol.to_dyna_symbol
   end
 
@@ -570,7 +640,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_END(statements)
-    raise "WHAT IS THIS??"
+    #raise "WHAT IS is_a?("THIS")?"
   end
 
   def on_ensure(statements)
@@ -579,7 +649,7 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_if(expression, statements, else_block)
     expression = get_seq(expression)
-    if expression.EBinOp? && expression.e1.Var? && expression.e1.name == "__FILE__"
+    if expression.is_a?("EBinOp") && expression.e1.is_a?("Var") && expression.e1.name == "__FILE__"
       @f.Binding("__main__", make_fun([], nil, nil, [], get_seq(statements)))
     else
       @f.If(expression, get_seq(statements), get_seq(else_block))
@@ -609,10 +679,14 @@ class CodeBuilder < Ripper::SexpBuilder
       @f.EBinOp("==", target, @f.Var("nil"))
     elsif method == "is_a_P"
       args = [target]+args
-      @f.Call(@f.Var("System"), "test_type", args, nil, nil)
+      @f.Call(@f.Var("Enso.System"), "test_type", args, nil, nil)
     elsif method.end_with?("_") && args == [] && rest.nil? && block.nil?
-      method = method.slice(0..-2)
+       # this is a special case for methods outside that should not be renamed
+      method = method.slice(0..-2) 
       @f.Prop(target, method)
+    elsif target && target.is_a?("Var") && target.name == "Proc" && method == "new"
+      #puts "PROC NEW!! #{target.schema_class} #{args} #{block}"
+      fixup_block(block)
     else
       @f.Call(target, method, args, nil, fixup_block(block))
     end
@@ -681,11 +755,15 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_method_add_block(call, block)
-    call.block = block; call
+    if call.nil?
+      block   # happens when Proc.new is called
+    else
+      call.block = block; call
+    end
   end
   
   def fixup_block(block)
-    if block && block.Lit?
+    if block && block.is_a?("Lit")
       make_fun([@f.Decl("x")], nil, nil, [], make_call(@f.Var("x"), block.value))
     else
       block
@@ -725,8 +803,8 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_opassign(lvalue, operator, rvalue)
-    if operator[-1] == "="
-      raise "LValue must be variable for assignment operator #{operator}: #{lvalue}" if !lvalue.Var?
+    if operator.end_with?("=")
+      raise "LValue must be variable for assignment operator #{operator}: #{lvalue}" if !lvalue.is_a?("Var")
       @f.Assign(lvalue, @f.EBinOp(operator.chop, lvalue, rvalue))
     else
       @f.Assign(lvalue, rvalue)
@@ -751,12 +829,12 @@ class CodeBuilder < Ripper::SexpBuilder
     else
       raise "Only one top-level module allowed"
     end
-    split1 = split[1].partition {|x| x.Require? }
+    split1 = split[1].partition {|x| x.is_a?("Require") }
     requires = split1[0]
     # Bindings capture the environment when a meta-variable, eg __FILE__ is 
     # used. In our context they only arise from "if __FILE__ ==" blocks
     # which we don't parse. Bindings can't go into Seq since it is not an Expr
-    remainder = split1[1].select{|x| not x.Binding? }
+    remainder = split1[1].select{|x| not x.is_a?("Binding") }
     if remainder.size > 0
       @selfVar = nil
       others = fixup_expr(@f.Seq(remainder))
@@ -822,7 +900,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_sclass(superclass, body)
-    puts "RUNNINg #{superclass} #{body}"
+    #puts "RUNNINg #{superclass} #{body}"
     Ruby::Singleton.new(superclass, body)
   end
 
@@ -836,16 +914,16 @@ class CodeBuilder < Ripper::SexpBuilder
 
   def on_string_add(base, content)
     #puts "STR #{base} #{content}"
-    if base == [] || base.Lit? && base.value == ""
-      content
-    elsif content.Lit? && content.value == ""
-      base
+    if base == [] || base.is_a?("Lit") && base.value == ""
+      get_seq(content)
+    elsif content.is_a?("Lit") && content.value == ""
+      get_seq(base)
     else
       # create the "str" call to handle string interpolation
-      if !base.Call? || base.method != "S"
-        base = make_call(nil, "S", [base])
+      if !base.is_a?("Call") || base.method != "Enso.S"
+        base = make_call(nil, "Enso.S", [get_seq(base)])
       end
-      base.args << content
+      base.args << get_seq(content)
       base
     end
   end
@@ -877,11 +955,12 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_super(args)
-    if !args || !args.parens && args.normal == [] && !args.rest && !args.block
-      raise "Super with no arguments not supported!"
-    else
-      make_call_formals(@f.Super, "UNKONWN", args)
+    if !args
+      args = Formals.new
+    elsif !args.parens && args.normal == [] && !args.rest && !args.block
+      raise "Super with no arguments not supported: #{args} #{args.methods} #{args.parens}"
     end
+    make_call_formals(nil, "super", args)
   end
 
   def on_symbol(token)
@@ -901,7 +980,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_tstring_content(token)
-#    puts "FOO [#{token}]"
+#    #puts "FOO [#{token}]"
 #    token = eval("\"#{token}\"")
     @f.Lit(token)
   end
@@ -967,13 +1046,17 @@ class CodeBuilder < Ripper::SexpBuilder
        name = "push"
     elsif name == "+"
        name = "add"
-    elsif last == "=" && name != "[]="
+    elsif @@jskeywords.include?(name)
+      name = "#{name}_M"
+    elsif name == "initialize"
+       name = "constructor"
+    elsif name.end_with?("=") && name != "[]="
        name = "set_#{name[0..-2]}"
-    elsif last == "!"
+    elsif name.end_with?("!")
        name = "#{name[0..-2]}_in_place" 
-    elsif last == "?"
+    elsif name.end_with?("?")
        name = "#{name[0..-2]}_P" 
-    elsif last == "$"
+    elsif name.end_with?("$")
        name = "#{name[0..-2]}" 
     end
     return name
@@ -1038,8 +1121,7 @@ class CodeBuilder < Ripper::SexpBuilder
   end
 
   def on_zsuper(*foo)
-    make_call(nil, "super")
+    raise "NOT SUPPORTED on_zsuper"
+   # make_call(@f.Super(), nil)
   end
-
 end
-

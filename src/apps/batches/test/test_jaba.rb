@@ -33,7 +33,7 @@ class JabaTest < Test::Unit::TestCase
   # test setup
   def setup
     @schema = Load::load("northwind.dbschema")
-    @qfact = Factory::new(Load::load("batch.schema"))
+    @qfact = Factory::SchemaFactory.new(Load::load("batch.schema"))
   end
 
   def test_query2batch
@@ -53,7 +53,7 @@ class JabaTest < Test::Unit::TestCase
     assert(query_test.toString() == query_jaba.toString())
 
     #2. assert that the results from evaluating query_test and query_jaba are equal
-    String cstr = "jdbc:mysql://localhost/Northwind?user=root&password="
+    String cstr = "jdbc:mysql://localhost/is_a?("Northwind")user=root&password="
     connection_j = Jaba::JDBC.new(Jaba::Schema.new(Northwind), cstr)
     connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.classes['Northwind']), cstr)
     result_j = connection_j.execute(query_jaba, Jaba::Forest.new())
@@ -80,7 +80,7 @@ class JabaTest < Test::Unit::TestCase
     query_test = Query2Batch.query2batch(q, @schema)
 
     #2. assert that the results from evaluating query_test and query_jaba are equal
-    String cstr = "jdbc:mysql://localhost/Northwind?user=root&password="
+    String cstr = "jdbc:mysql://localhost/is_a?("Northwind")user=root&password="
     connection_t = Jaba::JDBC.new(Schema_Enso.new(@schema.root_class), cstr)
     result_t = connection_t.execute(query_test, Jaba::Forest.new())
 

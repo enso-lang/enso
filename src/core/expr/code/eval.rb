@@ -1,7 +1,29 @@
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
+require 'enso'
 
 module Eval  
+
+  def self.make_default_const(factory, type)
+    case type
+    when 'int'
+      factory.EIntConst
+    when 'str'
+      factory.EStrConst
+    when 'bool'
+      factory.EBoolConst
+    when 'real'
+      factory.ERealConst
+    end
+  end  
+
+  def self.eval(obj, args={env:{}})
+    interp = EvalExprC.new
+    interp.dynamic_bind(args) do
+      interp.eval(obj)
+    end
+  end
+
   module EvalExpr
     include Interpreter::Dispatcher
 
@@ -14,29 +36,33 @@ module Eval
     end
 
     def eval_EBinOp(obj)
-      if obj.op == "&"
+      case obj.op
+      when "&"
         eval(obj.e1) && eval(obj.e2)
-      elsif obj.op == "|"
+      when  "|"
         eval(obj.e1) || eval(obj.e2)
-      elsif obj.op == "eql?"
-        eval(obj.e1) == eval(obj.e2)
-      elsif obj.op == "!="
+      when "eql?"
+        a = eval(obj.e1) 
+        b = eval(obj.e2)
+        #$stderr << "EQUAL? #{a}=#{b} is #{a == b}\n"
+        a == b
+      when "!="
         eval(obj.e1) != eval(obj.e2)
-      elsif obj.op == "+"
+      when "+"
         eval(obj.e1) + eval(obj.e2)
-      elsif obj.op == "*"
+      when "*"
         eval(obj.e1) * eval(obj.e2)
-      elsif obj.op == "-"
+      when "-"
         eval(obj.e1) - eval(obj.e2)
-      elsif obj.op == "/"
+      when "/"
         eval(obj.e1) / eval(obj.e2)
-      elsif obj.op == "<"
+      when "<"
         eval(obj.e1) < eval(obj.e2)
-      elsif obj.op == ">"
+      when ">"
         eval(obj.e1) > eval(obj.e2)
-      elsif obj.op == "<=" 
+      when "<=" 
         eval(obj.e1) <= eval(obj.e2)
-      elsif obj.op == ">=" 
+      when ">=" 
         eval(obj.e1) >= eval(obj.e2)
       else
         raise "Unknown operator (#{obj.op.to_s})"
@@ -109,13 +135,18 @@ module Eval
       elsif target.respond_to?(obj.fname)
         r = target.send(obj.fname)
         #puts "EFIELD #{target}.#{obj.fname} => #{r}"
+       # if obj.fname == "computed"
+       #   $stderr << "COMPUTED #{r == nil} #{r}\n"
+       # end
         r
-      elsif target.is_a?(Enumerable)
-        r = target.collect do |t|
-          t.send(obj.fname)
-        end
+#      elsif target.is_a?(Enso.Enumerable)
+#        r = target.collect do |t|
+#          t.send(obj.fname)
+#        end
         #puts "EFIELD* #{target}.#{obj.fname} => #{r}"
-        r
+ #       r
+      else
+        raise "Can't get #{obj.fname} of #{target}"
       end
     end
   end
@@ -136,29 +167,8 @@ module Eval
     end
   end
 
-  def self.make_default_const(factory, type)
-    case type
-    when 'int'
-      factory.EIntConst
-    when 'str'
-      factory.EStrConst
-    when 'bool'
-      factory.EBoolConst
-    when 'real'
-      factory.ERealConst
-    end
-  end  
-
-  class EvalExprC
+  class EvalExprC < Enso::EnsoBaseClass
     include EvalExpr
-    def initialize; end
-  end
-
-  def self.eval(obj, args={env:{}})
-    interp = EvalExprC.new
-    interp.dynamic_bind(args) do
-      interp.eval(obj)
-    end
   end
 
 end

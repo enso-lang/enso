@@ -80,7 +80,7 @@ class Table
   end
   
   def id_col
-    return '_id'
+    return 'identity'
   end
   
   def render(out = '')
@@ -190,7 +190,7 @@ class Schema2SQL
     return if this.computed
     tbl = eval(this.owner)
     if !this.many then
-      if this.type.Primitive? then
+      if this.type.is_a?("Primitive") then
         pt = eval(this.type)
         tbl.column(this.name, pt)
         tbl.default(this.name, pt.default)

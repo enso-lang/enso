@@ -1,4 +1,8 @@
+
+require 'enso'
+
 module Schema
+  
   def self.object_key(obj)
     obj[obj.schema_class.key.name]
   end
@@ -17,15 +21,22 @@ module Schema
       end
     end
   end
-  
+
   def self.subclass?(a, b)
+    res = subclassb(a, b)
+    res
+  end
+  
+  def self.subclassb(a, b)
+    an = a.is_a?(String) ? a : a.name
+    bn = b.is_a?(String) ? b : b.name
     if a.nil? || b.nil?
       false
-    elsif a.name == (b.is_a?(String) ? b : b.name)
+    elsif (an == bn)
       true
     else 
       a.supers.any? do |sup|
-        subclass?(sup, b)
+        subclassb(sup, b)
       end
     end
   end
@@ -50,7 +61,7 @@ module Schema
     else
       res = block.call(obj)
       obj.schema_class.fields.each do |f|
-        if f.traversal and !f.type.Primitive?
+        if f.traversal and !f.type.is_a?("Primitive")
           if !f.many
             map(obj[f.name], &block)
           else

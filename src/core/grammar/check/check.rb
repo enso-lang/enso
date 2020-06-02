@@ -93,11 +93,11 @@ class CheckGrammar
           if t == UNDEF || t == VOID then 
             # what does VOID mean here???
             errors << uncomputable_type_error(klass, f, t)
-          elsif sf.type.Primitive? && t.primitive? then
+          elsif sf.type.is_a?("Primitive") && t.primitive? then
             if sf.type != t.primitive then
               errors << incompatible_types_error(klass, f, sf.type, t.primitive)
             end
-          elsif sf.type.Primitive? then
+          elsif sf.type.is_a?("Primitive") then
             errors << primitive_class_mismatch(klass, f, sf.type, t.klass)
           elsif t.primitive? then
             errors << primitive_class_mismatch(klass, f, t.klass, sf.type)

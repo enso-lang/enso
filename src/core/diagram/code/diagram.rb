@@ -1,26 +1,28 @@
 require 'core/system/load/load'
 require 'core/diagram/code/constraints'
 require 'core/schema/code/factory'
+require 'enso'
 
 
 module Diagram
 
-  class DiagramFrame
+  class DiagramFrame < Enso::EnsoBaseClass
     def initialize(win, canvas, input, title = 'Diagram')
+      super()
       @win = win
       @canvas = canvas
       @input = input
       @context = @canvas.getContext('2d')
      # @win.title_ = title
       
-      @menu_id = 0
+      @menuidentity = 0
       @selection = nil
       @mouse_down = false
       @DIST = 4
       @text_margin = 4
       @defaultConnectorDist = 20
       @cs = Constraints::ConstraintSystem.new
-      @factory = Factory.new(Load::load('diagram.schema'))
+      @factory = Factory::SchemaFactory.new(Load::load('diagram.schema'))
       @select_color = @factory.Color(0, 255, 0)
 
       # Register an event listener to
@@ -107,7 +109,7 @@ module Diagram
         if !done
           select = find_in_ui(pnt) do |x, container|
             #find something contained in a graph, which is dragable
-            container && container.Container? && container.direction == 3 
+            container && container.is_a?("Container") && container.direction == 3 
             #puts "#{x} => #{val}"
           end
           #puts "FIND #{select}"
@@ -143,7 +145,7 @@ module Diagram
       
     def set_selected_part(select, pnt)
       if select
-        if select.Connector?
+        if select.is_a?("Connector")
           @selection = ConnectorSelection.new(self, select)
         else
           @selection = MoveShapeSelection.new(self, select, EnsoPoint.new(pnt.x, pnt.y))
@@ -158,7 +160,7 @@ module Diagram
     end
     
     def find1(part, container, pnt, &filter)
-      if part.Connector?
+      if part.is_a?("Connector")
         findConnector(part, container, pnt, &filter)
       else
         b = boundary_fixed(part)
@@ -166,11 +168,11 @@ module Diagram
           # puts "FIND #{part}: #{b.x} #{b.y} #{b.w} #{b.h}"
           if rect_contains(b, pnt)
             out = nil
-            if part.Container?
+            if part.is_a?("Container")
               out = part.items.find_first do |sub|
                 find1(sub, part, pnt, &filter)
               end
-            elsif part.Shape?
+            elsif part.is_a?("Shape")
               out = find1(part.content, part, pnt, &filter) if part.content
             end
             out = part if !out && filter.call(part, container)
@@ -271,13 +273,13 @@ module Diagram
       w = nil
       h = nil
       with_styles(part) do 
-        if part.Connector?
+        if part.is_a?("Connector")
           constrainConnector(part)
         else
           w = @cs.value(0)
           h = @cs.value(0)
           send(("constrain" + part.schema_class.name).to_sym, part, x, y, w, h)
-          @positions[part._id] = EnsoRect.new(x, y, w, h)
+          @positions.set(part.identity, EnsoRect.new(x, y, w, h))
         end
       end
       [w, h] if !w.nil?
@@ -336,14 +338,14 @@ module Diagram
     def constrainShape(part, x, y, width, height)
       case part.kind 
       when "box"
-        a = @cs.var("box1", 0)
-        b = @cs.var("box2", 0)
+        a = @cs.variable("box1", 0)
+        b = @cs.variable("box2", 0)
       when "oval"
-        a = @cs.var("pos1", 0)
-        b = @cs.var("pos2", 0)
+        a = @cs.variable("pos1", 0)
+        b = @cs.variable("pos2", 0)
       when "rounded"
-        a = @cs.var("rnd1", 20)
-        b = @cs.var("rnd2", 20)
+        a = @cs.variable("rnd1", 20)
+        b = @cs.variable("rnd2", 20)
       end
       margin = @context.lineWidth_ * 6
       a = a.add(margin)
@@ -377,7 +379,7 @@ module Diagram
         dynamic = ce.attach.dynamic_update
         x = to.x.add(to.w.mul(dynamic.x))
         y = to.y.add(to.h.mul(dynamic.y))
-        @positions[ce._id] = EnsoPoint.new(x, y)
+        @positions.set(ce.identity, EnsoPoint.new(x, y))
         constrainConnectorEnd(ce, x, y)
       end
     end
@@ -387,7 +389,7 @@ module Diagram
     end
     
     def boundary(shape)
-      @positions[shape._id]
+      @positions[shape.identity]
     end
 
     def boundary_fixed(shape)
@@ -396,7 +398,7 @@ module Diagram
     end
   
     def position(shape)
-      @positions[shape._id]
+      @positions[shape.identity]
     end
     
     def position_fixed(shape)
@@ -666,16 +668,16 @@ module Diagram
     def simpleSameSide(a, b, d)
       case d # side from
       when 0 # UP
-        z = System.min(a.y - @defaultConnectorDist, b.y - @defaultConnectorDist)
+        z = Enso::System.min(a.y - @defaultConnectorDist, b.y - @defaultConnectorDist)
         [EnsoPoint.new(a.x, z), EnsoPoint.new(b.x, z)]
       when 1 # RIGHT
-        z = System.max(a.x + @defaultConnectorDist, b.x + @defaultConnectorDist)
+        z = Enso::System.max(a.x + @defaultConnectorDist, b.x + @defaultConnectorDist)
         [EnsoPoint.new(z, a.y), EnsoPoint.new(z, b.y)]
       when 2 # DOWN
-        z = System.max(a.y + @defaultConnectorDist, b.y + @defaultConnectorDist)
+        z = Enso::System.max(a.y + @defaultConnectorDist, b.y + @defaultConnectorDist)
         [EnsoPoint.new(a.x, z), EnsoPoint.new(b.x, z)]
       when 3 # LEFT
-        z = System.min(a.x - @defaultConnectorDist, b.x - @defaultConnectorDist)
+        z = Enso::System.min(a.x - @defaultConnectorDist, b.x - @defaultConnectorDist)
         [EnsoPoint.new(z, a.y), EnsoPoint.new(z, b.y)]
       end  
     end
@@ -692,7 +694,7 @@ module Diagram
     end
   
     def average(m, n)
-      Integer((m + n) / 2)
+      Enso.Integer((m + n) / 2)
     end
   
     def sameObjectCorner(a, b, d)
@@ -749,16 +751,16 @@ module Diagram
         if part.styles.size > 0
           @context.save
           part.styles.each do |style|
-            if style.Pen?
+            if style.is_a?("Pen")
               if style.width
                 @context.lineWidth_ = style.width
               end
               if style.color
                 @context.strokeStyle_ = makeColor(style.color)
               end
-            elsif style.Font?
+            elsif style.is_a?("Font")
               @context.font_ = makeFont(style)
-            elsif style.Brush?
+            elsif style.is_a?("Brush")
               @context.fillStyle_ = makeColor(style.color)
             end
           end
@@ -783,7 +785,7 @@ module Diagram
       s = ""
       s = s + font.style + " " if !font.style.nil?
       s = s + font.weight + " " if !font.weight.nil?
-      s = s + "#{font.size}px"
+      s = s + "#{font.points}px"
       s = s + " " + font.family if !font.family.nil?
       s
     end  
@@ -791,6 +793,12 @@ module Diagram
   
   ############# selection #####
   class Selection
+    def initialize(diagram, part, down)
+      @diagram = diagram
+      @part = part
+      @down = down
+    end
+    
     def do_mouse_down(e)
     end
 
@@ -809,9 +817,7 @@ module Diagram
 	  
   class MoveShapeSelection < Selection
     def initialize(diagram, part, down)
-      @diagram = diagram
-      @part = part
-      @down = down
+      super(diagram, part, down)
       @move_base = @diagram.boundary_fixed(part)
     end
     
@@ -832,10 +838,10 @@ module Diagram
   
   class ConnectorSelection < Selection
     def initialize(diagram, conn)
-      @diagram = diagram
+      super(diagram, conn, true)
       @conn = conn
       @ce = nil
-    end
+	  end
       
     def do_paint()
       @diagram.context.save
@@ -894,8 +900,8 @@ module Diagram
     
     def normalize(n)
       n = n * Math.sqrt(2)
-      n = System.max(-1, n)
-      n = System.min(1, n)
+      n = Enso::System.max(-1, n)
+      n = Enso::System.min(1, n)
       n = (n + 1) / 2
       n
     end
@@ -911,7 +917,7 @@ module Diagram
   
   class PointSelection < Selection
     def initialize(diagram, ce, lastSelection)
-      @diagram = diagram
+      super(diagram, ce, true)
       @ce = ce
       @lastSelection = lastSelection
     end

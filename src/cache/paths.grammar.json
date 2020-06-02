@@ -1,0 +1,290 @@
+{
+  "filename": "paths.grammar",
+  "source": "core/grammar/test/paths.grammar",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "b627a536ebccf99c7c33aa9b223f02a4bad06e07",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
+    },
+    {
+      "filename": "grammar.schema.json",
+      "source": "core/system/boot/grammar.schema.json",
+      "date": "2020-05-09 19:08:14 -0500",
+      "checksum": "ab0a645505da69b94277f2522f07e5255353533e"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[Exp]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "Exp",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Eq",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "lhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Exp]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "=="
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "rhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Term]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[Term]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Term",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Add",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "lhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Term]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "+"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "rhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Factor]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "Min",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "lhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Term]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "-"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "rhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Factor]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[Factor]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Factor",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Mul",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "lhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Factor]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "*"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "rhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Prim]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "Div",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "lhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Factor]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "/"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "rhs",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Prim]"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
+                  "rule": "rules[Prim]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Prim",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Var",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "("
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Exp]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ")"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -8,7 +8,7 @@ expr = Load::load('expr1.expr')
 Print::Print.print(expr)
 
 interp = Interpreter(Debug.wrap(Fmap.traverse(Interpreter.do(:plus1) do |obj|
-  obj.val+=1 if obj.EIntConst?
+  obj.val+=1 if obj.is_a?("EIntConst")
 end)))
 interp.plus1(expr)
 

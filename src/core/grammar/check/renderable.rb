@@ -28,10 +28,10 @@ class Renderable
       #puts "Checking #{fld} against #{fs[fld.name]}"
       if fs[fld.name].nil? then
         error("Field #{fld.name} in #{klass.name} cannot be rendered")
-      elsif fld.type.Class? && fs[fld.name].type.primitive? && 
+      elsif fld.type.is_a?("Class") && fs[fld.name].type.primitive? && 
           !Schema::subclass?(fld.type, fs[fld.name].type.klass) then
         error("Type #{fld.type} not subtype of inferred #{fs[fld.name].type} in #{fld.name} of  #{klass.name}")
-      elsif fld.type.Primitive? && fs[fld.name].type.primitive? && 
+      elsif fld.type.is_a?("Primitive") && fs[fld.name].type.primitive? && 
           fld.type != fs[fld.name].type.primitive && 
           fs[fld.name].type.primitive.name != 'atom' then
         error("Type #{fld.type} not compatible to inferred #{fs[fld.name].type} of #{fld.name} in #{klass.name}")
@@ -91,7 +91,7 @@ class Renderable
     check_fields(klass, fs)
     ok = false
     klass.fields.each do |fld|
-      if fld.type.Class? then
+      if fld.type.is_a?("Class") then
         ok_field = check(this.arg, fld.type, fld, klass)
         if !ok_field then
           #error("Can't render #{fld.name} of class #{klass.name}")

@@ -4,7 +4,7 @@ require 'core/system/library/schema'
 
 module SharingFactory
   def self.new(schema, shares)
-    SharingSchemaFactory.new(schema, shares)
+    SharingSchemaFactory::SchemaFactory.new(schema, shares)
   end
 
   class SharingSchemaFactory < Factory::SchemaFactory
@@ -51,7 +51,7 @@ if __FILE__ == $0 then
             gll.classes["Item"],
             gll.classes["GSS"]]
 
-  f = SharingFactory::new(gll, shares)
+  f = SharingFactory::SchemaFactory.new(gll, shares)
 
   p = f.Lit("keyword")
   l = f.Location("/", 0, 1, 2, 3, 4, 5)

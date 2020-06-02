@@ -25,7 +25,7 @@ class SchemaLTS
       @memo[this] = LTS.new
     end
     this.fields.each do |f|
-      if !f.computed && !f.type.Primitive? then
+      if !f.computed && !f.type.is_a?("Primitive") then
         @memo[this] += eval(f, this, nil) 
       end
     end

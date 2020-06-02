@@ -1,0 +1,179 @@
+{
+  "filename": "recursion.grammar",
+  "source": "core/grammar/test/recursion.grammar",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "38b9d0714244dbd464b7873a4a500f223937183a",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
+    },
+    {
+      "filename": "grammar.schema.json",
+      "source": "core/system/boot/grammar.schema.json",
+      "date": "2020-05-09 19:08:14 -0500",
+      "checksum": "ab0a645505da69b94277f2522f07e5255353533e"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[Prog]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "Prog",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Prog",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Call",
+                    "rule": "rules[Stats]"
+                  },
+                  {
+                    "class": "Call",
+                    "rule": "rules[Exps]"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Stats",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence"
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Field",
+                  "name=": "stats",
+                  "arg": {
+                    "class": "Call",
+                    "rule": "rules[Stat]"
+                  }
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Stats]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Stat",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "print"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Exps",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Field",
+                  "name=": "exps",
+                  "arg": {
+                    "class": "Call",
+                    "rule": "rules[Exp]"
+                  }
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Field",
+                  "name=": "exps",
+                  "arg": {
+                    "class": "Call",
+                    "rule": "rules[Exp]"
+                  }
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Exps]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Exp",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "x"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

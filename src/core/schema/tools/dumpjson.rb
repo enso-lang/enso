@@ -1,23 +1,24 @@
 
-require 'core/system/utils/paths'
+#require 'core/system/utils/schemapath'
 require 'core/system/library/schema'
 require 'core/system/boot/meta_schema'
 require 'json'
+require 'enso'
 
 module Dumpjson
 
-  def self.to_json(this, do_all = false)
-    if this.nil?
+  def self.to_json(json, do_all = false)
+    if json.nil?
       nil
     else
       e = {}
-      e["class"] = this.schema_class.name
-      #e["_"] = this._id
-      this.schema_class.fields.each do |f|
+      e["class"] = json.schema_class.name
+      #e["_"] = json.identity
+      json.schema_class.fields.each do |f|
         name = f.name
-        val = this[name]
+        val = json[name]
         if do_all || val
-          if f.type.Primitive? then
+          if f.type.is_a?("Primitive") then
             e["#{name}="] = val
           else 
             if f.many then
@@ -51,6 +52,7 @@ module Dumpjson
 
   def self.fixup_path(obj)
     path = obj._path.to_s
+    #puts "PATH #{path}"
     if path == "root"
       path = ""
     else
@@ -82,43 +84,43 @@ module Dumpjson
       @factory = factory
     end
     
-    def decode(this)
+    def decode(json)
       @fixups = []
-      res = from_json(this)
+      res = from_json(json)
       @fixups.each do |fix|
         fix.apply(res)
       end
       res
     end
   
-    def from_json(this)
-      if this.nil?
+    def from_json(json)
+      if json.nil?
         nil
       else
-        obj = @factory[this['class']]
+        obj = @factory[json['class']]
         obj.schema_class.fields.each do |f|
-          if f.type.Primitive?
-            val = this["#{f.name}="]
+          if f.type.is_a?("Primitive")
+            val = json["#{f.name}="]
             obj[f.name] = val if !val.nil?
           elsif !f.many
-            if this[f.name].nil?
+            if json[f.name].nil?
               obj[f.name] = nil
             else
               if f.traversal
-                obj[f.name] = from_json(this[f.name])
+                obj[f.name] = from_json(json[f.name])
               else
-                @fixups << Fixup.new(obj, f, this[f.name])
+                @fixups << Fixup.new(obj, f, json[f.name])
               end 
             end
           else #multi-valued objects 
             fname = f.type.key ? "#{f.name}#" : f.name
-            if !this[fname].nil?
+            if !json[fname].nil?
 	            if f.traversal
-	              this[fname].each do |o|
+	              json[fname].each do |o|
 	                obj[f.name] << from_json(o) 
 	              end 
 	            else
-	              @fixups << Fixup.new(obj, f, this[fname])
+	              @fixups << Fixup.new(obj, f, json[fname])
 	            end
 	          end
           end

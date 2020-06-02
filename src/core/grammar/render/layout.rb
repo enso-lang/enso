@@ -2,9 +2,9 @@ require 'core/expr/code/eval'
 require 'core/expr/code/env'
 require 'core/schema/tools/print'
 require 'core/schema/code/factory'
-require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
+require 'enso'
 
 module Layout
   
@@ -129,7 +129,7 @@ module Layout
           format[:lines] = 0
           format[:space] = false
           format[:indent] = 0
-          res = "*[*debug id='#{obj.schema_class.name}#{obj._id}'*]*" + combine(res, format) + "*[*/debug*]*"
+          res = "*[*debug id='#{obj.schema_class.name}#{obj.identity}'*]*" + combine(res, format) + "*[*/debug*]*"
         end
         @modelmap[res] = obj
         res
@@ -142,14 +142,14 @@ module Layout
       stream = @D[:stream]
       obj = stream.current
       # handle special case of [[ field:"text" ]] in a grammar 
-      if this.arg.Lit?
+      if this.arg.is_a?("Lit")
         if this.arg.value == obj[this.name]
           this.arg.value
         end
       else
         #puts "#{' '.repeat(@depth)}FIELD #{this.name}"
-        if this.name == "_id"
-          data = SingletonStream.new(obj._id)
+        if this.name == "identity"
+          data = SingletonStream.new(obj.identity)
         else
           fld = obj.schema_class.all_fields[this.name]
           raise "Unknown field #{obj.schema_class.name}.#{this.name}" if !fld
@@ -168,7 +168,7 @@ module Layout
           format[:lines] = 0
           format[:space] = false
           format[:indent] = 0
-          res = "*[*debug id='#{obj.schema_class.name}#{obj._id}#{this.name}'*]*" + combine(res, format) + "*[*/debug*]*"
+          res = "*[*debug id='#{obj.schema_class.name}#{obj.identity}#{this.name}'*]*" + combine(res, format) + "*[*/debug*]*"
         end
         res
       end
@@ -184,7 +184,7 @@ module Layout
         case this.kind
         when "str"
           if obj.is_a?(String)
-            output(obj.inspect)
+            output("\"" + obj + "\"")
           end
         when "sym"
           if obj.is_a?(String)
@@ -193,6 +193,8 @@ module Layout
             else
              output(obj)
             end
+          else
+            raise "Symbol is not a strign #{obj}"
           end
         when "int"
           if obj.is_a?(Numeric)
@@ -204,7 +206,7 @@ module Layout
           end
         when "atom"
           if obj.is_a?(String)
-            output(obj.inspect)
+            output("\"" + obj + "\"")
           else
             output(obj.to_s)
           end
@@ -234,7 +236,7 @@ module Layout
     def render_Code(this)
       stream = @D[:stream]
       obj = stream.current
-      if this.expr.EBinOp? and this.expr.op=="eql?"
+      if this.expr.is_a?("EBinOp") and this.expr.op=="eql?"
         rhs = Eval.eval(this.expr.e2, env: Env::ObjEnv.new(obj, @localEnv))
         if rhs.is_a?(Factory::MObject)
           lhs = Eval.eval(this.expr.e1, env: Env::ObjEnv.new(obj, @localEnv))
@@ -258,16 +260,17 @@ module Layout
           @localEnv = Env::HashEnv.new
          # @localEnv['_size'] = stream.size
           s = []
+          sep = nil
           i = 0
           ok = true
           while ok && stream.size > 0
             @localEnv['_index'] = i
             @localEnv['_first'] = (i == 0)
             @localEnv['_last'] = (stream.size == 1)
-            if i > 0 && this.sep
-              v = render(this.sep)
-              if v
-                s << v
+            if this.sep
+              sep = render(this.sep)
+              if sep
+                 # delay s << v
               else
                 ok = false
               end
@@ -276,9 +279,12 @@ module Layout
               pos = stream.size
               v = render(this.arg)
               if v
-                s << v
-                stream.next if stream.size == pos
-                i = i + 1
+                if v != true
+	                s << sep if sep && i > 0
+	                s << v
+                  i = i + 1
+	              end
+                  stream.next if stream.size == pos
               else
                 ok = false
               end
@@ -301,6 +307,15 @@ module Layout
     def render_Break(this)
       this
     end
+
+    def render_Hide(this)
+      #puts "HIDE #{this} #{this.arg}"
+      val = render(this.arg)
+      if val != nil
+        val = ""
+      end
+      val
+    end
   
     def output(v)
       v
@@ -308,7 +323,7 @@ module Layout
     
     def scan_alts(this, alts)
       this.alts.each do |pat|
-        if pat.Alt?
+        if pat.is_a?("Alt")
           scan_alts(pat, infos)
         else
           pred = PredicateAnalysis.new.recurse(pat)
@@ -323,7 +338,7 @@ module Layout
         # nothing
         ""
       elsif obj.nil?
-        raise "#{format}"
+        raise "GRAMMAR FAILED TO PRODUCE OUTPUT"
       elsif obj.is_a?(Array)
           res = ""
           obj.each {|x| res = res + combine(x, format)}
@@ -340,20 +355,25 @@ module Layout
         res = res + obj
         format[:space] = true
         res
-      elsif obj.NoSpace?
-        format[:space] = false
-        ""
-      elsif obj.Indent?
-        format[:indent] = format[:indent] + 2 * obj.indent
-        ""
-      elsif obj.Break?
-        format[:lines] = System.max(format[:lines], obj.lines)
-        ""
       else
-        raise "Unknown format #{obj}"
+        case obj.schema_class.name
+        when "NoSpace"
+          format[:space] = false
+          ""
+        when "Indent"
+          format[:indent] = format[:indent] + 2 * obj.indent
+          ""
+        when "Break"
+          format[:lines] = Enso::System.max(format[:lines], obj.lines)
+          ""
+        when "Hide"
+          #puts("FORMAT hide ")
+          ""
+        else
+          raise "Unknown format #{obj}"
+        end
       end
     end  
-
   end
   
   class PredicateAnalysis
@@ -367,7 +387,7 @@ module Layout
     end
   
     def Alt(this)
-      if this.alts.all? {|alt| alt.Field? && alt.arg.Lit? }
+      if this.alts.all? {|alt| alt.is_a?("Field") && alt.arg.is_a?("Lit") }
         fields = this.alts.map {|alt| alt.name }
         name = fields[0]
         #puts "ALT lits!! #{fields}"
@@ -404,10 +424,10 @@ module Layout
     def Field(this)
       name = this.name
       # handle special case of [[ field:"text" ]] in a grammar 
-      if this.arg.Lit?
+      if this.arg.is_a?("Lit")
         value = this.arg.value
         lambda{|obj, env| value == obj[name]}
-      elsif this.name != "_id"
+      elsif this.name != "identity"
         pred = recurse(this.arg)
         if pred
           lambda{|obj, env| pred.call(obj[name], env)}
@@ -433,7 +453,7 @@ module Layout
       else
         interp = Eval::EvalExprC.new
         lambda do |obj, env| 
-          interp.dynamic_bind(env: Env::ObjEnv.new(obj, env)) do
+          interp.dynamic_bind({env: Env::ObjEnv.new(obj, env)}) do
             interp.eval(this.expr)
           end
         end
@@ -453,6 +473,10 @@ module Layout
     end
     
     def Break(this)
+    end
+    
+    def Hide(this)
+      #puts("HIDE PRED #{this} : #{this.arg}")
     end
   end
   
@@ -505,7 +529,6 @@ module Layout
     end
 
     def print(grammar, obj, output, slash_keywords, add_tags)
-#      interp = RenderGrammarC.new
       @slash_keywords = slash_keywords
       @avoid_optimization = true
       @out = output

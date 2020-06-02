@@ -1,4 +1,4 @@
-import 'core/lang/code/convert.rb' 
+require 'core/lang/code/convert.rb' 
  
   name = ARGV[0]
   outname = ARGV[1]

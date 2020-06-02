@@ -1,6 +1,6 @@
 
-dojo.require("dojo.io.*");
-dojo.require("dojo.event.*");
+dojo.require("./dojo.io.*");
+dojo.require("./dojo.event.*");
 
 var bpuinews;
 if (typeof bpuinews == "undefined") {

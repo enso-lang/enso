@@ -128,7 +128,7 @@ class EvalOQL
       env.merge!(tuple)
       if eval(this.condition, env) then
         tuple = eval_nameds(this.projections, env)
-        tuple.each do |k, v|
+        tuple.each do |v, k|
           result[k] <<= v
         end
       end
@@ -141,7 +141,7 @@ class EvalOQL
     i = 0
     nameds.each do |named|
       key = named.name || (i += 1)
-      hsh[key] = eval(named.exp, env)
+      hsh.set(key, eval(named.exp, env))
     end
     return hsh
   end

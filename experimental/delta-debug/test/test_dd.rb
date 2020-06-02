@@ -27,7 +27,7 @@ puts "Failure-inducing change:"
 Print::Print.print(res)
 
 puts "\nComparing dd0 and dd2..."
-factory = Factory::new(Load::load('point.schema'))
+factory = Factory::SchemaFactory.new(Load::load('point.schema'))
 null = factory.Canvas
 res = DeltaDebug.new(proc).dd(null, Load::load('dd2.point'))
 puts "Failure-inducing change:"

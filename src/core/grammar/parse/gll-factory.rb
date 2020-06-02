@@ -50,10 +50,10 @@ module GLLFactory
     end
 
     class SPPF < EnsoBase
-      def Node?; false end
-      def Leaf?; false end
-      def Empty?; false end
-      def Pack?; false end
+      def is_a?("Node"); false end
+      def is_a?("Leaf"); false end
+      def is_a?("Empty"); false end
+      def is_a?("Pack"); false end
     end
 
     class Base < SPPF
@@ -77,10 +77,10 @@ module GLLFactory
         @kids = []
       end 
 
-      def Node?; true end
+      def is_a?("Node"); true end
 
       def to_s
-        t = type.Call? ? "call(#{type.rule.name})" : type.inspect
+        t = type.is_a?("Call") ? "call(#{type.rule.name})" : type.inspect
         "Node(#{starts}, #{ends}, #{t}: #{kids.join(', ')})"
       end
     end
@@ -92,7 +92,7 @@ module GLLFactory
         @value = value
       end
 
-      def Leaf?; true end
+      def is_a?("Leaf"); true end
 
       def to_s
         "Leaf(#{starts}, #{ends}, #{type}, '#{value}')"
@@ -100,7 +100,7 @@ module GLLFactory
     end
 
     class Empty < Base
-      def Empty?; true end
+      def is_a?("Empty"); true end
       def to_s
         "()"
       end
@@ -121,7 +121,7 @@ module GLLFactory
         [left,right].compact
       end
 
-      def Pack?; true end
+      def is_a?("Pack"); true end
 
       def to_s
         "pack(#{type}, #{pivot})"

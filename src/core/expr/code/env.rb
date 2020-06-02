@@ -5,6 +5,8 @@
 #@parent is never written to, even when a variable is already defined there
 #=end
 
+require 'enso'
+
 module Env
   module BaseEnv
     def set!(key, &block)
@@ -40,6 +42,7 @@ module Env
   class HashEnv
     include BaseEnv
     def initialize(hash={}, parent=nil)
+      super()
       @hash=hash
       @parent=parent
     end
@@ -85,6 +88,7 @@ module Env
     attr_reader :obj
 
     def initialize(obj, parent = nil)
+      super()
       @obj = obj
       @parent = parent
     end
@@ -136,6 +140,7 @@ module Env
     include BaseEnv
     
     def initialize(label, parent = nil, &block)
+      super()
       @label = label
       @block = block
       @parent = parent

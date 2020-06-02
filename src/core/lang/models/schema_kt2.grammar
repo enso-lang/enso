@@ -1,0 +1,68 @@
+import expr_kt.grammar
+
+start S  
+
+S ::= [Schema] "package" classes:FirstName / 
+                "import schema.*" /                 
+               classes:C* @/
+FirstName ::= [Class] Name
+Name ::= {name=="val"} "value" 
+       | {name=="var"} "varx" 
+       | {name=="fun"} "function" 
+       | {name=="class"} "cls" 
+       | {name=="in"} "ins"
+       | {name=="out"} "outs"
+       | name:sym 
+C ::= [Class] "open class" Name."Imp" ":" Name (."," supers:ClassName+ @(.","))? "{" />
+      Const? 
+      defined_fields:F* @/
+      </ "}"
+ClassName ::= [Class] Name."Imp"
+      
+Const ::= "constructor(" /> ConstArgs /<")" SuperCall? CBodyInits? /
+ConstArgs ::= fields:CInitArgs* @(.","/)
+
+SuperCall ::= ": super(". supers:SUP+ .")"
+SUP ::= [Class] fields:SupPass* @(.",")
+SupPass ::= [Field] FN {(not many) and (computed==nil)} | 
+
+CInitArgs ::= [Field] {not many} Name ":" type:TN Opt? CArg? | 
+CArg ::= "=" FTInit
+FTInit ::= type:([Class] "null") {optional}
+     | type:([Primitive] ( "0" {name=="int"}
+                   | "false" {name=="bool"}
+                   | "0.0F" {name=="real"} ))
+CBodyInits ::= "{" /> defined_fields:CBodyInit+ @/  /< "}"
+CBodyInit ::= [Field] "this.". FN "=" FN {(not many) and (computed==nil)} | 
+
+FN ::= [Field] Name
+F ::= [Field] F1
+F1 ::= Computed | Many | Single |
+
+//Override ::= "override" {((owner.supers).flat_map() {|s| s.all_fields }).find(name)} 
+
+Computed ::= "override val" Name ":" Comp "by lazy {" />
+     computed:Expr /<
+    "}"
+Comp ::= "List". P {many} | type:TN Opt?
+P ::= ."<". type:TN .">"
+Many     ::= "override val" {many} Name "=" ManyInv
+ManyInv ::= ({inverse!=nil} MCons MConsArgs) | "ArrayList" P "()"
+MCons ::=  "ManyMany" {inverse.many} | "ManyOne"
+MConsArgs ::= ."(this, ". type:TN ."::". (inverse:FN)? .")"
+
+Single ::=  "override var" Name ":" type:TN Opt? Delagate?
+
+Opt ::= ."?" {optional}
+Delagate ::= {type.schema_class.name=="Class" and inverse != nil} "by" D1 DelArgs
+DelArgs ::= ."(". type:TN ."::". (inverse:FN)? .")"
+D1 ::=  "OneMany" {inverse.many} | "OneOne"
+
+TN ::= [Class] Name
+     | [Primitive] ("String" {name=="str"}
+                   | "Int" {name=="int"}
+                   | "Boolean" {name=="bool"}
+                   | "Float" {name=="real"}
+                   | "DateTime" {name=="date"}
+                   | "UNKNOWN" )
+

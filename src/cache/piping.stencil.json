@@ -1,0 +1,407 @@
+{
+  "filename": "piping.stencil",
+  "source": "demo/Piping/models/piping.stencil",
+  "date": "2020-04-27 10:59:13 -0500",
+  "checksum": "7980d688b8a52b4e544564edefeb123370b9575f",
+  "depends": [
+    {
+      "filename": "stencil.grammar",
+      "source": "core/diagram/models/stencil.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "5ab89ee595b355af923d1f729b8ca4093a4b29e9"
+    },
+    {
+      "filename": "stencil.schema",
+      "source": "core/diagram/models/stencil.schema",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "4e64a41eade5e1f56c5a83db8a44a98aa709031d"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "impl.schema",
+      "source": "core/expr/models/impl.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "581ca41a91b5f51b6bd12cd19966e9b2474fb4b5"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    }
+  ],
+  "model": {
+    "class": "Stencil",
+    "root=": "system",
+    "body": {
+      "class": "Container",
+      "props": [
+        {
+          "class": "Assign",
+          "loc": {
+            "class": "EField",
+            "e": {
+              "class": "EVar",
+              "name=": "font"
+            },
+            "fname=": "size"
+          },
+          "exp": {
+            "class": "EIntConst",
+            "val=": 12
+          }
+        },
+        {
+          "class": "Assign",
+          "loc": {
+            "class": "EField",
+            "e": {
+              "class": "EVar",
+              "name=": "fill"
+            },
+            "fname=": "color"
+          },
+          "exp": {
+            "class": "Color",
+            "r": {
+              "class": "EIntConst",
+              "val=": 255
+            },
+            "g": {
+              "class": "EIntConst",
+              "val=": 255
+            },
+            "b": {
+              "class": "EIntConst",
+              "val=": 255
+            }
+          }
+        }
+      ],
+      "direction=": 3,
+      "items": [
+        {
+          "class": "EBlock",
+          "body": [
+            {
+              "class": "EFor",
+              "label=": "Element",
+              "var=": "elem",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "system"
+                },
+                "fname=": "elements"
+              },
+              "body": {
+                "class": "Label",
+                "label": {
+                  "class": "EVar",
+                  "name=": "elem"
+                },
+                "body": {
+                  "class": "EBlock",
+                  "body": [
+                    {
+                      "class": "Shape",
+                      "props": [
+                        {
+                          "class": "Assign",
+                          "loc": {
+                            "class": "EField",
+                            "e": {
+                              "class": "EVar",
+                              "name=": "line"
+                            },
+                            "fname=": "width"
+                          },
+                          "exp": {
+                            "class": "EIntConst",
+                            "val=": 1
+                          }
+                        }
+                      ],
+                      "kind=": "oval",
+                      "content": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Text",
+                            "string": {
+                              "class": "EField",
+                              "e": {
+                                "class": "EVar",
+                                "name=": "elem"
+                              },
+                              "fname=": "name"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "label=": "Input",
+              "var=": "elem",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "system"
+                },
+                "fname=": "elements"
+              },
+              "body": {
+                "class": "EIf",
+                "cond": {
+                  "class": "EBinOp",
+                  "op=": "&",
+                  "e1": {
+                    "class": "InstanceOf",
+                    "base": {
+                      "class": "EVar",
+                      "name=": "elem"
+                    },
+                    "class_name=": "InputElement"
+                  },
+                  "e2": {
+                    "class": "EUnOp",
+                    "op=": "!",
+                    "e": {
+                      "class": "InstanceOf",
+                      "base": {
+                        "class": "EVar",
+                        "name=": "elem"
+                      },
+                      "class_name=": "Joint"
+                    }
+                  }
+                },
+                "body": {
+                  "class": "Connector",
+                  "ends": [
+                    {
+                      "class": "ConnectorEnd",
+                      "arrow=": "<",
+                      "part": {
+                        "class": "EVar",
+                        "name=": "elem"
+                      }
+                    },
+                    {
+                      "class": "ConnectorEnd",
+                      "part": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "elem"
+                          },
+                          "fname=": "input"
+                        },
+                        "fname=": "input"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "var=": "elem",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "system"
+                },
+                "fname=": "elements"
+              },
+              "body": {
+                "class": "EIf",
+                "cond": {
+                  "class": "InstanceOf",
+                  "base": {
+                    "class": "EVar",
+                    "name=": "elem"
+                  },
+                  "class_name=": "Joint"
+                },
+                "body": {
+                  "class": "EFor",
+                  "label=": "Connection",
+                  "var=": "pipe",
+                  "list": {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "elem"
+                    },
+                    "fname=": "inputs"
+                  },
+                  "body": {
+                    "class": "Connector",
+                    "ends": [
+                      {
+                        "class": "ConnectorEnd",
+                        "arrow=": "<",
+                        "part": {
+                          "class": "EVar",
+                          "name=": "elem"
+                        }
+                      },
+                      {
+                        "class": "ConnectorEnd",
+                        "part": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "pipe"
+                          },
+                          "fname=": "input"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "label=": "Sensor",
+              "var=": "sensor",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "system"
+                },
+                "fname=": "sensors"
+              },
+              "body": {
+                "class": "Label",
+                "label": {
+                  "class": "EVar",
+                  "name=": "sensor"
+                },
+                "body": {
+                  "class": "EBlock",
+                  "body": [
+                    {
+                      "class": "Shape",
+                      "kind=": "box",
+                      "content": {
+                        "class": "EBlock",
+                        "body": [
+                          {
+                            "class": "Container",
+                            "direction=": 1,
+                            "items": [
+                              {
+                                "class": "EBlock",
+                                "body": [
+                                  {
+                                    "class": "Text",
+                                    "string": {
+                                      "class": "EField",
+                                      "e": {
+                                        "class": "EVar",
+                                        "name=": "sensor"
+                                      },
+                                      "fname=": "name"
+                                    }
+                                  },
+                                  {
+                                    "class": "Text",
+                                    "string": {
+                                      "class": "EField",
+                                      "e": {
+                                        "class": "EVar",
+                                        "name=": "sensor"
+                                      },
+                                      "fname=": "kind"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "class": "EFor",
+              "label=": "Sensor",
+              "var=": "sensor",
+              "list": {
+                "class": "EField",
+                "e": {
+                  "class": "EVar",
+                  "name=": "system"
+                },
+                "fname=": "sensors"
+              },
+              "body": {
+                "class": "Connector",
+                "ends": [
+                  {
+                    "class": "ConnectorEnd",
+                    "part": {
+                      "class": "EVar",
+                      "name=": "sensor"
+                    }
+                  },
+                  {
+                    "class": "ConnectorEnd",
+                    "part": {
+                      "class": "EField",
+                      "e": {
+                        "class": "EVar",
+                        "name=": "sensor"
+                      },
+                      "fname=": "attach"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

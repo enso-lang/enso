@@ -38,7 +38,7 @@ end
 def apply_to_fs(root, base, ref, delta)
   changetype = DeltaTransform.getChangeType(delta)
   if changetype == DeltaTransform.insert
-    deleteFile(base) if fileExists?(base) and DeltaTransform.getObjectName(delta)=="Dir" 
+    deleteFile(base) if fileis_a?("Exists")(base) and DeltaTransform.getObjectName(delta)=="Dir" 
     copyFile(ref, base)
   elsif changetype == DeltaTransform.delete
     deleteFile(base)
@@ -83,7 +83,7 @@ def deleteDir(path)
   FileUtils.rm_rf(path)
 end
 
-def fileExists?(path)
+def fileis_a?("Exists")(path)
   File.exists?(path)
 end
 

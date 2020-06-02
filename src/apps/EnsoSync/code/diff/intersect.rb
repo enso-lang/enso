@@ -25,7 +25,7 @@ class Intersect
     res = []
 
     # if either is not an modify then no need to recurse
-    if !DeltaTransform.isModifyChange?(d1) or !DeltaTransform.isModifyChange?(d2)
+    if !DeltaTransform.isis_a?("ModifyChange")(d1) or !DeltaTransform.isis_a?("ModifyChange")(d2)
       return [[[d1],[d2]]]
     end 
 
@@ -35,7 +35,7 @@ class Intersect
       next if f1.nil? or f2.nil?
 
       if not f.many
-        if DeltaTransform.isPrimitive?(f1)	#note that f.type is always non-primitive!
+        if DeltaTransform.isis_a?("Primitive")(f1)	#note that f.type is always non-primitive!
           res << [[f1], [f2]]
         else 
           res << intersect(f1, f2)
@@ -48,12 +48,12 @@ class Intersect
         m1.keys.each do |k|
           next if not m2.has_key?(k)
 
-          d1ins = m1[k].select{|x| DeltaTransform.isInsertChange?(x)}
-          d2ins = m2[k].select{|x| DeltaTransform.isInsertChange?(x)}
-          d1del = m1[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
-          d2del = m2[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
-          d1mod = m1[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
-          d2mod = m2[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
+          d1ins = m1[k].select{|x| DeltaTransform.isis_a?("InsertChange")(x)}
+          d2ins = m2[k].select{|x| DeltaTransform.isis_a?("InsertChange")(x)}
+          d1del = m1[k].find_first {|x| DeltaTransform.isis_a?("DeleteChange")(x)}
+          d2del = m2[k].find_first {|x| DeltaTransform.isis_a?("DeleteChange")(x)}
+          d1mod = m1[k].find_first {|x| DeltaTransform.isis_a?("ModifyChange")(x)}
+          d2mod = m2[k].find_first {|x| DeltaTransform.isis_a?("ModifyChange")(x)}
 
           if !d1mod.nil? and !d2mod.nil?
             res.merge!(intersect(d1mod, d2mod))
@@ -96,9 +96,9 @@ class Intersect
   def self.replace_deltas(d1, deltamap) 
     return nil if d1.nil?
     return deltamap[d1] if deltamap.has_key? d1
-    return d1 unless DeltaTransform.isModifyChange?(d1)
+    return d1 unless DeltaTransform.isis_a?("ModifyChange")(d1)
     d1.schema_class.all_fields.each do |f|
-      next if f.type.Primitive?
+      next if f.type.is_a?("Primitive")
       next if d1[f.name].nil?
       if not f.many
         d1[f.name] = replace_deltas(d1[f.name], deltamap) 

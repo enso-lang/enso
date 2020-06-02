@@ -19,7 +19,7 @@ class FoldModel
 
   def update_fields(obj, trg, fields)
     fields.each do |f|
-      if f.type.Primitive? then
+      if f.type.is_a?("Primitive") then
         update_prim(obj, trg, f)
       else
         update_ref(obj, trg, f)

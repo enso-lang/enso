@@ -19,6 +19,9 @@ end
 
 
 class CyclicCollectShy < MemoBase
+  def initialize
+    super()
+  end
   def self.run(obj)
     coll = self.new
     accu = []

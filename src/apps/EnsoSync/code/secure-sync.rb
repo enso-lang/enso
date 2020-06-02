@@ -26,15 +26,15 @@ end
 
 def collate_diffs(d, root, path)
   return {} if d.nil?
-  if DeltaTransform.isInsertChange?(d) or (!d.D_Dir? and DeltaTransform.isModifyChange?(d))
-    root.empty? ? "" : contents = d.D_Dir? ? "" : File.open("#{root}/#{path}", "rb").read
-    res = {path=>['+', d.D_Dir? ? 'D' : 'F', contents]}
-  elsif DeltaTransform.isDeleteChange?(d)
-    res = {path=>['-', d.D_Dir? ? 'D' : 'F', ""]}
+  if DeltaTransform.isis_a?("InsertChange")(d) or (!d.is_a?("D_Dir") and DeltaTransform.isis_a?("ModifyChange")(d))
+    root.empty? ? "" : contents = d.is_a?("D_Dir") ? "" : File.open("#{root}/#{path}", "rb").read
+    res = {path=>['+', d.is_a?("D_Dir") ? 'D' : 'F', contents]}
+  elsif DeltaTransform.isis_a?("DeleteChange")(d)
+    res = {path=>['-', d.is_a?("D_Dir") ? 'D' : 'F', ""]}
   else
     res = {}
   end
-  if d.D_Dir?
+  if d.is_a?("D_Dir")
     d.nodes.each do |n|
       res.merge!(collate_diffs(n, root, path+'/'+n.pos))
     end

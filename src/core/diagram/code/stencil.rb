@@ -8,11 +8,12 @@ require 'core/diagram/code/diagram'
 require 'core/schema/tools/print'
 require 'core/system/load/load'
 require 'core/grammar/render/layout'
-require 'core/system/library/schema'
+#require 'core/system/library/schema'
 require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/renderexp'
+require 'enso'
 
 module Stencil
 	
@@ -31,7 +32,7 @@ module Stencil
 	  attr_writer :stencil
 	  
 	  def path=(path)
-	    puts "Opening #{path}"
+	    #puts "Opening #{path}"
 	    ext = path.substr(path.lastIndexOf('.')+1)
 	    raise "File has no extension" if ext.size < 2
 	    @path = path
@@ -49,10 +50,10 @@ module Stencil
 	    build_diagram
 
 	    if data.factory.file_path[0]
-	      pos = "#{data.factory.file_path[0]}-positions"
-	      #puts "FINDING #{pos}"
+	      rel = "#{data.factory.file_path[0]}-positions"
+	      pos = File.absolute_path(rel)
 	      if File.exists?(pos)
-	        position_map = System.readJSON(pos)
+	        position_map = Enso::System.readJSON(pos)
 				  set_positions(position_map)
 			    if !position_map['*WINDOW*'].nil?
 			      size = position_map['*WINDOW*']
@@ -67,7 +68,7 @@ module Stencil
 	    @graphShapes.each do |tag, shape|
         pnt = position_map[tag]
         if pnt
-		      if shape.Connector?
+		      if shape.is_a?("Connector")
 			      at1 = shape.ends[0].attach
 			      at2 = shape.ends[1].attach
 		        at1.x = pnt[0].x_
@@ -75,7 +76,7 @@ module Stencil
 		        at2.x = pnt[1].x_
 		        at2.y = pnt[1].y_
 					else
-			      pos = @positions[shape._id]  # using Diagram private member
+			      pos = @positions[shape.identity]  # using Diagram private member
 			      #puts "   Has POS #{pos} #{pnt}"
 			      if pos
 			        pos.x.value = pnt.x_
@@ -87,11 +88,14 @@ module Stencil
 	  end
 
 	  def build_diagram
-	    puts "REBUILDING"
+	    #puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 		
-	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
+	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), \
+	           pen: @factory.Pen(1, "solid", black), \
+	           brush: @factory.Brush(black), \
+	           nil: nil}
 	    env[@stencil.root] = @data
 	
 	    @shapeToAddress = {}  # used for text editing
@@ -107,7 +111,8 @@ module Stencil
 #		end
 
 		def do_open(file)
-	    self.path = file.split('/')[-1]
+		  parts = file.split('/')
+	    self.path = parts[parts.size() - 1]
 		end
 	  
 	  def do_save
@@ -117,22 +122,22 @@ module Stencil
 	      Layout::DisplayFormat.print(grammar, @data, output, false) #false => dont slash_kwywords
 	    end
 	
-	    System.writeJSON("#{pos}-positions", capture_positions())
+	    Enso::System.writeJSON("#{pos}-positions", capture_positions())
 	  end
 	  
 	  def capture_positions
 	    # save the position_map
-	    position_map = System.JSHASH()
+	    position_map = Enso::System.JSHASH()
 	    position_map["*VERSION*"] = 2
 	
 	    # position_map['*WINDOW*'] = {x: @win.width_, y: @win.height_}
 	
 	    @graphShapes.each do |tag, shape|
-	      if shape.Connector?
+	      if shape.is_a?("Connector")
 		      at1 = shape.ends[0].attach
 		      at2 = shape.ends[1].attach
-		      h1 = System.JSHASH()
-		      h2 = System.JSHASH()
+		      h1 = Enso::System.JSHASH()
+		      h2 = Enso::System.JSHASH()
 		      h1.x_ = at1.x
 		      h1.y_ = at1.y
 		      h2.x_ = at2.x
@@ -140,7 +145,7 @@ module Stencil
 		      position_map[tag] = [ h1, h2 ]
 		    else
 		      pos = position_fixed(shape)
-		      hash = System.JSHASH()
+		      hash = Enso::System.JSHASH()
 		      hash.x_ = pos.x
 		      hash.y_ = pos.y
 		      position_map[tag] = hash
@@ -167,10 +172,10 @@ module Stencil
 	  end
 		
 	  def edit_address(address, shape)
-	    if address.type.Primitive?
+	    if address.type.is_a?("Primitive")
 				@selection = TextEditSelection.new(self, shape, address)
 		  else
-		    actions = System.JSHASH()
+		    actions = Enso::System.JSHASH()
 		    find_all_objects @data, address.index.type do |obj|
 	        name = ObjectKey(obj)
 	    		action = Proc.new { |e| 
@@ -180,9 +185,9 @@ module Stencil
 	    	  actions[name] = action
 	    	  false
 		    end
-		    if actions != System.JSHASH()
-		      puts "MENU #{actions}"
-					System.popupMenu(actions)
+		    if actions != Enso::System.JSHASH()
+		      #puts "MENU #{actions}"
+					Enso::System.popupMenu(actions)
 			  end
 			end
 	  end
@@ -190,13 +195,13 @@ module Stencil
 	  def on_right_down(pnt)
 	    actions = []
 	    find_in_ui(pnt) do |part, container|
-	      puts "ITEM #{part._id}  #{@actions[part._id]}"
-	      actions << @actions[part._id] if @actions[part._id]
+	      #puts "ITEM #{part.identity}  #{@actions[part.identity]}"
+	      actions << @actions[part.identity] if @actions[part.identity]
 			  false
 	    end
-	    puts "ACTIONS #{actions}"
+	    #puts "ACTIONS #{actions}"
 #	    if actions._length > 0
-				System.popupMenu(actions)				
+				Enso::System.popupMenu(actions)				
 #	    end
 	  end
 	
@@ -208,8 +213,8 @@ module Stencil
 	  end
 	
 		def add_action(shape, name, &block)
-		  @actions[shape._id] = System.JSHASH() if !@actions[shape._id]
-		  @actions[shape._id][name] = block
+		  @actions[shape.identity] = Enso::System.JSHASH() if !@actions[shape.identity]
+		  @actions[shape.identity][name] = block
 		end
 		    
 	  def construct(stencil, env, container, id, proc)
@@ -229,7 +234,7 @@ module Stencil
 	      when "font.size" then
 	        #puts "FONT SIZE #{val}"
 	        newEnv[:font] = font = env[:font]._clone if !font
-	        font.size = val
+	        font.points = val
 	      when "font.weight" then
 	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.weight = val
@@ -273,17 +278,10 @@ module Stencil
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
 	      #FIXME: handle Fields as well, by using the address field from eval
-	    lvalue(obj.var, nenv).value = eval(obj.val, nenv)
+	    lvalue(obj.variable, nenv).value = eval(obj.val, nenv)
 	    construct obj.body, nenv, container, id, proc
 	  end
-	
-	  def constructEImport(obj, env, container, id, proc)
-	    #@fundefs.instance_eval(File.open(obj.path, "r").read)
-	    #@fundefs.singleton_methods.each do |m|
-	    # env["#{m}"] = @fundefs.method(m)
-	    #end
-	  end
-	
+		
 	  def constructGrid(grid, env, container, id, proc)
 	    columns = []
 	    ncols = 0
@@ -315,7 +313,7 @@ module Stencil
 	    address = lvalue(efor.list, env)
 	
 	    is_traversal = false
-	    if efor.list.EField?
+	    if efor.list.is_a?("EField")
 	      lhs = eval(efor.list.e, env)
 	      f = lhs.schema_class.all_fields[efor.list.fname]
 	      raise "MISSING #{efor.list.fname} on #{lhs.schema_class}" if !f
@@ -373,9 +371,9 @@ module Stencil
 	#			    relateField = nil
 				    obj.schema_class.fields.each do |field|
 				      #puts "FIELD: #{field}"
-				      if field.key && field.type.Primitive? && field.type.name == "str"
+				      if field.key && field.type.is_a?("Primitive") && field.type.name == "str"
 				        obj[field.name] = "<#{field.name}>"
-				      elsif !field.optional && !field.type.Primitive? && !(field.inverse && field.inverse.traversal)
+				      elsif !field.optional && !field.type.is_a?("Primitive") && !(field.inverse && field.inverse.traversal)
 				        obj[field.name] = find_default_object(@data, field.type)
 	#			        raise "Can't have two related field" if relateField
 	#			        relateField = field
@@ -453,10 +451,10 @@ module Stencil
 	
 	  def evallabel(label, env)
 #	    tag = "default"
-#	    if label.ESubscript? # it has the form Loc[foo]
+#	    if label.is_a?("ESubscript") # it has the form Loc[foo]
 #	      tag = label.e
 #	      label = label.sub
-#	      raise "foo" if !tag.Var?
+#	      raise "foo" if !tag.is_a?("Var")
 #	      tag = tag.name
 #	    end
 	    obj = eval(label, env)
@@ -586,6 +584,7 @@ module Stencil
   class EvalColorC
     include Eval::EvalExpr
     def initialize(d)
+      super()
       @diagram = d
     end
     
@@ -597,8 +596,8 @@ module Stencil
 	
 	class TextEditSelection < Diagram::Selection
 	  def initialize(diagram, shape, address)
+	    super(diagram, nil, true)
 	    @address = address
-	    @diagram = diagram  
 	    @edit_selection = shape
 	    r = diagram.boundary_fixed(shape)
 	    n = 2

@@ -1,3 +1,5 @@
+require 'enso'
+
 module Constraints
 
 	class ConstraintSystem
@@ -6,14 +8,14 @@ module Constraints
 	    @number = 0
 	  end
 	  
-	  def var(name = "v#{@number}", value = nil)
+	  def variable(name = "v#{@number}", value = nil)
 	    @number += 1
 	    #puts "#{name} = #{value}"
 	    Variable.new(name, value)
 	  end
 	  
 	  def value(n)
-	    var("(#{n})", n)
+	    variable("(#{n})", n)
 	  end
 	end
 	
@@ -42,25 +44,8 @@ module Constraints
 	    value.nil? ? "nil" : value.to_s
 	  end
 	  
-	  def to_str
-	    value.to_s
-	  end
-	
 	  def to_ary
 	    [self]
-	  end
-	end
-	
-  class TrueClass
-	  def test(a, b)
-	    #puts "TRUE TEST VARIABLE!!! #{a} else #{b}"
-	    a
-	  end
-	end
-	class FalseClass
-	  def test(a, b)
-	    #puts "FALSE TEST VARIABLE!!! #{a} else #{b}"
-	    b
 	  end
 	end
 	
@@ -106,28 +91,28 @@ module Constraints
 	  end
 	
 	  def test(a, b)
-	    var = Variable.new("test#{self.to_s}")
-	    var.internal_define(self, a, b) do |v, ra, rb|
+	    variable = Variable.new("test#{self.to_s}")
+	    variable.internal_define(self, a, b) do |v, ra, rb|
 	      #puts "EVALUATING TEST VARIABLE!!! #{a} else #{b}"
 	      v.test(ra, rb)
 	    end
-	    var
+	    variable
 	  end
 
 	  def new_var_method(&block)
-	    var = Variable.new("p#{self.to_s}")
-	    var.internal_define(self, &block)
-	    var
+	    variable = Variable.new("p#{self.to_s}")
+	    variable.internal_define(self, &block)
+	    variable
 	  end
 	
 	  def define_result(m, *args)
 	    raise "undefined method #{m}" unless [:add, :sub, :mul, :div, :round, :to_int].include?(m) 
-	    var = Variable.new("p#{self.to_s}#{args.to_s}")
-	    #puts "#{var}=#{self.to_s}+#{args}"
-	    var.internal_define(self, *args) do |*values|
+	    variable = Variable.new("p#{self.to_s}#{args.to_s}")
+	    #puts "#{variable}=#{self.to_s}+#{args}"
+	    variable.internal_define(self, *args) do |*values|
 	      do_op(m, *values)
 	    end
-	    var
+	    variable
 	  end
 	  
 		def do_op(op, *values)
@@ -187,8 +172,8 @@ module Constraints
 		end
 
 	  def internal_notify_change
-	    @dependencies.each do |var|
-	      var.internal_notify_change
+	    @dependencies.each do |variable|
+	      variable.internal_notify_change
 	    end
 	    #@block.nil means this is a hardcoded var, probably because someone assigned to it
 	    @value = nil unless @block.nil?
@@ -199,10 +184,10 @@ module Constraints
 	    @value = nil if @bounds
 	    if @block
 	      path << self
-	      vals = @vars.map do |var|
-	        val = var.internal_evaluate(path)
+	      vals = @vars.map do |variable|
+	        val = variable.internal_evaluate(path)
 	        if val.nil?
-	          puts "WARNING: undefined variable '#{var}'"
+	          puts "WARNING: undefined variable '#{variable}'"
 	          val = 10
 	        end
 	        val

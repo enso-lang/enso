@@ -17,9 +17,8 @@ class Class < Type
   subclasses: Class* / supers
   defined_fields! Field*
   key: Field? = fields.find() {|f| f.key}
-  fields: Field* = all_fields.select() {|f| not f.computed}
-  all_fields: Field* = (supers.flat_map() {|s| s.all_fields })
-  										    .union(defined_fields)
+  fields: Field* = all_fields.select() {|f| f.computed == nil}
+  all_fields: Field* = (supers.flat_map() {|s| s.all_fields }).union(defined_fields)
 
 class Field
   name# str

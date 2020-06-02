@@ -2,6 +2,7 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/env'
+require 'enso'
 
 module Impl
   #note that the closure stores variable states only,
@@ -9,7 +10,7 @@ module Impl
   #so calling a closure may produce different behavior
   #depending on where it is evaluated because the
   #interpreter may be different
-  class Closure
+  class Closure < Enso::EnsoBaseClass
     attr_reader :formals, :body
 
     def self.make_closure(body, formals, env, interp)
@@ -17,6 +18,7 @@ module Impl
     end
 
     def initialize(body, formals, env, interp)
+      super()
       @body = body
       @formals = formals
       @env = env
@@ -138,6 +140,7 @@ module Impl
   class EvalCommandC
     include EvalCommand
     def initialize
+      super()
     end
   end
         
@@ -231,7 +234,7 @@ module Impl
 		  	    arr << b
 		  	  end
 		  	end
-			  mid = arr.length / 2
+			  mid = arr.size / 2
 			  sorted = arr.sort
 			  #puts "MID #{mid} #{sorted}"
 			  mid.odd? ? sorted[mid] : 0.5 * (sorted[mid] + sorted[mid - 1])

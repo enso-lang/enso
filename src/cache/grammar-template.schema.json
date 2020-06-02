@@ -1,0 +1,899 @@
+{
+  "filename": "grammar-template.schema",
+  "source": "core/grammar/experiments/grammar-template.schema",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "b4c3dffaa974fbadba7029780b8ac323af06b980",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "EXP",
+        "schema": "",
+        "subclasses#": [
+          "types[ACCESS]",
+          "types[VAR]",
+          "types[STR]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ACCESS",
+        "schema": "",
+        "supers#": [
+          "types[EXP]"
+        ],
+        "subclasses#": [
+          "types[DOT]",
+          "types[SUB]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "obj",
+            "owner": "types[ACCESS]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "DOT",
+        "schema": "",
+        "supers#": [
+          "types[ACCESS]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "field",
+            "owner": "types[DOT]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "SUB",
+        "schema": "",
+        "supers#": [
+          "types[ACCESS]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "index",
+            "owner": "types[SUB]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "VAR",
+        "schema": "",
+        "supers#": [
+          "types[EXP]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[VAR]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "STR",
+        "schema": "",
+        "supers#": [
+          "types[EXP]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[STR]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "ITER",
+        "schema": "",
+        "subclasses#": [
+          "types[_Rule_Iter]",
+          "types[_Field_Iter]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "var",
+            "owner": "types[ITER]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "exp",
+            "owner": "types[ITER]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "COND",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "cond",
+            "owner": "types[COND]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "GROUP",
+        "schema": "",
+        "subclasses#": [
+          "types[_Rule_Group]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Grammar",
+        "schema": "",
+        "subclasses#": [
+          "types[Grammar]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "start",
+            "owner": "types[_Grammar]",
+            "type": "types[EXP]"
+          },
+          {
+            "class": "Field",
+            "name=": "rules",
+            "owner": "types[_Grammar]",
+            "type": "types[_Rule_Elt]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Rule_Elt",
+        "schema": "",
+        "subclasses#": [
+          "types[_Rule_Iter]",
+          "types[_Rule_Group]",
+          "types[_Rule]",
+          "types[Rule]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Rule_Iter",
+        "schema": "",
+        "supers#": [
+          "types[_Rule_Elt]",
+          "types[ITER]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[_Rule_Iter]",
+            "type": "types[_Rule_Elt]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Rule_Group",
+        "schema": "",
+        "supers#": [
+          "types[_Rule_Elt]",
+          "types[GROUP]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[_Rule_Group]",
+            "type": "types[_Rule_Elt]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Rule",
+        "schema": "",
+        "supers#": [
+          "types[_Rule_Elt]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[_Rule]",
+            "type": "types[EXP]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[_Rule]",
+            "type": "types[_Expression]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Alt",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Alt]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "alts",
+            "owner": "types[_Alt]",
+            "type": "types[_Expression]",
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Create_Elt",
+        "schema": "",
+        "subclasses#": [
+          "types[_Create]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Create",
+        "schema": "",
+        "supers#": [
+          "types[_Create_Elt]"
+        ],
+        "subclasses#": [
+          "types[Create]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[_Create]",
+            "type": "types[EXP]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[_Create]",
+            "type": "types[_Sequence]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Sequence",
+        "schema": "",
+        "subclasses#": [
+          "types[Sequence]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[_Sequence]",
+            "type": "types[_Field_Elt]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Field_Elt",
+        "schema": "",
+        "subclasses#": [
+          "types[_Field_Iter]",
+          "types[_Field_Group]",
+          "types[_Field]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Field_Iter",
+        "schema": "",
+        "supers#": [
+          "types[_Field_Elt]",
+          "types[ITER]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "body",
+            "owner": "types[_Field_Iter]",
+            "type": "types[_Field_Elt]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Field_Group",
+        "schema": "",
+        "supers#": [
+          "types[_Field_Elt]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[_Field_Group]",
+            "type": "types[_Field_Elt]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Field",
+        "schema": "",
+        "supers#": [
+          "types[_Field_Elt]"
+        ],
+        "subclasses#": [
+          "types[Field]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[_Field]",
+            "type": "types[EXP]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[_Field]",
+            "type": "types[_Expression]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Expression",
+        "schema": "",
+        "subclasses#": [
+          "types[_Alt]",
+          "types[_Code]",
+          "types[_Ref]",
+          "types[_Lit]",
+          "types[_Call]",
+          "types[_Regular]",
+          "types[_Value]",
+          "types[Expression]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Code",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Code]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "code",
+            "owner": "types[_Code]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Ref",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Ref]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[_Ref]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Lit",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Lit]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[_Lit]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Call",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Call]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "rule",
+            "owner": "types[_Call]",
+            "type": "types[EXP]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Regular",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Regular]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[_Regular]",
+            "type": "types[_Expression]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "optional",
+            "owner": "types[_Regular]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "many",
+            "owner": "types[_Regular]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "sep",
+            "owner": "types[_Regular]",
+            "type": "types[EXP]",
+            "optional=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "_Value",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Value]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Grammar",
+        "schema": "",
+        "supers#": [
+          "types[_Grammar]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "start",
+            "owner": "types[Grammar]",
+            "type": "types[Rule]"
+          },
+          {
+            "class": "Field",
+            "name=": "rules",
+            "owner": "types[Grammar]",
+            "type": "types[Rule]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Rule].defined_fields[grammar]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Expression",
+        "schema": "",
+        "supers#": [
+          "types[_Expression]"
+        ],
+        "subclasses#": [
+          "types[Rule]",
+          "types[Alt]",
+          "types[Sequence]",
+          "types[Create]",
+          "types[Field]",
+          "types[Code]",
+          "types[Value]",
+          "types[Ref]",
+          "types[Lit]",
+          "types[Call]",
+          "types[Regular]",
+          "types[Epsilon]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Rule",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Rule_Elt]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Rule]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "grammar",
+            "owner": "types[Rule]",
+            "type": "types[Grammar]",
+            "inverse": "types[Grammar].defined_fields[rules]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Rule]",
+            "type": "types[Expression]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Alt",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Alt]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "alts",
+            "owner": "types[Alt]",
+            "type": "types[Expression]",
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Sequence",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Sequence]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[Sequence]",
+            "type": "types[Expression]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Create",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Create]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Create]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Create]",
+            "type": "types[Expression]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Field",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Field]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Field]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Field]",
+            "type": "types[Expression]",
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Code",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Code]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "code",
+            "owner": "types[Code]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Value",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Value]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "kind",
+            "owner": "types[Value]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Ref",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Ref]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Ref]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Lit",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Lit]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[Lit]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Call",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Call]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "rule",
+            "owner": "types[Call]",
+            "type": "types[Rule]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Regular",
+        "schema": "",
+        "supers#": [
+          "types[Expression]",
+          "types[_Regular]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "arg",
+            "owner": "types[Regular]",
+            "type": "types[Expression]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "optional",
+            "owner": "types[Regular]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "many",
+            "owner": "types[Regular]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "sep",
+            "owner": "types[Regular]",
+            "type": "types[str]",
+            "optional=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Epsilon",
+        "schema": "",
+        "supers#": [
+          "types[Expression]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Item",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "expression",
+            "owner": "types[Item]",
+            "type": "types[Expression]"
+          },
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[Item]",
+            "type": "types[Expression]",
+            "optional=": true,
+            "many=": true
+          },
+          {
+            "class": "Field",
+            "name=": "dot",
+            "owner": "types[Item]",
+            "type": "types[int]"
+          }
+        ]
+      }
+    ]
+  }
+}

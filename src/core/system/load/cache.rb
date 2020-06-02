@@ -1,12 +1,13 @@
 require 'core/schema/tools/dumpjson'
 require 'core/system/utils/find_model'
+require 'core/schema/code/factory'
 require 'digest/sha1'
-# require 'fileutils'
+require 'enso'
 
 module Cache
 
 	def self.hack_prefix
-	  if System.is_javascript() # HACK TO GET ELECTRON RUNNING!!!
+	  if Enso::System.is_javascript() # HACK TO GET ELECTRON RUNNING!!!
 	    "../" 
     else
 			""
@@ -24,15 +25,12 @@ module Cache
 
   # this default param is currently not supported by the Rascal compiler.
   # because it captures an earlier parameter.
-  def self.load_cache(name, factory, input=nil, model='model')
-    if input.nil?
-      input = find_json(name)
-    end
-    type = name.split('.')[-1]
-    STDERR.puts("## loading cache for: #{name} (#{input})")
-    json = System.readJSON(input)
-    res = Dumpjson::from_json(factory, json[model])
-    res.factory.file_path[0] = hack_prefix + json['source']
+  def self.load_cache(model, schema, path = find_json(model))
+    factory = Factory::SchemaFactory.new(schema)
+    #STDERR.puts("## loading cache for: #{model} (#{path})")
+    json = Enso::System.readJSON(path)
+    res = Dumpjson::from_json(factory, json['model'])
+    res.factory.file_path[0] = path
     json['depends'].each {|dep| res.factory.file_path << dep['filename']}
     res
   end
@@ -40,7 +38,7 @@ module Cache
   def self.check_dep(name)
     begin
       path = find_json(name)
-      json = System.readJSON(path)
+      json = Enso::System.readJSON(path)
 
       #check that the source file has not changed
       #check that none of the dependencies have changed
@@ -79,26 +77,10 @@ module Cache
 
   def self.find_json(name)
     if ['schema.schema', 'schema.grammar', 'grammar.schema', 'grammar.grammar'].include?(name)
-      "#{hack_prefix}core/system/boot/#{name.gsub('.','_')}.json"
+      "#{hack_prefix}core/system/boot/#{name}.json"
     else
 	    cache_path = "#{hack_prefix}cache/"
-#      index = name.rindex('/')
-#      dir = index ? name[0..index].gsub('.','_') : ""
-#      unless File.exists? "#{cache_path}#{dir}"
-#        FileUtils.mkdir_p "#{cache_path}#{dir}"
-#      end
-      index = name.rindex('/')
-      if index && index >= 0
-        STDERR.puts "SLASH #{name} => #{index}"
-        # dir = name[0,index].gsub('.', '_')
-        dir = name[0..index].gsub('.','_')
-        unless File.exists?("#{cache_path}#{dir}")
-	        STDERR.puts "#### making #{cache_path}#{dir}"
-          FileUtils.mkdir_p("#{cache_path}#{dir}")
-        end
-      end
-      STDERR.puts "## loading cache #{cache_path}#{name.gsub('.','_')}.json"
-      "#{cache_path}#{name.gsub('.','_')}.json"
+      "#{cache_path}#{name}.json"
     end
   end
   
@@ -119,7 +101,7 @@ module Cache
   def self.get_meta(name)
     e = {filename: name}
     begin
-	    FindModel::FindModel.find_model(name) do |path|
+	    FindModel::find_model(name) do |path|
 	      e['source'] = path
 	      e['date'] = File.ctime(path)
 	      e['checksum'] = readHash(path)

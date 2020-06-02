@@ -18,7 +18,7 @@ class Build
     recurse(sppf, nil, accu = {}, nil, fixes = [], paths = {})
     obj = accu.values.first
     imports.each do |import|
-      obj._graph_id.unsafe_mode {
+      obj.graph_identity.unsafe_mode {
         obj = Union::CopyInto(obj.factory, import, obj)
       }
     end
@@ -173,7 +173,7 @@ class Build
 
 
   def convert_value(value, type)
-    return value unless type.Primitive?
+    return value unless type.is_a?("Primitive")
     case type.name
     when "str" then value
     when "bool" then value == "true"
@@ -192,7 +192,7 @@ class Build
       later = []
       change = false
       fixes.each do |fix|
-        helper = Paths::new(fix.path)
+        helper = Schemapath::make(fix.path)
         x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it do
           helper.eval
         end

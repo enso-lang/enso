@@ -18,29 +18,27 @@
     </script>
     <!-- Render questionaire -->
     <script type="text/javascript">
-      requirejs([
-        "enso",
-        'core/system/load/load',
-        'core/diagram/code/construct',
-        'diagram',
-        'core/schema/tools/print',
-      ],
-      function(Enso, Load, Construct, Diagram, Print) {
-        data_file = "housing.ql"
-        stencil_file = "ql.stencil"
+    
+      Enso  = require("enso";
+      Load  = require('core/system/load/load';
+      Construct  = require('core/diagram/code/construct';
+      Diagram  = require('diagram';
+      Print  = require('core/schema/tools/print';
 
-        data = Load.load(data_file)
-        stencil = Load.load(stencil_file)
-        modelmap = new EnsoHash({ })
-
-        diagram = Construct.eval(stencil, new EnsoHash({
-          data : data,
-          modelmap : modelmap
-        }))
-        main.append(Diagram.render(diagram, modelmap))
-        $("title").text(diagram.title)
-        $("body").append(main);
-      })
+	    data_file = "housing.ql"
+	    stencil_file = "ql.stencil"
+	
+	    data = Load.load(data_file)
+	    stencil = Load.load(stencil_file)
+	    modelmap = new EnsoHash({ })
+	
+	    diagram = Construct.eval(stencil, new EnsoHash({
+	      data : data,
+	      modelmap : modelmap
+	    }))
+	    main.append(Diagram.render(diagram, modelmap))
+	    $("title").text(diagram.title)
+	    $("body").append(main);
     </script>
   </head>
   <title></title>

@@ -8,7 +8,6 @@ require 'core/schema/tools/equals'
 
 class PatchTest < Test::Unit::TestCase
 
-  # test setup
   def setup
     @point_schema = Load::load('point.schema')
     @point_grammar = Load::load('point.grammar')

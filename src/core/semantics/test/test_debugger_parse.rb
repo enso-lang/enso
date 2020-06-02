@@ -17,7 +17,7 @@ type = "lambda"
 
 schema = Load::load("#{type}.schema")
 grammar = sm
-factory = Factory.new(schema)
+factory = Factory::SchemaFactory.new(schema)
 
 interp = ParseGrammarC.new
 ast = interp.dynamic_bind input: input, factory:factory do

@@ -1,0 +1,127 @@
+{
+  "filename": "fact.impl",
+  "source": "core/expr/test/fact.impl",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "38501176920fe3b9f5091d606f99d59949819c71",
+  "depends": [
+    {
+      "filename": "impl.grammar",
+      "source": "core/expr/models/impl.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "2f959026b239ec52cc2155ce43e82d3d54e17346"
+    },
+    {
+      "filename": "impl.schema.json",
+      "source": "cache/impl.schema.json",
+      "date": "2020-05-10 00:37:13 -0500",
+      "checksum": "83ac45ea77a4251fcc55543623ac192cb5f1409e"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-10 21:25:24 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "EBlock",
+    "fundefs": [
+      {
+        "class": "EFunDef",
+        "name=": "fact",
+        "formals": [
+          {
+            "class": "Formal",
+            "name=": "x"
+          }
+        ],
+        "body": {
+          "class": "EBlock",
+          "body": [
+            {
+              "class": "EIf",
+              "cond": {
+                "class": "EBinOp",
+                "op=": "eql?",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "x"
+                },
+                "e2": {
+                  "class": "EIntConst",
+                  "val=": 1
+                }
+              },
+              "body": {
+                "class": "EIntConst",
+                "val=": 1
+              },
+              "body2": {
+                "class": "EBinOp",
+                "op=": "*",
+                "e1": {
+                  "class": "EVar",
+                  "name=": "x"
+                },
+                "e2": {
+                  "class": "EFunCall",
+                  "fun": {
+                    "class": "EVar",
+                    "name=": "fact"
+                  },
+                  "params": [
+                    {
+                      "class": "EBinOp",
+                      "op=": "-",
+                      "e1": {
+                        "class": "EVar",
+                        "name=": "x"
+                      },
+                      "e2": {
+                        "class": "EIntConst",
+                        "val=": 1
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "body": [
+      {
+        "class": "EFunCall",
+        "fun": {
+          "class": "EVar",
+          "name=": "fact"
+        },
+        "params": [
+          {
+            "class": "EIntConst",
+            "val=": 5
+          }
+        ]
+      }
+    ]
+  }
+}

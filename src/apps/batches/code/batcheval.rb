@@ -21,12 +21,12 @@ class BatchEval < Web::Eval::Render
 
   def self.batch(web, rootschema)
     schema = rootschema.schema
-    factory = Factory::new(Load::load('batch.schema'))
+    factory = Factory::SchemaFactory.new(Load::load('batch.schema'))
     res = {}
     env = {}
     prelude = Load::load("prelude.web")
     prelude.toplevels.each do |top|
-      if top.Def?
+      if top.is_a?("Def")
         env[top.name] = Web::Eval::Result.new(Web::Eval::Function.new(env, top))
       end
     end
@@ -69,7 +69,7 @@ class BatchEval < Web::Eval::Render
 
   def For(this, env, out, errors)
     q = eval_exp(this.iter, env, errors)
-    if q.is_a?(CheckedObject) and q.Query?
+    if q.is_a?(CheckedObject) and q.is_a?("Query")
       nenv = {}.update(env)
       nenv[this.var] = q
       save_filter(@factory.EBoolConst(true)) {
@@ -127,7 +127,7 @@ class BatchEval < Web::Eval::Render
 
   def exp_Field(this, env, errors)
     inner = eval_exp(this.exp, env, errors)
-    if inner.is_a?(CheckedObject) and inner.Query?
+    if inner.is_a?(CheckedObject) and inner.is_a?("Query")
       fname = this.name
       existing_f = inner.fields.detect{|f| f.name == fname}
       if !existing_f.nil?
@@ -136,7 +136,7 @@ class BatchEval < Web::Eval::Render
         schema_class = @schema.types[inner.classname]
         puts "Schema: #{schema_class} fname: #{fname}"
         tgt_class = schema_class.all_fields[fname].type
-        q = tgt_class.Primitive? ? nil : @factory.Query(tgt_class.name)
+        q = tgt_class.is_a?("Primitive") ? nil : @factory.Query(tgt_class.name)
         f = @factory.Field(fname, q)
         inner.fields << f
       end
@@ -148,7 +148,7 @@ class BatchEval < Web::Eval::Render
 
   def exp_Var(this, env, errors)
     q = env[this.name]
-    if q.is_a?(CheckedObject) and q.Query?
+    if q.is_a?(CheckedObject) and q.is_a?("Query")
       if !q.filter.nil?
         q.filter = Expr.bind!(@factory.EBinOp("or", q.filter, Clone(@filter)), {this.name => @factory.EVar("@self")})
       else

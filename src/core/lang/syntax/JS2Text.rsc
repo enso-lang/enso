@@ -148,6 +148,9 @@ str js2txt(functionDecl(str id, list[Pattern] params,
 str js2txt(Statement::varDecl(list[VariableDeclarator] declarations, str kind)) 
   = "<kind> <intercalate(", ", [ js2txt(d) | d <- declarations ])>;";
 
+str js2txt(Statement::classDecl(str name, Expression super, list[Statement] body)) 
+  = "class name extends <js2txt(super)> { <intercalate(", ", [ js2txt(d) | d <- body ])> };";
+
 /*
 expression(Expression exp)
   | none(

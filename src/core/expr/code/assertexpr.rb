@@ -1,5 +1,6 @@
 
 require 'core/expr/code/impl'
+require 'enso'
 
 module AssertExpr
   module AssertExpr
@@ -18,16 +19,16 @@ module AssertExpr
   
     def assert_EBinOp(obj)
       if obj.op == "eql?"
-        var = lvalue(obj.e1)
+        variable = lvalue(obj.e1)
         val = eval(obj.e2)
-        if var.nil?  #try flip it around
-          var = lvalue(obj.e2)
+        if variable.nil?  #try flip it around
+          variable = lvalue(obj.e2)
           val = eval(obj.e1)
         end
-        if var.nil?
+        if variable.nil?
           raise "Invalid expression in grammar"
         end
-        var.set(val)
+        variable.set(val)
       elsif obj.op == "&"
         assert obj.e1
         assert obj.e2
@@ -38,30 +39,30 @@ module AssertExpr
   
     def assert_EUnOp(obj)
       if op == "!"
-        var = lvalue(obj.e)
-        if var.nil?
+        variable = lvalue(obj.e)
+        if variable.nil?
           raise "Invalid expression in grammar"
         end
-        var.value = false
+        variable.value = false
       else
         raise "Invalid expression in grammar"
       end
     end
   
     def assert_EVar(obj)
-      var = lvalue(obj.e)
-      if var.nil?
+      variable = lvalue(obj.e)
+      if variable.nil?
         raise "Invalid expression in grammar"
       end
-      var.value = true
+      variable.value = true
     end
   
     def assert_EField(obj)
-      var = lvalue(obj.e)
-      if var.nil?
+      variable = lvalue(obj.e)
+      if variable.nil?
         raise "Invalid expression in grammar"
       end
-      var.value = true
+      variable.value = true
     end
   end
   

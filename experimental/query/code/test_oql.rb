@@ -20,7 +20,7 @@ if __FILE__ == $0 then
 
   ss = Load::load('schema.schema')
 
-  eval = EvalOQL.new(Factory::new(s))
+  eval = EvalOQL.new(Factory::SchemaFactory.new(s))
 
   x = eval.run(q, s)
   puts x.to_s
