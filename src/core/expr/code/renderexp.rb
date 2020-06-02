@@ -1,4 +1,5 @@
 require 'core/semantics/code/interpreter'
+require 'enso'
 
 module Renderexp
   module RenderExpr

@@ -27,6 +27,7 @@ class Cons < List
   attr_reader :head, :tail
 
   def initialize(head, tail)
+    super()
     @head = head
     @tail = tail
   end

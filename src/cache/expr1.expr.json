@@ -1,0 +1,64 @@
+{
+  "filename": "expr1.expr",
+  "source": "core/expr/test/expr1.expr",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "5ba8e573684ef6b7182ef2fc0caa849a16cdc642",
+  "depends": [
+    {
+      "filename": "expr.grammar",
+      "source": "core/expr/models/expr.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
+    },
+    {
+      "filename": "expr.schema.json",
+      "source": "cache/expr.schema.json",
+      "date": "2020-05-10 00:37:13 -0500",
+      "checksum": "cc3992275a172d1133cafe67f483bfe383909b60"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-10 21:25:24 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "EBinOp",
+    "op=": "+",
+    "e1": {
+      "class": "EBinOp",
+      "op=": "+",
+      "e1": {
+        "class": "EIntConst",
+        "val=": 1
+      },
+      "e2": {
+        "class": "EIntConst",
+        "val=": 2
+      }
+    },
+    "e2": {
+      "class": "EIntConst",
+      "val=": 3
+    }
+  }
+}

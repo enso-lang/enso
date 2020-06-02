@@ -46,7 +46,7 @@ class BatchFactory
     end
     @all_queries = BatchEval.batch(web, schema.root_class)
     @schema = schema
-    @factory = Factory::new(schema)
+    @factory = Factory::SchemaFactory.new(schema)
     #init db here
     @database = db
     @dbuser = dbuser
@@ -91,7 +91,7 @@ class BatchFactory
     keycol = keyfield.column || keyfield.name
     #check if this is a relationship or an attribute.
     puts "setting key #{key} in table #{table} to value #{value}"
-    if klass.fields[field_name].type.Primitive?
+    if klass.fields[field_name].type.is_a?("Primitive")
       # attribute - simple update
       puts "as an attribute"
       query = "update #{table} set #{field_name}=#{value.inspect} where #{keycol}=#{key.inspect}"

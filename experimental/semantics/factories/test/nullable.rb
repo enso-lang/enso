@@ -31,6 +31,7 @@ end
 class NonTerminal < Sym
   attr_reader :name
   def initialize(name)
+    super()
     @name = name
   end
 end
@@ -38,6 +39,7 @@ end
 class Terminal < Sym
   attr_reader :value
   def initialize(value)
+    super()
     @value = value
   end
 end

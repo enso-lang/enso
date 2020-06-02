@@ -56,7 +56,7 @@ class Prop < Expr
   
 class Call < Expr
   target! Expr?
-  method: str
+  method: str?
   args!   Expr*
   rest!   Expr?
   block!  Expr?
@@ -66,8 +66,8 @@ class Super < Expr
 
 class Fun < Expr
   args! Decl*
-  block: str?     // Decl
-  rest: str?      // Decl
+  block: str?     
+  rest: str?      
   locals! Decl*
   body! Expr
   num_args: int = args.size + (block ? 1 : 0)

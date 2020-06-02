@@ -17,7 +17,7 @@ f = Factory.factory
   
 q = f.Loop(Op::SEQ, "x", f.Prop(f.Root(), "Customers"), f.Out("A", f.Prop(f.Var("x"), "CompanyName")))
 
-String cstr = "jdbc:mysql://localhost/Northwind?user=root&password="
+String cstr = "jdbc:mysql://localhost/is_a?("Northwind")user=root&password="
 connection = JDBC.new(Schema.new(Northwind), cstr)
 
 puts connection.setupQueries(q).toString()

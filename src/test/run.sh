@@ -2,7 +2,6 @@
 
 ruby -I. core/expr/test/test_expr.rb
 ruby -I. core/expr/test/test_impl.rb
-ruby -I. core//expr/test/test_proxy.rb
 
 ruby -I. core/schema/test/test_copy.rb 
 ruby -I. core/schema/test/test_equals.rb

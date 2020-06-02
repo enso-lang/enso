@@ -5,69 +5,30 @@ require 'core/schema/code/factory'
 require 'core/grammar/parse/parse'
 require 'core/schema/tools/union'
 require 'core/system/load/cache'
-require 'core/system/utils/paths'
+require 'core/system/utils/schemapath'
 require 'core/system/utils/find_model'
+require 'enso'
 
 module Load
   class LoaderClass
-
-    def load(name, type = nil)
-      setup() if @cache.nil?
-      
-      if @cache[name]
-        @cache[name]
-      else
-        load!(name, type)
-      end
-    end
-    
-    def load!(name, type = nil)
-      # ignore possibly cached model
-      @cache[name] = _load(name, type)
-    end
-
-    def load_text(type, factory, source, show = false)
-      g = load("#{type}.grammar")
-      s = load("#{type}.schema")
-      result = Parse.load_raw(source, g, s, factory, show)
-      result.finalize
-    end
-
-    def _load(name, type = nil)
-      type ||= name.split('.')[-1]
-      #first check if cached XML version is still valid 
-      if Parse.nil? || Cache::check_dep(name)
-        $stderr << "## fetching #{name}\n"
-        Cache::load_cache(name, Factory::new(load("#{type}.schema")))
-      else
-        res = parse_with_type(name, type)
-	      #dump it back to xml
-	      $stderr << "## caching #{name}\n"
-	      Cache::save_cache(name, res, false)
-	      res
-      end
-    end
-    
-    def parse_with_type(name, type)
-      g = load("#{type}.grammar")
-      s = load("#{type}.schema")
-      res = load_with_models(name, g, s)
-    end
-
-    def setup
+    def setup()
       @cache = {}
       
       # TODO: get rid of bootstrap models in memory
     
       #check if XML is not out of date then just use it
       #else load XML first then reload
-      @cache['schema.schema'] = ss = load_with_models('schema_schema.json', nil, nil)
-      @cache['grammar.schema'] = gs = load_with_models('grammar_schema.json', nil, ss)
-      @cache['grammar.grammar'] = load_with_models('grammar_grammar.json', nil, gs)
-      @cache['schema.grammar'] = load_with_models('schema_grammar.json', nil, gs)
+      ss = boot_from_cache('schema.schema', nil)
+      ss = boot_from_cache('schema.schema', ss)
+      @cache['schema.schema'] = ss
+      gs = boot_from_cache('grammar.schema', ss)
+      @cache['grammar.schema'] = gs
+      @cache['grammar.grammar'] = boot_from_cache('grammar.grammar', gs)
+      @cache['schema.grammar'] = boot_from_cache('schema.grammar', gs)
 
-      Paths::Path.set_factory Factory::new(ss)  # work around for no circular references
+      Schemapath::Path.set_factory Factory::SchemaFactory.new(ss)  # work around for no circular references
 
+			# whether to update the four core models
       if false
 	      update_json('grammar.grammar')
 	      update_json('schema.grammar')
@@ -76,23 +37,96 @@ module Load
 	    end
     end
 
-    def update_json(name)
-      parts = name.split(".")
-      model = parts[0]
+    # load from cache as the only option
+    def boot_from_cache(model, schema)
+      path = Cache::find_json(model)
+      if schema.nil? then
+        ##$stderr << "## booting #{path}\n"
+        # this means we are loading schema_schema.json for the first time.
+        result = MetaSchema::load_path(path)
+      else
+        #$stderr << "## fetching #{path}\n"  #if !path.include? "/boot/"
+        result = Cache::load_cache(model, schema, path)
+      end
+    end
+
+		# this is the main load function
+		# first try the in memory cache
+		# then try loading from disk
+		# finally, parse the file from source
+    def load(model)
+      setup() if @cache.nil?
+      
+      result = @cache[model]
+      if result.nil?
+	      type = model.split('.')[1]
+	      #first check if cached XML version is still valid 
+	      # don't check the dependencies if we can't parse anyway
+	      if Enso::System.is_javascript() || Cache::check_dep(model)
+          begin
+		        $stderr << ("## fetching #{model}")
+		        schema = load("#{type}.schema")
+		        result = Cache::load_cache(model, schema)
+			    rescue Errno::ENOENT => e
+			    end
+				end
+	      if result.nil? && !Enso::System.is_javascript()
+		      $stderr << ("## parsing and caching #{model}")
+	        result = parse_with_type(model, type)
+		      #dump it back to xml
+		      $stderr << ("## caching #{model}")
+		      Cache::save_cache(model, result, false)
+		      result
+	      end
+        @cache[model] = result
+      end
+      raise "Model not loaded: #{model}" if result.nil?
+      result
+    end
+    
+    def load!(model, type = nil)
+      @cache.delete(model)
+      # ignore possibly cached model
+      @cache[model] = load(model, type)
+    end
+
+    def load_text(type, factory, source, show = false)
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      result = Parse.load_raw(source, g, s, factory, show)
+      result.finalize
+    end
+    
+    def parse_with_type(model, type)
+      g = load("#{type}.grammar")
+      s = load("#{type}.schema")
+      res = parse_with_models(model, g, s)
+    end
+
+    def parse_with_models(model, grammar, schema, encoding = nil)
+        FindModel::find_model(model) do |path|
+          Parse.load_file(path, grammar, schema, encoding)
+        end
+    end
+    
+    def update_json(model)
+      parts = model.split(".")
+      name = parts[0]
       type = parts[1]
-      if Cache::check_dep(name)
-        patch_schema_pointers!(@cache[name], load("#{type}.schema"))
+      if Cache::check_dep(model)
+        patch_schema_pointers!(@cache[model], load("#{type}.schema"))
       else
         #if file has been updated, reload file using current models
-        @cache[name] = load_with_models(name, load("#{type}.grammar"), load("#{type}.schema"))
-        new = @cache[name]
+        @cache[model] = parse_with_models(model, load("#{type}.grammar"), load("#{type}.schema"))
+        other = @cache[model]
+        $stderr << ("Checked!!! #{name} .... #{model}")
         #now reload file with itself -- this ensures its schema information is correct
-        @cache[name] = Union::Copy(Factory::new(load("#{type}.schema")), new)
+        @cache[model] = Union::Copy(Factory::SchemaFactory.new(load("#{type}.schema")), other)
         #patch schema pointers 
-        #patch_schema_pointers!(@cache[name], load("#{type}.schema"))
+        #patch_schema_pointers!(@cache[model], load("#{type}.schema"))
         #save to json
-        @cache[name].factory.file_path = new.factory.file_path
-        Cache::save_cache(name, @cache[name], true)
+        @cache[model].factory.file_path = other.factory.file_path
+        Cache::save_cache(model, @cache[model], true)
       end
     end
 
@@ -110,45 +144,14 @@ module Load
       all_classes.each do |o, sc|
         o.instance_eval do
           define_singleton_value(:schema_class, sc)
-#          @factory.instance_eval { @schema = schema }  #[JS HACK] This line does not work in JS (even though instance_eval does)
         end
       end
     end
-
-    def load_with_models(name, grammar, schema, encoding = nil)
-        FindModel::FindModel.find_model(name) do |path|
-          load_path(path, grammar, schema, encoding)
-        end
-    end
-
-    def load_path(path, grammar, schema, encoding = nil)
-      if path.end_with?(".json") then
-        if schema.nil? then
-          $stderr << "## booting #{path}\n"
-          # this means we are loading schema_schema.json for the first time.
-          result = MetaSchema::load_path(path)
-        else
-          $stderr << "## fetching #{path}\n"
-          name = path.split("/")[-1].split(".")[0].gsub("_", ".")
-          type = name.split('.')[-1]
-          result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
-        end
-      elsif Parse.nil?
-        $stderr << "## fetching! #{path}\n"
-        name = path.split("/")[-1]
-        type = name.split('.')[-1]
-        result = Cache::load_cache(name, Factory::new(load("#{type}.schema")))
-      else
-        $stderr << "## loading #{path}\n"
-        result = Parse.load_file(path, grammar, schema, encoding)
-      end
-      result
-    end
-
   end
+
   
   # define a singleton instance 
-  Loader ||= LoaderClass.new
+  Loader = LoaderClass.new
   
   def self.load(name)
     Load::Loader.load(name)
@@ -162,8 +165,5 @@ module Load
     Load::load_text(type, factory, source, show)
   end
 
-  def self.load_with_models(name, grammar, schema, encoding = nil)
-    Load::Loader.load_with_models(name, grammar, schema, encoding)
-  end
 end
 

@@ -1,163 +1,164 @@
-define([], (function () {
-  var Interpreter;
-  var DynamicPropertyStack = MakeClass("DynamicPropertyStack", null, [], (function () {
-  }), (function (super$) {
-    (this.initialize = (function () {
-      var self = this;
-      (self.$.current = (new EnsoHash({
-        
-      })));
-      return (self.$.stack = []);
-    }));
-    (this._get = (function (name) {
-      var self = this;
-      return self.$.current._get(name);
-    }));
-    (this.include_P = (function (name) {
-      var self = this;
-      return self.$.current.include_P(name);
-    }));
-    (this.keys = (function () {
-      var self = this;
-      return self.$.current.keys();
-    }));
-    (this._bind = (function (field, value) {
-      var self = this;
-      var old;
-      if (self.$.current.has_key_P(field)) { 
-        (old = self.$.current._get(field)); 
+'use strict'
+
+//// Interpreter ////
+
+var cwd = process.cwd() + '/';
+var Enso = require(cwd + "enso.js");
+
+var Interpreter;
+
+class DynamicPropertyStack {
+  static new(...args) { return new DynamicPropertyStack(...args) };
+
+  constructor() {
+    var self = this;
+    self.current$ = Enso.EMap.new();
+    self.stack$ = [];
+  };
+
+  get$(name) {
+    var self = this;
+    return self.current$.get$(name);
+  };
+
+  include_P(name) {
+    var self = this;
+    return self.current$.include_P(name);
+  };
+
+  keys() {
+    var self = this;
+    return self.current$.keys();
+  };
+
+  _bind(field, value) {
+    var self = this, old;
+    if (self.current$.has_key_P(field)) {
+      old = self.current$.get$(field);
+    } else {
+      old = "undefined";
+    }
+    self.stack$.push([field, old]);
+    return self.current$ .set$(field, value);
+  };
+
+  _pop(n = 1) {
+    var self = this, parts;
+    while (n > 0) {
+      parts = self.stack$.pop();
+      if (parts.get$(1) == "undefined") {
+        self.current$.delete_M(parts.get$(0));
+      } else {
+        self.current$ .set$(parts.get$(0), parts.get$(1));
       }
-      else { 
-        (old = "undefined");
-      }
-      self.$.stack.push([field, old]);
-      return self.$.current._set(field, value);
-    }));
-    (this._pop = (function (n) {
+      n = n - 1;
+    }
+  };
+
+  to_s() {
+    var self = this;
+    return self.current$.to_s();
+  };
+};
+
+function Dispatcher(parent) {
+  return class extends parent {
+    init() {
       var self = this;
-      (n = (((typeof n) !== "undefined") ? n : 1));
-      var parts;
-      while ((n > 0)) {
-        (parts = self.$.stack.pop());
-        if ((parts._get(1) == "undefined")) { 
-          self.$.current.delete(parts._get(0)); 
-        }
-        else { 
-          self.$.current._set(parts._get(0), parts._get(1));
-        }
-        (n -= 1);
+      if (! self.D$) {
+        self.D$ = DynamicPropertyStack.new();
       }
-    }));
-    (this.to_s = (function () {
-      var self = this;
-      return self.$.current.to_s();
-    }));
-  }));
-  var Dispatcher = MakeMixin([], (function () {
-    (this.init = (function () {
-      var self = this;
-      if ((!self.$.D)) {
-        (self.$.D = DynamicPropertyStack.new());
+      return self.indent$ = null;
+    };
+
+    dynamic_bind(block, fields = Enso.EMap.new()) {
+      var self = this, result;
+      if (! self.D$) {
+        self.D$ = DynamicPropertyStack.new();
       }
-      return (self.$.indent = null);
-    }));
-    (this.dynamic_bind = (function (block, fields) {
-      var self = this;
-      (fields = (((typeof fields) !== "undefined") ? fields : (new EnsoHash({
-        
-      }))));
-      var result;
-      if ((!self.$.D)) {
-        (self.$.D = DynamicPropertyStack.new());
-      }
-      fields.each((function (key, value) {
-        if (self.$.debug) {
-          puts(S("BIND ", key, "=", value, ""));
-        }
-        return self.$.D._bind(key, value);
-      }));
-      (result = block());
-      self.$.D._pop(fields.size());
+      fields.each(function(key, value) {
+        return self.D$._bind(key, value);
+      });
+      result = block();
+      self.D$._pop(fields.size_M());
       return result;
-    }));
-    (this.wrap = (function (operation, outer, obj) {
-      var self = this;
-      var method, init_done, type, result;
-      (init_done = self.$.init);
-      if ((!init_done)) {
+    };
+
+    wrap(operation, outer, obj) {
+      var self = this, init_done, type, method, result;
+      init_done = self.init$;
+      if (! init_done) {
         self.init();
       }
-      (self.$.init = true);
-      (type = obj.schema_class());
-      (method = S("", outer, "_", type.name(), "").to_s());
-      if ((!self.respond_to_P(method))) {
-        (method = self.find_op(outer, type));
+      self.init$ = true;
+      type = obj.schema_class();
+      method = Enso.S(outer, "_", type.name()).to_s();
+      if (! self.respond_to_P(method)) {
+        method = self.find_op(outer, type);
       }
-      if ((!method)) {
-        (method = S("", outer, "_?").to_s());
-        if ((!self.respond_to_P(method))) {
-          self.raise(S("Missing method in interpreter for ", outer, "_", type.name(), "(", obj, ")"));
+      if (! method) {
+        method = Enso.S(outer, "_?").to_s();
+        if (! self.respond_to_P(method)) {
+          self.raise(Enso.S("Missing method in interpreter for ", outer, "_", type.name(), "(", obj, ")"));
         }
       }
-      (result = null);
-      self.send((function () {
-        return (result = self.dispatch_obj(operation, obj));
-      }), method, obj);
-      if ((!init_done)) {
-        (self.$.init = false);
+      result = null;
+      self.send(function() {
+        return result = self.dispatch_obj(operation, obj);
+      }, method, obj);
+      if (! init_done) {
+        self.init$ = false;
       }
       return result;
-    }));
-    (this.dispatch_obj = (function (operation, obj) {
-      var self = this;
-      var method, init_done, type, result;
-      (init_done = self.$.init);
-      if ((!init_done)) {
+    };
+
+    dispatch_obj(operation, obj) {
+      var self = this, init_done, type, method, result;
+      init_done = self.init$;
+      if (! init_done) {
         self.init();
       }
-      (self.$.init = true);
-      (type = obj.schema_class());
-      (method = S("", operation, "_", type.name(), "").to_s());
-      if ((!self.respond_to_P(method))) {
-        (method = self.find_op(operation, type));
+      self.init$ = true;
+      type = obj.schema_class();
+      method = Enso.S(operation, "_", type.name()).to_s();
+      if (! self.respond_to_P(method)) {
+        method = self.find_op(operation, type);
       }
-      if ((!method)) {
-        (method = S("", operation, "_?").to_s());
-        if ((!self.respond_to_P(method))) {
-          self.raise(S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
+      if (! method) {
+        method = Enso.S(operation, "_?").to_s();
+        if (! self.respond_to_P(method)) {
+          self.raise(Enso.S("Missing method in interpreter for ", operation, "_", type.name(), "(", obj, ")"));
         }
       }
-      if (self.$.indent) {
-        puts(S("", (" " * self.$.indent), "", method, ""));
-        (self.$.indent = (self.$.indent + 1));
+      if (self.indent$) {
+        STDERR.puts(Enso.S(" " * self.indent$, method));
+        self.indent$ = self.indent$ + 1;
       }
-      (result = self.send(method, obj));
-      if (self.$.indent) {
-        puts(S("", (" " * self.$.indent), "=", result, ""));
-        (self.$.indent = (self.$.indent - 1));
+      result = self.send(method, obj);
+      if (self.indent$) {
+        STDERR.puts(Enso.S(" " * self.indent$, "=", result));
+        self.indent$ = self.indent$ - 1;
       }
-      if ((!init_done)) {
-        (self.$.init = false);
+      if (! init_done) {
+        self.init$ = false;
       }
       return result;
-    }));
-    (this.find_op = (function (operation, type) {
-      var self = this;
-      var method;
-      (method = S("", operation, "_", type.name(), "").to_s());
-      if (self.respond_to_P(method)) { 
-        return method; 
-      }
-      else { 
-        return type.supers().find_first((function (p) {
+    };
+
+    find_op(operation, type) {
+      var self = this, method;
+      method = Enso.S(operation, "_", type.name()).to_s();
+      if (self.respond_to_P(method)) {
+        return method;
+      } else {
+        return type.supers().find_first(function(p) {
           return self.find_op(operation, p);
-        }));
+        });
       }
-    }));
-  }));
-  (Interpreter = {
-    Dispatcher: Dispatcher,
-    DynamicPropertyStack: DynamicPropertyStack
-  });
-  return Interpreter;
-}));
+    }; }};
+
+Interpreter = {
+  DynamicPropertyStack: DynamicPropertyStack,
+  Dispatcher: Dispatcher,
+};
+module.exports = Interpreter ;

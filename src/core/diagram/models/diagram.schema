@@ -65,7 +65,7 @@ class Font < Style
   style: str?    // italic | oblique
   variant: str?  // smallcaps
   weight: str?  // bold | light
-  size: int
+  points: int
   family: str?   // font name or generic family (like "serif", "sans-serif", "cursive", "fantasy", "monospace")
   color! Color?
   

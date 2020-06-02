@@ -21,7 +21,7 @@ module Lambda
     def eval_App(obj)
       fun = eval(obj.fun)
       arg = eval(obj.arg)
-      if fun and arg and fun.Lambda?
+      if fun and arg and fun.is_a?("Lambda")
       end
     end
 

@@ -16,7 +16,7 @@ module AttrGrammar
     fields.each do |k,v|
       f= type.all_fields[k]
       if !f.many
-        if f.type.Primitive?
+        if f.type.is_a?("Primitive")
         else
           deps[v] = [] unless deps[v]
           deps[v] << self unless deps[v].include? self

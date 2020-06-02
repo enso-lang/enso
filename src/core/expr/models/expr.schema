@@ -48,9 +48,6 @@ class ESubscript < Expr
 class EList < Expr
   elems! Expr*
 
-class EAddress < Expr
-  e! Expr
-
 class ENew < Expr
   \class: str
 

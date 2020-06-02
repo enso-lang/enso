@@ -1,0 +1,199 @@
+{
+  "filename": "boiler.piping",
+  "source": "demo/Piping/example/boiler.piping",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "1ee8fb08f0699f9479ade50695b4b5267159fa78",
+  "depends": [
+    {
+      "filename": "piping.grammar",
+      "source": "demo/Piping/models/piping.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "287651e4e23176eccf803292fe718558e0e8f384"
+    },
+    {
+      "filename": "piping.schema",
+      "source": "demo/Piping/models/piping.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "cf65d73772de7d0152f73a575c7f2840a0a7e20b"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "System",
+    "elements#": [
+      {
+        "class": "Source",
+        "name=": "I",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[I]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "kind=": "water"
+      },
+      {
+        "class": "Source",
+        "name=": "G",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[G]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "kind=": "gas"
+      },
+      {
+        "class": "Burner",
+        "name=": "Burner",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Burner]",
+            "output": "elements[Pump]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "inputs": [
+          "elements[Return].outputs[0]"
+        ],
+        "gas": "elements[G].outputs[0]"
+      },
+      {
+        "class": "Pump",
+        "name=": "Pump",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Pump]",
+            "output": "elements[Valve]",
+            "diameter=": 0.1,
+            "length=": 10.0
+          }
+        ],
+        "inputs": [
+          "elements[Burner].outputs[0]"
+        ]
+      },
+      {
+        "class": "Splitter",
+        "name=": "Valve",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Valve]",
+            "output": "elements[Boiler]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          },
+          {
+            "class": "Pipe",
+            "input": "elements[Valve]",
+            "output": "elements[Radiator]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "inputs": [
+          "elements[Pump].outputs[0]"
+        ]
+      },
+      {
+        "class": "Vessel",
+        "sensor": "sensors[Boiler_Temp]",
+        "name=": "Boiler",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Boiler]",
+            "output": "elements[Return]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "inputs": [
+          "elements[Valve].outputs[0]"
+        ],
+        "capacity=": 0.0
+      },
+      {
+        "class": "Radiator",
+        "sensor": "sensors[Radiator_Temp]",
+        "name=": "Radiator",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Radiator]",
+            "output": "elements[Return]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "inputs": [
+          "elements[Valve].outputs[1]"
+        ]
+      },
+      {
+        "class": "Joint",
+        "name=": "Return",
+        "outputs": [
+          {
+            "class": "Pipe",
+            "input": "elements[Return]",
+            "output": "elements[Burner]",
+            "diameter=": 0.0,
+            "length=": 0.0
+          }
+        ],
+        "inputs": [
+          "elements[Boiler].outputs[0]",
+          "elements[Radiator].outputs[0]"
+        ]
+      }
+    ],
+    "sensors#": [
+      {
+        "class": "Sensor",
+        "name=": "Radiator_Temp",
+        "kind=": "temperature",
+        "controllable=": true,
+        "attach": "elements[Radiator]"
+      },
+      {
+        "class": "Sensor",
+        "name=": "Boiler_Temp",
+        "kind=": "temperature",
+        "controllable=": true,
+        "attach": "elements[Boiler]"
+      }
+    ]
+  }
+}

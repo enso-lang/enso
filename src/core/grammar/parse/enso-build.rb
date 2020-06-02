@@ -21,7 +21,7 @@ module EnsoBuild
       build_sppf(sppf, nil, accu = {}, nil, fixes = [], paths = {})
       obj = accu.values.first
       imports.each do |import|
-        obj._graph_id.unsafe_mode {
+        obj.graph_identity.unsafe_mode {
           obj = Union::CopyInto(obj.factory, import, obj)
         }
       end
@@ -152,7 +152,7 @@ module EnsoBuild
       # sppf.kids.each do |k|
       #   puts "sppf.k = #{k}"
       #   puts "sppf.k.nxt = #{k.type.nxt}"
-      #   puts "sppf.k.original = #{k.type.nxt.Rule? && k.type.nxt.original}"
+      #   puts "sppf.k.original = #{k.type.nxt.is_a?("Rule") && k.type.nxt.original}"
       # end
       
       File.open('amb.dot', 'w') do |f|
@@ -194,7 +194,7 @@ module EnsoBuild
 
 
     def convert_value(value, type)
-      return value unless type.Primitive?
+      return value unless type.is_a?("Primitive")
       case type.name
       when "str" then value
       when "bool" then value == "true"
@@ -213,7 +213,7 @@ module EnsoBuild
         later = []
         change = false
         fixes.each do |fix|
-          helper = Paths::new(fix.path)
+          helper = Schemapath::make(fix.path)
           x = helper.dynamic_bind root: root, this: fix.obj, it: fix.it do
             helper.eval
           end

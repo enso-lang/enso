@@ -1,0 +1,231 @@
+{
+  "filename": "housing.ql",
+  "source": "demo/Questionaire/test/housing.ql",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "1fd708c8ab2b87cfeafd6f6d1a8ab8c5a18b8c99",
+  "depends": [
+    {
+      "filename": "ql.grammar",
+      "source": "demo/Questionaire/models/ql.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "638494250476e9601fa146993168541ab53721c9"
+    },
+    {
+      "filename": "ql.schema",
+      "source": "demo/Questionaire/models/ql.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "cb7824d8b42c30b55853859f05ec6f054c1a13c1"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "prelude.ql",
+      "source": "demo/Questionaire/models/prelude.ql",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a18daeacc60065531041439d95353a3f395fcaca"
+    }
+  ],
+  "model": {
+    "class": "Questionaire",
+    "title=": "House buying survey",
+    "elems": [
+      {
+        "class": "Question",
+        "name=": "hasSoldHouse",
+        "qn=": "Did you sell a house in 2010?",
+        "ans": "answers[boolean]",
+        "response": {
+          "class": "EIntConst",
+          "val=": 0
+        }
+      },
+      {
+        "class": "Question",
+        "name=": "hasBoughtHouse",
+        "qn=": "Did you buy a house in 2010?",
+        "ans": "answers[boolean]",
+        "response": {
+          "class": "EIntConst",
+          "val=": 0
+        }
+      },
+      {
+        "class": "Question",
+        "name=": "hasMaintLoan",
+        "qn=": "Did you enter a loan for maintenance/reconstruction?",
+        "ans": "answers[money]",
+        "response": {
+          "class": "EIntConst",
+          "val=": 0
+        }
+      },
+      {
+        "class": "Group",
+        "elems": [
+          {
+            "class": "Question",
+            "name=": "location",
+            "qn=": "In which cities have you sold a house?",
+            "ans": "answers[locations]",
+            "response": {
+              "class": "EIntConst",
+              "val=": 0
+            }
+          },
+          {
+            "class": "Question",
+            "name=": "sellingPrice",
+            "qn=": "Price the house was sold for:",
+            "ans": "answers[money]",
+            "response": {
+              "class": "EIntConst",
+              "val=": 0
+            }
+          },
+          {
+            "class": "Question",
+            "name=": "privateDebt",
+            "qn=": "Private debts for the sold house:",
+            "ans": "answers[money]",
+            "response": {
+              "class": "EIntConst",
+              "val=": 0
+            }
+          },
+          {
+            "class": "Question",
+            "name=": "valueResidue",
+            "qn=": "Value residue:",
+            "ans": "answers[value]",
+            "response": {
+              "class": "EIntConst",
+              "val=": 0
+            }
+          }
+        ],
+        "guard": {
+          "class": "EBinOp",
+          "op=": ">",
+          "e1": {
+            "class": "EField",
+            "e": {
+              "class": "EField",
+              "e": {
+                "class": "EVar",
+                "name=": "hasMaintLoan"
+              },
+              "fname=": "response"
+            },
+            "fname=": "val"
+          },
+          "e2": {
+            "class": "EIntConst",
+            "val=": 1000
+          }
+        }
+      }
+    ],
+    "answers#": [
+      {
+        "class": "CheckBox",
+        "name=": "locations",
+        "type=": "str",
+        "choices#": [
+          {
+            "class": "Label",
+            "string=": "Austin"
+          },
+          {
+            "class": "Label",
+            "string=": "Amsterdam"
+          },
+          {
+            "class": "Label",
+            "string=": "Cambridge"
+          }
+        ]
+      },
+      {
+        "class": "Computed",
+        "name=": "value",
+        "type=": "int",
+        "expr": {
+          "class": "EBinOp",
+          "op=": "-",
+          "e1": {
+            "class": "EField",
+            "e": {
+              "class": "EField",
+              "e": {
+                "class": "EVar",
+                "name=": "sellingPrice"
+              },
+              "fname=": "response"
+            },
+            "fname=": "val"
+          },
+          "e2": {
+            "class": "EField",
+            "e": {
+              "class": "EField",
+              "e": {
+                "class": "EVar",
+                "name=": "privateDebt"
+              },
+              "fname=": "response"
+            },
+            "fname=": "val"
+          }
+        }
+      },
+      {
+        "class": "MultiChoice",
+        "name=": "boolean",
+        "type=": "bool",
+        "choices#": [
+          {
+            "class": "Label",
+            "string=": "Yes"
+          },
+          {
+            "class": "Label",
+            "string=": "No"
+          }
+        ]
+      },
+      {
+        "class": "TextBox",
+        "name=": "money",
+        "type=": "int"
+      }
+    ]
+  }
+}

@@ -38,7 +38,7 @@ class Parse
         u.factory.file_path.each  {|p| deps << p}
         if as 
           if imp.split('.')[1]=="schema" #we only know how to rename schemas and grammars right now
-            u = Union::Copy(Factory::SchemaFactory.new(Load::load('schema.schema')), u)
+            u = Union::Copy(Factory::SchemaFactory::SchemaFactory.new(Load::load('schema.schema')), u)
             as.split(' ').select{|x|x!="as"}.each_slice(2) do |from, to|
               rename_schema!(u, from, to)
             end
@@ -55,7 +55,7 @@ class Parse
     end
     source = "\n"*i+s[i..-1].join("\n") #replace import lines from source with blanks
                                         # do not simply remove as this messes up source line numbers
-    data = load_raw(source, grammar, schema, Factory::new(schema), imports, false, filename)
+    data = load_raw(source, grammar, schema, Factory::SchemaFactory.new(schema), imports, false, filename)
     deps.uniq.each {|p| data.factory.file_path << p}
     return data.finalize
   end

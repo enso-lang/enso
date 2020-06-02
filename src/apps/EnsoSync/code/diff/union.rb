@@ -13,7 +13,7 @@ class Union
     return d2 if d1.nil?
 
     # if either is not an modify then no need to recurse
-    if !DeltaTransform.isModifyChange?(d1) or !DeltaTransform.isModifyChange?(d2)
+    if !DeltaTransform.isis_a?("ModifyChange")(d1) or !DeltaTransform.isis_a?("ModifyChange")(d2)
       if Equals.equals(d1,d2)
         return d1
       else
@@ -38,7 +38,7 @@ class Union
       end
 
       if not f.many
-        if DeltaTransform.isPrimitive?(f1)	#note that f.type is always non-primitive!
+        if DeltaTransform.isis_a?("Primitive")(f1)	#note that f.type is always non-primitive!
           res[f.name] = f1
         else
           res[f.name] = union(f1, f2, factory, resolver)
@@ -61,12 +61,12 @@ class Union
         m1.keys.each do |k|
           next if not m2.has_key?(k)
 
-          d1ins = m1[k].select{|x| DeltaTransform.isInsertChange?(x)}
-          d2ins = m2[k].select{|x| DeltaTransform.isInsertChange?(x)}
-          d1del = m1[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
-          d2del = m2[k].find_first {|x| DeltaTransform.isDeleteChange?(x)}
-          d1mod = m1[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
-          d2mod = m2[k].find_first {|x| DeltaTransform.isModifyChange?(x)}
+          d1ins = m1[k].select{|x| DeltaTransform.isis_a?("InsertChange")(x)}
+          d2ins = m2[k].select{|x| DeltaTransform.isis_a?("InsertChange")(x)}
+          d1del = m1[k].find_first {|x| DeltaTransform.isis_a?("DeleteChange")(x)}
+          d2del = m2[k].find_first {|x| DeltaTransform.isis_a?("DeleteChange")(x)}
+          d1mod = m1[k].find_first {|x| DeltaTransform.isis_a?("ModifyChange")(x)}
+          d2mod = m2[k].find_first {|x| DeltaTransform.isis_a?("ModifyChange")(x)}
 
           if !d1ins.empty? and !d2ins.empty?
             for i in 0..[d1ins.size,d2ins.size].max-1

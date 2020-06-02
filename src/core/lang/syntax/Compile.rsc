@@ -364,15 +364,10 @@ list[Statement] declareClass(str name, Expression super, STMTS body) {
   //println("CLS: <classStmts>");
   
   CURRENT_METHOD = "";
-  ss = l(Statement::varDecl([variableDeclarator(Pattern::variable(name), 
-               Init::expression(call(Expression::variable("MakeClass"), 
-                  [literal(string("<name>")), 
-                  super,
-                  Expression::array(mods),
-                  Expression::function("", [], [], "", classStmts)
-                  ,
-                  makeFunc([Pattern::variable("super$")], body, [], EMPTY, {}, class=true)
-                  ])))], "var"));
+  ss = l(Statement::classDecl(name, 
+                  super, // mods!
+                  classStmts
+                  ));
   popScope();
   return ss;               
 }

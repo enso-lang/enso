@@ -24,7 +24,7 @@ class SpineToDot
     prims = []
     obj.schema_class.all_fields.each do |fld|
       next if fld.computed
-      if fld.type.Primitive? then
+      if fld.type.is_a?("Primitive") then
         label = obj[fld.name].inspect.gsub('>', '&gt;').gsub('<', '&lt;').gsub('&', '&amp;')
         label.gsub!("\"", "\\\"")
         n = node(obj) + "_#{fld.name} [label=\"#{label}\"]"
@@ -34,7 +34,7 @@ class SpineToDot
         next unless fld.traversal
         if fld.many then
           next if obj[fld.name].empty?
-          from = "coll#{obj[fld.name].object_id}"
+          from = "coll#{obj[fld.name].objectidentity}"
           @nodes.unshift("#{from} [shape=point,label=\"\"]")
           edge = "#{node(obj)} -> #{from} [dir=both,label="
           edge << "\"#{fld.name}\","
@@ -56,13 +56,13 @@ class SpineToDot
         end
       end
     end
-    head = obj.schema_class.name #  "#{obj._id}:#{obj.schema_class.name}"
+    head = obj.schema_class.name #  "#{obj.identity}:#{obj.schema_class.name}"
     @nodes.unshift("#{node(obj)} [shape=Mrecord,label=\"#{head}\"]")
     node(obj)
   end
 
   def node(obj)
-    "n#{obj._id}"
+    "n#{obj.identity}"
   end
 end
 

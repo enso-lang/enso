@@ -1,0 +1,627 @@
+{
+  "filename": "piping-sim.schema",
+  "source": "demo/Piping/models/piping-sim.schema",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "3b07f4662c9013d9b1869afa5981629c67b13880",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "piping.schema",
+      "source": "demo/Piping/models/piping.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "cf65d73772de7d0152f73a575c7f2840a0a7e20b"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "real",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Pipe",
+        "schema": "",
+        "supers#": [
+          "types[Attachable]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "in_pressure",
+            "owner": "types[Pipe]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "out_pressure",
+            "owner": "types[Pipe]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "temperature",
+            "owner": "types[Pipe]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "input",
+            "owner": "types[Pipe]",
+            "type": "types[OutputElement]",
+            "inverse": "types[OutputElement].defined_fields[outputs]"
+          },
+          {
+            "class": "Field",
+            "name=": "output",
+            "owner": "types[Pipe]",
+            "type": "types[InputElement]",
+            "optional=": true,
+            "inverse": "types[InputElement].defined_fields[inputs]"
+          },
+          {
+            "class": "Field",
+            "name=": "diameter",
+            "owner": "types[Pipe]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "length",
+            "owner": "types[Pipe]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "area",
+            "owner": "types[Pipe]",
+            "type": "types[real]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "/",
+              "e1": {
+                "class": "EBinOp",
+                "op=": "*",
+                "e1": {
+                  "class": "EBinOp",
+                  "op=": "*",
+                  "e1": {
+                    "class": "EVar",
+                    "name=": "diameter"
+                  },
+                  "e2": {
+                    "class": "EVar",
+                    "name=": "diameter"
+                  }
+                },
+                "e2": {
+                  "class": "ERealConst",
+                  "val=": 3.14
+                }
+              },
+              "e2": {
+                "class": "EIntConst",
+                "val=": 4
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "volume",
+            "owner": "types[Pipe]",
+            "type": "types[real]",
+            "computed": {
+              "class": "EBinOp",
+              "op=": "*",
+              "e1": {
+                "class": "EVar",
+                "name=": "area"
+              },
+              "e2": {
+                "class": "EVar",
+                "name=": "length"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Element",
+        "schema": "",
+        "supers#": [
+          "types[Attachable]"
+        ],
+        "subclasses#": [
+          "types[OutputElement]",
+          "types[InputElement]",
+          "types[Room]",
+          "types[End]",
+          "types[Burner]",
+          "types[Radiator]",
+          "types[Vessel]",
+          "types[Splitter]",
+          "types[Pump]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Element]",
+            "type": "types[str]",
+            "key=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Temperatured",
+        "schema": "",
+        "subclasses#": [
+          "types[Burner]",
+          "types[Radiator]",
+          "types[Vessel]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "temperature",
+            "owner": "types[Temperatured]",
+            "type": "types[real]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "End",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "subclasses#": [
+          "types[Source]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Source",
+        "schema": "",
+        "supers#": [
+          "types[OutputElement]",
+          "types[End]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "pressure",
+            "owner": "types[Source]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "kind",
+            "owner": "types[Source]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Burner",
+        "schema": "",
+        "supers#": [
+          "types[IO]",
+          "types[Element]",
+          "types[Temperatured]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "ignite",
+            "owner": "types[Burner]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "gas",
+            "owner": "types[Burner]",
+            "type": "types[Pipe]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Radiator",
+        "schema": "",
+        "supers#": [
+          "types[IO]",
+          "types[Element]",
+          "types[Temperatured]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Room",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "temperature",
+            "owner": "types[Room]",
+            "type": "types[real]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Vessel",
+        "schema": "",
+        "supers#": [
+          "types[IO]",
+          "types[Element]",
+          "types[Temperatured]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "contents",
+            "owner": "types[Vessel]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "capacity",
+            "owner": "types[Vessel]",
+            "type": "types[real]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Splitter",
+        "schema": "",
+        "supers#": [
+          "types[IO]",
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "position",
+            "owner": "types[Splitter]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "left",
+            "owner": "types[Splitter]",
+            "type": "types[Pipe]",
+            "computed": {
+              "class": "ESubscript",
+              "e": {
+                "class": "EVar",
+                "name=": "outputs"
+              },
+              "sub": {
+                "class": "EIntConst",
+                "val=": 0
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "right",
+            "owner": "types[Splitter]",
+            "type": "types[Pipe]",
+            "computed": {
+              "class": "ESubscript",
+              "e": {
+                "class": "EVar",
+                "name=": "outputs"
+              },
+              "sub": {
+                "class": "EIntConst",
+                "val=": 1
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Pump",
+        "schema": "",
+        "supers#": [
+          "types[IO]",
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "power",
+            "owner": "types[Pump]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "run",
+            "owner": "types[Pump]",
+            "type": "types[bool]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Sensor",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "user",
+            "owner": "types[Sensor]",
+            "type": "types[real]"
+          },
+          {
+            "class": "Field",
+            "name=": "value",
+            "owner": "types[Sensor]",
+            "type": "types[real]",
+            "computed": {
+              "class": "ESubscript",
+              "e": {
+                "class": "EVar",
+                "name=": "attach"
+              },
+              "sub": {
+                "class": "EVar",
+                "name=": "kind"
+              }
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Sensor]",
+            "type": "types[str]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "kind",
+            "owner": "types[Sensor]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "controllable",
+            "owner": "types[Sensor]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
+            "name=": "attach",
+            "owner": "types[Sensor]",
+            "type": "types[Attachable]",
+            "inverse": "types[Attachable].defined_fields[sensor]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "System",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "elements",
+            "owner": "types[System]",
+            "type": "types[Element]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "sensors",
+            "owner": "types[System]",
+            "type": "types[Sensor]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Attachable",
+        "schema": "",
+        "subclasses#": [
+          "types[Pipe]",
+          "types[Element]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "sensor",
+            "owner": "types[Attachable]",
+            "type": "types[Sensor]",
+            "optional=": true,
+            "inverse": "types[Sensor].defined_fields[attach]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "OutputElement",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "subclasses#": [
+          "types[IO]",
+          "types[Source]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "outputs",
+            "owner": "types[OutputElement]",
+            "type": "types[Pipe]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Pipe].defined_fields[input]",
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "output",
+            "owner": "types[OutputElement]",
+            "type": "types[Pipe]",
+            "computed": {
+              "class": "ESubscript",
+              "e": {
+                "class": "EVar",
+                "name=": "outputs"
+              },
+              "sub": {
+                "class": "EIntConst",
+                "val=": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "InputElement",
+        "schema": "",
+        "supers#": [
+          "types[Element]"
+        ],
+        "subclasses#": [
+          "types[IO]",
+          "types[Exhaust]"
+        ],
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "inputs",
+            "owner": "types[InputElement]",
+            "type": "types[Pipe]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Pipe].defined_fields[output]"
+          },
+          {
+            "class": "Field",
+            "name=": "input",
+            "owner": "types[InputElement]",
+            "type": "types[Pipe]",
+            "computed": {
+              "class": "ESubscript",
+              "e": {
+                "class": "EVar",
+                "name=": "inputs"
+              },
+              "sub": {
+                "class": "EIntConst",
+                "val=": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "IO",
+        "schema": "",
+        "supers#": [
+          "types[OutputElement]",
+          "types[InputElement]"
+        ],
+        "subclasses#": [
+          "types[Joint]",
+          "types[Burner]",
+          "types[Radiator]",
+          "types[Vessel]",
+          "types[Valve]",
+          "types[Splitter]",
+          "types[Pump]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Joint",
+        "schema": "",
+        "supers#": [
+          "types[IO]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Exhaust",
+        "schema": "",
+        "supers#": [
+          "types[InputElement]"
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Valve",
+        "schema": "",
+        "supers#": [
+          "types[IO]"
+        ]
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      }
+    ]
+  }
+}

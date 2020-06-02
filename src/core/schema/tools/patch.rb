@@ -14,7 +14,7 @@ module Patch
       fixes.each do |fix|
         if fix.value.nil?
           val = nil
-        elsif fix.path.type(o).type.Primitive?
+        elsif fix.path.type(o).type.is_a?("Primitive")
           val = fix.value
         elsif fix.path.type(o).traversal
           val = factory[fix.value]

@@ -39,7 +39,7 @@ module Interpreter
       if @D.nil?
         @D = DynamicPropertyStack.new
       end
-      fields.each do |key, value|
+      fields.each do |value, key|
         @D._bind(key, value)
       end
       result = block.call

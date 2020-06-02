@@ -1,11 +1,12 @@
 
-require 'core/schema/code/dynamic'
-require 'core/system/utils/paths'
+require 'core/system/utils/schemapath'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/impl'
 require 'core/expr/code/env'
 require 'core/expr/code/freevar'
+require 'enso'
+require 'core/schema/code/dynamic'
 
 #=begin
 
@@ -19,15 +20,16 @@ require 'core/expr/code/freevar'
 
 
 module Factory
-  def self.new(schema)
+  def self.make(schema)
     SchemaFactory.new(schema)
   end
   
-  class SchemaFactory
+  class SchemaFactory < Enso::EnsoBaseClass
     attr_reader :schema
     attr_accessor :file_path
 
     def initialize(schema)
+      super()
       @schema = schema
       @roots = []
       @file_path = []
@@ -89,26 +91,46 @@ module Factory
     end
   end
 
-  class MObject < EnsoProxyObject
+  # define a singleton instance 
+  class IDCounterClass
+    def initialize()
+      @id = 0
+    end
+    
+    def next()
+      @id = @id + 1
+      @id;
+    end
+  end
+  IDCounter = IDCounterClass.new()
+
+  class MObject < Enso::EnsoProxyObject
     attr_accessor :_origin # source location
-    attr_reader :_id
     attr_reader :factory
     attr_accessor :extra_instance_data  # these are used for rendering optimization which is turned off
     attr_reader :props
+    attr_reader :identity
 
-    @@_id = 0
-
+    def _id() @identity; end
     def initialize(klass, factory, *args)
-      @_id = @@_id += 1
+      super()
+      @identity = IDCounter.next()
       @listeners = {}
       @props = {}
       @path = nil
 
       # define accessors and updators
       define_singleton_value(:schema_class, klass)
-      # setup
+      setupFromSchema(klass, factory, args)
+    end
+    
+    def setupFromSchema(klass, factory, args)
       @factory = factory
-      __is_a(klass)
+      
+      define_singleton_method("is_a?") do |type|
+        type == klass.name
+      end
+      
       __to_s(klass)
       # create the fields
       klass.all_fields.each do |fld|
@@ -132,7 +154,7 @@ module Factory
       if fld.computed then
         __computed(fld)
       elsif !fld.many then
-        if fld.type.Primitive?
+        if fld.type.is_a?("Primitive")
           prop = Prim.new(self, fld)
         else
           prop = Ref.new(self, fld)
@@ -155,36 +177,31 @@ module Factory
       @props[name]
     end
 
-    def __is_a(klass)
-      klass.schema.classes.each do |cls|
-        val = Schema.subclass? klass, cls
-        define_singleton_value("#{cls.name}?", val)
-      end
-    end
         
     def __to_s(cls)
-      k = cls.key || cls.fields.find{|f| f.type.Primitive? }
+      k = cls.key || cls.fields.find{|f| f.type.is_a?("Primitive") }
       if k then
         define_singleton_method(:to_s) do
-          "<<#{cls.name} #{self._id} '#{self[k.name]}'>>"
+          "<<#{cls.name} #{self.identity} '#{self[k.name]}'>>"
         end
       else
-        define_singleton_value(:to_s, "<<#{cls.name} #{self._id}>>")
+        define_singleton_value(:to_s, "<<#{cls.name} #{self.identity}>>")
       end
     end
+    
     def inspect
       to_s
     end
 
     def __computed(fld)
       # check if this is a computed override of a field
-      if fld.computed.EList? && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
+      if fld.computed.is_a?("EList") && (c = fld.owner.supers.find {|c| c.all_fields[fld.name]})
         #puts "LIST #{fld.name} overrides #{c.name}"
         base = c.all_fields[fld.name]
         if base.inverse
-          fld.computed.elems.each do |var|
-            raise "Field override #{fld.name} includes non-var #{var}" if !var.EVar?
-            __get(var.name)._set_inverse = base.inverse
+          fld.computed.elems.each do |v|
+            raise "Field override #{fld.name} includes non-var #{v}" if !v.is_a?("EVar")
+            __get(v.name)._set_inverse = base.inverse
           end
         end
       end
@@ -194,7 +211,7 @@ module Factory
       val = nil
       define_singleton_method(name) do
         if val.nil?
-          fvs = fvInterp.dynamic_bind(env: Env::ObjEnv.new(self), bound: []) do
+          fvs = fvInterp.dynamic_bind({env: Env::ObjEnv.new(self), bound: []}) do
             fvInterp.depends(exp)
           end
           fvs.each do |fv|
@@ -218,7 +235,7 @@ module Factory
       end
     end
 
-    def _graph_id
+    def graph_identity
       @factory 
     end
 
@@ -279,7 +296,7 @@ module Factory
 
     def _path
       if @path.nil?
-        @path = __shell ? __shell._path(self) : Paths::Path.new
+        @path = __shell ? __shell._path(self) : Schemapath::Path.new
       end
       @path
     end
@@ -313,11 +330,11 @@ module Factory
     end
 
     def equals(o)
-      o && o.is_a?(MObject) && _id == o._id
+      o && o.is_a?(MObject) && identity == o.identity
     end
 
     def hash
-      @_id 
+      @identity 
     end
 
     def finalize
@@ -331,7 +348,7 @@ module Factory
 
   end
 
-  class Field
+  class Field < Enso::EnsoBaseClass
     # fields have origins for primitives, spine refs
     # and cross refs. For spine refs
     # this origin is the same as the _origin
@@ -339,6 +356,7 @@ module Factory
     attr_accessor :_origin
 
     def initialize(owner, field)
+      super();
       @owner = owner
       @field = field
       @inverse = field.inverse if field # might get overriden!!
@@ -361,7 +379,7 @@ module Factory
   class Single < Field
     def initialize(owner, field)
       super(owner, field)
-      @value = default
+      @value = defaultValue()
     end
 
     def set(value)
@@ -378,7 +396,7 @@ module Factory
       set(value) 
     end
 
-    def default 
+    def defaultValue 
       nil 
     end
   end
@@ -387,24 +405,24 @@ module Factory
     def check(value)
       if !@field.optional || !value.nil? 
         ok = case @field.type.name
-        when 'str' then
-          value.is_a?(String)
-        when 'int'
-          value.is_a?(Integer)
-        when 'bool'
-          value.is_a?(TrueClass) || value.is_a?(FalseClass)
-        when 'real'
-          value.is_a?(Numeric)
-        when 'datetime'
-          value.is_a?(DateTime)
-        when 'atom'
-          value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
-        end
-        raise "Invalid value for #{@field.name}:#{@field.type.name} = #{value} #{value.class}" if !ok 
+			        when 'str' then
+			          value.is_a?(String)
+			        when 'int'
+			          value.is_a?(Integer)
+			        when 'bool'
+			          value.is_a?(TrueClass) || value.is_a?(FalseClass)
+			        when 'real'
+			          value.is_a?(Numeric)
+			        when 'datetime'
+			          value.is_a?(DateTime)
+			        when 'atom'
+			          value.is_a?(Numeric) || value.is_a?(String) || value.is_a?(TrueClass) || value.is_a?(FalseClass)
+			        end
+        raise "Invalid value for #{@field.name}:#{@field.type.name} = #{value}" if !ok 
       end
     end
 
-    def default
+    def defaultValue
       if !@field.optional
         case @field.type.name
         when 'str' then ''
@@ -424,7 +442,7 @@ module Factory
     def to_ary 
       @value.values 
     end
-
+    
     def union(other)
       # left-biased: field is from self
       result = Set.new(nil, @field, __key || other.__key)
@@ -499,6 +517,8 @@ module Factory
   end
 
   module ListUtils
+    include Enso::Enumerable
+    
     def each_with_match(other, &block)
       if !empty? then
         each do |item|
@@ -543,20 +563,16 @@ module Factory
     end
 
     def check(mobj)
-      if !@owner._graph_id.unsafe?
+      if !@owner.graph_identity.unsafe?
         if mobj || !@field.optional
           if mobj.nil? then
             raise "Cannot assign nil to non-optional field '#{@field.owner.name}.#{@field.name}'"
           end
-          begin
-	          if !Schema::subclass?(mobj.schema_class, @field.type) then
-	            puts "TEST FOUND #{mobj.schema_class} EXPECTED #{@field.type}"
-	            raise "Invalid value for #{@field.owner.name}.#{@field.name}:#{@field.type.name} found [#{mobj}]"
-	          end
-	        rescue
-	          raise "Invalid value for #{@field.owner.name}.#{@field.name}:#{@field.type.name} found [#{mobj}]"
-	        end
-          if mobj._graph_id != @owner._graph_id then
+          #puts "SUBCLASS* #{mobj.schema_class} = #{@field.type}" 
+          if !Schema::subclass?(mobj.schema_class, @field.type)
+            raise "Invalid value for #{@field.owner.name}.#{@field.name}:#{@field.type.name} found #{mobj}"
+          end
+          if mobj.graph_identity != @owner.graph_identity
             raise "Inserting object #{mobj} into the wrong model"
           end
         end
@@ -595,7 +611,7 @@ module Factory
 
   class Many < Field
     include RefHelpers
-    include Enumerable
+    include Enso::Enumerable
 
     def get
       self 
@@ -663,9 +679,6 @@ module Factory
       end
     end
     
-    def to_s
-      "<MANY #{map{|x| x.to_s}}>"
-    end
   end
 
   class Set < Many
@@ -705,7 +718,7 @@ module Factory
     # to support key changes in object
     def _recompute_hash!
       nval = {}
-      @value.each do |k,v|
+      @value.each do |k, v|
         nval[v[@key.name]] = v
       end
       @value = nval
@@ -801,9 +814,7 @@ module Factory
     end
     
     def []=(index, mobj)
-      if !mobj
-        raise "Cannot insert nil into list"
-      end 
+      raise "Cannot insert nil into list" if !mobj
       old = __value[index.to_i]
       if old != mobj
         check(mobj)

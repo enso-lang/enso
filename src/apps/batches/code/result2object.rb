@@ -18,7 +18,7 @@ class Result2Object
     @schema = SecureSchema.secure_transform!(Clone(schema))
     puts "Schema is: "
     Print::Print.print(@schema)
-    @factory = Factory::new(@schema)
+    @factory = Factory::SchemaFactory.new(@schema)
     @root = @factory[@schema.root]
   end
 

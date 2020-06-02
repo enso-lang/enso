@@ -1,0 +1,105 @@
+{
+  "filename": "door.state_machine",
+  "source": "demo/StateMachine/tests/door.state_machine",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "2c3fba5e30a33bbe007c7036eedc5c9aa071364a",
+  "depends": [
+    {
+      "filename": "state_machine.grammar",
+      "source": "demo/StateMachine/models/state_machine.grammar",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "4d0462367eb9c994d3f431a52eea185d615f6ae4"
+    },
+    {
+      "filename": "state_machine.schema.json",
+      "source": "cache/state_machine.schema.json",
+      "date": "2020-05-10 00:38:50 -0500",
+      "checksum": "7b64e91703de5e019dec45987894cd1929e27087"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-10 21:25:24 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Machine",
+    "start": "states[Closed]",
+    "states#": [
+      {
+        "class": "State",
+        "machine": "",
+        "name=": "Opened",
+        "out#": [
+          {
+            "class": "Trans",
+            "event=": "close",
+            "from": "states[Opened]",
+            "to": "states[Closed]"
+          }
+        ],
+        "in#": [
+          "states[Closed].out[open]"
+        ]
+      },
+      {
+        "class": "State",
+        "machine": "",
+        "name=": "Closed",
+        "out#": [
+          {
+            "class": "Trans",
+            "event=": "open",
+            "from": "states[Closed]",
+            "to": "states[Opened]"
+          },
+          {
+            "class": "Trans",
+            "event=": "lock",
+            "from": "states[Closed]",
+            "to": "states[Locked]"
+          }
+        ],
+        "in#": [
+          "states[Opened].out[close]",
+          "states[Locked].out[unlock]"
+        ]
+      },
+      {
+        "class": "State",
+        "machine": "",
+        "name=": "Locked",
+        "out#": [
+          {
+            "class": "Trans",
+            "event=": "unlock",
+            "from": "states[Locked]",
+            "to": "states[Closed]"
+          }
+        ],
+        "in#": [
+          "states[Closed].out[lock]"
+        ]
+      }
+    ]
+  }
+}

@@ -57,7 +57,7 @@ module SimulatorInterpreter
       dynamic_bind(workqueue: []) do
         # add just the pump to the workqueue
         obj.elements.each do |elem|
-          if elem.Pump? or elem.Splitter?
+          if elem.is_a?("Pump") or elem.is_a?("Splitter")
             enqueue(elem)
           end
         end
@@ -127,13 +127,13 @@ module SimulatorInterpreter
         pressurize_pipes(elem, new_in, new_out)
       else
         # if not on then behave like normal element
-        calcPressure_?(elem)
+        calcis_a?("Pressure_")(elem)
       end
     end
 
     def calcPressure_Splitter(splitter)
       if splitter.position == 0.5 #do the normal thing
-        calcPressure_?(splitter)
+        calcis_a?("Pressure_")(splitter)
       else 
         if splitter.position == 0.0 #turn left
           #left pipe behaves as the only pipe
@@ -165,7 +165,7 @@ module SimulatorInterpreter
       end
     end
 
-    def calcPressure_?(elem)
+    def calcis_a?("Pressure_")(elem)
       num = elem.inputs.inject(0) {|memo, p| memo + p.in_pressure / p.length} + elem.outputs.inject(0) {|memo, p| memo + p.out_pressure / p.length}
       dem = elem.inputs.inject(0) {|memo, p| memo + 1.0 / p.length} + elem.outputs.inject(0) {|memo, p| memo + 1.0 / p.length}
       new_in = new_out = (num / dem).round(1)
@@ -249,7 +249,7 @@ module SimulatorInterpreter
       end
     end
 
-    def calcHeat_?(elem)
+    def calcis_a?("Heat_")(elem)
       in_temp = recv_heat(elem)
       send_heat(elem, in_temp)
       elem.outputs.each do |pipe|
@@ -274,10 +274,10 @@ class Simulator
         pipe.length = 10 #if pipe.length == 0
         pipe.diameter = 0.1 if pipe.diameter == 0
       end
-      if elem.Temperatured?
+      if elem.is_a?("Temperatured")
         elem.temperature = ROOM_TEMP
       end
-      if elem.Splitter?
+      if elem.is_a?("Splitter")
         elem.position = 0.5
       end
     end
@@ -298,14 +298,14 @@ class Simulator
     @sm.elements.each do |elem|
       begin
       print "#{elem.name[0..6]}"
-      if elem.Attachable? and not elem.sensor.nil?
+      if elem.is_a?("Attachable") and not elem.sensor.nil?
         print "\tT:#{elem.output.temperature} -> #{elem.sensor.user}"
-      elsif elem.Splitter?
+      elsif elem.is_a?("Splitter")
         print "\tT:#{elem.output.temperature} #{elem.position < 0.5 ? "<--" : (elem.position > 0.5 ? "-->" : "-O-")}"
       else
         print "\tT:#{elem.output.temperature}\t"
       end
-      if elem.Pump?
+      if elem.is_a?("Pump")
         print "\tP:#{elem.input.out_pressure}/#{elem.output.in_pressure} (#{elem.output.in_pressure-elem.input.out_pressure})"
       else
         print "\tP:#{elem.output.in_pressure}"

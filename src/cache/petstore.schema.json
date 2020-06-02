@@ -1,0 +1,457 @@
+{
+  "filename": "petstore.schema",
+  "source": "demo/PetStore/models/petstore.schema",
+  "date": "2020-04-27 10:58:20 -0500",
+  "checksum": "0cea3c5fac30f9bab8d0b42cb8fa87c5da2e1690",
+  "depends": [
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema.json",
+      "source": "core/system/boot/schema.schema.json",
+      "date": "2020-05-09 19:07:53 -0500",
+      "checksum": "bc307d58efaf3bb9c859ce40939cffe985f2e9b7"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-04-27 10:59:13 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-04-27 10:58:20 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    }
+  ],
+  "model": {
+    "class": "Schema",
+    "types#": [
+      {
+        "class": "Primitive",
+        "name=": "int",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "float",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "str",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "bool",
+        "schema": ""
+      },
+      {
+        "class": "Primitive",
+        "name=": "auto",
+        "schema": ""
+      },
+      {
+        "class": "Class",
+        "name=": "Catalog",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "categories",
+            "owner": "types[Catalog]",
+            "type": "types[Category]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "products",
+            "owner": "types[Catalog]",
+            "type": "types[Product]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "items",
+            "owner": "types[Catalog]",
+            "type": "types[Item]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "sellers",
+            "owner": "types[Catalog]",
+            "type": "types[SellerContactInfo]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "addresses",
+            "owner": "types[Catalog]",
+            "type": "types[Address]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          },
+          {
+            "class": "Field",
+            "name=": "tags",
+            "owner": "types[Catalog]",
+            "type": "types[Tag]",
+            "optional=": true,
+            "many=": true,
+            "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Category",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[Category]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Category]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "description",
+            "owner": "types[Category]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "imageurl",
+            "owner": "types[Category]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "map_coords",
+            "owner": "types[Category]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "products",
+            "owner": "types[Category]",
+            "type": "types[Product]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Product].defined_fields[category]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Product",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[Product]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Product]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "description",
+            "owner": "types[Product]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "imageURL",
+            "owner": "types[Product]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "category",
+            "owner": "types[Product]",
+            "type": "types[Category]",
+            "inverse": "types[Category].defined_fields[products]"
+          },
+          {
+            "class": "Field",
+            "name=": "items",
+            "owner": "types[Product]",
+            "type": "types[Item]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Item].defined_fields[product]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Item",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[Item]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "product",
+            "owner": "types[Item]",
+            "type": "types[Product]",
+            "inverse": "types[Product].defined_fields[items]"
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Item]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "description",
+            "owner": "types[Item]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "imageURL",
+            "owner": "types[Item]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "imageThumbURL",
+            "owner": "types[Item]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "price",
+            "owner": "types[Item]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "address",
+            "owner": "types[Item]",
+            "type": "types[Address]"
+          },
+          {
+            "class": "Field",
+            "name=": "contactInfo",
+            "owner": "types[Item]",
+            "type": "types[SellerContactInfo]"
+          },
+          {
+            "class": "Field",
+            "name=": "totalScore",
+            "owner": "types[Item]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "numberOfVotes",
+            "owner": "types[Item]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "disabled",
+            "owner": "types[Item]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "tags",
+            "owner": "types[Item]",
+            "type": "types[Tag]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Tag].defined_fields[items]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Address",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[Address]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "street1",
+            "owner": "types[Address]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "street2",
+            "owner": "types[Address]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "city",
+            "owner": "types[Address]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "state",
+            "owner": "types[Address]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "zip",
+            "owner": "types[Address]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "latitude",
+            "owner": "types[Address]",
+            "type": "types[float]"
+          },
+          {
+            "class": "Field",
+            "name=": "longitude",
+            "owner": "types[Address]",
+            "type": "types[float]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "SellerContactInfo",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[SellerContactInfo]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "lastName",
+            "owner": "types[SellerContactInfo]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "firstName",
+            "owner": "types[SellerContactInfo]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "email",
+            "owner": "types[SellerContactInfo]",
+            "type": "types[str]"
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Tag",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "id",
+            "owner": "types[Tag]",
+            "type": "types[auto]",
+            "key=": true
+          },
+          {
+            "class": "Field",
+            "name=": "tag",
+            "owner": "types[Tag]",
+            "type": "types[str]"
+          },
+          {
+            "class": "Field",
+            "name=": "refCount",
+            "owner": "types[Tag]",
+            "type": "types[int]"
+          },
+          {
+            "class": "Field",
+            "name=": "items",
+            "owner": "types[Tag]",
+            "type": "types[Item]",
+            "optional=": true,
+            "many=": true,
+            "inverse": "types[Item].defined_fields[tags]"
+          },
+          {
+            "class": "Field",
+            "name=": "style",
+            "owner": "types[Tag]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "((@refCount/5)>=3) ? 'xxlarge' : (((@refCount/5)>=2) ? 'xlarge' : (((@refCount/5)>=3) ? 'large' : ('medium' ) ) )"
+            }
+          },
+          {
+            "class": "Field",
+            "name=": "name",
+            "owner": "types[Tag]",
+            "type": "types[str]",
+            "computed": {
+              "class": "EStrConst",
+              "val=": "@tag"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

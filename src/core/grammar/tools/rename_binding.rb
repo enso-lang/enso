@@ -18,7 +18,7 @@ class RenameBinding
       send(selector, obj, map)
     else
       obj.schema_class.defined_fields.each do |f|
-        next if f.type.Primitive?
+        next if f.type.is_a?("Primitive")
         next if obj[f.name].nil?
         #next if !f.traversal
         if f.many then

@@ -44,7 +44,7 @@ module Web::Eval
   end
 
   class List < Result
-    include Enumerable
+    include Enso::Enumerable
 
     # NB: value contains results
 

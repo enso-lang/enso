@@ -26,7 +26,7 @@ class Copy
 		
 			# copy the primitive fields first, so that our name is defined
 		    klass.fields.each do |field|
-		      if field.type.Primitive?
+		      if field.type.is_a?("Primitive")
 		        target[field.name] = source[field.name]
 		      end
 		    end
@@ -34,7 +34,7 @@ class Copy
 		    register(source, target)
 		
 		    klass.fields.each do |field|
-		      next if field.type.Primitive? || (field.inverse && field.inverse.traversal)
+		      next if field.type.is_a?("Primitive") || (field.inverse && field.inverse.traversal)
 		      #puts "  FIELD #{field.name} #{source[field.name].class} #{source[field.name]}"
 		      if !field.many
 		        target[field.name] = copy(source[field.name], *args)
@@ -52,7 +52,7 @@ end
 
 
 def copy(obj)
-  f = Factory::new(obj._graph_id.schema)
+  f = Factory::SchemaFactory.new(obj.graph_identity.schema)
   obj = Copy.new(f).copy(obj)
   obj.finalize
 end

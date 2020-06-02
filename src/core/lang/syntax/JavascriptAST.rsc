@@ -59,6 +59,7 @@ data Statement
   		Expression expBody, 
   		bool generator)
   | varDecl(list[VariableDeclarator] declarations, str kind)
+  | classDecl(str name, Expression super, list[Statement] body)
   ;
   
 

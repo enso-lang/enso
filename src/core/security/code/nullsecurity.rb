@@ -8,7 +8,7 @@ class NullSecurity
   attr_accessor :user, :root
 
   def initialize(rulefile=nil)
-    @factory = Factory::new(Load::load('auth.schema'))
+    @factory = Factory::SchemaFactory.new(Load::load('auth.schema'))
   end
 
   def check_privileges(op, obj, *field)

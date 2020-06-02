@@ -1,31 +1,31 @@
-define([], (function () {
-  var FindModel;
-  var FindModel = MakeClass("FindModel", null, [], (function () {
-    (this.file_map = (function () {
-      var self = this;
-      if ((self.$.file_map == null)) {
-        (self.$.file_map = File.create_file_map());
-      }
-      return self.$.file_map;
-    }));
-    (this.find_model = (function (block, name) {
-      var self = this;
-      var path;
-      if (File.exists_P(name)) { 
-        return block(name); 
-      } 
-      else {
-             (path = self.file_map()._get(name));
-             if ((!path)) {
-               self.raise(S("File not found ", name, ""));
-             }
-             return block(path);
-           }
-    }));
-  }), (function (super$) {
-  }));
-  (FindModel = {
-    FindModel: FindModel
-  });
-  return FindModel;
-}));
+'use strict'
+
+//// FindModel ////
+
+var cwd = process.cwd() + '/';
+var Enso = require(cwd + "enso.js");
+
+var FindModel;
+
+var file_map = function() {
+  var self = this;
+  if (self.file_map$ == null) {
+    self.file_map$ = Enso.File.load_file_map();
+  }
+  return self.file_map$;
+};
+
+var find_model = function(block, model) {
+  var self = this, path;
+  path = FindModel.file_map().get$(model);
+  if (! path) {
+    FindModel.raise(Enso.S("File not found ", model));
+  }
+  return block(path);
+};
+
+FindModel = {
+  file_map: file_map,
+  find_model: find_model,
+};
+module.exports = FindModel ;

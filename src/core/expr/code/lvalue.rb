@@ -1,6 +1,7 @@
 require 'core/expr/code/eval'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/env'
+require 'enso'
 
 module Lvalue
   # An address class that simulates l-values (since Ruby does not have them)
