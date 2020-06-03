@@ -7,6 +7,12 @@ class Container < Part
   direction: int  // 1=vert, 2=hoiz, 3=graph, 5=pages
   items! Part*
 
+class Grid < Part
+  rows! Row*
+  
+class Row
+  columns: Part*
+
 class Text < Part
   string: str
   editable: bool
@@ -17,25 +23,14 @@ class Page < Part
   
 class Shape < Part
   content! Part?
-  kind: str  // box, oval, rounded
+  kind: str
   connectors: ConnectorEnd* 
 
 class Grid < Part
-  rowNum: int
-  colNum: int
-  tops! Positional*
-  sides! Positional*
-  items! Positional*
-  colPositions: Position*
-  rowPositions: Position*
-
-class Position
-  value: int
-  
-class Positional
-  col: int
-  row: int
-  contents! Part
+	row: Column*
+	
+class Column 
+  cols: Part* 
 	
 class Connector < Part
   label: Text?
@@ -77,8 +72,8 @@ class Font < Style
 class Baseline < Style
 	baseline: str
 	
-class Align < Style
-  kind: str  // "center"| "left" | "right"
+class Alignment < Style
+  align: str  // "center"| "left" | "right"
   
 class Dashes < Style
   dashes! Dash*

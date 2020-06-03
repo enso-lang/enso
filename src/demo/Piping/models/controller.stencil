@@ -7,17 +7,17 @@ graph [font.size=12,fill.color=(255,255,255)] {
   label controller {
      box [line.width=1, fill.color=(255,228,181)] {
        vertical {
-        text "START"
+        text "START";
         for global : controller.globals
           horizontal {
-            text global
-            text  ": "
+            text global;
+            text  ": ";
             let v = global.val in
               text  v.val
           }
        }
      }
-  }
+  };
   // create one state for each State
   for "State" state : controller.states
    label state {
@@ -28,13 +28,13 @@ graph [font.size=12,fill.color=(255,255,255)] {
       //    text  Layout(command)
        }
      }
-   }
+   };
   // create the links
   for state : controller.states
     for "Transition" trans : state.transitions
      // let type = CheckConnect(state, trans) in
      //   if (type == 1)
-            connector (state --> trans.target)
+            connector (state --> trans.target);
      //   else if (type == 2)
        //     connector (state <--> trans.target)
 

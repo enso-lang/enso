@@ -1,0 +1,16 @@
+
+start Course
+
+Course ::= [Course]
+  "Categories" categories:Category* /
+  "Assignments" assignments:Assignment* /
+  "Students" / students:Student* @/
+ 
+Category ::= [Category] name:str "(".points:real.")"
+
+Assignment ::= [Assignment] category:<root.categories[it]> name:str "(".points:real.")" percent:real "%"
+
+Student ::= [Student] number:int id:sym name:str grades:Grade* @"	"
+
+Grade ::= [Grade] grade:real
+

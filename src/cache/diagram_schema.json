@@ -1,19 +1,19 @@
 {
   "filename": "diagram.schema",
   "source": "core/diagram/models/diagram.schema",
-  "date": "2019-07-28 00:53:47 +0800",
-  "checksum": "b245ff2418a77928d633766133deca6c0a4529a0",
+  "date": "2017-07-06 12:39:11 -0500",
+  "checksum": "d0a97a1d6945e1841b7d92e62031dbd237d88b8c",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],
@@ -26,10 +26,10 @@
         "schema": "",
         "subclasses#": [
           "types[Container]",
+          "types[Grid]",
           "types[Text]",
           "types[Page]",
           "types[Shape]",
-          "types[Grid]",
           "types[Connector]"
         ],
         "defined_fields#": [
@@ -66,6 +66,21 @@
             "optional=": true,
             "many=": true,
             "traversal=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Row",
+        "schema": "",
+        "defined_fields#": [
+          {
+            "class": "Field",
+            "name=": "columns",
+            "owner": "types[Row]",
+            "type": "types[Part]",
+            "optional=": true,
+            "many=": true
           }
         ]
       },
@@ -157,97 +172,26 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "rowNum",
-            "owner": "types[Grid]",
-            "type": "types[int]"
-          },
-          {
-            "class": "Field",
-            "name=": "colNum",
-            "owner": "types[Grid]",
-            "type": "types[int]"
-          },
-          {
-            "class": "Field",
-            "name=": "tops",
-            "owner": "types[Grid]",
-            "type": "types[Positional]",
-            "optional=": true,
-            "many=": true,
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "sides",
-            "owner": "types[Grid]",
-            "type": "types[Positional]",
-            "optional=": true,
-            "many=": true,
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "items",
-            "owner": "types[Grid]",
-            "type": "types[Positional]",
-            "optional=": true,
-            "many=": true,
-            "traversal=": true
-          },
-          {
-            "class": "Field",
-            "name=": "colPositions",
-            "owner": "types[Grid]",
-            "type": "types[Position]",
-            "optional=": true,
-            "many=": true
-          },
-          {
-            "class": "Field",
-            "name=": "rowPositions",
-            "owner": "types[Grid]",
-            "type": "types[Position]",
-            "optional=": true,
-            "many=": true
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Position",
-        "schema": "",
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "value",
-            "owner": "types[Position]",
-            "type": "types[int]"
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Positional",
-        "schema": "",
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "col",
-            "owner": "types[Positional]",
-            "type": "types[int]"
-          },
-          {
-            "class": "Field",
             "name=": "row",
-            "owner": "types[Positional]",
-            "type": "types[int]"
-          },
+            "owner": "types[Grid]",
+            "type": "types[Column]",
+            "optional=": true,
+            "many=": true
+          }
+        ]
+      },
+      {
+        "class": "Class",
+        "name=": "Column",
+        "schema": "",
+        "defined_fields#": [
           {
             "class": "Field",
-            "name=": "contents",
-            "owner": "types[Positional]",
+            "name=": "cols",
+            "owner": "types[Column]",
             "type": "types[Part]",
-            "traversal=": true
+            "optional=": true,
+            "many=": true
           }
         ]
       },
@@ -356,7 +300,7 @@
           "types[Brush]",
           "types[Font]",
           "types[Baseline]",
-          "types[Align]",
+          "types[Alignment]",
           "types[Dashes]"
         ]
       },
@@ -479,7 +423,7 @@
       },
       {
         "class": "Class",
-        "name=": "Align",
+        "name=": "Alignment",
         "schema": "",
         "supers#": [
           "types[Style]"
@@ -487,8 +431,8 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "kind",
-            "owner": "types[Align]",
+            "name=": "align",
+            "owner": "types[Alignment]",
             "type": "types[str]"
           }
         ]

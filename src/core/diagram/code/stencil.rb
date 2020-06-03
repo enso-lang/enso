@@ -13,7 +13,6 @@ require 'core/expr/code/eval'
 require 'core/expr/code/lvalue'
 require 'core/semantics/code/interpreter'
 require 'core/expr/code/renderexp'
-require 'core/expr/code/env'
 
 module Stencil
 	
@@ -76,41 +75,31 @@ module Stencil
 		        at2.x = pnt[1].x_
 		        at2.y = pnt[1].y_
 					else
-			      puts "Has POS #{shape._id} #{pnt}"
-			      # using Diagram private member!!!
-			      rect = @boundaries[shape._id]
-			      rect.left.value = pnt.x_
-			      rect.top.value = pnt.y_
+			      pos = @positions[shape._id]  # using Diagram private member
+			      #puts "   Has POS #{pos} #{pnt}"
+			      if pos
+			        pos.x.value = pnt.x_
+			        pos.y.value = pnt.y_
+			      end
 			    end
 			  end
 		  end
 	  end
 
-
-    # this code builds a diagram by combining a stencil and a data model
-    # note that constraints are not everated until after the 
-    # previous file positions have beeen loaded
 	  def build_diagram
 	    puts "REBUILDING"
 	    white = @factory.Color(255, 255, 255)
 	    black = @factory.Color(0, 0, 0)
 		
-	    env = Env::HashEnv.new()
-	    env[:font] = @factory.Font(nil, nil, nil, 14, "sans-serif")
-      env[:pen] = @factory.Pen(1, "solid", black)
-      env[:brush] = @factory.Brush(black)
-      env[:align] = @factory.Align("left")
-      # env[nil] = nil
-		  env[@stencil.root] = @data
-	    	
+	    env = {font: @factory.Font(nil, nil, nil, 14, "sans-serif"), pen: @factory.Pen(1, "solid", black), brush: @factory.Brush(black), nil: nil}
+	    env[@stencil.root] = @data
+	
 	    @shapeToAddress = {}  # used for text editing
 	    @shapeToModel = {}    # list of all created objects
 	    @tagModelToShape = {}
 	    @graphShapes = {}
 	    @stencil.finalize
-      construct(@stencil.body, env, nil, nil, Proc.new {|x, subid| 
-      	set_root(x) # this function initializes the constraints in diagram
-      })
+      construct @stencil.body, env, nil, nil, Proc.new {|x, subid| set_root(x)}
 	  end
 		
 #		def lookup_shape(shape)
@@ -184,15 +173,16 @@ module Stencil
 		    actions = System.JSHASH()
 		    find_all_objects @data, address.index.type do |obj|
 	        name = ObjectKey(obj)
-	    		  action = Proc.new { |e| 
-	    			  address.value = obj
-	    			  shape.string = name
-	    	    }
-	    	    actions[name] = action
+	    		action = Proc.new { |e| 
+	    			address.value = obj
+	    			shape.string = name
+	    	  }
+	    	  actions[name] = action
+	    	  false
 		    end
 		    if actions != System.JSHASH()
 		      puts "MENU #{actions}"
-			    System.popupMenu(actions)
+					System.popupMenu(actions)
 			  end
 			end
 	  end
@@ -222,76 +212,63 @@ module Stencil
 		  @actions[shape._id][name] = block
 		end
 		    
-		# construct
-		#   stencil: a stencil object being constructed
-		#   env: an environment, used for variables defined in stencil
-		#   container: the source of model elements
-		#   id: a unique identifier for this object
-		#   proc: where to send the object that is constructed!
 	  def construct(stencil, env, container, id, proc)
 	    send("construct#{stencil.schema_class.name}", stencil, env, container, id, proc)
 	  end
 	  
-	  def make_styles(stencil, shape, env)  # puts styles on shape
+	  def make_styles(stencil, shape, env)
 	    font = nil
 	    pen = nil
 	    brush = nil
-	    align = nil
+	    #Print.print(stencil)
+	    newEnv = env.clone
 	    stencil.props.each do |prop|
-	      val = eval(prop.exp, env) # , true)
+	      val = eval(prop.exp, newEnv) # , true)
 	      #puts "SET #{prop.loc} = #{val}"
 	      case Renderexp.render(prop.loc)
 	      when "font.size" then
-	        font = env[:font]._clone if !font
+	        #puts "FONT SIZE #{val}"
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.size = val
 	      when "font.weight" then
-	        font = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.weight = val
 	      when "font.style" then
-	        font = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.style = val
 	      when "font.variant" then
-	        font = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.variant = val
 	      when "font.family" then
-	        font = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.family = val
 	      when "font.color" then
-	        font = env[:font]._clone if !font
+	        newEnv[:font] = font = env[:font]._clone if !font
 	        font.color = val
 	      when "line.width" then
-	        pen = env[:pen]._clone if !pen
+	        #puts "PEN #{val} for #{stencil}"
+	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.width = val
 	      when "line.color" then
-	        pen = env[:pen]._clone if !pen
+	        newEnv[:pen] = pen = env[:pen]._clone if !pen
 	        pen.color = val
 	      when "fill.color" then
-	        brush = @factory.Brush(val) if !brush
-	        #brush.color = val
-	      when "align" then
-	        align = @factory.Align(val) if !align
+	        newEnv[:brush] = brush = env[:brush]._clone if !brush
+	        brush.color = val
 	      end
 	    end
-	    # why do I need to set the style on every object????
-	    # because we are building a diagram!
+	    # TODO: why do I need to set the style on every object????
 	    shape.styles << font if font
 	    shape.styles << pen if pen
 	    shape.styles << brush if brush
-	    shape.styles << align if align
 	  end
 	
-	  # construxt an alternative. It returns the first
-	  # alternative construction that builds anything 
-	  # (doesn't get an error)
-	  # TODO: it should probably catch errors!
 	  def constructAlt(obj, env, container, id, proc)
 	    obj.alts.find_first do |alt|
 	      construct(alt, env, container, id, proc)
 	    end
 	  end
 	
-		# assigns (changes) a value of a variable. 
-		# This probably should never happen
 	  def constructEAssign(obj, env, container, id, proc)
 	    nenv = env.clone
 	      #presumably only Fields and Vars can serve as l-values
@@ -300,113 +277,39 @@ module Stencil
 	    construct obj.body, nenv, container, id, proc
 	  end
 	
-	  # doesn't work right now... but it should import another stencil?
 	  def constructEImport(obj, env, container, id, proc)
 	    #@fundefs.instance_eval(File.open(obj.path, "r").read)
 	    #@fundefs.singleton_methods.each do |m|
 	    # env["#{m}"] = @fundefs.method(m)
 	    #end
 	  end
-	  
-		def minimum(x, y)
-		  if x < y then x else y end
-		end
-		def maximum(x, y)
-		  if x > y then x else y end
-		end
-
-		# used to construct Excel-like grids. Not working yet!
+	
 	  def constructGrid(grid, env, container, id, proc)
-  	  # information on columns
-  	  @col_index = {}
-  	  @top_data = []  # two-dimensional
-  	  
-  	  # information on rows
-    	@row_index = {}
-    	@side_data = []  # two-dimensional
-    	    	
-    	dgrid = @factory.Grid
+	    columns = []
+	    ncols = 0
+	    rows = []
+	    nrows = 0
+	    body = []
+	    dgrid = @factory.Grid
 	    grid.axes.each do |axis|
 	    	case axis.direction
 	    	when "columns"
-	    	  @grid_label_type = :define
-	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
-	    	  	 @top_data[@top_data.size-1] << item
-	    	  })
+	    	  columns << []
+	    	  construct(axis.source, env, dgrid, i) do |item, ni|
+	    	  	columns[ncols] << item
+	    	  end
+	    	  ncols = ncols + 1
 	    	when "rows"
-	    	  @grid_label_type = :define
-	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
-	    	  	@side_data[@side_data.size-1] << item
-	    	  })
+	    	  rows << []
+	    	  construct(axis.source, env, dgrid, i) do |item, ni|
+	    	  	rows[nrows] << item
+	    	  end
+	    	  nrows = nrows + 1
 	    	when "body"
-	    	  @grid_label_type = :reference
-	    	  construct(axis.source, env, dgrid, id, Proc.new { |item, ni|
-	    	    g = @factory.Positional
-	    	    g.row = @global_rowNum
-	    	    g.col = @global_colNum
-	    	    g.contents = item
-	    	    dgrid.items << g
-	    	  })
 	      end
-	    end	 
-	    # we now have all the info! 	    
-	    c = 0
-  	  @top_data.each do |td|
-  	    r = -td.size
-  	    td.each do |item|
-     	    g = @factory.Positional
-	    	  g.row = r
-	    	  g.col = c
-	    	  g.contents = item
-	    	  dgrid.tops << g
-  	      r = r + 1
-	    	end
-  	    c = c + 1
-	    end
-	    r = 0
-  	  @side_data.each do |sd|
-  	    c = -sd.size
-  	    sd.each do |item|
-     	    g = @factory.Positional
-	    	  g.row = r
-	    	  g.col = c
-	    	  g.contents = item
-	  	    dgrid.sides << g
-  	      c = c + 1
-	    	end
-  	    r = r + 1
-	    end
-	    # last thing is to make everything zero-based and positive
-	    colMax = -100000
-	    colMin = 100000
-      rowMax = -100000 
-	    rowMin = 100000
-      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
-        group.each do |item|
-          colMax = maximum(colMax, item.col)
-		    	rowMax = maximum(rowMax, item.row)
-          colMin = minimum(colMin, item.col)
-		    	rowMin = minimum(rowMin, item.row)
-		    end
-			end 
-      [dgrid.tops, dgrid.sides, dgrid.items].each do |group|
-        group.each do |item|
-			    item.col = item.col - colMin
-			    item.row = item.row - rowMin
-			  end
-			end 
-			dgrid.colNum = colMax - colMin + 1
-			dgrid.rowNum = rowMax - rowMin + 1
-	    
-   	  # puts "GRID #{dgrid.items}"
-   	  proc.call(dgrid, id)
+	    end	  
 	  end
 	  
-	  # Use to iterate over a set of model elements
-	  # it requires the list to be defined by a Field o.f
-	  # it iterates constructing the for.body for each item from the list!
-	  # it should create Delete/Remove menus, and Create/Insert menues,
-	  # but they aren't working right now.
 	  def constructEFor(efor, env, container, id, proc)
 	    source = eval(efor.list, env)
 	    address = lvalue(efor.list, env)
@@ -524,8 +427,6 @@ module Stencil
 	    end
 		end
 	
-	  # evaluates a condition, and then makes one of two different
-	  # constructions
 	  def constructEIf(obj, env, container, id, proc)
 	    test = eval(obj.cond, env)
 	    if test
@@ -535,48 +436,29 @@ module Stencil
 	    end
 	  end
 	
-	  # evaluates a series of constructions on a container
 	  def constructEBlock(obj, env, container, id, proc)
 	    obj.body.each do |command|
 	      construct(command, env, container, id, proc)
 	    end
 	  end
 	
-	  # creates a label from the abstact world to the diagram shape
 	  def constructLabel(obj, env, container, id, proc)
-	    if obj.body # its a (label target body)
-		    construct obj.body, env, container, id, Proc.new { |shape, subid|
-		      target = evallabel(obj.label, env)
-		      # puts "LABEL #{target} / #{obj} => #{shape}"
-		      @tagModelToShape[target._path] = shape
-		      proc.call(shape, subid)
-		    }
-		  else # its a (row x) or (col y)
-		    # begin next col or row, depending on type
-		    target = evallabel(obj.label, env)
-		    case @grid_label_type
-		    when :define then
-		      case obj.type
-		      when "col" then
-			  	  @top_data << []  # make a new column
-			  	  @col_index[target] = @top_data.size() - 1
-		      when "row" then
-           	@side_data << []
-          	@row_index[target] = @side_data.size() - 1
-          end
-		    when :reference then 
-			    case obj.type
-	        when "col" then
-		        @global_colNum = @col_index[target] 
-		      when "row" then
-	          @global_rowNum = @row_index[target] 
-		      end
-		    end
-			end
+	    construct obj.body, env, container, id, Proc.new { |shape, subid|
+	      tag = evallabel(obj.label, env)
+	      # puts "LABEL #{tag} / #{obj} => #{shape}"
+	      @tagModelToShape[tag._path] = shape
+	      proc.call(shape, subid)
+	    }
 	  end
 	
-	  # evaluates a label, by calling eval
 	  def evallabel(label, env)
+#	    tag = "default"
+#	    if label.ESubscript? # it has the form Loc[foo]
+#	      tag = label.e
+#	      label = label.sub
+#	      raise "foo" if !tag.Var?
+#	      tag = tag.name
+#	    end
 	    obj = eval(label, env)
 	  end
 	  
@@ -598,15 +480,15 @@ module Stencil
 	          end
 	        }
 	      end
-	      make_styles(obj, group, env)  # puts styles on group
+	      make_styles(obj, group, env)
 	      proc.call group, id if proc
 	    end
 	  end
 	  
 	  def constructPage(obj, env, container, id, proc)
-		   #make_styles(obj, group, env)  # puts styles on group??
+		   make_styles(obj, group, env)
 		   page = @factory.Page
-		   page.name = obj.name
+		   page.name = eval(obj.namem, env)
 	     construct obj.part, env, container, id, Proc.new { |sub|
 	       raise "two content items in a page #{obj.content.to_s}" if obj.content
 	       obj.content = sub
@@ -618,9 +500,15 @@ module Stencil
 	    val = eval(obj.string, env) # , true)
 	    addr = lvalue(obj.string, env)
 	    text = @factory.Text
-	    text.string = val.to_s
+#	    if val.is_a? Variable
+#	      text.string = val.new_var_method do |a, *other|
+#	        x = "#{a}"
+#	      end
+#	    else
+	      text.string = val.to_s
+#	    end
 	    text.editable = obj.editable
-	    make_styles(obj, text, env) # puts styles on text
+	    make_styles(obj, text, env)
 	    if addr
 		    @shapeToAddress[text] = addr
 		  end
@@ -634,7 +522,7 @@ module Stencil
 	      error "Shape can only have one element" if shape.content
 	      shape.content = x
 	    }
-	    make_styles(obj, shape, env)  # puts styles on shape
+	    make_styles(obj, shape, env)
 	    proc.call shape, id
 	  end
 	
@@ -676,7 +564,7 @@ module Stencil
 	    
 	    # DEFAULT TO BOTTOM OF FIRST ITEM, AND LEFT OF THE SECOND ONE
 	    
-	    make_styles(obj, conn, env)  # puts styles on conn
+	    make_styles(obj, conn, env)
 	    proc.call conn, id
 	  end
 	

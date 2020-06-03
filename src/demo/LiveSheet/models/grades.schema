@@ -2,7 +2,6 @@ import gradeData.schema
 
 class Course
   check: real = SUM(assignments.contribution)
-  grades: Grade* = students.flat_map() {|s| s.grades }
 
 class Student
   finalGrade: real = SUM(grades.combined)
@@ -12,8 +11,9 @@ class Category
 
 class Assignment
   contribution: real = percent / category.number
+  increase_to_max: bool
   highest_grade: real = MAX(grades.grade)
-  maximum: real = points
+  maximum: real = increase_to_max ? MIN(points, highest_grade) : points
   averageN: real = AVERAGE(grades.normal)
   stdevN: real = STDEV(grades.normal)
   medianN: real = MEDIAN(grades.normal)

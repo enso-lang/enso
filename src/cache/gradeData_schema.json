@@ -1,19 +1,19 @@
 {
   "filename": "gradeData.schema",
   "source": "demo/LiveSheet/models/gradeData.schema",
-  "date": "2019-07-24 18:49:13 +0800",
-  "checksum": "6a1011a7226d7bdd7be3ad149e1524f2710c530e",
+  "date": "2017-12-31 17:17:28 -0600",
+  "checksum": "5480bf0901e083e5a2694d16686745c49cd74675",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],
@@ -49,7 +49,8 @@
             "owner": "types[Course]",
             "type": "types[Assignment]",
             "optional=": true,
-            "many=": true
+            "many=": true,
+            "traversal=": true
           }
         ]
       },
@@ -108,8 +109,7 @@
             "type": "types[Assignment]",
             "optional=": true,
             "many=": true,
-            "inverse": "types[Assignment].defined_fields[category]",
-            "traversal=": true
+            "inverse": "types[Assignment].defined_fields[category]"
           },
           {
             "class": "Field",

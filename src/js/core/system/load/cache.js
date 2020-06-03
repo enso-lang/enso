@@ -1,4 +1,4 @@
-define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sha1"], (function (Dumpjson, FindModel, Sha1, Fileutils) {
+define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sha1"], (function (Dumpjson, FindModel, Sha1) {
   var Cache;
   (Cache = {
     save_cache: (function (name, model, full) {
@@ -72,7 +72,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
              try {return (self.readHash(path) == checksum);
                   
              }
-             catch (caught$3149) {
+             catch (caught$3151) {
                
                  return false;
              }
@@ -88,12 +88,12 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       })));
            
       }
-      catch (caught$1140) {
+      catch (caught$1142) {
         
-          if ((caught$1140 instanceof self.Errno().ENOENT)) { 
+          if ((caught$1142 instanceof self.Errno().ENOENT)) { 
             return (function (e) {
               false;
-            })(caught$1140); 
+            })(caught$1142); 
           }
           else { 
             ;
@@ -164,7 +164,7 @@ define(["core/schema/tools/dumpjson", "core/system/utils/find_model", "digest/sh
       }), name);
            
       }
-      catch (caught$3290) {
+      catch (caught$3292) {
         
           e._set("source", "SYNTHETIC");
           e._set("date", self.Time().new());

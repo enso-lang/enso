@@ -1,19 +1,19 @@
 {
   "filename": "lambda.schema",
   "source": "demo/lambda/models/lambda.schema",
-  "date": "2019-07-17 15:56:42 +0800",
-  "checksum": "5c81abe8b1cf388e1bb2ee2a65822723b8cb4f8d",
+  "date": "2017-07-06 12:39:11 -0500",
+  "checksum": "5e5cf7358882408f2034698580836ec045fc3305",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     }
   ],
@@ -32,8 +32,7 @@
         "subclasses#": [
           "types[Lambda]",
           "types[App]",
-          "types[Var]",
-          "types[Paren]"
+          "types[Var]"
         ]
       },
       {
@@ -96,22 +95,6 @@
             "name=": "name",
             "owner": "types[Var]",
             "type": "types[str]"
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "Paren",
-        "schema": "",
-        "supers#": [
-          "types[Exp]"
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "body",
-            "owner": "types[Paren]",
-            "type": "types[Exp]"
           }
         ]
       }

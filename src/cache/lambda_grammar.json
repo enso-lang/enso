@@ -1,37 +1,37 @@
 {
   "filename": "lambda.grammar",
   "source": "demo/lambda/models/lambda.grammar",
-  "date": "2019-07-17 15:57:59 +0800",
-  "checksum": "495fd0df4171889a30705e04fa214226929bbc04",
+  "date": "2017-07-06 12:39:11 -0500",
+  "checksum": "438505bfb713d8c2c589b7a46e74e2f47f11ae96",
   "depends": [
     {
       "filename": "grammar.grammar",
       "source": "core/grammar/models/grammar.grammar",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "a3cfc1e1649bc5ab37237dcfbf3aea858247c802"
     },
     {
       "filename": "grammar.schema",
       "source": "core/grammar/models/grammar.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "c20e084d6fce081d1096875a1900f3b4e1730e6d"
     },
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     }
   ],
@@ -47,69 +47,6 @@
           "class": "Alt",
           "alts": [
             {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[App]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "App",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Create",
-              "name=": "App",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Field",
-                    "name=": "fun",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Prim]"
-                    }
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "arg",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Prim]"
-                    }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
-                  "rule": "rules[Prim]"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "Prim",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
               "class": "Create",
               "name=": "Lambda",
               "arg": {
@@ -117,10 +54,11 @@
                 "elements": [
                   {
                     "class": "Lit",
-                    "value=": "#"
+                    "value=": "{"
                   },
                   {
-                    "class": "NoSpace"
+                    "class": "Lit",
+                    "value=": "|"
                   },
                   {
                     "class": "Field",
@@ -131,14 +69,8 @@
                     }
                   },
                   {
-                    "class": "NoSpace"
-                  },
-                  {
                     "class": "Lit",
-                    "value=": "."
-                  },
-                  {
-                    "class": "NoSpace"
+                    "value=": "|"
                   },
                   {
                     "class": "Field",
@@ -147,6 +79,43 @@
                       "class": "Call",
                       "rule": "rules[Exp]"
                     }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "}"
+                  }
+                ]
+              }
+            },
+            {
+              "class": "Create",
+              "name=": "App",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "fun",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Exp]"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "arg",
+                    "arg": {
+                      "class": "Call",
+                      "rule": "rules[Exp]"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
                   }
                 ]
               }
@@ -164,40 +133,6 @@
                       "class": "Value",
                       "kind=": "sym"
                     }
-                  }
-                ]
-              }
-            },
-            {
-              "class": "Create",
-              "name=": "Paren",
-              "arg": {
-                "class": "Sequence",
-                "elements": [
-                  {
-                    "class": "Lit",
-                    "value=": "("
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Field",
-                    "name=": "body",
-                    "arg": {
-                      "class": "Call",
-                      "rule": "rules[Exp]"
-                    }
-                  },
-                  {
-                    "class": "NoSpace"
-                  },
-                  {
-                    "class": "Lit",
-                    "value=": ")"
-                  },
-                  {
-                    "class": "NoSpace"
                   }
                 ]
               }

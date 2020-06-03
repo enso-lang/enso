@@ -60,8 +60,7 @@ module Diagram
       @context.font_ = "13px sans-serif"
       @context.strokeStyle_ = "#000000"
       @context.textBaseline_ = "top"
-      @context.textAlign_ = "left"
-      
+    
       @canvas.onmousedown_ = on_mouse_down
       @canvas.onmousemove_ = on_move
       @canvas.onmouseup_ = on_mouse_up
@@ -69,13 +68,8 @@ module Diagram
                     
       root.finalize
       @root = root
-      @boundaries = {}
-      @gridData = {}
-      
+      @positions = {}
       do_constraints
-      
-      load_positions
-            
       # Draw canvas border for the first time.
       resizeCanvas
     end
@@ -268,210 +262,160 @@ module Diagram
 #                         +------+
 #
 #  but these can be in any orientation.
-
-		def makeConstraintRect()
-      left = @cs.value(0)
-      top = @cs.value(0)
-      right = @cs.value(0)
-      #right.max(left)
-      bottom = @cs.value(0)
-      #bottom.max(top)
-      EnsoRect.new(left, top, right, bottom)
-		end
-		    
+    
     def do_constraints
-      constrain(@root, makeConstraintRect()) 
+      constrain(@root, @cs.value(0), @cs.value(0)) 
     end
     
-    # the rect is sent as a fresh set of constraints
-    # the bottom and right constraints must be "max" constraints
-    def constrain(part, rect)
+    def constrain(part, x, y)
+      w = nil
+      h = nil
       with_styles(part) do 
         if part.Connector?
           constrainConnector(part)
         else
-          send(("constrain" + part.schema_class.name).to_sym, part, rect)
-          @boundaries[part._id] = rect
-#          if orig.nil?
- #            @boundaries[part._id] = rect
-  #        else
-	 #          rect.left.value = orig.left.value
-	  #         right.top.value = orig.top.value
-	   #     end
+          w = @cs.value(0)
+          h = @cs.value(0)
+          send(("constrain" + part.schema_class.name).to_sym, part, x, y, w, h)
+          @positions[part._id] = EnsoRect.new(x, y, w, h)
         end
       end
+      [w, h] if !w.nil?
     end
 
-	  # pages are pretty simple
-    def constrainPage(part, rect)
-      constrain(page.content, rect)
+    def constrainGrid(part, basex, basey, width, height)
+  
+  
   	end
-
-    def make_grid_constraints(num)
-      pos = []
-      newVar = oldVar = nil
-      start = 0
-      start.upto(num + 1) do |i|
-        newVar = @cs.var("r#{i}", 0)
-        newVar.max(oldVar) if oldVar
-        pos << newVar
-        oldVar = newVar
-      end
-      pos
-    end
-		
-    def constrainGrid(grid, rect)
-      colPos = make_grid_constraints(grid.colNum)
-      rowPos = make_grid_constraints(grid.rowNum)
-      
-      [grid.sides, grid.tops, grid.items].each do |group|
-        group.each do |item|
-          col = item.col
-	        row = item.row
-	        left = colPos[col]
-	        top = rowPos[row]
-	        right = colPos[col+1]
-	        bottom = rowPos[row+1]  
-	        newRect = EnsoRect.new(left, top, right, bottom)
-	        constrain(item.contents, newRect)
-	      end
-	    end
-   	end
   	
-  	# constrains everything inside the container to be 
-  	# inside the rectangle
-    def constrainContainer(part, rect)
-      newRect = nil
-      case part.direction
-      when 1 then          # vertical
-        top = rect.top
-        part.items.each do |item|
-          bottom = @cs.var("v")
-          bottom.max(top)
-          newRect = EnsoRect.new(rect.left, top, rect.right, bottom)
-          constrain(item, newRect)
-          top = bottom
-        end
-        rect.bottom.max(newRect.bottom)
-      when 2 then #horizontal
-        left = rect.left
-        part.items.each do |item|
-          right = @cs.var("h")
-          right.max(left)
-          newRect = EnsoRect.new(left, rect.top, right, rect.bottom)
-          constrain(item, newRect)
-          left = right
-        end
-        rect.right.max(newRect.right)
-      when 3 then #graph
-        # compute the default positions!!            
-        x = y = 0
-        size = Math.round(Math.sqrt(part.items.size)) + 1
-        i = 0
-        part.items.each do |item|
-          left = @cs.var("ga", 10 * (i % size))
-          top = @cs.var("gb", 10 * (i / size))
-          right = @cs.var("gc")
-          bottom = @cs.var("gd")
-          newRect = EnsoRect.new(left, top, right, bottom)
-          constrain(item, newRect)
-          i = i + 1
-        end
-      when 5 then #pages
-        part.items.each do |item|
-          constrain(item, rect)
+    def constrainContainer(part, basex, basey, width, height)
+      pos = @cs.value(0)
+      otherpos = @cs.value(0)
+      x = basex.add(0)
+      y = basey.add(0)
+      #puts "CONTAINER #{width.to_s}, #{height.to_s}"
+      part.items.each_with_index do |item, i|
+        info = constrain(item, x, y)
+        if !info.nil?
+          w = info[0]
+          h = info[1]
+          #puts "ITEM #{i}/#{part.items.size}"
+          case part.direction
+          when 1 then #vertical
+            pos = pos.add(h)
+            y = basey.add(pos)
+            width.max(w)
+          when 2 then #horizontal
+            pos = pos.add(w)
+            x = basex.add(pos)
+            height.max(h)
+          when 3 then #graph
+            # compute the default positions!!            
+            pos = pos.add(w).add(10)
+            otherpos = otherpos.add(h).add(10)
+            x = basex.add(pos)
+            y = basey.add(otherpos)
+            width.max(x.add(w))
+            height.max(y.add(h))
+          when 5 then #pages
+            x = basex.add(0)
+			      y = basey.add(0)
+            width.max(w)
+            height.max(h)
+          end
         end
       end
-    end
+      case part.direction
+      when 1 then #vertical
+        height.max(pos)
+      when 2 then #horizontal
+        width.max(pos)
+      end
+    end  
     
-    def constrainShape(part, rect)
-      margin = @context.lineWidth_ * 6
+    def constrainShape(part, x, y, width, height)
       case part.kind 
       when "box"
-        a = @cs.var("box1", margin)
-        b = @cs.var("box2", margin)
+        a = @cs.var("box1", 0)
+        b = @cs.var("box2", 0)
       when "oval"
-        a = @cs.var("pos1", margin)
-        b = @cs.var("pos2", margin)
+        a = @cs.var("pos1", 0)
+        b = @cs.var("pos2", 0)
       when "rounded"
-        a = @cs.var("rnd1", 20+margin)
-        b = @cs.var("rnd2", 20+margin)
+        a = @cs.var("rnd1", 20)
+        b = @cs.var("rnd2", 20)
       end
-      top = rect.top
-      left = rect.left
-      bottom = @cs.var("sa")
-      bottom.max(top)
-      right = @cs.var("sb")
-      right.max(left)
-      rect.bottom.max(bottom.add(a))   #always makes a new variable
-      rect.right.max(right.add(a))
-      newRect = EnsoRect.new(left.add(a), top.add(b), right, bottom)
-      constrain(part.content, newRect)
-      
-#      if part.kind == "oval"
-#        sq2 = 2 * Math.sqrt(2.0)
-#        a.max(left.add(ow.div(sq2)))
-#        b.max(top.add(oh.div(sq2)))
-#      end
-#      width.max(ow.add(a.mul(2)))
-#      height.max(oh.add(b.mul(2)))
+      margin = @context.lineWidth_ * 6
+      a = a.add(margin)
+      b = b.add(margin)
+      info = constrain(part.content, x.add(a), y.add(b))
+      ow = info[0]
+      oh = info[1]
+      # position of sub-object depends on size of sub-object, so we
+      # have to be careful about the circular dependencies
+      if part.kind == "oval"
+        sq2 = 2 * Math.sqrt(2.0)
+        a.max(ow.div(sq2))
+        b.max(oh.div(sq2))
+        a.max(b)
+      end
+      width.max(ow.add(a.mul(2)))
+      height.max(oh.add(b.mul(2)))
     end
   
-    def constrainText(part, rect)
+    def constrainText(part, x, y, width, height)
       info = @context.measureText(part.string)
-      rect.right.max(rect.left.add(info.width_ + @text_margin))
-      rect.bottom.max(rect.top.add(15))  # doesn't include height!
+      #puts "MEASURE #{part.string} #{info.width_} #{context.font_}"
+      width.max(info.width_ + @text_margin)
+      #width.max(info.width_ + @text_margin)
+      height.max(15)  # doesn't include height!
     end
   
     def constrainConnector(part)
-       part.ends.each do |ce|
-         to = boundary(ce.to)
-         dynamic = ce.attach.dynamic_update
-         x = to.left.add(@cs.var("cc", to.w).mul(dynamic.x))
-         y = to.top.add(@cs.var("dd", to.h).mul(dynamic.y))
-      #  x = @cs.var("c", to.left)
-      #  y = @cs.var("c", to.top)
-        @boundaries[ce._id] = EnsoPoint.new(x, y)
+      part.ends.each do |ce|
+        to = boundary(ce.to)
+        dynamic = ce.attach.dynamic_update
+        x = to.x.add(to.w.mul(dynamic.x))
+        y = to.y.add(to.h.mul(dynamic.y))
+        @positions[ce._id] = EnsoPoint.new(x, y)
         constrainConnectorEnd(ce, x, y)
       end
     end
     
     def constrainConnectorEnd(e, x, y)
-      if e.label
-	      rect = EnsoRect.new(x, y, @cs.var("ea"), @cs.var("eb"))
-	      constrain(e.label, rect) 
-	    end
+      constrain(e.label, x, y) if e.label
     end
     
     def boundary(shape)
-      @boundaries[shape._id]
+      @positions[shape._id]
     end
 
     def boundary_fixed(shape)
       r = boundary(shape)
-      EnsoRect.new(r.left.value, r.top.value, r.right.value, r.bottom.value) if !r.nil?
+      EnsoRect.new(r.x.value, r.y.value, r.w.value, r.h.value) if !r.nil?
     end
   
-    def position_fixed(shape)
-      p = boundary(shape)
-      EnsoPoint.new(p.top.value, p.left.value) if !p.nil?
+    def position(shape)
+      @positions[shape._id]
     end
     
-    # x=top, y=left
+    def position_fixed(shape)
+      p = position(shape)
+      EnsoPoint.new(p.x.value, p.y.value) if !p.nil?
+    end
+    
     def set_position(shape, x, y)
       r = boundary(shape)
       r.x.value = x
       r.y.value = y
     end
-
-
     
     def between(a, b, c)
        (a - @DIST <= b && b <= c + @DIST) || (c - @DIST <= b && b <= a + @DIST)
     end
     
     def rect_contains(rect, pnt)
-      rect.left <= pnt.x && pnt.x <= rect.right  && rect.top <= pnt.y && pnt.y <= rect.bottom
+      rect.x <= pnt.x && pnt.x <= rect.x + rect.w  && rect.y <= pnt.y && pnt.y <= rect.y + rect.h
     end
     
     # compute distance of pnt from line
@@ -507,8 +451,10 @@ module Diagram
         current = if part.curent.nil? then 0 else part.current end
         draw(part.items[current], n+1)
       else
-        part.items.each do |item|
-	        draw(item, n+1)
+	      len = part.items.size - 1
+	      start = 0
+	      start.upto(len) do |i|
+	        draw(part.items[i], n+1)
 	      end
 	    end
     end  
@@ -518,51 +464,39 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      @context.fillText(shape.name, r.x + 2, r.y)
+      @context.fillText(shape.name, r.x + 2, r.y, 1000)
       @context.fill
       @context.restore
       draw(shape.content, n+1)
     end
     
     def drawGrid(grid, n)
-#      data = @gridData[grid]
-#      colPos = data[0]
-#      rowPos = data[1]
-      [grid.tops, grid.sides, grid.items].each do |group|
-        group.each do |item|
- #         l = colPos[item.col].value # get the position of the left side
-#          r = colPos[item.col+1].value # get the position of the right side
-#          t = rowPos[item.row].value # get the position of the top
-#          b = rowPos[item.row+1].value # get the position of the bottom
-#          bounds = EnsoRect.new(l, t, r, b)
-#          drawCanvasRect(bounds, 0)
-	        draw(item.contents, n+1)
-	      end
-	    end
+      
+    
     end
     
-		def drawCanvasRect(r, margin)
-			m2 = margin - (margin % 2)  
-      @context.save
-      @context.rect(r.left + margin / 2, r.top + margin / 2, r.w - m2, r.h - m2)
-      @context.fillStyle_ = 'Cornsilk'
-      @context.shadowColor_ = '#999'
-      @context.shadowBlur_ = 6
-      @context.shadowOffsetX_ = 2
-      @context.shadowOffsetY_ = 2
-      @context.fill
-      @context.stroke
-      @context.restore
-    end
-		
     
     def drawShape(shape, n)
       r = boundary_fixed(shape)
       if r
         margin = @context.lineWidth_ * 6
+        m2 = margin - (margin % 2)
         case shape.kind
         when "box"
-          drawCanvasRect(r, margin)
+          #@context.fillRect(r.x, r.y, r.w, r.h)
+          
+          @context.save
+          @context.rect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
+          @context.fillStyle_ = 'Cornsilk'
+          @context.shadowColor_ = '#999'
+          @context.shadowBlur_ = 6
+          @context.shadowOffsetX_ = 2
+          @context.shadowOffsetY_ = 2
+          @context.fill
+          @context.stroke
+          @context.restore
+          
+          # @context.strokeRect(r.x + margin / 2, r.y + margin / 2, r.w - m2, r.h - m2)
         when "oval"
           rx            = r.w / 2        # The X radius
           ry            = r.h / 2        # The Y radius
@@ -598,17 +532,17 @@ module Diagram
   
       case e0.to.kind 
       when "box", "rounded"
-        pFrom = EnsoPoint.new(rFrom.top + rFrom.h * e0.attach.x, rFrom.left + rFrom.w * e0.attach.y)
+        pFrom = EnsoPoint.new(rFrom.x + rFrom.w * e0.attach.x, rFrom.y + rFrom.h * e0.attach.y)
       when "oval"
-        thetaFrom = -Math.atan2(e0.attach.top - 0.5, e0.attach.left - 0.5)
-        pFrom = EnsoPoint.new(rFrom.left + rFrom.w * (0.5 + Math.cos(thetaFrom) / 2), rFrom.top + rFrom.h * (0.5 - Math.sin(thetaFrom) / 2))
+        thetaFrom = -Math.atan2(e0.attach.y - 0.5, e0.attach.x - 0.5)
+        pFrom = EnsoPoint.new(rFrom.x + rFrom.w * (0.5 + Math.cos(thetaFrom) / 2), rFrom.y + rFrom.h * (0.5 - Math.sin(thetaFrom) / 2))
       end
       case e1.to.kind 
       when "box", "rounded"
-        pTo = EnsoPoint.new(rTo.left + rTo.w * e1.attach.x, rTo.top + rTo.h * e1.attach.y)
+        pTo = EnsoPoint.new(rTo.x + rTo.w * e1.attach.x, rTo.y + rTo.h * e1.attach.y)
       when "oval"
         thetaTo = -Math.atan2(e1.attach.y - 0.5, e1.attach.x - 0.5)
-        pTo = EnsoPoint.new(rTo.left + rTo.w * (0.5 + Math.cos(thetaTo) / 2), rTo.top + rTo.h * (0.5 - Math.sin(thetaTo) / 2))
+        pTo = EnsoPoint.new(rTo.x + rTo.w * (0.5 + Math.cos(thetaTo) / 2), rTo.y + rTo.h * (0.5 - Math.sin(thetaTo) / 2))
       end
     
       sideFrom = getSide(e0.attach)
@@ -693,6 +627,7 @@ module Diagram
         @context.save
         @context.translate(r.x, r.y)
         @context.rotate(-Math.PI_ * angle / 180)
+        
         @context.textAlign_ = align
         textHeight = 16
         @context.fillText(cend.label.string, offsetX * 3, offsetY * textHeight) 
@@ -803,20 +738,7 @@ module Diagram
       @context.save
       @context.beginPath
       @context.fillStyle_ = "black"
-      top = r.top + @text_margin / 4
-      case @context.textAlign_
-      when "center" then
-        puts "drawing center"
-        mid = (r.left + r.right) / 2
-	      @context.fillText(text.string, mid, top)
-      when "right" then
-        puts "drawing right"
-        right = r.right - @text_margin / 2
-	      @context.fillText(text.string, right, top)
-      else
-        left = r.left + @text_margin / 2
-        @context.fillText(text.string, left, top)
-	    end
+      @context.fillText(text.string, r.x + @text_margin / 2, r.y + @text_margin / 4, 1000)
       @context.fill
       @context.restore
     end
@@ -838,10 +760,7 @@ module Diagram
               @context.font_ = makeFont(style)
             elsif style.Brush?
               @context.fillStyle_ = makeColor(style.color)
-            elsif style.Align?
-              @context.textAlign_ = style.kind
             end
-            
           end
           block.call
           @context.restore
@@ -966,7 +885,7 @@ module Diagram
           #puts("   EDGE #{nx} #{ny}")
           @ce.attach.x = nx
           @ce.attach.y = ny
-          # @diagram.set_position(@ce, bounds.left + @ce.attach.x * bounds.w, bounds.top + @ce.attach.y * bounds.h)
+          # @diagram.set_position(@ce, bounds.x + @ce.attach.x * bounds.w, bounds.y + @ce.attach.y * bounds.h)
           @diagram.clear_refresh
           #puts("   EDGE #{@ce.attach.x} #{@ce.attach.y}")
         end
@@ -1015,31 +934,13 @@ module Diagram
   end
   
   class EnsoRect
-    def initialize(l, t, r, b)
-      @left = l
-      @top = t
-      @right = r
-      @bottom = b
+    def initialize(x, y, w, h)
+      @x = x
+      @y = y
+      @w = w
+      @h = h
     end
-    def left
-      @left
-    end
-    def top
-      @top
-    end
-    def right
-      @right
-    end
-    def bottom
-      @bottom
-    end
-    attr_accessor :left, :top, :right, :bottom  
-    def w
-      @right - @left
-    end
-    def h
-      @bottom - @top
-    end
+    attr_accessor :x, :y, :w, :h  
   end
   
 

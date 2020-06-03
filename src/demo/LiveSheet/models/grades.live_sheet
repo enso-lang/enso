@@ -1,0 +1,49 @@
+
+data Entry
+  cols
+    number :int = auto
+    name :str
+    student_id :str
+    category* :str / activity* :str
+  rows
+    maxScore :float
+    grade* :float
+    
+data Normalized
+  all
+    normal* :percent = grade / maxScore * 100
+  rows
+    average :float = average(normal)
+    stdev :float = stdev(normal)
+    median :float = median(normal)
+    maxGrade :float = max(normal)
+    minGrade :float = min(normal)
+
+data Curved
+  rows
+    curve :float
+    target :float = stdev * curve
+  all
+    curved* =
+        normal=="" ? "" :
+          curve + normal*(1-curve)*target*(1-stdev)
+            / (normal*(curve-stdev) + (1-curve)*stdev)
+  rows
+    average :float = average(curved) // it knows to average rows because that 
+    stdev :float = stdev(curved)     // is what section its in
+    median :float = median(curved)
+    maxGrade :float = max(curved)
+    minGrade :float = min(curved)
+    
+data Combined
+    cols
+      with category
+        categoryPnt :float   # sum(categoryPnt)==100
+      with activity
+        activityCnt :int = count  
+        // dropping some grades might be a little tricky
+        activityPnt :percent = container.categoryPnt / activityCnt
+    rows
+      combined = curved * activityPnt
+    cols
+      finalGrade = sum(combined)

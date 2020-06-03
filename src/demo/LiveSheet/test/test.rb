@@ -1,12 +1,11 @@
 require 'core/system/load/load'
-require 'core/system/load/cache'
 require 'core/schema/code/factory'
 require 'csv'
 
 
 f = Factory::new(Load::load("grades.schema"))
 
-grades = CSV.read('demo/LiveSheet/test/grades.csv')
+customers = CSV.read('demo/LiveSheet/test/grades.csv')
 
 course = f["Course"]
 
@@ -21,13 +20,14 @@ course = f["Course"]
 label = nil
 nass = 0
 assignments = []
-grades[1].each do |col|
+customers[1].each do |col|
   if col.nil?
   elsif label.nil?
     label = col
   else
     a = f["Assignment"]
     a.name = col
+    a.increase_to_max = true
     course.assignments << a
     assignments[nass] = a
     nass = nass + 1
@@ -36,7 +36,7 @@ end
 # read the categories
 ncol = 0
 label = nil
-grades[0].each do |col|
+customers[0].each do |col|
   if col.nil?
     # skip it
   elsif label.nil?
@@ -58,7 +58,7 @@ end
 # read the points
 ncol = 0
 label = nil
-grades[2].each do |col|
+customers[2].each do |col|
   if col.nil?
     # skip it
   elsif label.nil?
@@ -68,11 +68,10 @@ grades[2].each do |col|
     ncol = ncol + 1
   end
 end
-
 # read the curve
 ncol = 0
 label = nil
-grades[3].each do |col|
+customers[3].each do |col|
   if col.nil?
     # skip it
   elsif label.nil?
@@ -82,11 +81,10 @@ grades[3].each do |col|
     ncol = ncol + 1
   end
 end
-
 # read the percent
 ncol = 0
 label = nil
-grades[4].each do |col|
+customers[4].each do |col|
   if col.nil?
     # skip it
   elsif label.nil?
@@ -97,8 +95,8 @@ grades[4].each do |col|
   end
 end
 
-# read in the students and grades
-grades.slice(6,1000).each do |row|
+
+customers.slice(6,1000).each do |row|
   student = f["Student"]
   student.number = row[0].to_i
   student.name = row[1]
@@ -106,7 +104,7 @@ grades.slice(6,1000).each do |row|
   course.students << student
   
   ncol = 0
-  row.slice(3,1000).each do |col|
+  row.slice(4,1000).each do |col|
     grade = f["Grade"]
     grade.grade = col.to_f
     grade.student = student
@@ -115,7 +113,11 @@ grades.slice(6,1000).each do |row|
   end
 end
 
-Cache.save_cache("cs345.grades", course)
+#Cache.save_cache("cs345.grades", course)
+#g = Load::load("grades.grammar")
+#$stderr << "## Printing #{ARGV[0]}...\n"
+#Layout::DisplayFormat.print(g, m, out, false)
+
 
 #course.assignments.each do |a|
 #  puts "CAT #{a.name}: #{a.maximum} avg=#{a.averageN} std=#{a.stdevN} med=#{a.medianN} max=#{a.maxGradeN} min=#{a.minGradeN} c=#{a.curve} #{a.target}"

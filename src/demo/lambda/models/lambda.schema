@@ -3,15 +3,13 @@ primitive str
 class Exp
 
 class Lambda < Exp
-  var: str    //  #x.e
+  var: str
   body! Exp
 
 class App < Exp
-  fun! Exp    // e e
+  fun! Exp
   arg! Exp
 
 class Var < Exp
-  name: str   // x
+  name: str
 
-class Paren < Exp
-  body: Exp   // (e)

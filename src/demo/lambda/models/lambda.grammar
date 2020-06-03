@@ -1,11 +1,7 @@
 
 start Exp
 
-Exp ::= App 
- 
-App ::= [App] fun:Prim arg:Prim
-       | Prim
-
-Prim ::= [Lambda] "#". var:sym .".". body:Exp
+Exp ::= [Lambda] "{" "|" var:sym "|" body:Exp "}"
+      | [App] "(" fun:Exp arg:Exp ")"
       | [Var] name:sym
-      | [Paren] "(". body:Exp .")". 
+

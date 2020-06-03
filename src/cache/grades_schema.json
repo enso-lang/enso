@@ -1,26 +1,26 @@
 {
   "filename": "grades.schema",
   "source": "demo/LiveSheet/models/grades.schema",
-  "date": "2019-07-27 12:14:25 +0800",
-  "checksum": "a1609cb84542e3d390de0dcfbc2ac13ebf564dd6",
+  "date": "2017-12-31 17:20:21 -0600",
+  "checksum": "d405537c3ed71262a827e7983c541899d4c0db06",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "gradeData.schema",
       "source": "demo/LiveSheet/models/gradeData.schema",
-      "date": "2019-07-24 18:49:13 +0800",
-      "checksum": "6a1011a7226d7bdd7be3ad149e1524f2710c530e"
+      "date": "2017-12-31 17:17:28 -0600",
+      "checksum": "5480bf0901e083e5a2694d16686745c49cd74675"
     }
   ],
   "model": {
@@ -56,42 +56,6 @@
           },
           {
             "class": "Field",
-            "name=": "grades",
-            "owner": "types[Course]",
-            "type": "types[Grade]",
-            "optional=": true,
-            "many=": true,
-            "computed": {
-              "class": "EFunCall",
-              "fun": {
-                "class": "EField",
-                "e": {
-                  "class": "EVar",
-                  "name=": "students"
-                },
-                "fname=": "flat_map"
-              },
-              "lambda": {
-                "class": "ELambda",
-                "body": {
-                  "class": "EField",
-                  "e": {
-                    "class": "EVar",
-                    "name=": "s"
-                  },
-                  "fname=": "grades"
-                },
-                "formals": [
-                  {
-                    "class": "Formal",
-                    "name=": "s"
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "class": "Field",
             "name=": "students",
             "owner": "types[Course]",
             "type": "types[Student]",
@@ -114,7 +78,8 @@
             "owner": "types[Course]",
             "type": "types[Assignment]",
             "optional=": true,
-            "many=": true
+            "many=": true,
+            "traversal=": true
           }
         ]
       },
@@ -215,8 +180,7 @@
             "type": "types[Assignment]",
             "optional=": true,
             "many=": true,
-            "inverse": "types[Assignment].defined_fields[category]",
-            "traversal=": true
+            "inverse": "types[Assignment].defined_fields[category]"
           },
           {
             "class": "Field",
@@ -255,6 +219,12 @@
           },
           {
             "class": "Field",
+            "name=": "increase_to_max",
+            "owner": "types[Assignment]",
+            "type": "types[bool]"
+          },
+          {
+            "class": "Field",
             "name=": "highest_grade",
             "owner": "types[Assignment]",
             "type": "types[real]",
@@ -282,8 +252,34 @@
             "owner": "types[Assignment]",
             "type": "types[real]",
             "computed": {
-              "class": "EVar",
-              "name=": "points"
+              "class": "ETernOp",
+              "op1=": "?",
+              "op2=": ":",
+              "e1": {
+                "class": "EVar",
+                "name=": "increase_to_max"
+              },
+              "e2": {
+                "class": "EFunCall",
+                "fun": {
+                  "class": "EVar",
+                  "name=": "MIN"
+                },
+                "params": [
+                  {
+                    "class": "EVar",
+                    "name=": "points"
+                  },
+                  {
+                    "class": "EVar",
+                    "name=": "highest_grade"
+                  }
+                ]
+              },
+              "e3": {
+                "class": "EVar",
+                "name=": "points"
+              }
             }
           },
           {

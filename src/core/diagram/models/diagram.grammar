@@ -10,20 +10,27 @@ Dir ::= "vertical" {direction==1} | "horizontal" {direction==2} | "graph" {direc
 
 ConnectorEnd ::= [ConnectorEnd] (label:Text ":")? to:<root.items[it]> (arrow:"<" | arrow:"*")? 
 
-Props ::= "[" styles:Style* "]"
+Props ::= "[" styles:Style* Constraints? "]"
 Style ::= 
     [Pen] "line" width:int? style:sym? color:Color?
-  | [Align] kind:("center"| "left" | "right")
   | [Brush] "fill" color:Color
     // "font-style font-variant font-weight font-size/line-height font-family"
   | [Font] "font" style:FontStyle? variant:FontVariant? weight:FontWeight? size:int "pt" family:(sym | str)?
   | [Baseline] baseline:("alphabetic" | "top" | "hanging" | "middle" | "bottom")
+  | [Align] align:("center"| "left" | "right")
   | [Dashes] "dashed" dashes:Dash* @","
   
 Dash ::= [Dash] length:int
 FontStyle ::= "italic" | "oblique"
 FontVariant ::= "smallcaps"
 FontWeight ::=  "bold" | "light"
+
+Constraints ::= [SizeConstraints] Width? Height?
+Width ::= "width" width:Constraint
+Height ::= "height" height:Constraint
+Constraint ::= [Constraint] Var? Min?
+Var ::= "=" var:sym
+Min ::= ">" min:int
 
 Color ::= [Color] "(" r:int "," g:int "," b:int ")"
 

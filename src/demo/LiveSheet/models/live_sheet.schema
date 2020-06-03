@@ -1,0 +1,31 @@
+
+
+//////////////////////////////
+class Model
+  steps! Step*
+
+class Step
+  name # str
+  specs ! Spec*
+
+class Spec
+  direction : str  // all, rows, cols
+  calcs ! Option*
+
+class Option
+  variable # str
+
+class Calculation < Option
+  expression ! Expr
+
+class DataInput < Option
+  value : atom
+
+class Correlated < Option
+  correlate ! Expr
+  calcs ! Option*
+
+primitive atom
+primitive str
+primitive int
+primitive float

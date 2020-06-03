@@ -240,7 +240,7 @@ class Build
       @it = it
     end
     def inspect
-      "\r\n#{obj}.#{field} = #{path} [#{@it}]"
+      "#{obj}.#{field} = #{path} [#{@it}]"
     end     
   end
 end

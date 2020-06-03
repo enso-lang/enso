@@ -5,22 +5,21 @@ graph {   // create the nodes (one for each class)
     label class {  // declare the "identifier" of this node is a class
       box { 
         vertical {
-           text [font.size=16,font.weight="bold",fill.color=(90,80,90)] 
-               class.name
+           text [font.size=16,font.weight="bold",fill.color=(90,80,90)] class.name;
            for field : class.defined_fields
-              if field.type is Primitive or field.computed != nil then 
+              if field.type is Primitive or field.computed != nil then
                 horizontal {
-                  text field.name // editable field name
-                  text (field.key ? "#" : ":")
-                  text field.type.name // drop-down for type
-                  text (field.many ? "*" : (field.optional ? "?" : ""))
+                  text field.name; // editable field name
+                  text (field.key ? "#" : ":");
+                  text field.type.name; // drop-down for type
+                  text (field.many ? "*" : (field.optional ? "?" : ""));
                   if field.computed == nil then text "" else text "="
-    }}}}
+    }}}};
   
   // create the subclass links
   for class : schema.classes
     for "Super" super : class.supers
-      connector (class --> super)
+      connector (class --> super);
   
   // create the relationship edges that go between nodes
   for class : schema.classes

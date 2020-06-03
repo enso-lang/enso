@@ -79,10 +79,7 @@ MODELS = \
 	state_machine.schema \
 	door.state_machine \
 	grades.schema \
-	gradeData.schema \
-	grades.stencil \
-	store.grammar \
-	store.schema \
+	
 	
 JSONS_QL = \
   housing.ql \

@@ -1,4 +1,4 @@
-define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/load/load", "core/grammar/render/layout", "core/system/library/schema", "core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/interpreter", "core/expr/code/renderexp", "core/expr/code/env"], (function (Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Renderexp, Env) {
+define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/load/load", "core/grammar/render/layout", "core/system/library/schema", "core/expr/code/eval", "core/expr/code/lvalue", "core/semantics/code/interpreter", "core/expr/code/renderexp"], (function (Diagram, Print, Load, Layout, Schema, Eval, Lvalue, Interpreter, Renderexp) {
   var Stencil;
   var StencilFrame = MakeClass("StencilFrame", Diagram.DiagramFrame, [], (function () {
   }), (function (super$) {
@@ -32,6 +32,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.setup = (function (extension, data) {
       var self = this;
+      var size, position_map, pos;
       (self.$.extension = extension);
       (self.$.stencil = Load.load(S("", self.$.extension, ".stencil")));
       if ((!(self.$.stencil.title() == null))) {
@@ -40,23 +41,22 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       (self.$.data = data);
       self.$.data.finalize();
       self.build_diagram();
-      return self.clear_refresh();
-    }));
-    (this.load_positions = (function () {
-      var self = this;
-      var position_map, pos;
-      if (self.$.data.factory().file_path()._get(0)) {
-        (pos = S("", self.$.data.factory().file_path()._get(0), "-positions"));
+      if (data.factory().file_path()._get(0)) {
+        (pos = S("", data.factory().file_path()._get(0), "-positions"));
         if (File.exists_P(pos)) {
           (position_map = System.readJSON(pos));
-          return self.set_positions(position_map);
+          self.set_positions(position_map);
+          if ((!(position_map._get("*WINDOW*") == null))) {
+            (size = position_map._get("*WINDOW*"));
+          }
         }
       }
+      return self.clear_refresh();
     }));
     (this.set_positions = (function (position_map) {
       var self = this;
       return self.$.graphShapes.each((function (tag, shape) {
-        var rect, pnt, at1, at2;
+        var pos, pnt, at1, at2;
         (pnt = position_map._get(tag));
         if (pnt) {
           if (shape.Connector_P()) {
@@ -67,10 +67,11 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
             at2.set_x(pnt._get(1).x);
             return at2.set_y(pnt._get(1).y);
           } else {
-            puts(S("Has POS ", shape._id(), " ", pnt, ""));
-            (rect = self.$.boundaries._get(shape._id()));
-            rect.left().set_value(pnt.x);
-            return rect.top().set_value(pnt.y);
+            (pos = self.$.positions._get(shape._id()));
+            if (pos) {
+              pos.x().set_value(pnt.x);
+              return pos.y().set_value(pnt.y);
+            }
           }
         }
       }));
@@ -81,11 +82,12 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
       puts("REBUILDING");
       (white = self.$.factory.Color(255, 255, 255));
       (black = self.$.factory.Color(0, 0, 0));
-      (env = Env.HashEnv.new());
-      env._set("font", self.$.factory.Font(null, null, null, 14, "sans-serif"));
-      env._set("pen", self.$.factory.Pen(1, "solid", black));
-      env._set("brush", self.$.factory.Brush(black));
-      env._set("align", self.$.factory.Align("left"));
+      (env = (new EnsoHash({
+        font: self.$.factory.Font(null, null, null, 14, "sans-serif"),
+        pen: self.$.factory.Pen(1, "solid", black),
+        brush: self.$.factory.Brush(black),
+        nil: null
+      })));
       env._set(self.$.stencil.root(), self.$.data);
       (self.$.shapeToAddress = (new EnsoHash({
         
@@ -176,7 +178,8 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
                  address.set_value(obj);
                  return shape.set_string(name);
                })));
-               return actions._set(name, action);
+               actions._set(name, action);
+               return false;
              })));
              if ((actions != System.JSHASH())) {
                puts(S("MENU ", actions, ""));
@@ -219,63 +222,60 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.make_styles = (function (stencil, shape, env) {
       var self = this;
-      var align, font, pen, brush;
+      var newEnv, font, pen, brush;
       (font = null);
       (pen = null);
       (brush = null);
-      (align = null);
+      (newEnv = env.clone());
       stencil.props().each((function (prop) {
         var val;
-        (val = self.eval(prop.exp(), env));
+        (val = self.eval(prop.exp(), newEnv));
         switch ((function () {
           return Renderexp.render(prop.loc());
         })()) {
-          case "align":
-           if ((!align)) {
-             return (align = self.$.factory.Align(val));
-           }
           case "fill.color":
            if ((!brush)) {
-             return (brush = self.$.factory.Brush(val));
+             newEnv._set("brush", (brush = env._get("brush")._clone()));
            }
+           return brush.set_color(val);
           case "line.color":
            if ((!pen)) {
-             (pen = env._get("pen")._clone());
+             newEnv._set("pen", (pen = env._get("pen")._clone()));
            }
            return pen.set_color(val);
           case "line.width":
            if ((!pen)) {
-             (pen = env._get("pen")._clone());
+             newEnv._set("pen", (pen = env._get("pen")._clone()));
            }
            return pen.set_width(val);
           case "font.color":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_color(val);
           case "font.family":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_family(val);
           case "font.variant":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_variant(val);
           case "font.style":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_style(val);
           case "font.weight":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_weight(val);
           case "font.size":
            if ((!font)) {
-             (font = env._get("font")._clone());
+             newEnv._set("font", (font = env._get("font")._clone()));
            }
            return font.set_size(val);
         }
@@ -288,10 +288,7 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
         shape.styles().push(pen);
       }
       if (brush) {
-        shape.styles().push(brush);
-      }
-      if (align) {
-        return shape.styles().push(align);
+        return shape.styles().push(brush);
       }
     }));
     (this.constructAlt = (function (obj, env, container, id, proc) {
@@ -310,113 +307,36 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.constructEImport = (function (obj, env, container, id, proc) {
       var self = this;
     }));
-    (this.minimum = (function (x, y) {
-      var self = this;
-      if ((x < y)) { 
-        return x; 
-      }
-      else { 
-        return y;
-      }
-    }));
-    (this.maximum = (function (x, y) {
-      var self = this;
-      if ((x > y)) { 
-        return x; 
-      }
-      else { 
-        return y;
-      }
-    }));
     (this.constructGrid = (function (grid, env, container, id, proc) {
       var self = this;
-      var c, colMax, rowMin, rowMax, dgrid, r, colMin;
-      (self.$.col_index = (new EnsoHash({
-        
-      })));
-      (self.$.top_data = []);
-      (self.$.row_index = (new EnsoHash({
-        
-      })));
-      (self.$.side_data = []);
+      var ncols, body, nrows, dgrid, rows, columns;
+      (columns = []);
+      (ncols = 0);
+      (rows = []);
+      (nrows = 0);
+      (body = []);
       (dgrid = self.$.factory.Grid());
-      grid.axes().each((function (axis) {
+      return grid.axes().each((function (axis) {
         switch ((function () {
           return axis.direction();
         })()) {
           case "body":
-           (self.$.grid_label_type = "reference");
-           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
-             var g;
-             (g = self.$.factory.Positional());
-             g.set_row(self.$.global_rowNum);
-             g.set_col(self.$.global_colNum);
-             g.set_contents(item);
-             return dgrid.items().push(g);
-           })));
+           return;
           case "rows":
-           (self.$.grid_label_type = "define");
-           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
-             return self.$.side_data._get((self.$.side_data.size() - 1)).push(item);
-           })));
+           rows.push([]);
+           self.construct((function (item, ni) {
+             return rows._get(nrows).push(item);
+           }), axis.source(), env, dgrid, self.i());
+           return (nrows = (nrows + 1));
           case "columns":
-           (self.$.grid_label_type = "define");
-           return self.construct(axis.source(), env, dgrid, id, Proc.new((function (item, ni) {
-             return self.$.top_data._get((self.$.top_data.size() - 1)).push(item);
-           })));
+           columns.push([]);
+           self.construct((function (item, ni) {
+             return columns._get(ncols).push(item);
+           }), axis.source(), env, dgrid, self.i());
+           return (ncols = (ncols + 1));
         }
             
       }));
-      (c = 0);
-      self.$.top_data.each((function (td) {
-        var r;
-        (r = (-td.size()));
-        td.each((function (item) {
-          var g;
-          (g = self.$.factory.Positional());
-          g.set_row(r);
-          g.set_col(c);
-          g.set_contents(item);
-          dgrid.tops().push(g);
-          return (r = (r + 1));
-        }));
-        return (c = (c + 1));
-      }));
-      (r = 0);
-      self.$.side_data.each((function (sd) {
-        (c = (-sd.size()));
-        sd.each((function (item) {
-          var g;
-          (g = self.$.factory.Positional());
-          g.set_row(r);
-          g.set_col(c);
-          g.set_contents(item);
-          dgrid.sides().push(g);
-          return (c = (c + 1));
-        }));
-        return (r = (r + 1));
-      }));
-      (colMax = (-100000));
-      (colMin = 100000);
-      (rowMax = (-100000));
-      (rowMin = 100000);
-      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
-        return group.each((function (item) {
-          (colMax = self.maximum(colMax, item.col()));
-          (rowMax = self.maximum(rowMax, item.row()));
-          (colMin = self.minimum(colMin, item.col()));
-          return (rowMin = self.minimum(rowMin, item.row()));
-        }));
-      }));
-      [dgrid.tops(), dgrid.sides(), dgrid.items()].each((function (group) {
-        return group.each((function (item) {
-          item.set_col((item.col() - colMin));
-          return item.set_row((item.row() - rowMin));
-        }));
-      }));
-      dgrid.set_colNum(((colMax - colMin) + 1));
-      dgrid.set_rowNum(((rowMax - rowMin) + 1));
-      return proc(dgrid, id);
     }));
     (this.constructEFor = (function (efor, env, container, id, proc) {
       var self = this;
@@ -543,45 +463,12 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     }));
     (this.constructLabel = (function (obj, env, container, id, proc) {
       var self = this;
-      var target;
-      if (obj.body()) { 
-        return self.construct(obj.body(), env, container, id, Proc.new((function (shape, subid) {
-          var target;
-          (target = self.evallabel(obj.label(), env));
-          self.$.tagModelToShape._set(target._path(), shape);
-          return proc(shape, subid);
-        }))); 
-      } 
-      else {
-             (target = self.evallabel(obj.label(), env));
-             switch ((function () {
-               return self.$.grid_label_type;
-             })()) {
-               case "reference":
-                switch ((function () {
-                  return obj.type();
-                })()) {
-                  case "row":
-                   return (self.$.global_rowNum = self.$.row_index._get(target));
-                  case "col":
-                   return (self.$.global_colNum = self.$.col_index._get(target));
-                }
-                    
-               case "define":
-                switch ((function () {
-                  return obj.type();
-                })()) {
-                  case "row":
-                   self.$.side_data.push([]);
-                   return self.$.row_index._set(target, (self.$.side_data.size() - 1));
-                  case "col":
-                   self.$.top_data.push([]);
-                   return self.$.col_index._set(target, (self.$.top_data.size() - 1));
-                }
-                    
-             }
-                 
-           }
+      return self.construct(obj.body(), env, container, id, Proc.new((function (shape, subid) {
+        var tag;
+        (tag = self.evallabel(obj.label(), env));
+        self.$.tagModelToShape._set(tag._path(), shape);
+        return proc(shape, subid);
+      })));
     }));
     (this.evallabel = (function (label, env) {
       var self = this;
@@ -616,8 +503,9 @@ define(["core/diagram/code/diagram", "core/schema/tools/print", "core/system/loa
     (this.constructPage = (function (obj, env, container, id, proc) {
       var self = this;
       var page;
+      self.make_styles(obj, self.group(), env);
       (page = self.$.factory.Page());
-      page.set_name(obj.name());
+      page.set_name(self.eval(obj.namem(), env));
       self.construct(obj.part(), env, container, id, Proc.new((function (sub) {
         if (obj.content()) {
           self.raise(S("two content items in a page ", obj.content().to_s(), ""));

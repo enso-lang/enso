@@ -1,8 +1,0 @@
-start S
-
-S ::= [Store] "store" name:sym / customers:C* products:P*
-C ::= [Customer]/ "customer" id:sym ":" first_name:sym last_name:sym shipping_address:A orders:O* 
-A ::= [Address]/ "address"/> street:str / city:str zip:str </
-O ::= [Order]/ "order" id:sym /> items:I* <
-I ::= [Item]/ "item" quantity:int product:<root.products[it]>
-P ::= [Product]/ "product" name:sym price:real "#". inventory:int

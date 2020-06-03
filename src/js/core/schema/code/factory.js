@@ -351,7 +351,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
     }));
     (this.finalize = (function () {
       var self = this;
-      self.$.factory.register(self);
+      self.factory().register(self);
       return self;
     }));
   }));
@@ -500,16 +500,17 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
       var new_V;
       (new_V = null);
       self.each((function (x) {
-        var set;
+        var set, key;
         (set = block(x));
         if ((new_V == null)) {
-          (new_V = List.new(null, self.$.field));
+          (key = set.__key());
+          (new_V = Set.new(null, self.$.field, key));
         }
         return set.each((function (y) {
           return new_V.push(y);
         }));
       }));
-      return (new_V || List.new(null, self.$.field));
+      return (new_V || Set.new(null, self.$.field, self.__key()));
     }));
     (this.hash_map = (function (block) {
       var self = this;
@@ -570,18 +571,6 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
         }));
       }
     }));
-    (this.union = (function (other) {
-      var self = this;
-      var result;
-      (result = List.new(null, self.$.field));
-      self.each((function (x) {
-        return result.push(x);
-      }));
-      other.each((function (x) {
-        return result.push(x);
-      }));
-      return result;
-    }));
     (this.flat_map = (function (block) {
       var self = this;
       var new_V;
@@ -633,7 +622,7 @@ define(["core/schema/code/dynamic", "core/system/utils/paths", "core/system/libr
           }
                
           }
-          catch (caught$12976) {
+          catch (caught$12735) {
             
               self.raise(S("Invalid value for ", self.$.field.owner().name(), ".", self.$.field.name(), ":", self.$.field.type().name(), " found [", mobj, "]"));
           }

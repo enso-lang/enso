@@ -1,31 +1,31 @@
 {
   "filename": "stencil.schema",
   "source": "core/diagram/models/stencil.schema",
-  "date": "2019-07-24 12:13:58 +0800",
-  "checksum": "f4455f706626533cda89737b1756b5dae1a41a7f",
+  "date": "2017-07-06 12:39:11 -0500",
+  "checksum": "4e64a41eade5e1f56c5a83db8a44a98aa709031d",
   "depends": [
     {
       "filename": "schema.grammar",
       "source": "core/schema/models/schema.grammar",
-      "date": "2019-07-18 16:09:47 +0800",
-      "checksum": "31fb8534f09c4380852aa26d02d79bed484c0d11"
+      "date": "2017-12-31 17:10:24 -0600",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
     },
     {
       "filename": "schema.schema",
       "source": "core/schema/models/schema.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-12-31 17:10:24 -0600",
       "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
     },
     {
       "filename": "impl.schema",
       "source": "core/expr/models/impl.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "581ca41a91b5f51b6bd12cd19966e9b2474fb4b5"
     },
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2018-01-01 08:47:35 +0800",
+      "date": "2017-07-06 12:39:11 -0500",
       "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
     }
   ],
@@ -156,12 +156,6 @@
         "defined_fields#": [
           {
             "class": "Field",
-            "name=": "type",
-            "owner": "types[Label]",
-            "type": "types[str]"
-          },
-          {
-            "class": "Field",
             "name=": "label",
             "owner": "types[Label]",
             "type": "types[Expr]",
@@ -172,7 +166,6 @@
             "name=": "body",
             "owner": "types[Label]",
             "type": "types[Command]",
-            "optional=": true,
             "traversal=": true
           }
         ]
@@ -461,8 +454,7 @@
             "class": "Field",
             "name=": "source",
             "owner": "types[AxisData]",
-            "type": "types[Command]",
-            "traversal=": true
+            "type": "types[Command]"
           }
         ]
       },

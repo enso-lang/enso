@@ -5,25 +5,23 @@ module Constraints
 	    @vars = {}
 	    @number = 0
 	  end
-
-		# define variables	  
+	  
 	  def var(name = "v#{@number}", value = nil)
 	    @number += 1
 	    #puts "#{name} = #{value}"
 	    Variable.new(name, value)
 	  end
-	  	  
-	  # make a variable with a numeric value
+	  
 	  def value(n)
 	    var("(#{n})", n)
 	  end
 	end
 	
-	# constants are just numbers
 	class Constant
 	  def initialize(val)
 	    @value = val
 	  end
+	  
 	  
 	  def add_listener(l)
 	  end
@@ -66,12 +64,6 @@ module Constraints
 	  end
 	end
 	
-	# @name: name for printing out variable
-	# @value: current value, or null if needs to be recomputed
-	# @block: called to evaluate the variable
-	# @dependencies: variables that depend on this one
-	# @vars: the variables the we depend on
-	# @bounds: special case for computing maximum
 	class Variable < Constant
 	  def initialize(name, val = nil)
 	    super(val)
@@ -79,10 +71,6 @@ module Constraints
 	    @dependencies = []
 	    @vars = []
 	    @bounds = nil
-	  end
-
-	  def foo
-	    "#{@name}=#{value} (#{@dependencies}|#{@vars}|#{@bounds})"
 	  end
 		 
 	  def add(other)
@@ -111,11 +99,10 @@ module Constraints
 		      
 	  # special case to implement MAX behavior
 	  def max(other = raise("MAX WITH UNDEFINED"))
+	    #puts "#{self} MAX #{other}"
 	    other.add_listener(self) if other.is_a?(Variable)
 	    @bounds = [] if @bounds.nil?
 	    @bounds << other
-	    redo_max()
-	    # puts "#{self} MAX #{other}"
 	  end
 	
 	  def test(a, b)
@@ -135,7 +122,7 @@ module Constraints
 	
 	  def define_result(m, *args)
 	    raise "undefined method #{m}" unless [:add, :sub, :mul, :div, :round, :to_int].include?(m) 
-	    var = Variable.new("p#{self.to_s}#{m}#{args.to_s}")
+	    var = Variable.new("p#{self.to_s}#{args.to_s}")
 	    #puts "#{var}=#{self.to_s}+#{args}"
 	    var.internal_define(self, *args) do |*values|
 	      do_op(m, *values)
@@ -178,19 +165,16 @@ module Constraints
 	    @block = block
 	  end
 	  
-	  # listeners are values that depend on this one
 	  def add_listener(x)
 	    #puts "#{x.to_s} listening to #{self.to_s}"
 	    @dependencies << x
 	  end
 	
-	  # re-evaluate if there is no current value
 	  def value
 	    internal_evaluate unless @value
 	    @value
 	  end
 	  
-	  # set the value to a constant, and notify all dependents
 	  def value=(x)
 	    @block = nil
 	    internal_notify_change
@@ -202,8 +186,6 @@ module Constraints
 		  internal_notify_change
 		end
 
-		# somebody i depend upon changed, so clear value
-		# and notify all dependents
 	  def internal_notify_change
 	    @dependencies.each do |var|
 	      var.internal_notify_change
@@ -211,8 +193,7 @@ module Constraints
 	    #@block.nil means this is a hardcoded var, probably because someone assigned to it
 	    @value = nil unless @block.nil?
 	  end
-	
-	  # evaluate, keeping track of path of dependencies to prevent cycles    	  
+	    	  
 	  def internal_evaluate(path = [])
 	    raise "circular constraint #{path.map(&:to_s)}" if path.include?(self)
 	    @value = nil if @bounds
@@ -221,7 +202,7 @@ module Constraints
 	      vals = @vars.map do |var|
 	        val = var.internal_evaluate(path)
 	        if val.nil?
-	          puts "WARNING: undefined variable #{var.foo}"
+	          puts "WARNING: undefined variable '#{var}'"
 	          val = 10
 	        end
 	        val

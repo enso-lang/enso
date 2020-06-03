@@ -20,9 +20,8 @@ class Assign
 // TEMPLATE STUFF
 
 class Label < Part
-  type: str   // "row", "col", "label"
   label! Expr
-  body! Command?
+  body! Command
 
 class Color < Expr
   r! Expr
@@ -44,7 +43,7 @@ class Text < Part
   editable: bool
 
 class Shape < Part
-  kind: str // box, oval, rounded
+  kind: str
   content! Command?
 
 class Connector < Part
@@ -69,7 +68,7 @@ class Grid < Part
   
 class AxisData
   direction: str // row, column, body
-  source! Command
+  source: Command
 
 primitive int
 primitive str

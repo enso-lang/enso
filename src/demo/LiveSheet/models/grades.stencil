@@ -1,19 +1,67 @@
 diagram(course)
+
+stack {
+page "course"
 	grid
 	  columns for a : course.assignments {
-	    col a
-	    text [align="center"] a.category.name
-	    text [align="center"] a.name
-	    text [align="right"]  a.points
+	    text+ a.name
+	    text+ a.max_points
+	    text+ a.increase_to_maximum
+	    text a.maximum
 	  }
 	  rows for s : course.students {
-	    row s
-	    text [align="right"] s.number
-	    text s.name
-	    text [align="right"] s.id
+	    text s.number
+	    text+ s.name
+	    text+ s.id
 	  }    
 	  body for g : course.grades {
-	    row g.student
-	    col g.assignment
-  		text [align="right"] g.grade
+			text+ g.grade
 	  }
+	  
+page "Normalized"
+	grid
+	  columns for a : course.assignments {
+	    text a.category.name
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+			text g.normal
+	  }
+	  columns for a : course.assignment {
+	    label "Before Curve" {
+				text a.averageN
+			  text a.stdevN
+			  text a.medianN
+			  text a.maxGradeN
+			  text a.minGradeN
+			}
+		text+ a.curve
+	    text a.target
+	    label "After Curve" {
+			  text a.averageC
+			  text a.stdevC
+			  text a.medianC
+			  text a.maxGradeC
+			  text a.minGradeC
+			}
+	}
+page "Curved"
+	grid
+	  columns for a : course.assignments {
+	    text a.category.name
+	    text a.name
+	  }
+	  rows for s : course.students {
+	    text s.number
+	    text s.name
+	    text s.id
+	  }    
+	  body for g : course.grades {
+			text g.curved
+	  }
+}
