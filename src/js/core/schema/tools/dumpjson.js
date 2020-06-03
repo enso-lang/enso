@@ -56,7 +56,6 @@ var to_json = function(json, do_all = false) {
 var fixup_path = function(obj) {
   var self = this, path;
   path = obj._path().to_s();
-  puts(Enso.S("PATH ", path));
   if (path == "root") {
     return path = "";
   } else {

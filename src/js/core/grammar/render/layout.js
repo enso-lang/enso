@@ -250,7 +250,7 @@ function RenderGrammar(parent) {
     };
 
     render_Regular(this_V) {
-      var self = this, stream, oldEnv, s, i, ok, v, pos;
+      var self = this, stream, oldEnv, s, sep, i, ok, pos, v;
       stream = self.D$.get$("stream");
       if (! this_V.many()) {
         return self.render(this_V.arg()) || true;
@@ -258,16 +258,16 @@ function RenderGrammar(parent) {
         oldEnv = self.localEnv$;
         self.localEnv$ = Env.HashEnv.new();
         s = [];
+        sep = null;
         i = 0;
         ok = true;
         while (ok && stream.size_M() > 0) {
           self.localEnv$ .set$("_index", i);
           self.localEnv$ .set$("_first", i == 0);
           self.localEnv$ .set$("_last", stream.size_M() == 1);
-          if (i > 0 && this_V.sep()) {
-            v = self.render(this_V.sep());
-            if (v) {
-              s.push(v);
+          if (this_V.sep()) {
+            sep = self.render(this_V.sep());
+            if (sep) {
             } else {
               ok = false;
             }
@@ -276,11 +276,16 @@ function RenderGrammar(parent) {
             pos = stream.size_M();
             v = self.render(this_V.arg());
             if (v) {
-              s.push(v);
+              if (v != true) {
+                if (sep && i > 0) {
+                  s.push(sep);
+                }
+                s.push(v);
+                i = i + 1;
+              }
               if (stream.size_M() == pos) {
                 stream.next();
               }
-              i = i + 1;
             } else {
               ok = false;
             }
@@ -306,6 +311,15 @@ function RenderGrammar(parent) {
     render_Break(this_V) {
       var self = this;
       return this_V;
+    };
+
+    render_Hide(this_V) {
+      var self = this, val;
+      val = self.render(this_V.arg());
+      if (val != null) {
+        val = "";
+      }
+      return val;
     };
 
     output(v) {
@@ -360,6 +374,8 @@ function RenderGrammar(parent) {
             return "";
           case "Break":
             format .set$("lines", Enso.System.max(format.get$("lines"), obj.lines()));
+            return "";
+          case "Hide":
             return "";
           default:
             return self.raise(Enso.S("Unknown format ", obj));
@@ -503,6 +519,10 @@ class PredicateAnalysis {
   };
 
   Break(this_V) {
+    var self = this;
+  };
+
+  Hide(this_V) {
     var self = this;
   };
 };

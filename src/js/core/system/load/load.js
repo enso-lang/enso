@@ -72,16 +72,16 @@ class LoaderClass {
       type = model.split_M(".").get$(1);
       if (Enso.System.is_javascript() || Cache.check_dep(model)) {
         try {
-          Enso.puts(Enso.S("## fetching ", model));
+          Enso.System.stderr().push(Enso.S("## fetching ", model));
           schema = self.load(Enso.S(type, ".schema"));
           result = Cache.load_cache(model, schema);
         } catch (e) {
         }
       }
       if (result == null && ! Enso.System.is_javascript()) {
-        Enso.puts(Enso.S("## parsing and caching ", model));
+        Enso.System.stderr().push(Enso.S("## parsing and caching ", model));
         result = self.parse_with_type(model, type);
-        Enso.puts(Enso.S("## caching ", model));
+        Enso.System.stderr().push(Enso.S("## caching ", model));
         Cache.save_cache(model, result, false);
         result;
       }
@@ -123,17 +123,18 @@ class LoaderClass {
 
   update_json(model) {
     var self = this, parts, name, type, other;
-    parts = name.split_M(".");
+    parts = model.split_M(".");
     name = parts.get$(0);
     type = parts.get$(1);
     if (Cache.check_dep(model)) {
       return self.patch_schema_pointers_in_place(self.cache$.get$(model), self.load(Enso.S(type, ".schema")));
     } else {
-      self.cache$ .set$(name, self.load_with_models(name, self.load(Enso.S(type, ".grammar")), self.load(Enso.S(type, ".schema"))));
-      other = self.cache$.get$(name);
-      self.cache$ .set$(name, Union.Copy(Factory.SchemaFactory.new(self.load(Enso.S(type, ".schema"))), other));
-      self.cache$.get$(name).factory().set_file_path(other.factory().file_path());
-      return Cache.save_cache(name, self.cache$.get$(name), true);
+      self.cache$ .set$(model, self.parse_with_models(model, self.load(Enso.S(type, ".grammar")), self.load(Enso.S(type, ".schema"))));
+      other = self.cache$.get$(model);
+      Enso.System.stderr().push(Enso.S("Checked!!! ", name, " .... ", model));
+      self.cache$ .set$(model, Union.Copy(Factory.SchemaFactory.new(self.load(Enso.S(type, ".schema"))), other));
+      self.cache$.get$(model).factory().set_file_path(other.factory().file_path());
+      return Cache.save_cache(model, self.cache$.get$(model), true);
     }
   };
 

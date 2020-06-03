@@ -65,14 +65,16 @@ function EvalExpr(parent) {
     };
 
     eval_EBinOp(obj) {
-      var self = this;
+      var self = this, a, b;
       switch (obj.op()) {
         case "&":
           return self.eval_M(obj.e1()) && self.eval_M(obj.e2());
         case "|":
           return self.eval_M(obj.e1()) || self.eval_M(obj.e2());
         case "eql?":
-          return self.eval_M(obj.e1()) == self.eval_M(obj.e2());
+          a = self.eval_M(obj.e1());
+          b = self.eval_M(obj.e2());
+          return a == b;
         case "!=":
           return self.eval_M(obj.e1()) != self.eval_M(obj.e2());
         case "+":
