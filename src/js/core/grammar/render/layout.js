@@ -201,7 +201,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
         })()) {
           case "atom":
            if (System.test_type(obj, String)) { 
-             return self.output(obj.inspect()); 
+             return self.output((("\"" + obj) + "\"")); 
            }
            else { 
              return self.output(obj.to_s());
@@ -215,17 +215,20 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
              return self.output(obj.to_s());
            }
           case "sym":
-           if (System.test_type(obj, String)) {
+           if (System.test_type(obj, String)) { 
              if ((self.$.slash_keywords && self.$.literals.include_P(obj))) { 
                return self.output(("\\" + obj)); 
              }
              else { 
                return self.output(obj);
-             }
+             } 
+           }
+           else { 
+             return self.raise(S("Symbol is not a string ", obj, ""));
            }
           case "str":
            if (System.test_type(obj, String)) {
-             return self.output(obj.inspect());
+             return self.output((("\"" + obj) + "\""));
            }
           default:
            return self.raise(S("Unknown type ", this_V.kind(), ""));
@@ -279,7 +282,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
     }));
     (this.render_Regular = (function (this_V) {
       var self = this;
-      var stream, oldEnv, i, s, pos, v, ok;
+      var stream, oldEnv, i, s, pos, v, ok, sep;
       (stream = self.$.D._get("stream"));
       if ((!this_V.many())) { 
         return (self.render(this_V.arg()) || true); 
@@ -289,18 +292,18 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
           (oldEnv = self.$.localEnv);
           (self.$.localEnv = Env.HashEnv.new());
           (s = []);
+          (sep = null);
           (i = 0);
           (ok = true);
           while ((ok && (stream.size() > 0))) {
             self.$.localEnv._set("_index", i);
             self.$.localEnv._set("_first", (i == 0));
             self.$.localEnv._set("_last", (stream.size() == 1));
-            if (((i > 0) && this_V.sep())) {
-              (v = self.render(this_V.sep()));
-              if (v) { 
-                s.push(v); 
+            if (this_V.sep()) {
+              (sep = self.render(this_V.sep()));
+              if (sep) {
               }
-              else { 
+              else {
                 (ok = false);
               }
             }
@@ -308,11 +311,16 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
               (pos = stream.size());
               (v = self.render(this_V.arg()));
               if (v) {
-                s.push(v);
+                if ((v != true)) {
+                  if ((sep && (i > 0))) {
+                    s.push(sep);
+                  }
+                  s.push(v);
+                  (i = (i + 1));
+                }
                 if ((stream.size() == pos)) {
                   stream.next();
                 }
-                (i = (i + 1));
               }
               else {
                 (ok = false);
@@ -337,6 +345,15 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
     (this.render_Break = (function (this_V) {
       var self = this;
       return this_V;
+    }));
+    (this.render_Hide = (function (this_V) {
+      var self = this;
+      var val;
+      (val = self.render(this_V.arg()));
+      if ((val != null)) {
+        (val = "");
+      }
+      return val;
     }));
     (this.output = (function (v) {
       var self = this;
@@ -364,7 +381,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
       }
       else { 
         if ((obj == null)) { 
-          return self.raise(S("", format, "")); 
+          return self.raise("GRAMMAR FAILED TO PRODUCE OUTPUT"); 
         }
         else { 
           if (System.test_type(obj, Array)) {
@@ -392,25 +409,24 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
               return res;
             }
             else {
-              if (obj.NoSpace_P()) {
-                format._set("space", false);
-                return "";
+              switch ((function () {
+                return obj.schema_class().name();
+              })()) {
+                case "Hide":
+                 return "";
+                case "Break":
+                 format._set("lines", self.Enso().System.max(format._get("lines"), obj.lines()));
+                 return "";
+                case "Indent":
+                 format._set("indent", (format._get("indent") + (2 * obj.indent())));
+                 return "";
+                case "NoSpace":
+                 format._set("space", false);
+                 return "";
+                default:
+                 return self.raise(S("Unknown format ", obj, ""));
               }
-              else {
-                if (obj.Indent_P()) {
-                  format._set("indent", (format._get("indent") + (2 * obj.indent())));
-                  return "";
-                }
-                else {
-                  if (obj.Break_P()) {
-                    format._set("lines", System.max(format._get("lines"), obj.lines()));
-                    return "";
-                  }
-                  else {
-                    return self.raise(S("Unknown format ", obj, ""));
-                  }
-                }
-              }
+                  
             }
           }
         }
@@ -553,6 +569,9 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
       var self = this;
     }));
     (this.Break = (function (this_V) {
+      var self = this;
+    }));
+    (this.Hide = (function (this_V) {
       var self = this;
     }));
   }));

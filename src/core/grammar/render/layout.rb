@@ -5,6 +5,7 @@ require 'core/schema/code/factory'
 require 'core/system/utils/paths'
 require 'core/system/library/schema'
 require 'core/semantics/code/interpreter'
+require 'enso'
 
 module Layout
   
@@ -184,7 +185,7 @@ module Layout
         case this.kind
         when "str"
           if obj.is_a?(String)
-            output(obj.inspect)
+            output("\"" + obj + "\"")
           end
         when "sym"
           if obj.is_a?(String)
@@ -193,6 +194,8 @@ module Layout
             else
              output(obj)
             end
+          else
+            raise "Symbol is not a string #{obj}"
           end
         when "int"
           if obj.is_a?(Numeric)
@@ -204,7 +207,7 @@ module Layout
           end
         when "atom"
           if obj.is_a?(String)
-            output(obj.inspect)
+            output("\"" + obj + "\"")
           else
             output(obj.to_s)
           end
@@ -258,16 +261,17 @@ module Layout
           @localEnv = Env::HashEnv.new
          # @localEnv['_size'] = stream.size
           s = []
+          sep = nil
           i = 0
           ok = true
           while ok && stream.size > 0
             @localEnv['_index'] = i
             @localEnv['_first'] = (i == 0)
             @localEnv['_last'] = (stream.size == 1)
-            if i > 0 && this.sep
-              v = render(this.sep)
-              if v
-                s << v
+            if this.sep
+              sep = render(this.sep)
+              if sep
+                 # delay s << v
               else
                 ok = false
               end
@@ -276,9 +280,12 @@ module Layout
               pos = stream.size
               v = render(this.arg)
               if v
+                if v != true
+	                s << sep if sep && i > 0
                 s << v
-                stream.next if stream.size == pos
                 i = i + 1
+	            end
+                stream.next if stream.size == pos
               else
                 ok = false
               end
@@ -302,6 +309,15 @@ module Layout
       this
     end
   
+    def render_Hide(this)
+      #puts "HIDE #{this} #{this.arg}"
+      val = render(this.arg)
+      if val != nil
+        val = ""
+      end
+      val
+    end
+  
     def output(v)
       v
     end
@@ -323,7 +339,7 @@ module Layout
         # nothing
         ""
       elsif obj.nil?
-        raise "#{format}"
+        raise "GRAMMAR FAILED TO PRODUCE OUTPUT"
       elsif obj.is_a?(Array)
           res = ""
           obj.each {|x| res = res + combine(x, format)}
@@ -340,20 +356,26 @@ module Layout
         res = res + obj
         format[:space] = true
         res
-      elsif obj.NoSpace?
+      else
+        case obj.schema_class.name
+        when "NoSpace"
         format[:space] = false
         ""
-      elsif obj.Indent?
+        when "Indent"
         format[:indent] = format[:indent] + 2 * obj.indent
         ""
-      elsif obj.Break?
-        format[:lines] = System.max(format[:lines], obj.lines)
+        when "Break"
+          format[:lines] = System.max(format[:lines], obj.lines)
         ""
+        when "Hide"
+          #puts("FORMAT hide ")
+          ""
       else
         raise "Unknown format #{obj}"
       end
     end  
 
+  end
   end
   
   class PredicateAnalysis
@@ -454,6 +476,10 @@ module Layout
     
     def Break(this)
     end
+    
+    def Hide(this)
+      #puts("HIDE PRED #{this} : #{this.arg}")
+    end
   end
   
   class SingletonStream
@@ -505,7 +531,6 @@ module Layout
     end
 
     def print(grammar, obj, output, slash_keywords, add_tags)
-#      interp = RenderGrammarC.new
       @slash_keywords = slash_keywords
       @avoid_optimization = true
       @out = output

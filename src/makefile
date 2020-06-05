@@ -18,6 +18,9 @@ MODELS = \
 	unary.grammar \
 	code.grammar \
 	code_js.grammar \
+	schema_kt1.grammar \
+	schema_kt2.grammar \
+	expr_kt.grammar \
 	schema.stencil \
 	state_machine.stencil	\
 	genealogy-dot.grammar \
@@ -103,8 +106,8 @@ check:
 
 
 clean-json:
-	ruby -I . core/system/load/cache.rb
-
+	rm cache/*
+	
 load-json:
 	ruby -I . core/system/load/load.rb $(JSONS_QL) $(JSONS_PIPING)
 

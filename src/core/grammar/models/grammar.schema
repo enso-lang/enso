@@ -59,6 +59,9 @@ class Break < Pattern
 class Indent < Pattern
   indent: int
  
+class Hide < Pattern
+  arg! Pattern
+ 
 class Code < Terminal
   expr! Expr
  
