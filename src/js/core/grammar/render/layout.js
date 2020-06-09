@@ -1,4 +1,4 @@
-define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", "core/schema/code/factory", "core/system/utils/paths", "core/system/library/schema", "core/semantics/code/interpreter"], (function (Eval, Env, Print, Factory, Paths, Schema, Interpreter) {
+define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", "core/schema/code/factory", "core/system/utils/paths", "core/system/library/schema", "core/semantics/code/interpreter", "enso"], (function (Eval, Env, Print, Factory, Paths, Schema, Interpreter, Enso) {
   var Layout;
   var RenderGrammar = MakeMixin([Interpreter.Dispatcher], (function () {
     (this.render = (function (pat) {
@@ -415,7 +415,7 @@ define(["core/expr/code/eval", "core/expr/code/env", "core/schema/tools/print", 
                 case "Hide":
                  return "";
                 case "Break":
-                 format._set("lines", self.Enso().System.max(format._get("lines"), obj.lines()));
+                 format._set("lines", System.max(format._get("lines"), obj.lines()));
                  return "";
                 case "Indent":
                  format._set("indent", (format._get("indent") + (2 * obj.indent())));

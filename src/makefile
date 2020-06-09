@@ -82,7 +82,10 @@ MODELS = \
 	state_machine.schema \
 	door.state_machine \
 	grades.schema \
-	
+	gradeData.schema \
+	gradeData.grammar \
+	point1.point \
+	point2.point 
 	
 JSONS_QL = \
   housing.ql \

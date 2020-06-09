@@ -1,0 +1,349 @@
+{
+  "filename": "gradeData.grammar",
+  "source": "demo/LiveSheet/models/gradeData.grammar",
+  "date": "2020-06-03 13:27:35 -0500",
+  "checksum": "c3a3cb2e9ce416479aa214d287d929171276f3ad",
+  "depends": [
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "5cb444d76d5339b1db23e5adfa7e7fc6f262c87f"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "2807a287e77e7aac5a3f4583b2d740d74cef3f07"
+    },
+    {
+      "filename": "schema.grammar",
+      "source": "core/schema/models/schema.grammar",
+      "date": "2020-06-03 13:27:35 -0500",
+      "checksum": "cace65aec5eeddecceaa54dc658ee7cdfe0559df"
+    },
+    {
+      "filename": "schema.schema",
+      "source": "core/schema/models/schema.schema",
+      "date": "2020-06-04 14:41:17 -0500",
+      "checksum": "36a20ad876a14f149ede32638ec0cc9f1b549159"
+    },
+    {
+      "filename": "expr.schema",
+      "source": "core/expr/models/expr.schema",
+      "date": "2020-06-05 17:11:01 -0500",
+      "checksum": "1baf97f433daa98cd244a5e340c7e75b4d6df05d"
+    }
+  ],
+  "model": {
+    "class": "Grammar",
+    "start": "rules[Course]",
+    "rules#": [
+      {
+        "class": "Rule",
+        "name=": "Course",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Course",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Lit",
+                    "value=": "Categories"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "categories",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Category]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "Assignments"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "assignments",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Assignment]"
+                      },
+                      "optional=": true,
+                      "many=": true
+                    }
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "Students"
+                  },
+                  {
+                    "class": "Break",
+                    "lines=": 1
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "students",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Student]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Break",
+                        "lines=": 1
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Category",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Category",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "points",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Assignment",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Assignment",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "category",
+                    "arg": {
+                      "class": "Ref",
+                      "path": {
+                        "class": "ESubscript",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "root"
+                          },
+                          "fname=": "categories"
+                        },
+                        "sub": {
+                          "class": "EVar",
+                          "name=": "it"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "("
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "points",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  },
+                  {
+                    "class": "NoSpace"
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": ")"
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "percent",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  },
+                  {
+                    "class": "Lit",
+                    "value=": "%"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Student",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Student",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "number",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "int"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "id",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "sym"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "name",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "str"
+                    }
+                  },
+                  {
+                    "class": "Field",
+                    "name=": "grades",
+                    "arg": {
+                      "class": "Regular",
+                      "arg": {
+                        "class": "Call",
+                        "rule": "rules[Grade]"
+                      },
+                      "optional=": true,
+                      "many=": true,
+                      "sep": {
+                        "class": "Lit",
+                        "value=": "\t"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Grade",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Create",
+              "name=": "Grade",
+              "arg": {
+                "class": "Sequence",
+                "elements": [
+                  {
+                    "class": "Field",
+                    "name=": "grade",
+                    "arg": {
+                      "class": "Value",
+                      "kind=": "real"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

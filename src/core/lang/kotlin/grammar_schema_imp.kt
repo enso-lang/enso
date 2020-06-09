@@ -1,87 +1,154 @@
-package Schema
+package Grammar
 import schema.*
-open class SchemaImp : Schema {
+open class GrammarImp : Grammar {
   constructor(
+    start : Rule
   ) {
+    this.start = start
   }
-  override val types = ManyOne(this, Type::schema)
-  override val classes : List<Class> by lazy {
-    types.select() { (t)-> t is Class }
-  }
-  override val primitives : List<Primitive> by lazy {
-    types.select() { (t)-> t is Primitive }
-  }
+  override var start : Rule
+  override val rules = ManyOne(this, Rule::grammar)
 }
-open class TypeImp : Type {
+open class PatternImp : Pattern {
+  constructor(
+  )
+}
+open class RuleImp : Rule {
   constructor(
     name : String,
-    schema : Schema
+    grammar : Grammar,
+    arg : Pattern? = null
   ) {
     this.name = name
-    this.schema = schema
+    this.grammar = grammar
+    this.arg = arg
   }
   override var name : String
-  override var schema : Schema by OneMany(Schema::types)
-  override val key : Field? by lazy {
-    null
-  }
+  override var grammar : Grammar by OneMany(Grammar::rules)
+  override var arg : Pattern?
 }
-open class PrimitiveImp : Primitive, TypeImp {
+open class AltImp : Alt, PatternImp {
+  constructor(
+  ) : super() {
+  }
+  override val alts = ArrayList<Pattern> ()
+}
+open class SequenceImp : Sequence, PatternImp {
+  constructor(
+  ) : super() {
+  }
+  override val elements = ArrayList<Pattern> ()
+}
+open class CreateImp : Create, PatternImp {
   constructor(
     name : String,
-    schema : Schema
-  ) : super(name, schema)
+    arg : Pattern
+  ) : super() {
+    this.name = name
+    this.arg = arg
+  }
+  override var name : String
+  override var arg : Pattern
 }
-open class ClassImp : Class, TypeImp {
+open class FieldImp : Field, PatternImp {
   constructor(
     name : String,
-    schema : Schema
-  ) : super(name, schema) {
+    arg : Pattern
+  ) : super() {
+    this.name = name
+    this.arg = arg
   }
-  override val supers = ManyMany(this, Class::subclasses)
-  override val subclasses = ManyMany(this, Class::supers)
-  override val defined_fields = ManyOne(this, Field::owner)
-  override val key : Field? by lazy {
-    fields.find() { (f)-> f.key }
-  }
-  override val fields : List<Field> by lazy {
-    all_fields.select() { (f)-> not f.computed }
-  }
-  override val all_fields : List<Field> by lazy {
-    (supers.flat_map() { (s)-> s.all_fields }).union(defined_fields)
-  }
+  override var name : String
+  override var arg : Pattern
 }
-open class FieldImp : Field {
+open class TerminalImp : Terminal, PatternImp {
   constructor(
-    name : String,
-    owner : Class,
-    type : Type,
+  ) : super()
+}
+open class ValueImp : Value, TerminalImp {
+  constructor(
+    kind : String
+  ) : super() {
+    this.kind = kind
+  }
+  override var kind : String
+}
+open class RefImp : Ref, TerminalImp {
+  constructor(
+    path : Expr
+  ) : super() {
+    this.path = path
+  }
+  override var path : Expr
+}
+open class LitImp : Lit, TerminalImp {
+  constructor(
+    value : String
+  ) : super() {
+    this.value = value
+  }
+  override var value : String
+}
+open class CallImp : Call, PatternImp {
+  constructor(
+    rule : Rule
+  ) : super() {
+    this.rule = rule
+  }
+  override var rule : Rule
+}
+open class RegularImp : Regular, PatternImp {
+  constructor(
+    arg : Pattern,
     optional : Boolean = false,
     many : Boolean = false,
-    key : Boolean = false,
-    inverse : Field? = null,
-    computed : Expr? = null,
-    traversal : Boolean = false
-  ) {
-    this.name = name
-    this.owner = owner
-    this.type = type
+    sep : Pattern? = null
+  ) : super() {
+    this.arg = arg
     this.optional = optional
     this.many = many
-    this.key = key
-    this.inverse = inverse
-    this.computed = computed
-    this.traversal = traversal
+    this.sep = sep
   }
-  override var name : String
-  override var owner : Class by OneMany(Class::defined_fields)
-  override var type : Type
+  override var arg : Pattern
   override var optional : Boolean
   override var many : Boolean
-  override var key : Boolean
-  override var inverse : Field? by OneOne(Field::inverse)
-  override var computed : Expr?
-  override var traversal : Boolean
+  override var sep : Pattern?
+}
+open class NoSpaceImp : NoSpace, PatternImp {
+  constructor(
+  ) : super()
+}
+open class BreakImp : Break, PatternImp {
+  constructor(
+    lines : Int = 0
+  ) : super() {
+    this.lines = lines
+  }
+  override var lines : Int
+}
+open class IndentImp : Indent, PatternImp {
+  constructor(
+    indent : Int = 0
+  ) : super() {
+    this.indent = indent
+  }
+  override var indent : Int
+}
+open class HideImp : Hide, PatternImp {
+  constructor(
+    arg : Pattern
+  ) : super() {
+    this.arg = arg
+  }
+  override var arg : Pattern
+}
+open class CodeImp : Code, TerminalImp {
+  constructor(
+    expr : Expr
+  ) : super() {
+    this.expr = expr
+  }
+  override var expr : Expr
 }
 open class ExprImp : Expr {
   constructor(

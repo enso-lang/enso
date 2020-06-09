@@ -19,8 +19,8 @@
     {
       "filename": "expr.schema",
       "source": "core/expr/models/expr.schema",
-      "date": "2020-06-04 14:41:17 -0500",
-      "checksum": "a3a51f71beb086df1b4975062791c9c6e18be9c9"
+      "date": "2020-06-05 17:11:01 -0500",
+      "checksum": "1baf97f433daa98cd244a5e340c7e75b4d6df05d"
     },
     {
       "filename": "schema.grammar",
@@ -596,7 +596,6 @@
           "types[EVar]",
           "types[ESubscript]",
           "types[EList]",
-          "types[EAddress]",
           "types[ENew]",
           "types[EConst]"
         ],
@@ -1028,31 +1027,6 @@
             "type": "types[Expr]",
             "optional=": true,
             "many=": true,
-            "key=": false,
-            "inverse": null,
-            "computed": null,
-            "traversal=": true
-          }
-        ]
-      },
-      {
-        "class": "Class",
-        "name=": "EAddress",
-        "schema": "",
-        "supers#": [
-          "types[Expr]"
-        ],
-        "subclasses#": [
-
-        ],
-        "defined_fields#": [
-          {
-            "class": "Field",
-            "name=": "e",
-            "owner": "types[EAddress]",
-            "type": "types[Expr]",
-            "optional=": false,
-            "many=": false,
             "key=": false,
             "inverse": null,
             "computed": null,

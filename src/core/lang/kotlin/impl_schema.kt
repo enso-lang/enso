@@ -1,36 +1,37 @@
-package Schema
+package Expr
 import schema.Many
-interface Schema {
-  val types : Many<Type>
-  val classes : List<Class>
-  val primitives : List<Primitive>
+interface Expr : Command
+interface Command
+interface EWhile : Command {
+  var cond : Expr
+  var body : Command
 }
-interface Type {
+interface EFor : Command {
+  var varx : String
+  var list : Expr
+  var body : Command
+}
+interface EIf : Command {
+  var cond : Expr
+  var body : Command
+  var body2 : Command?
+}
+interface EBlock : Command {
+  val fundefs : Many<EFunDef>
+  val body : Many<Command>
+}
+interface EFunDef {
   var name : String
-  var schema : Schema
-  val key : Field?
+  val formals : Many<Formal>
+  var body : Command
 }
-interface Primitive : Type
-interface Class : Type {
-  val supers : Many<Class>
-  val subclasses : Many<Class>
-  val defined_fields : Many<Field>
-  val key : Field?
-  val fields : List<Field>
-  val all_fields : List<Field>
+interface EAssign : Command {
+  var varx : Expr
+  var value : Expr
 }
-interface Field {
-  var name : String
-  var owner : Class
-  var type : Type
-  var optional : Boolean
-  var many : Boolean
-  var key : Boolean
-  var inverse : Field?
-  var computed : Expr?
-  var traversal : Boolean
+interface EImport : Command {
+  var path : String
 }
-interface Expr
 interface ETernOp : Expr {
   var op1 : String
   var op2 : String
@@ -76,9 +77,6 @@ interface ESubscript : Expr {
 }
 interface EList : Expr {
   val elems : Many<Expr>
-}
-interface EAddress : Expr {
-  var e : Expr
 }
 interface ENew : Expr {
   var cls : String
