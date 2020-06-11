@@ -6,9 +6,10 @@ S ::= [Schema] "package" classes:Sup /
                "import schema.Many" / 
                classes:C* @/
 
-C ::= [Class] "interface" Name (":" supers:Sup+ @",")? ("{"/>
-      defined_fields:F+ @/
-      </ "}")?
+C ::= [Class] "interface" Name (":" supers:Sup+ @",")? 
+              ("{"/>
+                  defined_fields:F+ @/
+              </"}")?
       
 Sup ::= [Class] Name
 Name ::= {name=="val"} "value" 
@@ -19,15 +20,16 @@ Name ::= {name=="val"} "value"
        | {name=="out"} "outs"
        | name:sym 
 
-F ::= [Field]  (Computed | Many | Single)  // Override
+F ::= [Field] (Computed | Keyed | Many | Single)  // Override
 
 Computed ::= "val" #(computed:Expr). Name ":" Comp
-Many ::=  "val" {many} Name ":" "Many" P
-Single ::= "var" Name ":" type:TN Opt?
-Comp ::= "List" P {many} | type:TN Opt?
+Keyed    ::= "val" {many and inverse and (not inverse.many) and (type.key != nil)} Name ":" "Map<". "String" ."," type:TN .">"
+Many     ::= "val" {many} Name ":" "Many" P
+Single   ::= "var" Name ":" type:TN Opt?
+Comp     ::= "List" P {many} | type:TN Opt?
 Override ::= "override" {(((owner.supers).flat_map() {|s| s.all_fields }).find(name)) != nil} 
-P ::= ."<". type:TN .">"
-Opt ::= ."?" {optional}
+P        ::= ."<". type:TN .">"
+Opt      ::= ."?" {optional}
 
 TN ::= [Class] Name
      | [Primitive] ("String" {name=="str"}

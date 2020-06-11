@@ -7,7 +7,7 @@ open class GrammarImp : Grammar {
     this.start = start
   }
   override var start : Rule
-  override val rules = ManyOne(this, Rule::grammar)
+  val rules = hashMapOf()
 }
 open class PatternImp : Pattern {
   constructor(
@@ -274,14 +274,6 @@ open class EListImp : EList, ExprImp {
   ) : super() {
   }
   override val elems = ArrayList<Expr> ()
-}
-open class EAddressImp : EAddress, ExprImp {
-  constructor(
-    e : Expr
-  ) : super() {
-    this.e = e
-  }
-  override var e : Expr
 }
 open class ENewImp : ENew, ExprImp {
   constructor(

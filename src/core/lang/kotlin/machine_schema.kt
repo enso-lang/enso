@@ -2,13 +2,13 @@ package Machine
 import schema.Many
 interface Machine {
   var start : State
-  val states : Many<State>
+  val states : Map<String, State>
 }
 interface State {
   var machine : Machine
   var name : String
-  val outs : Many<Trans>
-  val ins : Many<Trans>
+  val outs : Map<String, Trans>
+  val ins : Map<String, Trans>
 }
 interface Trans {
   var event : String

@@ -2,7 +2,7 @@ package Grammar
 import schema.Many
 interface Grammar {
   var start : Rule
-  val rules : Many<Rule>
+  val rules : Map<String, Rule>
 }
 interface Pattern
 interface Rule {
@@ -102,9 +102,6 @@ interface ESubscript : Expr {
 }
 interface EList : Expr {
   val elems : Many<Expr>
-}
-interface EAddress : Expr {
-  var e : Expr
 }
 interface ENew : Expr {
   var cls : String

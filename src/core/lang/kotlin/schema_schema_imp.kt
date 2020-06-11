@@ -4,7 +4,7 @@ open class SchemaImp : Schema {
   constructor(
   ) {
   }
-  override val types = ManyOne(this, Type::schema)
+  val types = hashMapOf()
   override val classes : List<Class> by lazy {
     types.select() { (t)-> t is Class }
   }
@@ -40,7 +40,7 @@ open class ClassImp : Class, TypeImp {
   }
   override val supers = ManyMany(this, Class::subclasses)
   override val subclasses = ManyMany(this, Class::supers)
-  override val defined_fields = ManyOne(this, Field::owner)
+  val defined_fields = hashMapOf()
   override val key : Field? by lazy {
     fields.find() { (f)-> f.key }
   }
@@ -207,14 +207,6 @@ open class EListImp : EList, ExprImp {
   ) : super() {
   }
   override val elems = ArrayList<Expr> ()
-}
-open class EAddressImp : EAddress, ExprImp {
-  constructor(
-    e : Expr
-  ) : super() {
-    this.e = e
-  }
-  override var e : Expr
 }
 open class ENewImp : ENew, ExprImp {
   constructor(

@@ -1,8 +1,8 @@
 {
   "filename": "schema_kt1.grammar",
   "source": "core/lang/models/schema_kt1.grammar",
-  "date": "2020-06-04 22:24:41 -0500",
-  "checksum": "b04040fdce375ce5859e189d8fc1d917d1d327a7",
+  "date": "2020-06-09 14:01:34 -0500",
+  "checksum": "fe56ef45df6c8160d78cd684cb362931c196a5e8",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -39,6 +39,18 @@
       "source": "core/expr/models/expr.grammar",
       "date": "2020-04-27 10:58:20 -0500",
       "checksum": "37bced70c9e3757f0c686b0ab95b73aa7d86c355"
+    },
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "5cb444d76d5339b1db23e5adfa7e7fc6f262c87f"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "2807a287e77e7aac5a3f4583b2d740d74cef3f07"
     }
   ],
   "model": {
@@ -440,6 +452,15 @@
                         "elements": [
                           {
                             "class": "Call",
+                            "rule": "rules[Keyed]"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "Sequence",
+                        "elements": [
+                          {
+                            "class": "Call",
                             "rule": "rules[Many]"
                           }
                         ]
@@ -510,6 +531,116 @@
                 {
                   "class": "Call",
                   "rule": "rules[Comp]"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Keyed",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "val"
+                },
+                {
+                  "class": "Code",
+                  "expr": {
+                    "class": "EBinOp",
+                    "op=": "&",
+                    "e1": {
+                      "class": "EBinOp",
+                      "op=": "&",
+                      "e1": {
+                        "class": "EBinOp",
+                        "op=": "&",
+                        "e1": {
+                          "class": "EVar",
+                          "name=": "many"
+                        },
+                        "e2": {
+                          "class": "EVar",
+                          "name=": "inverse"
+                        }
+                      },
+                      "e2": {
+                        "class": "EUnOp",
+                        "op=": "!",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "inverse"
+                          },
+                          "fname=": "many"
+                        }
+                      }
+                    },
+                    "e2": {
+                      "class": "EBinOp",
+                      "op=": "!=",
+                      "e1": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "type"
+                        },
+                        "fname=": "key"
+                      },
+                      "e2": {
+                        "class": "ENil"
+                      }
+                    }
+                  }
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Name]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ":"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "Map<"
+                },
+                {
+                  "class": "NoSpace"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "String"
+                },
+                {
+                  "class": "NoSpace"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ","
+                },
+                {
+                  "class": "Field",
+                  "name=": "type",
+                  "arg": {
+                    "class": "Call",
+                    "rule": "rules[TN]"
+                  }
+                },
+                {
+                  "class": "NoSpace"
+                },
+                {
+                  "class": "Lit",
+                  "value=": ">"
                 }
               ]
             }

@@ -1,8 +1,8 @@
 {
   "filename": "schema_kt2.grammar",
   "source": "core/lang/models/schema_kt2.grammar",
-  "date": "2020-06-04 22:24:41 -0500",
-  "checksum": "ac3b4821d45f73709403309baf10827668920fc7",
+  "date": "2020-06-09 14:20:05 -0500",
+  "checksum": "a04ae70dee1e2d553704e8289bf807633bd96d8e",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -39,6 +39,18 @@
       "source": "core/lang/models/expr_kt.grammar",
       "date": "2020-06-04 22:24:41 -0500",
       "checksum": "e006973446d19d195a41a8f59cdb49e264de20c8"
+    },
+    {
+      "filename": "grammar.grammar",
+      "source": "core/grammar/models/grammar.grammar",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "5cb444d76d5339b1db23e5adfa7e7fc6f262c87f"
+    },
+    {
+      "filename": "grammar.schema",
+      "source": "core/grammar/models/grammar.schema",
+      "date": "2020-06-04 22:37:38 -0500",
+      "checksum": "2807a287e77e7aac5a3f4583b2d740d74cef3f07"
     }
   ],
   "model": {
@@ -1141,6 +1153,15 @@
               "elements": [
                 {
                   "class": "Call",
+                  "rule": "rules[Keyed]"
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Call",
                   "rule": "rules[Many]"
                 }
               ]
@@ -1311,6 +1332,87 @@
                 {
                   "class": "Lit",
                   "value=": ">"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
+        "name=": "Keyed",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "val"
+                },
+                {
+                  "class": "Code",
+                  "expr": {
+                    "class": "EBinOp",
+                    "op=": "&",
+                    "e1": {
+                      "class": "EBinOp",
+                      "op=": "&",
+                      "e1": {
+                        "class": "EBinOp",
+                        "op=": "&",
+                        "e1": {
+                          "class": "EVar",
+                          "name=": "many"
+                        },
+                        "e2": {
+                          "class": "EVar",
+                          "name=": "inverse"
+                        }
+                      },
+                      "e2": {
+                        "class": "EUnOp",
+                        "op=": "!",
+                        "e": {
+                          "class": "EField",
+                          "e": {
+                            "class": "EVar",
+                            "name=": "inverse"
+                          },
+                          "fname=": "many"
+                        }
+                      }
+                    },
+                    "e2": {
+                      "class": "EBinOp",
+                      "op=": "!=",
+                      "e1": {
+                        "class": "EField",
+                        "e": {
+                          "class": "EVar",
+                          "name=": "type"
+                        },
+                        "fname=": "key"
+                      },
+                      "e2": {
+                        "class": "ENil"
+                      }
+                    }
+                  }
+                },
+                {
+                  "class": "Call",
+                  "rule": "rules[Name]"
+                },
+                {
+                  "class": "Lit",
+                  "value=": "="
+                },
+                {
+                  "class": "Lit",
+                  "value=": "hashMapOf()"
                 }
               ]
             }

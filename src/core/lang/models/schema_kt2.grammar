@@ -37,7 +37,7 @@ CBodyInit ::= [Field] "this.". FN "=" FN {(not many) and (computed==nil)} |
 
 FN ::= [Field] Name
 F ::= [Field] F1
-F1 ::= Computed | Many | Single |
+F1 ::= Computed | Keyed | Many | Single |
 
 //Override ::= "override" {((owner.supers).flat_map() {|s| s.all_fields }).find(name)} 
 
@@ -46,6 +46,7 @@ Computed ::= "override val" Name ":" Comp "by lazy {" />
     "}"
 Comp ::= "List". P {many} | type:TN Opt?
 P ::= ."<". type:TN .">"
+Keyed    ::= "val" {many and inverse and (not inverse.many) and (type.key != nil)} Name "=" "hashMapOf()"
 Many     ::= "override val" {many} Name "=" ManyInv
 ManyInv ::= ({inverse!=nil} MCons MConsArgs) | "ArrayList" P "()"
 MCons ::=  "ManyMany" {inverse.many} | "ManyOne"
