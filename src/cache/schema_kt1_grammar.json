@@ -1,8 +1,8 @@
 {
   "filename": "schema_kt1.grammar",
   "source": "core/lang/models/schema_kt1.grammar",
-  "date": "2020-06-09 14:01:34 -0500",
-  "checksum": "fe56ef45df6c8160d78cd684cb362931c196a5e8",
+  "date": "2020-06-11 11:53:18 -0500",
+  "checksum": "894b22ba99b4936d0dd1b95fa2e0de97365ee15e",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -611,21 +611,10 @@
                 },
                 {
                   "class": "Lit",
-                  "value=": "Map<"
+                  "value=": "Keyed<"
                 },
                 {
                   "class": "NoSpace"
-                },
-                {
-                  "class": "Lit",
-                  "value=": "String"
-                },
-                {
-                  "class": "NoSpace"
-                },
-                {
-                  "class": "Lit",
-                  "value=": ","
                 },
                 {
                   "class": "Field",

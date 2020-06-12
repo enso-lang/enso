@@ -7,7 +7,7 @@ open class MachineImp : Machine {
     this.start = start
   }
   override var start : State
-  val states = hashMapOf()
+  override val states = KeyedMany(this, State::machine)
 }
 open class StateImp : State {
   constructor(
@@ -19,8 +19,8 @@ open class StateImp : State {
   }
   override var machine : Machine by OneMany(Machine::states)
   override var name : String
-  val outs = hashMapOf()
-  val ins = hashMapOf()
+  override val outs = KeyedMany(this, Trans::from)
+  override val ins = KeyedMany(this, Trans::to)
 }
 open class TransImp : Trans {
   constructor(

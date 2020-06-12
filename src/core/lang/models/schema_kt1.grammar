@@ -23,7 +23,7 @@ Name ::= {name=="val"} "value"
 F ::= [Field] (Computed | Keyed | Many | Single)  // Override
 
 Computed ::= "val" #(computed:Expr). Name ":" Comp
-Keyed    ::= "val" {many and inverse and (not inverse.many) and (type.key != nil)} Name ":" "Map<". "String" ."," type:TN .">"
+Keyed    ::= "val" {many and inverse and (not inverse.many) and (type.key != nil)} Name ":" "Keyed<". type:TN .">"
 Many     ::= "val" {many} Name ":" "Many" P
 Single   ::= "var" Name ":" type:TN Opt?
 Comp     ::= "List" P {many} | type:TN Opt?

@@ -1,8 +1,8 @@
 {
   "filename": "schema_kt2.grammar",
   "source": "core/lang/models/schema_kt2.grammar",
-  "date": "2020-06-09 14:20:05 -0500",
-  "checksum": "a04ae70dee1e2d553704e8289bf807633bd96d8e",
+  "date": "2020-06-11 12:14:47 -0500",
+  "checksum": "274237268b394b218c48da410736b09f3512b2d9",
   "depends": [
     {
       "filename": "grammar.grammar",
@@ -1153,15 +1153,6 @@
               "elements": [
                 {
                   "class": "Call",
-                  "rule": "rules[Keyed]"
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Call",
                   "rule": "rules[Many]"
                 }
               ]
@@ -1340,87 +1331,6 @@
       },
       {
         "class": "Rule",
-        "name=": "Keyed",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Lit",
-                  "value=": "val"
-                },
-                {
-                  "class": "Code",
-                  "expr": {
-                    "class": "EBinOp",
-                    "op=": "&",
-                    "e1": {
-                      "class": "EBinOp",
-                      "op=": "&",
-                      "e1": {
-                        "class": "EBinOp",
-                        "op=": "&",
-                        "e1": {
-                          "class": "EVar",
-                          "name=": "many"
-                        },
-                        "e2": {
-                          "class": "EVar",
-                          "name=": "inverse"
-                        }
-                      },
-                      "e2": {
-                        "class": "EUnOp",
-                        "op=": "!",
-                        "e": {
-                          "class": "EField",
-                          "e": {
-                            "class": "EVar",
-                            "name=": "inverse"
-                          },
-                          "fname=": "many"
-                        }
-                      }
-                    },
-                    "e2": {
-                      "class": "EBinOp",
-                      "op=": "!=",
-                      "e1": {
-                        "class": "EField",
-                        "e": {
-                          "class": "EVar",
-                          "name=": "type"
-                        },
-                        "fname=": "key"
-                      },
-                      "e2": {
-                        "class": "ENil"
-                      }
-                    }
-                  }
-                },
-                {
-                  "class": "Call",
-                  "rule": "rules[Name]"
-                },
-                {
-                  "class": "Lit",
-                  "value=": "="
-                },
-                {
-                  "class": "Lit",
-                  "value=": "hashMapOf()"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
         "name=": "Many",
         "grammar": "",
         "arg": {
@@ -1544,6 +1454,33 @@
                       "name=": "inverse"
                     },
                     "fname=": "many"
+                  }
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "KeyedMany"
+                },
+                {
+                  "class": "Code",
+                  "expr": {
+                    "class": "EBinOp",
+                    "op=": "!=",
+                    "e1": {
+                      "class": "EField",
+                      "e": {
+                        "class": "EVar",
+                        "name=": "type"
+                      },
+                      "fname=": "key"
+                    },
+                    "e2": {
+                      "class": "ENil"
+                    }
                   }
                 }
               ]
@@ -1779,6 +1716,45 @@
       },
       {
         "class": "Rule",
+        "name=": "D1",
+        "grammar": "",
+        "arg": {
+          "class": "Alt",
+          "alts": [
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "OneMany"
+                },
+                {
+                  "class": "Code",
+                  "expr": {
+                    "class": "EField",
+                    "e": {
+                      "class": "EVar",
+                      "name=": "inverse"
+                    },
+                    "fname=": "many"
+                  }
+                }
+              ]
+            },
+            {
+              "class": "Sequence",
+              "elements": [
+                {
+                  "class": "Lit",
+                  "value=": "OneOne"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "class": "Rule",
         "name=": "DelArgs",
         "grammar": "",
         "arg": {
@@ -1843,45 +1819,6 @@
                 {
                   "class": "Lit",
                   "value=": ")"
-                }
-              ]
-            }
-          ]
-        }
-      },
-      {
-        "class": "Rule",
-        "name=": "D1",
-        "grammar": "",
-        "arg": {
-          "class": "Alt",
-          "alts": [
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Lit",
-                  "value=": "OneMany"
-                },
-                {
-                  "class": "Code",
-                  "expr": {
-                    "class": "EField",
-                    "e": {
-                      "class": "EVar",
-                      "name=": "inverse"
-                    },
-                    "fname=": "many"
-                  }
-                }
-              ]
-            },
-            {
-              "class": "Sequence",
-              "elements": [
-                {
-                  "class": "Lit",
-                  "value=": "OneOne"
                 }
               ]
             }

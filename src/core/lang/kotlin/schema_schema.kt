@@ -1,7 +1,7 @@
 package Schema
 import schema.Many
 interface Schema {
-  val types : Map<String, Type>
+  val types : Keyed<Type>
   val classes : List<Class>
   val primitives : List<Primitive>
 }
@@ -14,7 +14,7 @@ interface Primitive : Type
 interface Class : Type {
   val supers : Many<Class>
   val subclasses : Many<Class>
-  val defined_fields : Map<String, Field>
+  val defined_fields : Keyed<Field>
   val key : Field?
   val fields : List<Field>
   val all_fields : List<Field>

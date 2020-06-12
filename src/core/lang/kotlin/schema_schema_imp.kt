@@ -4,7 +4,7 @@ open class SchemaImp : Schema {
   constructor(
   ) {
   }
-  val types = hashMapOf()
+  override val types = KeyedMany(this, Type::schema)
   override val classes : List<Class> by lazy {
     types.select() { (t)-> t is Class }
   }
@@ -40,7 +40,7 @@ open class ClassImp : Class, TypeImp {
   }
   override val supers = ManyMany(this, Class::subclasses)
   override val subclasses = ManyMany(this, Class::supers)
-  val defined_fields = hashMapOf()
+  override val defined_fields = KeyedMany(this, Field::owner)
   override val key : Field? by lazy {
     fields.find() { (f)-> f.key }
   }

@@ -2,7 +2,7 @@ package Grammar
 import schema.Many
 interface Grammar {
   var start : Rule
-  val rules : Map<String, Rule>
+  val rules : Keyed<Rule>
 }
 interface Pattern
 interface Rule {

@@ -7,7 +7,7 @@ open class GrammarImp : Grammar {
     this.start = start
   }
   override var start : Rule
-  val rules = hashMapOf()
+  override val rules = KeyedMany(this, Rule::grammar)
 }
 open class PatternImp : Pattern {
   constructor(
